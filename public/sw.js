@@ -1,158 +1,164 @@
-// ═══════════════════════════════════════════════
-// SERVICE WORKER — CodeHerWay PWA
-//
-// Strategy:
-//   App shell (JS/CSS/HTML): Cache-first (fast loads)
-//   API calls (Supabase):    Network-first (fresh data)
-//   Fonts:                   Cache-first (never change)
-//   Course data:             Cache-first after first load
-//   Images:                  Cache-first
-//
-// The service worker caches the app shell on install
-// so returning users get instant loads even offline.
-// Supabase calls go network-first so progress syncs,
-// but fall back to cache if offline.
-// ═══════════════════════════════════════════════
+// Service worker for CodeHerWay.
+// Keep navigation network-first so deploys pick up the latest HTML shell.
 
-const CACHE_NAME = 'chw-v2';
-const SHELL_CACHE = 'chw-shell-v2';
-const DATA_CACHE = 'chw-data-v2';
-const FONT_CACHE = 'chw-fonts-v2';
+const CACHE_VERSION = 'v3';
+const CACHE_PREFIX = 'chw-';
+const SHELL_CACHE = `${CACHE_PREFIX}shell-${CACHE_VERSION}`;
+const DATA_CACHE = `${CACHE_PREFIX}data-${CACHE_VERSION}`;
+const FONT_CACHE = `${CACHE_PREFIX}fonts-${CACHE_VERSION}`;
 
-// App shell — cached on install
 const SHELL_FILES = [
-  '/',
   '/index.html',
   '/manifest.json',
   '/icon.svg',
   '/icon-192.png',
   '/icon-512.png',
+  '/apple-touch-icon.png',
 ];
 
-// ─── Install: cache app shell ────────────────
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(SHELL_CACHE).then((cache) => {
-      return cache.addAll(SHELL_FILES);
-    })
+    caches.open(SHELL_CACHE).then((cache) => cache.addAll(SHELL_FILES))
   );
-  // Activate immediately (don't wait for old SW to die)
+
   self.skipWaiting();
 });
 
-// ─── Activate: clean old caches ──────────────
 self.addEventListener('activate', (event) => {
-  const currentCaches = [SHELL_CACHE, DATA_CACHE, FONT_CACHE];
-  event.waitUntil(
-    caches.keys().then((names) => {
-      return Promise.all(
-        names
-          .filter((name) => !currentCaches.includes(name))
-          .map((name) => caches.delete(name))
-      );
-    })
-  );
-  // Take control of all clients immediately
-  self.clients.claim();
+  const currentCaches = new Set([SHELL_CACHE, DATA_CACHE, FONT_CACHE]);
+
+  event.waitUntil((async () => {
+    const names = await caches.keys();
+    await Promise.all(
+      names
+        .filter((name) => name.startsWith(CACHE_PREFIX) && !currentCaches.has(name))
+        .map((name) => caches.delete(name))
+    );
+
+    await self.clients.claim();
+  })());
 });
 
-// ─── Fetch: smart routing ────────────────────
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
+  const { request } = event;
+  const url = new URL(request.url);
 
-  // Skip non-GET requests (POST, PUT, DELETE)
-  if (event.request.method !== 'GET') return;
-
-  // Skip chrome-extension, websocket, etc.
+  if (request.method !== 'GET') return;
   if (!url.protocol.startsWith('http')) return;
+  if (request.cache === 'only-if-cached' && request.mode !== 'same-origin') return;
 
-  // ── Supabase API calls: network-first ──────
+  if (request.mode === 'navigate' || request.destination === 'document') {
+    event.respondWith(networkFirstNavigation(request));
+    return;
+  }
+
   if (url.hostname.includes('supabase')) {
-    event.respondWith(networkFirst(event.request, DATA_CACHE));
+    event.respondWith(networkFirst(request, DATA_CACHE));
     return;
   }
 
-  // ── Anthropic API calls: network-only ──────
-  if (url.hostname.includes('anthropic')) {
-    return; // Don't cache AI responses
-  }
-
-  // ── Google Fonts: cache-first ──────────────
-  if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
-    event.respondWith(cacheFirst(event.request, FONT_CACHE));
+  if (
+    url.hostname.includes('fonts.googleapis.com') ||
+    url.hostname.includes('fonts.gstatic.com')
+  ) {
+    event.respondWith(cacheFirst(request, FONT_CACHE));
     return;
   }
 
-  // ── CDN assets (Monaco, etc): cache-first ──
-  if (url.hostname.includes('cdn.jsdelivr.net') || url.hostname.includes('cdnjs.cloudflare.com')) {
-    event.respondWith(cacheFirst(event.request, DATA_CACHE));
+  if (
+    url.hostname.includes('cdn.jsdelivr.net') ||
+    url.hostname.includes('cdnjs.cloudflare.com')
+  ) {
+    event.respondWith(cacheFirst(request, DATA_CACHE));
     return;
   }
 
-  // ── Hashed assets (/assets/*): cache-first ─
   if (url.pathname.startsWith('/assets/')) {
-    event.respondWith(cacheFirst(event.request, SHELL_CACHE));
+    event.respondWith(
+      cacheFirst(request, SHELL_CACHE, { cacheableResponse: isCacheableAssetResponse })
+    );
     return;
   }
 
-  // ── Everything else: stale-while-revalidate ─
-  event.respondWith(staleWhileRevalidate(event.request, SHELL_CACHE));
+  event.respondWith(staleWhileRevalidate(request, SHELL_CACHE));
 });
 
-// ═══════════════════════════════════════════════
-// CACHING STRATEGIES
-// ═══════════════════════════════════════════════
+function isHtmlResponse(response) {
+  const contentType = response.headers.get('content-type') || '';
+  return contentType.includes('text/html');
+}
 
-// Cache-first: check cache, fall back to network
-async function cacheFirst(request, cacheName) {
-  const cached = await caches.match(request);
+function isCacheableAssetResponse(_request, response) {
+  return Boolean(response?.ok) && !isHtmlResponse(response);
+}
+
+async function cacheFirst(request, cacheName, options = {}) {
+  const { cacheableResponse = (_req, response) => Boolean(response?.ok) } = options;
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(request);
+
   if (cached) return cached;
 
-  try {
-    const response = await fetch(request);
-    if (response.ok) {
-      const cache = await caches.open(cacheName);
-      cache.put(request, response.clone());
-    }
-    return response;
-  } catch (err) {
-    // Offline fallback for navigation
-    if (request.mode === 'navigate') {
-      return caches.match('/index.html');
-    }
-    throw err;
+  const response = await fetch(request);
+  if (cacheableResponse(request, response)) {
+    await cache.put(request, response.clone());
   }
+
+  return response;
 }
 
-// Network-first: try network, fall back to cache
-async function networkFirst(request, cacheName) {
+async function networkFirst(request, cacheName, options = {}) {
+  const { cacheableResponse = (_req, response) => Boolean(response?.ok) } = options;
+  const cache = await caches.open(cacheName);
+
   try {
     const response = await fetch(request);
-    if (response.ok) {
-      const cache = await caches.open(cacheName);
-      cache.put(request, response.clone());
+    if (cacheableResponse(request, response)) {
+      await cache.put(request, response.clone());
     }
     return response;
-  } catch (err) {
-    const cached = await caches.match(request);
+  } catch (error) {
+    const cached = await cache.match(request);
     if (cached) return cached;
-    throw err;
+    throw error;
   }
 }
 
-// Stale-while-revalidate: return cache immediately, update in background
-async function staleWhileRevalidate(request, cacheName) {
-  const cached = await caches.match(request);
+async function staleWhileRevalidate(request, cacheName, options = {}) {
+  const { cacheableResponse = (_req, response) => Boolean(response?.ok) } = options;
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(request);
+
   const fetchPromise = fetch(request)
-    .then((response) => {
-      if (response.ok) {
-        caches.open(cacheName).then((cache) => {
-          cache.put(request, response.clone());
-        });
+    .then(async (response) => {
+      if (cacheableResponse(request, response)) {
+        await cache.put(request, response.clone());
       }
       return response;
     })
     .catch(() => cached);
 
   return cached || fetchPromise;
+}
+
+async function networkFirstNavigation(request) {
+  const cache = await caches.open(SHELL_CACHE);
+
+  try {
+    const response = await fetch(request, { cache: 'no-store' });
+    if (response.ok && isHtmlResponse(response)) {
+      await cache.put('/index.html', response.clone());
+    }
+    return response;
+  } catch (error) {
+    const fallback = await cache.match('/index.html');
+    if (fallback) return fallback;
+    throw error;
+  }
 }
