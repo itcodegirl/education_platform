@@ -2,3 +2,5 @@ node_modules
 dist
 .env
 .env.local
+.vscode
+.codex-backup-wrong-local

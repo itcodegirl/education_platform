@@ -34,7 +34,7 @@ export function AdminDashboard({ onClose }) {
           .from('profiles')
           .select('is_admin')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
         if (error) throw error;
         setIsAdmin(!!profile?.is_admin);
       } catch (err) {
@@ -385,7 +385,7 @@ export function AdminDashboard({ onClose }) {
                         <tbody>
                           {c.modules.flatMap(m =>
                             m.lessons.map(l => {
-                              const key = `${c.label}:${m.id}:${l.id}`;
+                              const key = `${c.label}|${m.title}|${l.title}`;
                               const count = c.lessonCounts[key] || 0;
                               const maxCount = Math.max(...Object.values(c.lessonCounts), 1);
                               return (

@@ -1,211 +1,128 @@
-# ⚡ CodeHerWay Learning Platform v2
+# CodeHerWay Learning Platform
 
-An interactive coding education platform for women in tech — now with Supabase cloud sync, user authentication, bookmarks, notes, and a full visual glow-up.
+Interactive coding education platform with course content, quizzes, code challenges, Supabase-backed progress sync, and AI tutoring through a Netlify Function.
 
-**Live:** [codeherway1.netlify.app](https://codeherway1.netlify.app)
+## Stack
 
----
+- React 18 + Vite
+- Supabase Auth + Postgres
+- Netlify static hosting + Netlify Functions
+- OpenAI Responses API for server-side AI features
 
-## 🆕 What's New in v2
+## Features
 
-### Architecture
-- **Plain JSX** — no TypeScript, you own every line
-- **Supabase backend** — all user data syncs to the cloud
-- **Auth system** — email/password + Google + GitHub login
-- **No localStorage dependency** — progress follows the user across devices
+- Four course tracks: HTML, CSS, JavaScript, and React
+- Lesson progress, bookmarks, notes, badges, streaks, and spaced repetition
+- Search, glossary, cheatsheets, and project ideas
+- Monaco-powered code preview and coding challenges
+- AI tutor and code help routed through a server-side function
 
-### New Features
-- 🔐 **Authentication** — sign up, login, OAuth (Google/GitHub)
-- ★ **Bookmarks** — save lessons, access from floating toolbar
-- ✎ **Notes** — per-lesson notes with auto-save to Supabase
-- 👤 **User profiles** — display name, avatar initial
+## Local Setup
 
-### UI Glow-Up
-- Smooth animations (fadeIn, scaleIn, float, glow, shimmer)
-- Hover micro-interactions on cards, buttons, search results
-- Animated auth page with grid background + floating glows
-- Better mobile layout with improved touch targets
-- Glassmorphic topbar with backdrop blur
-- Loading screen with pulsing brand
+### 1. Install dependencies
 
----
+```bash
+npm install
+```
 
-## 🚀 Setup
+### 2. Create environment variables
 
-### 1. Supabase
-
-1. Create a project at [supabase.com](https://supabase.com)
-2. Go to **SQL Editor** and run `supabase-schema.sql`
-3. Enable **Email auth** in Authentication → Providers
-4. (Optional) Enable **Google** and **GitHub** OAuth providers
-5. Copy your **Project URL** and **anon key** from Settings → API
-
-### 2. Environment
+Copy [`.env.example`](./.env.example) to `.env` and fill in your Supabase values:
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env`:
-```
+Required in `.env` for the frontend:
+
+```env
 VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key-here
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
-### 3. Run Locally
+### 3. Configure Supabase
+
+1. Create a Supabase project.
+2. Run [`supabase-schema.sql`](./supabase-schema.sql) in the SQL editor.
+3. Enable Email auth.
+4. Optionally enable Google and GitHub OAuth providers.
+5. Copy the project URL and anon key into `.env`.
+
+### 4. Run the app
 
 ```bash
-npm install
 npm run dev
-# Opens at http://localhost:5173
 ```
 
-### 4. Deploy to Netlify
+## AI Setup
 
-**Option A: Git Deploy (recommended)**
-1. Push to GitHub
-2. Netlify → Add new site → Import from Git
-3. Build command: `npm run build`
-4. Publish directory: `dist`
-5. Add env vars in Netlify → Site settings → Environment variables
+The frontend does not call model providers directly. AI requests go through [`netlify/functions/ai.js`](./netlify/functions/ai.js), which keeps the provider key off the client.
 
-**Option B: CLI**
-```bash
-npm run build
-npx netlify deploy --prod --dir=dist
+Set these server-side environment variables where your Netlify Functions run:
+
+```env
+OPENAI_API_KEY=your-openai-api-key
+OPENAI_MODEL=gpt-5.4-mini
 ```
 
----
+Notes:
 
-## 📁 Project Structure
+- `OPENAI_API_KEY` is required for AI features.
+- `OPENAI_MODEL` is optional. The function defaults to `gpt-5.4-mini`.
+- Do not put `OPENAI_API_KEY` in client-side `VITE_` variables.
 
-```
-codeherway-v2/
-├── supabase-schema.sql           ← Run this in Supabase SQL Editor
-├── .env.example                  ← Copy to .env, add your keys
-├── src/
-│   ├── utils/
-│   │   ├── supabase.js           ← Supabase client
-│   │   ├── helpers.js            ← XP math, dates, reading time
-│   │   ├── markdown.jsx          ← Lesson content renderer
-│   │   └── iframeStyles.js       ← Code preview iframe CSS
-│   ├── context/
-│   │   ├── AuthContext.jsx       ← Auth (signup/login/OAuth/logout)
-│   │   ├── ThemeContext.jsx      ← Dark/light theme
-│   │   └── ProgressContext.jsx   ← All data synced to Supabase
-│   ├── hooks/
-│   │   └── useKeyboardNav.js     ← Keyboard shortcuts
-│   ├── data/
-│   │   ├── index.js              ← Course assembly
-│   │   ├── quizzes.js            ← All quiz questions
-│   │   ├── html/course.js        ← HTML course (14 modules)
-│   │   ├── css/course.js         ← CSS course (14 modules)
-│   │   ├── js/course.js          ← JS course (14 modules)
-│   │   ├── react/course.js       ← React course (14 modules)
-│   │   └── reference/            ← Cheatsheets, glossary, projects
-│   ├── components/
-│   │   ├── AuthPage.jsx          ← Login/signup page (NEW)
-│   │   ├── Sidebar.jsx           ← Navigation + stats + user bar
-│   │   ├── LessonView.jsx        ← Lesson + bookmarks + notes
-│   │   ├── CodePreview.jsx       ← Code/Preview tabs
-│   │   ├── QuizView.jsx          ← Interactive quizzes
-│   │   ├── SearchPanel.jsx       ← Cross-course search (⌘K)
-│   │   ├── BookmarksPanel.jsx    ← Saved lessons (NEW)
-│   │   ├── CheatsheetPanel.jsx   ← Syntax reference
-│   │   ├── GlossaryPanel.jsx     ← Searchable glossary
-│   │   ├── ProjectsPanel.jsx     ← Build project ideas
-│   │   ├── BadgesPanel.jsx       ← Achievement grid
-│   │   ├── SRPanel.jsx           ← Spaced repetition
-│   │   ├── BottomToolbar.jsx     ← Floating tool buttons
-│   │   ├── XPPopup.jsx           ← XP gain animation
-│   │   ├── BadgeUnlock.jsx       ← Badge unlock animation
-│   │   └── ThemeToggle.jsx       ← Dark/light toggle
-│   ├── styles/
-│   │   └── App.css               ← All styles (upgraded)
-│   ├── App.jsx                   ← Root component
-│   └── main.jsx                  ← Entry point + providers
-├── package.json
-├── vite.config.js
-└── netlify.toml
+## Netlify Deploy
+
+This repo is already configured for Netlify in [`netlify.toml`](./netlify.toml):
+
+- Build command: `npm run build`
+- Publish directory: `dist`
+- Functions directory: `netlify/functions`
+
+In Netlify, add these environment variables:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `OPENAI_API_KEY`
+- Optional: `OPENAI_MODEL`
+
+After deploy, test:
+
+1. Sign up or sign in.
+2. Complete a lesson and confirm progress syncs.
+3. Open the AI tutor or challenge help and confirm the function responds.
+
+## Project Structure
+
+```text
+src/
+  components/
+  context/
+  data/
+  hooks/
+  layouts/
+  lib/
+  providers/
+  routes/
+  services/
+  styles/
+  utils/
+netlify/
+  functions/
+public/
+supabase-schema.sql
+netlify.toml
+vite.config.js
 ```
 
----
+## Key Files
 
-## 🗄️ Supabase Tables
+- [`src/lib/supabaseClient.js`](./src/lib/supabaseClient.js): Supabase client bootstrap
+- [`src/context/ProgressContext.jsx`](./src/context/ProgressContext.jsx): synced learning progress and gamification state
+- [`src/services/authService.js`](./src/services/authService.js): auth operations
+- [`src/services/aiService.js`](./src/services/aiService.js): frontend AI requests
+- [`netlify/functions/ai.js`](./netlify/functions/ai.js): server-side OpenAI proxy
 
-| Table | Purpose |
-|-------|---------|
-| `profiles` | Display name, avatar (auto-created on signup) |
-| `progress` | Completed lessons, quiz scores, last position |
-| `gamification` | XP, streak, daily goals, earned badges |
-| `bookmarks` | Saved lessons |
-| `notes` | Per-lesson notes |
-| `sr_cards` | Spaced repetition review queue |
+## Future AI Direction
 
-All tables have Row Level Security — users can only access their own data.
-
----
-
-## ✨ Features
-
-### 4 Course Tracks
-| Course | Modules | Accent |
-|--------|---------|--------|
-| 🧱 HTML | 14 | `#ff6b9d` Pink |
-| 🎨 CSS | 14 | `#4ecdc4` Cyan |
-| ⚡ JavaScript | 14 | `#ffa726` Amber |
-| ⚛️ React | 14 | `#a78bfa` Purple |
-
-### Learning Tools
-- ✏️ Code preview with Code/Preview tabs
-- 📝 Quiz questions (lesson + module level)
-- 🔍 Cross-course search (⌘K or /)
-- 📋 Cheat sheets per course
-- 📖 Searchable glossary
-- 🔨 Build project ideas
-- ★ Bookmarks (NEW)
-- ✎ Per-lesson notes (NEW)
-
-### Gamification
-- ⭐ XP system with level progression
-- 🏆 16 earnable badges with unlock animations
-- 🔥 Streak tracking
-- 🎯 Daily goal tracker
-- 🔄 Spaced repetition
-
-### Auth & Cloud
-- 🔐 Email/password authentication
-- 🔗 Google + GitHub OAuth
-- ☁️ All progress synced to Supabase
-- 📱 Works across devices
-
----
-
-## ⌨️ Keyboard Shortcuts
-
-| Key | Action |
-|-----|--------|
-| `←` `→` | Navigate lessons |
-| `D` | Toggle mark done |
-| `⌘K` or `/` | Open search |
-| `1` `2` `3` `4` | Switch courses |
-| `M` | Toggle sidebar (mobile) |
-| `Esc` | Close any panel |
-
----
-
-## 🛠️ Tech Stack
-
-- **UI:** React 18 (JSX, no TypeScript)
-- **Build:** Vite
-- **Backend:** Supabase (Postgres + Auth + RLS)
-- **Styling:** Custom CSS with CSS Variables
-- **Deploy:** Netlify (static)
-
----
-
-## 📄 License
-
-© 2025 CodeHerWay. All rights reserved.
-
-Built with 💪 by [CodeHerWay](https://codeherway.com) — empowering women in tech.
+If you later want an orchestrated AI engine, this setup is a good base. The recommended path is to keep orchestration behind server routes or functions and let the frontend call your own app-level AI endpoints for tutor flows, memory, moderation, and tool use.

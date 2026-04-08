@@ -62,7 +62,7 @@ export const LessonView = memo(function LessonView({ lesson, emoji, lang, lesson
         <div className="lv-actions">
           <button
             className={`lv-action-btn ${bookmarked ? 'active' : ''}`}
-            onClick={() => toggleBookmark(lessonKey, courseId, moduleTitle, lesson.title)}
+            onClick={() => toggleBookmark(lessonKey, courseId, lesson.title)}
             title={bookmarked ? 'Remove bookmark' : 'Bookmark this lesson'}
           >
             {bookmarked ? '★' : '☆'}

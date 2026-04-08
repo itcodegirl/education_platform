@@ -25,9 +25,6 @@ export const TIMING = {
 // Milestone thresholds for confetti
 export const MILESTONES = [5, 10, 25, 50, 75, 92];
 
-// AI API
-export const AI_MODEL = 'claude-sonnet-4-20250514';
-
 // ─── Functions ──────────────────────────────────
 export function getLevel(xp) {
   return Math.floor(xp / XP_PER_LEVEL) + 1;

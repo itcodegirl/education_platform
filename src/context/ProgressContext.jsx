@@ -67,6 +67,7 @@ const ProgressContext = createContext({
 
 export function ProgressProvider({ children }) {
   const { user } = useAuth();
+  const [loadVersion, setLoadVersion] = useState(0);
 
   // Silent Supabase write — state is already updated optimistically.
   // If the write fails, local state is correct for the session,
@@ -88,15 +89,34 @@ export function ProgressProvider({ children }) {
   const [bookmarks, setBookmarks] = useState([]);
   const [notes, setNotes] = useState({});
   const [coursesVisited, setCoursesVisited] = useState([]);
-  const [lastPosition, setLastPosition] = useState({ course: '', mod: '', les: '' });
+  const [lastPosition, setLastPosition] = useState({ course: '', mod: '', les: '', time: 0 });
   const [xpPopup, setXpPopup] = useState(null);
   const [newBadge, setNewBadge] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [loadError, setLoadError] = useState(null);
 
+  const resetUserState = useCallback(() => {
+    setCompleted([]);
+    setQuizScores({});
+    setXpTotal(0);
+    setStreak(0);
+    setStreakLastDate('');
+    setDailyCount(0);
+    setDailyDate('');
+    setEarnedBadges({});
+    setSrCards([]);
+    setBookmarks([]);
+    setNotes({});
+    setCoursesVisited([]);
+    setLastPosition({ course: '', mod: '', les: '', time: 0 });
+    setXpPopup(null);
+    setNewBadge(null);
+  }, []);
+
   // ─── Load all data from Supabase on login ──────
   useEffect(() => {
     if (!user) {
+      resetUserState();
       setDataLoaded(false);
       setLoadError(null);
       return;
@@ -167,6 +187,7 @@ export function ProgressProvider({ children }) {
           course: posRes.data.course || '',
           mod: posRes.data.mod || '',
           les: posRes.data.les || '',
+          time: posRes.data.updated_at ? new Date(posRes.data.updated_at).getTime() : 0,
         });
       }
 
@@ -179,7 +200,7 @@ export function ProgressProvider({ children }) {
     };
 
     loadAll();
-  }, [user]);
+  }, [user, loadVersion, resetUserState]);
 
   // ─── Streak check on load ─────────────────────
   useEffect(() => {
@@ -200,7 +221,7 @@ export function ProgressProvider({ children }) {
     setStreakLastDate(today);
 
     dbWrite(progressService.updateStreak(user.id, newDays, today));
-  }, [user, dataLoaded]);
+  }, [user, dataLoaded, streakLastDate, streak, dbWrite]);
 
   // ─── Progress ─────────────────────────────────
   const completedSet = useMemo(() => new Set(completed), [completed]);
@@ -305,7 +326,7 @@ export function ProgressProvider({ children }) {
         updated[b.id] = { date: getTodayString() };
         if (!foundNew) foundNew = b;
 
-        dbWrite(progressService.awardBadge(user.id, id));
+        dbWrite(progressService.awardBadge(user.id, b.id));
       }
     }
 
@@ -313,11 +334,11 @@ export function ProgressProvider({ children }) {
       setEarnedBadges(updated);
       setNewBadge(foundNew);
     }
-  }, [user, completed, quizScores, xpTotal, streak, coursesVisited, dailyCount, dailyDate, earnedBadges, bookmarks, notes]);
+  }, [user, completed, quizScores, xpTotal, streak, coursesVisited, dailyCount, dailyDate, earnedBadges, bookmarks, notes, dbWrite]);
 
   useEffect(() => {
     if (dataLoaded) checkBadges();
-  }, [completed.length, Object.keys(quizScores).length, xpTotal, dailyCount, bookmarks.length, Object.keys(notes).length]);
+  }, [dataLoaded, checkBadges, completed.length, quizScores, xpTotal, dailyCount, bookmarks.length, notes]);
 
   const clearNewBadge = useCallback(() => setNewBadge(null), []);
 
@@ -365,8 +386,8 @@ export function ProgressProvider({ children }) {
     const newEase = correct ? Math.min(card.ease + 0.1, 3.0) : Math.max(card.ease - 0.2, 1.3);
     const nextReview = new Date(Date.now() + (correct ? newInterval : 1) * TIMING.dayMs);
 
-    dbWrite(progressService.updateSRCard(user.id, question, { next_review: next.toISOString(), interval_days: newInterval, ease: newEase }));
-  }, [user, srCards]);
+    dbWrite(progressService.updateSRCard(user.id, question, { next_review: nextReview.toISOString(), interval_days: newInterval, ease: newEase }));
+  }, [user, srCards, dbWrite]);
 
   const getDueSRCards = useCallback(() => {
     return srCards.filter(c => c.nextReview <= Date.now());
@@ -385,7 +406,7 @@ export function ProgressProvider({ children }) {
       setBookmarks(prev => [...prev, newBookmark]);
       dbWrite(progressService.addBookmark(user.id, { lessonKey, courseId, lessonTitle }));
     }
-  }, [user, bookmarks]);
+  }, [user, bookmarks, dbWrite]);
 
   const isBookmarked = useCallback((lessonKey) => {
     return bookmarks.some(b => b.lesson_key === lessonKey);
@@ -405,9 +426,9 @@ export function ProgressProvider({ children }) {
   // ─── Position ─────────────────────────────────
   const savePosition = useCallback(async (pos) => {
     if (!user) return;
-    setLastPosition(prev => ({ ...prev, ...pos }));
-    dbWrite(progressService.savePosition(user.id, position));
-  }, [user]);
+    setLastPosition(prev => ({ ...prev, ...pos, time: Date.now() }));
+    dbWrite(progressService.savePosition(user.id, pos));
+  }, [user, dbWrite]);
 
   // ─── Courses Visited ──────────────────────────
   const trackCourseVisit = useCallback(async (courseId) => {
@@ -415,11 +436,12 @@ export function ProgressProvider({ children }) {
     if (coursesVisited.includes(courseId)) return;
     setCoursesVisited(prev => [...prev, courseId]);
     dbWrite(progressService.trackCourseVisit(user.id, courseId));
-  }, [user, coursesVisited]);
+  }, [user, coursesVisited, dbWrite]);
 
   const retryLoad = useCallback(() => {
     setDataLoaded(false);
     setLoadError(null);
+    setLoadVersion((version) => version + 1);
   }, []);
 
   const value = useMemo(() => ({

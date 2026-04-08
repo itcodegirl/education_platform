@@ -43,7 +43,10 @@ export function PanelManager({
         <WelcomeBack
           isOpen
           onClose={() => panels.setShowWelcome(false)}
-          onResume={() => panels.setShowWelcome(false)}
+          onResume={() => {
+            nav.resumeFromPosition(lastPosition);
+            panels.setShowWelcome(false);
+          }}
           displayName={profile?.display_name}
           lastPosition={lastPosition}
           completedCount={completed.length}

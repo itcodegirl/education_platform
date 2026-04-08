@@ -106,6 +106,17 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--cyan);
+  outline-offset: 3px;
+}
+
 /* ─── 3. Animations ───────────────────────────── */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }

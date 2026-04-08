@@ -6,6 +6,28 @@
 import { useState, useCallback, useRef } from 'react';
 import { COURSES, QUIZ_MAP } from '../data';
 
+function findSavedPosition(lastPosition) {
+  if (!lastPosition?.course || !lastPosition?.mod || !lastPosition?.les) {
+    return null;
+  }
+
+  const courseIndex = COURSES.findIndex((course) => lastPosition.course.includes(course.label));
+  if (courseIndex === -1) return null;
+
+  const course = COURSES[courseIndex];
+  const moduleIndex = course.modules.findIndex((module) => lastPosition.mod.includes(module.title));
+  if (moduleIndex === -1) return null;
+
+  const isModuleQuiz = lastPosition.les.toLowerCase().includes('module quiz');
+  const lessonIndex = isModuleQuiz
+    ? course.modules[moduleIndex].lessons.length - 1
+    : course.modules[moduleIndex].lessons.findIndex((lesson) => lesson.title === lastPosition.les);
+
+  if (lessonIndex === -1) return null;
+
+  return { courseIndex, moduleIndex, lessonIndex, isModuleQuiz };
+}
+
 export function useNavigation() {
   const [courseIdx, setCourseIdx] = useState(0);
   const [modIdx, setModIdx] = useState(0);
@@ -26,7 +48,10 @@ export function useNavigation() {
   const isFirst = modIdx === 0 && lesIdx === 0 && !showModQuiz;
   const isLast = modIdx === modules.length - 1 && lesIdx === mod.lessons.length - 1 && (showModQuiz || !moduleQuiz);
 
-  const scrollTop = () => mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  const scrollTop = () => {
+    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    mainRef.current?.scrollTo({ top: 0, behavior });
+  };
 
   const go = useCallback((mi, li) => {
     setModIdx(mi);
@@ -80,13 +105,25 @@ export function useNavigation() {
     scrollTop();
   }, [modules]);
 
+  const resumeFromPosition = useCallback((lastPosition) => {
+    const saved = findSavedPosition(lastPosition);
+    if (!saved) return false;
+
+    setCourseIdx(saved.courseIndex);
+    setModIdx(saved.moduleIndex);
+    setLesIdx(saved.lessonIndex);
+    setShowModQuiz(saved.isModuleQuiz);
+    scrollTop();
+    return true;
+  }, []);
+
   return {
     courseIdx, modIdx, lesIdx, showModQuiz,
     course, modules, mod, les,
     lessonKey, lessonQuiz, moduleQuiz,
     courseTotal, isFirst, isLast, isLastLesson,
     mainRef,
-    go, next, prev, switchCourse, goToSearch, goToModQuiz,
+    go, next, prev, switchCourse, goToSearch, goToModQuiz, resumeFromPosition,
     setShowModQuiz,
   };
 }

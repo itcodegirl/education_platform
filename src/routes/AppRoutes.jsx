@@ -17,7 +17,7 @@ const AdminDashboard = lazy(() =>
 export default function AppRoutes() {
   const { theme } = useTheme();
   const { user, profile, loading: authLoading, signOut } = useAuth();
-  const { dataLoaded, loadError } = useProgress();
+  const { dataLoaded, loadError, retryLoad } = useProgress();
 
   // ─── Loading (auth check in progress) ─────
   if (authLoading) {
@@ -68,7 +68,7 @@ export default function AppRoutes() {
   if (loadError) {
     return (
       <div className={`loading-screen ${theme}`}>
-        <ConnectionError onRetry={() => window.location.reload()} />
+        <ConnectionError onRetry={retryLoad} />
       </div>
     );
   }

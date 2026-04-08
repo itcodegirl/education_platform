@@ -1,11 +1,11 @@
 // ═══════════════════════════════════════════════
 // AI TUTOR — Context-aware lesson assistant
-// Calls Anthropic API directly (no backend needed)
+// Uses the app's server-side AI endpoint
 // Knows the current lesson, module, and course
 // ═══════════════════════════════════════════════
 
 import { useState, useRef, useEffect } from 'react';
-import { AI_MODEL } from '../../utils/helpers';
+import { askLessonTutor } from '../../services/aiService';
 
 export function AITutor({ lesson, moduleTitle, courseId }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,7 +24,8 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
 
   // Scroll to latest message
   useEffect(() => {
-    messagesEnd.current?.scrollIntoView({ behavior: 'smooth' });
+    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    messagesEnd.current?.scrollIntoView({ behavior });
   }, [messages]);
 
   // Focus input when opened
@@ -75,25 +76,16 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
     setLoading(true);
 
     try {
-      const history = [...messages, userMsg].map(m => ({
+      const history = messages.map((m) => ({
         role: m.role === 'user' ? 'user' : 'assistant',
-        content: m.text
+        content: m.text,
       }));
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: AI_MODEL,
-          max_tokens: 1000,
-          system: buildSystemPrompt(),
-          messages: history
-        })
+      const aiText = await askLessonTutor({
+        system: buildSystemPrompt(),
+        history,
+        question,
       });
-
-      const data = await response.json();
-      const aiText = data.content?.[0]?.text
-        || 'Hmm, I couldn\'t process that. Try rephrasing your question!';
 
       setMessages(prev => [...prev, { role: 'assistant', text: aiText }]);
     } catch (err) {
@@ -142,8 +134,11 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
   return (
     <div className="ai-tutor">
       <button
+        type="button"
         className={`ai-tutor-toggle ${isOpen ? 'open' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-controls="lesson-ai-tutor-panel"
       >
         <span className="ai-tutor-icon">🤖</span>
         <span className="ai-tutor-label">AI Tutor</span>
@@ -154,7 +149,7 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
       </button>
 
       {isOpen && (
-        <div className="ai-tutor-panel">
+        <div id="lesson-ai-tutor-panel" className="ai-tutor-panel">
           {/* Messages */}
           <div className="ai-messages">
             {messages.length === 0 && (
@@ -168,6 +163,7 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
                   {suggestions.map((s, i) => (
                     <button
                       key={i}
+                      type="button"
                       className="ai-suggestion"
                       onClick={() => {
                         setInput(s);
@@ -224,6 +220,7 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
               type="submit"
               className="ai-send"
               disabled={!input.trim() || loading}
+              aria-label="Send message to AI tutor"
             >
               ↑
             </button>

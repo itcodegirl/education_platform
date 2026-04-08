@@ -10,7 +10,15 @@ export function useKeyboardNav({
   useEffect(() => {
     const handler = (e) => {
       const target = e.target;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+      const isEditable =
+        target instanceof HTMLElement &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable ||
+          target.closest('[contenteditable="true"], [role="textbox"], .monaco-editor'));
+
+      if (isEditable) return;
 
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
@@ -18,11 +26,13 @@ export function useKeyboardNav({
         return;
       }
 
-      if (e.key === '/' && !e.metaKey && !e.ctrlKey) {
+      if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) {
         e.preventDefault();
         onSearch();
         return;
       }
+
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
 
       switch (e.key) {
         case 'ArrowRight': onNext(); break;

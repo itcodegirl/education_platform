@@ -6,7 +6,7 @@
 
 import { useState, useRef, useCallback, lazy, Suspense } from 'react';
 import { IFRAME_STYLES } from '../../utils/iframeStyles';
-import { AI_MODEL } from '../../utils/helpers';
+import { askChallengeTutor } from '../../services/aiService';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { defineMonacoTheme, MONACO_THEME_NAME, MONACO_OPTIONS } from '../../utils/monacoTheme';
 
@@ -98,13 +98,8 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
       : 'not yet run';
 
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: AI_MODEL,
-          max_tokens: 600,
-          system: `You are the CodeHerWay AI Tutor helping a student with a coding challenge.
+      const aiText = await askChallengeTutor({
+        system: `You are the CodeHerWay AI Tutor helping a student with a coding challenge.
 
 Challenge: ${challenge.title}
 Description: ${challenge.description}
@@ -122,12 +117,10 @@ Rules:
 - Be encouraging and direct. No gatekeeping.
 - Keep answers to 2-3 short paragraphs max.
 - If they ask for the answer directly, nudge them to try the hint first.`,
-          messages: [{ role: 'user', content: question }]
-        })
+        question,
       });
 
-      const data = await response.json();
-      setAiHelp(data.content?.[0]?.text || 'Could not process that. Try rephrasing!');
+      setAiHelp(aiText || 'Could not process that. Try rephrasing!');
     } catch (err) {
       setAiHelp('Connection issue — check your internet and try again.');
     } finally {
@@ -183,7 +176,7 @@ Rules:
         <div className="cc-editor-pane">
           <div className="cc-pane-header">
             <span>✏️ Your Code</span>
-            <button className="cc-reset-btn" onClick={() => setCode(challenge.starter || '')}>
+            <button type="button" className="cc-reset-btn" onClick={() => setCode(challenge.starter || '')}>
               ↺ Reset
             </button>
           </div>
@@ -230,25 +223,28 @@ Rules:
 
       {/* Actions bar */}
       <div className="cc-actions">
-        <button className="cc-run-btn" onClick={runTests} disabled={!code.trim()}>
+        <button type="button" className="cc-run-btn" onClick={runTests} disabled={!code.trim()}>
           🧪 Run Tests ({totalTests})
         </button>
 
         <button
+          type="button"
           className={`cc-ai-btn ${showAiHelp ? 'active' : ''}`}
           onClick={() => setShowAiHelp(!showAiHelp)}
+          aria-expanded={showAiHelp}
+          aria-controls="challenge-ai-panel"
         >
           🤖 {showAiHelp ? 'Close Tutor' : 'Ask for Help'}
         </button>
 
         {challenge.hint && (
-          <button className="cc-hint-btn" onClick={() => setShowHint(!showHint)}>
+          <button type="button" className="cc-hint-btn" onClick={() => setShowHint(!showHint)} aria-expanded={showHint}>
             💡 {showHint ? 'Hide Hint' : 'Show Hint'}
           </button>
         )}
 
         {challenge.solution && (
-          <button className="cc-solution-btn" onClick={() => setShowSolution(!showSolution)}>
+          <button type="button" className="cc-solution-btn" onClick={() => setShowSolution(!showSolution)} aria-expanded={showSolution}>
             👁 {showSolution ? 'Hide Solution' : 'Show Solution'}
           </button>
         )}
@@ -256,7 +252,7 @@ Rules:
 
       {/* AI Help panel */}
       {showAiHelp && (
-        <div className="cc-ai-panel">
+        <div id="challenge-ai-panel" className="cc-ai-panel">
           <div className="cc-ai-header">
             <span>🤖 AI Tutor — Challenge Help</span>
           </div>
@@ -281,7 +277,7 @@ Rules:
                 'Give me a hint (not the answer)',
                 'Help me understand the error',
               ].map((s, i) => (
-                <button key={i} className="cc-ai-suggestion" onClick={() => askAiHelp(s)}>
+                <button key={i} type="button" className="cc-ai-suggestion" onClick={() => askAiHelp(s)}>
                   {s}
                 </button>
               ))}
@@ -296,9 +292,11 @@ Rules:
                 disabled={aiLoading}
               />
               <button
+                type="button"
                 className="cc-ai-send"
                 onClick={() => { if (aiInput.trim()) { askAiHelp(aiInput); setAiInput(''); } }}
                 disabled={!aiInput.trim() || aiLoading}
+                aria-label="Send challenge help request"
               >
                 {aiLoading ? '⏳' : '↑'}
               </button>

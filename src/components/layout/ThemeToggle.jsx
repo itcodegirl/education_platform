@@ -1,13 +1,17 @@
-// ═══════════════════════════════════════════════
-// THEME TOGGLE — Floating dark/light switch
-// ═══════════════════════════════════════════════
-
 import { useTheme } from '../../providers';
 
 export function ThemeToggle() {
   const { theme, toggle } = useTheme();
+  const nextTheme = theme === 'dark' ? 'light' : 'dark';
+
   return (
-    <button className="theme-toggle" onClick={toggle} title="Toggle theme">
+    <button
+      type="button"
+      className="theme-toggle"
+      onClick={toggle}
+      title="Toggle theme"
+      aria-label={`Switch to ${nextTheme} theme`}
+    >
       {theme === 'dark' ? '☀️' : '🌙'}
     </button>
   );

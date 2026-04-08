@@ -23,7 +23,7 @@ export async function loadProfile(userId) {
     .from('profiles')
     .select('display_name, avatar_url, is_admin, is_disabled')
     .eq('id', userId)
-    .single();
+    .maybeSingle();
   return data || null;
 }
 

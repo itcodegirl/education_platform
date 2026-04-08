@@ -13,15 +13,15 @@ export async function fetchAllUserData(uid) {
   ] = await Promise.all([
     supabase.from('progress').select('lesson_key').eq('user_id', uid),
     supabase.from('quiz_scores').select('quiz_key, score').eq('user_id', uid),
-    supabase.from('xp').select('total').eq('user_id', uid).single(),
-    supabase.from('streaks').select('days, last_date').eq('user_id', uid).single(),
-    supabase.from('daily_goals').select('goal_date, count').eq('user_id', uid).single(),
+    supabase.from('xp').select('total').eq('user_id', uid).maybeSingle(),
+    supabase.from('streaks').select('days, last_date').eq('user_id', uid).maybeSingle(),
+    supabase.from('daily_goals').select('goal_date, count').eq('user_id', uid).maybeSingle(),
     supabase.from('badges').select('badge_id, earned_at').eq('user_id', uid),
     supabase.from('sr_cards').select('*').eq('user_id', uid),
     supabase.from('bookmarks').select('*').eq('user_id', uid),
     supabase.from('notes').select('lesson_key, content').eq('user_id', uid),
     supabase.from('courses_visited').select('course_id').eq('user_id', uid),
-    supabase.from('last_position').select('course, mod, les').eq('user_id', uid).single(),
+    supabase.from('last_position').select('course, mod, les, updated_at').eq('user_id', uid).maybeSingle(),
   ]);
 
   return {
@@ -126,7 +126,11 @@ export function saveNote(uid, lessonKey, content) {
 // ─── Position ───────────────────────────────
 export function savePosition(uid, position) {
   return supabase.from('last_position').upsert({
-    user_id: uid, ...position, updated_at: new Date().toISOString(),
+    user_id: uid,
+    course: position.course,
+    mod: position.mod,
+    les: position.les,
+    updated_at: new Date().toISOString(),
   });
 }
 

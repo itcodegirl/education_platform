@@ -20,13 +20,24 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
   useEffect(() => {
     if (dataLoaded && user && !welcomeShown.current) {
       welcomeShown.current = true;
-      if (lastPosition.time > 0) {
+      if ((lastPosition?.time || 0) > 0) {
         setShowWelcome(true);
       } else if (!localStorage.getItem('chw-onboarded')) {
         setShowOnboarding(true);
       }
     }
   }, [dataLoaded, user, lastPosition]);
+
+  useEffect(() => {
+    if (user) return;
+    welcomeShown.current = false;
+    setPanel(null);
+    setSidebar(false);
+    setShowWelcome(false);
+    setShowOnboarding(false);
+    setShowCourseComplete(false);
+    setConfetti(false);
+  }, [user]);
 
   // Confetti on milestones
   const checkMilestone = (completedCount) => {
