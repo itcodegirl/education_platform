@@ -1,0 +1,95 @@
+name: Scheduled Ops Checks
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 15 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev
+
+  live-site-health:
+    name: Live Site Health
+    if: ${{ vars.PRODUCTION_URL != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Normalize site URL
+        id: site
+        env:
+          PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
+        run: |
+          site_url="${PRODUCTION_URL%/}"
+          echo "site_url=$site_url" >> "$GITHUB_OUTPUT"
+
+      - name: Check homepage
+        env:
+          SITE_URL: ${{ steps.site.outputs.site_url }}
+        run: |
+          code=$(curl -sS -o homepage.html -w "%{http_code}" "$SITE_URL/")
+          if [ "$code" != "200" ]; then
+            echo "Homepage check failed with HTTP $code"
+            exit 1
+          fi
+
+          if ! grep -q "CodeHerWay" homepage.html; then
+            echo "Homepage response does not look like the app shell"
+            exit 1
+          fi
+
+      - name: Check AI function health
+        env:
+          SITE_URL: ${{ steps.site.outputs.site_url }}
+        run: |
+          code=$(curl -sS -o ai.json -w "%{http_code}" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            "$SITE_URL/.netlify/functions/ai")
+
+          if [ "$code" != "400" ]; then
+            echo "AI function health check expected HTTP 400 for empty payload, got $code"
+            cat ai.json
+            exit 1
+          fi
+
+          if ! grep -q "No AI input provided" ai.json; then
+            echo "AI function response did not match expected validation message"
+            cat ai.json
+            exit 1
+          fi
+
+      - name: Write summary
+        env:
+          SITE_URL: ${{ steps.site.outputs.site_url }}
+        run: |
+          {
+            echo "## Live Site Health"
+            echo ""
+            echo "- URL: $SITE_URL"
+            echo "- Homepage: OK"
+            echo "- AI function: OK"
+          } >> "$GITHUB_STEP_SUMMARY"

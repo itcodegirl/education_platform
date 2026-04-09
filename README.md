@@ -94,6 +94,25 @@ After deploy, test:
 2. Complete a lesson and confirm progress syncs.
 3. Open the AI tutor or challenge help and confirm the function responds.
 
+## GitHub Automation
+
+This repo includes lightweight GitHub automation:
+
+- [`.github/workflows/ci-smoke.yml`](./.github/workflows/ci-smoke.yml): build check for PRs and pushes to `main`
+- [`.github/workflows/ops-checks.yml`](./.github/workflows/ops-checks.yml): weekly dependency audit and optional live-site health check
+
+To enable live-site health checks, add a GitHub repository variable:
+
+- `PRODUCTION_URL`
+
+Example:
+
+```text
+https://mellow-sunflower-9c92cd.netlify.app
+```
+
+The health check pings the homepage and the Netlify AI function without requiring production secrets.
+
 ## Project Structure
 
 ```text
