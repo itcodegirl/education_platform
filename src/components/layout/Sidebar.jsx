@@ -52,6 +52,7 @@ export const Sidebar = memo(function Sidebar({
   const inLevel = getXPInLevel(xpTotal);
   const xpPct = Math.round((inLevel / XP_PER_LEVEL) * 100);
   const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Coder';
+  const userInitial = displayName.trim().charAt(0).toUpperCase() || 'C';
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -87,7 +88,7 @@ export const Sidebar = memo(function Sidebar({
         <div className="sb-head">
           <div className="brand">
             <span className="brand-bolt">⚡</span>
-            <div>
+            <div className="brand-copy">
               <h1 className="brand-name">CodeHerWay</h1>
               <span className="brand-sub">Learn. Build. Ship.</span>
             </div>
@@ -96,7 +97,7 @@ export const Sidebar = memo(function Sidebar({
         </div>
 
         <div className="user-info">
-          <div className="user-avatar">{displayName[0].toUpperCase()}</div>
+          <div className="user-avatar">{userInitial}</div>
           <div className="user-details">
             <span className="user-name">{displayName}</span>
             <span className="user-level">Level {level}</span>
