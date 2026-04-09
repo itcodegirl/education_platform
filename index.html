@@ -70,7 +70,9 @@
             });
 
             console.log('SW registered:', reg.scope);
-            reg.update();
+            reg.update().catch((err) => {
+              console.log('SW update skipped:', err);
+            });
 
             if (reg.waiting) {
               reg.waiting.postMessage({ type: 'SKIP_WAITING' });
