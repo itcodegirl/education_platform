@@ -17,7 +17,12 @@ test.describe('authenticated smoke', () => {
     `Set ${missingEnv.join(', ')} to enable the authenticated smoke tests.`
   );
 
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page }, testInfo) => {
+    test.skip(
+      !!process.env.CI && testInfo.project.name === 'mobile-chrome',
+      'Authenticated CI smoke currently runs on desktop Chromium only.'
+    );
+
     await page.addInitScript(() => {
       window.localStorage.setItem('chw-onboarded', 'true');
       window.localStorage.removeItem('chw-lock-mode');
@@ -68,9 +73,20 @@ async function waitForAuthenticatedShell(page) {
   await page.waitForFunction(() => {
     const authError = document.querySelector('.auth-error');
     const connectionError = document.querySelector('.conn-error');
+    const disabledScreen = document.querySelector('.disabled-screen');
     const appToolbar = document.querySelector('.bottom-tools');
-    return Boolean(authError || connectionError || appToolbar);
-  }, { timeout: 60000 });
+    const stillOnAuth = document.querySelector('.auth-card');
+    const loadingShell = document.querySelector('.sk-sidebar-wrap, .loading-screen');
+
+    return Boolean(
+      authError ||
+      connectionError ||
+      disabledScreen ||
+      appToolbar ||
+      stillOnAuth ||
+      loadingShell
+    );
+  }, { timeout: 30000 });
 
   const authErrorText = await page.locator('.auth-error').textContent().catch(() => '');
   if (authErrorText?.trim()) {
@@ -81,6 +97,18 @@ async function waitForAuthenticatedShell(page) {
     throw new Error('Authenticated smoke reached the connection error screen after login.');
   }
 
-  await expect(page.locator('.bottom-tools')).toBeVisible({ timeout: 60000 });
-  await expect(page.getByRole('button', { name: 'Open bookmarks' })).toBeVisible({ timeout: 60000 });
+  if (await page.locator('.disabled-screen').isVisible().catch(() => false)) {
+    throw new Error('Authenticated smoke user is signed in but the account is disabled.');
+  }
+
+  if (await page.locator('.auth-card').isVisible().catch(() => false)) {
+    throw new Error('Authenticated smoke is still on the auth screen after attempting login.');
+  }
+
+  if (await page.locator('.sk-sidebar-wrap, .loading-screen').isVisible().catch(() => false)) {
+    throw new Error('Authenticated smoke is stuck in the post-login loading state.');
+  }
+
+  await expect(page.locator('.bottom-tools')).toBeVisible({ timeout: 30000 });
+  await expect(page.getByRole('button', { name: 'Open bookmarks' })).toBeVisible({ timeout: 30000 });
 }
