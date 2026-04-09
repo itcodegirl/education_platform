@@ -16,8 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      VITE_SUPABASE_URL: http://127.0.0.1:54321
-      VITE_SUPABASE_ANON_KEY: example-anon-key
+      VITE_SUPABASE_URL: ${{ vars.E2E_SUPABASE_URL || 'http://127.0.0.1:54321' }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.E2E_SUPABASE_ANON_KEY || 'example-anon-key' }}
+      E2E_EMAIL: ${{ secrets.E2E_EMAIL || '' }}
+      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD || '' }}
 
     steps:
       - name: Check out repo

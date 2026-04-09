@@ -83,6 +83,7 @@ Notes:
 
 - Without the `E2E_*` credentials, the authenticated tests auto-skip and the public auth smoke test still runs.
 - Use `PLAYWRIGHT_BASE_URL` if you want to point the suite at a deployed preview instead of starting the local Vite dev server.
+- In GitHub Actions, add repository variables `E2E_SUPABASE_URL` and `E2E_SUPABASE_ANON_KEY`, plus repository secrets `E2E_EMAIL` and `E2E_PASSWORD`, to turn on the authenticated smoke path in CI.
 
 ## AI Setup
 
