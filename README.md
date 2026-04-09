@@ -86,6 +86,8 @@ In Netlify, add these environment variables:
 - `OPENAI_API_KEY`
 - Optional: `OPENAI_MODEL`
 
+For repeatable release QA, use [`RELEASE_CHECKLIST.md`](./RELEASE_CHECKLIST.md).
+
 After deploy, test:
 
 1. Sign up or sign in.
