@@ -54,6 +54,36 @@ VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 npm run dev
 ```
 
+## Playwright Smoke Tests
+
+The repo includes a lightweight Playwright smoke suite for the auth shell and a small set of authenticated app checks.
+
+Install the Chromium browser once:
+
+```bash
+npm run test:e2e:install
+```
+
+Run the smoke suite locally:
+
+```bash
+npm run test:e2e
+```
+
+Optional authenticated coverage is unlocked when these environment variables are available:
+
+```env
+E2E_EMAIL=learner@example.com
+E2E_PASSWORD=your-test-password
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+Notes:
+
+- Without the `E2E_*` credentials, the authenticated tests auto-skip and the public auth smoke test still runs.
+- Use `PLAYWRIGHT_BASE_URL` if you want to point the suite at a deployed preview instead of starting the local Vite dev server.
+
 ## AI Setup
 
 The frontend does not call model providers directly. AI requests go through [`netlify/functions/ai.js`](./netlify/functions/ai.js), which keeps the provider key off the client.
@@ -98,7 +128,7 @@ After deploy, test:
 
 This repo includes lightweight GitHub automation:
 
-- [`.github/workflows/ci-smoke.yml`](./.github/workflows/ci-smoke.yml): build check for PRs and pushes to `main`
+- [`.github/workflows/ci-smoke.yml`](./.github/workflows/ci-smoke.yml): build check plus public Playwright smoke tests for PRs and pushes to `main`
 - [`.github/workflows/ops-checks.yml`](./.github/workflows/ops-checks.yml): weekly dependency audit and optional live-site health check
 
 To enable live-site health checks, add a GitHub repository variable:

@@ -127,10 +127,24 @@ export function AppLayout() {
 
       <main className="mn" ref={mainRef}>
         <div className="topbar">
-          <button type="button" className="ham" onClick={() => panels.setSidebar(true)}>☰</button>
+          <button
+            type="button"
+            className="ham"
+            onClick={() => panels.setSidebar(true)}
+            aria-label="Open course navigation"
+            aria-controls="course-sidebar"
+            aria-expanded={panels.sidebar}
+          >
+            ☰
+          </button>
           <Breadcrumb course={course} mod={mod} lesTitle={les.title} showModQuiz={showModQuiz} />
           {!showModQuiz && <span className="read-time"><span className="rt-icon">⏱</span>{readTime} min</span>}
-          <button type="button" className="search-trigger" onClick={() => panels.setPanel('search')}>
+          <button
+            type="button"
+            className="search-trigger"
+            onClick={() => panels.setPanel('search')}
+            aria-label="Open lesson search"
+          >
             <span>🔍</span><span>Search</span><kbd>⌘K</kbd>
           </button>
           {!showModQuiz && (

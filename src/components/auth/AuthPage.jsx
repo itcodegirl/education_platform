@@ -74,12 +74,14 @@ export function AuthPage() {
 
         <div className="auth-tabs">
           <button
+            type="button"
             className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
             onClick={() => { setMode('login'); setError(''); }}
           >
             Log In
           </button>
           <button
+            type="button"
             className={`auth-tab ${mode === 'signup' ? 'active' : ''}`}
             onClick={() => { setMode('signup'); setError(''); }}
           >
@@ -90,8 +92,9 @@ export function AuthPage() {
         <form className="auth-form" onSubmit={handleSubmit}>
           {mode === 'signup' && (
             <div className="auth-field">
-              <label>Display Name</label>
+              <label htmlFor="auth-display-name">Display Name</label>
               <input
+                id="auth-display-name"
                 type="text"
                 placeholder="Your name"
                 value={displayName}
@@ -102,8 +105,9 @@ export function AuthPage() {
           )}
 
           <div className="auth-field">
-            <label>Email</label>
+            <label htmlFor="auth-email">Email</label>
             <input
+              id="auth-email"
               type="email"
               placeholder="you@example.com"
               value={email}
@@ -113,8 +117,9 @@ export function AuthPage() {
           </div>
 
           <div className="auth-field">
-            <label>Password</label>
+            <label htmlFor="auth-password">Password</label>
             <input
+              id="auth-password"
               type="password"
               placeholder="••••••••"
               value={password}

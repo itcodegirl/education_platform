@@ -4,3 +4,5 @@ dist
 .env.local
 .vscode
 .codex-backup-wrong-local
+playwright-report
+test-results
