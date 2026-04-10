@@ -1,17 +1,24 @@
-// ═══════════════════════════════════════════════
-// LESSON VIEW — Renders old + new lesson formats
-// New format: concepts[], tasks[], devFession, difficulty, duration
-// ═══════════════════════════════════════════════
+// ===============================================
+// LESSON VIEW - Renders old + new lesson formats
+// New format: concepts[], tasks[], devFession...
+// ===============================================
 
-import { useState, useEffect, useRef, memo } from 'react';
-import { renderMarkdown } from '../../utils/markdown';
-import { CodePreview } from './CodePreview';
-import { useProgress } from '../../providers';
-import { AITutor } from './AITutor';
+import { useState, useEffect, useRef, memo } from "react";
+import { renderMarkdown } from "../../utils/markdown";
+import { CodePreview } from "./CodePreview";
+import { useProgress } from "../../providers";
+import { AITutor } from "./AITutor";
 
-export const LessonView = memo(function LessonView({ lesson, emoji, lang, lessonKey, courseId, moduleTitle }) {
+export const LessonView = memo(function LessonView({
+  lesson,
+  emoji,
+  lang,
+  lessonKey,
+  courseId,
+  moduleTitle,
+}) {
   const { toggleBookmark, isBookmarked, saveNote, getNote } = useProgress();
-  const [noteText, setNoteText] = useState('');
+  const [noteText, setNoteText] = useState("");
   const [showNotes, setShowNotes] = useState(false);
   const [checkedTasks, setCheckedTasks] = useState(new Set());
   const [showDevFession, setShowDevFession] = useState(false);
@@ -19,8 +26,9 @@ export const LessonView = memo(function LessonView({ lesson, emoji, lang, lesson
   const bookmarked = isBookmarked(lessonKey);
 
   const isRichFormat = !!(lesson.concepts || lesson.tasks || lesson.devFession);
+  const conceptCount = lesson.concepts?.length || 0;
+  const taskCount = lesson.tasks?.length || 0;
 
-  // Reset on lesson change
   useEffect(() => {
     setNoteText(getNote(lessonKey));
     setShowNotes(false);
@@ -28,20 +36,20 @@ export const LessonView = memo(function LessonView({ lesson, emoji, lang, lesson
     setShowDevFession(false);
   }, [lessonKey, getNote]);
 
-  const handleNoteChange = (e) => {
-    const val = e.target.value;
-    setNoteText(val);
+  const handleNoteChange = (event) => {
+    const value = event.target.value;
+    setNoteText(value);
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      saveNote(lessonKey, val);
+      saveNote(lessonKey, value);
     }, 800);
   };
 
-  const toggleTask = (idx) => {
+  const toggleTask = (index) => {
     setCheckedTasks((prev) => {
       const next = new Set(prev);
-      if (next.has(idx)) next.delete(idx);
-      else next.add(idx);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
       return next;
     });
   };
@@ -51,26 +59,51 @@ export const LessonView = memo(function LessonView({ lesson, emoji, lang, lesson
       <div className="lv-head">
         <span className="lv-emoji">{emoji}</span>
         <div className="lv-head-text">
+          {moduleTitle && (
+            <div className="lv-kicker">
+              <span className="lv-kicker-label">Module</span>
+              <span className="lv-kicker-value">{moduleTitle}</span>
+            </div>
+          )}
           <h2 className="lv-title">{lesson.title}</h2>
           {isRichFormat && lesson.difficulty && (
             <div className="lv-meta">
-              <span className={`lv-diff lv-diff-${lesson.difficulty}`}>{lesson.difficulty}</span>
-              {lesson.duration && <span className="lv-dur">⏱ {lesson.duration}</span>}
+              <span className={`lv-diff lv-diff-${lesson.difficulty}`}>
+                {lesson.difficulty}
+              </span>
+              {lesson.duration && (
+                <span className="lv-dur">⏱ {lesson.duration}</span>
+              )}
+              {conceptCount > 0 && (
+                <span className="lv-chip">{conceptCount} concepts</span>
+              )}
+              {taskCount > 0 && (
+                <span className="lv-chip">{taskCount} tasks</span>
+              )}
             </div>
           )}
         </div>
+
         <div className="lv-actions">
           <button
-            className={`lv-action-btn ${bookmarked ? 'active' : ''}`}
+            type="button"
+            className={`lv-action-btn ${bookmarked ? "active" : ""}`}
             onClick={() => toggleBookmark(lessonKey, courseId, lesson.title)}
-            title={bookmarked ? 'Remove bookmark' : 'Bookmark this lesson'}
+            title={bookmarked ? "Remove bookmark" : "Bookmark this lesson"}
+            aria-pressed={bookmarked}
+            aria-label={bookmarked ? "Remove bookmark" : "Bookmark this lesson"}
+            data-label={bookmarked ? "Saved" : "Save"}
           >
-            {bookmarked ? '★' : '☆'}
+            {bookmarked ? "★" : "☆"}
           </button>
           <button
-            className={`lv-action-btn ${showNotes ? 'active' : ''}`}
+            type="button"
+            className={`lv-action-btn ${showNotes ? "active" : ""}`}
             onClick={() => setShowNotes(!showNotes)}
             title="Notes"
+            aria-expanded={showNotes}
+            aria-label="Toggle lesson notes"
+            data-label="Notes"
           >
             ✎
           </button>
@@ -82,7 +115,13 @@ export const LessonView = memo(function LessonView({ lesson, emoji, lang, lesson
           <div className="notes-head">
             <span className="notes-icon">✎</span>
             <span>Your Notes</span>
-            <span className="notes-saved">{noteText !== getNote(lessonKey) ? 'Saving...' : noteText ? '✓ Saved' : ''}</span>
+            <span className="notes-saved" aria-live="polite">
+              {noteText !== getNote(lessonKey)
+                ? "Saving..."
+                : noteText
+                  ? "✓ Saved"
+                  : ""}
+            </span>
           </div>
           <textarea
             className="notes-input"
@@ -94,15 +133,14 @@ export const LessonView = memo(function LessonView({ lesson, emoji, lang, lesson
         </div>
       )}
 
-      {/* ─── Content + Concepts ─── */}
       <div className="lv-body">
         {lesson.content && renderMarkdown(lesson.content)}
         {isRichFormat && lesson.concepts && (
           <div className="concept-list">
-            {lesson.concepts.map((c, i) => (
-              <div key={i} className="concept-item">
+            {lesson.concepts.map((concept, index) => (
+              <div key={index} className="concept-item">
                 <span className="concept-bullet">→</span>
-                <span>{c}</span>
+                <span>{concept}</span>
               </div>
             ))}
           </div>
@@ -111,7 +149,6 @@ export const LessonView = memo(function LessonView({ lesson, emoji, lang, lesson
 
       <CodePreview code={lesson.code} lang={lang} />
 
-      {/* ─── Rich format: Output ─── */}
       {isRichFormat && lesson.output && (
         <div className="box output-box">
           <div className="box-label">▶ Output</div>
@@ -119,19 +156,23 @@ export const LessonView = memo(function LessonView({ lesson, emoji, lang, lesson
         </div>
       )}
 
-      {/* ─── Rich format: Tasks checklist ─── */}
       {isRichFormat && lesson.tasks && lesson.tasks.length > 0 && (
         <div className="box tasks-box">
           <div className="box-label">✅ Try It</div>
           <div className="tasks-list">
-            {lesson.tasks.map((task, i) => (
-              <label key={i} className={`task-item ${checkedTasks.has(i) ? 'done' : ''}`}>
+            {lesson.tasks.map((task, index) => (
+              <label
+                key={index}
+                className={`task-item ${checkedTasks.has(index) ? "done" : ""}`}
+              >
                 <input
                   type="checkbox"
-                  checked={checkedTasks.has(i)}
-                  onChange={() => toggleTask(i)}
+                  checked={checkedTasks.has(index)}
+                  onChange={() => toggleTask(index)}
                 />
-                <span className="task-check">{checkedTasks.has(i) ? '✓' : ''}</span>
+                <span className="task-check">
+                  {checkedTasks.has(index) ? "✓" : ""}
+                </span>
                 <span className="task-text">{task}</span>
               </label>
             ))}
@@ -142,7 +183,6 @@ export const LessonView = memo(function LessonView({ lesson, emoji, lang, lesson
         </div>
       )}
 
-      {/* ─── Tip (both formats) ─── */}
       {lesson.tip && (
         <div className="box tip">
           <div className="box-label">💡 Pro Tip</div>
@@ -150,7 +190,6 @@ export const LessonView = memo(function LessonView({ lesson, emoji, lang, lesson
         </div>
       )}
 
-      {/* ─── Challenge ─── */}
       {lesson.challenge && (
         <div className="box chal">
           <div className="box-label">🔥 Challenge</div>
@@ -158,16 +197,18 @@ export const LessonView = memo(function LessonView({ lesson, emoji, lang, lesson
         </div>
       )}
 
-      {/* ─── DevFession ─── */}
       {isRichFormat && lesson.devFession && (
         <div className="devfession">
           <button
-            className={`devfession-toggle ${showDevFession ? 'open' : ''}`}
+            type="button"
+            className={`devfession-toggle ${showDevFession ? "open" : ""}`}
             onClick={() => setShowDevFession(!showDevFession)}
           >
             <span className="devfession-icon">🤫</span>
             <span>Dev_Fession</span>
-            <span className="devfession-arrow">{showDevFession ? '▾' : '▸'}</span>
+            <span className="devfession-arrow">
+              {showDevFession ? "▾" : "▸"}
+            </span>
           </button>
           {showDevFession && (
             <div className="devfession-content">
@@ -177,7 +218,6 @@ export const LessonView = memo(function LessonView({ lesson, emoji, lang, lesson
         </div>
       )}
 
-      {/* ─── AI Tutor ─── */}
       <AITutor lesson={lesson} moduleTitle={moduleTitle} courseId={courseId} />
     </div>
   );

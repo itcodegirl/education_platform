@@ -91,6 +91,7 @@ export const Sidebar = memo(function Sidebar({
             <div className="brand-copy">
               <h1 className="brand-name">CodeHerWay</h1>
               <span className="brand-sub">Learn. Build. Ship.</span>
+              <span className="brand-course">{course.icon} {course.label}</span>
             </div>
           </div>
           <button type="button" className="sb-close" onClick={onClose} aria-label="Close sidebar">✕</button>
@@ -105,6 +106,7 @@ export const Sidebar = memo(function Sidebar({
           <button type="button" className="user-logout" onClick={signOut} title="Sign out" aria-label="Sign out">↗</button>
         </div>
 
+        <div className="sb-section-title">Choose a path</div>
         <div className="course-switcher">
           {courses.map((courseOption, ci) => (
             <button
@@ -120,6 +122,7 @@ export const Sidebar = memo(function Sidebar({
           ))}
         </div>
 
+        <div className="sb-section-title">Your momentum</div>
         <div className="prog">
           <div className="prog-info">
             <span>{courseDone}/{total} lessons</span>
@@ -168,6 +171,7 @@ export const Sidebar = memo(function Sidebar({
         </div>
 
         <div className="sb-scroll">
+          <div className="sb-section-title sb-section-title-nav">Course map</div>
           <nav className="sb-nav">
             {modules.map((module, mi) => {
               const moduleCompletedCount = module.lessons.filter((lesson) =>
