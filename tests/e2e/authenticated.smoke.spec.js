@@ -23,6 +23,21 @@ test.describe('authenticated smoke', () => {
       'Authenticated CI smoke currently runs on desktop Chromium only.'
     );
 
+    const diagnostics = {
+      consoleErrors: [],
+      pageErrors: [],
+    };
+
+    page.on('console', (message) => {
+      if (message.type() === 'error') {
+        diagnostics.consoleErrors.push(message.text());
+      }
+    });
+
+    page.on('pageerror', (error) => {
+      diagnostics.pageErrors.push(error.message);
+    });
+
     await page.addInitScript(() => {
       window.localStorage.setItem('chw-onboarded', 'true');
       window.localStorage.removeItem('chw-lock-mode');
@@ -36,7 +51,7 @@ test.describe('authenticated smoke', () => {
       await page.getByRole('button', { name: 'Log In' }).last().click();
     }
 
-    await waitForAuthenticatedShell(page);
+    await waitForAuthenticatedShell(page, diagnostics);
 
     const startFreshButton = page.getByRole('button', { name: 'Start fresh' });
     if (await startFreshButton.isVisible().catch(() => false)) {
@@ -69,24 +84,56 @@ test.describe('authenticated smoke', () => {
   });
 });
 
-async function waitForAuthenticatedShell(page) {
-  await page.waitForFunction(() => {
-    const authError = document.querySelector('.auth-error');
-    const connectionError = document.querySelector('.conn-error');
-    const disabledScreen = document.querySelector('.disabled-screen');
-    const appToolbar = document.querySelector('.bottom-tools');
-    const stillOnAuth = document.querySelector('.auth-card');
-    const loadingShell = document.querySelector('.sk-sidebar-wrap, .loading-screen');
+async function waitForAuthenticatedShell(page, diagnostics) {
+  try {
+    await page.waitForFunction(() => {
+      const isVisible = (selector) => {
+        const element = document.querySelector(selector);
+        return Boolean(element && (element.offsetWidth || element.offsetHeight || element.getClientRects().length));
+      };
 
-    return Boolean(
-      authError ||
-      connectionError ||
-      disabledScreen ||
-      appToolbar ||
-      stillOnAuth ||
-      loadingShell
-    );
-  }, { timeout: 30000 });
+      return (
+        isVisible('.auth-error') ||
+        isVisible('.conn-error') ||
+        isVisible('.disabled-screen') ||
+        isVisible('.eb-screen') ||
+        isVisible('.bottom-tools')
+      );
+    }, { timeout: 30000 });
+  } catch (error) {
+    const authErrorText = await page.locator('.auth-error').textContent().catch(() => '');
+    if (authErrorText?.trim()) {
+      throw new Error(`Authenticated smoke login failed: ${authErrorText.trim()}`);
+    }
+
+    if (await page.locator('.conn-error').isVisible().catch(() => false)) {
+      throw new Error('Authenticated smoke reached the connection error screen after login.');
+    }
+
+    if (await page.locator('.disabled-screen').isVisible().catch(() => false)) {
+      throw new Error('Authenticated smoke user is signed in but the account is disabled.');
+    }
+
+    if (await page.locator('.eb-screen').isVisible().catch(() => false)) {
+      const detail = await page.locator('.eb-detail code').textContent().catch(() => '');
+      throw new Error(`Authenticated smoke hit the app error boundary.${detail ? ` Detail: ${detail}` : ''}`);
+    }
+
+    if (await page.locator('.sk-sidebar-wrap, .loading-screen').isVisible().catch(() => false)) {
+      throw new Error('Authenticated smoke is stuck in the post-login loading state.');
+    }
+
+    if (await page.locator('.auth-card').isVisible().catch(() => false)) {
+      throw new Error('Authenticated smoke is still on the auth screen after attempting login.');
+    }
+
+    const runtimeErrors = [...diagnostics.pageErrors, ...diagnostics.consoleErrors].filter(Boolean);
+    if (runtimeErrors.length > 0) {
+      throw new Error(`Authenticated smoke saw runtime errors after login: ${runtimeErrors.slice(0, 3).join(' | ')}`);
+    }
+
+    throw error;
+  }
 
   const authErrorText = await page.locator('.auth-error').textContent().catch(() => '');
   if (authErrorText?.trim()) {
@@ -101,12 +148,13 @@ async function waitForAuthenticatedShell(page) {
     throw new Error('Authenticated smoke user is signed in but the account is disabled.');
   }
 
-  if (await page.locator('.auth-card').isVisible().catch(() => false)) {
-    throw new Error('Authenticated smoke is still on the auth screen after attempting login.');
+  if (await page.locator('.eb-screen').isVisible().catch(() => false)) {
+    const detail = await page.locator('.eb-detail code').textContent().catch(() => '');
+    throw new Error(`Authenticated smoke hit the app error boundary.${detail ? ` Detail: ${detail}` : ''}`);
   }
 
-  if (await page.locator('.sk-sidebar-wrap, .loading-screen').isVisible().catch(() => false)) {
-    throw new Error('Authenticated smoke is stuck in the post-login loading state.');
+  if (await page.locator('.auth-card').isVisible().catch(() => false)) {
+    throw new Error('Authenticated smoke is still on the auth screen after attempting login.');
   }
 
   await expect(page.locator('.bottom-tools')).toBeVisible({ timeout: 30000 });
