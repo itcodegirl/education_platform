@@ -4,10 +4,12 @@
 
 import { useEffect, useState } from 'react';
 import { generateCertificate } from '../../utils/certificate';
+import { useToast } from '../shared/Toast';
 
 export function CourseComplete({ isOpen, onClose, course, displayName, lessonCount }) {
   const [show, setShow] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     if (isOpen) {
@@ -89,7 +91,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
               navigator.share({ title: 'CodeHerWay Certificate', text });
             } else {
               navigator.clipboard.writeText(text);
-              alert('Copied to clipboard!');
+              toast.show('Copied to clipboard!');
             }
           }}>
             📤 Share Achievement

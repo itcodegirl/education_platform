@@ -3,6 +3,8 @@
 // ═══════════════════════════════════════════════
 
 import { AuthProvider, ThemeProvider, ProgressProvider } from './providers';
+import { ToastProvider } from './components/shared/Toast';
+import { InstallPrompt } from './components/shared/InstallPrompt';
 import AppRoutes from './routes/AppRoutes';
 import './styles/App.css';
 
@@ -11,7 +13,10 @@ export default function App() {
     <AuthProvider>
       <ThemeProvider>
         <ProgressProvider>
-          <AppRoutes />
+          <ToastProvider>
+            <InstallPrompt />
+            <AppRoutes />
+          </ToastProvider>
         </ProgressProvider>
       </ThemeProvider>
     </AuthProvider>
