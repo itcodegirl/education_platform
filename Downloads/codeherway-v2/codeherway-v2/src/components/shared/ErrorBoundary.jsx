@@ -4,6 +4,7 @@
 // ═══════════════════════════════════════════════
 
 import { Component } from 'react';
+import { Sentry } from '../../lib/sentry';
 
 export class ErrorBoundary extends Component {
   constructor(props) {
@@ -17,6 +18,7 @@ export class ErrorBoundary extends Component {
 
   componentDidCatch(error, errorInfo) {
     console.error('CodeHerWay Error:', error, errorInfo);
+    Sentry.captureException(error, { extra: { componentStack: errorInfo?.componentStack } });
   }
 
   handleRetry = () => {
