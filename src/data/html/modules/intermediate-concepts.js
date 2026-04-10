@@ -1,0 +1,38 @@
+export const module = { id: 19, emoji: '🚀', title: 'Intermediate Concepts', tagline: 'Beyond the basics — the stuff that levels you up.', difficulty: 'advanced', lessons: [
+    { id: 'h19-1',
+      prereqs: ['h18-1'], title: 'Data Attributes & Custom Data',
+      difficulty: 'intermediate', duration: '10 min',
+      concepts: [
+        'data-* attributes let you store custom data on any HTML element.',
+        'Access them in JavaScript with element.dataset.propertyName.',
+        'Use cases: storing IDs, states, configuration, and UI metadata.',
+        'Name format: data-my-value becomes dataset.myValue in JS (camelCase).',
+      ],
+      code: `<!-- Storing data on elements -->\n<button data-action="delete"\n        data-item-id="42"\n        data-confirm="true">\n    Delete Item\n</button>\n\n<div class="card"\n     data-category="frontend"\n     data-difficulty="beginner">\n    <h3>HTML Basics</h3>\n</div>\n\n<!-- JavaScript reads them -->\n<!-- const btn = document.querySelector('button');\n     console.log(btn.dataset.action);    // "delete"\n     console.log(btn.dataset.itemId);    // "42"\n     console.log(btn.dataset.confirm);   // "true"\n-->`,
+      output: 'Elements with custom data attributes that JavaScript can read.',
+      tasks: [
+        'Add data attributes to 3 different elements.',
+        'Use at least one multi-word data attribute (data-item-id).',
+        'Plan how JavaScript would use each data attribute.',
+      ],
+      challenge: 'Build a product grid where each card has data-price, data-category, and data-in-stock attributes.',
+      devFession: 'I stored data in class names like class="price-29 category-shoes." Data attributes exist for a reason.' },
+    { id: 'h19-2',
+      prereqs: ['h19-1'], title: 'HTML Templates & DOM Awareness',
+      difficulty: 'intermediate', duration: '10 min',
+      concepts: [
+        '<template> defines reusable HTML that doesn\'t render until JavaScript activates it.',
+        'The DOM (Document Object Model) is the browser\'s live representation of your HTML.',
+        'JavaScript uses the DOM to add, remove, and modify elements dynamically.',
+        'Understanding the DOM tree helps you write better CSS selectors and JS queries.',
+      ],
+      code: `<!-- Template: invisible until cloned -->\n<template id="card-template">\n    <div class="card">\n        <h3 class="card-title"></h3>\n        <p class="card-desc"></p>\n    </div>\n</template>\n\n<div id="card-container"></div>\n\n<!-- JavaScript would clone and use it:\nconst template = document\n    .getElementById('card-template');\nconst clone = template.content\n    .cloneNode(true);\nclone.querySelector('.card-title')\n    .textContent = 'New Card';\ndocument.getElementById('card-container')\n    .appendChild(clone);\n-->`,
+      output: 'A template element that JavaScript can clone and insert dynamically.',
+      tasks: [
+        'Create a <template> with a card structure.',
+        'Understand why template content doesn\'t appear on the page.',
+        'Sketch the DOM tree for a page you\'ve built.',
+      ],
+      challenge: 'Build a page with a template element and describe (in comments) how JavaScript would use it.',
+      devFession: 'I created elements with innerHTML for months before learning that <template> exists. Cleaner and safer.' },
+  ]};

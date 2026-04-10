@@ -220,7 +220,12 @@ export const Sidebar = memo(function Sidebar({
                     <span className="mg-emoji">{isModuleUnlocked ? module.emoji : '🔒'}</span>
                     <div className="mg-info">
                       <span className="mg-name">{module.title}</span>
-                      <span className="mg-sub">{moduleCompletedCount}/{module.lessons.length}</span>
+                      <span className="mg-sub">
+                        {moduleCompletedCount}/{module.lessons.length}
+                        {module.difficulty && (
+                          <span className={`mg-diff mg-diff-${module.difficulty}`}>{module.difficulty}</span>
+                        )}
+                      </span>
                     </div>
                   </button>
 

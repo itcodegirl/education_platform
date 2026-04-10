@@ -4336,3 +4336,17 @@ img {
   font-size: 12px; color: var(--text-muted);
   animation: fadeIn 0.2s ease-out;
 }
+
+/* ═══════════════════════════════════════════════
+   MODULE DIFFICULTY BADGES
+   ═══════════════════════════════════════════════ */
+.mg-diff {
+  display: inline-block; margin-left: 6px;
+  font-size: 9px; padding: 1px 6px; border-radius: 8px;
+  font-family: 'Space Mono', monospace; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  vertical-align: middle;
+}
+.mg-diff-beginner { background: rgba(78,205,196,0.15); color: #4ecdc4; }
+.mg-diff-intermediate { background: rgba(255,167,38,0.15); color: #ffa726; }
+.mg-diff-advanced { background: rgba(255,107,157,0.15); color: #ff6b9d; }

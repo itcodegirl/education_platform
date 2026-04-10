@@ -1,0 +1,38 @@
+export const module = { id: 7, emoji: '🖼️', title: 'Images & Media', tagline: 'A picture is worth a thousand tags.', difficulty: 'beginner', lessons: [
+    { id: 'h7-1', title: 'Images',
+      prereqs: ['h6-1'],
+      difficulty: 'beginner', duration: '10 min',
+      concepts: [
+        '<img src="..." alt="..." /> is self-closing — it has no content between tags.',
+        'alt text is REQUIRED — it describes the image for screen readers and broken images.',
+        'Common formats: JPG (photos), PNG (transparency), SVG (scalable), WebP (modern, smaller).',
+        'width and height attributes prevent layout shift while images load.',
+      ],
+      code: `<!-- Basic image -->\n<img src="photo.jpg" alt="A sunset over the ocean"\n     width="600" height="400" />\n\n<!-- Image with figure + caption -->\n<figure>\n    <img src="chart.png"\n         alt="Bar chart showing sales growth" />\n    <figcaption>Q3 2025 Sales Report</figcaption>\n</figure>`,
+      output: 'An image with descriptive alt text and a captioned figure.',
+      tasks: [
+        'Add an image with a meaningful alt description.',
+        'Wrap an image in a <figure> with a <figcaption>.',
+        'Try removing the src — notice the alt text appears.',
+      ],
+      challenge: 'Create a photo gallery with 3 images, each with alt text and captions.',
+      devFession: 'I left alt="" on every image. Accessible? Technically yes. Useful? Absolutely not.' },
+    { id: 'h7-2', title: 'Video, Audio & Embeds',
+      prereqs: ['h7-1'],
+      difficulty: 'beginner', duration: '10 min',
+      concepts: [
+        '<video> embeds video with controls, autoplay, loop, and muted attributes.',
+        '<audio> works the same way for sound files.',
+        '<source> lets you provide multiple formats for browser compatibility.',
+        '<iframe> embeds external content like YouTube videos, Google Maps, and other sites.',
+      ],
+      code: `<!-- Video -->\n<video controls width="640">\n    <source src="video.mp4" type="video/mp4">\n    Your browser doesn't support video.\n</video>\n\n<!-- Audio -->\n<audio controls>\n    <source src="song.mp3" type="audio/mpeg">\n</audio>\n\n<!-- YouTube embed -->\n<iframe width="560" height="315"\n    src="https://www.youtube.com/embed/dQw4w9WgXcQ"\n    title="YouTube video"\n    allowfullscreen></iframe>`,
+      output: 'A video player, an audio player, and an embedded YouTube video.',
+      tasks: [
+        'Add a video element with controls.',
+        'Embed a YouTube video using an iframe.',
+        'Add fallback text inside a video element.',
+      ],
+      challenge: 'Create a media section with one video, one audio player, and one YouTube embed.',
+      devFession: 'I set autoplay without muted and my page screamed at everyone who opened it.' },
+  ]};
