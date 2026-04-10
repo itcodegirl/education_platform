@@ -30,6 +30,8 @@ import { BadgeUnlock } from "../components/gamification/BadgeUnlock";
 
 // Lazy panels + overlays
 import { PanelManager } from "../components/PanelManager";
+import { WhatsNew } from "../components/shared/WhatsNew";
+import { EmailVerifyBanner } from "../components/shared/EmailVerifyBanner";
 
 export function AppLayout() {
   const { theme } = useTheme();
@@ -166,6 +168,7 @@ export function AppLayout() {
   // ─── Render ───────────────────────────────
   return (
     <div className={`shell ${theme}`} data-course={course.id}>
+      <EmailVerifyBanner />
       <OfflineIndicator />
       <Sidebar
         courses={COURSES}
@@ -321,6 +324,7 @@ export function AppLayout() {
         lastPosition={lastPosition}
         courseTotal={courseTotal}
       />
+      <WhatsNew />
     </div>
   );
 }

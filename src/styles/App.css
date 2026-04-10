@@ -4291,3 +4291,22 @@ img {
   .install-prompt { font-size: 12px; padding: 8px 12px; }
   .install-btn { font-size: 11px; padding: 5px 12px; }
 }
+
+/* ═══════════════════════════════════════════════
+   EMAIL VERIFICATION BANNER
+   ═══════════════════════════════════════════════ */
+.verify-banner {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 20px;
+  background: var(--bg-surface); border-bottom: 1px solid var(--border);
+  font-size: 13px; color: var(--text-dim);
+  font-family: 'DM Sans', sans-serif;
+  animation: fadeIn 0.3s ease-out;
+}
+.verify-icon { font-size: 16px; flex-shrink: 0; }
+.verify-text { flex: 1; line-height: 1.5; }
+.verify-dismiss {
+  background: none; border: none; color: var(--text-muted);
+  font-size: 16px; cursor: pointer; padding: 4px; flex-shrink: 0;
+}
+.verify-dismiss:hover { color: var(--text); }
