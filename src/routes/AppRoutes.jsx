@@ -13,6 +13,9 @@ import { LessonSkeleton, ConnectionError } from '../components/shared/SkeletonLo
 const AdminDashboard = lazy(() =>
   import('../components/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard }))
 );
+const ProfilePage = lazy(() =>
+  import('../components/shared/ProfilePage').then(m => ({ default: m.ProfilePage }))
+);
 
 export default function AppRoutes() {
   const { theme } = useTheme();
@@ -45,6 +48,21 @@ export default function AppRoutes() {
           <a href="mailto:hello@codeherway.com" className="disabled-link">Contact Support</a>
           <button type="button" className="disabled-logout" onClick={() => signOut()}>Log Out</button>
         </div>
+      </div>
+    );
+  }
+
+  // ─── Profile route ─────────────────────────
+  if (window.location.hash === '#profile') {
+    return (
+      <div className={theme}>
+        <Suspense fallback={
+          <div className="loading-screen">
+            <div className="loading-pulse"><span className="loading-bolt">⚡</span><p>Loading profile...</p></div>
+          </div>
+        }>
+          <ProfilePage onClose={() => { window.location.hash = ''; window.location.reload(); }} />
+        </Suspense>
       </div>
     );
   }

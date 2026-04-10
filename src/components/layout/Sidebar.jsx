@@ -112,9 +112,25 @@ export const Sidebar = memo(function Sidebar({
         </div>
 
         <div className="user-info">
-          <div className="user-avatar">{userInitial}</div>
+          <div
+            className="user-avatar"
+            style={{ cursor: 'pointer' }}
+            onClick={() => { window.location.hash = '#profile'; window.location.reload(); }}
+            title="View profile"
+            role="button"
+            tabIndex={0}
+          >
+            {userInitial}
+          </div>
           <div className="user-details">
-            <span className="user-name">{displayName}</span>
+            <span
+              className="user-name"
+              style={{ cursor: 'pointer' }}
+              onClick={() => { window.location.hash = '#profile'; window.location.reload(); }}
+              title="View profile"
+            >
+              {displayName}
+            </span>
             <span className="user-level">Level {level}</span>
           </div>
           <button type="button" className="user-logout" onClick={signOut} title="Sign out" aria-label="Sign out">↗</button>
@@ -256,6 +272,7 @@ export const Sidebar = memo(function Sidebar({
                 setLockMode(event.target.checked);
                 localStorage.setItem('chw-lock-mode', event.target.checked);
               }}
+              aria-label="Toggle sequential lock mode"
             />
             <span className="lock-text">{lockMode ? '🔒 Sequential' : '🔓 Free roam'}</span>
           </label>

@@ -1,7 +1,7 @@
 // Service worker for CodeHerWay.
 // Keep navigation network-first so deploys pick up the latest HTML shell.
 
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const CACHE_PREFIX = 'chw-';
 const SHELL_CACHE = `${CACHE_PREFIX}shell-${CACHE_VERSION}`;
 const DATA_CACHE = `${CACHE_PREFIX}data-${CACHE_VERSION}`;
@@ -79,10 +79,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Vite hashed assets (JS/CSS chunks including course data, quizzes, lessons)
+  // These are immutable (hash changes on content change) — safe to cache forever
   if (url.pathname.startsWith('/assets/')) {
     event.respondWith(
       cacheFirst(request, SHELL_CACHE, { cacheableResponse: isCacheableAssetResponse })
     );
+    return;
+  }
+
+  // Lesson data chunks (course content for offline use)
+  if (url.pathname.match(/data-(html|css|js|react|quizzes|challenges|reference)/)) {
+    event.respondWith(cacheFirst(request, DATA_CACHE));
     return;
   }
 

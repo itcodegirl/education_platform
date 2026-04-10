@@ -169,6 +169,7 @@ export const LessonView = memo(function LessonView({
                   type="checkbox"
                   checked={checkedTasks.has(index)}
                   onChange={() => toggleTask(index)}
+                  aria-label={task}
                 />
                 <span className="task-check">
                   {checkedTasks.has(index) ? "✓" : ""}
