@@ -30,10 +30,10 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
 
   const DOWNLOAD_FEEDBACK_MS = 1000;
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     setDownloading(true);
     try {
-      generateCertificate({
+      await generateCertificate({
         studentName: displayName || 'Learner',
         courseName: course.label,
         courseId: course.id,

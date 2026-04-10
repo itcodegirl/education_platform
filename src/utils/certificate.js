@@ -4,7 +4,7 @@
 // Uses jsPDF (client-side, no server needed)
 // ═══════════════════════════════════════════════
 
-import { jsPDF } from 'jspdf';
+// jsPDF is lazy-imported on demand (391KB — only needed when downloading)
 
 // Color palette
 const COLORS = {
@@ -28,7 +28,8 @@ const COURSE_COLORS = {
   react: COLORS.purple,
 };
 
-export function generateCertificate({ studentName, courseName, courseId, lessonCount, completionDate }) {
+export async function generateCertificate({ studentName, courseName, courseId, lessonCount, completionDate }) {
+  const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({
     orientation: 'landscape',
     unit: 'mm',
