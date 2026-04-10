@@ -33,8 +33,11 @@ export default defineConfig({
           'data-js': ['./src/data/js/course.js'],
           'data-react': ['./src/data/react/course.js'],
 
-          // Quiz data (938 questions — heavy)
-          'data-quizzes': ['./src/data/quizzes.js'],
+          // Quiz data — split per course for smaller chunks
+          'data-quizzes-html': ['./src/data/html/quizzes.js'],
+          'data-quizzes-css': ['./src/data/css/quizzes.js'],
+          'data-quizzes-js': ['./src/data/js/quizzes.js'],
+          'data-quizzes-react': ['./src/data/react/quizzes.js'],
 
           // Challenge data
           'data-challenges': ['./src/data/challenges.js'],

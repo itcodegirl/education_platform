@@ -224,6 +224,7 @@ Rules:
             srcDoc={buildPreview(code)}
             title="Challenge Preview"
             sandbox="allow-scripts allow-same-origin"
+            loading="lazy"
           />
         </div>
       </div>
