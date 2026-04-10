@@ -467,9 +467,12 @@ export function ProgressProvider({ children }) {
     setLoadError(null);
   }, []);
 
+  // Wrapped object for components that destructure progress.completed
+  const progress = useMemo(() => ({ completed }), [completed]);
+
   const value = useMemo(() => ({
     // Progress
-    completed, toggleLesson, quizScores, saveQuizScore,
+    progress, completed, toggleLesson, quizScores, saveQuizScore,
     // XP
     xpTotal, awardXP, xpPopup, clearXPPopup,
     // Streak & Daily
@@ -486,7 +489,7 @@ export function ProgressProvider({ children }) {
     // State
     dataLoaded, loadError, retryLoad, syncError,
   }), [
-    completed, toggleLesson, quizScores, saveQuizScore,
+    progress, completed, toggleLesson, quizScores, saveQuizScore,
     xpTotal, awardXP, xpPopup, clearXPPopup,
     streak, dailyCount, recordDailyActivity,
     earnedBadges, newBadge, clearNewBadge,
