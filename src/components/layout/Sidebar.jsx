@@ -29,7 +29,10 @@ export const Sidebar = memo(function Sidebar({
   lesIdx,
   showModQuiz,
   isOpen,
+  isMobile,
+  isCollapsed,
   onClose,
+  onToggleCollapse,
   onSelectCourse,
   onSelectLesson,
   onSelectModQuiz,
@@ -55,7 +58,7 @@ export const Sidebar = memo(function Sidebar({
   const userInitial = displayName.trim().charAt(0).toUpperCase() || 'C';
 
   useEffect(() => {
-    if (!isOpen) return undefined;
+    if (!isMobile || !isOpen) return undefined;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -70,20 +73,20 @@ export const Sidebar = memo(function Sidebar({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isMobile, isOpen, onClose]);
 
   return (
     <>
-      {isOpen && <div className="overlay" onClick={onClose} aria-hidden="true" />}
+      {isMobile && isOpen && <div className="overlay" onClick={onClose} aria-hidden="true" />}
       <aside
         ref={asideRef}
         id="course-sidebar"
-        className={`sb ${isOpen ? 'open' : ''}`}
+        className={`sb ${isOpen ? 'open' : ''} ${!isMobile && isCollapsed ? 'collapsed' : ''}`}
         aria-label="Course navigation sidebar"
-        aria-hidden={!isOpen}
-        aria-modal={isOpen ? 'true' : undefined}
-        role="dialog"
-        tabIndex={-1}
+        aria-hidden={isMobile ? !isOpen : false}
+        aria-modal={isMobile && isOpen ? 'true' : undefined}
+        role={isMobile ? 'dialog' : 'complementary'}
+        tabIndex={isMobile ? -1 : undefined}
       >
         <div className="sb-head">
           <div className="brand">
@@ -94,6 +97,17 @@ export const Sidebar = memo(function Sidebar({
               <span className="brand-course">{course.icon} {course.label}</span>
             </div>
           </div>
+          {!isMobile && (
+            <button
+              type="button"
+              className="sb-collapse"
+              onClick={onToggleCollapse}
+              aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {isCollapsed ? '»' : '«'}
+            </button>
+          )}
           <button type="button" className="sb-close" onClick={onClose} aria-label="Close sidebar">✕</button>
         </div>
 

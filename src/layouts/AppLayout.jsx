@@ -10,6 +10,7 @@ import { useNavigation } from "../hooks/useNavigation";
 import { usePanels } from "../hooks/usePanels";
 import { useKeyboardNav } from "../hooks/useKeyboardNav";
 import { useLearning } from "../hooks/useLearning";
+import { useIsMobile } from "../hooks/useIsMobile";
 import { estimateReadingTime } from "../utils/helpers";
 
 // Layout components
@@ -45,6 +46,11 @@ export function AppLayout() {
   const nav = useNavigation();
   const panels = usePanels({ dataLoaded, user: true, lastPosition });
   const learn = useLearning();
+  const isMobile = useIsMobile(901);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("chw-sidebar-collapsed") === "true";
+  });
 
   const {
     course,
@@ -68,6 +74,18 @@ export function AppLayout() {
     [les.content, les.code],
   );
   const [marking, setMarking] = useState(false);
+  const isSidebarOpen = isMobile ? panels.sidebar : true;
+
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarCollapsed(false);
+    }
+  }, [isMobile]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("chw-sidebar-collapsed", String(sidebarCollapsed));
+  }, [sidebarCollapsed]);
 
   // ─── Save position on navigation ──────────
   useEffect(() => {
@@ -127,7 +145,13 @@ export function AppLayout() {
     onMarkDone: handleMarkDone,
     onSearch: () => panels.togglePanel("search"),
     onSwitchCourse: nav.switchCourse,
-    onToggleSidebar: () => panels.setSidebar((s) => !s),
+    onToggleSidebar: () => {
+      if (isMobile) {
+        panels.setSidebar((s) => !s);
+        return;
+      }
+      setSidebarCollapsed((value) => !value);
+    },
   });
 
   // ─── Render ───────────────────────────────
@@ -140,8 +164,11 @@ export function AppLayout() {
         modIdx={nav.modIdx}
         lesIdx={nav.lesIdx}
         showModQuiz={showModQuiz}
-        isOpen={panels.sidebar}
+        isOpen={isSidebarOpen}
+        isMobile={isMobile}
+        isCollapsed={sidebarCollapsed}
         onClose={() => panels.setSidebar(false)}
+        onToggleCollapse={() => setSidebarCollapsed((value) => !value)}
         onSelectCourse={nav.switchCourse}
         onSelectLesson={nav.go}
         onSelectModQuiz={(mi) => {
@@ -156,12 +183,18 @@ export function AppLayout() {
             <button
               type="button"
               className="ham"
-              onClick={() => panels.setSidebar(true)}
-              aria-label="Open course navigation"
+              onClick={() => {
+                if (isMobile) {
+                  panels.setSidebar(true);
+                  return;
+                }
+                setSidebarCollapsed((value) => !value);
+              }}
+              aria-label={isMobile ? "Open course navigation" : sidebarCollapsed ? "Expand course navigation" : "Collapse course navigation"}
               aria-controls="course-sidebar"
-              aria-expanded={panels.sidebar}
+              aria-expanded={isMobile ? panels.sidebar : !sidebarCollapsed}
             >
-              ☰
+              {isMobile ? "☰" : sidebarCollapsed ? "»" : "«"}
             </button>
             <Breadcrumb
               course={course}
