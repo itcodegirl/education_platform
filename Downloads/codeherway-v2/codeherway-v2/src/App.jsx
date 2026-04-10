@@ -11,7 +11,7 @@
 //   3. Wire hooks to components via props
 // ═══════════════════════════════════════════════
 
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 // Data + hooks
@@ -41,6 +41,8 @@ import { BadgeUnlock } from './components/gamification/BadgeUnlock';
 
 // Shared
 import { LessonSkeleton, ConnectionError } from './components/shared/SkeletonLoader';
+import { NotFound } from './components/shared/NotFound';
+import { KeyboardShortcuts } from './components/shared/KeyboardShortcuts';
 
 // Lazy panels + overlays (all managed in one file)
 import { PanelManager, LazyAdminDashboard } from './components/PanelManager';
@@ -62,6 +64,7 @@ export default function App() {
   const routerNavigate = useNavigate();
   const nav = useNavigation();
   const panels = usePanels({ dataLoaded, user, lastPosition });
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
   const {
     course, modules, mod, les,
@@ -138,6 +141,7 @@ export default function App() {
     onSearch: () => panels.togglePanel('search'),
     onSwitchCourse: nav.switchCourse,
     onToggleSidebar: () => panels.setSidebar((s) => !s),
+    onShowShortcuts: () => setShowShortcuts((s) => !s),
   });
 
   // ═══════════════════════════════════════════════
@@ -292,6 +296,7 @@ export default function App() {
         lastPosition={lastPosition} courseTotal={courseTotal}
         onResume={handleResume}
       />
+      <KeyboardShortcuts isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
     </div>
   );
 
@@ -305,7 +310,7 @@ export default function App() {
       <Route path="/course/:courseId/:modIdx/:lesIdx" element={mainLayout} />
       <Route path="/course/:courseId" element={mainLayout} />
       <Route path="/" element={<Navigate to={`/course/${course.id}/0/0`} replace />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

@@ -5,7 +5,7 @@
 import { useEffect } from 'react';
 
 export function useKeyboardNav({
-  onNext, onPrev, onMarkDone, onSearch, onSwitchCourse, onToggleSidebar,
+  onNext, onPrev, onMarkDone, onSearch, onSwitchCourse, onToggleSidebar, onShowShortcuts,
 }) {
   useEffect(() => {
     const handler = (e) => {
@@ -29,6 +29,7 @@ export function useKeyboardNav({
         case 'ArrowLeft': onPrev(); break;
         case 'd': case 'D': onMarkDone(); break;
         case 'm': case 'M': onToggleSidebar(); break;
+        case '?': onShowShortcuts?.(); break;
         case '1': case '2': case '3': case '4':
           onSwitchCourse(parseInt(e.key) - 1);
           break;
@@ -37,5 +38,5 @@ export function useKeyboardNav({
 
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [onNext, onPrev, onMarkDone, onSearch, onSwitchCourse, onToggleSidebar]);
+  }, [onNext, onPrev, onMarkDone, onSearch, onSwitchCourse, onToggleSidebar, onShowShortcuts]);
 }
