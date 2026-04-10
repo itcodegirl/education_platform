@@ -22,7 +22,7 @@ const Confetti = lazy(() => import('./gamification/Confetti').then(m => ({ defau
 const AdminDashboard = lazy(() => import('./admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 
 export function PanelManager({
-  panels, nav, course, profile, progress, lastPosition, courseTotal,
+  panels, nav, course, profile, progress, lastPosition, courseTotal, onResume,
 }) {
   return (
     <Suspense fallback={null}>
@@ -44,7 +44,7 @@ export function PanelManager({
         <WelcomeBack
           isOpen
           onClose={() => panels.setShowWelcome(false)}
-          onResume={() => panels.setShowWelcome(false)}
+          onResume={() => { panels.setShowWelcome(false); onResume?.(); }}
           displayName={profile?.display_name}
           lastPosition={lastPosition}
           completedCount={progress.completed.length}

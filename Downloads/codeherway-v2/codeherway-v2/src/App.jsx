@@ -95,6 +95,24 @@ export default function App() {
     }
   }, [nav.courseIdx, nav.modIdx, nav.lesIdx, showModQuiz, user, dataLoaded]);
 
+  // ─── Resume from saved position ────────────────
+  const handleResume = useCallback(() => {
+    if (!lastPosition.course) return;
+    // Extract label from saved format "🧱 HTML" → "HTML"
+    const courseLabel = lastPosition.course.replace(/^\S+\s/, '');
+    const ci = COURSES.findIndex(c => c.label === courseLabel);
+    if (ci === -1) return;
+    const crs = COURSES[ci];
+    // Extract module title from "⚡ What HTML Actually Is" → "What HTML Actually Is"
+    const modTitle = lastPosition.mod.replace(/^\S+\s/, '');
+    const mi = crs.modules.findIndex(m => m.title === modTitle);
+    if (mi === -1) { nav.switchCourse(ci); return; }
+    // Find lesson
+    const li = crs.modules[mi].lessons.findIndex(l => l.title === lastPosition.les);
+    if (li === -1) { nav.goToSearch(ci, mi, 0); return; }
+    nav.goToSearch(ci, mi, li);
+  }, [lastPosition, nav]);
+
   // ─── Callbacks ────────────────────────────────
   const handleMarkDone = useCallback(() => {
     toggleLesson(lessonKey);
@@ -272,6 +290,7 @@ export default function App() {
         panels={panels} nav={nav} course={course}
         profile={profile} progress={progress}
         lastPosition={lastPosition} courseTotal={courseTotal}
+        onResume={handleResume}
       />
     </div>
   );

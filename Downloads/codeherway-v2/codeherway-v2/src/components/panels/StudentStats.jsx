@@ -10,8 +10,9 @@
 //   6. Activity & badges
 // ═══════════════════════════════════════════════
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useProgress } from '../../context/ProgressContext';
+import { useAuth } from '../../context/AuthContext';
 import { COURSES } from '../../data';
 import { getLevel, getXPInLevel, XP_PER_LEVEL } from '../../utils/helpers';
 import { BADGE_DEFS } from '../../context/ProgressContext';
@@ -21,6 +22,8 @@ export function StudentStats({ isOpen, onClose }) {
     progress, quizScores, xpTotal, streak,
     dailyCount, earnedBadges, srCards, bookmarks, notes,
   } = useProgress();
+  const { user } = useAuth();
+  const [exporting, setExporting] = useState(false);
 
   // ─── Computed analytics ───────────────────────
   const stats = useMemo(() => {
@@ -122,12 +125,102 @@ export function StudentStats({ isOpen, onClose }) {
     return quizKey;
   };
 
+  const exportProgressPDF = async () => {
+    setExporting(true);
+    try {
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+      const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Learner';
+      const W = 210;
+      let y = 20;
+
+      // Header
+      doc.setFillColor(8, 8, 15);
+      doc.rect(0, 0, W, 50, 'F');
+      doc.setFontSize(20);
+      doc.setTextColor(255, 107, 157);
+      doc.setFont('courier', 'bold');
+      doc.text('CodeHerWay', W / 2, 22, { align: 'center' });
+      doc.setFontSize(11);
+      doc.setTextColor(180, 180, 200);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Progress Report for ${displayName}`, W / 2, 32, { align: 'center' });
+      doc.setFontSize(9);
+      doc.setTextColor(130, 130, 160);
+      doc.text(`Generated ${new Date().toLocaleDateString()}`, W / 2, 40, { align: 'center' });
+      y = 60;
+
+      // Overview
+      doc.setFontSize(14);
+      doc.setTextColor(40, 40, 40);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Overview', 20, y); y += 8;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(60, 60, 60);
+      doc.text(`Level: ${stats.level}  |  XP: ${stats.xpTotal.toLocaleString()}  |  Streak: ${stats.streak} days`, 20, y); y += 6;
+      doc.text(`Lessons: ${stats.totalDone}/${stats.totalLessons} (${stats.totalPct}%)  |  Quizzes: ${stats.quizzesTaken}${stats.overallQuizPct !== null ? ` (avg ${stats.overallQuizPct}%)` : ''}`, 20, y); y += 6;
+      doc.text(`Badges: ${stats.badgeCount}/${stats.totalBadges}  |  Bookmarks: ${stats.bookmarkCount}  |  Notes: ${stats.noteCount}`, 20, y); y += 14;
+
+      // Course breakdown
+      doc.setFontSize(14);
+      doc.setTextColor(40, 40, 40);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Course Progress', 20, y); y += 8;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      for (const c of stats.courseStats) {
+        doc.setTextColor(60, 60, 60);
+        const quizInfo = c.avgQuizPct !== null ? `  |  Quiz avg: ${c.avgQuizPct}%` : '';
+        doc.text(`${c.label}: ${c.done}/${c.totalLessons} lessons (${c.pct}%)${quizInfo}`, 24, y);
+        // Progress bar
+        doc.setFillColor(230, 230, 230);
+        doc.rect(24, y + 2, 120, 3, 'F');
+        const [r, g, b] = c.accent.match(/\w{2}/g).map(h => parseInt(h, 16));
+        doc.setFillColor(r || 200, g || 100, b || 150);
+        doc.rect(24, y + 2, Math.max(1, 120 * c.pct / 100), 3, 'F');
+        y += 10;
+      }
+      y += 6;
+
+      // Badges earned
+      const earned = BADGE_DEFS.filter(b => earnedBadges[b.id]);
+      if (earned.length > 0) {
+        doc.setFontSize(14);
+        doc.setTextColor(40, 40, 40);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Badges Earned', 20, y); y += 8;
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(60, 60, 60);
+        for (const b of earned) {
+          doc.text(`${b.name} — ${b.desc}`, 24, y); y += 6;
+          if (y > 270) { doc.addPage(); y = 20; }
+        }
+      }
+
+      // Footer
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 170);
+      doc.text('codeherway.com — Where women code, lead, and rewrite the future of tech', W / 2, 290, { align: 'center' });
+
+      doc.save(`CodeHerWay-Progress-${displayName.replace(/\s+/g, '-')}.pdf`);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="search-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="search-modal ss-modal">
         <div className="ss-head">
           <h2 className="ss-title">📊 Your Progress</h2>
-          <button type="button" className="cheatsheet-close" onClick={onClose}>✕</button>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button type="button" className="cpv-explain" onClick={exportProgressPDF} disabled={exporting}>
+              {exporting ? '⏳ Generating...' : '📄 Download PDF'}
+            </button>
+            <button type="button" className="cheatsheet-close" onClick={onClose}>✕</button>
+          </div>
         </div>
 
         <div className="ss-body">
