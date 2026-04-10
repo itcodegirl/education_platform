@@ -8,6 +8,7 @@ import { renderMarkdown } from "../../utils/markdown";
 import { CodePreview } from "./CodePreview";
 import { useProgress } from "../../providers";
 import { AITutor } from "./AITutor";
+import { LessonFeedback } from "./LessonFeedback";
 
 export const LessonView = memo(function LessonView({
   lesson,
@@ -219,6 +220,7 @@ export const LessonView = memo(function LessonView({
         </div>
       )}
 
+      <LessonFeedback lessonKey={lessonKey} />
       <AITutor lesson={lesson} moduleTitle={moduleTitle} courseId={courseId} />
     </div>
   );

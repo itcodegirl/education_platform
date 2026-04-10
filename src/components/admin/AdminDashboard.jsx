@@ -372,6 +372,44 @@ export function AdminDashboard({ onClose }) {
             {/* ─── COURSES TAB ─── */}
             {tab === 'courses' && (
               <>
+                {/* Completion Funnel */}
+                <div className="admin-section">
+                  <h3 className="admin-section-title">📊 Course Completion Funnel</h3>
+                  <div className="admin-course-grid">
+                    {courseStats.map(c => {
+                      const stages = [
+                        { label: 'Started', count: c.uniqueUsers, pct: 100 },
+                        { label: '25%+', count: Object.values((() => { const m = {}; data.progress.filter(p => p.lesson_key.startsWith(c.label)).forEach(p => { m[p.user_id] = (m[p.user_id] || 0) + 1; }); return m; })()).filter(n => n >= Math.ceil(c.totalLessons * 0.25)).length, pct: null },
+                        { label: '50%+', count: Object.values((() => { const m = {}; data.progress.filter(p => p.lesson_key.startsWith(c.label)).forEach(p => { m[p.user_id] = (m[p.user_id] || 0) + 1; }); return m; })()).filter(n => n >= Math.ceil(c.totalLessons * 0.5)).length, pct: null },
+                        { label: '75%+', count: Object.values((() => { const m = {}; data.progress.filter(p => p.lesson_key.startsWith(c.label)).forEach(p => { m[p.user_id] = (m[p.user_id] || 0) + 1; }); return m; })()).filter(n => n >= Math.ceil(c.totalLessons * 0.75)).length, pct: null },
+                        { label: 'Completed', count: c.completedUsers, pct: null },
+                      ];
+                      stages.forEach(s => { if (s.pct === null) s.pct = c.uniqueUsers > 0 ? Math.round((s.count / c.uniqueUsers) * 100) : 0; });
+                      return (
+                        <div key={c.id} className="admin-course-card">
+                          <div className="admin-course-header">
+                            <span>{c.icon} {c.label}</span>
+                            <span className="admin-course-accent" style={{ color: c.accent }}>{c.uniqueUsers} learners</span>
+                          </div>
+                          <div className="admin-course-stats">
+                            {stages.map((s, i) => (
+                              <div key={i}>
+                                <div className="admin-stat-row">
+                                  <span>{s.label}</span>
+                                  <span className="admin-stat-val">{s.count} ({s.pct}%)</span>
+                                </div>
+                                <div className="admin-progress-bar">
+                                  <div className="admin-progress-fill" style={{ width: `${s.pct}%`, background: c.accent }} />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 {courseStats.map(c => (
                   <div key={c.id} className="admin-section">
                     <h3 className="admin-section-title" style={{ color: c.accent }}>
