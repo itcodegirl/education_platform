@@ -2,12 +2,13 @@
 // PROFILE PAGE — User info, stats, and badges
 // ═══════════════════════════════════════════════
 
+import { memo } from 'react';
 import { useAuth, useProgress, useTheme } from '../../providers';
 import { COURSES } from '../../data';
 import { BADGE_DEFS } from '../../context/ProgressContext';
 import { getLevel, getXPInLevel, XP_PER_LEVEL } from '../../utils/helpers';
 
-export function ProfilePage({ onClose }) {
+export const ProfilePage = memo(function ProfilePage({ onClose }) {
   const { user, profile, signOut } = useAuth();
   const { theme } = useTheme();
   const {
@@ -31,146 +32,90 @@ export function ProfilePage({ onClose }) {
   const badgeCount = Object.keys(earnedBadges).length;
 
   return (
-    <div className={`loading-screen ${theme}`} style={{ overflow: 'auto' }}>
-      <div style={{ maxWidth: 600, width: '100%', margin: '0 auto', padding: '32px 20px 64px' }}>
+    <div className={`loading-screen ${theme} pp-scroll`}>
+      <div className="pp-container">
 
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border)',
-              background: 'var(--bg-surface)', color: 'var(--text-dim)', fontSize: 13,
-              fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
-            }}
-          >
-            ← Back
-          </button>
-          <button
-            type="button"
-            onClick={signOut}
-            style={{
-              padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border)',
-              background: 'none', color: 'var(--text-muted)', fontSize: 13,
-              cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
-            }}
-          >
-            Sign Out
-          </button>
+        <div className="pp-header">
+          <button type="button" className="pp-back-btn" onClick={onClose}>← Back</button>
+          <button type="button" className="pp-signout-btn" onClick={signOut}>Sign Out</button>
         </div>
 
-        {/* Avatar + Name */}
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{
-            width: 80, height: 80, borderRadius: '50%', margin: '0 auto 16px',
-            background: 'linear-gradient(135deg, var(--pink), var(--purple))',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 32, fontWeight: 700, color: 'white',
-          }}>
-            {displayName[0].toUpperCase()}
-          </div>
-          <h2 style={{ fontFamily: "'Space Mono', monospace", fontSize: 24, fontWeight: 700, marginBottom: 4 }}>
-            {displayName}
-          </h2>
-          <p style={{ color: 'var(--text-dim)', fontSize: 14 }}>
-            {user?.email}
-          </p>
-          {joined && <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 4 }}>Joined {joined}</p>}
+        <div className="pp-avatar-section">
+          <div className="pp-avatar-lg">{displayName[0].toUpperCase()}</div>
+          <h2 className="pp-name">{displayName}</h2>
+          <p className="pp-email">{user?.email}</p>
+          {joined && <p className="pp-joined">Joined {joined}</p>}
         </div>
 
-        {/* Stats Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 32 }}>
+        <div className="pp-stats-grid">
           {[
             { value: level, label: 'Level' },
             { value: xpTotal.toLocaleString(), label: 'XP' },
             { value: streak, label: 'Streak' },
             { value: completed.length, label: 'Lessons' },
           ].map((s, i) => (
-            <div key={i} style={{
-              textAlign: 'center', padding: '16px 8px', borderRadius: 12,
-              background: 'var(--bg-surface)', border: '1px solid var(--border)',
-            }}>
-              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, fontWeight: 700 }}>{s.value}</div>
-              <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 1, marginTop: 4 }}>{s.label}</div>
+            <div key={i} className="pp-stat-card">
+              <div className="pp-stat-value">{s.value}</div>
+              <div className="pp-stat-label">{s.label}</div>
             </div>
           ))}
         </div>
 
-        {/* XP Progress */}
-        <div style={{ marginBottom: 32 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-dim)', marginBottom: 6 }}>
+        <div className="pp-xp-section">
+          <div className="pp-xp-info">
             <span>Level {level}</span>
             <span>{xpInLevel}/{XP_PER_LEVEL} XP to Level {level + 1}</span>
           </div>
-          <div style={{ height: 6, borderRadius: 3, background: 'var(--bg-surface)', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${xpPct}%`, borderRadius: 3, background: 'var(--pink)', transition: 'width 0.5s' }} />
+          <div className="pp-xp-track">
+            <div className="pp-xp-fill" style={{ width: `${xpPct}%` }} />
           </div>
         </div>
 
-        {/* Course Progress */}
-        <h3 style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, marginBottom: 16, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-          Course Progress
-        </h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32 }}>
+        <h3 className="pp-section-title">Course Progress</h3>
+        <div className="pp-course-list">
           {courseStats.map(c => (
-            <div key={c.id}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <div key={c.id} className="pp-course-row">
+              <div className="pp-course-info">
                 <span>{c.icon}</span>
-                <span style={{ fontWeight: 600, fontSize: 14, flex: 1 }}>{c.label}</span>
-                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: 'var(--text-muted)' }}>{c.done}/{c.total}</span>
+                <span className="pp-course-name">{c.label}</span>
+                <span className="pp-course-count">{c.done}/{c.total}</span>
               </div>
-              <div style={{ height: 6, borderRadius: 3, background: 'var(--bg-surface)', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${c.pct}%`, borderRadius: 3, background: c.accent, transition: 'width 0.5s' }} />
+              <div className="pp-xp-track">
+                <div className="pp-xp-fill" style={{ width: `${c.pct}%`, background: c.accent }} />
               </div>
             </div>
           ))}
         </div>
 
-        {/* Badges */}
-        <h3 style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, marginBottom: 16, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-          Badges ({badgeCount}/{BADGE_DEFS.length})
-        </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 10, marginBottom: 32 }}>
+        <h3 className="pp-section-title">Badges ({badgeCount}/{BADGE_DEFS.length})</h3>
+        <div className="pp-badge-grid">
           {BADGE_DEFS.map(b => {
             const earned = !!earnedBadges[b.id];
             return (
-              <div key={b.id} style={{
-                textAlign: 'center', padding: '14px 8px', borderRadius: 10,
-                background: 'var(--bg-surface)', border: `1px solid ${earned ? 'var(--pink)' : 'var(--border)'}`,
-                opacity: earned ? 1 : 0.35, transition: 'all 0.2s',
-              }}>
-                <div style={{ fontSize: 28, marginBottom: 4 }}>{b.icon}</div>
-                <div style={{ fontSize: 11, fontWeight: 700, fontFamily: "'Space Mono', monospace", color: earned ? 'var(--pink)' : 'var(--text-dim)' }}>
-                  {b.name}
-                </div>
-                <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>{b.desc}</div>
+              <div key={b.id} className={`pp-badge-card ${earned ? 'earned' : 'locked'}`}>
+                <div className="pp-badge-icon">{b.icon}</div>
+                <div className={`pp-badge-name ${earned ? 'earned' : ''}`}>{b.name}</div>
+                <div className="pp-badge-desc">{b.desc}</div>
               </div>
             );
           })}
         </div>
 
-        {/* Activity */}
-        <h3 style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, marginBottom: 16, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-          Activity
-        </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+        <h3 className="pp-section-title">Activity</h3>
+        <div className="pp-activity-grid">
           {[
             { icon: '★', value: bookmarks.length, label: 'Bookmarks' },
             { icon: '✏️', value: Object.keys(notes).length, label: 'Notes' },
             { icon: '📚', value: `${Math.round(completed.length / totalLessons * 100) || 0}%`, label: 'Overall' },
           ].map((s, i) => (
-            <div key={i} style={{
-              textAlign: 'center', padding: 14, borderRadius: 10,
-              background: 'var(--bg-surface)', border: '1px solid var(--border)',
-            }}>
-              <div style={{ fontSize: 20, marginBottom: 4 }}>{s.icon}</div>
-              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 18, fontWeight: 700 }}>{s.value}</div>
-              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{s.label}</div>
+            <div key={i} className="pp-stat-card">
+              <div className="pp-activity-icon">{s.icon}</div>
+              <div className="pp-stat-value">{s.value}</div>
+              <div className="pp-stat-label">{s.label}</div>
             </div>
           ))}
         </div>
       </div>
     </div>
   );
-}
+});

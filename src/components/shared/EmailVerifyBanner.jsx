@@ -4,10 +4,10 @@
 // Dismissable for the session
 // ═══════════════════════════════════════════════
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { useAuth } from '../../providers';
 
-export function EmailVerifyBanner() {
+export const EmailVerifyBanner = memo(function EmailVerifyBanner() {
   const { user } = useAuth();
   const [dismissed, setDismissed] = useState(false);
 
@@ -32,4 +32,4 @@ export function EmailVerifyBanner() {
       </button>
     </div>
   );
-}
+});

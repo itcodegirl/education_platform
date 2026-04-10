@@ -4,12 +4,12 @@
 // Dismissable, remembers choice for 7 days
 // ═══════════════════════════════════════════════
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 
 const DISMISS_KEY = 'chw-install-dismissed';
 const DISMISS_DAYS = 7;
 
-export function InstallPrompt() {
+export const InstallPrompt = memo(function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [show, setShow] = useState(false);
 
@@ -56,4 +56,4 @@ export function InstallPrompt() {
       <button type="button" className="install-dismiss" onClick={handleDismiss} aria-label="Dismiss">✕</button>
     </div>
   );
-}
+});

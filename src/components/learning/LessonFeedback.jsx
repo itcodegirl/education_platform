@@ -3,7 +3,7 @@
 // Stores in localStorage (no backend needed)
 // ═══════════════════════════════════════════════
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 
 const STORAGE_KEY = 'chw-lesson-feedback';
 
@@ -22,7 +22,7 @@ function saveFeedback(lessonKey, value) {
   } catch { /* non-critical */ }
 }
 
-export function LessonFeedback({ lessonKey }) {
+export const LessonFeedback = memo(function LessonFeedback({ lessonKey }) {
   const [feedback, setFeedback] = useState(() => getFeedback(lessonKey));
 
   const handleFeedback = (value) => {
@@ -61,4 +61,4 @@ export function LessonFeedback({ lessonKey }) {
       )}
     </div>
   );
-}
+});

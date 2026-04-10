@@ -112,7 +112,7 @@ export function CodePreview({ code, lang }) {
               disabled={aiExplaining}
               title="AI explains your code"
             >
-              {aiExplaining ? 'Thinking...' : 'Explain'}
+              {aiExplaining ? '⏳ Thinking...' : '🤖 Explain'}
             </button>
           )}
           <button type="button" className="cpv-copy" onClick={handleCopy}>
@@ -168,7 +168,7 @@ export function CodePreview({ code, lang }) {
               <div className="cpv-explanation-body">
                 {aiExplaining ? (
                   <div className="cpv-explanation-loading">
-                    <span className="cpv-loading-spinner"></span>
+                    <div className="ai-typing"><span></span><span></span><span></span></div>
                     Analyzing your code...
                   </div>
                 ) : (
