@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════
-// COURSE INDEX — Assembles all courses
+// COURSE INDEX — Assembles all courses + quizzes
 // ═══════════════════════════════════════════════
 
 import { HTML_MODULES } from './html/course';
@@ -14,10 +14,14 @@ export const COURSES = [
   { id: 'react', label: 'React', icon: '⚛️', accent: '#a78bfa', modules: REACT_MODULES },
 ];
 
-import { ALL_QUIZZES } from './quizzes';
+// Per-course quiz imports
+import { HTML_QUIZZES } from './html/quizzes';
+import { CSS_QUIZZES } from './css/quizzes';
+import { JS_QUIZZES } from './js/quizzes';
+import { REACT_QUIZZES } from './react/quizzes';
 
 export const QUIZ_MAP = new Map();
-ALL_QUIZZES.forEach((q) => {
+[...HTML_QUIZZES, ...CSS_QUIZZES, ...JS_QUIZZES, ...REACT_QUIZZES].forEach((q) => {
   if (q.lessonId) QUIZ_MAP.set(`l:${q.lessonId}`, q);
   if (q.moduleId) QUIZ_MAP.set(`m:${q.moduleId}`, q);
 });

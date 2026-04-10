@@ -22,17 +22,11 @@ export default defineConfig({
           // jsPDF (only needed for certificates)
           'vendor-jspdf': ['jspdf'],
 
-          // Course data — each course is its own chunk
-          'data-html': ['./src/data/html/course.js'],
-          'data-css': ['./src/data/css/course.js'],
-          'data-js': ['./src/data/js/course.js'],
-          'data-react': ['./src/data/react/course.js'],
-
-          // Quiz data (938 questions — heavy)
-          'data-quizzes': ['./src/data/quizzes.js'],
-
-          // Challenge data
-          'data-challenges': ['./src/data/challenges.js'],
+          // Course data — each course is its own chunk (lessons + quizzes + challenges)
+          'data-html': ['./src/data/html/course.js', './src/data/html/quizzes.js', './src/data/html/challenges.js'],
+          'data-css': ['./src/data/css/course.js', './src/data/css/quizzes.js', './src/data/css/challenges.js'],
+          'data-js': ['./src/data/js/course.js', './src/data/js/quizzes.js', './src/data/js/challenges.js'],
+          'data-react': ['./src/data/react/course.js', './src/data/react/quizzes.js', './src/data/react/challenges.js'],
 
           // Reference data (cheatsheets, glossary, projects)
           'data-reference': [

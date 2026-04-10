@@ -1,0 +1,125 @@
+const has = (code, str) => code.toLowerCase().includes(str.toLowerCase());
+const count = (code, str) => (code.toLowerCase().match(new RegExp(str.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
+
+export const JS_CHALLENGES = [
+  { id:'js-ch-1', title:'Array Filter & Map', description:'Filter evens, then double each one.', difficulty:'beginner', courseId:'js',
+    starter:'const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];\n\nconst evens = // filter evens\nconst doubled = // double each\n\nconsole.log(evens);\nconsole.log(doubled);',
+    requirements:['Use .filter()','Use .map()','evens = [2,4,6,8,10]','doubled = [4,8,12,16,20]'],
+    tests:[
+      { label:'.filter()', check:c=>has(c,'.filter(') },
+      { label:'.map()', check:c=>has(c,'.map(') },
+      { label:'Modulo check', check:c=>has(c,'% 2') },
+      { label:'Doubles values', check:c=>has(c,'* 2') },
+    ],
+    hint:'.filter(n => n % 2 === 0) then .map(n => n * 2)',
+    solution:'const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];\nconst evens = numbers.filter(n => n % 2 === 0);\nconst doubled = evens.map(n => n * 2);\nconsole.log(evens);\nconsole.log(doubled);' },
+
+  { id:'js-ch-2', title:'Object Destructuring', description:'Extract values and merge objects with spread.', difficulty:'beginner', courseId:'js',
+    starter:'const user = { name: "Jenna", email: "j@code.com", role: "dev", level: "junior" };\n\n// destructure name and role\n// merge user with { level: "mid", team: "frontend" }',
+    requirements:['Destructuring { }','Spread operator ...','Extracts name and role','Merges objects'],
+    tests:[
+      { label:'Destructuring', check:c=>has(c,'const {')||has(c,'let {') },
+      { label:'Spread', check:c=>has(c,'...user')||has(c,'...updates') },
+      { label:'Extracts name/role', check:c=>has(c,'name')&&has(c,'role')&&has(c,'} = user') },
+      { label:'Merge with spread', check:c=>has(c,'{ ...') },
+    ],
+    hint:'const { name, role } = user; const merged = { ...user, ...updates };',
+    solution:'const user = { name: "Jenna", email: "j@code.com", role: "dev", level: "junior" };\nconst { name, role } = user;\nconst updates = { level: "mid", team: "frontend" };\nconst merged = { ...user, ...updates };\nconsole.log(name, role);\nconsole.log(merged);' },
+
+  { id:'js-ch-3', title:'Async Fetch', description:'Write an async function that fetches data with error handling.', difficulty:'intermediate', courseId:'js',
+    starter:'// async function getUser()\n// fetch from jsonplaceholder\n// parse JSON, log name\n// try/catch for errors',
+    requirements:['async keyword','await fetch()','Calls .json()','try/catch'],
+    tests:[
+      { label:'async', check:c=>has(c,'async') },
+      { label:'await fetch', check:c=>has(c,'await fetch') },
+      { label:'.json()', check:c=>has(c,'.json()') },
+      { label:'try/catch', check:c=>has(c,'try')&&has(c,'catch') },
+    ],
+    hint:'async function getUser() { try { const res = await fetch(url); ... } catch(e) { ... } }',
+    solution:'async function getUser() {\n  try {\n    const res = await fetch("https://jsonplaceholder.typicode.com/users/1");\n    const user = await res.json();\n    console.log(user.name);\n  } catch (err) {\n    console.error("Failed:", err.message);\n  }\n}\ngetUser();' },
+
+  { id:'js-ch-4', title:'DOM Counter', description:'Build a counter with increment, decrement, and reset.', difficulty:'beginner', courseId:'js',
+    starter:'// Create 3 buttons: +, -, Reset\n// Display the count\n// Use querySelector and addEventListener\n\nlet count = 0;\n\n// Your code here',
+    requirements:['Uses querySelector','Uses addEventListener','Has increment/decrement/reset','Updates the display'],
+    tests:[
+      { label:'querySelector', check:c=>has(c,'querySelector') },
+      { label:'addEventListener', check:c=>count(c,'addEventListener')>=2 },
+      { label:'Increment logic', check:c=>has(c,'count++') || has(c,'count + 1') || has(c,'count += 1') },
+      { label:'Reset to 0', check:c=>has(c,'= 0') },
+    ],
+    hint:'document.querySelector("#btn").addEventListener("click", () => { count++; display.textContent = count; })',
+    solution:'let count = 0;\nconst display = document.querySelector("#count");\nconst plus = document.querySelector("#plus");\nconst minus = document.querySelector("#minus");\nconst reset = document.querySelector("#reset");\n\nplus.addEventListener("click", () => { count++; display.textContent = count; });\nminus.addEventListener("click", () => { count--; display.textContent = count; });\nreset.addEventListener("click", () => { count = 0; display.textContent = count; });' },
+
+  { id:'js-ch-5', title:'localStorage Todo List', description:'Build a todo list that persists with localStorage.', difficulty:'intermediate', courseId:'js',
+    starter:'// Todo list with:\n// - Add items\n// - Store in localStorage\n// - Load on page load\n// - Delete items',
+    requirements:['Uses localStorage.setItem','Uses localStorage.getItem','Uses JSON.stringify','Uses JSON.parse','Has add and delete functions'],
+    tests:[
+      { label:'setItem', check:c=>has(c,'setItem') },
+      { label:'getItem', check:c=>has(c,'getItem') },
+      { label:'JSON.stringify', check:c=>has(c,'JSON.stringify') },
+      { label:'JSON.parse', check:c=>has(c,'JSON.parse') },
+      { label:'Add/delete logic', check:c=>(has(c,'push')||has(c,'concat'))&&has(c,'filter') },
+    ],
+    hint:'Save: localStorage.setItem("todos", JSON.stringify(todos)). Load: JSON.parse(localStorage.getItem("todos")) || []',
+    solution:'let todos = JSON.parse(localStorage.getItem("todos")) || [];\n\nfunction addTodo(text) {\n  todos.push({ id: Date.now(), text, done: false });\n  save();\n}\n\nfunction deleteTodo(id) {\n  todos = todos.filter(t => t.id !== id);\n  save();\n}\n\nfunction save() {\n  localStorage.setItem("todos", JSON.stringify(todos));\n}\n\naddTodo("Learn JavaScript");\nconsole.log(todos);' },
+
+  { id:'js-ch-6', title:'Array Reduce', description:'Use reduce to calculate total price from a cart array.', difficulty:'beginner', courseId:'js',
+    starter:'const cart = [\n  { name: "Shirt", price: 29.99, qty: 2 },\n  { name: "Shoes", price: 89.99, qty: 1 },\n  { name: "Hat", price: 14.99, qty: 3 },\n];\n\n// Calculate total using .reduce()\nconst total = // your code\n\nconsole.log(total);',
+    requirements:['Uses .reduce()','Multiplies price * qty','Returns a number','Accumulates correctly'],
+    tests:[
+      { label:'.reduce()', check:c=>has(c,'.reduce(') },
+      { label:'price * qty', check:c=>has(c,'price')&&has(c,'qty')&&has(c,'*') },
+      { label:'Has accumulator', check:c=>has(c,', 0')||has(c,',0') },
+      { label:'Logs total', check:c=>has(c,'console.log') },
+    ],
+    hint:'cart.reduce((sum, item) => sum + item.price * item.qty, 0)',
+    solution:'const cart = [\n  { name: "Shirt", price: 29.99, qty: 2 },\n  { name: "Shoes", price: 89.99, qty: 1 },\n  { name: "Hat", price: 14.99, qty: 3 },\n];\nconst total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);\nconsole.log(total);' },
+
+  { id:'js-ch-7', title:'Event Delegation', description:'Handle clicks on a dynamic list with one parent listener.', difficulty:'intermediate', courseId:'js',
+    starter:'// One listener on #list handles all <li> clicks\n// Use e.target to identify which item was clicked\n// Log the clicked item text',
+    requirements:['One addEventListener on parent','Uses e.target','Checks tagName or closest','Handles dynamic children'],
+    tests:[
+      { label:'addEventListener on parent', check:c=>has(c,'addEventListener') },
+      { label:'e.target', check:c=>has(c,'e.target')||has(c,'event.target') },
+      { label:'tagName or closest', check:c=>has(c,'tagName')||has(c,'closest')||has(c,'nodeName') },
+      { label:'Gets text content', check:c=>has(c,'textContent')||has(c,'innerText') },
+    ],
+    hint:'list.addEventListener("click", (e) => { if (e.target.tagName === "LI") console.log(e.target.textContent) })',
+    solution:'const list = document.querySelector("#list");\n\nlist.addEventListener("click", (e) => {\n  if (e.target.tagName === "LI") {\n    console.log("Clicked:", e.target.textContent);\n    e.target.classList.toggle("done");\n  }\n});' },
+
+  { id:'js-ch-8', title:'Promise Chain', description:'Chain 3 promises that each add to a message.', difficulty:'intermediate', courseId:'js',
+    starter:'// Create 3 functions that return promises\n// Chain them: step1().then(step2).then(step3)\n// Each adds to the message',
+    requirements:['Creates Promise objects','Uses .then() chaining','3 steps in the chain','Final result logged'],
+    tests:[
+      { label:'new Promise or returns Promise', check:c=>has(c,'new Promise')||has(c,'Promise.resolve') },
+      { label:'.then() chaining', check:c=>count(c,'.then(')>=2 },
+      { label:'3 step functions', check:c=>has(c,'step1')||has(c,'function') },
+      { label:'console.log result', check:c=>has(c,'console.log') },
+    ],
+    hint:'function step1() { return Promise.resolve("Hello"); }',
+    solution:'function step1() {\n  return Promise.resolve("Hello");\n}\nfunction step2(msg) {\n  return Promise.resolve(msg + " World");\n}\nfunction step3(msg) {\n  return Promise.resolve(msg + "!");\n}\n\nstep1()\n  .then(step2)\n  .then(step3)\n  .then(result => console.log(result));' },
+
+  { id:'js-ch-9', title:'Debounce Function', description:'Implement a debounce utility function.', difficulty:'advanced', courseId:'js',
+    starter:'// Write a debounce function\n// debounce(fn, delay) returns a new function\n// that only fires after the user stops calling it\n// for "delay" milliseconds',
+    requirements:['Returns a function','Uses setTimeout','Uses clearTimeout','Accepts delay parameter'],
+    tests:[
+      { label:'Returns function', check:c=>has(c,'return function')||has(c,'return (') },
+      { label:'setTimeout', check:c=>has(c,'setTimeout') },
+      { label:'clearTimeout', check:c=>has(c,'clearTimeout') },
+      { label:'Delay parameter', check:c=>has(c,'delay')||has(c,'wait')||has(c,'ms') },
+    ],
+    hint:'Store the timer ID. On each call, clear the old timer and set a new one.',
+    solution:'function debounce(fn, delay) {\n  let timer;\n  return function(...args) {\n    clearTimeout(timer);\n    timer = setTimeout(() => fn(...args), delay);\n  };\n}\n\nconst search = debounce((query) => {\n  console.log("Searching:", query);\n}, 300);\n\nsearch("h");\nsearch("he");\nsearch("hello"); // only this fires' },
+
+  { id:'js-ch-10', title:'Class with Inheritance', description:'Create a Shape class and a Circle that extends it.', difficulty:'intermediate', courseId:'js',
+    starter:'// Create class Shape with name property\n// Create class Circle extends Shape\n// Circle has radius, calculates area\n// Use super() in constructor',
+    requirements:['Uses class keyword','Uses extends','Uses super()','Has a method that calculates area'],
+    tests:[
+      { label:'class keyword', check:c=>count(c,'class ')>=2 },
+      { label:'extends', check:c=>has(c,'extends') },
+      { label:'super()', check:c=>has(c,'super(') },
+      { label:'Area method', check:c=>has(c,'area')&&has(c,'Math.PI')||has(c,'3.14') },
+    ],
+    hint:'class Circle extends Shape { constructor(r) { super("Circle"); this.radius = r; } }',
+    solution:'class Shape {\n  constructor(name) {\n    this.name = name;\n  }\n  describe() {\n    return `This is a ${this.name}`;\n  }\n}\n\nclass Circle extends Shape {\n  constructor(radius) {\n    super("Circle");\n    this.radius = radius;\n  }\n  area() {\n    return Math.PI * this.radius ** 2;\n  }\n}\n\nconst c = new Circle(5);\nconsole.log(c.describe());\nconsole.log(c.area());' },
+];
