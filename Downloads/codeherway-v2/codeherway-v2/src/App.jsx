@@ -12,6 +12,7 @@
 // ═══════════════════════════════════════════════
 
 import { useCallback, useEffect, useMemo } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 // Data + hooks
 import { COURSES } from './data';
@@ -58,6 +59,7 @@ export default function App() {
     dataLoaded, lastPosition, loadError, syncError,
   } = useProgress();
 
+  const routerNavigate = useNavigate();
   const nav = useNavigation();
   const panels = usePanels({ dataLoaded, user, lastPosition });
 
@@ -151,14 +153,6 @@ export default function App() {
     );
   }
 
-  if (window.location.hash === '#admin') {
-    return (
-      <div className={theme}>
-        <LazyAdminDashboard onClose={() => { window.location.hash = ''; window.location.reload(); }} />
-      </div>
-    );
-  }
-
   if (loadError) {
     return (
       <div className={`loading-screen ${theme}`}>
@@ -191,7 +185,7 @@ export default function App() {
   // MAIN APP LAYOUT
   // ═══════════════════════════════════════════════
 
-  return (
+  const mainLayout = (
     <div className={`shell ${theme}`} data-course={course.id}>
       <OfflineIndicator />
       {syncError && (
@@ -280,5 +274,19 @@ export default function App() {
         lastPosition={lastPosition} courseTotal={courseTotal}
       />
     </div>
+  );
+
+  return (
+    <Routes>
+      <Route path="/admin" element={
+        <div className={theme}>
+          <LazyAdminDashboard onClose={() => routerNavigate('/')} />
+        </div>
+      } />
+      <Route path="/course/:courseId/:modIdx/:lesIdx" element={mainLayout} />
+      <Route path="/course/:courseId" element={mainLayout} />
+      <Route path="/" element={<Navigate to={`/course/${course.id}/0/0`} replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
