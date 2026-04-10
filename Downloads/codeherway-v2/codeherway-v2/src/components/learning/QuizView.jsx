@@ -212,6 +212,7 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
 
   const [answers, setAnswers] = useState(new Map());
   const [submitted, setSubmitted] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   const setAnswer = (qId, value) => {
     if (submitted) return;
@@ -269,15 +270,21 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
 
   return (
     <section className="quiz-container" aria-label={label}>
-      <div className="quiz-header">
+      <button
+        type="button"
+        className="quiz-header quiz-toggle"
+        onClick={() => setExpanded(e => !e)}
+        aria-expanded={expanded}
+      >
         <span className="quiz-icon" aria-hidden="true">📝</span>
         <div>
           <h3 className="quiz-title">{label}</h3>
           <span className="quiz-count">{total} question{total > 1 ? 's' : ''}</span>
         </div>
-      </div>
+        <span className="quiz-arrow" aria-hidden="true">{expanded ? '▾' : '▸'}</span>
+      </button>
 
-      <div className="quiz-questions">
+      {expanded && <><div className="quiz-questions">
         {quiz.questions.map((q, qi) => {
           const answer = answers.get(q.id);
           const correct = isAnswerCorrect(q, answer);
@@ -340,6 +347,7 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
           <button type="button" className="quiz-retry" onClick={reset}>↻ Retry</button>
         </div>
       )}
+      </>}
     </section>
   );
 });

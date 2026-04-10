@@ -58,7 +58,7 @@ export function WelcomeBack({ isOpen, onClose, onResume, displayName, lastPositi
             Continue Learning →
           </button>
           <button className="welcome-dismiss" onClick={onClose}>
-            Start fresh
+            Browse courses
           </button>
         </div>
       </div>

@@ -6,6 +6,7 @@
 import { useState, memo, useMemo } from 'react';
 import { useProgress } from '../../context/ProgressContext';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { getLevel, getXPInLevel, XP_PER_LEVEL, DAILY_GOAL } from '../../utils/helpers';
 import { QUIZ_MAP } from '../../data';
 
@@ -38,6 +39,7 @@ export const Sidebar = memo(function Sidebar({
 }) {
   const { completed, xpTotal, streak, dailyCount } = useProgress();
   const { user, signOut } = useAuth();
+  const { theme, toggle: toggleTheme } = useTheme();
   const [lockMode, setLockMode] = useState(() =>
     localStorage.getItem('chw-lock-mode') === 'true'
   );
@@ -109,21 +111,24 @@ export const Sidebar = memo(function Sidebar({
           <div className="prog-track">
             <div className="prog-fill" style={{ width: `${pct}%`, background: course.accent }} />
           </div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6, fontFamily: "'Space Mono', monospace" }}>
+            ~{Math.floor(total * 3 / 60)}h {(total * 3) % 60}m total
+          </div>
         </div>
 
         {/* Stats Row */}
         <div className="stats-panel">
           <div className="stats-row">
             <div className="stat-card">
-              <div className="stat-num">{completed.length}</div>
-              <div className="stat-label">Done</div>
+              <div className="stat-num">{completed.length || '—'}</div>
+              <div className="stat-label">{completed.length === 0 ? 'Start here!' : 'Done'}</div>
             </div>
             <div className="stat-card">
-              <div className="stat-num">{streak}🔥</div>
-              <div className="stat-label">Streak</div>
+              <div className="stat-num">{streak ? `${streak}🔥` : '—'}</div>
+              <div className="stat-label">{streak === 0 ? 'Start today!' : 'Streak'}</div>
             </div>
             <div className="stat-card">
-              <div className="stat-num">{Math.floor(completed.length * 3 / 60)}h</div>
+              <div className="stat-num">{completed.length > 0 ? `${Math.floor(completed.length * 3 / 60)}h` : '—'}</div>
               <div className="stat-label">Time</div>
             </div>
           </div>
@@ -203,7 +208,7 @@ export const Sidebar = memo(function Sidebar({
           </nav>
         </div>
 
-        {/* Lock mode toggle */}
+        {/* Settings footer */}
         <div className="sb-lock-toggle">
           <label className="lock-label">
             <input
@@ -216,6 +221,14 @@ export const Sidebar = memo(function Sidebar({
             />
             <span className="lock-text">{lockMode ? '🔒 Sequential' : '🔓 Free roam'}</span>
           </label>
+          <button
+            type="button"
+            className="lock-label"
+            onClick={toggleTheme}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', marginTop: 6, padding: 0 }}
+          >
+            <span className="lock-text">{theme === 'dark' ? '☀️ Light mode' : '🌙 Dark mode'}</span>
+          </button>
         </div>
       </aside>
     </>

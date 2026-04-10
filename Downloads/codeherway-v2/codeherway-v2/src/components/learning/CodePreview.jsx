@@ -103,13 +103,13 @@ export function CodePreview({ code, lang }) {
     <div className="cpv">
       {/* ─── Tab Bar ─── */}
       <div className="cpv-tabs">
-        <button className={`cpv-tab ${tab === 'code' ? 'on' : ''}`} onClick={() => setTab('code')}>
+        <button className={`cpv-tab ${tab === 'code' ? 'on' : ''}`} onClick={() => setTab('code')} title="Read-only example">
           {tabIcon} Code
         </button>
-        <button className={`cpv-tab ${tab === 'editor' ? 'on' : ''}`} onClick={() => setTab('editor')}>
+        <button className={`cpv-tab ${tab === 'editor' ? 'on' : ''}`} onClick={() => setTab('editor')} title="Try it yourself">
           ✏️ Editor
         </button>
-        <button className={`cpv-tab ${tab === 'preview' ? 'on' : ''}`} onClick={() => setTab('preview')}>
+        <button className={`cpv-tab ${tab === 'preview' ? 'on' : ''}`} onClick={() => setTab('preview')} title="See the result">
           {previewLabel}
         </button>
 

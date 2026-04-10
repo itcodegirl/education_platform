@@ -21,3 +21,17 @@
 }
 .mark-btn:hover { border-color: var(--pink); color: var(--pink); }
 .mark-btn.dn { background: var(--cyan-dim); border-color: var(--cyan); color: var(--cyan); }
+.mark-btn.pulse { animation: donePulse 0.6s ease-out; }
+@keyframes donePulse {
+  0% { transform: scale(1); box-shadow: none; }
+  30% { transform: scale(1.15); box-shadow: 0 0 20px rgba(78,205,196,0.5); background: var(--cyan); color: var(--bg-deep); border-color: var(--cyan); }
+  100% { transform: scale(1); box-shadow: none; }
+}
+
+/* Reading progress bar */
+.reading-progress {
+  position: sticky; top: 0; left: 0; z-index: 51;
+  height: 3px; background: var(--pink);
+  box-shadow: 0 0 8px var(--pink-dim);
+  transition: width 0.1s linear;
+}

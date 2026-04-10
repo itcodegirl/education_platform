@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { buildSearchIndex } from '../../data/reference/search-index';
+import { COURSES } from '../../data';
 
 const searchIndex = buildSearchIndex();
 
@@ -75,7 +76,7 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
                 <span className="sr-icon">{r.icon}</span>
                 <div className="sr-body">
                   <div className="sr-title" dangerouslySetInnerHTML={{ __html: highlight(r.title) }} />
-                  <div className="sr-path">{r.course} › <span dangerouslySetInnerHTML={{ __html: highlight(r.module) }} /></div>
+                  <div className="sr-path"><span style={{ color: COURSES[r.courseIdx]?.accent }}>{r.course}</span> › <span dangerouslySetInnerHTML={{ __html: highlight(r.module) }} /></div>
                   {r.keywords && (
                     <div className="sr-snippet" dangerouslySetInnerHTML={{ __html: highlight(r.keywords.slice(0, 80)) }} />
                   )}

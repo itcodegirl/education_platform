@@ -65,6 +65,8 @@ export default function App() {
   const nav = useNavigation();
   const panels = usePanels({ dataLoaded, user, lastPosition });
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [scrollPct, setScrollPct] = useState(0);
+  const [donePulse, setDonePulse] = useState(false);
 
   const {
     course, modules, mod, les,
@@ -98,6 +100,20 @@ export default function App() {
     }
   }, [nav.courseIdx, nav.modIdx, nav.lesIdx, showModQuiz, user, dataLoaded]);
 
+  // ─── Reading progress bar ──────────────────────
+  useEffect(() => {
+    const el = mainRef;
+    const node = el?.current;
+    if (!node) return;
+    const onScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = node;
+      const pct = scrollHeight <= clientHeight ? 100 : Math.round((scrollTop / (scrollHeight - clientHeight)) * 100);
+      setScrollPct(pct);
+    };
+    node.addEventListener('scroll', onScroll, { passive: true });
+    return () => node.removeEventListener('scroll', onScroll);
+  }, [mainRef]);
+
   // ─── Resume from saved position ────────────────
   const handleResume = useCallback(() => {
     if (!lastPosition.course) return;
@@ -122,6 +138,8 @@ export default function App() {
     if (!isDone) {
       awardXP(XP_VALUES.lesson, 'Lesson completed');
       recordDailyActivity();
+      setDonePulse(true);
+      setTimeout(() => setDonePulse(false), 600);
     }
   }, [lessonKey, isDone, toggleLesson, awardXP, recordDailyActivity]);
 
@@ -227,6 +245,8 @@ export default function App() {
       />
 
       <main className="mn" ref={mainRef}>
+        {/* Reading progress */}
+        {!showModQuiz && <div className="reading-progress" style={{ width: `${scrollPct}%` }} />}
         {/* Topbar */}
         <div className="topbar">
           <button type="button" className="ham" onClick={() => panels.setSidebar(true)} aria-label="Open sidebar menu">☰</button>
@@ -242,7 +262,7 @@ export default function App() {
             <span aria-hidden="true">🔍</span><span>Search</span><kbd aria-hidden="true">⌘K</kbd>
           </button>
           {!showModQuiz && (
-            <button type="button" className={`mark-btn ${isDone ? 'dn' : ''}`} onClick={handleMarkDone}>
+            <button type="button" className={`mark-btn ${isDone ? 'dn' : ''} ${donePulse ? 'pulse' : ''}`} onClick={handleMarkDone}>
               {isDone ? '✓ Done' : 'Mark Done'}
             </button>
           )}

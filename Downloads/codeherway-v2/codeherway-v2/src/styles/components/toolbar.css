@@ -15,3 +15,18 @@
   padding: 3px 10px; border-radius: 10px; border: 1px solid var(--border); white-space: nowrap;
 }
 .rt-icon { font-size: 13px; }
+
+/* Tool button labels */
+.tool-btn {
+  flex-direction: column; gap: 2px;
+}
+.tool-icon { font-size: 18px; line-height: 1; }
+.tool-label {
+  font-size: 9px; font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text-muted); line-height: 1;
+  letter-spacing: 0.3px;
+}
+@media (max-width: 500px) {
+  .tool-label { display: none; }
+}
