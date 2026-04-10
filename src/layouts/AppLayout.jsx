@@ -87,6 +87,15 @@ export function AppLayout() {
     window.localStorage.setItem("chw-sidebar-collapsed", String(sidebarCollapsed));
   }, [sidebarCollapsed]);
 
+  // ─── Dynamic page title ───────────────────
+  useEffect(() => {
+    const title = showModQuiz
+      ? `${mod.title} Quiz — CodeHerWay`
+      : `${les.title} — CodeHerWay`;
+    document.title = title;
+    return () => { document.title = 'CodeHerWay — Learn. Build. Ship.'; };
+  }, [les.title, mod.title, showModQuiz]);
+
   // ─── Save position on navigation ──────────
   useEffect(() => {
     if (dataLoaded) {

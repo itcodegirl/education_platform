@@ -6,3 +6,5 @@ dist
 .codex-backup-wrong-local
 playwright-report
 test-results
+package-lock.json
+Downloads/

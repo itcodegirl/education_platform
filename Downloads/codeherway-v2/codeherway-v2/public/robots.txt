@@ -1,3 +1,0 @@
-User-agent: *
-Allow: /
-Sitemap: https://codeherway.com/sitemap.xml
