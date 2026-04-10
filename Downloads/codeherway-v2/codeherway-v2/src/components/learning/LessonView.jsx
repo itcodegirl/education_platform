@@ -47,9 +47,9 @@ export const LessonView = memo(function LessonView({ lesson, emoji, lang, lesson
   };
 
   return (
-    <div className="lv">
+    <article className="lv" aria-label={lesson.title}>
       <div className="lv-head">
-        <span className="lv-emoji">{emoji}</span>
+        <span className="lv-emoji" aria-hidden="true">{emoji}</span>
         <div className="lv-head-text">
           <h2 className="lv-title">{lesson.title}</h2>
           {isRichFormat && lesson.difficulty && (
@@ -64,13 +64,17 @@ export const LessonView = memo(function LessonView({ lesson, emoji, lang, lesson
             className={`lv-action-btn ${bookmarked ? 'active' : ''}`}
             onClick={() => toggleBookmark(lessonKey, courseId, moduleTitle, lesson.title)}
             title={bookmarked ? 'Remove bookmark' : 'Bookmark this lesson'}
+            aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark this lesson'}
+            aria-pressed={bookmarked}
           >
             {bookmarked ? '★' : '☆'}
           </button>
           <button
             className={`lv-action-btn ${showNotes ? 'active' : ''}`}
             onClick={() => setShowNotes(!showNotes)}
-            title="Notes"
+            title="Toggle notes"
+            aria-label="Toggle notes panel"
+            aria-expanded={showNotes}
           >
             ✎
           </button>
@@ -90,6 +94,7 @@ export const LessonView = memo(function LessonView({ lesson, emoji, lang, lesson
             onChange={handleNoteChange}
             placeholder="Type your notes for this lesson..."
             rows={4}
+            aria-label="Lesson notes"
           />
         </div>
       )}
@@ -179,6 +184,6 @@ export const LessonView = memo(function LessonView({ lesson, emoji, lang, lesson
 
       {/* ─── AI Tutor ─── */}
       <AITutor lesson={lesson} moduleTitle={moduleTitle} courseId={courseId} />
-    </div>
+    </article>
   );
 });

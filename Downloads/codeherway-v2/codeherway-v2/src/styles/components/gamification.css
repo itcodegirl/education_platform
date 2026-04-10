@@ -1,0 +1,44 @@
+/* ─── 17. XP Bar & Daily Goal ──────────────────── */
+.xp-bar-wrap { padding: 8px 20px 12px; border-bottom: 1px solid var(--border); }
+.xp-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.xp-level { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; }
+.xp-level .lvl-num { color: var(--pink); }
+.xp-amount { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--text-muted); }
+.xp-track { height: 6px; background: var(--bg-surface); border-radius: 6px; overflow: hidden; }
+.xp-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, #ff6b9d, #a78bfa, #4ecdc4); transition: width 0.6s cubic-bezier(0.4,0,0.2,1); position: relative; }
+.xp-fill::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); animation: shimmer 2s infinite; }
+
+.daily-goal { padding: 10px 20px; border-bottom: 1px solid var(--border); }
+.dg-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.dg-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'Space Mono', monospace; }
+.dg-count { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text-dim); }
+.dg-dots { display: flex; gap: 6px; }
+.dg-dot { width: 100%; height: 8px; border-radius: 4px; background: var(--bg-surface); border: 1px solid var(--border); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.dg-dot.filled { background: linear-gradient(90deg, #4ecdc4, #a78bfa); border-color: transparent; box-shadow: 0 0 8px rgba(78,205,196,0.3); }
+
+/* ─── 18. Stats Panel ──────────────────────────── */
+.stats-panel { padding: 12px 20px; border-bottom: 1px solid var(--border); }
+.stats-row { display: flex; gap: 8px; }
+.stat-card { flex: 1; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; text-align: center; transition: border-color 0.2s; }
+.stat-card:hover { border-color: var(--border-bright); }
+.stat-num { font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700; }
+.stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* ─── 19. XP Popup & Badge Unlock ──────────────── */
+.xp-popup {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0); z-index: 600;
+  background: var(--bg-dark); border: 2px solid var(--pink); border-radius: 20px; padding: 32px 48px;
+  text-align: center; box-shadow: 0 20px 60px rgba(255,107,157,0.2); transition: transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+.xp-popup.show { transform: translate(-50%,-50%) scale(1); }
+.xp-gain { font-family: 'Space Mono', monospace; font-size: 36px; font-weight: 700; background: linear-gradient(90deg, #ff6b9d, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.xp-reason { font-size: 14px; color: var(--text-dim); margin-top: 4px; }
+.xp-lvlup { font-size: 16px; color: var(--amber); margin-top: 12px; font-weight: 700; animation: float 2s ease-in-out infinite; }
+
+.badge-unlock-overlay { position: fixed; inset: 0; z-index: 700; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(6px); }
+.badge-unlock { text-align: center; transform: scale(0); transition: transform 0.5s cubic-bezier(0.175,0.885,0.32,1.275); }
+.badge-unlock.show { transform: scale(1); }
+.bu-icon { font-size: 80px; display: block; margin-bottom: 12px; filter: drop-shadow(0 0 20px rgba(255,107,157,0.5)); animation: float 2s ease-in-out infinite; }
+.bu-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 3px; font-family: 'Space Mono', monospace; }
+.bu-name { font-size: 24px; font-weight: 700; color: var(--pink); font-family: 'Space Mono', monospace; margin: 8px 0; }
+.bu-desc { font-size: 14px; color: var(--text-dim); max-width: 300px; margin: 0 auto; }

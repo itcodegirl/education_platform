@@ -49,15 +49,16 @@ function MCQuestion({ q, answer, onAnswer, submitted }) {
     <>
       <p className="qq-text">{q.question}</p>
       {q.code && <pre className="qq-code"><code>{q.code}</code></pre>}
-      <div className="qq-opts">
+      <div className="qq-opts" role="radiogroup" aria-label={q.question}>
         {q.options.map((opt, oi) => {
           let cls = 'qq-opt';
           if (answer === oi) cls += ' picked';
           if (submitted && oi === q.correct) cls += ' is-correct';
           if (submitted && answer === oi && !isCorrect) cls += ' is-wrong';
           return (
-            <button key={oi} type="button" className={cls} onClick={() => onAnswer(oi)} disabled={submitted}>
-              <span className="qq-opt-letter">{String.fromCharCode(65 + oi)}</span>
+            <button key={oi} type="button" className={cls} onClick={() => onAnswer(oi)} disabled={submitted}
+              role="radio" aria-checked={answer === oi} aria-label={`Option ${String.fromCharCode(65 + oi)}: ${opt}`}>
+              <span className="qq-opt-letter" aria-hidden="true">{String.fromCharCode(65 + oi)}</span>
               <span>{opt}</span>
             </button>
           );
@@ -73,15 +74,16 @@ function CodeQuestion({ q, answer, onAnswer, submitted }) {
     <>
       <p className="qq-text">What does this code output?</p>
       <pre className="qq-code"><code>{q.code}</code></pre>
-      <div className="qq-opts">
+      <div className="qq-opts" role="radiogroup" aria-label="What does this code output?">
         {q.options.map((opt, oi) => {
           let cls = 'qq-opt';
           if (answer === oi) cls += ' picked';
           if (submitted && oi === q.correct) cls += ' is-correct';
           if (submitted && answer === oi && !isCorrect) cls += ' is-wrong';
           return (
-            <button key={oi} type="button" className={cls} onClick={() => onAnswer(oi)} disabled={submitted}>
-              <span className="qq-opt-letter">{String.fromCharCode(65 + oi)}</span>
+            <button key={oi} type="button" className={cls} onClick={() => onAnswer(oi)} disabled={submitted}
+              role="radio" aria-checked={answer === oi} aria-label={`Option ${String.fromCharCode(65 + oi)}: ${opt}`}>
+              <span className="qq-opt-letter" aria-hidden="true">{String.fromCharCode(65 + oi)}</span>
               <code className="qq-opt-code">{opt}</code>
             </button>
           );
@@ -130,6 +132,7 @@ function FillQuestion({ q, answer, onAnswer, submitted }) {
           placeholder="Type your answer..."
           autoComplete="off"
           spellCheck={false}
+          aria-label="Your answer"
         />
         {submitted && !isCorrect && (
           <div className="qq-fill-answer">
@@ -174,8 +177,8 @@ function OrderQuestion({ q, answer, onAnswer, submitted }) {
               <span className="qq-order-text">{q.items[itemIdx]}</span>
               {!submitted && (
                 <span className="qq-order-btns">
-                  <button type="button" className="qq-order-btn" onClick={() => moveUp(pos)} disabled={pos === 0}>↑</button>
-                  <button type="button" className="qq-order-btn" onClick={() => moveDown(pos)} disabled={pos === items.length - 1}>↓</button>
+                  <button type="button" className="qq-order-btn" onClick={() => moveUp(pos)} disabled={pos === 0} aria-label={`Move ${q.items[itemIdx]} up`}>↑</button>
+                  <button type="button" className="qq-order-btn" onClick={() => moveDown(pos)} disabled={pos === items.length - 1} aria-label={`Move ${q.items[itemIdx]} down`}>↓</button>
                 </span>
               )}
             </div>
@@ -265,9 +268,9 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
   const wrongCount = submitted ? total - score : 0;
 
   return (
-    <div className="quiz-container">
+    <section className="quiz-container" aria-label={label}>
       <div className="quiz-header">
-        <span className="quiz-icon">📝</span>
+        <span className="quiz-icon" aria-hidden="true">📝</span>
         <div>
           <h3 className="quiz-title">{label}</h3>
           <span className="quiz-count">{total} question{total > 1 ? 's' : ''}</span>
@@ -337,6 +340,6 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
           <button type="button" className="quiz-retry" onClick={reset}>↻ Retry</button>
         </div>
       )}
-    </div>
+    </section>
   );
 });

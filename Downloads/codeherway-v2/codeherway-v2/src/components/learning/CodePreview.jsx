@@ -6,7 +6,7 @@
 
 import { useState, useRef, useCallback, lazy, Suspense } from 'react';
 import { IFRAME_STYLES } from '../../utils/iframeStyles';
-import { AI_MODEL } from '../../utils/helpers';
+import { askAI } from '../../utils/ai';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { defineMonacoTheme, MONACO_THEME_NAME, MONACO_OPTIONS } from '../../utils/monacoTheme';
 
@@ -79,20 +79,14 @@ export function CodePreview({ code, lang }) {
     setAiExplanation('');
 
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: AI_MODEL,
-          max_tokens: 800,
-          system: `You are the CodeHerWay code explainer — a direct, encouraging mentor for women learning web development. Explain the following ${monacoLang.toUpperCase()} code clearly for a beginner. Be concise (3-5 short paragraphs). Explain what each important part does. If there are mistakes, point them out kindly. Use the CodeHerWay voice: no gatekeeping, no jargon without explanation.`,
-          messages: [{ role: 'user', content: editorCode }]
-        })
+      const text = await askAI({
+        system: `You are the CodeHerWay code explainer — a direct, encouraging mentor for women learning web development. Explain the following ${monacoLang.toUpperCase()} code clearly for a beginner. Be concise (3-5 short paragraphs). Explain what each important part does. If there are mistakes, point them out kindly. Use the CodeHerWay voice: no gatekeeping, no jargon without explanation.`,
+        messages: [{ role: 'user', content: editorCode }],
+        maxTokens: 800,
       });
 
-      const data = await response.json();
       setAiExplanation(
-        data.content?.[0]?.text || 'Could not explain this code. Try modifying it and asking again.'
+        text || 'Could not explain this code. Try modifying it and asking again.'
       );
     } catch (err) {
       setAiExplanation('Connection issue — check your internet and try again.');

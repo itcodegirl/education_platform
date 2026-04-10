@@ -35,11 +35,17 @@ const ProgressContext = createContext({});
 export function ProgressProvider({ children }) {
   const { user } = useAuth();
 
-  // Silent Supabase write — state is already updated optimistically.
-  // If the write fails, local state is correct for the session,
-  // it just won't persist until the next successful write.
+  // Optimistic Supabase write with failure tracking.
+  // State updates immediately; if the write fails, we surface a warning
+  // so the user knows their data may not have persisted.
+  const [syncError, setSyncError] = useState(false);
   const dbWrite = useCallback(async (operation) => {
-    try { await operation; } catch { /* silent — optimistic state is source of truth */ }
+    try {
+      await operation;
+      setSyncError(false);
+    } catch {
+      setSyncError(true);
+    }
   }, []);
 
   // ─── State ─────────────────────────────────────
@@ -478,7 +484,7 @@ export function ProgressProvider({ children }) {
     // Position & Visits
     lastPosition, savePosition, coursesVisited, trackCourseVisit,
     // State
-    dataLoaded, loadError, retryLoad,
+    dataLoaded, loadError, retryLoad, syncError,
   }), [
     completed, toggleLesson, quizScores, saveQuizScore,
     xpTotal, awardXP, xpPopup, clearXPPopup,
@@ -488,7 +494,7 @@ export function ProgressProvider({ children }) {
     bookmarks, toggleBookmark, isBookmarked,
     notes, saveNote, getNote,
     lastPosition, savePosition, coursesVisited, trackCourseVisit,
-    dataLoaded, loadError, retryLoad,
+    dataLoaded, loadError, retryLoad, syncError,
   ]);
 
   return (

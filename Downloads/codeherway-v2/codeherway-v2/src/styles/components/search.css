@@ -1,0 +1,22 @@
+/* ─── 14. Search Panel ─────────────────────────── */
+.search-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:400; backdrop-filter:blur(6px); display:flex; align-items:flex-start; justify-content:center; padding-top:12vh; animation: fadeIn 0.15s ease-out; }
+.search-modal { width:90%; max-width:680px; max-height:70vh; background:var(--bg-dark); border:1px solid var(--border); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,.5); animation: scaleIn 0.2s ease-out; }
+.search-input-wrap { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; }
+.search-icon { font-size:20px; color:var(--text-muted); }
+.search-input { flex:1; background:none; border:none; color:var(--text); font-size:17px; outline:none; font-family:'DM Sans',sans-serif; }
+.search-input::placeholder { color:var(--text-muted); }
+.search-hint { font-size:11px; color:var(--text-muted); font-family:'Space Mono',monospace; background:var(--bg-surface); padding:2px 8px; border-radius:4px; }
+.search-results { overflow-y:auto; flex:1; padding:8px; }
+.search-empty { text-align:center; padding:40px 20px; color:var(--text-muted); }
+.search-result { display:flex; gap:12px; padding:12px 16px; border-radius:10px; cursor:pointer; transition:all 0.15s; }
+.search-result:hover { background:var(--bg-surface); transform:translateX(4px); }
+.sr-icon { font-size:20px; }
+.sr-body { flex:1; min-width:0; }
+.sr-title { font-size:14px; font-weight:600; }
+.sr-title mark { background:var(--pink-dim); color:var(--pink); border-radius:2px; padding:0 2px; }
+.sr-path { font-size:11px; color:var(--text-muted); margin-top:2px; font-family:'Space Mono',monospace; }
+.sr-snippet { font-size:12px; color:var(--text-dim); margin-top:4px; line-height:1.5; }
+.sr-snippet mark { background:var(--pink-dim); color:var(--pink); }
+.search-trigger { display:flex; align-items:center; gap:8px; padding:6px 14px; border-radius:8px; border:1px solid var(--border); background:var(--bg-surface); color:var(--text-muted); font-size:13px; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.search-trigger:hover { border-color:var(--pink); color:var(--text); }
+.search-trigger kbd { font-family:'Space Mono',monospace; font-size:10px; background:var(--bg-card); padding:2px 6px; border-radius:3px; border:1px solid var(--border); }

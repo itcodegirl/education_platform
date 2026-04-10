@@ -44,7 +44,7 @@ import { LessonSkeleton, ConnectionError } from './components/shared/SkeletonLoa
 // Lazy panels + overlays (all managed in one file)
 import { PanelManager, LazyAdminDashboard } from './components/PanelManager';
 
-import './styles/App.css';
+import './styles/index.css';
 
 // ═══════════════════════════════════════════════
 
@@ -55,7 +55,7 @@ export default function App() {
     progress, toggleLesson,
     awardXP, recordDailyActivity,
     savePosition, trackCourseVisit,
-    dataLoaded, lastPosition, loadError,
+    dataLoaded, lastPosition, loadError, syncError,
   } = useProgress();
 
   const nav = useNavigation();
@@ -194,6 +194,11 @@ export default function App() {
   return (
     <div className={`shell ${theme}`} data-course={course.id}>
       <OfflineIndicator />
+      {syncError && (
+        <div className="sync-warning">
+          Changes may not be saved — check your connection
+        </div>
+      )}
 
       <Sidebar
         courses={COURSES}
@@ -208,7 +213,7 @@ export default function App() {
       <main className="mn" ref={mainRef}>
         {/* Topbar */}
         <div className="topbar">
-          <button type="button" className="ham" onClick={() => panels.setSidebar(true)}>☰</button>
+          <button type="button" className="ham" onClick={() => panels.setSidebar(true)} aria-label="Open sidebar menu">☰</button>
           <div className="bc">
             <span className="bc-course" style={{ color: course.accent }}>{course.icon} {course.label}</span>
             <span className="bc-sep">›</span>
@@ -217,8 +222,8 @@ export default function App() {
             <span className="bc-les">{showModQuiz ? '📝 Module Quiz' : les.title}</span>
           </div>
           {!showModQuiz && <span className="read-time"><span className="rt-icon">⏱</span>{readTime} min</span>}
-          <button type="button" className="search-trigger" onClick={() => panels.setPanel('search')}>
-            <span>🔍</span><span>Search</span><kbd>⌘K</kbd>
+          <button type="button" className="search-trigger" onClick={() => panels.setPanel('search')} aria-label="Search lessons (Cmd+K)">
+            <span aria-hidden="true">🔍</span><span>Search</span><kbd aria-hidden="true">⌘K</kbd>
           </button>
           {!showModQuiz && (
             <button type="button" className={`mark-btn ${isDone ? 'dn' : ''}`} onClick={handleMarkDone}>

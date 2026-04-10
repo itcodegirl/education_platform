@@ -1,0 +1,49 @@
+/* ═══════════════════════════════════════════════
+   CODEHERWAY PLATFORM v2 — Modular CSS Index
+
+   Import order matters: variables first, then
+   reset, animations, components, themes, utilities.
+   ═══════════════════════════════════════════════ */
+
+/* ─── Base ─── */
+@import './base/variables.css';
+@import './base/reset.css';
+@import './base/animations.css';
+
+/* ─── Components ─── */
+@import './components/auth.css';
+@import './components/loading.css';
+@import './components/shell.css';
+@import './components/sidebar.css';
+@import './components/topbar.css';
+@import './components/lesson.css';
+@import './components/code-preview.css';
+@import './components/quiz.css';
+@import './components/search.css';
+@import './components/panels.css';
+@import './components/navigation.css';
+@import './components/gamification.css';
+@import './components/toolbar.css';
+@import './components/welcome.css';
+@import './components/course-complete.css';
+@import './components/confetti.css';
+@import './components/ai-tutor.css';
+@import './components/admin.css';
+@import './components/challenges.css';
+@import './components/onboarding.css';
+@import './components/stats.css';
+@import './components/error.css';
+@import './components/offline.css';
+
+/* ─── Themes ─── */
+@import './themes/light.css';
+@import './themes/accents.css';
+
+/* ─── Utilities ─── */
+@import './utilities/print.css';
+@import './utilities/responsive.css';
+@import './utilities/scrollbar.css';
+@import './utilities/performance.css';
+@import './utilities/mobile-fixes.css';
+@import './utilities/polish.css';
+@import './utilities/lock-mode.css';

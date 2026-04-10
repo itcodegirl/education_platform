@@ -5,7 +5,7 @@
 // ═══════════════════════════════════════════════
 
 import { useState, useRef, useEffect } from 'react';
-import { AI_MODEL } from '../../utils/helpers';
+import { askAI } from '../../utils/ai';
 
 export function AITutor({ lesson, moduleTitle, courseId }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -80,22 +80,15 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
         content: m.text
       }));
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: AI_MODEL,
-          max_tokens: 1000,
-          system: buildSystemPrompt(),
-          messages: history
-        })
+      const aiText = await askAI({
+        system: buildSystemPrompt(),
+        messages: history,
       });
 
-      const data = await response.json();
-      const aiText = data.content?.[0]?.text
-        || 'Hmm, I couldn\'t process that. Try rephrasing your question!';
-
-      setMessages(prev => [...prev, { role: 'assistant', text: aiText }]);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        text: aiText || 'Hmm, I couldn\'t process that. Try rephrasing your question!',
+      }]);
     } catch (err) {
       setMessages(prev => [...prev, {
         role: 'assistant',
@@ -140,21 +133,23 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
   ];
 
   return (
-    <div className="ai-tutor">
+    <section className="ai-tutor" aria-label="AI Tutor">
       <button
         className={`ai-tutor-toggle ${isOpen ? 'open' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-controls="ai-tutor-panel"
       >
-        <span className="ai-tutor-icon">🤖</span>
+        <span className="ai-tutor-icon" aria-hidden="true">🤖</span>
         <span className="ai-tutor-label">AI Tutor</span>
         <span className="ai-tutor-hint">
           {isOpen ? 'Close' : 'Ask about this lesson'}
         </span>
-        <span className="ai-tutor-arrow">{isOpen ? '▾' : '▸'}</span>
+        <span className="ai-tutor-arrow" aria-hidden="true">{isOpen ? '▾' : '▸'}</span>
       </button>
 
       {isOpen && (
-        <div className="ai-tutor-panel">
+        <div className="ai-tutor-panel" id="ai-tutor-panel">
           {/* Messages */}
           <div className="ai-messages">
             {messages.length === 0 && (
@@ -219,17 +214,19 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
               placeholder="Ask about this lesson..."
               rows={1}
               disabled={loading}
+              aria-label="Ask the AI tutor a question"
             />
             <button
               type="submit"
               className="ai-send"
               disabled={!input.trim() || loading}
+              aria-label="Send message"
             >
               ↑
             </button>
           </form>
         </div>
       )}
-    </div>
+    </section>
   );
 }

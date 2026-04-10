@@ -1,0 +1,3 @@
+/* ─── 6. Shell Layout ──────────────────────────── */
+.shell { display: flex; height: 100vh; overflow: hidden; }
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 90; backdrop-filter: blur(4px); }

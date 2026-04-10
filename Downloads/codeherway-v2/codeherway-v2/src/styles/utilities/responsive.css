@@ -1,0 +1,47 @@
+/* ─── 25. Mobile Responsive ────────────────────── */
+@media (max-width: 900px) {
+  .sb {
+    position: fixed; left: 0; top: 0; bottom: 0;
+    transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+  }
+  .sb.open { transform: translateX(0); }
+  .sb-close { display: block; }
+  .overlay { display: block; }
+  .ham { display: block; }
+  .topbar { padding: 12px 16px; gap: 10px; }
+  .lv-wrap { padding: 24px 16px 16px; }
+  .lv-title { font-size: 22px; }
+  .lv-head { flex-wrap: wrap; gap: 12px; }
+  .nav-row { padding: 0 16px 32px; }
+  .cpv-code { font-size: 12px; padding: 14px 16px; }
+  .bottom-tools { right: 60px; bottom: 16px; }
+  .auth-card { padding: 32px 24px; }
+}
+
+@media (max-width: 500px) {
+  .bc-mod, .bc-sep:nth-of-type(1) { display: none; }
+  .bc-course { display: none; }
+  .read-time { display: none; }
+  .search-trigger span:not(:first-child) { display: none; }
+  .search-trigger kbd { display: none; }
+  .lv-emoji { font-size: 28px; }
+  .lv-title { font-size: 19px; }
+  .nav-btn { padding: 10px 16px; font-size: 13px; }
+  .mark-btn { padding: 5px 10px; font-size: 12px; }
+  .bottom-tools { gap: 6px; right: 52px; }
+  .tool-btn { width: 38px; height: 38px; font-size: 16px; }
+  .theme-toggle { width: 38px; height: 38px; font-size: 18px; }
+  .auth-logo { font-size: 22px; }
+  .auth-social { flex-direction: column; }
+}
+
+
+/* ─── Mobile additions ────────────────────────── */
+@media (max-width: 500px) {
+  .welcome-card, .cc-card { padding: 28px 20px; }
+  .cc-title { font-size: 22px; }
+  .cc-cert-course { font-size: 20px; }
+  .welcome-title { font-size: 18px; }
+}
+

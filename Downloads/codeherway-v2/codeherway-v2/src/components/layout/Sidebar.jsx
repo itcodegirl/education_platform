@@ -59,18 +59,18 @@ export const Sidebar = memo(function Sidebar({
 
   return (
     <>
-      {isOpen && <div className="overlay" onClick={onClose} />}
-      <aside className={`sb ${isOpen ? 'open' : ''}`}>
+      {isOpen && <div className="overlay" onClick={onClose} aria-hidden="true" />}
+      <aside className={`sb ${isOpen ? 'open' : ''}`} role="navigation" aria-label="Course navigation">
         {/* Brand */}
         <div className="sb-head">
           <div className="brand">
-            <span className="brand-bolt">⚡</span>
+            <span className="brand-bolt" aria-hidden="true">⚡</span>
             <div>
               <h1 className="brand-name">CodeHerWay</h1>
               <span className="brand-sub">Learn. Build. Ship.</span>
             </div>
           </div>
-          <button className="sb-close" onClick={onClose}>✕</button>
+          <button className="sb-close" onClick={onClose} aria-label="Close sidebar">✕</button>
         </div>
 
         {/* User Info */}
@@ -80,7 +80,7 @@ export const Sidebar = memo(function Sidebar({
             <span className="user-name">{displayName}</span>
             <span className="user-level">Level {level}</span>
           </div>
-          <button className="user-logout" onClick={signOut} title="Sign out">↗</button>
+          <button className="user-logout" onClick={signOut} title="Sign out" aria-label="Sign out">↗</button>
         </div>
 
         {/* Course Switcher */}
@@ -91,8 +91,10 @@ export const Sidebar = memo(function Sidebar({
               className={`cs-btn ${ci === courseIdx ? 'on' : ''}`}
               onClick={() => onSelectCourse(ci)}
               style={ci === courseIdx ? { '--cs-accent': c.accent } : undefined}
+              aria-current={ci === courseIdx ? 'true' : undefined}
+              aria-label={`${c.label} course`}
             >
-              <span className="cs-icon">{c.icon}</span>
+              <span className="cs-icon" aria-hidden="true">{c.icon}</span>
               <span className="cs-label">{c.label}</span>
             </button>
           ))}
@@ -151,7 +153,7 @@ export const Sidebar = memo(function Sidebar({
 
         {/* Module/Lesson Navigation */}
         <div className="sb-scroll">
-          <nav className="sb-nav">
+          <nav className="sb-nav" aria-label="Lessons">
             {modules.map((m, mi) => {
               const mc = m.lessons.filter(l =>
                 completed.includes(`${course.label}|${m.title}|${l.title}`)

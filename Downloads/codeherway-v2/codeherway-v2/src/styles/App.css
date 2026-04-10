@@ -106,6 +106,20 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ─── Focus Indicators (a11y) ────────────────── */
+:focus-visible {
+  outline: 2px solid var(--pink);
+  outline-offset: 2px;
+}
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid var(--pink);
+  outline-offset: 2px;
+}
+.qq-opt:focus-visible, .lg-btn:focus-visible, .cs-btn:focus-visible, .mg-btn:focus-visible {
+  outline: 2px solid var(--pink);
+  outline-offset: -2px;
+}
+
 /* ─── 3. Animations ───────────────────────────── */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
@@ -3052,6 +3066,15 @@ img {
 }
 @keyframes fadeOut {
   to { opacity: 0; transform: translateY(-100%); }
+}
+.sync-warning {
+  position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%); z-index: 998;
+  padding: 8px 20px; border-radius: 8px;
+  background: #f59e0b; color: #000;
+  font-size: 13px; font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  animation: slideDown 0.3s var(--ease-out);
 }
 
 /* ═══════════════════════════════════════════════

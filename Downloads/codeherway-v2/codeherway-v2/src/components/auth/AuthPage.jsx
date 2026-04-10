@@ -90,8 +90,9 @@ export function AuthPage() {
         <form className="auth-form" onSubmit={handleSubmit}>
           {mode === 'signup' && (
             <div className="auth-field">
-              <label>Display Name</label>
+              <label htmlFor="auth-name">Display Name</label>
               <input
+                id="auth-name"
                 type="text"
                 placeholder="Your name"
                 value={displayName}
@@ -102,8 +103,9 @@ export function AuthPage() {
           )}
 
           <div className="auth-field">
-            <label>Email</label>
+            <label htmlFor="auth-email">Email</label>
             <input
+              id="auth-email"
               type="email"
               placeholder="you@example.com"
               value={email}
@@ -113,8 +115,9 @@ export function AuthPage() {
           </div>
 
           <div className="auth-field">
-            <label>Password</label>
+            <label htmlFor="auth-password">Password</label>
             <input
+              id="auth-password"
               type="password"
               placeholder="••••••••"
               value={password}
@@ -124,7 +127,7 @@ export function AuthPage() {
             />
           </div>
 
-          {error && <div className="auth-error">{error}</div>}
+          {error && <div className="auth-error" role="alert">{error}</div>}
 
           <button className="auth-btn auth-submit" type="submit" disabled={loading}>
             {loading ? '...' : mode === 'login' ? 'Log In' : 'Create Account'}

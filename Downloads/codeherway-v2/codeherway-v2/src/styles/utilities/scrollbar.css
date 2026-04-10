@@ -1,0 +1,5 @@
+/* ─── Scrollbar ────────────────────────────────── */
+.mn::-webkit-scrollbar, .sb-scroll::-webkit-scrollbar { width: 6px; }
+.mn::-webkit-scrollbar-track, .sb-scroll::-webkit-scrollbar-track { background: var(--bg-deep); }
+.mn::-webkit-scrollbar-thumb, .sb-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.mn::-webkit-scrollbar-thumb:hover, .sb-scroll::-webkit-scrollbar-thumb:hover { background: var(--border-bright); }

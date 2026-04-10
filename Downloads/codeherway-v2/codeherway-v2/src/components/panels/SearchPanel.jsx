@@ -50,27 +50,28 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
   };
 
   return (
-    <div className="search-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="search-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }} role="dialog" aria-modal="true" aria-label="Search lessons">
       <div className="search-modal">
         <div className="search-input-wrap">
-          <span className="search-icon">🔍</span>
+          <span className="search-icon" aria-hidden="true">🔍</span>
           <input
             ref={inputRef}
             className="search-input"
             placeholder="Search lessons, topics, tags..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            aria-label="Search lessons, topics, and tags"
           />
-          <span className="search-hint">ESC</span>
+          <span className="search-hint" aria-hidden="true">ESC</span>
         </div>
-        <div className="search-results">
+        <div className="search-results" role="listbox" aria-label="Search results">
           {q.length < 2 ? (
             <div className="search-empty">Start typing to search across all courses</div>
           ) : results.length === 0 ? (
             <div className="search-empty">No results for "{query}"</div>
           ) : (
             results.map((r, i) => (
-              <div key={i} className="search-result" onClick={() => handleClick(r)}>
+              <div key={i} className="search-result" role="option" onClick={() => handleClick(r)}>
                 <span className="sr-icon">{r.icon}</span>
                 <div className="sr-body">
                   <div className="sr-title" dangerouslySetInnerHTML={{ __html: highlight(r.title) }} />

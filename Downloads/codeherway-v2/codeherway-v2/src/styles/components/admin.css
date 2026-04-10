@@ -1,0 +1,202 @@
+/* ═══════════════════════════════════════════════
+   ADMIN DASHBOARD
+   ═══════════════════════════════════════════════ */
+
+.admin-wrap {
+  position: fixed; inset: 0; z-index: 200;
+  background: var(--bg-deep);
+  overflow-y: auto;
+}
+
+.admin-container {
+  max-width: 1100px; margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+/* Header */
+.admin-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 32px; padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.admin-header-left { display: flex; align-items: center; gap: 16px; }
+.admin-logo { font-size: 32px; filter: drop-shadow(0 0 12px var(--pink-dim)); }
+.admin-title {
+  font-family: 'Space Mono', monospace; font-size: 24px;
+  font-weight: 700; color: var(--pink); letter-spacing: -0.5px;
+}
+.admin-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+.admin-back-btn {
+  padding: 8px 20px; border-radius: 8px;
+  background: var(--bg-surface); border: 1px solid var(--border);
+  color: var(--text-dim); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.admin-back-btn:hover { border-color: var(--pink); color: var(--pink); }
+
+/* Tabs */
+.admin-tabs {
+  display: flex; gap: 4px; margin-bottom: 28px;
+  background: var(--bg-dark); border-radius: 10px;
+  padding: 4px; border: 1px solid var(--border);
+}
+.admin-tab {
+  flex: 1; padding: 10px 16px; border-radius: 8px;
+  background: none; border: none;
+  color: var(--text-dim); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+  font-family: 'DM Sans', sans-serif;
+}
+.admin-tab:hover { color: var(--text); }
+.admin-tab.active {
+  background: var(--bg-surface); color: var(--pink);
+  box-shadow: 0 2px 8px #00000040;
+}
+
+/* Loading / Denied */
+.admin-loading {
+  text-align: center; padding: 80px 20px;
+  color: var(--text-muted); font-size: 16px;
+  font-family: 'Space Mono', monospace;
+}
+.admin-denied {
+  text-align: center; padding: 100px 20px;
+}
+.admin-denied-icon { font-size: 48px; display: block; margin-bottom: 16px; }
+.admin-denied h2 {
+  font-family: 'Space Mono', monospace; font-size: 24px;
+  color: var(--pink); margin-bottom: 8px;
+}
+.admin-denied p { color: var(--text-dim); margin-bottom: 24px; }
+
+/* Stat Cards Grid */
+.admin-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px; margin-bottom: 32px;
+}
+.admin-stat-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 20px; border-radius: 12px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  transition: border-color 0.2s;
+}
+.admin-stat-card:hover { border-color: var(--border-bright); }
+.admin-stat-icon { font-size: 28px; }
+.admin-stat-value {
+  font-family: 'Space Mono', monospace; font-size: 24px;
+  font-weight: 700; color: var(--text); line-height: 1;
+}
+.admin-stat-label {
+  font-size: 12px; color: var(--text-muted); margin-top: 4px;
+}
+
+/* Sections */
+.admin-section { margin-bottom: 36px; }
+.admin-section-title {
+  font-family: 'Space Mono', monospace; font-size: 16px;
+  font-weight: 700; color: var(--text); margin-bottom: 16px;
+}
+
+/* Course Cards */
+.admin-course-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+.admin-course-card {
+  padding: 20px; border-radius: 12px;
+  background: var(--bg-card); border: 1px solid var(--border);
+}
+.admin-course-header {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 16px; font-weight: 700; color: var(--text);
+  margin-bottom: 14px;
+}
+.admin-course-accent { font-size: 12px; font-weight: 600; }
+.admin-course-stats { display: flex; flex-direction: column; gap: 6px; }
+.admin-stat-row {
+  display: flex; justify-content: space-between;
+  font-size: 13px; color: var(--text-dim);
+}
+.admin-stat-val { color: var(--text); font-weight: 600; font-family: 'Space Mono', monospace; }
+.admin-progress-bar {
+  height: 4px; background: var(--bg-surface);
+  border-radius: 4px; margin-top: 8px; overflow: hidden;
+}
+.admin-progress-fill {
+  height: 100%; border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+/* Tables */
+.admin-table-wrap { overflow-x: auto; }
+.admin-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px;
+}
+.admin-table th {
+  text-align: left; padding: 10px 14px;
+  font-family: 'Space Mono', monospace; font-size: 11px;
+  color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 1px; border-bottom: 1px solid var(--border);
+  background: var(--bg-surface);
+}
+.admin-table td {
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.admin-table tr:hover td { background: var(--bg-card); }
+.admin-rank {
+  font-family: 'Space Mono', monospace; color: var(--text-muted);
+  font-weight: 700; width: 30px;
+}
+.admin-xp {
+  font-family: 'Space Mono', monospace; color: var(--amber);
+  font-weight: 600;
+}
+.admin-date { color: var(--text-dim); font-size: 12px; }
+.admin-user-name { font-weight: 600; }
+.admin-badge {
+  display: inline-block; margin-left: 8px;
+  padding: 2px 8px; border-radius: 10px;
+  background: var(--pink-dim); color: var(--pink);
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+}
+.admin-empty {
+  text-align: center; color: var(--text-muted);
+  padding: 24px; font-style: italic;
+}
+.admin-score {
+  font-family: 'Space Mono', monospace; font-weight: 700;
+  padding: 2px 8px; border-radius: 6px; font-size: 12px;
+}
+.admin-score.good { background: #4ecdc420; color: var(--cyan); }
+.admin-score.ok { background: #ffa72620; color: var(--amber); }
+.admin-score.low { background: #ff6b6b20; color: #ff6b6b; }
+
+/* Lesson bars */
+.admin-lesson-name { font-size: 12px; }
+.admin-lesson-mod { margin-right: 6px; }
+.admin-lesson-count {
+  font-family: 'Space Mono', monospace; font-weight: 600;
+  text-align: center; width: 60px;
+}
+.admin-lesson-bar-cell { width: 40%; }
+.admin-lesson-bar {
+  height: 6px; background: var(--bg-surface);
+  border-radius: 3px; overflow: hidden;
+}
+.admin-lesson-bar-fill {
+  height: 100%; border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .admin-container { padding: 16px 12px 48px; }
+  .admin-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .admin-grid { grid-template-columns: repeat(2, 1fr); }
+  .admin-course-grid { grid-template-columns: 1fr; }
+  .admin-tabs { flex-wrap: wrap; }
+  .admin-tab { font-size: 12px; padding: 8px 10px; }
+}
