@@ -69,9 +69,16 @@
   0%, 100% { opacity: 0.15; }
   50% { opacity: 0.3; }
 }
+@keyframes skShimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
+}
 
 .sk-line {
-  border-radius: 6px; background: var(--border);
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--border) 25%, var(--bg-surface) 50%, var(--border) 75%);
+  background-size: 400px 100%;
+  animation: skShimmer 1.5s ease-in-out infinite;
   animation: skPulse 1.5s ease-in-out infinite;
   margin-bottom: 8px;
 }

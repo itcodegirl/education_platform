@@ -205,7 +205,7 @@ const TYPE_LABELS = {
 
 // ─── Main QuizView ──────────────────────────
 
-export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey }) {
+export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey, onNext }) {
   const {
     awardXP, recordDailyActivity, saveQuizScore, addToSRQueue,
   } = useProgress();
@@ -345,6 +345,11 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
             )}
           </div>
           <button type="button" className="quiz-retry" onClick={reset}>↻ Retry</button>
+          {onNext && pct === 100 && (
+            <button type="button" className="quiz-submit" style={{ background: accent, marginTop: 12 }} onClick={onNext}>
+              Continue to next lesson →
+            </button>
+          )}
         </div>
       )}
       </>}

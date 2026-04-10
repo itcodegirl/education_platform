@@ -77,7 +77,7 @@ export const Sidebar = memo(function Sidebar({
 
         {/* User Info */}
         <div className="user-info">
-          <div className="user-avatar">{displayName[0].toUpperCase()}</div>
+          <div className="user-avatar" style={{ '--xp-pct': `${xpPct}%` }}>{displayName[0].toUpperCase()}</div>
           <div className="user-details">
             <span className="user-name">{displayName}</span>
             <span className="user-level">Level {level}</span>

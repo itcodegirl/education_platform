@@ -5,6 +5,10 @@
 import { useEffect, useState } from 'react';
 import { generateCertificate } from '../../utils/certificate';
 
+const NEXT_COURSE = { html: 'css', css: 'js', js: 'react', react: null };
+const COURSE_NAMES = { css: 'CSS', js: 'JavaScript', react: 'React' };
+const COURSE_ICONS = { css: '🎨', js: '⚡', react: '⚛️' };
+
 export function CourseComplete({ isOpen, onClose, course, displayName, lessonCount }) {
   const [show, setShow] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -99,6 +103,14 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
             Keep Going →
           </button>
         </div>
+
+        {NEXT_COURSE[course.id] && (
+          <div className="next-preview" style={{ margin: '16px 0 0', cursor: 'default' }}>
+            <span className="next-preview-label">Recommended next</span>
+            <span style={{ fontSize: 20 }}>{COURSE_ICONS[NEXT_COURSE[course.id]]}</span>
+            <span className="next-preview-title">{COURSE_NAMES[NEXT_COURSE[course.id]]}</span>
+          </div>
+        )}
       </div>
     </div>
   );

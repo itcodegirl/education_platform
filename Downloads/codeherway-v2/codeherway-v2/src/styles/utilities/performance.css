@@ -36,6 +36,23 @@
   .ob-card { transition: none; }
 }
 
+/* High contrast mode */
+@media (prefers-contrast: more) {
+  :root {
+    --border: #555;
+    --border-bright: #888;
+    --text-dim: #ccc;
+    --text-muted: #aaa;
+    --bg-surface: #1a1a2a;
+  }
+  .qq-opt, .lg-btn, .cs-btn, .mg-btn, .nav-btn, .mark-btn, .tool-btn {
+    border-width: 2px;
+  }
+  .concept-item, .sr-card, .bookmark-item, .badge-card {
+    border-width: 2px;
+  }
+}
+
 /* Lazy render offscreen panels (content-visibility) */
 .search-modal,
 .cheatsheet-body,

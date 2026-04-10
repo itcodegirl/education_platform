@@ -22,12 +22,22 @@
   animation: fadeIn 0.3s ease-out;
 }
 .user-avatar {
-  width: 32px; height: 32px;
+  width: 36px; height: 36px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--pink), var(--purple));
   display: flex; align-items: center; justify-content: center;
   font-weight: 700; font-size: 14px; color: white;
   flex-shrink: 0;
+  box-shadow: 0 0 0 3px var(--bg-dark), 0 0 0 5px var(--border);
+  background-image: conic-gradient(var(--pink) var(--xp-pct, 0%), var(--border) var(--xp-pct, 0%));
+  position: relative;
+}
+.user-avatar::after {
+  content: attr(data-initial);
+  position: absolute; inset: 3px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--pink), var(--purple));
+  display: flex; align-items: center; justify-content: center;
 }
 .user-name {
   flex: 1;

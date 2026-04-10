@@ -22,6 +22,7 @@ import { useProgress } from './context/ProgressContext';
 import { useNavigation } from './hooks/useNavigation';
 import { usePanels } from './hooks/usePanels';
 import { useKeyboardNav } from './hooks/useKeyboardNav';
+import { useSwipeNav } from './hooks/useSwipeNav';
 import { estimateReadingTime, XP_VALUES } from './utils/helpers';
 
 // Layout
@@ -67,6 +68,8 @@ export default function App() {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [scrollPct, setScrollPct] = useState(0);
   const [donePulse, setDonePulse] = useState(false);
+  const [miniConfetti, setMiniConfetti] = useState(false);
+  const [lessonAnnounce, setLessonAnnounce] = useState('');
 
   const {
     course, modules, mod, les,
@@ -99,6 +102,11 @@ export default function App() {
       trackCourseVisit(course.id);
     }
   }, [nav.courseIdx, nav.modIdx, nav.lesIdx, showModQuiz, user, dataLoaded]);
+
+  // ─── Announce lesson changes for screen readers ─
+  useEffect(() => {
+    setLessonAnnounce(`Now viewing: ${les.title}`);
+  }, [les.title]);
 
   // ─── Reading progress bar ──────────────────────
   useEffect(() => {
@@ -139,7 +147,9 @@ export default function App() {
       awardXP(XP_VALUES.lesson, 'Lesson completed');
       recordDailyActivity();
       setDonePulse(true);
+      setMiniConfetti(true);
       setTimeout(() => setDonePulse(false), 600);
+      setTimeout(() => setMiniConfetti(false), 2000);
     }
   }, [lessonKey, isDone, toggleLesson, awardXP, recordDailyActivity]);
 
@@ -153,6 +163,8 @@ export default function App() {
     onChallenges: () => panels.setPanel('challenges'),
     onStats: () => panels.setPanel('stats'),
   }), [panels.setPanel]);
+
+  useSwipeNav({ onNext: nav.next, onPrev: nav.prev, ref: mainRef });
 
   useKeyboardNav({
     onNext: nav.next, onPrev: nav.prev, onMarkDone: handleMarkDone,
@@ -227,6 +239,8 @@ export default function App() {
 
   const mainLayout = (
     <div className={`shell ${theme}`} data-course={course.id}>
+      <a href="#main-content" className="skip-link">Skip to content</a>
+      <div aria-live="polite" aria-atomic="true" className="sr-only">{lessonAnnounce}</div>
       <OfflineIndicator />
       {syncError && (
         <div className="sync-warning">
@@ -244,9 +258,9 @@ export default function App() {
         onSelectModQuiz={(mi) => { nav.goToModQuiz(mi); panels.setSidebar(false); }}
       />
 
-      <main className="mn" ref={mainRef}>
+      <main className="mn" ref={mainRef} id="main-content">
         {/* Reading progress */}
-        {!showModQuiz && <div className="reading-progress" style={{ width: `${scrollPct}%` }} />}
+        {!showModQuiz && <div className="reading-progress" style={{ width: `${scrollPct}%`, background: course.accent }} />}
         {/* Topbar */}
         <div className="topbar">
           <button type="button" className="ham" onClick={() => panels.setSidebar(true)} aria-label="Open sidebar menu">☰</button>
@@ -285,9 +299,18 @@ export default function App() {
                 lesson={les} emoji={mod.emoji} lang={course.id}
                 lessonKey={lessonKey} courseId={course.id} moduleTitle={mod.title}
               />
+              {/* Module completion summary */}
+              {isLastLesson && moduleQuiz && !showModQuiz && isDone && (
+                <div className="module-summary">
+                  <span className="module-summary-icon">🎯</span>
+                  <div>
+                    <strong>Module complete!</strong> You've finished all lessons in <em>{mod.title}</em>. Ready for the quiz?
+                  </div>
+                </div>
+              )}
               {lessonQuiz && (
                 <div className="lv-quiz-wrap">
-                  <QuizView quiz={lessonQuiz} accent={course.accent} label="Quick Check" quizKey={`l:${les.id}`} />
+                  <QuizView quiz={lessonQuiz} accent={course.accent} label="Quick Check" quizKey={`l:${les.id}`} onNext={!isLast ? nav.next : undefined} />
                 </div>
               )}
             </>
@@ -301,6 +324,25 @@ export default function App() {
             {isLast ? 'Course Complete! 🎉' : isLastLesson && moduleQuiz && !showModQuiz ? 'Module Quiz →' : 'Next →'}
           </button>
         </div>
+
+        {/* Next lesson preview */}
+        {!isLast && !showModQuiz && (() => {
+          const nextMi = lesIdx < mod.lessons.length - 1 ? nav.modIdx : nav.modIdx + 1;
+          const nextLi = lesIdx < mod.lessons.length - 1 ? lesIdx + 1 : 0;
+          const nextMod = modules[nextMi];
+          const nextLes = nextMod?.lessons[nextLi];
+          if (!nextLes) return null;
+          return (
+            <div className="next-preview" onClick={nav.next}>
+              <span className="next-preview-label">Up next</span>
+              <span className="next-preview-title">{nextLes.title}</span>
+              {nextLes.difficulty && <span className={`lv-diff lv-diff-${nextLes.difficulty}`}>{nextLes.difficulty}</span>}
+            </div>
+          );
+        })()}
+
+        {/* Mini confetti on lesson complete */}
+        {miniConfetti && <div className="mini-confetti" aria-hidden="true" />}
       </main>
 
       {/* Floating UI */}
