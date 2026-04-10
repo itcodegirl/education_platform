@@ -15,7 +15,28 @@ import { AI_MODEL } from './helpers';
 const ENDPOINT = import.meta.env.VITE_AI_PROXY_URL || 'https://api.anthropic.com/v1/messages';
 const API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY || '';
 
+// ─── Rate Limiting (3 requests per 60 seconds) ──
+const RATE_LIMIT = 3;
+const RATE_WINDOW_MS = 60_000;
+const requestTimestamps = [];
+
+function checkRateLimit() {
+  const now = Date.now();
+  // Remove timestamps outside the window
+  while (requestTimestamps.length > 0 && now - requestTimestamps[0] > RATE_WINDOW_MS) {
+    requestTimestamps.shift();
+  }
+  if (requestTimestamps.length >= RATE_LIMIT) {
+    const waitSeconds = Math.ceil((requestTimestamps[0] + RATE_WINDOW_MS - now) / 1000);
+    throw new Error(`Slow down! You can ask ${RATE_LIMIT} questions per minute. Try again in ${waitSeconds}s.`);
+  }
+  requestTimestamps.push(now);
+}
+
+// ─── API Call ────────────────────────────────────
 export async function askAI({ system, messages, maxTokens = 1000 }) {
+  checkRateLimit();
+
   const headers = { 'Content-Type': 'application/json' };
 
   // Only attach API key for direct Anthropic calls (not proxied)

@@ -2,6 +2,12 @@
   command = "npm run build"
   publish = "dist"
 
+# Deploy Previews — Netlify auto-deploys every PR branch
+# Each PR gets a unique URL like deploy-preview-123--your-site.netlify.app
+# Enable in Netlify: Site settings → Build & deploy → Deploy notifications
+[context.deploy-preview]
+  command = "npm run build"
+
 # SPA routing — all paths serve index.html
 [[redirects]]
   from = "/*"
