@@ -355,5 +355,110 @@ export const module = {
         nextLessonId: 'lesson-05',
       },
     },
+    {
+      id: 'lesson-05',
+      title: 'Collect Information with Forms',
+      prereqs: ['lesson-04'],
+      difficulty: 'beginner',
+      duration: '25 min',
+      metadata: { estimatedTime: 25, difficulty: 'beginner', conceptsCount: 6, tasksCount: 5 },
+      hook: {
+        accomplishments: [
+          'Create a text input where users can type',
+          'Add a submit button',
+          'Build dropdown menus with multiple choices',
+          'Make checkboxes and radio buttons',
+          'Build a complete contact form',
+        ],
+      },
+      do: {
+        title: 'Create your first text input',
+        steps: [
+          'Create a new file: contact.html',
+          'Copy the code below',
+          'Save and open in your browser',
+          'Click in the input box and type your name',
+        ],
+        code: '<!DOCTYPE html>\n<html>\n<head>\n    <title>Contact Me</title>\n</head>\n<body>\n    <h1>Get in Touch</h1>\n    \n    <form>\n        <label for="name">Your Name:</label>\n        <input type="text" id="name" name="name">\n    </form>\n</body>\n</html>',
+        result: 'You\'ll see a text box where you can type! The label \'Your Name:\' sits next to it.',
+        proofRequired: 'the input box with text typed inside it',
+      },
+      understand: {
+        concepts: [
+          {
+            name: 'The <form> tag',
+            definition: 'A container for all input elements. Think of it as a clipboard that holds all the fields you want someone to fill out.',
+            analogy: 'A clipboard with a form. The <form> tag is the clipboard, labels are printed questions, inputs are blank lines to write on.',
+          },
+          {
+            name: 'The <label> tag',
+            definition: 'Text that describes what the input is for. It\'s clickable \u2014 when you click the label, it focuses the input!',
+            analogy: 'The question on a form that tells you what to write in each blank.',
+          },
+          {
+            name: 'The <input> tag',
+            definition: 'Creates an input field. It\'s self-closing (no </input> needed). The \'type\' attribute changes what kind of input it is.',
+            analogy: 'Different types of blanks on a form: short line for name, box for checkmark, circle for radio button.',
+          },
+          {
+            name: 'The for/id connection',
+            definition: 'The label\'s \'for\' attribute must match the input\'s \'id\' attribute. This connection is REQUIRED for accessibility.',
+            analogy: 'Like matching question numbers on a test - question #1 goes with answer box #1.',
+          },
+          {
+            name: 'Radio vs Checkbox',
+            definition: 'Radio buttons: only one choice allowed (same \'name\'). Checkboxes: multiple choices allowed.',
+            analogy: 'Radio = multiple choice test question. Checkbox = \'select all that apply\' question.',
+          },
+          {
+            name: 'The <select> tag',
+            definition: 'Creates a dropdown menu. Each <option> inside represents one choice in the menu.',
+            analogy: 'Like a dropdown menu on a phone - tap it and options appear.',
+          },
+        ],
+        keyTakeaway: 'Every input needs a label. Connect them with matching \'for\' and \'id\' attributes.',
+      },
+      build: {
+        goal: 'Add an email field and a message box to your form',
+        codeComparison: {
+          old: '<form>\n    <label for="name">Your Name:</label>\n    <input type="text" id="name" name="name">\n</form>',
+          new: '<form>\n    <label for="name">Your Name:</label>\n    <input type="text" id="name" name="name">\n    \n    <br><br>\n    \n    <label for="email">Your Email:</label>\n    <input type="email" id="email" name="email">\n    \n    <br><br>\n    \n    <label for="message">Your Message:</label>\n    <textarea id="message" name="message"></textarea>\n    \n    <br><br>\n    \n    <button type="submit">Send Message</button>\n</form>',
+        },
+        hint: 'The email input will validate that it looks like an email address when you submit!',
+      },
+      challenge: {
+        title: 'Build a Complete Signup Form',
+        mission: 'Create a realistic user registration form with validation.',
+        requirements: [
+          'Create signup.html',
+          'Include: username, email, password fields',
+          'Add a \'Confirm Password\' field',
+          'Use a dropdown for \'How did you hear about us?\'',
+          'Add checkboxes for \'I agree to Terms of Service\'',
+          'Use the \'required\' attribute on at least 3 fields',
+          'Add \'placeholder\' attributes to show example text',
+        ],
+        starterCode: '<!DOCTYPE html>\n<html>\n<head>\n    <title>Sign Up</title>\n</head>\n<body>\n    <h1>Create Your Account</h1>\n    \n    <form>\n        <label for="username">Username:</label>\n        <input type="text" id="username" name="username" required>\n        \n        <!-- Add more fields here -->\n        \n        <button type="submit">Create Account</button>\n    </form>\n</body>\n</html>',
+        bonusChallenge: 'Add a \'Date of Birth\' field with type="date" and a phone number field with type="tel"',
+      },
+      summary: {
+        capabilities: [
+          'Create form containers with <form>',
+          'Add text inputs with <input type="text">',
+          'Validate emails with <input type="email">',
+          'Create password fields with <input type="password">',
+          'Build multi-line text areas with <textarea>',
+          'Make radio buttons for single choices',
+          'Add checkboxes for multiple choices',
+          'Create dropdown menus with <select> and <option>',
+          'Connect labels to inputs with \'for\' and \'id\'',
+          'Make fields required with the \'required\' attribute',
+        ],
+      },
+      bridge: {
+        preview: 'In Lesson 6, you\'ll organize data into tables \u2014 rows, columns, headers, and structured information display.',
+        nextLessonId: 'lesson-06',
+      },
+    },
   ],
 };
