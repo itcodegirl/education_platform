@@ -3,10 +3,12 @@
 // Protected by is_admin flag in profiles table
 // ═══════════════════════════════════════════════
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../providers';
 import { COURSES } from '../../data';
+
+const LessonBuilder = lazy(() => import('./LessonBuilder').then(m => ({ default: m.LessonBuilder })));
 
 export function AdminDashboard({ onClose }) {
   const { user } = useAuth();
@@ -195,6 +197,7 @@ export function AdminDashboard({ onClose }) {
             { id: 'users', label: '👥 Users' },
             { id: 'courses', label: '📚 Courses' },
             { id: 'quizzes', label: '📝 Quizzes' },
+            { id: 'builder', label: '🛠️ Lesson Builder' },
           ].map(t => (
             <button
               key={t.id}
@@ -488,6 +491,13 @@ export function AdminDashboard({ onClose }) {
                   </table>
                 </div>
               </div>
+            )}
+
+            {/* ─── LESSON BUILDER TAB ─── */}
+            {tab === 'builder' && (
+              <Suspense fallback={<div className="admin-loading">Loading builder...</div>}>
+                <LessonBuilder />
+              </Suspense>
             )}
           </div>
         )}
