@@ -1,8 +1,17 @@
+import { supabase } from '../lib/supabaseClient';
+
 async function callAI(payload) {
+  // Get the current session token to authenticate the request
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    throw new Error('You must be signed in to use the AI tutor.');
+  }
+
   const response = await fetch('/.netlify/functions/ai', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
     },
     body: JSON.stringify(payload),
   });
