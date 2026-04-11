@@ -271,5 +271,89 @@ export const module = {
         nextLessonId: 'lesson-04',
       },
     },
+    {
+      id: 'lesson-04',
+      title: 'Organize Information with Lists',
+      prereqs: ['lesson-03'],
+      difficulty: 'beginner',
+      duration: '16 min',
+      metadata: { estimatedTime: 16, difficulty: 'beginner', conceptsCount: 3, tasksCount: 4 },
+      hook: {
+        accomplishments: [
+          'Create bullet-point lists for your hobbies',
+          'Make numbered step-by-step instructions',
+          'Build a navigation menu with lists',
+          'Nest lists inside other lists',
+        ],
+      },
+      do: {
+        title: 'Make a bullet-point list',
+        steps: [
+          'Open any HTML file (try index.html)',
+          'Add this code in your <body>',
+          'Replace these reasons with YOUR actual reasons',
+          'Save and refresh',
+        ],
+        code: '<h2>Why I\'m Learning to Code</h2>\n<ul>\n    <li>I want to build my own projects</li>\n    <li>I\'m tired of paying for simple websites</li>\n    <li>I want a career change</li>\n    <li>I love solving puzzles</li>\n</ul>',
+        result: 'You\'ll see bullet points (\u2022) next to each reason!',
+        proofRequired: 'your bulleted list with YOUR reasons',
+      },
+      understand: {
+        concepts: [
+          {
+            name: 'The <ul> tag (unordered list)',
+            definition: 'Creates bullet-point lists. \'Unordered\' means the sequence doesn\'t matter \u2014 you could rearrange items and the meaning stays the same.',
+            analogy: 'A grocery list. Order doesn\'t matter \u2014 you could buy milk before eggs or eggs before milk.',
+          },
+          {
+            name: 'The <ol> tag (ordered list)',
+            definition: 'Creates numbered lists. \'Ordered\' means sequence MATTERS \u2014 step 1 must come before step 2.',
+            analogy: 'A recipe. You can\'t frost a cake before baking it \u2014 order matters!',
+          },
+          {
+            name: 'The <li> tag (list item)',
+            definition: 'Each <li> represents ONE item in the list. Works inside both <ul> and <ol>.',
+            analogy: 'Individual items on your shopping list or steps in your recipe.',
+          },
+        ],
+        keyTakeaway: '<ul> + <li> = bullet-point list for items in any order. <ol> + <li> = numbered list for sequential steps.',
+      },
+      build: {
+        goal: 'Create step-by-step instructions using numbers instead of bullets',
+        codeComparison: {
+          old: '<ul>\n    <li>Item one</li>\n    <li>Item two</li>\n</ul>',
+          new: '<h2>How to Make Coffee (My Way)</h2>\n<ol>\n    <li>Grind fresh coffee beans</li>\n    <li>Boil water to 200\u00B0F</li>\n    <li>Pour water over grounds</li>\n    <li>Wait 4 minutes</li>\n    <li>Press plunger slowly</li>\n    <li>Pour and enjoy!</li>\n</ol>',
+        },
+        hint: 'The browser automatically numbers your steps: 1, 2, 3, 4... You don\'t have to type the numbers!',
+      },
+      challenge: {
+        title: 'Build a Skills & Resources Page',
+        mission: 'Create a page that lists your current skills, learning goals, and helpful resources \u2014 organized with multiple list types.',
+        requirements: [
+          'Create skills.html',
+          'Use <ul> for your current skills (3+ items)',
+          'Use <ol> for your learning roadmap (5+ steps in order)',
+          'Use nested lists for at least one section',
+          'Add a resources section with links to helpful sites',
+          'Include <nav> with list-based navigation',
+        ],
+        starterCode: '<!DOCTYPE html>\n<html>\n<head>\n    <title>My Skills & Goals</title>\n</head>\n<body>\n    <h1>My Development Journey</h1>\n    \n    <nav>\n        <ul>\n            <li><a href="index.html">Home</a></li>\n            <!-- Add more nav links -->\n        </ul>\n    </nav>\n    \n    <h2>Skills I\'m Building</h2>\n    <ul>\n        <li><!-- Your skill --></li>\n    </ul>\n    \n    <h2>My Learning Roadmap</h2>\n    <ol>\n        <li><!-- Your step --></li>\n    </ol>\n</body>\n</html>',
+        bonusChallenge: 'Add a \'Wins This Week\' section with an <ol> listing 3-5 coding accomplishments (even tiny ones count!)',
+      },
+      summary: {
+        capabilities: [
+          'Create bullet-point lists with <ul> and <li>',
+          'Create numbered lists with <ol> and <li>',
+          'Build navigation menus using list structure',
+          'Nest lists inside other lists for sub-items',
+          'Choose the right list type for your content',
+          'Understand why lists matter for screen readers',
+        ],
+      },
+      bridge: {
+        preview: 'In Lesson 5, you\'ll build interactive forms \u2014 text inputs, dropdowns, checkboxes, and buttons that collect information from users.',
+        nextLessonId: 'lesson-05',
+      },
+    },
   ],
 };
