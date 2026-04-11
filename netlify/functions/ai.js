@@ -1,10 +1,10 @@
 // ═══════════════════════════════════════════════
 // AI PROXY — Authenticated, rate-limited gateway
-// to the Anthropic API. Never expose API keys to
+// to the OpenAI API. Never expose API keys to
 // the browser; all AI calls go through here.
 // ═══════════════════════════════════════════════
 
-const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
+const OPENAI_URL = 'https://api.openai.com/v1/responses';
 
 // ─── Rate limiting (per function instance) ─────
 // Resets on cold start — good enough for basic abuse prevention.
@@ -44,6 +44,27 @@ function json(statusCode, body) {
   };
 }
 
+function toInputItems(system, messages) {
+  const items = [];
+
+  if (system) {
+    items.push({
+      role: 'system',
+      content: [{ type: 'input_text', text: system }],
+    });
+  }
+
+  for (const message of messages || []) {
+    if (!message?.content) continue;
+    items.push({
+      role: message.role === 'assistant' ? 'assistant' : 'user',
+      content: [{ type: 'input_text', text: message.content }],
+    });
+  }
+
+  return items;
+}
+
 async function verifyUser(token) {
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
@@ -71,7 +92,7 @@ export async function handler(event) {
   }
 
   // 1. Check API key is configured
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return json(500, { error: 'AI service not configured' });
   }
@@ -104,53 +125,37 @@ export async function handler(event) {
     return json(400, { error: 'Invalid request body' });
   }
 
-  if (!messages.length) {
-    return json(400, { error: 'No messages provided' });
-  }
-
   // Cap max tokens to prevent abuse
   maxTokens = Math.min(maxTokens, 1024);
 
-  // 5. Call Anthropic API
+  const input = toInputItems(system, messages);
+  if (input.length === 0) {
+    return json(400, { error: 'No AI input provided' });
+  }
+
+  // 5. Call OpenAI API
   try {
-    const requestBody = {
-      model: process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001',
-      max_tokens: maxTokens,
-      messages: messages
-        .filter((m) => m && m.content)
-        .map((m) => ({
-          role: m.role === 'assistant' ? 'assistant' : 'user',
-          content: m.content,
-        })),
-    };
-
-    // Only include system if non-empty
-    if (system) {
-      requestBody.system = system;
-    }
-
-    const response = await fetch(ANTHROPIC_URL, {
+    const response = await fetch(OPENAI_URL, {
       method: 'POST',
       headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({
+        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+        input,
+        max_output_tokens: maxTokens,
+      }),
     });
 
     const data = await response.json();
 
     if (!response.ok) {
       const message = data.error?.message || 'AI request failed';
-      // Don't leak internal error details to the client
-      return json(response.status >= 500 ? 502 : response.status, {
-        error: response.status === 529 ? 'AI service is busy. Try again shortly.' : message,
-      });
+      return json(response.status >= 500 ? 502 : response.status, { error: message });
     }
 
-    const text = data.content?.[0]?.text || '';
-    return json(200, { text });
+    return json(200, { text: data.output_text || '' });
   } catch (error) {
     return json(502, { error: 'Failed to reach AI service' });
   }
