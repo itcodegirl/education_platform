@@ -22,7 +22,7 @@ import { module as mod17 } from './modules/common-beginner-mistakes';
 import { module as mod18 } from './modules/validation-best-practices';
 import { module as mod19 } from './modules/intermediate-concepts';
 import { module as mod20 } from './modules/how-html-connects-to-javascript';
-import { module as mod21 } from './modules/your-first-web-page';
+import mod21 from './modules/your-first-web-page.json';
 
 export const HTML_MODULES = [
   mod21,

@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════
 
 import { module as whatCssActuallyIs } from './modules/what-css-actually-is.js';
-import { module as stylingFromScratch } from './modules/styling-from-scratch.js';
+import stylingFromScratch from './modules/styling-from-scratch.json';
 import { module as cssSyntaxFoundations } from './modules/css-syntax-foundations.js';
 import { module as selectors } from './modules/selectors.js';
 import { module as colorsUnitsAndTypography } from './modules/colors-units-and-typography.js';
