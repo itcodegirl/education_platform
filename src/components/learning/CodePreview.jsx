@@ -6,9 +6,19 @@ import { explainCode as explainCodeRequest } from '../../services/aiService';
 
 const MonacoEditor = lazy(() => import('@monaco-editor/react'));
 
-export function CodePreview({ code, lang }) {
+const SCAFFOLDING = {
+  full:         { icon: '📝', label: 'Complete Example',    hint: 'Study this code, then try modifying it in the Editor tab.' },
+  partial:      { icon: '🔧', label: 'Partial Template',    hint: 'Some parts are marked TODO — fill them in using the Editor tab.' },
+  starter:      { icon: '🚀', label: 'Starter Code',        hint: 'A starting skeleton. Switch to the Editor tab and build on it.' },
+  requirements: { icon: '📋', label: 'Requirements Only',   hint: 'No code given! Open the Editor tab and write it from scratch.' },
+};
+
+export function CodePreview({ code, lang, scaffolding = 'full' }) {
   const isMobile = useIsMobile();
-  const [tab, setTab] = useState('code');
+  const level = SCAFFOLDING[scaffolding] || SCAFFOLDING.full;
+  const defaultTab = scaffolding === 'starter' || scaffolding === 'requirements' ? 'editor' : 'code';
+
+  const [tab, setTab] = useState(defaultTab);
   const [copied, setCopied] = useState(false);
   const [editorCode, setEditorCode] = useState(code);
   const [aiExplaining, setAiExplaining] = useState(false);
@@ -25,7 +35,8 @@ export function CodePreview({ code, lang }) {
     setEditorCode(code);
     setAiExplanation('');
     setShowExplanation(false);
-  }, [code]);
+    setTab(scaffolding === 'starter' || scaffolding === 'requirements' ? 'editor' : 'code');
+  }, [code, scaffolding]);
 
   const handleCopy = () => {
     const textToCopy = tab === 'editor' ? editorCode : code;
@@ -87,12 +98,23 @@ export function CodePreview({ code, lang }) {
 
   return (
     <div className="cpv">
+      {/* Scaffolding badge */}
+      {scaffolding !== 'full' && (
+        <div className={`cpv-scaffolding cpv-scaffolding-${scaffolding}`}>
+          <span className="cpv-scaffolding-icon">{level.icon}</span>
+          <span className="cpv-scaffolding-label">{level.label}</span>
+          <span className="cpv-scaffolding-hint">{level.hint}</span>
+        </div>
+      )}
+
       <div className="cpv-tabs">
-        <button type="button" className={`cpv-tab ${tab === 'code' ? 'on' : ''}`} onClick={() => setTab('code')}>
-          {tabIcon} Code
-        </button>
+        {scaffolding !== 'requirements' && (
+          <button type="button" className={`cpv-tab ${tab === 'code' ? 'on' : ''}`} onClick={() => setTab('code')}>
+            {tabIcon} Code
+          </button>
+        )}
         <button type="button" className={`cpv-tab ${tab === 'editor' ? 'on' : ''}`} onClick={() => setTab('editor')}>
-          Editor
+          {scaffolding === 'requirements' ? '✏️ Write Code' : 'Editor'}
         </button>
         <button type="button" className={`cpv-tab ${tab === 'preview' ? 'on' : ''}`} onClick={() => setTab('preview')}>
           {previewLabel}
@@ -136,6 +158,7 @@ export function CodePreview({ code, lang }) {
               autoCapitalize="off"
               autoCorrect="off"
               rows={14}
+              placeholder={scaffolding === 'requirements' ? 'Write your code here...' : undefined}
             />
           ) : (
             <Suspense fallback={<div className="cpv-editor-loading"><span className="cpv-loading-spinner"></span>Loading editor...</div>}>

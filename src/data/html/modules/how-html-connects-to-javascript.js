@@ -1,5 +1,5 @@
 export const module = { id: 20, emoji: '🔌', title: 'How HTML Connects to JavaScript', tagline: 'HTML is the foundation. JavaScript brings it alive.', difficulty: 'advanced', lessons: [
-    { id: 'h20-1',
+    { id: 'h20-1', scaffolding: 'requirements',
       prereqs: ['h19-2'], title: 'IDs, Classes & DOM Hooks',
       difficulty: 'beginner', duration: '10 min',
       concepts: [
@@ -18,7 +18,7 @@ export const module = { id: 20, emoji: '🔌', title: 'How HTML Connects to Java
       ],
       challenge: 'Build a page with a button, an input, and a list — then describe (in comments) how JavaScript would make them interactive.',
       devFession: 'I named my elements id="div1" and id="thing2." When I came back a week later, I had no idea what anything was.' },
-    { id: 'h20-2',
+    { id: 'h20-2', scaffolding: 'requirements',
       prereqs: ['h20-1'], title: 'Building a Complete Multi-Page Site',
       difficulty: 'beginner', duration: '15 min',
       content: 'This is your capstone. Everything you\'ve learned comes together here.',

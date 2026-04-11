@@ -1,5 +1,5 @@
 export const module = { id: 17, emoji: '⚠️', title: 'Common Beginner Mistakes', tagline: 'Learn from the mistakes everyone makes.', difficulty: 'advanced', lessons: [
-    { id: 'h17-1',
+    { id: 'h17-1', scaffolding: 'requirements',
       prereqs: ['h16-1'], title: 'The Mistakes That Bite You',
       difficulty: 'beginner', duration: '10 min',
       concepts: [

@@ -81,6 +81,13 @@ export const LessonView = memo(function LessonView({
               {taskCount > 0 && (
                 <span className="lv-chip">{taskCount} tasks</span>
               )}
+              {lesson.scaffolding && lesson.scaffolding !== 'full' && (
+                <span className={`lv-scaffolding lv-scaffolding-${lesson.scaffolding}`}>
+                  {lesson.scaffolding === 'partial' && '🔧 Partial template'}
+                  {lesson.scaffolding === 'starter' && '🚀 Starter code'}
+                  {lesson.scaffolding === 'requirements' && '📋 Write from scratch'}
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -148,7 +155,7 @@ export const LessonView = memo(function LessonView({
         )}
       </div>
 
-      <CodePreview code={lesson.code} lang={lang} />
+      <CodePreview code={lesson.code} lang={lang} scaffolding={lesson.scaffolding} />
 
       {isRichFormat && lesson.output && (
         <div className="box output-box">

@@ -1,5 +1,5 @@
 export const module = { id: 9, emoji: '📊', title: 'Tables', tagline: 'Organize data, not layouts.', difficulty: 'intermediate', lessons: [
-    { id: 'h9-1', title: 'Building Data Tables',
+    { id: 'h9-1', scaffolding: 'starter', title: 'Building Data Tables',
       prereqs: ['h8-1'],
       difficulty: 'beginner', duration: '12 min',
       concepts: [

@@ -1,5 +1,5 @@
 export const module = { id: 6, emoji: '🔗', title: 'Links & Navigation', tagline: 'Connect the web.', difficulty: 'beginner', lessons: [
-    { id: 'h6-1', title: 'Anchor Tags, URLs & Link Types',
+    { id: 'h6-1', scaffolding: 'partial', title: 'Anchor Tags, URLs & Link Types',
       prereqs: ['h5-3'],
       difficulty: 'beginner', duration: '12 min',
       concepts: [

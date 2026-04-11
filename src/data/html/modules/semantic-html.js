@@ -1,5 +1,5 @@
 export const module = { id: 10, emoji: '🧱', title: 'Semantic HTML', tagline: 'This separates beginners from professionals.', difficulty: 'intermediate', lessons: [
-    { id: 'h10-1', title: 'Semantic Elements & Why They Matter',
+    { id: 'h10-1', scaffolding: 'starter', title: 'Semantic Elements & Why They Matter',
       prereqs: ['h9-1'],
       difficulty: 'beginner', duration: '14 min',
       concepts: [
@@ -18,7 +18,7 @@ export const module = { id: 10, emoji: '🧱', title: 'Semantic HTML', tagline: 
       ],
       challenge: 'Rebuild a page that uses only <div> elements using proper semantic HTML.',
       devFession: 'I wrapped everything in divs and thought "this is fine." My code looked like a div soup recipe.' },
-    { id: 'h10-2', title: 'Interactive Semantic Elements',
+    { id: 'h10-2', scaffolding: 'starter', title: 'Interactive Semantic Elements',
       prereqs: ['h10-1'],
       difficulty: 'beginner', duration: '8 min',
       concepts: [

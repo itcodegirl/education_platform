@@ -1,5 +1,5 @@
 export const module = { id: 12, emoji: '📝', title: 'Forms & User Input', tagline: 'Let users interact. Collect data right.', difficulty: 'intermediate', lessons: [
-    { id: 'h12-1', title: 'Form Basics & Structure',
+    { id: 'h12-1', scaffolding: 'starter', title: 'Form Basics & Structure',
       prereqs: ['h11-1'],
       difficulty: 'beginner', duration: '12 min',
       concepts: [
@@ -18,7 +18,7 @@ export const module = { id: 12, emoji: '📝', title: 'Forms & User Input', tagl
       ],
       challenge: 'Build a complete contact form with fieldset, legend, labels, and 4 different input types.',
       devFession: 'I forgot <label> on every form for months. My forms worked, but screen readers had no idea what anything was.' },
-    { id: 'h12-2', title: 'Input Types & Selection Elements',
+    { id: 'h12-2', scaffolding: 'starter', title: 'Input Types & Selection Elements',
       prereqs: ['h12-1'],
       difficulty: 'beginner', duration: '12 min',
       concepts: [
@@ -37,7 +37,7 @@ export const module = { id: 12, emoji: '📝', title: 'Forms & User Input', tagl
       ],
       challenge: 'Build a job application form with name, email, phone, experience level (radio), skills (checkboxes), and resume upload.',
       devFession: 'I used type="text" for email fields. It worked — but on mobile, no @ key appeared on the keyboard.' },
-    { id: 'h12-3', title: 'Form Validation & Attributes',
+    { id: 'h12-3', scaffolding: 'starter', title: 'Form Validation & Attributes',
       prereqs: ['h12-2'],
       difficulty: 'beginner', duration: '8 min',
       concepts: [

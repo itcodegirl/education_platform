@@ -1,5 +1,5 @@
 export const module = { id: 14, emoji: '🔍', title: 'Meta Tags & SEO Basics', tagline: 'Get found. Get clicks.', difficulty: 'intermediate', lessons: [
-    { id: 'h14-1',
+    { id: 'h14-1', scaffolding: 'requirements',
       prereqs: ['h13-2'], title: 'SEO-Friendly HTML & Open Graph',
       difficulty: 'beginner', duration: '12 min',
       concepts: [

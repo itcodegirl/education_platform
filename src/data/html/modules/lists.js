@@ -1,5 +1,5 @@
 export const module = { id: 8, emoji: '📋', title: 'Lists', tagline: 'Structure your data.', difficulty: 'intermediate', lessons: [
-    { id: 'h8-1', title: 'All Three List Types',
+    { id: 'h8-1', scaffolding: 'starter', title: 'All Three List Types',
       prereqs: ['h7-2'],
       difficulty: 'beginner', duration: '10 min',
       concepts: [

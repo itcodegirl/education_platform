@@ -9,6 +9,7 @@ import { COURSES } from '../../data';
 const EMPTY_LESSON = {
   id: '',
   title: '',
+  scaffolding: 'full',
   difficulty: 'beginner',
   duration: '',
   concepts: [''],
@@ -137,7 +138,7 @@ export function LessonBuilder() {
           .join('\n');
 
         return `    {
-      id: '${escapeJS(l.id)}',
+      id: '${escapeJS(l.id)}',${l.scaffolding && l.scaffolding !== 'full' ? ` scaffolding: '${l.scaffolding}',` : ''}
       title: '${escapeJS(l.title)}',
       prereqs: ${prereqs},
       difficulty: '${l.difficulty}',
@@ -341,6 +342,17 @@ ${lessonsCode},
                   onChange={(e) => updateLesson('duration', e.target.value)}
                   placeholder="8 min"
                 />
+              </LBField>
+              <LBField label="Scaffolding Level" hint="How much code is provided">
+                <select
+                  value={lesson.scaffolding}
+                  onChange={(e) => updateLesson('scaffolding', e.target.value)}
+                >
+                  <option value="full">Full — complete example</option>
+                  <option value="partial">Partial — has TODOs</option>
+                  <option value="starter">Starter — minimal skeleton</option>
+                  <option value="requirements">Requirements — write from scratch</option>
+                </select>
               </LBField>
               <LBField label="Prerequisites" hint="Comma-separated IDs">
                 <input

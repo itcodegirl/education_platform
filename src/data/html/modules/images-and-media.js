@@ -1,5 +1,5 @@
 export const module = { id: 7, emoji: '🖼️', title: 'Images & Media', tagline: 'A picture is worth a thousand tags.', difficulty: 'beginner', lessons: [
-    { id: 'h7-1', title: 'Images',
+    { id: 'h7-1', scaffolding: 'partial', title: 'Images',
       prereqs: ['h6-1'],
       difficulty: 'beginner', duration: '10 min',
       concepts: [
@@ -17,7 +17,7 @@ export const module = { id: 7, emoji: '🖼️', title: 'Images & Media', taglin
       ],
       challenge: 'Create a photo gallery with 3 images, each with alt text and captions.',
       devFession: 'I left alt="" on every image. Accessible? Technically yes. Useful? Absolutely not.' },
-    { id: 'h7-2', title: 'Video, Audio & Embeds',
+    { id: 'h7-2', scaffolding: 'partial', title: 'Video, Audio & Embeds',
       prereqs: ['h7-1'],
       difficulty: 'beginner', duration: '10 min',
       concepts: [

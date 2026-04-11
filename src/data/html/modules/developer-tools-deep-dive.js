@@ -1,5 +1,5 @@
 export const module = { id: 16, emoji: '🧪', title: 'Developer Tools Deep Dive', tagline: 'Your best debugging friend.', difficulty: 'advanced', lessons: [
-    { id: 'h16-1',
+    { id: 'h16-1', scaffolding: 'requirements',
       prereqs: ['h15-1'], title: 'Inspecting, Editing & Debugging',
       difficulty: 'beginner', duration: '12 min',
       concepts: [

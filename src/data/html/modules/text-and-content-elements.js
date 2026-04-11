@@ -1,5 +1,5 @@
 export const module = { id: 5, emoji: '📝', title: 'Text & Content Elements', tagline: 'Words are power. Structure them.', difficulty: 'beginner', lessons: [
-    { id: 'h5-1', title: 'Headings & Paragraphs',
+    { id: 'h5-1', scaffolding: 'partial', title: 'Headings & Paragraphs',
       prereqs: ['h4-2'],
       difficulty: 'beginner', duration: '8 min',
       concepts: [
@@ -17,7 +17,7 @@ export const module = { id: 5, emoji: '📝', title: 'Text & Content Elements', 
       ],
       challenge: 'Structure an "About Me" page with proper heading hierarchy — no skipping levels.',
       devFession: 'I used <h1> for everything that should be "big." That is not how headings work.' },
-    { id: 'h5-2', title: 'Text Formatting & Inline Elements',
+    { id: 'h5-2', scaffolding: 'partial', title: 'Text Formatting & Inline Elements',
       prereqs: ['h5-1'],
       difficulty: 'beginner', duration: '10 min',
       concepts: [
@@ -36,7 +36,7 @@ export const module = { id: 5, emoji: '📝', title: 'Text & Content Elements', 
       ],
       challenge: 'Write a short bio paragraph using at least 5 different text formatting elements.',
       devFession: 'I used <b> instead of <strong> for years. They look the same, but screen readers only understand <strong>.' },
-    { id: 'h5-3', title: 'HTML Entities & Special Characters',
+    { id: 'h5-3', scaffolding: 'partial', title: 'HTML Entities & Special Characters',
       prereqs: ['h5-2'],
       difficulty: 'beginner', duration: '6 min',
       concepts: [

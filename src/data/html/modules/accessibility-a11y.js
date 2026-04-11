@@ -1,5 +1,5 @@
 export const module = { id: 13, emoji: '♿', title: 'Accessibility (A11y)', tagline: 'The web is for everyone. This is not optional.', difficulty: 'intermediate', lessons: [
-    { id: 'h13-1',
+    { id: 'h13-1', scaffolding: 'starter',
       prereqs: ['h12-3'], title: 'Accessibility Fundamentals',
       difficulty: 'beginner', duration: '12 min',
       concepts: [
@@ -18,7 +18,7 @@ export const module = { id: 13, emoji: '♿', title: 'Accessibility (A11y)', tag
       ],
       challenge: 'Audit a page you built for accessibility: check headings, alt text, labels, and keyboard navigation.',
       devFession: 'I removed focus outlines because they "looked ugly." Keyboard users couldn\'t tell where they were.' },
-    { id: 'h13-2',
+    { id: 'h13-2', scaffolding: 'starter',
       prereqs: ['h13-1'], title: 'ARIA Basics & Keyboard Navigation',
       difficulty: 'beginner', duration: '10 min',
       concepts: [

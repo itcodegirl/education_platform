@@ -1,5 +1,5 @@
 export const module = { id: 4, emoji: '🏷️', title: 'Elements, Tags & Attributes', tagline: 'The building blocks of everything.', difficulty: 'beginner', lessons: [
-    { id: 'h4-1', title: 'Opening Tags, Closing Tags & Self-Closing',
+    { id: 'h4-1', scaffolding: 'partial', title: 'Opening Tags, Closing Tags & Self-Closing',
       prereqs: ['h3-2'],
       difficulty: 'beginner', duration: '8 min',
       concepts: [
@@ -17,7 +17,7 @@ export const module = { id: 4, emoji: '🏷️', title: 'Elements, Tags & Attrib
       ],
       challenge: 'Deliberately nest elements incorrectly, then fix them. Notice the difference.',
       devFession: 'I forgot closing tags so often the browser just gave up trying to guess what I meant.' },
-    { id: 'h4-2', title: 'Attributes: The Power Settings',
+    { id: 'h4-2', scaffolding: 'partial', title: 'Attributes: The Power Settings',
       prereqs: ['h4-1'],
       difficulty: 'beginner', duration: '10 min',
       concepts: [

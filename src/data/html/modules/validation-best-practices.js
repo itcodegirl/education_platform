@@ -1,5 +1,5 @@
 export const module = { id: 18, emoji: '✅', title: 'Validation & Best Practices', tagline: 'Code your future self will love.', difficulty: 'advanced', lessons: [
-    { id: 'h18-1',
+    { id: 'h18-1', scaffolding: 'requirements',
       prereqs: ['h17-1'], title: 'Clean Code & W3C Validation',
       difficulty: 'beginner', duration: '10 min',
       concepts: [

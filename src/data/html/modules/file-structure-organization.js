@@ -1,5 +1,5 @@
 export const module = { id: 15, emoji: '📂', title: 'File Structure & Organization', tagline: 'A clean project is a maintainable project.', difficulty: 'advanced', lessons: [
-    { id: 'h15-1',
+    { id: 'h15-1', scaffolding: 'requirements',
       prereqs: ['h14-1'], title: 'Project Folders & File Linking',
       difficulty: 'beginner', duration: '10 min',
       concepts: [

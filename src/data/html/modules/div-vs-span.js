@@ -1,5 +1,5 @@
 export const module = { id: 11, emoji: '🧩', title: 'Div vs Span', tagline: 'Know when to use generic containers.', difficulty: 'intermediate', lessons: [
-    { id: 'h11-1', title: 'Block vs Inline Containers',
+    { id: 'h11-1', scaffolding: 'starter', title: 'Block vs Inline Containers',
       prereqs: ['h10-2'],
       difficulty: 'beginner', duration: '8 min',
       concepts: [

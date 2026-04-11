@@ -1,5 +1,5 @@
 export const module = { id: 19, emoji: '🚀', title: 'Intermediate Concepts', tagline: 'Beyond the basics — the stuff that levels you up.', difficulty: 'advanced', lessons: [
-    { id: 'h19-1',
+    { id: 'h19-1', scaffolding: 'requirements',
       prereqs: ['h18-1'], title: 'Data Attributes & Custom Data',
       difficulty: 'intermediate', duration: '10 min',
       concepts: [
@@ -17,7 +17,7 @@ export const module = { id: 19, emoji: '🚀', title: 'Intermediate Concepts', t
       ],
       challenge: 'Build a product grid where each card has data-price, data-category, and data-in-stock attributes.',
       devFession: 'I stored data in class names like class="price-29 category-shoes." Data attributes exist for a reason.' },
-    { id: 'h19-2',
+    { id: 'h19-2', scaffolding: 'requirements',
       prereqs: ['h19-1'], title: 'HTML Templates & DOM Awareness',
       difficulty: 'intermediate', duration: '10 min',
       concepts: [
