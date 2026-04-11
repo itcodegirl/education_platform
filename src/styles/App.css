@@ -2391,6 +2391,165 @@ textarea:focus-visible,
   height: calc(var(--size) * 1.4);
 }
 
+/* ─── Structured Lesson Format ────────────────── */
+.sl-section-title {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(16px, 1rem + 0.3vw, 18px);
+  font-weight: 700; color: var(--text);
+  margin: 28px 0 16px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Hook — accomplishments list */
+.sl-hook {
+  background: linear-gradient(180deg, rgba(78,205,196,0.12), rgba(78,205,196,0.04));
+  border-color: var(--cyan); border-left: 4px solid var(--cyan);
+}
+.sl-hook .box-label { color: var(--cyan); }
+.sl-hook-list {
+  list-style: none; padding: 0; margin: 8px 0 0;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.sl-hook-list li {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 15px; line-height: 1.5;
+}
+.sl-hook-list li::before {
+  content: '✓'; color: var(--cyan); font-weight: 700;
+  flex-shrink: 0; width: 18px; text-align: center;
+}
+
+/* Steps */
+.sl-steps {
+  list-style: none; padding: 0; margin: 0 0 20px;
+  display: flex; flex-direction: column; gap: 6px;
+  counter-reset: none;
+}
+.sl-step {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 14px; border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  font-size: 15px; line-height: 1.6;
+}
+.sl-step-num {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--bg-surface); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Space Mono', monospace; font-size: 13px;
+  font-weight: 700; color: var(--pink); flex-shrink: 0;
+}
+
+/* Proof required */
+.sl-proof {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 16px; border-radius: 10px;
+  background: rgba(255,167,38,0.08);
+  border: 1px solid rgba(255,167,38,0.2);
+  font-size: 14px; line-height: 1.5; margin-bottom: 20px;
+}
+.sl-proof-icon { font-size: 18px; flex-shrink: 0; }
+
+/* Concept cards */
+.sl-concepts {
+  display: flex; flex-direction: column; gap: 12px;
+  margin-bottom: 20px;
+}
+.sl-concept-card {
+  padding: 16px 18px; border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.07);
+  border-left: 3px solid var(--pink);
+}
+.sl-concept-name {
+  font-family: 'Space Mono', monospace;
+  font-size: 14px; font-weight: 700; color: var(--pink);
+  margin-bottom: 6px;
+}
+.sl-concept-def {
+  font-size: 15px; line-height: 1.7; color: var(--text);
+  margin-bottom: 8px;
+}
+.sl-concept-analogy {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 10px 12px; border-radius: 8px;
+  background: rgba(167,139,250,0.06);
+  border: 1px solid rgba(167,139,250,0.12);
+  font-size: 13px; line-height: 1.5; color: var(--text-dim);
+}
+.sl-analogy-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+/* Code comparison (before/after) */
+.sl-comparison {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; margin-bottom: 20px;
+}
+.sl-comparison-pane {
+  border-radius: 12px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.sl-comparison-new { border-color: rgba(78,205,196,0.3); }
+.sl-comparison-label {
+  padding: 6px 14px; font-family: 'Space Mono', monospace;
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-muted);
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.sl-comparison-new .sl-comparison-label { color: var(--cyan); }
+.sl-comparison-code {
+  padding: 12px 14px; margin: 0;
+  font-family: 'Space Mono', monospace; font-size: 12px;
+  line-height: 1.6; color: var(--text);
+  background: rgba(4,4,10,0.6); white-space: pre;
+  overflow-x: auto;
+}
+
+/* Summary */
+.sl-summary {
+  padding: 18px 20px; border-radius: 14px;
+  background: linear-gradient(180deg, rgba(78,205,196,0.1), rgba(78,205,196,0.03));
+  border: 1px solid rgba(78,205,196,0.2);
+  margin-bottom: 20px;
+}
+.sl-summary-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 14px; font-weight: 700; color: var(--cyan);
+  margin-bottom: 12px;
+}
+.sl-summary-list {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.sl-summary-list li {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px; line-height: 1.5;
+}
+.sl-summary-check {
+  color: var(--cyan); font-weight: 700;
+  width: 18px; text-align: center; flex-shrink: 0;
+}
+
+/* Bridge — next lesson teaser */
+.sl-bridge {
+  padding: 16px 18px; border-radius: 12px;
+  background: var(--bg-surface); border: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.sl-bridge-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.sl-bridge p { font-size: 14px; color: var(--text-dim); line-height: 1.6; }
+
+@media (max-width: 600px) {
+  .sl-comparison { grid-template-columns: 1fr; }
+  .sl-step { padding: 10px 12px; }
+  .sl-concept-card { padding: 14px; }
+}
+
 /* ─── Scaffolding Level Indicators ────────────── */
 .cpv-scaffolding {
   display: flex; align-items: center; gap: 8px;
