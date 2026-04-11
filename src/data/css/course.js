@@ -4,6 +4,7 @@
 // ═══════════════════════════════════════════════
 
 import { module as whatCssActuallyIs } from './modules/what-css-actually-is.js';
+import { module as stylingFromScratch } from './modules/styling-from-scratch.js';
 import { module as cssSyntaxFoundations } from './modules/css-syntax-foundations.js';
 import { module as selectors } from './modules/selectors.js';
 import { module as colorsUnitsAndTypography } from './modules/colors-units-and-typography.js';
@@ -15,6 +16,7 @@ import { module as formsMediaAndProfessionalOrganization } from './modules/forms
 import { module as accessibilityDebuggingAndProjects } from './modules/accessibility-debugging-and-projects.js';
 
 export const CSS_MODULES = [
+  stylingFromScratch,
   whatCssActuallyIs,
   cssSyntaxFoundations,
   selectors,
