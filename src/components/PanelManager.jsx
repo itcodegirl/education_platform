@@ -23,6 +23,9 @@ const Confetti = lazy(() => import('./gamification/Confetti').then(m => ({ defau
 export function PanelManager({
   panels, nav, course, profile, completed, lastPosition, courseTotal,
 }) {
+  // Compute module + course progress for WelcomeBack
+  const moduleProgress = computeModuleProgress(course, lastPosition, completed);
+
   return (
     <Suspense fallback={null}>
       {panels.confetti && <Confetti />}
@@ -50,6 +53,12 @@ export function PanelManager({
           displayName={profile?.display_name}
           lastPosition={lastPosition}
           completedCount={completed.length}
+          moduleTitle={moduleProgress.moduleTitle}
+          moduleLessonsDone={moduleProgress.moduleDone}
+          moduleLessonsTotal={moduleProgress.moduleTotal}
+          courseLabel={course.label}
+          courseLessonsDone={moduleProgress.courseDone}
+          courseLessonsTotal={courseTotal}
         />
       )}
       {panels.showOnboarding && (
@@ -70,4 +79,28 @@ export function PanelManager({
       )}
     </Suspense>
   );
+}
+
+// Find the module the user was last in and count its completed lessons
+function computeModuleProgress(course, lastPosition, completed) {
+  const result = { moduleTitle: '', moduleDone: 0, moduleTotal: 0, courseDone: 0 };
+  if (!course || !lastPosition?.mod) return result;
+
+  result.courseDone = completed.filter((k) => k.startsWith(course.label)).length;
+
+  // lastPosition.mod is like "⚡ What HTML Actually Is" — strip emoji prefix
+  const modLabel = lastPosition.mod.replace(/^\S+\s/, '');
+
+  for (const mod of course.modules) {
+    if (mod.title === modLabel) {
+      result.moduleTitle = mod.title;
+      result.moduleTotal = mod.lessons.length;
+      result.moduleDone = mod.lessons.filter((l) =>
+        completed.includes(`${course.label}|${mod.title}|${l.title}`),
+      ).length;
+      break;
+    }
+  }
+
+  return result;
 }

@@ -2039,20 +2039,21 @@ textarea:focus-visible,
 }
 .welcome-card {
   width: 100%;
-  max-width: 440px;
+  max-width: 460px;
   background: var(--bg-dark);
   border: 1px solid var(--border);
   border-radius: 20px;
-  padding: 40px 32px;
+  padding: 36px 28px 28px;
   text-align: center;
   transform: scale(0.9);
   opacity: 0;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-y: auto; max-height: calc(100dvh - 40px);
 }
 .welcome-card.show { transform: scale(1); opacity: 1; }
 .welcome-wave {
-  font-size: 48px;
-  margin-bottom: 16px;
+  font-size: 44px;
+  margin-bottom: 12px;
   animation: float 2s ease-in-out infinite;
 }
 .welcome-title {
@@ -2064,64 +2065,9 @@ textarea:focus-visible,
 .welcome-sub {
   font-size: 14px;
   color: var(--text-muted);
-  margin-bottom: 24px;
-}
-.welcome-resume-box {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
   margin-bottom: 20px;
-  text-align: left;
-}
-.welcome-resume-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: var(--text-muted);
-  font-family: 'Space Mono', monospace;
-  margin-bottom: 8px;
-}
-.welcome-resume-path {
-  font-size: 12px;
-  color: var(--text-dim);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 4px;
 }
 .welcome-sep { color: var(--text-muted); }
-.welcome-resume-lesson {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text);
-}
-.welcome-time {
-  font-size: 11px;
-  color: var(--text-muted);
-  font-family: 'Space Mono', monospace;
-  margin-top: 6px;
-}
-.welcome-stats-row {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  margin-bottom: 24px;
-}
-.welcome-stat { text-align: center; }
-.welcome-stat-num {
-  display: block;
-  font-family: 'Space Mono', monospace;
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--pink);
-}
-.welcome-stat-label {
-  font-size: 11px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
 .welcome-actions {
   display: flex;
   flex-direction: column;
@@ -2154,6 +2100,95 @@ textarea:focus-visible,
   transition: color 0.15s;
 }
 .welcome-dismiss:hover { color: var(--text); }
+
+/* Progress snapshot (4 stat cards) */
+.wb-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 8px; margin-bottom: 20px;
+}
+.wb-stat {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 2px; padding: 10px 4px;
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.wb-stat-value {
+  font-family: 'Space Mono', monospace;
+  font-size: 16px; font-weight: 700; color: var(--text);
+  white-space: nowrap;
+}
+.wb-streak { color: var(--amber); }
+.wb-stat-label {
+  font-size: 10px; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+/* Resume card with module + course progress bars */
+.wb-resume {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px;
+  margin-bottom: 20px; text-align: left;
+}
+.wb-resume-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--text-muted); font-family: 'Space Mono', monospace;
+  margin-bottom: 8px;
+}
+.wb-resume-path {
+  font-size: 12px; color: var(--text-dim);
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 4px; flex-wrap: wrap;
+}
+.wb-resume-lesson {
+  font-size: 15px; font-weight: 600; color: var(--text);
+}
+.wb-resume-time {
+  font-size: 11px; color: var(--text-muted);
+  font-family: 'Space Mono', monospace; margin-top: 4px;
+}
+
+/* Progress bars inside resume card */
+.wb-progress {
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.wb-progress-course { margin-top: 10px; padding-top: 10px; }
+.wb-progress-info {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 6px;
+}
+.wb-progress-label {
+  font-size: 11px; color: var(--text-dim);
+  font-family: 'Space Mono', monospace;
+}
+.wb-progress-pct {
+  font-size: 12px; font-weight: 700; color: var(--pink);
+  font-family: 'Space Mono', monospace;
+}
+.wb-progress-track {
+  height: 6px; border-radius: 3px;
+  background: rgba(255,255,255,0.06); overflow: hidden;
+}
+.wb-progress-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--pink), #ff8fab);
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+.wb-progress-fill-course {
+  background: linear-gradient(90deg, var(--cyan), #6ee7de);
+}
+.wb-progress-detail {
+  font-size: 11px; color: var(--text-muted);
+  font-family: 'Space Mono', monospace;
+  margin-top: 4px; text-align: right;
+}
+
+@media (max-width: 500px) {
+  .wb-stats { grid-template-columns: repeat(2, 1fr); }
+  .wb-stat-value { font-size: 14px; }
+  .welcome-card { padding: 28px 20px 24px; }
+  .welcome-title { font-size: 18px; }
+}
 
 /* ─── 28. Course Complete ─────────────────────── */
 .cc-overlay {
@@ -2390,16 +2425,13 @@ textarea:focus-visible,
 
 /* ─── Modal mobile additions ─────────────────── */
 @media (max-width: 600px) {
-  .welcome-overlay, .cc-overlay { padding: 12px; }
-  .welcome-card, .cc-card { padding: 28px 20px; border-radius: 16px; }
+  .cc-overlay { padding: 12px; }
+  .cc-card { padding: 28px 20px; border-radius: 16px; }
   .cc-title { font-size: 22px; }
   .cc-cert-course { font-size: 20px; }
-  .welcome-title { font-size: 18px; }
-  .welcome-stats-row { gap: 16px; }
-  .welcome-stat-num { font-size: 20px; }
 }
 @media (max-width: 400px) {
-  .welcome-card, .cc-card { padding: 20px 16px; }
+  .cc-card { padding: 20px 16px; }
   .cc-cert-inner { padding: 20px 16px; }
 }
 
