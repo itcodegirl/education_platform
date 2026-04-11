@@ -714,5 +714,83 @@ export const module = {
         nextLessonId: 'lesson-09',
       },
     },
+    {
+      id: 'lesson-09',
+      title: 'Add Media to Your Pages',
+      prereqs: ['lesson-08'],
+      difficulty: 'beginner',
+      duration: '22 min',
+      metadata: { estimatedTime: 22, difficulty: 'beginner', conceptsCount: 4, tasksCount: 4 },
+      hook: {
+        accomplishments: [
+          'Embed a video that plays in the browser',
+          'Add audio files that users can play',
+          'Embed YouTube videos on your site',
+          'Add Google Maps with iframes',
+          'Understand when to use each media type',
+        ],
+      },
+      do: {
+        title: 'Add a video to your page',
+        steps: [
+          'Create a new file: media.html',
+          'Copy the code below',
+          'Save and open in your browser',
+          'Click the play button!',
+        ],
+        code: '<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <title>Media Practice</title>\n</head>\n<body>\n    <h1>My Media Gallery</h1>\n    \n    <h2>Sample Video</h2>\n    <video width="400" controls>\n        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">\n        Your browser doesn\'t support video playback.\n    </video>\n    \n    <p>Try clicking play! You can pause, adjust volume, and go fullscreen.</p>\n</body>\n</html>',
+        result: 'You\'ll see a video player with play/pause controls, a timeline, and volume controls!',
+        proofRequired: 'the video player (paused or playing)',
+      },
+      understand: {
+        concepts: [
+          { name: 'The <video> tag', definition: 'Embeds a video file that plays directly in the browser (no YouTube, no external player needed). The \'controls\' attribute shows play/pause buttons.', analogy: 'Like a DVD player built into your webpage - plays video right there without opening another app.' },
+          { name: 'The <audio> tag', definition: 'Works exactly like <video> but for sound only. Shows a smaller audio player with play/pause and volume.', analogy: 'Like a music player widget - plays sound files without needing a separate music app.' },
+          { name: 'The <iframe> tag', definition: 'Embeds another website INSIDE your page. Like a window showing another site. Used for YouTube, Google Maps, CodePen demos.', analogy: 'Picture-in-picture TV showing another channel - a window to another website inside yours.' },
+          { name: 'Video/Audio attributes', definition: 'controls (show buttons), autoplay (start automatically - annoying!), loop (repeat forever), muted (start silent), poster (thumbnail image).', analogy: 'Settings on a TV remote: volume, channel, play/pause, mute.' },
+        ],
+        keyTakeaway: '<video controls> adds a video player. <audio controls> adds audio. <iframe> embeds other websites. Always include \'controls\' attribute!',
+      },
+      build: {
+        goal: 'Add audio and a YouTube video to your page',
+        codeComparison: {
+          old: '<h2>Sample Video</h2>\n<video width="400" controls>\n    <source src="video.mp4" type="video/mp4">\n</video>',
+          new: '<h2>Sample Audio</h2>\n<audio controls>\n    <source src="https://www.w3schools.com/html/horse.mp3" type="audio/mpeg">\n    Your browser doesn\'t support audio playback.\n</audio>\n\n<h2>My Favorite Tutorial</h2>\n<iframe width="560" height="315" \n    src="https://www.youtube.com/embed/VIDEO_ID" \n    title="YouTube video player" \n    allowfullscreen>\n</iframe>',
+        },
+        hint: 'Get YouTube embed code: go to any video, click Share \u2192 Embed, copy the <iframe> code',
+      },
+      challenge: {
+        title: 'Build a Multimedia Portfolio Page',
+        mission: 'Create a page showcasing media \u2014 videos about your interests, favorite music, embedded content.',
+        requirements: [
+          'Create multimedia.html',
+          'Add at least one <video> element (can use sample videos or your own)',
+          'Add at least one <audio> element',
+          'Embed at least one YouTube video relevant to your interests',
+          'Embed a Google Map of a meaningful location',
+          'Use semantic HTML structure (<header>, <main>, <section>, etc.)',
+          'Add descriptions/captions for each media item',
+          'Include navigation back to your other pages',
+        ],
+        starterCode: '<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>My Multimedia Page</title>\n</head>\n<body>\n    <header>\n        <h1>Things I Love</h1>\n        <p>A multimedia showcase</p>\n    </header>\n    \n    <nav>\n        <ul>\n            <li><a href="index.html">Home</a></li>\n            <li><a href="about.html">About</a></li>\n            <li><a href="multimedia.html">Media</a></li>\n        </ul>\n    </nav>\n    \n    <main>\n        <section>\n            <h2><!-- Section title --></h2>\n            <!-- Your media here -->\n            <p><!-- Description --></p>\n        </section>\n        \n        <!-- More sections -->\n    </main>\n    \n    <footer>\n        <p>&copy; 2024 Your Name</p>\n    </footer>\n</body>\n</html>',
+        bonusChallenge: 'Add \'poster\' attribute to your video (thumbnail image before playing) and create a video with \'loop\' and \'muted\' for background ambiance',
+      },
+      summary: {
+        capabilities: [
+          'Embed videos with <video> and <source>',
+          'Add audio playback with <audio>',
+          'Use controls, autoplay, loop, and muted attributes',
+          'Embed YouTube videos with <iframe>',
+          'Add Google Maps to your pages',
+          'Understand iframe security considerations',
+          'Provide fallback content for unsupported browsers',
+          'Choose appropriate media formats (mp4, mp3, etc.)',
+        ],
+      },
+      bridge: {
+        preview: 'In Lesson 10, you\'ll learn to use Developer Tools to inspect, debug, and understand your HTML. This is THE skill that separates beginners from professionals.',
+        nextLessonId: 'lesson-10',
+      },
+    },
   ],
 };
