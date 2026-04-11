@@ -18,6 +18,7 @@ import { Sidebar } from "../components/layout/Sidebar";
 import { Breadcrumb } from "../components/layout/Breadcrumb";
 import { ThemeToggle } from "../components/layout/ThemeToggle";
 import { BottomToolbar } from "../components/layout/BottomToolbar";
+import { LessonNavBar } from "../components/layout/LessonNavBar";
 import { OfflineIndicator } from "../components/layout/OfflineIndicator";
 
 // Learning components
@@ -135,6 +136,11 @@ export function AppLayout() {
     }
   }, [lessonKey, marking, learn]);
 
+  const handleOpenTool = useCallback(
+    (tool) => panels.setPanel(tool),
+    [panels.setPanel],
+  );
+
   const toolbarHandlers = useMemo(
     () => ({
       onCheatsheet: () => panels.setPanel("cheatsheet"),
@@ -187,6 +193,7 @@ export function AppLayout() {
           nav.goToModQuiz(mi);
           panels.setSidebar(false);
         }}
+        onOpenTool={handleOpenTool}
       />
 
       <main className="mn" ref={mainRef}>
@@ -312,7 +319,23 @@ export function AppLayout() {
       </main>
 
       <ThemeToggle />
-      <BottomToolbar {...toolbarHandlers} />
+      {isMobile ? (
+        <LessonNavBar
+          onPrev={nav.prev}
+          onNext={nav.next}
+          onMarkDone={handleMarkDone}
+          isFirst={isFirst}
+          isLast={isLast}
+          isLastLesson={isLastLesson}
+          isDone={isDone}
+          marking={marking}
+          showModQuiz={showModQuiz}
+          hasModuleQuiz={!!moduleQuiz}
+          accent={course.accent}
+        />
+      ) : (
+        <BottomToolbar {...toolbarHandlers} />
+      )}
       <XPPopup />
       <BadgeUnlock />
       <PanelManager

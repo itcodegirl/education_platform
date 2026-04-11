@@ -22,6 +22,17 @@ function isLessonUnlocked(course, modules, mi, li, completed) {
   return true;
 }
 
+const TOOLS = [
+  { id: 'stats', icon: '📊', label: 'Your Stats' },
+  { id: 'bookmarks', icon: '★', label: 'Bookmarks' },
+  { id: 'glossary', icon: '📖', label: 'Glossary' },
+  { id: 'challenges', icon: '🏋️', label: 'Challenges' },
+  { id: 'badges', icon: '🏆', label: 'Badges' },
+  { id: 'sr', icon: '🔄', label: 'Review Queue' },
+  { id: 'cheatsheet', icon: '📋', label: 'Cheat Sheets' },
+  { id: 'projects', icon: '🔨', label: 'Build Projects' },
+];
+
 export const Sidebar = memo(function Sidebar({
   courses,
   courseIdx,
@@ -36,6 +47,7 @@ export const Sidebar = memo(function Sidebar({
   onSelectCourse,
   onSelectLesson,
   onSelectModQuiz,
+  onOpenTool,
 }) {
   const { completed = [], xpTotal = 0, streak = 0, dailyCount = 0 } = useProgress();
   const { user, signOut } = useAuth();
@@ -267,6 +279,36 @@ export const Sidebar = memo(function Sidebar({
             })}
           </nav>
         </div>
+
+        {onOpenTool && (
+          <>
+            <div className="sb-section-title sb-tools-title">Tools</div>
+            <div className="sb-tools">
+              {TOOLS.map((tool) => (
+                <button
+                  key={tool.id}
+                  type="button"
+                  className="sb-tool-btn"
+                  onClick={() => {
+                    onOpenTool(tool.id);
+                    if (isMobile) onClose();
+                  }}
+                >
+                  <span className="sb-tool-icon">{tool.icon}</span>
+                  <span className="sb-tool-label">{tool.label}</span>
+                </button>
+              ))}
+              <button
+                type="button"
+                className="sb-tool-btn"
+                onClick={() => window.print()}
+              >
+                <span className="sb-tool-icon">🖨️</span>
+                <span className="sb-tool-label">Print / PDF</span>
+              </button>
+            </div>
+          </>
+        )}
 
         <div className="sb-lock-toggle">
           <label className="lock-label">

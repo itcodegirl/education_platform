@@ -1,0 +1,61 @@
+import { memo } from 'react';
+
+export const LessonNavBar = memo(function LessonNavBar({
+  onPrev,
+  onNext,
+  onMarkDone,
+  isFirst,
+  isLast,
+  isLastLesson,
+  isDone,
+  marking,
+  showModQuiz,
+  hasModuleQuiz,
+  accent,
+}) {
+  const nextLabel = isLast
+    ? 'Complete!'
+    : isLastLesson && hasModuleQuiz && !showModQuiz
+      ? 'Quiz →'
+      : 'Next →';
+
+  return (
+    <nav className="lesson-nav" aria-label="Lesson navigation">
+      <button
+        type="button"
+        className="lesson-nav-btn lesson-nav-prev"
+        onClick={onPrev}
+        disabled={isFirst}
+        aria-label="Previous lesson"
+      >
+        <span className="lesson-nav-icon">←</span>
+        <span className="lesson-nav-label">Prev</span>
+      </button>
+
+      {!showModQuiz && (
+        <button
+          type="button"
+          className={`lesson-nav-btn lesson-nav-done ${isDone ? 'is-done' : ''}`}
+          onClick={onMarkDone}
+          disabled={marking}
+          aria-label={isDone ? 'Lesson completed' : 'Mark lesson as done'}
+        >
+          <span className="lesson-nav-icon">{marking ? '...' : isDone ? '✓' : '○'}</span>
+          <span className="lesson-nav-label">{marking ? '...' : isDone ? 'Done' : 'Mark Done'}</span>
+        </button>
+      )}
+
+      <button
+        type="button"
+        className="lesson-nav-btn lesson-nav-next"
+        onClick={onNext}
+        disabled={isLast}
+        style={!isLast ? { background: accent } : undefined}
+        aria-label="Next lesson"
+      >
+        <span className="lesson-nav-label">{nextLabel}</span>
+        {!isLast && <span className="lesson-nav-icon">→</span>}
+      </button>
+    </nav>
+  );
+});
