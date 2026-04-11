@@ -460,5 +460,93 @@ export const module = {
         nextLessonId: 'lesson-06',
       },
     },
+    {
+      id: 'lesson-06',
+      title: 'Display Data in Tables',
+      prereqs: ['lesson-05'],
+      difficulty: 'beginner',
+      duration: '18 min',
+      metadata: { estimatedTime: 18, difficulty: 'beginner', conceptsCount: 4, tasksCount: 4 },
+      hook: {
+        accomplishments: [
+          'Create a table with rows and columns',
+          'Add headers that describe your data',
+          'Display structured information clearly',
+          'Build a pricing comparison table',
+        ],
+      },
+      do: {
+        title: 'Make your first table',
+        steps: [
+          'Create a new file: schedule.html',
+          'Copy the code below',
+          'Save and open in your browser',
+        ],
+        code: '<!DOCTYPE html>\n<html>\n<head>\n    <title>My Weekly Schedule</title>\n</head>\n<body>\n    <h1>My Learning Schedule</h1>\n    \n    <table border="1">\n        <tr>\n            <td>Monday</td>\n            <td>HTML practice</td>\n            <td>1 hour</td>\n        </tr>\n        <tr>\n            <td>Tuesday</td>\n            <td>Build project</td>\n            <td>2 hours</td>\n        </tr>\n        <tr>\n            <td>Wednesday</td>\n            <td>Watch tutorials</td>\n            <td>1 hour</td>\n        </tr>\n    </table>\n</body>\n</html>',
+        result: 'You\'ll see a grid with 3 rows and 3 columns, with borders around each cell!',
+        proofRequired: 'your table with borders and data',
+      },
+      understand: {
+        concepts: [
+          {
+            name: 'The <table> tag',
+            definition: 'Creates the container for your entire table. Everything else goes inside it.',
+            analogy: 'The frame of a spreadsheet or Excel grid.',
+          },
+          {
+            name: 'The <tr> tag (table row)',
+            definition: 'Each <tr> is ONE row going across the table horizontally. Tables are built row-by-row.',
+            analogy: 'Like horizontal lines on notebook paper - each line is a row.',
+          },
+          {
+            name: 'The <td> tag (table data)',
+            definition: 'Each <td> is ONE cell in the row. \'td\' stands for \'table data\' - it\'s where your actual content goes.',
+            analogy: 'Individual boxes in the grid where you write information.',
+          },
+          {
+            name: 'The <th> tag (table header)',
+            definition: 'Like <td> but for headers. Browsers automatically make it bold and centered. Screen readers announce these as headers.',
+            analogy: 'The column titles in a spreadsheet - the gray row at the top that labels what each column contains.',
+          },
+        ],
+        keyTakeaway: 'Tables are built row-by-row. Each <tr> creates a new row. Each <td> inside that row creates a cell.',
+      },
+      build: {
+        goal: 'Add table headers to make the first row stand out',
+        codeComparison: {
+          old: '<table border="1">\n    <tr>\n        <td>Monday</td>\n        <td>HTML practice</td>\n        <td>1 hour</td>\n    </tr>\n</table>',
+          new: '<table border="1">\n    <tr>\n        <th>Day</th>\n        <th>Activity</th>\n        <th>Duration</th>\n    </tr>\n    <tr>\n        <td>Monday</td>\n        <td>HTML practice</td>\n        <td>1 hour</td>\n    </tr>\n    <tr>\n        <td>Tuesday</td>\n        <td>Build project</td>\n        <td>2 hours</td>\n    </tr>\n</table>',
+        },
+        hint: 'The first row is now bold and centered automatically because you used <th> instead of <td>',
+      },
+      challenge: {
+        title: 'Build a Pricing Comparison Table',
+        mission: 'Create a comparison table showing different plans, features, or options side-by-side.',
+        requirements: [
+          'Create comparison.html',
+          'Use <thead> and <tbody>',
+          'At least 3 columns comparing different options',
+          'At least 5 rows showing different features/criteria',
+          'Use <th> for both column headers AND row headers',
+          'Add navigation linking back to your other pages',
+        ],
+        starterCode: '<!DOCTYPE html>\n<html>\n<head>\n    <title>Learning Platform Comparison</title>\n</head>\n<body>\n    <h1>Where Should I Learn?</h1>\n    \n    <table border="1">\n        <thead>\n            <tr>\n                <th>Platform</th>\n                <th>Cost</th>\n                <th>Best For</th>\n                <th>My Rating</th>\n            </tr>\n        </thead>\n        <tbody>\n            <tr>\n                <td><!-- Platform name --></td>\n                <td><!-- Cost --></td>\n                <td><!-- What it\'s good for --></td>\n                <td><!-- Your rating --></td>\n            </tr>\n            <!-- Add more rows -->\n        </tbody>\n    </table>\n</body>\n</html>',
+        bonusChallenge: 'Add a <tfoot> section at the bottom with a total or summary row',
+      },
+      summary: {
+        capabilities: [
+          'Create tables with <table>, <tr>, and <td>',
+          'Add headers with <th> that are bold and centered',
+          'Structure tables with <thead> and <tbody>',
+          'Display data in rows and columns',
+          'Build comparison and schedule tables',
+          'Understand when tables are appropriate (data only!)',
+        ],
+      },
+      bridge: {
+        preview: 'In Lesson 7, you\'ll learn Semantic HTML \u2014 the difference between beginner code and professional code. You\'ll use tags like <header>, <nav>, <main>, <section>, <article>, and <footer>.',
+        nextLessonId: 'lesson-07',
+      },
+    },
   ],
 };
