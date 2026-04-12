@@ -218,6 +218,136 @@
         "preview": "In the final lesson of this module, you'll learn how to ORGANIZE large codebases — breaking code into modules, following best practices, and building maintainable applications.",
         "nextLessonId": "js-4-4"
       }
+    },
+    {
+      "id": "js-4-4",
+      "title": "Organize Code Like a Pro",
+      "prereqs": [
+        "js-4-3"
+      ],
+      "difficulty": "intermediate",
+      "duration": "24 min",
+      "metadata": {
+        "estimatedTime": 24,
+        "difficulty": "intermediate",
+        "conceptsCount": 8,
+        "tasksCount": 2,
+        "isMajorProject": true
+      },
+      "hook": {
+        "accomplishments": [
+          "Break a messy 500-line file into organized modules",
+          "Follow the DRY principle (Don't Repeat Yourself)",
+          "Create helper functions that make code readable",
+          "Build a complete app with professional code organization",
+          "Use design patterns that real developers use"
+        ]
+      },
+      "do": {
+        "title": "Refactor Messy Code Into Organized Modules",
+        "steps": [
+          "Open VS Code or CodePen",
+          "Create organized-app.html",
+          "Copy the code below (notice how it's organized!)",
+          "Save and open in browser",
+          "Click around and see a fully functional app",
+          "Read the code — notice how EVERY function has ONE clear job"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Professional Code Organization</title>\n  <style>\n    body { margin: 0; padding: 0; background: linear-gradient(135deg, #667eea, #764ba2); font-family: Arial; min-height: 100vh; }\n    .app-container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }\n    .app-header, .task-input-section, .filters, .tasks-section { background: white; padding: 25px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }\n    .app-header { text-align: center; }\n    .app-header h1 { color: #2C3E50; margin: 0 0 10px; }\n    .input-group { display: flex; gap: 10px; }\n    input { flex: 1; padding: 12px; font-size: 16px; border: 2px solid #BDC3C7; border-radius: 5px; }\n    button { padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; border: none; border-radius: 5px; }\n    .btn-add { background: #2ECC71; color: white; }\n    .btn-delete { background: #E74C3C; color: white; padding: 8px 16px; }\n    .btn-complete { background: #3498DB; color: white; padding: 8px 16px; }\n    .filter-btn { background: #95A5A6; color: white; margin-right: 10px; }\n    .filter-btn.active { background: #667eea; }\n    .task-item { background: #F8F9FA; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #3498DB; }\n    .task-item.completed { opacity: 0.6; border-left-color: #2ECC71; }\n    .task-item.completed .task-text { text-decoration: line-through; }\n    .task-actions { display: flex; gap: 10px; }\n  </style>\n</head>\n<body>\n  <div class=\"app-container\">\n    <div class=\"app-header\">\n      <h1>✅ Professional Task Manager</h1>\n      <p>Built with organized, maintainable code</p>\n    </div>\n    <div class=\"task-input-section\">\n      <div class=\"input-group\">\n        <input type=\"text\" id=\"task-input\" placeholder=\"Enter a new task...\" onkeypress=\"handleEnterKey(event)\">\n        <button class=\"btn-add\" onclick=\"handleAddTask()\">Add Task</button>\n      </div>\n    </div>\n    <div class=\"filters\">\n      <button class=\"filter-btn active\" onclick=\"handleFilterChange('all')\">All</button>\n      <button class=\"filter-btn\" onclick=\"handleFilterChange('active')\">Active</button>\n      <button class=\"filter-btn\" onclick=\"handleFilterChange('completed')\">Completed</button>\n    </div>\n    <div class=\"tasks-section\">\n      <div id=\"tasks-container\"></div>\n    </div>\n  </div>\n\n  <script>\n    // ============================================\n    // 1. STATE MANAGEMENT\n    // ============================================\n    let appState = { tasks: [], currentFilter: \"all\", nextId: 1 };\n    \n    // ============================================\n    // 2. UTILITY FUNCTIONS (pure, no side effects)\n    // ============================================\n    function generateTaskId() { return appState.nextId++; }\n    \n    function createTask(text) {\n      return { id: generateTaskId(), text: text, completed: false, createdAt: new Date().toISOString() };\n    }\n    \n    function isValidTaskText(text) {\n      return text && text.trim().length > 0;\n    }\n    \n    function filterTasks(tasks, filter) {\n      if (filter === \"active\") return tasks.filter(t => !t.completed);\n      if (filter === \"completed\") return tasks.filter(t => t.completed);\n      return tasks;\n    }\n    \n    // ============================================\n    // 3. DATA OPERATIONS (modify state)\n    // ============================================\n    function addTask(text) {\n      if (!isValidTaskText(text)) return;\n      appState.tasks.push(createTask(text.trim()));\n    }\n    \n    function toggleTaskCompletion(taskId) {\n      const task = appState.tasks.find(t => t.id === taskId);\n      if (task) task.completed = !task.completed;\n    }\n    \n    function deleteTask(taskId) {\n      appState.tasks = appState.tasks.filter(t => t.id !== taskId);\n    }\n    \n    // ============================================\n    // 4. UI RENDERING\n    // ============================================\n    function renderTasks() {\n      const container = document.getElementById(\"tasks-container\");\n      const filtered = filterTasks(appState.tasks, appState.currentFilter);\n      container.innerHTML = filtered.length === 0\n        ? \"<p style='text-align:center;padding:40px;color:#7F8C8D;'>No tasks yet!</p>\"\n        : filtered.map(renderTaskItem).join(\"\");\n    }\n    \n    function renderTaskItem(task) {\n      const cls = task.completed ? \"completed\" : \"\";\n      const btnText = task.completed ? \"Undo\" : \"Complete\";\n      return `<div class=\"task-item ${cls}\">\n        <div class=\"task-text\">${task.text}</div>\n        <div class=\"task-actions\">\n          <button class=\"btn-complete\" onclick=\"handleToggleTask(${task.id})\">${btnText}</button>\n          <button class=\"btn-delete\" onclick=\"handleDeleteTask(${task.id})\">Delete</button>\n        </div>\n      </div>`;\n    }\n    \n    // ============================================\n    // 5. EVENT HANDLERS\n    // ============================================\n    function handleAddTask() {\n      const input = document.getElementById(\"task-input\");\n      addTask(input.value);\n      input.value = \"\";\n      renderTasks();\n    }\n    \n    function handleEnterKey(event) {\n      if (event.key === \"Enter\") handleAddTask();\n    }\n    \n    function handleToggleTask(id) { toggleTaskCompletion(id); renderTasks(); }\n    function handleDeleteTask(id) { deleteTask(id); renderTasks(); }\n    \n    function handleFilterChange(filter) {\n      appState.currentFilter = filter;\n      document.querySelectorAll(\".filter-btn\").forEach(b => b.classList.remove(\"active\"));\n      event.target.classList.add(\"active\");\n      renderTasks();\n    }\n    \n    // ============================================\n    // 6. INITIALIZATION\n    // ============================================\n    function init() { renderTasks(); }\n    init();\n  </script>\n</body>\n</html>",
+        "result": "This is how professionals organize code — separated by responsibility, easy to read, easy to maintain!",
+        "proofRequired": "Screenshot of the task manager working with at least 3 tasks added."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "DRY: Don't Repeat Yourself",
+            "definition": "If you're writing the same code twice, make it a function instead. Fix bugs in one place. Add features in one place.",
+            "analogy": "A recipe card — write it once, reuse it a thousand times instead of memorizing it fresh each time."
+          },
+          {
+            "name": "Single Responsibility Principle",
+            "definition": "Each function should do ONE thing and do it well. If you find yourself describing a function with \"and\" or \"also,\" split it up.",
+            "analogy": "A specialized tool — a screwdriver doesn't also hammer nails. Each function is a single-purpose tool."
+          },
+          {
+            "name": "Separation of Concerns",
+            "definition": "Group related code together. Separate unrelated code. State management, UI rendering, and event handling each belong in their own section.",
+            "analogy": "A restaurant kitchen: prep station, grill, plating. Each station has one job, but they work together."
+          },
+          {
+            "name": "Helper functions",
+            "definition": "Small utility functions that make your code more readable. isValidPrice(price) is clearer than checking null/undefined/NaN/>0 inline.",
+            "analogy": "A label on a jar — you know what's inside without opening it. Helper functions label intent."
+          },
+          {
+            "name": "Pure functions",
+            "definition": "Functions that always return the same output for the same input, with no side effects. Easy to test, debug, and reason about.",
+            "analogy": "A math equation — 2 + 2 always equals 4, no matter what else is going on."
+          },
+          {
+            "name": "Function naming conventions",
+            "definition": "get/set for data access, is/has/can for booleans, calculate/compute for math, handle for events, render/display/show for UI, validate/check for validation.",
+            "analogy": "Street signs — you know what to expect from the name before you get there."
+          },
+          {
+            "name": "Code comments: WHY not WHAT",
+            "definition": "Don't comment obvious things (// increment count). Do comment tricky logic, warnings, and function documentation. Good code is self-documenting.",
+            "analogy": "A recipe doesn't say \"crack egg\" — it says \"room temperature eggs work best\" (the WHY)."
+          },
+          {
+            "name": "The module pattern",
+            "definition": "Organize related functions and data into a single object. const TaskManager = { tasks: [], add(), remove(), getAll() }. All related code in one namespace.",
+            "analogy": "A toolbox — all the screwdrivers in one drawer, all the wrenches in another. Related tools together."
+          }
+        ],
+        "keyTakeaway": "Professional code is organized, readable, and maintainable. Each function does ONE thing. Code is grouped by purpose. Comments explain WHY, not WHAT."
+      },
+      "build": {
+        "goal": "Understand how the 6-section structure makes code professional",
+        "codeComparison": {
+          "old": "// MESSY - 500 lines of spaghetti\nfunction doEverything() {\n  // validates input\n  // saves to database\n  // updates UI\n  // sends email\n  // logs analytics\n  // ...200 more lines\n}",
+          "new": "// ORGANIZED - each function has ONE job\n// 1. STATE\n// 2. UTILITIES\n// 3. DATA OPERATIONS\n// 4. UI RENDERING\n// 5. EVENT HANDLERS\n// 6. INITIALIZATION\n\nfunction validateInput(data) { /* ... */ }\nfunction saveToDatabase(data) { /* ... */ }\nfunction updateUI(data) { /* ... */ }\nfunction sendEmail(data) { /* ... */ }\n\n// Orchestrator calls them in order\nfunction handleSubmit(data) {\n  if (!validateInput(data)) return;\n  saveToDatabase(data);\n  updateUI(data);\n  sendEmail(data);\n}"
+        },
+        "hint": "Each section has ONE purpose. Each function within a section has ONE job. Read your code out loud — if a function needs \"and\" to describe it, split it up."
+      },
+      "challenge": {
+        "title": "Build a Complete Expense Tracker App (CAPSTONE)",
+        "mission": "Build a full expense tracking application using ALL the organization principles. This is your capstone project for Module 4!",
+        "requirements": [
+          "Organize code into 6 clear sections: State, Utilities, Data Operations, Statistics, UI Rendering, Event Handlers",
+          "Add expenses with: description, amount, category, date",
+          "Categories: Food, Transport, Entertainment, Bills, Other",
+          "Display all expenses in a list",
+          "Filter by category",
+          "Calculate and display: total expenses, this month's expenses, average expense",
+          "Delete expenses",
+          "Save to localStorage",
+          "Use helper functions: formatMoney(), isValidExpense(), calculateTotal()",
+          "Each function must have ONE clear responsibility",
+          "Add JSDoc comments to key functions",
+          "Make it look professional"
+        ],
+        "starterCode": "/* Organize your code following this structure:\n\n// 1. STATE MANAGEMENT\nlet appState = { expenses: [], currentFilter: 'all', nextId: 1 };\n\n// 2. UTILITY FUNCTIONS (pure)\nfunction formatMoney(amount) { return '$' + amount.toFixed(2); }\nfunction isValidExpense(description, amount) { ... }\n\n// 3. DATA OPERATIONS\nfunction createExpense(description, amount, category) { ... }\nfunction addExpense(expense) { ... }\nfunction deleteExpense(expenseId) { ... }\nfunction filterExpenses(expenses, category) { ... }\n\n// 4. STATISTICS CALCULATIONS\nfunction calculateTotal(expenses) {\n  return expenses.reduce((sum, e) => sum + e.amount, 0);\n}\nfunction calculateMonthTotal(expenses) { ... }\nfunction calculateAverage(expenses) { ... }\n\n// 5. UI RENDERING\nfunction renderExpenses() { ... }\nfunction renderExpenseItem(expense) { ... }\nfunction updateStatistics() { ... }\n\n// 6. EVENT HANDLERS\nfunction handleAddExpense() { ... }\nfunction handleDeleteExpense(id) { ... }\nfunction handleFilterChange(category) { ... }\n\n// 7. INITIALIZATION\nfunction init() {\n  // Load from localStorage\n  // Render initial state\n}\ninit();\n*/",
+        "bonusChallenge": "Add an \"Edit Expense\" feature that lets users modify existing expenses. Requires edit mode UI, state updates, and re-rendering."
+      },
+      "summary": {
+        "capabilities": [
+          "Organize code into clear sections by responsibility",
+          "Write functions that do ONE thing well",
+          "Apply the DRY principle to eliminate repetition",
+          "Use helper functions to make code readable",
+          "Separate concerns: data, UI, and events",
+          "Write JSDoc comments for documentation",
+          "Create pure functions when possible",
+          "Use the module pattern for encapsulation",
+          "Build maintainable, professional applications",
+          "Follow industry best practices"
+        ]
+      },
+      "bridge": {
+        "preview": "🎉 Module 4 complete! You've built buttons, text changers, theme switchers, score trackers, product catalogs, grade analyzers, task managers, and a full expense tracker. You now write JavaScript like a professional developer! The next modules would cover APIs, async JavaScript, and building with frameworks like React.",
+        "nextLessonId": "js-5-1"
+      }
     }
   ]
 }
