@@ -1,30 +1,18 @@
 // ═══════════════════════════════════════════════
-// CSS COURSE — 10 Modules, 30 Lessons (Rich Format)
-// See html/course.js for lesson format documentation
+// CSS COURSE — 4 Core Modules
+//
+// Module 1: CSS Foundations (Week 1-2)
+// Module 2: Layout Mastery (Week 3-4)
+// Module 3: Responsive Design (Week 5-6)
+// Module 4: Advanced Styling (Week 7-8)
 // ═══════════════════════════════════════════════
 
-import { module as whatCssActuallyIs } from './modules/what-css-actually-is.js';
-import stylingFromScratch from './modules/styling-from-scratch.json';
-import { module as cssSyntaxFoundations } from './modules/css-syntax-foundations.js';
-import { module as selectors } from './modules/selectors.js';
-import { module as colorsUnitsAndTypography } from './modules/colors-units-and-typography.js';
-import { module as boxModelSizingAndOverflow } from './modules/box-model-sizing-and-overflow.js';
-import { module as displayPositioningFlexboxAndGrid } from './modules/display-positioning-flexbox-and-grid.js';
-import { module as responsiveDesignEffectsAndMotion } from './modules/responsive-design-effects-and-motion.js';
-import { module as variablesCascadeAndResets } from './modules/variables-cascade-and-resets.js';
-import { module as formsMediaAndProfessionalOrganization } from './modules/forms-media-and-professional-organization.js';
-import { module as accessibilityDebuggingAndProjects } from './modules/accessibility-debugging-and-projects.js';
+import cssFoundations from './modules/css-foundations.json';
+
+// Old modules kept for advanced track (not loaded in core course)
+// import { module as whatCssActuallyIs } from './modules/what-css-actually-is.js';
+// ...
 
 export const CSS_MODULES = [
-  stylingFromScratch,
-  whatCssActuallyIs,
-  cssSyntaxFoundations,
-  selectors,
-  colorsUnitsAndTypography,
-  boxModelSizingAndOverflow,
-  displayPositioningFlexboxAndGrid,
-  responsiveDesignEffectsAndMotion,
-  variablesCascadeAndResets,
-  formsMediaAndProfessionalOrganization,
-  accessibilityDebuggingAndProjects,
+  cssFoundations,
 ];
