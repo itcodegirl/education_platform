@@ -8,6 +8,7 @@
 // ═══════════════════════════════════════════════
 
 import cssFoundations from './modules/css-foundations.json';
+import layoutMastery from './modules/layout-mastery.json';
 
 // Old modules kept for advanced track (not loaded in core course)
 // import { module as whatCssActuallyIs } from './modules/what-css-actually-is.js';
@@ -15,4 +16,5 @@ import cssFoundations from './modules/css-foundations.json';
 
 export const CSS_MODULES = [
   cssFoundations,
+  layoutMastery,
 ];

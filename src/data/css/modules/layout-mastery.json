@@ -1,0 +1,91 @@
+{
+  "id": 202,
+  "emoji": "📐",
+  "title": "Layout Mastery",
+  "tagline": "Control where everything goes on the page.",
+  "difficulty": "intermediate",
+  "lessons": [
+    {
+      "id": "css-2-5",
+      "title": "Understanding Display Properties",
+      "prereqs": [],
+      "difficulty": "beginner",
+      "duration": "16 min",
+      "metadata": { "estimatedTime": 16, "difficulty": "beginner", "conceptsCount": 3, "tasksCount": 3 },
+      "hook": {
+        "accomplishments": [
+          "See the difference between block, inline, and inline-block",
+          "Fix common layout quirks",
+          "Make images and text flow correctly"
+        ]
+      },
+      "do": {
+        "title": "See display types in action",
+        "steps": [
+          "Create a new file and save it as display-types.html",
+          "Copy and paste the code below",
+          "Save and open in browser",
+          "See how each display type behaves differently!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Display Types</title>\n  <style>\n    body {\n      margin: 0;\n      padding: 40px;\n      font-family: Arial, sans-serif;\n      background-color: #f5f5f5;\n    }\n    \n    .demo-section {\n      background-color: white;\n      padding: 20px;\n      margin: 20px 0;\n      border-radius: 8px;\n    }\n    \n    .block-item {\n      display: block;\n      background-color: lightblue;\n      padding: 15px;\n      margin: 10px 0;\n      border: 2px solid blue;\n    }\n    \n    .inline-item {\n      display: inline;\n      background-color: lightcoral;\n      padding: 15px;\n      margin: 10px;\n      border: 2px solid red;\n    }\n    \n    .inline-block-item {\n      display: inline-block;\n      background-color: lightgreen;\n      padding: 15px;\n      margin: 10px;\n      border: 2px solid green;\n    }\n  </style>\n</head>\n<body>\n  <h1>Display Property Examples</h1>\n  \n  <div class=\"demo-section\">\n    <h2>Block Elements</h2>\n    <div class=\"block-item\">Block 1</div>\n    <div class=\"block-item\">Block 2</div>\n    <div class=\"block-item\">Block 3</div>\n  </div>\n  \n  <div class=\"demo-section\">\n    <h2>Inline Elements</h2>\n    <span class=\"inline-item\">Inline 1</span>\n    <span class=\"inline-item\">Inline 2</span>\n    <span class=\"inline-item\">Inline 3</span>\n  </div>\n  \n  <div class=\"demo-section\">\n    <h2>Inline-Block Elements</h2>\n    <div class=\"inline-block-item\">Inline-Block 1</div>\n    <div class=\"inline-block-item\">Inline-Block 2</div>\n    <div class=\"inline-block-item\">Inline-Block 3</div>\n  </div>\n</body>\n</html>",
+        "result": "Block items stack vertically taking full width. Inline items flow like text. Inline-block items flow horizontally but respect width/height!",
+        "proofRequired": "Screenshot showing all three display type examples."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "Block Elements",
+            "definition": "Take up the full width available and start on a new line. Default block elements: div, p, h1-h6, section, header, footer.",
+            "analogy": "Shipping boxes stacked in a warehouse \u2014 each one takes up a full shelf."
+          },
+          {
+            "name": "Inline Elements",
+            "definition": "Flow with text, only taking up as much width as their content needs. Width and height properties DON'T WORK on inline elements. Default inline elements: span, a, strong, em.",
+            "analogy": "Words in a sentence \u2014 they flow together on the same line."
+          },
+          {
+            "name": "Inline-Block Elements",
+            "definition": "The best of both worlds! Flow horizontally like inline, but respect width/height like block. Great for buttons, tags, and navigation items.",
+            "analogy": "Books on a shelf \u2014 they sit side by side, but each book has its own defined size."
+          }
+        ],
+        "keyTakeaway": "Block stacks vertically (full width). Inline flows with text (no size control). Inline-block flows horizontally WITH size control."
+      },
+      "build": {
+        "goal": "Fix the image gap bug and create a button group with inline-block",
+        "codeComparison": {
+          "old": "/* Images are inline by default - gap below! */\n.image-container img {\n  max-width: 100%;\n}",
+          "new": "/* Fix: make image block to remove gap */\n.image-container img {\n  max-width: 100%;\n  display: block;\n}\n\n/* Buttons side by side with inline-block */\n.btn {\n  display: inline-block;\n  background-color: #007bff;\n  color: white;\n  padding: 12px 24px;\n  border: none;\n  border-radius: 4px;\n  margin-right: 10px;\n}"
+        },
+        "hint": "Images are inline by default, which adds space for text descenders. Always set img { display: block; } to fix this!"
+      },
+      "challenge": {
+        "title": "Build a Tag Cloud",
+        "mission": "Create a \"tag cloud\" of skill badges using inline-block \u2014 different sized badges that flow and wrap naturally.",
+        "requirements": [
+          "At least 10 skill tags",
+          "Tags use inline-block display",
+          "Different sizes (some bigger, some smaller)",
+          "Tags wrap to next line if container is narrow",
+          "Hover effect on each tag",
+          "Professional styling"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Tag Cloud</title>\n  <style>\n    body {\n      margin: 0;\n      padding: 40px;\n      font-family: Arial, sans-serif;\n      background-color: #f5f5f5;\n    }\n    \n    .tag-cloud {\n      background-color: white;\n      padding: 40px;\n      border-radius: 12px;\n      max-width: 600px;\n      margin: 0 auto;\n      box-shadow: 0 2px 10px rgba(0,0,0,0.1);\n    }\n    \n    h2 {\n      text-align: center;\n      color: #333;\n      margin-bottom: 30px;\n    }\n    \n    /* Add your tag styles here */\n    \n  </style>\n</head>\n<body>\n  <div class=\"tag-cloud\">\n    <h2>My Skills</h2>\n    <span class=\"tag tag-large\">HTML</span>\n    <span class=\"tag tag-large\">CSS</span>\n    <span class=\"tag tag-medium\">JavaScript</span>\n    <span class=\"tag tag-medium\">Flexbox</span>\n    <span class=\"tag tag-medium\">Grid</span>\n    <span class=\"tag tag-small\">Responsive Design</span>\n    <span class=\"tag tag-small\">Animations</span>\n    <span class=\"tag tag-small\">Git</span>\n    <span class=\"tag tag-large\">Problem Solving</span>\n    <span class=\"tag tag-medium\">Debugging</span>\n  </div>\n</body>\n</html>",
+        "bonusChallenge": "Make tags different colors based on skill level!"
+      },
+      "summary": {
+        "capabilities": [
+          "Understand block, inline, and inline-block display types",
+          "Fix the common image gap bug",
+          "Create button groups with inline-block",
+          "Build tag clouds and badge systems",
+          "Choose the right display property for each situation"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 2.6, you'll combine everything you've learned \u2014 Flexbox, positioning, display properties \u2014 to build a professional navigation bar from scratch!",
+        "nextLessonId": "css-2-6"
+      }
+    }
+  ]
+}
