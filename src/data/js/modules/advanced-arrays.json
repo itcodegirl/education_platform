@@ -106,6 +106,118 @@
         "preview": "In the next lesson, you'll learn .forEach() for side effects, .reduce() for aggregating data, and when to use each array method.",
         "nextLessonId": "js-4-2"
       }
+    },
+    {
+      "id": "js-4-3",
+      "title": "Arrow Functions and Callbacks",
+      "prereqs": [
+        "js-4-1"
+      ],
+      "difficulty": "intermediate",
+      "duration": "20 min",
+      "metadata": {
+        "estimatedTime": 20,
+        "difficulty": "intermediate",
+        "conceptsCount": 6,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Write concise arrow functions instead of long function syntax",
+          "Transform arrays with .map(), .filter(), and .reduce()",
+          "Pass functions as arguments to other functions",
+          "Chain array methods to process data elegantly"
+        ]
+      },
+      "do": {
+        "title": "Transform Data with Array Methods",
+        "steps": [
+          "Open VS Code or CodePen",
+          "Create array-methods.html",
+          "Copy the code below",
+          "Save and open in browser",
+          "Click each button to see different transformations",
+          "Notice how much cleaner this is than loops!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Modern Array Methods</title>\n  <style>\n    body { padding: 50px; background: linear-gradient(135deg, #667eea, #764ba2); font-family: Arial; }\n    .container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 15px; }\n    h1 { text-align: center; color: #2C3E50; margin: 0 0 40px; }\n    .demo-section { background: #F8F9FA; padding: 25px; border-radius: 10px; margin-bottom: 25px; border-left: 5px solid #667eea; }\n    .demo-section h3 { margin: 0 0 15px; color: #2C3E50; }\n    button { padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; background: #667eea; color: white; border: none; border-radius: 5px; margin-right: 10px; margin-bottom: 10px; }\n    .result { background: white; padding: 20px; border-radius: 5px; margin-top: 15px; font-family: monospace; font-size: 14px; }\n    .original-data { background: #34495E; color: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; font-family: monospace; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <h1>🚀 Modern Array Methods</h1>\n    <div class=\"original-data\">\n      <h3 style=\"color: #2ECC71;\">📊 Original Data:</h3>\n      <pre>[\n  { name: \"Laptop\", price: 999, category: \"electronics\" },\n  { name: \"Phone\", price: 699, category: \"electronics\" },\n  { name: \"Desk\", price: 299, category: \"furniture\" },\n  { name: \"Chair\", price: 199, category: \"furniture\" },\n  { name: \"Monitor\", price: 399, category: \"electronics\" }\n]</pre>\n    </div>\n    <div class=\"demo-section\">\n      <h3>1. .map() - Transform each item</h3>\n      <button onclick=\"demoMap()\">Get All Names</button>\n      <button onclick=\"demoMapPrices()\">Add Tax to Prices</button>\n      <div class=\"result\" id=\"map-result\"></div>\n    </div>\n    <div class=\"demo-section\">\n      <h3>2. .filter() - Select items that match</h3>\n      <button onclick=\"demoFilter()\">Electronics Only</button>\n      <button onclick=\"demoFilterPrice()\">Under $400</button>\n      <div class=\"result\" id=\"filter-result\"></div>\n    </div>\n    <div class=\"demo-section\">\n      <h3>3. .reduce() - Combine into single value</h3>\n      <button onclick=\"demoReduce()\">Calculate Total Price</button>\n      <button onclick=\"demoReduceAvg()\">Calculate Average</button>\n      <div class=\"result\" id=\"reduce-result\"></div>\n    </div>\n    <div class=\"demo-section\">\n      <h3>4. Method Chaining</h3>\n      <button onclick=\"demoChain()\">Electronics Total</button>\n      <div class=\"result\" id=\"chain-result\"></div>\n    </div>\n  </div>\n  <script>\n    const products = [\n      { name: \"Laptop\", price: 999, category: \"electronics\" },\n      { name: \"Phone\", price: 699, category: \"electronics\" },\n      { name: \"Desk\", price: 299, category: \"furniture\" },\n      { name: \"Chair\", price: 199, category: \"furniture\" },\n      { name: \"Monitor\", price: 399, category: \"electronics\" }\n    ];\n    \n    function demoMap() {\n      const names = products.map(product => product.name);\n      document.getElementById(\"map-result\").innerHTML = \"<strong>All Product Names:</strong><br>\" + names.join(\", \");\n    }\n    \n    function demoMapPrices() {\n      const pricesWithTax = products.map(p => ({\n        name: p.name,\n        priceWithTax: (p.price * 1.1).toFixed(2)\n      }));\n      document.getElementById(\"map-result\").innerHTML = pricesWithTax.map(p => `${p.name}: $${p.priceWithTax}`).join(\"<br>\");\n    }\n    \n    function demoFilter() {\n      const electronics = products.filter(p => p.category === \"electronics\");\n      document.getElementById(\"filter-result\").innerHTML = electronics.map(p => `${p.name} - $${p.price}`).join(\"<br>\");\n    }\n    \n    function demoFilterPrice() {\n      const affordable = products.filter(p => p.price < 400);\n      document.getElementById(\"filter-result\").innerHTML = affordable.map(p => `${p.name} - $${p.price}`).join(\"<br>\");\n    }\n    \n    function demoReduce() {\n      const total = products.reduce((sum, p) => sum + p.price, 0);\n      document.getElementById(\"reduce-result\").innerHTML = `<strong>Total Value:</strong> $${total}`;\n    }\n    \n    function demoReduceAvg() {\n      const total = products.reduce((sum, p) => sum + p.price, 0);\n      const average = total / products.length;\n      document.getElementById(\"reduce-result\").innerHTML = `<strong>Average:</strong> $${average.toFixed(2)}`;\n    }\n    \n    function demoChain() {\n      const electronicsTotal = products\n        .filter(p => p.category === \"electronics\")\n        .map(p => p.price)\n        .reduce((sum, price) => sum + price, 0);\n      document.getElementById(\"chain-result\").innerHTML = `<strong>Total:</strong> $${electronicsTotal}`;\n    }\n  </script>\n</body>\n</html>",
+        "result": "You transformed arrays with modern methods instead of loops. Much cleaner and more readable!",
+        "proofRequired": "Screenshot showing different transformations working."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "Arrow Functions Syntax",
+            "definition": "A shorter way to write functions. const add = (a, b) => a + b replaces function add(a, b) { return a + b; }. Single parameter needs no parentheses: num => num * 2.",
+            "analogy": "Shorthand like \"btw\" instead of \"by the way\" — same meaning, way less typing."
+          },
+          {
+            "name": "Callbacks",
+            "definition": "A function passed as an argument to another function. Array methods like .map(), .filter(), and .reduce() all accept callback functions that determine what they do.",
+            "analogy": "Telling someone \"when you get there, do this\" — you hand them instructions to follow later."
+          },
+          {
+            "name": ".map() - transform each item",
+            "definition": "Creates a NEW array by calling a function on every element. array.map(item => transformed). Always returns an array of the same length as the original.",
+            "analogy": "An assembly line — every item comes in, gets transformed, comes out changed."
+          },
+          {
+            "name": ".filter() - select items",
+            "definition": "Creates a NEW array with only items that pass a test (return true). array.filter(item => condition). Can return a shorter or empty array.",
+            "analogy": "A bouncer at a club — only lets in people who meet the criteria, sends the rest away."
+          },
+          {
+            "name": ".reduce() - combine to one value",
+            "definition": "Reduces an array to a SINGLE value. array.reduce((accumulator, item) => newAccumulator, initialValue). Great for sums, averages, counting, flattening.",
+            "analogy": "Squeezing a sponge — takes in a whole array and wrings it out into one result."
+          },
+          {
+            "name": "Method chaining",
+            "definition": "Because .map() and .filter() return arrays, you can chain them: products.filter(p => p.category === \"electronics\").map(p => p.price).reduce((sum, p) => sum + p, 0). Each line is one transformation step.",
+            "analogy": "An assembly line with multiple stations — each station passes its output to the next."
+          }
+        ],
+        "keyTakeaway": "Arrow functions are concise. Array methods (.map, .filter, .reduce) replace most loops. Chain them together for powerful data transformations."
+      },
+      "build": {
+        "goal": "Build a product catalog with category and price filters using method chaining",
+        "codeComparison": {
+          "old": "// Old way: nested loops and if statements\nlet filtered = [];\nfor (let i = 0; i < products.length; i++) {\n  if (products[i].category === category) {\n    if (products[i].price >= min && products[i].price <= max) {\n      filtered.push(products[i]);\n    }\n  }\n}",
+          "new": "// New way: chained array methods\nconst filtered = allProducts\n  .filter(p => category === 'all' || p.category === category)\n  .filter(p => p.price >= min && p.price <= max);\n\n// Calculate stats with reduce\nconst total = filtered.reduce((sum, p) => sum + p.price, 0);\nconst avg = total / filtered.length;"
+        },
+        "hint": "Use .map() to create HTML for each product, then .join('') to combine into one string for innerHTML."
+      },
+      "challenge": {
+        "title": "Build a Student Grade Analyzer",
+        "mission": "Create a grade analyzer that processes student data using ONLY arrow functions and array methods (no for loops!).",
+        "requirements": [
+          "Array of student objects with: name, scores (array of test scores), attendance (%)",
+          "Calculate average score for each student using .reduce()",
+          "Use .map() to add grade property (A/B/C/D/F based on average)",
+          "Use .filter() to find students with average < 60 (need help)",
+          "Sort and slice to get top 3 students",
+          "Calculate class average using .reduce()",
+          "Find highest and lowest scores using Math.max/min with spread",
+          "All calculations must use arrow functions and array methods (NO for loops!)"
+        ],
+        "starterCode": "const students = [\n  { name: 'Alice', scores: [85, 92, 88, 90], attendance: 95 },\n  { name: 'Bob', scores: [72, 68, 75, 70], attendance: 88 },\n  { name: 'Carol', scores: [95, 98, 96, 97], attendance: 100 },\n  { name: 'David', scores: [45, 52, 48, 50], attendance: 75 }\n];\n\n// 1. calculateAverage using .reduce()\nconst calculateAverage = (scores) => scores.reduce(/* your code */);\n\n// 2. getLetterGrade\nconst getLetterGrade = (avg) => { /* return A, B, C, D, or F */ };\n\n// 3. Add average and grade to each student with .map()\nconst studentsWithGrades = students.map(s => ({\n  ...s,\n  average: calculateAverage(s.scores),\n  grade: getLetterGrade(calculateAverage(s.scores))\n}));\n\n// 4. .filter() students needing help\nconst needsHelp = studentsWithGrades.filter(/* avg < 60 */);\n\n// 5. Top 3 students (sort and slice)\nconst top3 = [...studentsWithGrades].sort(/* by average desc */).slice(0, 3);\n\n// 6. Class average with .reduce()\nconst classAvg = studentsWithGrades.reduce(/* sum and divide */);",
+        "bonusChallenge": "Add a search feature that filters students by name using .filter() and arrow functions!"
+      },
+      "summary": {
+        "capabilities": [
+          "Write concise arrow functions",
+          "Use .map() to transform arrays",
+          "Use .filter() to select items",
+          "Use .reduce() to calculate values",
+          "Chain array methods together",
+          "Pass functions as arguments (callbacks)",
+          "Replace loops with array methods",
+          "Write cleaner, more readable code"
+        ]
+      },
+      "bridge": {
+        "preview": "In the final lesson of this module, you'll learn how to ORGANIZE large codebases — breaking code into modules, following best practices, and building maintainable applications.",
+        "nextLessonId": "js-4-4"
+      }
     }
   ]
 }
