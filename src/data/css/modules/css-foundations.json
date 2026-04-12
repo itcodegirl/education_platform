@@ -11,7 +11,12 @@
       "prereqs": [],
       "difficulty": "beginner",
       "duration": "15 min",
-      "metadata": { "estimatedTime": 15, "difficulty": "beginner", "conceptsCount": 3, "tasksCount": 3 },
+      "metadata": {
+        "estimatedTime": 15,
+        "difficulty": "beginner",
+        "conceptsCount": 3,
+        "tasksCount": 3
+      },
       "hook": {
         "accomplishments": [
           "Change the background color of a webpage",
@@ -86,6 +91,99 @@
       "bridge": {
         "preview": "In Lesson 1.2, you'll learn to control text size, weight, and font families. You'll make headlines that actually look like headlines!",
         "nextLessonId": "css-1-2"
+      }
+    },
+    {
+      "id": "css-1-2",
+      "title": "Control Text Size and Weight",
+      "prereqs": [
+        "css-1-1"
+      ],
+      "difficulty": "beginner",
+      "duration": "18 min",
+      "metadata": {
+        "estimatedTime": 18,
+        "difficulty": "beginner",
+        "conceptsCount": 4,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Make a heading HUGE",
+          "Make text bold without using <b> tags",
+          "Change the font to something that doesn't look like Times New Roman"
+        ]
+      },
+      "do": {
+        "title": "Make a giant headline",
+        "steps": [
+          "Create a new file and save it as text-styling.html",
+          "Copy and paste the code below",
+          "Save and open in your browser",
+          "Your heading should be MASSIVE compared to the paragraph!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Text Styling</title>\n  <style>\n    h1 {\n      font-size: 72px;\n    }\n  </style>\n</head>\n<body>\n  <h1>I'M HUGE!</h1>\n  <p>This is regular text for comparison.</p>\n</body>\n</html>",
+        "result": "You just used the font-size property to make text way bigger than default!",
+        "proofRequired": "Screenshot showing the size difference between your heading and paragraph."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "The font-size property",
+            "definition": "Controls how big or small your text appears. You can use px (pixels) for exact size, em for relative to parent, or rem for relative to root.",
+            "analogy": "Setting the font size on a Word document, except you have way more control."
+          },
+          {
+            "name": "Pixels (px)",
+            "definition": "The most common unit for beginners. 16px is default browser text. 72px is huge heading text. 12px is tiny fine print.",
+            "analogy": "Like measuring in inches — exact, predictable, easy to understand."
+          },
+          {
+            "name": "font-weight",
+            "definition": "Controls how thick or thin text appears. Values: normal (default), bold, or numbers like 100 (thin) to 900 (extra bold).",
+            "analogy": "Like pressing harder or lighter with a pen — same letter, different thickness."
+          },
+          {
+            "name": "font-family",
+            "definition": "Changes which font is used. Always provide a fallback: font-family: Arial, sans-serif means \"use Arial, but if not available, use any sans-serif font.\"",
+            "analogy": "Like choosing handwriting style — same words, completely different personality."
+          }
+        ],
+        "keyTakeaway": "font-size controls how big, font-weight controls how bold, font-family controls which font. Together they define your text's personality."
+      },
+      "build": {
+        "goal": "Create a visual hierarchy with different text sizes — heading, subheading, and body text",
+        "codeComparison": {
+          "old": "h1 {\n  font-size: 72px;\n}",
+          "new": "h1 {\n  font-size: 72px;\n  font-weight: bold;\n  font-family: Arial, sans-serif;\n}\n\nh2 {\n  font-size: 36px;\n  font-weight: normal;\n  font-family: Arial, sans-serif;\n}\n\np {\n  font-size: 18px;\n  font-family: Arial, sans-serif;\n}"
+        },
+        "hint": "Each CSS property needs a semicolon ; at the end. If something doesn't work, check for missing semicolons!"
+      },
+      "challenge": {
+        "title": "Design a Magazine Cover",
+        "mission": "Create a page that looks like a magazine cover with dramatic typography.",
+        "requirements": [
+          "Main title at 72px or larger in a bold font",
+          "Subtitle at 24-36px in a lighter weight",
+          "Tagline at 14-16px in italic (use font-style: italic)",
+          "At least 2 different font families used",
+          "A colored background that contrasts with your text"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>My Magazine</title>\n  <style>\n    body {\n      background-color: #1a1a2e;\n      color: white;\n      text-align: center;\n      padding: 60px 20px;\n    }\n    \n    /* Add your typography styles here */\n    \n  </style>\n</head>\n<body>\n  <h1>MAGAZINE TITLE</h1>\n  <h2>The Subtitle Goes Here</h2>\n  <p>A short tagline that hooks the reader</p>\n</body>\n</html>",
+        "bonusChallenge": "Add a Google Font! Go to fonts.google.com, pick a font, and add the <link> tag they provide in your <head>."
+      },
+      "summary": {
+        "capabilities": [
+          "Change text size with font-size and pixel values",
+          "Make text bold or light with font-weight",
+          "Change fonts with font-family",
+          "Create visual hierarchy with size differences",
+          "Use fallback fonts for reliability"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 1.3, you'll learn spacing — margins, padding, and borders. You'll finally understand why things are squished together and how to fix it!",
+        "nextLessonId": "css-1-3"
       }
     }
   ]
