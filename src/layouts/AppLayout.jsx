@@ -33,6 +33,7 @@ import { BadgeUnlock } from "../components/gamification/BadgeUnlock";
 import { PanelManager } from "../components/PanelManager";
 import { WhatsNew } from "../components/shared/WhatsNew";
 import { EmailVerifyBanner } from "../components/shared/EmailVerifyBanner";
+import { BreakPrompt } from "../components/shared/BreakPrompt";
 
 export function AppLayout() {
   const { theme } = useTheme();
@@ -349,6 +350,7 @@ export function AppLayout() {
         courseTotal={courseTotal}
       />
       <WhatsNew />
+      <BreakPrompt />
     </div>
   );
 }

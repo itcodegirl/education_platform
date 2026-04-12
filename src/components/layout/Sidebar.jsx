@@ -165,6 +165,12 @@ export const Sidebar = memo(function Sidebar({
         </div>
 
         <div className="sb-section-title">Your momentum</div>
+        {completed.length === 0 && (
+          <div className="sb-empty-state">
+            <span className="sb-empty-icon">🚀</span>
+            <p>Your first lesson is waiting! Complete it to start tracking your progress.</p>
+          </div>
+        )}
         <div className="prog">
           <div className="prog-info">
             <span>{courseDone}/{total} lessons</span>
@@ -213,7 +219,18 @@ export const Sidebar = memo(function Sidebar({
         </div>
 
         <div className="sb-scroll">
-          <div className="sb-section-title sb-section-title-nav">Course map</div>
+          <div className="sb-section-title sb-section-title-nav">
+            Course map
+            <button
+              type="button"
+              className="sb-roadmap-btn"
+              onClick={() => onOpenTool('roadmap')}
+              aria-label="Open full learning roadmap"
+              title="Full roadmap"
+            >
+              🗺️
+            </button>
+          </div>
           <nav className="sb-nav">
             {modules.map((module, mi) => {
               const moduleCompletedCount = module.lessons.filter((lesson) =>

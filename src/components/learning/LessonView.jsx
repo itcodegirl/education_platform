@@ -418,10 +418,12 @@ export const LessonView = memo(function LessonView({
                 type="button"
                 className={`devfession-toggle ${showDevFession ? "open" : ""}`}
                 onClick={() => setShowDevFession(!showDevFession)}
+                aria-expanded={showDevFession}
+                aria-label="Toggle Dev_Fession — a real developer confession"
               >
-                <span className="devfession-icon">🤫</span>
+                <span className="devfession-icon" aria-hidden="true">🤫</span>
                 <span>Dev_Fession</span>
-                <span className="devfession-arrow">
+                <span className="devfession-arrow" aria-hidden="true">
                   {showDevFession ? "▾" : "▸"}
                 </span>
               </button>

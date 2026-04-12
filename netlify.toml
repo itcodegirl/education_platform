@@ -5,6 +5,10 @@
 [functions]
   directory = "netlify/functions"
 
+# Streak reminder — runs daily at 6pm UTC (1pm CT)
+[functions."streak-reminder"]
+  schedule = "0 18 * * *"
+
 # SPA routing — all paths serve index.html
 [[redirects]]
   from = "/*"

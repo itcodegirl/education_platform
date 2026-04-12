@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../providers';
 
-export function AuthPage() {
+export function AuthPage({ onPreview }) {
   const { signIn, signUp, signInWithGithub, signInWithGoogle } = useAuth();
   const [mode, setMode] = useState('login'); // 'login' | 'signup'
   const [email, setEmail] = useState('');
@@ -150,6 +150,12 @@ export function AuthPage() {
             Continue with Google
           </button>
         </div>
+
+        {onPreview && (
+          <button type="button" className="auth-preview-btn" onClick={onPreview}>
+            👀 Preview a lesson first
+          </button>
+        )}
 
         <p className="auth-footer">
           Where women code, lead, and rewrite the future of tech.

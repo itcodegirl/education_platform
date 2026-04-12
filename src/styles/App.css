@@ -677,7 +677,15 @@ textarea:focus-visible,
   letter-spacing: 0.18em;
   text-transform: uppercase;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
+.sb-roadmap-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px 4px; border-radius: var(--radius-sm); opacity: 0.6; transition: opacity 0.2s; }
+.sb-roadmap-btn:hover { opacity: 1; }
+.sb-empty-state { margin: 0 20px 12px; padding: 12px 14px; background: var(--bg-surface); border: 1px dashed var(--border); border-radius: var(--radius-md); text-align: center; }
+.sb-empty-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+.sb-empty-state p { font-size: 12px; color: var(--text-dim); line-height: 1.5; margin: 0; }
 
 /* Course Switcher */
 .course-switcher {
@@ -1917,6 +1925,64 @@ textarea:focus-visible,
     --shell-max: 1360px;
   }
 }
+
+/* ─── Guest Preview ─────────────────────────────── */
+.guest-preview { min-height: 100vh; background: var(--bg-deep); }
+.gp-topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: var(--bg-dark); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+.gp-back { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 14px; font-family: inherit; }
+.gp-back:hover { color: var(--text); }
+.gp-badge { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--amber); background: var(--amber-dim); padding: 4px 12px; border-radius: var(--radius-full); text-transform: uppercase; letter-spacing: 1px; }
+.gp-signup-btn { background: var(--pink); color: #fff; border: none; padding: 8px 20px; border-radius: var(--radius-full); font-weight: 700; cursor: pointer; font-size: 14px; font-family: inherit; }
+.gp-signup-btn:hover { opacity: 0.9; }
+.gp-content { max-width: var(--content-max); margin: 0 auto; padding: 24px; }
+.gp-banner { display: flex; align-items: center; gap: 12px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 24px; }
+.gp-banner-icon { font-size: 24px; }
+.gp-banner p { font-size: 14px; color: var(--text-dim); margin: 0; }
+.gp-inline-link { background: none; border: none; color: var(--pink); cursor: pointer; font-weight: 600; text-decoration: underline; font-size: inherit; font-family: inherit; }
+.gp-cta { text-align: center; padding: 48px 24px; margin-top: 48px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); }
+.gp-cta h3 { font-size: 22px; margin-bottom: 8px; }
+.gp-cta p { color: var(--text-dim); max-width: 480px; margin: 0 auto 20px; }
+.gp-cta-btn { background: var(--pink); color: #fff; border: none; padding: 14px 32px; border-radius: var(--radius-full); font-weight: 700; font-size: 16px; cursor: pointer; font-family: inherit; }
+.gp-cta-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+.auth-preview-btn { display: block; width: 100%; margin-top: 12px; padding: 10px; background: transparent; border: 1px dashed var(--border); border-radius: var(--radius-md); color: var(--text-dim); font-size: 14px; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+.auth-preview-btn:hover { border-color: var(--pink); color: var(--text); }
+
+/* ─── Roadmap Panel ─────────────────────────────── */
+.roadmap-panel { max-width: 720px; width: 95vw; max-height: 85vh; overflow-y: auto; }
+.roadmap-body { padding: 0 24px 24px; }
+.rm-course { margin-bottom: 8px; }
+.rm-course.rm-current { background: var(--bg-surface); border-radius: var(--radius-lg); padding: 16px; margin: -8px; margin-bottom: 8px; }
+.rm-course-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.rm-course-info { display: flex; align-items: center; gap: 10px; }
+.rm-course-icon { font-size: 24px; }
+.rm-course-label { font-weight: 700; font-size: 16px; display: block; }
+.rm-course-count { font-size: 12px; color: var(--text-muted); font-family: 'Space Mono', monospace; }
+.rm-course-pct { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 18px; }
+.rm-bar { height: 6px; background: var(--bg-surface); border-radius: var(--radius-full); overflow: hidden; margin-bottom: 12px; }
+.rm-bar-fill { height: 100%; border-radius: var(--radius-full); transition: width 0.4s ease; }
+.rm-modules { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.rm-mod { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); cursor: pointer; font-size: 12px; color: var(--text-dim); font-family: inherit; transition: all 0.2s; }
+.rm-mod:hover { border-color: var(--border-bright); color: var(--text); }
+.rm-mod.done { border-color: var(--cyan); color: var(--cyan); }
+.rm-mod.partial { border-color: var(--amber-dim); color: var(--amber); }
+.rm-mod-emoji { font-size: 14px; }
+.rm-mod-name { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rm-mod-count { font-family: 'Space Mono', monospace; font-size: 10px; opacity: 0.6; }
+.rm-connector { text-align: center; color: var(--text-muted); font-size: 18px; padding: 8px 0; opacity: 0.4; }
+
+/* ─── Break Prompt ──────────────────────────────── */
+.break-overlay { position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); animation: fadeIn 0.3s ease; }
+.break-card { background: var(--bg-dark); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 36px 32px; max-width: 420px; width: 90vw; text-align: center; animation: fadeIn 0.4s ease 0.1s both; }
+.break-icon { font-size: 48px; display: block; margin-bottom: 12px; }
+.break-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+.break-msg { font-size: 15px; color: var(--text-dim); line-height: 1.6; margin-bottom: 8px; }
+.break-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+.break-actions { display: flex; flex-direction: column; gap: 8px; }
+.break-continue { padding: 12px; background: var(--pink); color: #fff; border: none; border-radius: var(--radius-md); font-weight: 700; cursor: pointer; font-size: 15px; font-family: inherit; }
+.break-continue:hover { opacity: 0.9; }
+.break-rest { padding: 10px; background: transparent; border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text-dim); cursor: pointer; font-size: 14px; font-family: inherit; }
+.break-rest:hover { border-color: var(--text-muted); color: var(--text); }
 
 /* ─── 24. Print Styles ─────────────────────────── */
 @media print {

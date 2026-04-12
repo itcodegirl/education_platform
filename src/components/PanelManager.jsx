@@ -19,6 +19,7 @@ const WelcomeBack = lazy(() => import('./onboarding/WelcomeBack').then(m => ({ d
 const Onboarding = lazy(() => import('./onboarding/Onboarding').then(m => ({ default: m.Onboarding })));
 const CourseComplete = lazy(() => import('./gamification/CourseComplete').then(m => ({ default: m.CourseComplete })));
 const Confetti = lazy(() => import('./gamification/Confetti').then(m => ({ default: m.Confetti })));
+const RoadmapPanel = lazy(() => import('./panels/RoadmapPanel').then(m => ({ default: m.RoadmapPanel })));
 
 export function PanelManager({
   panels, nav, course, profile, completed, lastPosition, courseTotal,
@@ -40,6 +41,13 @@ export function PanelManager({
       {panels.panel === 'bookmarks' && <BookmarksPanel isOpen onClose={panels.closePanel} onNavigate={nav.goToSearch} />}
       {panels.panel === 'challenges' && <ChallengesPanel courseId={course.id} lang={course.id} onClose={panels.closePanel} />}
       {panels.panel === 'stats' && <StudentStats isOpen onClose={panels.closePanel} />}
+      {panels.panel === 'roadmap' && (
+        <RoadmapPanel
+          onClose={panels.closePanel}
+          onNavigate={(ci, mi) => { nav.switchCourse(ci); nav.go(mi, 0); }}
+          currentCourseIdx={nav.courseIdx}
+        />
+      )}
 
       {/* Overlays */}
       {panels.showWelcome && (
