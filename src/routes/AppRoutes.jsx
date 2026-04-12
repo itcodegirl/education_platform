@@ -28,8 +28,8 @@ export default function AppRoutes() {
     return (
       <div className={`loading-screen ${theme}`}>
         <div className="loading-pulse">
-          <Logo size="lg" />
-          <p style={{marginTop: '12px'}}>Loading...</p>
+          <Logo size="lg" showTagline />
+          <p style={{marginTop: '16px', opacity: 0.5}}>Loading...</p>
         </div>
       </div>
     );

@@ -47,8 +47,7 @@ export function AuthPage({ onPreview }) {
       <div className="auth-page">
         <div className="auth-card">
           <div className="auth-brand">
-            <Logo size="lg" />
-            <p className="auth-sub">Learn. Build. Ship.</p>
+            <Logo size="lg" showTagline />
           </div>
           <div className="auth-confirm">
             <span className="auth-confirm-icon">📧</span>
