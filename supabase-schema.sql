@@ -200,6 +200,12 @@ create policy "Admins read all quiz_scores" on public.quiz_scores for select usi
 create policy "Admins read all xp" on public.xp for select using (is_admin());
 create policy "Admins read all streaks" on public.streaks for select using (is_admin());
 create policy "Admins read all badges" on public.badges for select using (is_admin());
+-- The four tables below were missing admin read policies, so the dashboard
+-- silently got empty results for notes/bookmarks/sr_cards/courses_visited.
+create policy "Admins read all sr_cards" on public.sr_cards for select using (is_admin());
+create policy "Admins read all bookmarks" on public.bookmarks for select using (is_admin());
+create policy "Admins read all notes" on public.notes for select using (is_admin());
+create policy "Admins read all courses_visited" on public.courses_visited for select using (is_admin());
 
 -- To make yourself admin, run in Supabase SQL Editor:
 -- UPDATE public.profiles SET is_admin = true WHERE id = 'YOUR-USER-UUID-HERE';

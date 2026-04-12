@@ -178,19 +178,39 @@ export async function handler(event) {
     return json(429, { error: 'Too many requests. Please wait a moment and try again.' });
   }
 
-  // 4. Parse + validate the request
+  // 4. Reject oversized bodies before parsing so a malicious or buggy client
+  // can't OOM the function with a giant messages array.
+  const MAX_BODY_BYTES = 64 * 1024; // 64 KB is plenty for a tutor prompt
+  if (event.body && event.body.length > MAX_BODY_BYTES) {
+    return json(413, { error: 'Request too large' });
+  }
+
+  // 5. Parse + validate the request
   let system, messages, maxTokens;
   try {
     const body = JSON.parse(event.body || '{}');
-    system = body.system || '';
-    messages = body.messages || [];
-    maxTokens = body.maxTokens || 800;
+    system = typeof body.system === 'string' ? body.system : '';
+    messages = Array.isArray(body.messages) ? body.messages : [];
+    maxTokens = Number.isFinite(body.maxTokens) ? body.maxTokens : 800;
   } catch {
     return json(400, { error: 'Invalid request body' });
   }
 
+  // Defensive caps on nested fields so a well-formed-but-huge JSON body
+  // (still under MAX_BODY_BYTES) can't smuggle in unbounded content.
+  if (messages.length > 40) {
+    return json(413, { error: 'Too many messages in request' });
+  }
+  const MAX_MESSAGE_CHARS = 8000;
+  if (
+    system.length > MAX_MESSAGE_CHARS
+    || messages.some(m => typeof m?.content === 'string' && m.content.length > MAX_MESSAGE_CHARS)
+  ) {
+    return json(413, { error: 'Message content too long' });
+  }
+
   // Cap max tokens to prevent abuse
-  maxTokens = Math.min(maxTokens, 1024);
+  maxTokens = Math.min(Math.max(maxTokens, 1), 1024);
 
   const input = toInputItems(system, messages);
   if (input.length === 0) {

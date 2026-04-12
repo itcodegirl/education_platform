@@ -1,7 +1,7 @@
 // Service worker for CodeHerWay.
 // Keep navigation network-first so deploys pick up the latest HTML shell.
 
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v5';
 const CACHE_PREFIX = 'chw-';
 const SHELL_CACHE = `${CACHE_PREFIX}shell-${CACHE_VERSION}`;
 const DATA_CACHE = `${CACHE_PREFIX}data-${CACHE_VERSION}`;
@@ -58,10 +58,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (url.hostname.includes('supabase')) {
-    event.respondWith(networkFirst(request, DATA_CACHE));
-    return;
-  }
+  // Do NOT cache Supabase responses. They're per-user and auth-scoped; a
+  // cache miss keyed by URL would happily serve another user's data (or the
+  // same user's stale data after an RLS policy change). Let the browser
+  // handle these requests directly.
+  if (url.hostname.includes('supabase')) return;
 
   if (
     url.hostname.includes('fonts.googleapis.com') ||

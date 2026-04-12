@@ -72,15 +72,35 @@
 # Security headers
 #
 # CSP notes:
-#  - Monaco Editor is lazy-loaded by @monaco-editor/react from cdn.jsdelivr.net
-#    and uses `new Function()` internally, so script-src needs that host plus
-#    'unsafe-eval' (and 'wasm-unsafe-eval' for its WASM paths).
+#  - Monaco Editor is lazy-loaded by @monaco-editor/react. Depending on
+#    configuration it may either be bundled by Vite (safe) or fetched from
+#    cdn.jsdelivr.net (requires jsDelivr in script-src). The default uses
+#    jsDelivr and Monaco also calls `new Function()` internally, so the
+#    current policy includes both jsDelivr and 'unsafe-eval'.
 #  - Monaco spawns language workers via blob: URLs, hence worker-src blob:.
 #  - Supabase client talks to *.supabase.co over HTTPS + WSS (realtime).
 #  - OpenAI is never called from the browser — only from netlify/functions/ai.js
 #    — so api.openai.com is intentionally absent from connect-src.
-#  - Lesson previews are rendered with <iframe srcDoc=…>, which inherits the
-#    parent's origin and doesn't need a frame-src exception.
+#  - Lesson previews are rendered with <iframe srcDoc=… sandbox="allow-scripts">,
+#    which inherits the parent's origin and doesn't need a frame-src exception.
+#
+# TIGHTENING CANDIDATE (commented out until verified on a preview deploy):
+#   Content-Security-Policy = "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+#
+# To adopt the stricter policy:
+#   1. Configure @monaco-editor/react to load Monaco from the Vite bundle
+#      instead of jsDelivr: add
+#         import { loader } from '@monaco-editor/react';
+#         import * as monaco from 'monaco-editor';
+#         loader.config({ monaco });
+#      to src/main.jsx (requires adding monaco-editor as a direct dep).
+#   2. Deploy to a Netlify preview URL with the stricter policy swapped in.
+#   3. Walk every code-editor surface (CodePreview, CodeChallenge, AI Tutor
+#      code blocks) with DevTools open. A passing run shows no "Refused to
+#      execute inline script because it violates CSP" in the console and
+#      no "Refused to load script 'https://cdn.jsdelivr.net/…'" warnings.
+#   4. If anything breaks, re-add the specific directive rather than falling
+#      back wholesale — e.g. Monaco workers may still need 'unsafe-eval'.
 [[headers]]
   for = "/*"
   [headers.values]
