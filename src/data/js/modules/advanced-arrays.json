@@ -1,0 +1,111 @@
+{
+  "id": 304,
+  "emoji": "🔄",
+  "title": "Advanced Array Methods",
+  "tagline": "Transform data like a pro with map, reduce, and filter.",
+  "difficulty": "intermediate",
+  "lessons": [
+    {
+      "id": "js-4-1",
+      "title": "Transform Data with Map",
+      "prereqs": [],
+      "difficulty": "intermediate",
+      "duration": "20 min",
+      "metadata": {
+        "estimatedTime": 20,
+        "difficulty": "intermediate",
+        "conceptsCount": 5,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Transform an array of numbers into an array of their doubles",
+          "Convert an array of products into an array of formatted prices",
+          "Build a temperature converter that transforms entire datasets"
+        ]
+      },
+      "do": {
+        "title": "Double Every Number",
+        "steps": [
+          "Open VS Code or CodePen",
+          "Create array-map-intro.html",
+          "Copy the code below",
+          "Save and open in browser",
+          "Click each button and watch the transformations!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Map Method Intro</title>\n  <style>\n    body { display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: linear-gradient(135deg, #667eea, #764ba2); font-family: Arial; }\n    .container { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 600px; }\n    h1 { text-align: center; color: #2C3E50; margin: 0 0 30px; }\n    .array-display { background: #F8F9FA; padding: 25px; border-radius: 10px; margin-bottom: 20px; }\n    .array-label { font-weight: bold; color: #7F8C8D; margin-bottom: 10px; }\n    .array-values { font-size: 24px; color: #2C3E50; font-family: monospace; background: white; padding: 15px; border-radius: 5px; border-left: 4px solid #3498DB; }\n    button { width: 100%; padding: 15px; font-size: 18px; font-weight: bold; cursor: pointer; background: #9B59B6; color: white; border: none; border-radius: 5px; margin: 10px 0; }\n    button:hover { background: #8E44AD; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <h1>🔄 The Map Method</h1>\n    <div class=\"array-display\">\n      <div class=\"array-label\">Original Array:</div>\n      <div class=\"array-values\" id=\"original\">[1, 2, 3, 4, 5]</div>\n    </div>\n    <button onclick=\"doubleNumbers()\">Double Every Number</button>\n    <button onclick=\"squareNumbers()\">Square Every Number</button>\n    <button onclick=\"addTen()\">Add 10 to Every Number</button>\n    <div class=\"array-display\">\n      <div class=\"array-label\">Transformed Array:</div>\n      <div class=\"array-values\" id=\"transformed\">Click a button to transform</div>\n    </div>\n  </div>\n\n  <script>\n    let numbers = [1, 2, 3, 4, 5];\n    \n    function doubleNumbers() {\n      let doubled = numbers.map(function(num) {\n        return num * 2;\n      });\n      document.getElementById(\"transformed\").textContent = JSON.stringify(doubled);\n    }\n    \n    function squareNumbers() {\n      let squared = numbers.map(function(num) { return num * num; });\n      document.getElementById(\"transformed\").textContent = JSON.stringify(squared);\n    }\n    \n    function addTen() {\n      let added = numbers.map(function(num) { return num + 10; });\n      document.getElementById(\"transformed\").textContent = JSON.stringify(added);\n    }\n  </script>\n</body>\n</html>",
+        "result": ".map() took every number in the array and transformed it according to the function you provided!",
+        "proofRequired": "Screenshot showing the squared numbers result [1, 4, 9, 16, 25]."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "What is .map()?",
+            "definition": "Transforms every item in an array and returns a NEW array with the transformed values. The original array stays unchanged. array.map(function(item) { return transformed; })",
+            "analogy": "An assembly line. Each item goes in, gets transformed, comes out changed. The original raw materials are still there — you get a new collection of finished products."
+          },
+          {
+            "name": ".map() returns a NEW array",
+            "definition": "Unlike .push() or .pop(), .map() doesn't modify the original array. It creates a brand new array. You must store the result: let doubled = numbers.map(...).",
+            "analogy": "Taking a photo of a painting — the original painting is unchanged, you just have a new copy to work with."
+          },
+          {
+            "name": "Arrow function syntax",
+            "definition": "=> replaces the word function for cleaner code. numbers.map(num => num * 2) is the same as numbers.map(function(num) { return num * 2; }). Single-line arrow functions auto-return.",
+            "analogy": "Shorthand — like writing \"btw\" instead of \"by the way.\" Same meaning, less typing."
+          },
+          {
+            "name": "Extracting properties from objects",
+            "definition": "Common pattern: users.map(user => user.name) extracts just the names from an array of user objects. Great for pulling specific data out of complex arrays.",
+            "analogy": "Going through a stack of business cards and copying just the phone numbers onto a new list."
+          },
+          {
+            "name": "Chaining array methods",
+            "definition": "Because .map() returns a new array, you can chain it with other methods: input.split('\\n').map(parseFloat).filter(n => !isNaN(n)). Each step transforms the result of the previous.",
+            "analogy": "A factory assembly line with multiple stations — cut, paint, polish, package. Each step passes its output to the next."
+          }
+        ],
+        "keyTakeaway": "Use .map() when you need to transform every item in an array. It creates a new array, leaves the original alone, and makes code cleaner than for loops."
+      },
+      "build": {
+        "goal": "Build a temperature converter that transforms arrays of temperatures between Celsius and Fahrenheit",
+        "codeComparison": {
+          "old": "// Old way with a for loop\nlet fahrenheit = [];\nfor (let i = 0; i < celsius.length; i++) {\n  fahrenheit.push((celsius[i] * 9/5) + 32);\n}",
+          "new": "// New way with .map()\nlet fahrenheit = celsius.map(c => (c * 9/5) + 32);\n\n// Even with formatting\nlet formatted = celsius.map(c => {\n  let f = (c * 9/5) + 32;\n  return f.toFixed(1);\n});"
+        },
+        "hint": "Formula for C to F: (C * 9/5) + 32. Formula for F to C: (F - 32) * 5/9. Use .toFixed(1) to round to 1 decimal place."
+      },
+      "challenge": {
+        "title": "Build a Price Formatter",
+        "mission": "Create a product price formatter that applies different transformations (add tax, apply discount, convert currency) using .map().",
+        "requirements": [
+          "Array of at least 5 products (name, price)",
+          "\"Add Tax (10%)\" button multiplies prices by 1.10",
+          "\"Apply Discount (20%)\" button multiplies prices by 0.80",
+          "\"Convert to EUR\" button multiplies prices by 0.92",
+          "Display original and transformed prices side-by-side",
+          "Use .map() for all transformations",
+          "Format prices with $ or € symbols"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Price Formatter</title>\n  <style>\n    body { padding: 50px; font-family: Arial; background: linear-gradient(135deg, #00b4db, #0083b0); }\n    .container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 15px; }\n    button { padding: 15px; font-size: 16px; font-weight: bold; cursor: pointer; border: none; border-radius: 8px; color: white; margin: 5px; }\n    .btn-tax { background: #E74C3C; }\n    .btn-discount { background: #2ECC71; }\n    .btn-currency { background: #3498DB; }\n    .product-card { background: #F8F9FA; padding: 20px; border-radius: 10px; margin: 10px 0; display: flex; justify-content: space-between; align-items: center; }\n    .original-price { color: #7F8C8D; text-decoration: line-through; }\n    .new-price { color: #2ECC71; font-size: 24px; font-weight: bold; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <h1>💰 Price Formatter</h1>\n    <button class=\"btn-tax\" onclick=\"addTax()\">Add Tax (10%)</button>\n    <button class=\"btn-discount\" onclick=\"applyDiscount()\">Apply Discount (20%)</button>\n    <button class=\"btn-currency\" onclick=\"convertToEUR()\">Convert to EUR</button>\n    <div id=\"products\"></div>\n  </div>\n  <script>\n    let products = [\n      { name: \"Laptop\", price: 999 },\n      { name: \"Mouse\", price: 29 },\n      { name: \"Keyboard\", price: 79 },\n      { name: \"Monitor\", price: 299 },\n      { name: \"Headphones\", price: 149 }\n    ];\n    \n    function addTax() { /* Use .map() to multiply each price by 1.10 */ }\n    function applyDiscount() { /* Use .map() to multiply each price by 0.80 */ }\n    function convertToEUR() { /* Use .map() to multiply each price by 0.92 */ }\n    function displayProducts(original, transformed, symbol) { /* Show before/after */ }\n  </script>\n</body>\n</html>",
+        "bonusChallenge": "Add a \"Reset\" button that shows original prices, and a combo button that applies discount THEN adds tax!"
+      },
+      "summary": {
+        "capabilities": [
+          "Use .map() to transform every item in an array",
+          "Understand that .map() creates a new array",
+          "Write arrow functions for cleaner code",
+          "Extract properties from arrays of objects",
+          "Convert data between formats",
+          "Chain array methods together",
+          "Apply mathematical transformations to datasets",
+          "Build real-world data transformation tools"
+        ]
+      },
+      "bridge": {
+        "preview": "In the next lesson, you'll learn .forEach() for side effects, .reduce() for aggregating data, and when to use each array method.",
+        "nextLessonId": "js-4-2"
+      }
+    }
+  ]
+}
