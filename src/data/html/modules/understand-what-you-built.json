@@ -8,10 +8,17 @@
     {
       "id": "lesson-05",
       "title": "Decode the Secret Language Browsers Speak",
-      "prereqs": ["lesson-08"],
+      "prereqs": [
+        "lesson-08"
+      ],
       "difficulty": "beginner",
       "duration": "15 min",
-      "metadata": { "estimatedTime": 15, "difficulty": "beginner", "conceptsCount": 3, "tasksCount": 3 },
+      "metadata": {
+        "estimatedTime": 15,
+        "difficulty": "beginner",
+        "conceptsCount": 3,
+        "tasksCount": 3
+      },
       "hook": {
         "accomplishments": [
           "Build a webpage that shows HTML vs CSS vs JavaScript",
@@ -85,6 +92,100 @@
       "bridge": {
         "preview": "In Lesson 6, you'll see how browsers read your HTML code top-to-bottom and build a \"tree\" structure called the DOM. You'll make a page that visualizes this process!",
         "nextLessonId": "lesson-06"
+      }
+    },
+    {
+      "id": "lesson-06",
+      "title": "Watch a Browser Build Your Page Step-by-Step",
+      "prereqs": [
+        "lesson-05"
+      ],
+      "difficulty": "beginner",
+      "duration": "18 min",
+      "metadata": {
+        "estimatedTime": 18,
+        "difficulty": "beginner",
+        "conceptsCount": 4,
+        "tasksCount": 4
+      },
+      "hook": {
+        "accomplishments": [
+          "Create a page that shows HTML loading one piece at a time",
+          "See exactly how browsers read from top to bottom",
+          "Build a visual \"construction sequence\" animation"
+        ]
+      },
+      "do": {
+        "title": "Build a slow-loading page",
+        "steps": [
+          "Open VS Code",
+          "Create a new file called browser-reads-html.html",
+          "Copy and paste the code below",
+          "Save the file",
+          "Open it in your browser",
+          "Watch the boxes appear one by one from top to bottom!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Browser Loading Demo</title>\n  <style>\n    .box { \n      background: lightblue; \n      padding: 20px; \n      margin: 10px;\n      opacity: 0;\n      animation: fadeIn 1s forwards;\n    }\n    @keyframes fadeIn {\n      to { opacity: 1; }\n    }\n    .box:nth-child(1) { animation-delay: 0s; }\n    .box:nth-child(2) { animation-delay: 1s; }\n    .box:nth-child(3) { animation-delay: 2s; }\n    .box:nth-child(4) { animation-delay: 3s; }\n  </style>\n</head>\n<body>\n  <div class=\"box\">📦 Box 1: I load FIRST (top of HTML)</div>\n  <div class=\"box\">📦 Box 2: I load SECOND</div>\n  <div class=\"box\">📦 Box 3: I load THIRD</div>\n  <div class=\"box\">📦 Box 4: I load LAST (bottom of HTML)</div>\n</body>\n</html>",
+        "result": "You just watched a browser read your HTML from top to bottom, exactly how it happens in real life (but slowed down so you can see it)!",
+        "proofRequired": "Screenshot showing all four boxes after they have all appeared."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "Top-to-Bottom Reading",
+            "definition": "Browsers read HTML files starting at line 1 and moving down, line by line, until they reach the end. Just like reading a book.",
+            "analogy": "Following a recipe. You can't skip to step 5 - you have to do steps 1, 2, 3, 4 first in order."
+          },
+          {
+            "name": "The Document Tree (DOM)",
+            "definition": "As the browser reads, it builds a \"tree\" structure in memory. Your HTML becomes a family tree of elements: html is the grandparent, head and body are the parents, everything inside them are the children.",
+            "analogy": "A family tree or an organization chart. Everything has a parent, and some things have children."
+          },
+          {
+            "name": "Why Order Matters",
+            "definition": "If you put a <script> that tries to change an element BEFORE that element exists in the HTML, it won't work! The browser hasn't built it yet.",
+            "analogy": "Trying to paint a wall that hasn't been built yet. You need the structure first."
+          },
+          {
+            "name": "The Critical Rendering Path",
+            "definition": "The browser follows these steps: 1. Read HTML (top to bottom), 2. Build the DOM tree, 3. Apply CSS styles, 4. Paint pixels on screen, 5. Run JavaScript"
+          }
+        ],
+        "keyTakeaway": "Browsers read your HTML top-to-bottom and build a tree structure (the DOM) as they go. Order matters!"
+      },
+      "build": {
+        "goal": "Break it on purpose — move a box before the <style> section and see what happens",
+        "codeComparison": {
+          "old": "<!-- Normal: styles load first, then boxes -->\n<head>\n  <style>.box { background: lightblue; }</style>\n</head>\n<body>\n  <div class=\"box\">Box 1</div>\n</body>",
+          "new": "<!-- Broken: box appears BEFORE styles are loaded -->\n<div class=\"box\">Box 1 (no styling!)</div>\n<head>\n  <style>.box { background: lightblue; }</style>\n</head>\n\n<!-- Box 1 appears with NO styling! -->\n<!-- This proves top-to-bottom reading. -->\n<!-- Use Ctrl+Z to undo and fix it. -->"
+        },
+        "hint": "This is supposed to break! The point is to SEE that order matters. Use Ctrl+Z to undo."
+      },
+      "challenge": {
+        "title": "Build a DOM Tree Visualizer",
+        "mission": "Create a visual family tree showing parent-child relationships in HTML.",
+        "requirements": [
+          "Shows <html> at the top as the root",
+          "Shows <head> and <body> as children of <html>",
+          "Shows at least 3 elements inside <body>",
+          "Uses indentation or visual lines to show the tree structure",
+          "Includes text explaining what each level is"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>DOM Tree Visualizer</title>\n  <style>\n    .tree { font-family: monospace; line-height: 2; }\n    .level-1 { margin-left: 0; }\n    .level-2 { margin-left: 40px; }\n    .level-3 { margin-left: 80px; }\n  </style>\n</head>\n<body>\n  <h1>My HTML DOM Tree</h1>\n  \n  <div class=\"tree\">\n    <div class=\"level-1\">📄 &lt;html&gt; (root)</div>\n    <div class=\"level-2\"><!-- Add children here --></div>\n  </div>\n</body>\n</html>",
+        "bonusChallenge": "Use JavaScript to automatically generate the tree by reading document.documentElement (advanced!)"
+      },
+      "summary": {
+        "capabilities": [
+          "Explain how browsers read HTML (top to bottom)",
+          "Visualize the DOM tree structure",
+          "Understand why order matters in HTML",
+          "Debug issues caused by wrong element placement",
+          "Use the Console to check when the browser finishes loading"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 7, you'll organize information into lists - perfect for making navigation menus, to-do lists, and step-by-step instructions.",
+        "nextLessonId": "lesson-07"
       }
     }
   ]
