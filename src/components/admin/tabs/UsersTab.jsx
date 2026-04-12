@@ -5,6 +5,7 @@
 
 import { supabase } from '../../../lib/supabaseClient';
 import { wouldLeaveZeroActiveAdmins } from '../adminActions';
+import { logAdminAction, AUDIT_ACTIONS } from '../../../services/auditLogService';
 
 async function toggleUserDisabled(
   user,
@@ -40,21 +41,15 @@ async function toggleUserDisabled(
 
     onUserUpdated(user.id, { is_disabled: updated[0].is_disabled });
 
-    // Fire-and-forget audit log write. Logging failures must never block
-    // the UI — we already succeeded on the state change — but they
-    // should be visible in the console so they can be investigated.
-    supabase
-      .from('admin_audit_log')
-      .insert({
-        admin_id: currentAdminId,
-        admin_display_name: currentAdminName || null,
-        target_user_id: user.id,
-        target_display_name: user.display_name || null,
-        action: updated[0].is_disabled ? 'user_disabled' : 'user_enabled',
-      })
-      .then(({ error: logError }) => {
-        if (logError) console.error('Failed to write audit log:', logError);
-      });
+    // Fire-and-forget audit log write via the centralised service.
+    // Logging failures are logged to console but never block the UI.
+    logAdminAction({
+      adminId: currentAdminId,
+      adminName: currentAdminName,
+      action: updated[0].is_disabled ? AUDIT_ACTIONS.USER_DISABLED : AUDIT_ACTIONS.USER_ENABLED,
+      targetUserId: user.id,
+      targetName: user.display_name || null,
+    });
   } finally {
     setActionLoading(null);
   }

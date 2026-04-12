@@ -16,6 +16,7 @@ import {
 import { LessonEditView } from './lessonBuilder/LessonEditView';
 import { LessonPreviewView } from './lessonBuilder/LessonPreviewView';
 import { LessonCodeView } from './lessonBuilder/LessonCodeView';
+import { logAdminAction, AUDIT_ACTIONS } from '../../services/auditLogService';
 
 const EMPTY_LESSON = {
   id: '',
@@ -39,7 +40,7 @@ const EMPTY_MODULE = {
   difficulty: 'beginner',
 };
 
-export function LessonBuilder() {
+export function LessonBuilder({ currentAdminId, currentAdminName } = {}) {
   const [moduleInfo, setModuleInfo] = useState({ ...EMPTY_MODULE });
   const [lessons, setLessons] = useState([{ ...EMPTY_LESSON }]);
   const [activeLessonIdx, setActiveLessonIdx] = useState(0);
@@ -121,6 +122,19 @@ export function LessonBuilder() {
     [lessons, moduleInfo],
   );
 
+  // Shared audit-log details snapshot captured at the time of export.
+  // Kept as a function so the values reflect the latest draft state
+  // rather than whatever moduleInfo/lessons were on the first render.
+  const buildAuditDetails = useCallback(
+    () => ({
+      module_id: moduleInfo.id || null,
+      module_title: moduleInfo.title || null,
+      lesson_count: lessons.length,
+      lesson_titles: lessons.map((l) => l.title).filter(Boolean),
+    }),
+    [moduleInfo, lessons],
+  );
+
   // ─── Download file ──────────────────────────
   const downloadFile = useCallback(() => {
     const code = generateCode();
@@ -132,15 +146,33 @@ export function LessonBuilder() {
     a.download = `${slug}.js`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [generateCode, moduleInfo.title]);
+
+    if (currentAdminId) {
+      logAdminAction({
+        adminId: currentAdminId,
+        adminName: currentAdminName,
+        action: AUDIT_ACTIONS.LESSON_DOWNLOADED,
+        details: buildAuditDetails(),
+      });
+    }
+  }, [generateCode, moduleInfo.title, currentAdminId, currentAdminName, buildAuditDetails]);
 
   // ─── Copy to clipboard ─────────────────────
   const copyCode = useCallback(() => {
     navigator.clipboard.writeText(generateCode()).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+
+      if (currentAdminId) {
+        logAdminAction({
+          adminId: currentAdminId,
+          adminName: currentAdminName,
+          action: AUDIT_ACTIONS.LESSON_COPIED,
+          details: buildAuditDetails(),
+        });
+      }
     });
-  }, [generateCode]);
+  }, [generateCode, currentAdminId, currentAdminName, buildAuditDetails]);
 
   return (
     <div className="lb-wrap">

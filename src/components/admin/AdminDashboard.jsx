@@ -212,7 +212,10 @@ export function AdminDashboard({ onClose }) {
 
             {tab === 'builder' && (
               <Suspense fallback={<div className="admin-loading">Loading builder...</div>}>
-                <LessonBuilder />
+                <LessonBuilder
+                  currentAdminId={user.id}
+                  currentAdminName={data.users.find(u => u.id === user.id)?.display_name || null}
+                />
               </Suspense>
             )}
           </div>

@@ -8,9 +8,28 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 
 const ACTION_LABELS = {
-  user_disabled: { icon: '🚫', label: 'Disabled user', tone: 'disable' },
-  user_enabled:  { icon: '✅', label: 'Enabled user',  tone: 'enable' },
+  user_disabled:     { icon: '🚫', label: 'Disabled user',    tone: 'disable' },
+  user_enabled:      { icon: '✅', label: 'Enabled user',     tone: 'enable'  },
+  lesson_downloaded: { icon: '⬇️', label: 'Downloaded lesson', tone: 'neutral' },
+  lesson_copied:     { icon: '📋', label: 'Copied lesson',     tone: 'neutral' },
 };
+
+// Render the `details` jsonb column as a compact, readable summary.
+// Returns null when there's nothing useful to show so the cell stays empty.
+function formatDetails(entry) {
+  if (!entry.details) return null;
+  const { module_title, module_id, lesson_count } = entry.details;
+  if (entry.action === 'lesson_downloaded' || entry.action === 'lesson_copied') {
+    const parts = [];
+    if (module_title) parts.push(`"${module_title}"`);
+    if (module_id) parts.push(`id=${module_id}`);
+    if (typeof lesson_count === 'number') {
+      parts.push(`${lesson_count} lesson${lesson_count === 1 ? '' : 's'}`);
+    }
+    return parts.join(' · ') || null;
+  }
+  return null;
+}
 
 export function AuditLogTab() {
   const [entries, setEntries] = useState([]);
@@ -24,7 +43,7 @@ export function AuditLogTab() {
       setError(null);
       const { data, error: err } = await supabase
         .from('admin_audit_log')
-        .select('id, admin_display_name, target_display_name, action, created_at')
+        .select('id, admin_display_name, target_display_name, action, details, created_at')
         .order('created_at', { ascending: false })
         .limit(200);
       if (cancelled) return;
@@ -63,7 +82,7 @@ export function AuditLogTab() {
               <th scope="col">When</th>
               <th scope="col">Admin</th>
               <th scope="col">Action</th>
-              <th scope="col">Target</th>
+              <th scope="col">Target / Details</th>
             </tr>
           </thead>
           <tbody>
@@ -73,6 +92,7 @@ export function AuditLogTab() {
                 label: entry.action,
                 tone: 'neutral',
               };
+              const detailText = formatDetails(entry);
               return (
                 <tr key={entry.id}>
                   <td className="admin-date">
@@ -84,7 +104,7 @@ export function AuditLogTab() {
                       {action.icon} {action.label}
                     </span>
                   </td>
-                  <td>{entry.target_display_name || '—'}</td>
+                  <td>{entry.target_display_name || detailText || '—'}</td>
                 </tr>
               );
             })}
@@ -99,3 +119,4 @@ export function AuditLogTab() {
     </div>
   );
 }
+

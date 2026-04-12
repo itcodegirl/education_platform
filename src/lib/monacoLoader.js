@@ -1,47 +1,61 @@
 // ═══════════════════════════════════════════════
 // MONACO LOADER — Tells @monaco-editor/react to use
-// the Vite-bundled monaco-editor package instead of
+// a Vite-bundled, minimal Monaco build instead of
 // fetching Monaco from cdn.jsdelivr.net at runtime.
 //
-// Why: removing the jsDelivr runtime script load lets
-// the CSP drop `https://cdn.jsdelivr.net` from script-src
-// (and the whole origin from connect-src / font-src /
-// style-src). The only CSP relaxation Monaco still needs
-// after this change is `'unsafe-eval'` for its language
-// services — that's the next tightening step once someone
-// has verified it on a preview deploy.
+// The default entry point `monaco-editor` transitively
+// imports `editor.main`, which registers every one of
+// Monaco's ~70 language modes (abap, clojure, julia,
+// perl, powerquery, razor, solidity, …) and pulls in
+// the rich TypeScript language service (~1 MB gzipped
+// on its own). This platform only teaches HTML / CSS /
+// JavaScript and students only write short snippets,
+// so we cut the bundle down to:
 //
-// Workers: Monaco runs its language services in web
-// workers. Vite's `?worker` suffix turns each worker
-// import into a separate chunk. For the four languages
-// this platform teaches (HTML / CSS / JS / TS) we bundle
-// only the relevant workers; everything else falls back
-// to the base editor worker.
+//   1. The core editor API.
+//   2. Basic-language tokenizers for HTML / CSS /
+//      JavaScript / XML — just enough for correct
+//      syntax highlighting and bracket matching.
+//
+// We deliberately DO NOT import any `language/<name>/
+// monaco.contribution` module. Those register the
+// rich language services (hover docs, autocomplete,
+// validation) and each pulls in a web worker that
+// ships the respective parser. Dropping them saves
+// roughly 1.7 MB of raw JS per editor session. The
+// trade-off: no IntelliSense in the editor, which is
+// acceptable for single-file lesson snippets. The
+// iframe preview still validates the code at runtime.
 // ═══════════════════════════════════════════════
 
 import { loader } from '@monaco-editor/react';
-import * as monaco from 'monaco-editor';
+
+// Minimal editor API — no languages registered.
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+
+// Syntax highlighting only (basic-languages). Each module
+// is ~2–6 kB and gives us a working `language="html"` /
+// `"css"` / `"javascript"` / `"xml"` prop on <MonacoEditor>.
+import 'monaco-editor/esm/vs/basic-languages/html/html.contribution';
+import 'monaco-editor/esm/vs/basic-languages/css/css.contribution';
+import 'monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution';
+import 'monaco-editor/esm/vs/basic-languages/xml/xml.contribution';
+
+// Only the base editor worker is wired up. With no rich
+// language services registered, Monaco never asks for
+// html/css/typescript workers, so none of those modules
+// end up in the bundle.
 import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
-import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
-import CssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
-import HtmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
-import TsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
 
 if (typeof window !== 'undefined') {
   // eslint-disable-next-line no-restricted-globals
   self.MonacoEnvironment = {
-    getWorker(_workerId, label) {
-      if (label === 'json') return new JsonWorker();
-      if (label === 'css' || label === 'scss' || label === 'less') return new CssWorker();
-      if (label === 'html' || label === 'handlebars' || label === 'razor') return new HtmlWorker();
-      if (label === 'typescript' || label === 'javascript') return new TsWorker();
-      return new EditorWorker();
-    },
+    getWorker: () => new EditorWorker(),
   };
 }
 
 loader.config({ monaco });
 
-// Exported only so callers have something to import — the real work
-// happens at module-load time via the loader.config call above.
+// Exported only so callers have something to import — the
+// real work happens at module-load time via loader.config.
 export const monacoLoaderInitialized = true;
