@@ -8,6 +8,8 @@
 // ═══════════════════════════════════════════════
 
 import jsAwakening from './modules/js-awakening.json';
+import dataMastery from './modules/data-mastery.json';
+import userInteraction from './modules/user-interaction.json';
 
 // Old modules kept for advanced track (not loaded in core course)
 // import { module201 } from './modules/what-javascript-is.js';
@@ -15,4 +17,6 @@ import jsAwakening from './modules/js-awakening.json';
 
 export const JS_MODULES = [
   jsAwakening,
+  dataMastery,
+  userInteraction,
 ];

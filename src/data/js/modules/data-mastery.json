@@ -1,0 +1,422 @@
+{
+  "id": 302,
+  "emoji": "📊",
+  "title": "Data Mastery",
+  "tagline": "Work with lists, objects, and real data.",
+  "difficulty": "beginner",
+  "lessons": [
+    {
+      "id": "js-2-1",
+      "title": "Create and Control Lists",
+      "prereqs": [
+        "js-1-4"
+      ],
+      "difficulty": "beginner",
+      "duration": "18 min",
+      "metadata": {
+        "estimatedTime": 18,
+        "difficulty": "beginner",
+        "conceptsCount": 5,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Create a list of favorite foods and display them",
+          "Add new items to a list with a button click",
+          "Build a dynamic to-do list that grows as you add tasks"
+        ]
+      },
+      "do": {
+        "title": "Display a List of Items",
+        "steps": [
+          "Open VS Code or CodePen",
+          "Create my-favorites.html",
+          "Copy the code below",
+          "Save and open in browser",
+          "Click \"Show My List\" — see all 5 foods appear!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>My Favorite Foods</title>\n  <style>\n    body { text-align: center; padding: 50px; font-family: Arial, sans-serif; }\n    #food-list { font-size: 24px; margin: 30px auto; max-width: 400px; text-align: left; line-height: 2; }\n    button { padding: 15px 30px; font-size: 18px; cursor: pointer; background-color: #3498DB; color: white; border: none; border-radius: 5px; margin: 10px; }\n  </style>\n</head>\n<body>\n  <h1>My Favorite Foods</h1>\n  <div id=\"food-list\"></div>\n  <button onclick=\"showFoods()\">Show My List</button>\n  <button onclick=\"addFood()\" style=\"background-color:#2ECC71\">Add Cookies 🍪</button>\n\n  <script>\n    let favoriteFoods = [\"Pizza\", \"Tacos\", \"Ice Cream\", \"Sushi\", \"Chocolate\"];\n    \n    function showFoods() {\n      let display = \"\";\n      for (let i = 0; i < favoriteFoods.length; i++) {\n        display += (i + 1) + \". \" + favoriteFoods[i] + \"<br>\";\n      }\n      document.getElementById('food-list').innerHTML = display;\n    }\n    \n    function addFood() {\n      favoriteFoods.push(\"Cookies\");\n      showFoods();\n    }\n  </script>\n</body>\n</html>",
+        "result": "You stored 5 items in ONE variable (an array), then displayed them all!",
+        "proofRequired": "Screenshot showing all 5 foods displayed in a numbered list."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "What is an array?",
+            "definition": "A list of items stored in ONE variable. Created with square brackets []. Items are separated by commas.",
+            "analogy": "A numbered row of boxes. Each box holds one item, and you access them by their position number."
+          },
+          {
+            "name": "Index numbers start at 0",
+            "definition": "The first item is [0], second is [1], third is [2]. This is universal across programming languages.",
+            "analogy": "Floor numbers in many buildings: ground floor = 0, first floor = 1."
+          },
+          {
+            "name": ".push() adds items",
+            "definition": "arrayName.push(\"new item\") adds an item to the END of the array. The array automatically grows.",
+            "analogy": "Adding a new box to the end of your row of boxes."
+          },
+          {
+            "name": ".length counts items",
+            "definition": "arrayName.length returns how many items are in the array. Updates automatically when you add or remove items.",
+            "analogy": "Counting how many boxes are in the row."
+          },
+          {
+            "name": "for loops repeat for each item",
+            "definition": "for (let i = 0; i < array.length; i++) { } repeats code once for every item in the array.",
+            "analogy": "Going through each box one by one, doing the same thing to each."
+          }
+        ],
+        "keyTakeaway": "Arrays store multiple related items together. Access by index [0], add with .push(), count with .length."
+      },
+      "build": {
+        "goal": "Replace foods with YOUR favorites and add a 6th with .push()",
+        "codeComparison": {
+          "old": "let foods = [\"Pizza\", \"Tacos\"];\nfoods[0]  // \"Pizza\"",
+          "new": "let foods = [\"Pizza\", \"Tacos\"];\nfoods.push(\"Cookies\");  // Now 3 items!\nfoods.length  // 3\n\n// Loop through all:\nfor (let i = 0; i < foods.length; i++) {\n  console.log(foods[i]);\n}"
+        },
+        "hint": ".push() adds to the END. The array automatically expands!"
+      },
+      "challenge": {
+        "title": "Build a Dynamic To-Do List",
+        "mission": "Create a to-do list where users type tasks and add them with a button.",
+        "requirements": [
+          "Input field for typing tasks",
+          "\"Add Task\" button",
+          "Display all tasks in a numbered list",
+          "Show total number of tasks",
+          "Tasks persist when you add new ones"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>To-Do List</title>\n  <style>\n    body { text-align: center; padding: 50px; font-family: Arial; background: #ECF0F1; }\n    .container { max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }\n    input { padding: 12px; font-size: 16px; width: 60%; border: 2px solid #3498DB; border-radius: 5px; }\n    button { padding: 12px 24px; font-size: 16px; cursor: pointer; background: #2ECC71; color: white; border: none; border-radius: 5px; }\n    #task-list { margin: 30px 0; text-align: left; font-size: 18px; line-height: 2; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <h1>✅ My To-Do List</h1>\n    <input type=\"text\" id=\"task-input\" placeholder=\"Enter a task...\">\n    <button onclick=\"addTask()\">Add Task</button>\n    <div id=\"task-list\"></div>\n    <div id=\"task-count\"></div>\n  </div>\n  <script>\n    let tasks = [];\n    function addTask() { /* Get input, push to array, display */ }\n    function displayTasks() { /* Loop and show all tasks */ }\n  </script>\n</body>\n</html>",
+        "bonusChallenge": "Add a \"Clear All Tasks\" button that empties the array!"
+      },
+      "summary": {
+        "capabilities": [
+          "Create arrays to store multiple items",
+          "Access items using index numbers",
+          "Use .push() to add items",
+          "Use .length to count items",
+          "Loop through arrays with for loops",
+          "Build dynamic lists from user input"
+        ]
+      },
+      "bridge": {
+        "preview": "In the next lesson, you'll learn how to REMOVE items, FILTER lists, and TRANSFORM data using powerful array methods.",
+        "nextLessonId": "js-2-2"
+      }
+    },
+    {
+      "id": "js-2-2",
+      "title": "Transform and Filter Lists",
+      "prereqs": [
+        "js-2-1"
+      ],
+      "difficulty": "beginner",
+      "duration": "20 min",
+      "metadata": {
+        "estimatedTime": 20,
+        "difficulty": "beginner",
+        "conceptsCount": 6,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Remove items from a list with one click",
+          "Filter a list to show only certain items",
+          "Transform an entire list with one line of code"
+        ]
+      },
+      "do": {
+        "title": "Build a Shopping Cart with Remove",
+        "steps": [
+          "Open VS Code or CodePen",
+          "Create shopping-cart.html",
+          "Copy the code below",
+          "Save and open in browser",
+          "Click \"Add Apple\" then \"Remove Last Item\""
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Shopping Cart</title>\n  <style>\n    body { text-align: center; padding: 50px; font-family: Arial; }\n    .cart { max-width: 400px; margin: 30px auto; background: #F8F9FA; padding: 20px; border-radius: 10px; }\n    #items { font-size: 20px; text-align: left; line-height: 2; min-height: 100px; }\n    button { padding: 12px 24px; font-size: 16px; cursor: pointer; border: none; border-radius: 5px; margin: 5px; color: white; }\n    .add { background: #2ECC71; }\n    .remove { background: #E74C3C; }\n  </style>\n</head>\n<body>\n  <h1>🛒 Shopping Cart</h1>\n  <div class=\"cart\">\n    <div id=\"items\"></div>\n    <div id=\"count\"></div>\n  </div>\n  <button class=\"add\" onclick=\"addItem()\">Add Apple 🍎</button>\n  <button class=\"remove\" onclick=\"removeLastItem()\">Remove Last Item</button>\n\n  <script>\n    let cart = [\"Banana\", \"Orange\", \"Grapes\"];\n    \n    function displayCart() {\n      let display = \"\";\n      for (let i = 0; i < cart.length; i++) {\n        display += (i + 1) + \". \" + cart[i] + \"<br>\";\n      }\n      document.getElementById('items').innerHTML = display;\n      document.getElementById('count').textContent = \"Items: \" + cart.length;\n    }\n    \n    function addItem() { cart.push(\"Apple\"); displayCart(); }\n    function removeLastItem() { if (cart.length > 0) { cart.pop(); displayCart(); } }\n    \n    displayCart();\n  </script>\n</body>\n</html>",
+        "result": ".pop() removed the last item from the array. The array got smaller!",
+        "proofRequired": "Screenshot showing the cart after adding 2 apples, then removing 1."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": ".pop() removes the last item",
+            "definition": "Removes AND returns the last item from the array. The array shrinks by one.",
+            "analogy": "Taking the top book off a stack."
+          },
+          {
+            "name": ".shift() removes the first item",
+            "definition": "Removes AND returns the first item. Everything else shifts down one position.",
+            "analogy": "People leaving the front of a line."
+          },
+          {
+            "name": ".filter() creates a new filtered array",
+            "definition": "array.filter(function(item) { return condition; }) returns a NEW array with only items that pass the test.",
+            "analogy": "A sieve — pour everything through, only what fits the holes comes out."
+          },
+          {
+            "name": "The % modulo operator",
+            "definition": "Returns the remainder after division. 8 % 2 === 0 (even). 7 % 2 === 1 (odd). Used to check divisibility.",
+            "analogy": "What's left over after dividing evenly — like splitting cookies among friends."
+          },
+          {
+            "name": ".filter() doesn't change the original",
+            "definition": "It creates a BRAND NEW array. The original stays untouched. This is called a non-destructive method.",
+            "analogy": "Photocopying only certain pages — the original book is unchanged."
+          },
+          {
+            "name": "push/pop vs unshift/shift",
+            "definition": "push/pop work on the END. unshift/shift work on the START. Push adds, pop removes. Unshift adds, shift removes.",
+            "analogy": "Two doors on a bus — front door (shift/unshift) and back door (push/pop)."
+          }
+        ],
+        "keyTakeaway": ".pop() removes from end, .shift() removes from start, .filter() creates a new array with only matching items."
+      },
+      "build": {
+        "goal": "Filter a task list to show only incomplete tasks",
+        "codeComparison": {
+          "old": "// Show all items\nfor (let i = 0; i < tasks.length; i++) {\n  display += tasks[i];\n}",
+          "new": "// Filter to only incomplete\nlet incomplete = tasks.filter(function(task) {\n  return task.completed === false;\n});\n// Now display only incomplete tasks"
+        },
+        "hint": ".filter() doesn't change the original array. It creates a NEW one!"
+      },
+      "challenge": {
+        "title": "Build a Number Filter",
+        "mission": "Create a number list with buttons to filter: All, Even, Odd, Greater Than 10.",
+        "requirements": [
+          "Array of 10+ mixed numbers",
+          "\"Show All\" button",
+          "\"Show Even\" button (num % 2 === 0)",
+          "\"Show Odd\" button (num % 2 !== 0)",
+          "\"Show > 10\" button",
+          "Display count of filtered numbers"
+        ],
+        "starterCode": "<!-- Create number-filter.html with filter buttons and display area -->",
+        "bonusChallenge": "Add a \"Show Less Than 5\" button!"
+      },
+      "summary": {
+        "capabilities": [
+          "Remove items with .pop() and .shift()",
+          "Filter arrays with .filter()",
+          "Use the % modulo operator",
+          "Display filtered data dynamically",
+          "Build interactive filter interfaces"
+        ]
+      },
+      "bridge": {
+        "preview": "In the next lesson, you'll learn about OBJECTS — how to organize related data together (like a person's name, age, and email in one place).",
+        "nextLessonId": "js-2-3"
+      }
+    },
+    {
+      "id": "js-2-3",
+      "title": "Organize Data with Objects",
+      "prereqs": [
+        "js-2-2"
+      ],
+      "difficulty": "beginner",
+      "duration": "20 min",
+      "metadata": {
+        "estimatedTime": 20,
+        "difficulty": "beginner",
+        "conceptsCount": 6,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Create a person object with name, age, and hobbies",
+          "Build a digital business card",
+          "Make a mini database of multiple people"
+        ]
+      },
+      "do": {
+        "title": "Create Your First Object",
+        "steps": [
+          "Open VS Code or CodePen",
+          "Create person-card.html",
+          "Copy the code below",
+          "Save and open in browser",
+          "Click \"Show Person\" to see the info!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Person Card</title>\n  <style>\n    body { text-align: center; padding: 50px; font-family: Arial; background: #ECF0F1; }\n    .card { max-width: 400px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }\n    .card p { font-size: 18px; color: #7F8C8D; margin: 10px 0; }\n    .info-label { font-weight: bold; color: #3498DB; }\n    button { padding: 12px 24px; font-size: 16px; cursor: pointer; background: #2ECC71; color: white; border: none; border-radius: 5px; margin-top: 20px; }\n  </style>\n</head>\n<body>\n  <div class=\"card\">\n    <h2>Person Information</h2>\n    <div id=\"person-info\">Click the button to show info</div>\n  </div>\n  <button onclick=\"showPerson()\">Show Person</button>\n\n  <script>\n    let person = {\n      name: \"Sarah Chen\",\n      age: 28,\n      job: \"Web Developer\",\n      city: \"San Francisco\"\n    };\n    \n    function showPerson() {\n      let display = `\n        <p><span class=\"info-label\">Name:</span> ${person.name}</p>\n        <p><span class=\"info-label\">Age:</span> ${person.age}</p>\n        <p><span class=\"info-label\">Job:</span> ${person.job}</p>\n        <p><span class=\"info-label\">City:</span> ${person.city}</p>\n      `;\n      document.getElementById('person-info').innerHTML = display;\n    }\n  </script>\n</body>\n</html>",
+        "result": "Instead of 4 separate variables, you stored all related information in ONE object!",
+        "proofRequired": "Screenshot showing the person card with all 4 pieces of information."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "What is an object?",
+            "definition": "A collection of related properties (key-value pairs) stored together in curly braces {}.",
+            "analogy": "A digital file folder with labeled sections — each section has a name and content."
+          },
+          {
+            "name": "Properties are key-value pairs",
+            "definition": "Each property has a name (key) and a value, separated by a colon. Properties are separated by commas.",
+            "analogy": "A label on a box: the label is the key, what's inside is the value."
+          },
+          {
+            "name": "Dot notation",
+            "definition": "Access properties with objectName.propertyName. Example: person.name returns \"Sarah\".",
+            "analogy": "Opening a folder (person) and finding a specific document (name)."
+          },
+          {
+            "name": "Objects vs Arrays",
+            "definition": "Arrays = lists of similar items (accessed by position). Objects = related properties about one thing (accessed by name).",
+            "analogy": "Array = a shopping list. Object = a product's details (name, price, color)."
+          },
+          {
+            "name": "Objects can hold arrays",
+            "definition": "Properties can be any data type including arrays: skills: [\"HTML\", \"CSS\", \"JS\"]",
+            "analogy": "A folder can contain lists — like a person folder containing a list of hobbies."
+          },
+          {
+            "name": "Arrays of objects = databases",
+            "definition": "An array where each item is an object: [{name: \"A\"}, {name: \"B\"}]. This is how real apps store data.",
+            "analogy": "A spreadsheet — each row is an object, each column is a property."
+          }
+        ],
+        "keyTakeaway": "Objects group related data together. If information describes the same thing, it belongs in an object."
+      },
+      "build": {
+        "goal": "Create YOUR digital business card with an object",
+        "codeComparison": {
+          "old": "// Separate variables = messy\nlet name = \"Sarah\";\nlet age = 28;\nlet job = \"Developer\";",
+          "new": "// One object = organized\nlet myInfo = {\n  name: \"Sarah\",\n  title: \"Web Developer\",\n  email: \"sarah@example.com\",\n  skills: [\"HTML\", \"CSS\", \"JS\"]\n};\n// Access: myInfo.name, myInfo.skills[0]"
+        },
+        "hint": "Make sure each property is separated by a comma. The last property doesn't need one."
+      },
+      "challenge": {
+        "title": "Build a Contact Database",
+        "mission": "Create an array of 4+ contact objects and display them as cards in a grid.",
+        "requirements": [
+          "Array with at least 4 contact objects",
+          "Each has: name, phone, email, relationship",
+          "Display all contacts as cards",
+          "Color-code by relationship type (friend/family/work)",
+          "Show all contact info on each card"
+        ],
+        "starterCode": "<!-- Create contact-database.html with a contacts array and displayContacts() function -->",
+        "bonusChallenge": "Add filter buttons: \"Show All\", \"Friends Only\", \"Family Only\", \"Work Only\"!"
+      },
+      "summary": {
+        "capabilities": [
+          "Create objects with curly braces {}",
+          "Access properties with dot notation",
+          "Put arrays inside objects",
+          "Create arrays of objects",
+          "Loop through arrays of objects",
+          "Display object data on pages"
+        ]
+      },
+      "bridge": {
+        "preview": "In the next lesson, you'll combine everything — arrays, objects, loops, and filters — to build a complete student grade dashboard.",
+        "nextLessonId": "js-2-4"
+      }
+    },
+    {
+      "id": "js-2-4",
+      "title": "Build a Data Dashboard",
+      "prereqs": [
+        "js-2-3"
+      ],
+      "difficulty": "intermediate",
+      "duration": "22 min",
+      "metadata": {
+        "estimatedTime": 22,
+        "difficulty": "intermediate",
+        "conceptsCount": 5,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Build a student grade tracker that calculates averages",
+          "Display statistics (highest, lowest, average)",
+          "Filter students by passing/failing status",
+          "Create a real data dashboard"
+        ]
+      },
+      "do": {
+        "title": "Calculate Grade Statistics",
+        "steps": [
+          "Open VS Code or CodePen",
+          "Create grade-calculator.html",
+          "Copy the code below",
+          "Save and open in browser",
+          "Click \"Calculate Statistics\" to see the results!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Grade Calculator</title>\n  <style>\n    body { padding: 50px; font-family: Arial; background: #ECF0F1; }\n    .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }\n    h1 { text-align: center; color: #2C3E50; }\n    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 30px 0; }\n    .stat-box { color: white; padding: 20px; border-radius: 10px; text-align: center; }\n    .stat-box.high { background: #2ECC71; }\n    .stat-box.low { background: #E74C3C; }\n    .stat-box.avg { background: #3498DB; }\n    .stat-box h3 { margin: 0 0 10px; font-size: 14px; opacity: 0.9; }\n    .stat-box p { margin: 0; font-size: 36px; font-weight: bold; }\n    button { display: block; width: 100%; padding: 15px; font-size: 18px; cursor: pointer; background: #9B59B6; color: white; border: none; border-radius: 5px; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <h1>📊 Grade Statistics</h1>\n    <div class=\"stats\">\n      <div class=\"stat-box high\"><h3>HIGHEST</h3><p id=\"highest\">-</p></div>\n      <div class=\"stat-box low\"><h3>LOWEST</h3><p id=\"lowest\">-</p></div>\n      <div class=\"stat-box avg\"><h3>AVERAGE</h3><p id=\"average\">-</p></div>\n    </div>\n    <button onclick=\"calculateStats()\">Calculate Statistics</button>\n  </div>\n\n  <script>\n    let grades = [85, 92, 78, 95, 88, 76, 90, 82];\n    \n    function calculateStats() {\n      let highest = grades[0];\n      let lowest = grades[0];\n      let sum = 0;\n      \n      for (let i = 0; i < grades.length; i++) {\n        if (grades[i] > highest) highest = grades[i];\n        if (grades[i] < lowest) lowest = grades[i];\n        sum += grades[i];\n      }\n      \n      let average = sum / grades.length;\n      \n      document.getElementById('highest').textContent = highest;\n      document.getElementById('lowest').textContent = lowest;\n      document.getElementById('average').textContent = average.toFixed(1);\n    }\n  </script>\n</body>\n</html>",
+        "result": "You analyzed an array of numbers and calculated statistics — just like real data analysis!",
+        "proofRequired": "Screenshot showing the three statistics calculated."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "Finding max/min with loops",
+            "definition": "Start with the first item as the current max. Loop through the rest — if any item is bigger, it becomes the new max. Same logic reversed for min.",
+            "analogy": "Going through a stack of papers, keeping track of the highest number you've seen."
+          },
+          {
+            "name": "Calculating averages",
+            "definition": "Sum all values in a loop, then divide by the count (array.length). average = sum / array.length.",
+            "analogy": "Adding up everyone's age at a party, then dividing by number of people."
+          },
+          {
+            "name": ".toFixed() for rounding",
+            "definition": "number.toFixed(1) rounds to 1 decimal place. .toFixed(2) rounds to 2. Returns a string.",
+            "analogy": "Rounding to the nearest penny — you choose how precise."
+          },
+          {
+            "name": "Combining filter + display",
+            "definition": "Filter an array, then pass the filtered result to a display function. The original data stays unchanged.",
+            "analogy": "Sorting mail into piles (filter), then reading one pile at a time (display)."
+          },
+          {
+            "name": "Everything working together",
+            "definition": "Real apps combine arrays (data), objects (structure), loops (processing), filters (selection), and DOM updates (display).",
+            "analogy": "An orchestra — each instrument plays its part, together they make music."
+          }
+        ],
+        "keyTakeaway": "Statistics are just loops with comparisons. Combine arrays, objects, loops, and filters to build real data applications."
+      },
+      "build": {
+        "goal": "Build a complete student dashboard with filtering",
+        "codeComparison": {
+          "old": "// Just display grades\nfor (let i = 0; i < grades.length; i++) {\n  display += grades[i];\n}",
+          "new": "// Filter + stats + display\nlet passing = students.filter(function(s) {\n  return s.grade >= 70;\n});\n\nlet sum = 0;\nfor (let i = 0; i < students.length; i++) {\n  sum += students[i].grade;\n}\nlet avg = sum / students.length;"
+        },
+        "hint": "Use .filter() to create passing and failing arrays, then display each set with its own function call."
+      },
+      "challenge": {
+        "title": "Complete Student Grade Dashboard",
+        "mission": "Build a full dashboard with student cards, statistics, and pass/fail filtering.",
+        "requirements": [
+          "8 student objects with name + grade",
+          "Stats: total, passing count, failing count, average",
+          "\"Show All\" button",
+          "\"Show Passing\" button (≥70)",
+          "\"Show Failing\" button (<70)",
+          "Each card shows pass/fail status badge",
+          "Professional grid layout"
+        ],
+        "starterCode": "<!-- Build a complete dashboard combining everything from Module 2 -->",
+        "bonusChallenge": "Add a search box that filters students by name as you type!"
+      },
+      "summary": {
+        "capabilities": [
+          "Calculate statistics from arrays",
+          "Count items meeting criteria",
+          "Filter and display data",
+          "Combine arrays, objects, and logic",
+          "Build complete data dashboards",
+          "Use all JavaScript fundamentals together"
+        ]
+      },
+      "bridge": {
+        "preview": "Module 2 complete! You've built to-do lists, shopping carts, contact databases, and grade dashboards. In Module 3, you'll master user interaction — forms, validation, keyboard events, and real user experiences.",
+        "nextLessonId": "js-3-1"
+      }
+    }
+  ]
+}

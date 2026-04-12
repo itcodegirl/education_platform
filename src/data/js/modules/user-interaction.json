@@ -1,0 +1,120 @@
+{
+  "id": 303,
+  "emoji": "🕹️",
+  "title": "User Interaction Mastery",
+  "tagline": "Forms, events, and real user experiences.",
+  "difficulty": "intermediate",
+  "lessons": [
+    {
+      "id": "js-3-1",
+      "title": "Master Form Input and Validation",
+      "prereqs": [
+        "js-2-4"
+      ],
+      "difficulty": "intermediate",
+      "duration": "20 min",
+      "metadata": {
+        "estimatedTime": 20,
+        "difficulty": "intermediate",
+        "conceptsCount": 6,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Build a signup form that checks if inputs are valid",
+          "Create real-time validation that gives instant feedback",
+          "Build a password strength checker",
+          "Stop bad data before it gets saved"
+        ]
+      },
+      "do": {
+        "title": "Build a Simple Form Validator",
+        "steps": [
+          "Open VS Code or CodePen",
+          "Create form-validator.html",
+          "Copy the code below",
+          "Save and open in browser",
+          "Try submitting with empty fields — see error messages!",
+          "Fill correctly — see success!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Form Validator</title>\n  <style>\n    body { display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: linear-gradient(135deg, #667eea, #764ba2); font-family: Arial; }\n    .form-container { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 400px; }\n    h1 { margin: 0 0 30px; color: #2C3E50; text-align: center; }\n    .form-group { margin-bottom: 20px; }\n    label { display: block; margin-bottom: 5px; color: #34495E; font-weight: bold; }\n    input { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #BDC3C7; border-radius: 5px; box-sizing: border-box; }\n    input.error { border-color: #E74C3C; }\n    input.success { border-color: #2ECC71; }\n    .error-message { color: #E74C3C; font-size: 14px; margin-top: 5px; display: none; }\n    .error-message.show { display: block; }\n    button { width: 100%; padding: 15px; font-size: 18px; font-weight: bold; cursor: pointer; background: #667eea; color: white; border: none; border-radius: 5px; margin-top: 10px; }\n    .success-message { background: #2ECC71; color: white; padding: 15px; border-radius: 5px; text-align: center; margin-top: 20px; display: none; }\n    .success-message.show { display: block; }\n  </style>\n</head>\n<body>\n  <div class=\"form-container\">\n    <h1>Sign Up Form</h1>\n    <div class=\"form-group\">\n      <label>Username</label>\n      <input type=\"text\" id=\"username\" placeholder=\"Enter username\">\n      <div class=\"error-message\" id=\"username-error\"></div>\n    </div>\n    <div class=\"form-group\">\n      <label>Email</label>\n      <input type=\"email\" id=\"email\" placeholder=\"Enter email\">\n      <div class=\"error-message\" id=\"email-error\"></div>\n    </div>\n    <button onclick=\"validateForm()\">Submit</button>\n    <div class=\"success-message\" id=\"success\">✅ Form submitted successfully!</div>\n  </div>\n\n  <script>\n    function validateForm() {\n      let username = document.getElementById('username').value;\n      let email = document.getElementById('email').value;\n      let isValid = true;\n      \n      if (username === \"\") {\n        showError('username', 'Username is required');\n        isValid = false;\n      } else if (username.length < 3) {\n        showError('username', 'Username must be at least 3 characters');\n        isValid = false;\n      } else {\n        showSuccess('username');\n      }\n      \n      if (email === \"\") {\n        showError('email', 'Email is required');\n        isValid = false;\n      } else if (!email.includes('@')) {\n        showError('email', 'Please enter a valid email');\n        isValid = false;\n      } else {\n        showSuccess('email');\n      }\n      \n      if (isValid) {\n        document.getElementById('success').classList.add('show');\n      } else {\n        document.getElementById('success').classList.remove('show');\n      }\n    }\n    \n    function showError(fieldName, message) {\n      let input = document.getElementById(fieldName);\n      let errorDiv = document.getElementById(fieldName + '-error');\n      input.classList.add('error');\n      input.classList.remove('success');\n      errorDiv.textContent = message;\n      errorDiv.classList.add('show');\n    }\n    \n    function showSuccess(fieldName) {\n      let input = document.getElementById(fieldName);\n      let errorDiv = document.getElementById(fieldName + '-error');\n      input.classList.remove('error');\n      input.classList.add('success');\n      errorDiv.classList.remove('show');\n    }\n  </script>\n</body>\n</html>",
+        "result": "JavaScript VALIDATED the inputs before accepting them. This prevents bad data!",
+        "proofRequired": "Screenshot showing error messages for both fields when validation fails."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "Getting input values with .value",
+            "definition": "document.getElementById('field').value returns whatever the user typed. It's always a string, even for number inputs.",
+            "analogy": "Reading what someone wrote on a form — .value is the answer they filled in."
+          },
+          {
+            "name": "Checking if empty",
+            "definition": "if (value === \"\") checks if the user left the field blank. Empty string means nothing was typed.",
+            "analogy": "Checking if a box is empty before shipping it."
+          },
+          {
+            "name": "Checking string length",
+            "definition": ".length works on strings just like arrays. \"hi\".length is 2. Use it to enforce minimum/maximum character counts.",
+            "analogy": "Measuring a piece of string — is it long enough for what you need?"
+          },
+          {
+            "name": ".includes() for content checks",
+            "definition": "string.includes('@') returns true if the string contains that character. Great for email validation.",
+            "analogy": "Searching a document for a specific word — is it in there or not?"
+          },
+          {
+            "name": "classList.add() and .remove()",
+            "definition": "Add or remove CSS classes with JavaScript. This lets you change styling (red borders, green borders) without editing CSS.",
+            "analogy": "Putting on or taking off a costume — the person (element) is the same, but they look different."
+          },
+          {
+            "name": "oninput for real-time validation",
+            "definition": "The oninput event fires every time the user types a character. Use it for live feedback like password strength checkers.",
+            "analogy": "A spell-checker that underlines words as you type, not after you finish."
+          }
+        ],
+        "keyTakeaway": "Good validation: (1) Get the value, (2) Check if it's valid, (3) Give helpful feedback. Use .value, .length, .includes(), and classList."
+      },
+      "build": {
+        "goal": "Build a password strength checker with real-time feedback",
+        "codeComparison": {
+          "old": "// Check on submit only\nbutton.onclick = function() {\n  if (password.length < 8) {\n    alert(\"Too short!\");\n  }\n}",
+          "new": "// Check in real-time as user types\n<input oninput=\"checkStrength()\">\n\nfunction checkStrength() {\n  let password = document.getElementById('password').value;\n  let hasLength = password.length >= 8;\n  let hasNumber = /[0-9]/.test(password);\n  let hasUpper = /[A-Z]/.test(password);\n  // Update strength meter based on score\n}"
+        },
+        "hint": "oninput fires on EVERY keystroke. That's why it updates instantly as you type!"
+      },
+      "challenge": {
+        "title": "Build a Complete Registration Form",
+        "mission": "Create a full registration form that validates username, email, password, confirm password, and age.",
+        "requirements": [
+          "5 input fields with validation",
+          "Username: 3-15 characters, letters only",
+          "Email: must contain @ and .",
+          "Password: 8+ characters",
+          "Confirm Password: must match password",
+          "Age: must be 13 or older",
+          "Show specific error messages for each failure",
+          "Green borders for valid, red for invalid"
+        ],
+        "starterCode": "<!-- Build a complete registration form with 5 validated fields -->",
+        "bonusChallenge": "Add a \"Show Password\" toggle button!"
+      },
+      "summary": {
+        "capabilities": [
+          "Get user input with .value",
+          "Validate empty, length, and content",
+          "Use .includes() and .length for checks",
+          "Add/remove CSS classes for visual feedback",
+          "Build real-time validation with oninput",
+          "Create password strength checkers",
+          "Validate complete registration forms"
+        ]
+      },
+      "bridge": {
+        "preview": "In the next lesson, you'll learn how to handle EVENTS — clicks, keypresses, mouse movements, and more. You'll build interactive games and tools.",
+        "nextLessonId": "js-3-2"
+      }
+    }
+  ]
+}
