@@ -6,33 +6,96 @@
 
 const OPENAI_URL = 'https://api.openai.com/v1/responses';
 
-// ─── Rate limiting (per function instance) ─────
-// Resets on cold start — good enough for basic abuse prevention.
-// For stricter limits, move to a database counter.
+// ─── Rate limiting ─────────────────────────────
+// Primary: persistent counters in Supabase (public.ai_rate_limits), so limits
+// survive cold starts and are shared across function instances.
+// Fallback: per-instance in-memory map for local dev when the service-role
+// key isn't configured.
 const WINDOW_MS = 60_000; // 1 minute
 const MAX_REQUESTS = 10;  // 10 requests per minute per user
-const rateLimits = new Map();
 
-function checkRateLimit(userId) {
+const memoryRateLimits = new Map();
+
+function checkRateLimitMemory(userId) {
   const now = Date.now();
-  let timestamps = rateLimits.get(userId) || [];
+  let timestamps = memoryRateLimits.get(userId) || [];
   timestamps = timestamps.filter((t) => t > now - WINDOW_MS);
 
-  if (timestamps.length >= MAX_REQUESTS) {
-    return false;
-  }
+  if (timestamps.length >= MAX_REQUESTS) return false;
 
   timestamps.push(now);
-  rateLimits.set(userId, timestamps);
+  memoryRateLimits.set(userId, timestamps);
 
-  // Prevent memory leak: prune inactive users every 100 entries
-  if (rateLimits.size > 200) {
-    for (const [key, ts] of rateLimits) {
-      if (ts.every((t) => t <= now - WINDOW_MS)) rateLimits.delete(key);
+  if (memoryRateLimits.size > 200) {
+    for (const [key, ts] of memoryRateLimits) {
+      if (ts.every((t) => t <= now - WINDOW_MS)) memoryRateLimits.delete(key);
     }
   }
-
   return true;
+}
+
+// Supabase-backed limiter. Uses the REST API with the service-role key so it
+// can bypass RLS on public.ai_rate_limits. Returns:
+//   true  → request allowed (counter updated)
+//   false → user is over the limit
+//   null  → transient/config error; caller should fall back to the memory limiter
+async function checkRateLimitSupabase(userId) {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey) return null;
+
+  const headers = {
+    apikey: serviceKey,
+    Authorization: `Bearer ${serviceKey}`,
+    'Content-Type': 'application/json',
+  };
+  const endpoint = `${supabaseUrl}/rest/v1/ai_rate_limits`;
+  const now = Date.now();
+  const windowCutoffIso = new Date(now - WINDOW_MS).toISOString();
+  const nowIso = new Date(now).toISOString();
+
+  try {
+    // 1. Load the current row for this user, if any.
+    const readRes = await fetch(
+      `${endpoint}?user_id=eq.${encodeURIComponent(userId)}&select=window_start,request_count`,
+      { headers },
+    );
+    if (!readRes.ok) return null;
+    const rows = await readRes.json();
+    const row = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+
+    // 2. Decide whether we're in the same window or starting a new one.
+    const inWindow = row && row.window_start > windowCutoffIso;
+    const nextCount = inWindow ? row.request_count + 1 : 1;
+    const nextWindowStart = inWindow ? row.window_start : nowIso;
+
+    if (nextCount > MAX_REQUESTS) return false;
+
+    // 3. Upsert the updated counter. on_conflict=user_id merges rows atomically.
+    const writeRes = await fetch(
+      `${endpoint}?on_conflict=user_id`,
+      {
+        method: 'POST',
+        headers: { ...headers, Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({
+          user_id: userId,
+          window_start: nextWindowStart,
+          request_count: nextCount,
+          updated_at: nowIso,
+        }),
+      },
+    );
+    if (!writeRes.ok) return null;
+    return true;
+  } catch {
+    return null;
+  }
+}
+
+async function checkRateLimit(userId) {
+  const result = await checkRateLimitSupabase(userId);
+  if (result === null) return checkRateLimitMemory(userId);
+  return result;
 }
 
 // ─── Helpers ───────────────────────────────────
@@ -109,8 +172,9 @@ export async function handler(event) {
     return json(401, { error: 'Invalid or expired session' });
   }
 
-  // 3. Rate-limit per user
-  if (!checkRateLimit(user.id)) {
+  // 3. Rate-limit per user (persistent via Supabase, with in-memory fallback)
+  const allowed = await checkRateLimit(user.id);
+  if (!allowed) {
     return json(429, { error: 'Too many requests. Please wait a moment and try again.' });
   }
 

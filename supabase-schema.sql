@@ -209,3 +209,24 @@ alter table public.profiles add column if not exists is_disabled boolean default
 
 -- Admins can update profiles (to disable/enable users)
 create policy "Admins update all profiles" on public.profiles for update using (is_admin());
+
+-- ═══════════════════════════════════════════════
+-- AI RATE LIMITING
+-- Persistent per-user request counters for the Netlify AI proxy.
+-- Written exclusively by netlify/functions/ai.js using the service-role key,
+-- so RLS stays enabled and denies all client access.
+-- ═══════════════════════════════════════════════
+
+create table if not exists public.ai_rate_limits (
+  user_id uuid references auth.users on delete cascade primary key,
+  window_start timestamptz not null default now(),
+  request_count integer not null default 0,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.ai_rate_limits enable row level security;
+-- No policies — only the service-role key (used by the Netlify function)
+-- can read/write this table. Clients cannot see or tamper with it.
+
+create index if not exists idx_ai_rate_limits_window
+  on public.ai_rate_limits(window_start);
