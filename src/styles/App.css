@@ -540,40 +540,36 @@ textarea:focus-visible,
 .pp-signout { flex: 1; padding: 8px; background: transparent; border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; color: var(--text-muted); font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
 .pp-signout:hover { border-color: var(--red); color: var(--red); }
 
-/* ─── Course Switcher (horizontal pills) ─── */
+/* ─── Course Switcher (2x2 grid) ─── */
 .cs-strip {
-  display: flex; gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
   padding: 10px 14px;
-  overflow-x: auto;
   flex-shrink: 0;
-  scrollbar-width: none;
 }
-.cs-strip::-webkit-scrollbar { display: none; }
 .cs-pill {
-  display: flex; align-items: center; gap: 6px;
-  padding: 8px 14px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 8px 10px;
   border-radius: 10px;
   border: 1px solid rgba(255,255,255,0.06);
   background: rgba(255,255,255,0.03);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   color: var(--text-dim);
   cursor: pointer;
   font-size: 12px; font-weight: 600;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   white-space: nowrap;
   transition: all 0.2s;
-  flex-shrink: 0;
 }
 .cs-pill:hover { border-color: rgba(255,255,255,0.14); color: var(--text); }
 .cs-pill.on {
-  border-color: var(--cs-accent, var(--pink));
-  background: color-mix(in srgb, var(--cs-accent, var(--pink)) 12%, transparent);
-  color: var(--cs-accent, var(--pink));
-  box-shadow: 0 0 20px color-mix(in srgb, var(--cs-accent, var(--pink)) 12%, transparent);
+  border-color: var(--cs-accent, var(--purple));
+  background: color-mix(in srgb, var(--cs-accent, var(--purple)) 12%, transparent);
+  color: var(--cs-accent, var(--purple));
+  box-shadow: 0 0 16px color-mix(in srgb, var(--cs-accent, var(--purple)) 10%, transparent);
 }
 .cs-pill-icon { font-size: 14px; }
-.cs-pill-label { letter-spacing: 0.3px; }
+.cs-pill-label { letter-spacing: 0.3px; font-size: 11px; }
 
 /* ─── Compact progress bar ─── */
 .sb-progress-mini {
@@ -691,7 +687,7 @@ textarea:focus-visible,
   .sb.collapsed .sb-scroll,
   .sb.collapsed .pp { display: none; }
   .sb.collapsed .sb-head-actions { flex-direction: column; }
-  .sb.collapsed .cs-strip { flex-direction: column; padding: 8px; gap: 6px; }
+  .sb.collapsed .cs-strip { grid-template-columns: 1fr; padding: 8px; gap: 6px; }
   .sb.collapsed .cs-pill { justify-content: center; padding: 8px; border-radius: 10px; }
   .sb.collapsed .cs-pill-icon { font-size: 18px; }
 }
