@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>useCallback Demo</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 30px;
+      background: #f0f4f8;
+      color: #1a202c;
+    }
+    h1 { color: #2c5282; }
+    button {
+      background: #3182ce;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 4px;
+    }
+    button:hover { background: #2c5282; }
+    .panel {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .bad { background: #fff5f5; border-left: 4px solid #e53e3e; }
+    .good { background: #f0fff4; border-left: 4px solid #38a169; }
+    .info-box {
+      background: #edf2f7;
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 4px solid #3182ce;
+    }
+    .todo-item {
+      padding: 8px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    // Memoized button component
+    const ExpensiveButton = React.memo(function ExpensiveButton({ onClick, label }) {
+      const renderCount = React.useRef(0);
+      renderCount.current += 1;
+
+      console.log(`${label} rendered ${renderCount.current} times`);
+
+      return (
+        <div style={{ padding: '10px', margin: '10px 0', background: '#f7fafc', borderRadius: '6px' }}>
+          <button onClick={onClick}>{label}</button>
+          <span style={{ marginLeft: '10px', color: '#4a5568' }}>
+            Renders: <strong>{renderCount.current}</strong>
+          </span>
+        </div>
+      );
+    });
+
+    function TodoApp() {
+      const [todos, setTodos] = React.useState([]);
+      const [count, setCount] = React.useState(0);
+
+      // ❌ WITHOUT useCallback - brand new function every render
+      const addTodoSlow = () => {
+        setTodos(prev => [...prev, `Todo ${prev.length + 1} (slow)`]);
+      };
+
+      // ✅ WITH useCallback - stable reference across renders
+      const addTodoFast = React.useCallback(() => {
+        setTodos(prev => [...prev, `Todo ${prev.length + 1} (fast)`]);
+      }, []); // No deps needed because we use functional update
+
+      const deleteTodo = React.useCallback((index) => {
+        setTodos(prev => prev.filter((_, i) => i !== index));
+      }, []);
+
+      return (
+        <div>
+          <h1>⚡ useCallback Demo</h1>
+
+          <div className="panel">
+            {/* This button causes Parent to re-render */}
+            <button onClick={() => setCount(count + 1)}>
+              Increment Count: {count} (triggers re-render)
+            </button>
+            <p style={{ fontSize: '14px', color: '#4a5568', marginTop: '10px' }}>
+              Click this to force a Parent re-render without changing any logic.
+            </p>
+          </div>
+
+          <div className="panel bad">
+            <h3>❌ Without useCallback:</h3>
+            <ExpensiveButton onClick={addTodoSlow} label="Add Todo (Slow)" />
+            <p>This re-renders every time Parent re-renders, even though its logic hasn't changed!</p>
+          </div>
+
+          <div className="panel good">
+            <h3>✅ With useCallback:</h3>
+            <ExpensiveButton onClick={addTodoFast} label="Add Todo (Fast)" />
+            <p>This only re-renders when the callback <em>actually</em> changes!</p>
+          </div>
+
+          <div className="panel">
+            <h3>📋 Todos ({todos.length}):</h3>
+            {todos.length === 0 && <p style={{ color: '#718096' }}>No todos yet.</p>}
+            {todos.map((todo, index) => (
+              <div key={index} className="todo-item">
+                <span>{todo}</span>
+                <button onClick={() => deleteTodo(index)} style={{ background: '#e53e3e' }}>
+                  Delete
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="info-box">
+            <h3>🧪 Test it:</h3>
+            <ol style={{ lineHeight: '1.8' }}>
+              <li>Click "Increment Count" — Parent re-renders</li>
+              <li>Check console — Slow button re-renders, Fast button doesn't!</li>
+              <li>Click "Add Todo" — both buttons re-render (todos changed, so state updated)</li>
+            </ol>
+            <p style={{ marginTop: '15px', fontWeight: 'bold' }}>
+              useCallback = "Return the same function reference unless dependencies change"
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<TodoApp />);
+  </script>
+</body>
+</html>

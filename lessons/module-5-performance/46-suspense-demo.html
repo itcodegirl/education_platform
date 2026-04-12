@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Suspense & Route-Based Code Splitting</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    nav {
+      background: #333;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    nav button {
+      background: #666;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      margin: 0 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    nav button:hover { opacity: 0.9; }
+    .page {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      min-height: 300px;
+    }
+    .loading {
+      text-align: center;
+      padding: 40px;
+      font-size: 18px;
+      color: #666;
+      background: white;
+      border-radius: 8px;
+      min-height: 300px;
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #2196f3;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    // Page components
+    function HomePage() {
+      return (
+        <div className="page">
+          <h2>🏠 Home Page</h2>
+          <p>This page is in the main bundle.</p>
+          <p>Loads immediately with the app.</p>
+        </div>
+      );
+    }
+
+    function AboutPage() {
+      return (
+        <div className="page">
+          <h2>ℹ️ About Page</h2>
+          <p>This page is also in the main bundle.</p>
+          <p>Small, simple, frequently accessed.</p>
+        </div>
+      );
+    }
+
+    // Heavy pages - lazy load these!
+    function DashboardPage() {
+      const data = Array.from({ length: 100 }, (_, i) => ({
+        id: i,
+        value: Math.random() * 1000
+      }));
+
+      return (
+        <div className="page">
+          <h2>📊 Dashboard</h2>
+          <p>Complex dashboard with charts and data.</p>
+          <p>Lazy loaded — only downloads when you visit this page.</p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px', marginTop: '20px' }}>
+            {data.slice(0, 20).map(item => (
+              <div key={item.id} style={{ padding: '10px', background: '#e0e0e0', textAlign: 'center', borderRadius: '4px' }}>
+                <strong>{item.value.toFixed(0)}</strong>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    function SettingsPage() {
+      const [settings, setSettings] = React.useState({
+        theme: 'light',
+        notifications: true,
+        language: 'en'
+      });
+
+      return (
+        <div className="page">
+          <h2>⚙️ Settings</h2>
+          <p>Settings page — rarely visited, so we lazy load it.</p>
+
+          <div style={{ marginTop: '20px', lineHeight: '2' }}>
+            <div>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={settings.notifications}
+                  onChange={(e) => setSettings({ ...settings, notifications: e.target.checked })}
+                />
+                {' '}Enable notifications
+              </label>
+            </div>
+            <div>
+              <label>
+                Theme:{' '}
+                <select
+                  value={settings.theme}
+                  onChange={(e) => setSettings({ ...settings, theme: e.target.value })}
+                >
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                </select>
+              </label>
+            </div>
+            <div>
+              <label>
+                Language:{' '}
+                <select
+                  value={settings.language}
+                  onChange={(e) => setSettings({ ...settings, language: e.target.value })}
+                >
+                  <option value="en">English</option>
+                  <option value="es">Spanish</option>
+                  <option value="fr">French</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Create lazy versions with simulated network delay
+    const LazyDashboard = React.lazy(() =>
+      new Promise(resolve =>
+        setTimeout(() => resolve({ default: DashboardPage }), 1000)
+      )
+    );
+
+    const LazySettings = React.lazy(() =>
+      new Promise(resolve =>
+        setTimeout(() => resolve({ default: SettingsPage }), 800)
+      )
+    );
+
+    function LoadingFallback({ name }) {
+      return (
+        <div className="loading">
+          <div className="spinner"></div>
+          <p>Loading {name}...</p>
+        </div>
+      );
+    }
+
+    function App() {
+      const [currentPage, setCurrentPage] = React.useState('home');
+
+      const renderPage = () => {
+        switch (currentPage) {
+          case 'home':
+            return <HomePage />;
+          case 'about':
+            return <AboutPage />;
+          case 'dashboard':
+            return (
+              <React.Suspense fallback={<LoadingFallback name="Dashboard" />}>
+                <LazyDashboard />
+              </React.Suspense>
+            );
+          case 'settings':
+            return (
+              <React.Suspense fallback={<LoadingFallback name="Settings" />}>
+                <LazySettings />
+              </React.Suspense>
+            );
+          default:
+            return <HomePage />;
+        }
+      };
+
+      const navButtonStyle = (page) => ({
+        background: currentPage === page ? '#4caf50' : '#666'
+      });
+
+      return (
+        <div>
+          <h1>🚀 Route-Based Code Splitting</h1>
+
+          <nav>
+            <button onClick={() => setCurrentPage('home')} style={navButtonStyle('home')}>
+              Home
+            </button>
+            <button onClick={() => setCurrentPage('about')} style={navButtonStyle('about')}>
+              About
+            </button>
+            <button onClick={() => setCurrentPage('dashboard')} style={navButtonStyle('dashboard')}>
+              Dashboard 📊
+            </button>
+            <button onClick={() => setCurrentPage('settings')} style={navButtonStyle('settings')}>
+              Settings ⚙️
+            </button>
+          </nav>
+
+          {renderPage()}
+
+          <div style={{ marginTop: '30px', padding: '20px', background: '#e8f5e9', borderRadius: '8px' }}>
+            <h3>✅ Optimization Strategy:</h3>
+            <ul>
+              <li><strong>Home & About:</strong> Main bundle (frequently accessed)</li>
+              <li><strong>Dashboard:</strong> Lazy loaded (heavy, less frequent)</li>
+              <li><strong>Settings:</strong> Lazy loaded (rarely accessed)</li>
+              <li>Initial bundle is ~50% smaller!</li>
+            </ul>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

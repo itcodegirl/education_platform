@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>React.lazy Demo</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    button {
+      background: #2196f3;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+    button:hover { background: #1976d2; }
+    .loading {
+      text-align: center;
+      padding: 40px;
+      font-size: 18px;
+      color: #666;
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #2196f3;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .component-box {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      margin: 20px 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    code {
+      background: #eee;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Consolas', 'Monaco', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    // Regular component - always loaded
+    function LightComponent() {
+      return (
+        <div className="component-box" style={{ borderLeft: '4px solid #4caf50' }}>
+          <h3>✅ Light Component (Always Loaded)</h3>
+          <p>This component is part of the main bundle.</p>
+          <p>It loads immediately with the app.</p>
+          <p>Bundle size impact: small (~5kb)</p>
+        </div>
+      );
+    }
+
+    // Heavy component that we'll lazy load
+    function HeavyComponent() {
+      // Simulate heavy component with data
+      const largeData = Array.from({ length: 1000 }, (_, i) => ({
+        id: i,
+        data: `Item ${i}`,
+        metadata: { created: new Date(), index: i }
+      }));
+
+      return (
+        <div className="component-box" style={{ borderLeft: '4px solid #ff9800' }}>
+          <h3>📦 Heavy Component (Lazy Loaded)</h3>
+          <p>This component is in a separate chunk!</p>
+          <p>It only loads when you click the button.</p>
+          <p>Bundle size impact: large (~50kb)</p>
+          <p>Loaded <strong>{largeData.length}</strong> items</p>
+
+          <details style={{ marginTop: '15px' }}>
+            <summary>See first 10 items</summary>
+            <ul>
+              {largeData.slice(0, 10).map(item => (
+                <li key={item.id}>{item.data}</li>
+              ))}
+            </ul>
+          </details>
+        </div>
+      );
+    }
+
+    // Create lazy version - this is the key!
+    // Note: In real apps with bundler, this would be:
+    //   const LazyHeavy = React.lazy(() => import('./HeavyComponent'));
+    //
+    // For demo purposes (no bundler), we simulate a network delay.
+    const LazyHeavy = React.lazy(() => {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          resolve({ default: HeavyComponent });
+        }, 1500);
+      });
+    });
+
+    // Loading fallback component
+    function LoadingFallback() {
+      return (
+        <div className="loading">
+          <div className="spinner"></div>
+          <p>Loading component...</p>
+        </div>
+      );
+    }
+
+    function App() {
+      const [showHeavy, setShowHeavy] = React.useState(false);
+
+      return (
+        <div>
+          <h1>⚡ Code Splitting with React.lazy</h1>
+
+          <div style={{ background: '#e3f2fd', padding: '20px', borderRadius: '8px' }}>
+            <h3>📊 What's happening:</h3>
+            <ol style={{ lineHeight: '1.8' }}>
+              <li>LightComponent loads immediately (main bundle)</li>
+              <li>HeavyComponent code is NOT in initial bundle</li>
+              <li>Click button → separate chunk loads</li>
+              <li>While loading → Suspense shows fallback</li>
+              <li>Once loaded → HeavyComponent renders</li>
+            </ol>
+
+            <p><strong>Open DevTools Network tab to see the magic! 🔍</strong></p>
+          </div>
+
+          <LightComponent />
+
+          <div style={{ textAlign: 'center', margin: '30px 0' }}>
+            <button onClick={() => setShowHeavy(!showHeavy)}>
+              {showHeavy ? 'Hide' : 'Load'} Heavy Component
+            </button>
+          </div>
+
+          {showHeavy && (
+            <React.Suspense fallback={<LoadingFallback />}>
+              <LazyHeavy />
+            </React.Suspense>
+          )}
+
+          <div style={{ background: '#fff3e0', padding: '20px', borderRadius: '8px', marginTop: '20px' }}>
+            <h3>💡 Key Points:</h3>
+            <ul>
+              <li><code>React.lazy()</code> creates a lazy component</li>
+              <li><code>&lt;Suspense&gt;</code> shows fallback while loading</li>
+              <li>Component only loads when needed</li>
+              <li>Once loaded, stays in memory</li>
+              <li>In production, bundler creates separate chunk files</li>
+            </ul>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

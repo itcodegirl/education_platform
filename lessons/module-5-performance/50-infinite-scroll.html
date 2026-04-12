@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Infinite Scroll</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .list-container {
+      height: 600px;
+      overflow: auto;
+      background: white;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+    }
+    .list-item {
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #2196f3;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .stats-panel {
+      background: #e3f2fd;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    function InfiniteScrollList() {
+      const [items, setItems] = React.useState([]);
+      const [loading, setLoading] = React.useState(false);
+      const [hasMore, setHasMore] = React.useState(true);
+      const [page, setPage] = React.useState(0);
+
+      // Refs to avoid stale closures in scroll handler
+      const loadingRef = React.useRef(loading);
+      const hasMoreRef = React.useRef(hasMore);
+      const pageRef = React.useRef(page);
+      React.useEffect(() => { loadingRef.current = loading; }, [loading]);
+      React.useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
+      React.useEffect(() => { pageRef.current = page; }, [page]);
+
+      const loadMoreItems = React.useCallback(async () => {
+        if (loadingRef.current || !hasMoreRef.current) return;
+
+        setLoading(true);
+
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        const currentPage = pageRef.current;
+        const newItems = Array.from({ length: 50 }, (_, i) => {
+          const id = currentPage * 50 + i;
+          return {
+            id,
+            name: `User ${id}`,
+            email: `user${id}@example.com`
+          };
+        });
+
+        setItems(prev => [...prev, ...newItems]);
+        setPage(prev => prev + 1);
+        setLoading(false);
+
+        // Stop after 500 items (for demo)
+        if ((currentPage + 1) * 50 >= 500) {
+          setHasMore(false);
+        }
+      }, []);
+
+      // Load initial items
+      React.useEffect(() => {
+        loadMoreItems();
+      }, [loadMoreItems]);
+
+      // Detect scroll near bottom
+      const handleScroll = (e) => {
+        const { scrollTop, scrollHeight, clientHeight } = e.target;
+
+        // If scrolled within 200px of bottom
+        if (scrollHeight - scrollTop - clientHeight < 200) {
+          loadMoreItems();
+        }
+      };
+
+      return (
+        <div>
+          <h1>📜 Infinite Scroll</h1>
+
+          <div className="stats-panel">
+            <p><strong>Items loaded:</strong> {items.length}</p>
+            <p><strong>Has more:</strong> {hasMore ? 'Yes' : 'No'}</p>
+            <p><strong>Loading:</strong> {loading ? 'Yes' : 'No'}</p>
+
+            <p style={{ marginTop: '15px' }}>
+              Scroll down to load more items automatically!
+            </p>
+          </div>
+
+          <div
+            className="list-container"
+            onScroll={handleScroll}
+          >
+            {items.map(item => (
+              <div key={item.id} className="list-item">
+                <div className="avatar">{item.id}</div>
+                <div>
+                  <div style={{ fontWeight: 'bold' }}>{item.name}</div>
+                  <div style={{ fontSize: '14px', color: '#666' }}>{item.email}</div>
+                </div>
+              </div>
+            ))}
+
+            {loading && (
+              <div style={{ padding: '20px', textAlign: 'center' }}>
+                <div className="spinner"></div>
+                <p style={{ color: '#666', marginTop: '10px' }}>Loading more items...</p>
+              </div>
+            )}
+
+            {!hasMore && (
+              <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+                🎉 No more items to load
+              </div>
+            )}
+          </div>
+
+          <div style={{ marginTop: '20px', background: '#fff3e0', padding: '20px', borderRadius: '8px' }}>
+            <h3>💡 Infinite Scroll Pattern:</h3>
+            <ul>
+              <li>Start with a small batch (50 items)</li>
+              <li>Detect scroll position</li>
+              <li>When near bottom → fetch more</li>
+              <li>Show loading indicator</li>
+              <li>Append new items to the list</li>
+              <li>Combine with virtualization for best performance!</li>
+            </ul>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<InfiniteScrollList />);
+  </script>
+</body>
+</html>

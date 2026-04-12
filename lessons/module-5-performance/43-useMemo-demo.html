@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>useMemo Demo</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 30px;
+      background: #f5f7fa;
+      color: #222;
+    }
+    h1 { color: #4c51bf; }
+    input[type="text"] {
+      padding: 10px 14px;
+      font-size: 16px;
+      border: 2px solid #cbd5e0;
+      border-radius: 6px;
+      width: 300px;
+    }
+    button {
+      background: #4c51bf;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    button:hover { background: #434190; }
+    .panel {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .info-box {
+      background: #edf2f7;
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 4px solid #4c51bf;
+    }
+    .list {
+      max-height: 300px;
+      overflow: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px;
+      background: #fafafa;
+    }
+    .list-item {
+      padding: 6px 10px;
+      border-bottom: 1px solid #edf2f7;
+    }
+    .dark {
+      background: #1a202c !important;
+      color: #f7fafc;
+    }
+    .dark .panel, .dark .list { background: #2d3748; color: #f7fafc; border-color: #4a5568; }
+    .dark .info-box { background: #2d3748; color: #f7fafc; }
+    .dark h1 { color: #c3dafe; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    function ExpensiveList() {
+      const [searchTerm, setSearchTerm] = React.useState('');
+      const [theme, setTheme] = React.useState('light');
+
+      // Large dataset - only create once
+      const items = React.useMemo(() => {
+        return Array.from({ length: 10000 }, (_, i) => ({
+          id: i,
+          name: `Item ${i}`,
+          category: ['Electronics', 'Clothing', 'Food', 'Books'][i % 4]
+        }));
+      }, []);
+
+      // ❌ WITHOUT useMemo - runs on EVERY render (even theme changes!)
+      console.time('Slow filter (no memo)');
+      const filteredItemsSlow = items.filter(item =>
+        item.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      console.timeEnd('Slow filter (no memo)');
+
+      // ✅ WITH useMemo - only runs when searchTerm or items change
+      const filteredItemsFast = React.useMemo(() => {
+        console.time('Fast filter (useMemo)');
+        const result = items.filter(item =>
+          item.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        console.timeEnd('Fast filter (useMemo)');
+        return result;
+      }, [searchTerm, items]);
+
+      return (
+        <div className={theme === 'dark' ? 'dark' : ''}>
+          <h1>⚡ useMemo Demo</h1>
+
+          <div className="panel">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search 10,000 items..."
+            />
+            <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+              Toggle Theme ({theme})
+            </button>
+          </div>
+
+          <div className="panel">
+            <p>Found <strong>{filteredItemsFast.length}</strong> items matching "{searchTerm}"</p>
+
+            <div className="list">
+              {filteredItemsFast.slice(0, 50).map(item => (
+                <div key={item.id} className="list-item">
+                  <strong>{item.name}</strong> — <em>{item.category}</em>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="info-box">
+            <h3>🔍 Open Console:</h3>
+            <ul style={{ lineHeight: '1.8' }}>
+              <li>Type in search — both filters run (expected)</li>
+              <li>Click theme button — only the <strong>slow</strong> filter runs!</li>
+              <li>useMemo skips recalculation when searchTerm hasn't changed</li>
+              <li>Check the timing — huge difference for large lists!</li>
+            </ul>
+            <p style={{ marginTop: '15px', fontWeight: 'bold' }}>
+              useMemo = "Cache the result — only recompute when dependencies change"
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<ExpensiveList />);
+  </script>
+</body>
+</html>

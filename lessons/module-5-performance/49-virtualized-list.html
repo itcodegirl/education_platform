@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Virtualized List</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .list-container {
+      background: white;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+    }
+    .list-item {
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-sizing: border-box;
+    }
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #48bb78, #38a169);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .stats {
+      background: #e8f5e9;
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 4px solid #38a169;
+      margin-bottom: 20px;
+    }
+    .stats ul { margin: 8px 0; padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    // Simple virtualization implementation
+    function VirtualList({ items, itemHeight = 60, containerHeight = 600 }) {
+      const [scrollTop, setScrollTop] = React.useState(0);
+
+      // Calculate which items are visible
+      const startIndex = Math.floor(scrollTop / itemHeight);
+      const endIndex = Math.ceil((scrollTop + containerHeight) / itemHeight);
+
+      // Add buffer above and below for smoother scrolling
+      const bufferSize = 5;
+      const visibleStart = Math.max(0, startIndex - bufferSize);
+      const visibleEnd = Math.min(items.length, endIndex + bufferSize);
+
+      // Only render visible items
+      const visibleItems = items.slice(visibleStart, visibleEnd);
+
+      // Total height of all items (so scrollbar is accurate)
+      const totalHeight = items.length * itemHeight;
+
+      // Offset for visible items (so they appear in the right place)
+      const offsetY = visibleStart * itemHeight;
+
+      const handleScroll = (e) => {
+        setScrollTop(e.target.scrollTop);
+      };
+
+      return (
+        <div>
+          <div className="stats">
+            <strong>🚀 Virtual List Performance:</strong>
+            <ul>
+              <li>Total items: <strong>{items.length.toLocaleString()}</strong></li>
+              <li>Items in DOM: <strong>{visibleItems.length}</strong> (only visible + buffer!)</li>
+              <li>Visible range: <strong>{visibleStart} — {visibleEnd}</strong></li>
+              <li>Memory saved: <strong>{((1 - visibleItems.length / items.length) * 100).toFixed(2)}%</strong></li>
+            </ul>
+          </div>
+
+          <div
+            className="list-container"
+            style={{ height: containerHeight, overflow: 'auto' }}
+            onScroll={handleScroll}
+          >
+            {/* Spacer for total height */}
+            <div style={{ height: totalHeight, position: 'relative' }}>
+              {/* Visible items */}
+              <div style={{ transform: `translateY(${offsetY}px)` }}>
+                {visibleItems.map((item, index) => {
+                  const actualIndex = visibleStart + index;
+                  return (
+                    <div
+                      key={actualIndex}
+                      className="list-item"
+                      style={{ height: itemHeight }}
+                    >
+                      <div className="avatar">{actualIndex}</div>
+                      <div>
+                        <div style={{ fontWeight: 'bold' }}>{item.name}</div>
+                        <div style={{ fontSize: '14px', color: '#666' }}>{item.email}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      const items = React.useMemo(() => {
+        return Array.from({ length: 100000 }, (_, i) => ({
+          id: i,
+          name: `User ${i}`,
+          email: `user${i}@example.com`
+        }));
+      }, []);
+
+      return (
+        <div>
+          <h1>✅ Virtualized List (100,000 items)</h1>
+
+          <div style={{ background: '#e8f5e9', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+            <h3>🚀 How Virtualization Works:</h3>
+            <ol style={{ lineHeight: '1.8' }}>
+              <li>Calculate current scroll position</li>
+              <li>Determine which items are visible based on item height</li>
+              <li>Render ONLY visible items (+ a small buffer)</li>
+              <li>Use a spacer div to maintain total scroll height</li>
+              <li>Use <code>translateY</code> to position visible items correctly</li>
+            </ol>
+            <p style={{ marginTop: '10px' }}>
+              <strong>Result: Smooth scrolling with 100,000 items! 🎉</strong>
+            </p>
+          </div>
+
+          <VirtualList items={items} />
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

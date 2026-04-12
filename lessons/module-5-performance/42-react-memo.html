@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>React.memo Demo</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 40px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .component {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 12px;
+      margin: 20px 0;
+      backdrop-filter: blur(10px);
+    }
+    .render-count {
+      background: rgba(255, 0, 0, 0.3);
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      display: inline-block;
+    }
+    button {
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid white;
+      color: white;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    .info-box {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    // Child component WITHOUT React.memo
+    function ExpensiveChild({ name }) {
+      const renderCount = React.useRef(0);
+      renderCount.current += 1;
+
+      console.log(`ExpensiveChild rendered ${renderCount.current} times`);
+
+      // Simulate expensive operation (burn 100ms)
+      const startTime = performance.now();
+      while (performance.now() - startTime < 100) {
+        // Intentional busy-wait
+      }
+
+      return (
+        <div className="component" style={{ borderLeft: '4px solid #ff6b6b' }}>
+          <h3>❌ Expensive Child (No Memo)</h3>
+          <p>Name: {name}</p>
+          <div className="render-count">
+            Rendered {renderCount.current} times
+          </div>
+          <p style={{ fontSize: '14px', marginTop: '15px' }}>
+            This component takes 100ms to render (expensive!)
+          </p>
+        </div>
+      );
+    }
+
+    // Child component WITH React.memo
+    const MemoizedChild = React.memo(function MemoizedChild({ name }) {
+      const renderCount = React.useRef(0);
+      renderCount.current += 1;
+
+      console.log(`MemoizedChild rendered ${renderCount.current} times`);
+
+      // Same expensive operation
+      const startTime = performance.now();
+      while (performance.now() - startTime < 100) {
+        // Intentional busy-wait
+      }
+
+      return (
+        <div className="component" style={{ borderLeft: '4px solid #51cf66' }}>
+          <h3>✅ Memoized Child (With React.memo)</h3>
+          <p>Name: {name}</p>
+          <div className="render-count" style={{ background: 'rgba(0, 255, 0, 0.3)' }}>
+            Rendered {renderCount.current} times
+          </div>
+          <p style={{ fontSize: '14px', marginTop: '15px' }}>
+            This component is memoized - only re-renders if props change!
+          </p>
+        </div>
+      );
+    });
+
+    function Parent() {
+      const [count, setCount] = React.useState(0);
+      const [name, setName] = React.useState('Alice');
+
+      console.log('Parent rendered');
+
+      return (
+        <div>
+          <h1>⚡ React.memo Demo</h1>
+
+          <div className="component">
+            <h2>Parent Component</h2>
+            <p>Count: {count}</p>
+
+            <button onClick={() => setCount(count + 1)}>
+              Increment Count (doesn't change name prop)
+            </button>
+
+            <button onClick={() => setName(name === 'Alice' ? 'Bob' : 'Alice')}>
+              Change Name (changes prop)
+            </button>
+          </div>
+
+          <ExpensiveChild name={name} />
+          <MemoizedChild name={name} />
+
+          <div className="info-box">
+            <h3>🔍 What's Happening:</h3>
+            <ol style={{ lineHeight: '1.8' }}>
+              <li>Click "Increment Count" - Parent re-renders</li>
+              <li>ExpensiveChild re-renders too (even though name didn't change!) ❌</li>
+              <li>MemoizedChild SKIPS re-render (props are the same!) ✅</li>
+              <li>Open console to see render counts</li>
+              <li>Notice the performance difference!</li>
+            </ol>
+
+            <p style={{ marginTop: '15px', fontWeight: 'bold' }}>
+              React.memo = "Only re-render if props changed"
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<Parent />);
+  </script>
+</body>
+</html>
