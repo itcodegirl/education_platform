@@ -278,6 +278,101 @@
         "preview": "In Lesson 1.4, you'll learn to add borders around elements, control their thickness and style, and understand the complete box model. You'll make actual boxes!",
         "nextLessonId": "css-1-4"
       }
+    },
+    {
+      "id": "css-1-4",
+      "title": "Draw Borders and Understand the Box Model",
+      "prereqs": [
+        "css-1-3"
+      ],
+      "difficulty": "beginner",
+      "duration": "18 min",
+      "metadata": {
+        "estimatedTime": 18,
+        "difficulty": "beginner",
+        "conceptsCount": 4,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Add borders around elements",
+          "Control border thickness, style, and color",
+          "Understand how margin, border, padding, and content work together"
+        ]
+      },
+      "do": {
+        "title": "Add a border to a box",
+        "steps": [
+          "Create a new file and save it as borders.html",
+          "Copy and paste the code below",
+          "Save and open in browser",
+          "You should see a light blue box with a black border around it!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Borders</title>\n  <style>\n    .box {\n      background-color: lightblue;\n      padding: 20px;\n      border: 3px solid black;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"box\">\n    This box has a border!\n  </div>\n</body>\n</html>",
+        "result": "You added a solid black border that's 3 pixels thick!",
+        "proofRequired": "Screenshot showing your bordered box."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "The border property (shorthand)",
+            "definition": "Three properties in one: border-width (3px), border-style (solid), and border-color (black). You can write them together or separately.",
+            "analogy": "Drawing a picture frame around your content. You specify how thick, what style, and what color."
+          },
+          {
+            "name": "Border styles",
+            "definition": "solid = continuous line (most common). dashed = broken line. dotted = dots. double = two lines. none = no border.",
+            "analogy": "Different types of picture frames — wood, rope, dotted line, double frame."
+          },
+          {
+            "name": "The Box Model",
+            "definition": "Every element is a box with four layers: 1) Content (text/images), 2) Padding (space inside), 3) Border (visible line), 4) Margin (space outside).",
+            "analogy": "A framed picture: the photo is content, the matting is padding, the frame is the border, the wall space around it is margin."
+          },
+          {
+            "name": "Single-side borders",
+            "definition": "You can add a border to just one side: border-left, border-right, border-top, border-bottom. Great for accent lines and pull quotes.",
+            "analogy": "Like underscoring a word — you don't need a full box, just a line on one side."
+          }
+        ],
+        "keyTakeaway": "Every element is a box: content → padding → border → margin. Borders create visible edges between padding and margin."
+      },
+      "build": {
+        "goal": "Create different border styles and a pull-quote with a left border",
+        "codeComparison": {
+          "old": ".box {\n  background-color: lightblue;\n  padding: 20px;\n  border: 3px solid black;\n}",
+          "new": ".solid-border {\n  border: 3px solid blue;\n  padding: 15px;\n  margin: 10px;\n  display: inline-block;\n}\n\n.dashed-border {\n  border: 3px dashed red;\n  padding: 15px;\n  margin: 10px;\n  display: inline-block;\n}\n\n.quote {\n  border-left: 5px solid coral;\n  padding: 20px;\n  margin: 20px 0;\n  font-style: italic;\n  color: #555;\n  background-color: #f9f9f9;\n}"
+        },
+        "hint": "display: inline-block makes boxes sit side by side instead of stacking. border-left only adds a border to one side."
+      },
+      "challenge": {
+        "title": "Build a Profile Card with Border",
+        "mission": "Create a profile card with a photo placeholder, name, title, and description — all with proper spacing and borders.",
+        "requirements": [
+          "Card has a border around the whole thing",
+          "Photo placeholder (a colored div) at the top",
+          "Name in large text",
+          "Job title in smaller text",
+          "Short bio paragraph",
+          "All content has proper padding",
+          "Card has margin from page edges"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Profile Card</title>\n  <style>\n    body {\n      background-color: #f0f0f0;\n      padding: 40px;\n      font-family: Arial, sans-serif;\n    }\n    \n    /* Add your profile card styles here */\n    \n  </style>\n</head>\n<body>\n  <div class=\"profile-card\">\n    <div class=\"photo-placeholder\"></div>\n    <h2 class=\"name\">Your Name</h2>\n    <p class=\"title\">Your Title</p>\n    <p class=\"bio\">A short description about yourself.</p>\n  </div>\n</body>\n</html>",
+        "bonusChallenge": "Add border-radius: 8px; to round the card corners, and border-radius: 50%; to make the photo a circle!"
+      },
+      "summary": {
+        "capabilities": [
+          "Add borders with the border property",
+          "Control border thickness, style, and color",
+          "Add borders to specific sides (border-left, border-top, etc.)",
+          "Understand the complete box model (content → padding → border → margin)",
+          "Create professional-looking bordered components"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 1.5, you'll learn different ways to center things — horizontally, vertically, and both. You'll make layouts that look balanced!",
+        "nextLessonId": "css-1-5"
+      }
     }
   ]
 }
