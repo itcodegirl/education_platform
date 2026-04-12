@@ -283,6 +283,104 @@
         "preview": "In Lesson 4.6, you'll combine EVERYTHING you've learned across all 4 modules to build a complete, professional, polished portfolio website. This is your CSS capstone project!",
         "nextLessonId": "css-4-6"
       }
+    },
+    {
+      "id": "css-4-6",
+      "title": "Build Your Final Portfolio Website",
+      "prereqs": [
+        "css-4-5"
+      ],
+      "difficulty": "advanced",
+      "duration": "40 min",
+      "metadata": {
+        "estimatedTime": 40,
+        "difficulty": "advanced",
+        "conceptsCount": 24,
+        "tasksCount": 1
+      },
+      "hook": {
+        "accomplishments": [
+          "Combine ALL techniques from Modules 1-4",
+          "Build a production-ready portfolio",
+          "Add animations, transitions, responsive design",
+          "Create something you're proud to share"
+        ]
+      },
+      "do": {
+        "title": "Build your complete portfolio",
+        "steps": [
+          "Plan your color scheme (primary, secondary, neutrals) using coolors.co",
+          "Choose 3-6 projects to showcase",
+          "Write your \"about\" section",
+          "Create a new file: final-portfolio.html",
+          "Build section by section: Nav → Hero → About → Projects → Contact → Footer",
+          "Test at mobile, tablet, and desktop widths",
+          "Replace ALL placeholder content with YOUR information"
+        ],
+        "code": "<!-- This is your capstone project. Use everything you've learned! -->\n\n<!-- Required sections: -->\n<!-- 1. Sticky, responsive navigation -->\n<!-- 2. Hero with gradient background + CTA -->\n<!-- 3. About section with skills badges -->\n<!-- 4. Projects gallery (responsive grid + hover effects) -->\n<!-- 5. Contact section -->\n<!-- 6. Footer -->\n\n<!-- Required techniques checklist: -->\n<!-- Module 1: Colors, gradients, typography, spacing, borders, shadows -->\n<!-- Module 2: Flexbox, Grid, sticky positioning, display properties -->\n<!-- Module 3: Media queries, mobile-first, responsive images, clamp() -->\n<!-- Module 4: Transitions, hover animations, transforms, CSS variables -->\n\n<!-- Start with the portfolio template from Lesson 3.6 -->\n<!-- Then enhance it with everything from Module 4! -->",
+        "result": "You built a complete, professional portfolio combining every CSS technique from the entire curriculum!",
+        "proofRequired": "Screenshots at desktop, tablet, and mobile widths showing your finished portfolio."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "Bringing it all together",
+            "definition": "A professional website uses CSS Foundations (colors, typography, spacing), Layout (Flexbox, Grid), Responsive Design (media queries, clamp()), and Advanced Styling (animations, transforms, variables) working in harmony.",
+            "analogy": "A full orchestra — each section plays a different instrument but they all work together to create one song."
+          },
+          {
+            "name": "Design system approach",
+            "definition": "Define all your values (colors, spacing, typography, shadows, transitions) as CSS variables in :root. Then use them consistently everywhere. This makes your site cohesive and easy to maintain.",
+            "analogy": "A recipe book for your entire website — consistent ingredients, consistent results."
+          },
+          {
+            "name": "Progressive enhancement",
+            "definition": "Start with solid HTML structure, add core CSS styling, then layer on animations and advanced effects. The site should work without JavaScript or fancy effects.",
+            "analogy": "Building a house: foundation first, then walls, then paint, then furniture, then decorations."
+          }
+        ],
+        "keyTakeaway": "Professional websites combine multiple CSS techniques working together. Master each one individually, then combine them into cohesive projects."
+      },
+      "build": {
+        "goal": "Enhance your portfolio with Module 4 techniques",
+        "codeComparison": {
+          "old": "/* Basic portfolio from Module 3 */\n.nav { position: sticky; top: 0; }\n.hero { background: linear-gradient(...); }\n.projects-grid { display: grid; }",
+          "new": "/* Enhanced portfolio with Module 4 */\n:root {\n  --primary: #667eea;\n  --transition: all 0.3s ease;\n}\n\n.nav { transition: var(--transition); }\n.card:hover {\n  transform: translateY(-8px);\n  box-shadow: 0 12px 24px rgba(0,0,0,0.15);\n}\n.glass-section {\n  backdrop-filter: blur(10px);\n  background: rgba(255,255,255,0.1);\n}\n@keyframes fadeIn {\n  from { opacity: 0; transform: translateY(20px); }\n  to { opacity: 1; transform: translateY(0); }\n}"
+        },
+        "hint": "Start with your Lesson 3.6 portfolio, then add CSS variables, transitions, hover transforms, and glassmorphism effects."
+      },
+      "challenge": {
+        "title": "Make It Production-Ready",
+        "mission": "Polish your portfolio to a level you'd be proud to show employers or clients.",
+        "requirements": [
+          "All placeholder content replaced with YOUR real information",
+          "At least 3 real projects with descriptions",
+          "Custom color scheme matching your personal brand",
+          "Working on mobile, tablet, and desktop",
+          "Smooth hover effects and transitions on all interactive elements",
+          "CSS variables used for consistent theming",
+          "Professional typography with visual hierarchy",
+          "Accessible (proper contrast, focus states, semantic HTML)"
+        ],
+        "starterCode": "<!-- Use your portfolio from Lesson 3.6 as the starting point -->\n<!-- Add these Module 4 enhancements: -->\n<!-- 1. CSS variables for your color scheme -->\n<!-- 2. Smooth transitions on all interactive elements -->\n<!-- 3. Transform hover effects on project cards -->\n<!-- 4. Box-shadow depth system -->\n<!-- 5. Optional: glassmorphism, dark mode toggle -->",
+        "bonusChallenge": "Add a dark mode toggle with localStorage persistence, animated hamburger menu for mobile, or scroll-triggered animations!"
+      },
+      "summary": {
+        "capabilities": [
+          "Build complete, professional portfolio websites from scratch",
+          "Combine CSS Foundations, Layout, Responsive Design, and Advanced Styling",
+          "Create cohesive designs with CSS variable design systems",
+          "Implement responsive layouts that work on any device",
+          "Add professional animations, transitions, and hover effects",
+          "Use modern CSS techniques (clamp, grid auto-fit, backdrop-filter)",
+          "Write maintainable, scalable CSS",
+          "Design with visual hierarchy, depth, and polish"
+        ]
+      },
+      "bridge": {
+        "preview": "Congratulations — you've completed the entire CSS curriculum! You're now ready to learn JavaScript and make your websites interactive, or dive into React to build complex applications.",
+        "nextLessonId": "js-1-1"
+      }
     }
   ]
 }
