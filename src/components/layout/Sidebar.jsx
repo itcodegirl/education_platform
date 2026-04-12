@@ -48,7 +48,14 @@ export const Sidebar = memo(function Sidebar({
   onSelectLesson,
   onSelectModQuiz,
   onOpenTool,
+  onOpenOverlay,
 }) {
+  // Fallback for callers that haven't been updated yet (tests, storybook):
+  // fall back to the legacy hash-based entry point so clicks still work.
+  const openProfile = () => {
+    if (onOpenOverlay) onOpenOverlay('profile');
+    else window.location.hash = '#profile';
+  };
   const { completed = [], xpTotal = 0, streak = 0, dailyCount = 0 } = useProgress();
   const { user, signOut } = useAuth();
   const [lockMode, setLockMode] = useState(() => localStorage.getItem('chw-lock-mode') === 'true');
@@ -127,7 +134,7 @@ export const Sidebar = memo(function Sidebar({
           <div
             className="user-avatar"
             style={{ cursor: 'pointer' }}
-            onClick={() => { window.location.hash = '#profile'; window.location.reload(); }}
+            onClick={openProfile}
             title="View profile"
             role="button"
             tabIndex={0}
@@ -138,7 +145,7 @@ export const Sidebar = memo(function Sidebar({
             <span
               className="user-name"
               style={{ cursor: 'pointer' }}
-              onClick={() => { window.location.hash = '#profile'; window.location.reload(); }}
+              onClick={openProfile}
               title="View profile"
             >
               {displayName}

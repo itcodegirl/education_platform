@@ -343,3 +343,39 @@ drop policy if exists "Users manage own last_position" on public.last_position;
 create policy "Users manage own last_position when active" on public.last_position
   for all using (auth.uid() = user_id and public.is_active())
           with check (auth.uid() = user_id and public.is_active());
+
+-- ═══════════════════════════════════════════════
+-- ADMIN AUDIT LOG
+-- Persistent record of every admin-initiated action (disable/enable
+-- users, etc.) so an incident reviewer can answer "who did what when".
+-- Only admins can read or write; the admin_id must match auth.uid()
+-- on insert so one admin can't forge an entry as another.
+-- ═══════════════════════════════════════════════
+
+create table if not exists public.admin_audit_log (
+  id uuid default gen_random_uuid() primary key,
+  admin_id uuid references auth.users on delete set null,
+  admin_display_name text,
+  target_user_id uuid references auth.users on delete set null,
+  target_display_name text,
+  action text not null,
+  details jsonb,
+  created_at timestamptz default now()
+);
+
+alter table public.admin_audit_log enable row level security;
+
+drop policy if exists "Admins read audit log" on public.admin_audit_log;
+create policy "Admins read audit log"
+  on public.admin_audit_log for select
+  using (public.is_admin());
+
+drop policy if exists "Admins insert audit log" on public.admin_audit_log;
+create policy "Admins insert audit log"
+  on public.admin_audit_log for insert
+  with check (public.is_admin() and auth.uid() = admin_id);
+
+create index if not exists idx_admin_audit_log_created
+  on public.admin_audit_log(created_at desc);
+create index if not exists idx_admin_audit_log_target
+  on public.admin_audit_log(target_user_id);

@@ -4,7 +4,15 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { defineMonacoTheme, MONACO_THEME_NAME, MONACO_OPTIONS } from '../../utils/monacoTheme';
 import { explainCode as explainCodeRequest } from '../../services/aiService';
 
-const MonacoEditor = lazy(() => import('@monaco-editor/react'));
+// Load monacoLoader first (configures @monaco-editor/react to use the
+// Vite-bundled monaco-editor package + Vite-bundled workers, so no
+// runtime CDN fetch from jsDelivr) and only then resolve the actual
+// @monaco-editor/react module. Both imports are dynamic, so Vite
+// puts them in the same lazy chunk as the Monaco editor itself.
+const MonacoEditor = lazy(async () => {
+  await import('../../lib/monacoLoader');
+  return import('@monaco-editor/react');
+});
 
 const SCAFFOLDING = {
   full:         { icon: '📝', label: 'Complete Example',    hint: 'Study this code, then try modifying it in the Editor tab.' },

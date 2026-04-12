@@ -20,6 +20,7 @@ import { OverviewTab } from './tabs/OverviewTab';
 import { UsersTab } from './tabs/UsersTab';
 import { CoursesTab } from './tabs/CoursesTab';
 import { QuizzesTab } from './tabs/QuizzesTab';
+import { AuditLogTab } from './tabs/AuditLogTab';
 
 const LessonBuilder = lazy(() => import('./LessonBuilder').then(m => ({ default: m.LessonBuilder })));
 
@@ -28,6 +29,7 @@ const TABS = [
   { id: 'users', label: '👥 Users' },
   { id: 'courses', label: '📚 Courses' },
   { id: 'quizzes', label: '📝 Quizzes' },
+  { id: 'audit', label: '🗒️ Audit Log' },
   { id: 'builder', label: '🛠️ Lesson Builder' },
 ];
 
@@ -188,6 +190,7 @@ export function AdminDashboard({ onClose }) {
               <UsersTab
                 data={data}
                 currentUserId={user.id}
+                currentAdminName={data.users.find(u => u.id === user.id)?.display_name || null}
                 totalUsers={stats.totalUsers}
                 actionLoading={actionLoading}
                 setActionLoading={setActionLoading}
@@ -201,6 +204,10 @@ export function AdminDashboard({ onClose }) {
 
             {tab === 'quizzes' && (
               <QuizzesTab quizStats={quizStats} />
+            )}
+
+            {tab === 'audit' && (
+              <AuditLogTab />
             )}
 
             {tab === 'builder' && (

@@ -34,7 +34,7 @@ import { PanelManager } from "../components/PanelManager";
 import { WhatsNew } from "../components/shared/WhatsNew";
 import { EmailVerifyBanner } from "../components/shared/EmailVerifyBanner";
 
-export function AppLayout() {
+export function AppLayout({ onOpenOverlay }) {
   const { theme } = useTheme();
   const { profile } = useAuth();
   const {
@@ -194,6 +194,7 @@ export function AppLayout() {
           panels.setSidebar(false);
         }}
         onOpenTool={handleOpenTool}
+        onOpenOverlay={onOpenOverlay}
       />
 
       <main className="mn" ref={mainRef}>

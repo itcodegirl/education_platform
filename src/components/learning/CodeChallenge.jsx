@@ -10,7 +10,13 @@ import { askChallengeTutor } from '../../services/aiService';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { defineMonacoTheme, MONACO_THEME_NAME, MONACO_OPTIONS } from '../../utils/monacoTheme';
 
-const MonacoEditor = lazy(() => import('@monaco-editor/react'));
+// See CodePreview.jsx for the rationale — lazy-chain the monacoLoader
+// ahead of @monaco-editor/react so the bundled-Monaco setup lands in
+// the same on-demand chunk as the editor module.
+const MonacoEditor = lazy(async () => {
+  await import('../../lib/monacoLoader');
+  return import('@monaco-editor/react');
+});
 
 export function CodeChallenge({ challenge, lang, onComplete }) {
   const isMobile = useIsMobile();

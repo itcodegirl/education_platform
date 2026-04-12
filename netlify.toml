@@ -72,35 +72,34 @@
 # Security headers
 #
 # CSP notes:
-#  - Monaco Editor is lazy-loaded by @monaco-editor/react. Depending on
-#    configuration it may either be bundled by Vite (safe) or fetched from
-#    cdn.jsdelivr.net (requires jsDelivr in script-src). The default uses
-#    jsDelivr and Monaco also calls `new Function()` internally, so the
-#    current policy includes both jsDelivr and 'unsafe-eval'.
-#  - Monaco spawns language workers via blob: URLs, hence worker-src blob:.
+#  - Monaco Editor is now bundled via Vite (see src/lib/monacoLoader.js),
+#    so `https://cdn.jsdelivr.net` is no longer needed anywhere in this
+#    policy. Monaco still calls `new Function()` internally for its
+#    language services, so 'unsafe-eval' remains in script-src until
+#    someone verifies the editors work without it on a preview deploy.
+#  - Monaco spawns language workers via `new Worker(new URL(…))` from
+#    Vite-bundled chunks on the same origin, so worker-src needs 'self';
+#    blob: is kept as a defensive fallback for any worker code that
+#    Monaco may wrap in a blob URL.
 #  - Supabase client talks to *.supabase.co over HTTPS + WSS (realtime).
 #  - OpenAI is never called from the browser — only from netlify/functions/ai.js
 #    — so api.openai.com is intentionally absent from connect-src.
 #  - Lesson previews are rendered with <iframe srcDoc=… sandbox="allow-scripts">,
 #    which inherits the parent's origin and doesn't need a frame-src exception.
 #
-# TIGHTENING CANDIDATE (commented out until verified on a preview deploy):
-#   Content-Security-Policy = "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
-#
-# To adopt the stricter policy:
-#   1. Configure @monaco-editor/react to load Monaco from the Vite bundle
-#      instead of jsDelivr: add
-#         import { loader } from '@monaco-editor/react';
-#         import * as monaco from 'monaco-editor';
-#         loader.config({ monaco });
-#      to src/main.jsx (requires adding monaco-editor as a direct dep).
-#   2. Deploy to a Netlify preview URL with the stricter policy swapped in.
-#   3. Walk every code-editor surface (CodePreview, CodeChallenge, AI Tutor
-#      code blocks) with DevTools open. A passing run shows no "Refused to
-#      execute inline script because it violates CSP" in the console and
-#      no "Refused to load script 'https://cdn.jsdelivr.net/…'" warnings.
-#   4. If anything breaks, re-add the specific directive rather than falling
-#      back wholesale — e.g. Monaco workers may still need 'unsafe-eval'.
+# NEXT TIGHTENING STEP (not yet active — needs preview verification):
+# Once a preview deploy confirms Monaco's TypeScript language service
+# still works without 'unsafe-eval', swap script-src down to:
+#   script-src 'self' 'wasm-unsafe-eval';
+# Test matrix for that change:
+#   1. Open every code-editor surface (CodePreview "Editor" tab,
+#      CodeChallenge, Lesson Builder code view) with DevTools open.
+#      No "Refused to execute inline script because it violates CSP"
+#      warnings should appear.
+#   2. In CodePreview, edit JS code and confirm the iframe preview
+#      still renders output and Monaco still highlights syntax.
+#   3. Check a CodeChallenge with hints — tab completion and linting
+#      should still work.
 [[headers]]
   for = "/*"
   [headers.values]
@@ -108,4 +107,4 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"

@@ -1,9 +1,18 @@
 // ═══════════════════════════════════════════════
 // APP ROUTES — All render gates in one place
-// Auth → Disabled → Admin → Error → Loading → App
+// Auth → Disabled → Overlay → Error → Loading → App
+//
+// Overlay routing (profile / admin) is tracked in React
+// state instead of window.location.hash, so closing an
+// overlay no longer triggers a full page reload. The
+// URL hash is still honoured for deep links — existing
+// #profile / #admin bookmarks work, and hashchange
+// events update the overlay — but once React is mounted
+// we clear the hash so a subsequent manual reload
+// doesn't re-enter the overlay.
 // ═══════════════════════════════════════════════
 
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { useTheme, useAuth, useProgress } from '../providers';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { AppLayout } from '../layouts/AppLayout';
@@ -17,10 +26,49 @@ const ProfilePage = lazy(() =>
   import('../components/shared/ProfilePage').then(m => ({ default: m.ProfilePage }))
 );
 
+function readOverlayFromHash() {
+  if (typeof window === 'undefined') return null;
+  const hash = window.location.hash;
+  if (hash === '#profile') return 'profile';
+  if (hash === '#admin') return 'admin';
+  return null;
+}
+
 export default function AppRoutes() {
   const { theme } = useTheme();
   const { user, profile, loading: authLoading, signOut } = useAuth();
   const { dataLoaded, loadError, retryLoad } = useProgress();
+
+  // overlay ∈ { null | 'profile' | 'admin' }
+  const [overlay, setOverlay] = useState(() => readOverlayFromHash());
+
+  const closeOverlay = useCallback(() => {
+    setOverlay(null);
+    // Keep the URL bar in sync so a subsequent manual reload doesn't
+    // re-enter the overlay. replaceState avoids scrolling the page and
+    // doesn't trigger an extra hashchange roundtrip.
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const { pathname, search } = window.location;
+      window.history.replaceState(null, '', pathname + search);
+    }
+  }, []);
+
+  const openOverlay = useCallback((name) => {
+    setOverlay(name);
+  }, []);
+
+  // Support deep-linked #profile / #admin bookmarks even after the
+  // first render — a user could paste a URL with a hash into the
+  // address bar of an already-mounted app.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onHashChange = () => {
+      const next = readOverlayFromHash();
+      if (next) setOverlay(next);
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
 
   // ─── Loading (auth check in progress) ─────
   if (authLoading) {
@@ -52,8 +100,8 @@ export default function AppRoutes() {
     );
   }
 
-  // ─── Profile route ─────────────────────────
-  if (window.location.hash === '#profile') {
+  // ─── Profile overlay ───────────────────────
+  if (overlay === 'profile') {
     return (
       <div className={theme}>
         <Suspense fallback={
@@ -61,14 +109,14 @@ export default function AppRoutes() {
             <div className="loading-pulse"><span className="loading-bolt">⚡</span><p>Loading profile...</p></div>
           </div>
         }>
-          <ProfilePage onClose={() => { window.location.hash = ''; window.location.reload(); }} />
+          <ProfilePage onClose={closeOverlay} />
         </Suspense>
       </div>
     );
   }
 
-  // ─── Admin route ──────────────────────────
-  if (window.location.hash === '#admin') {
+  // ─── Admin overlay ─────────────────────────
+  if (overlay === 'admin') {
     return (
       <div className={theme}>
         <Suspense fallback={
@@ -76,7 +124,7 @@ export default function AppRoutes() {
             <div className="loading-pulse"><span className="loading-bolt">⚡</span><p>Loading admin...</p></div>
           </div>
         }>
-          <AdminDashboard onClose={() => { window.location.hash = ''; window.location.reload(); }} />
+          <AdminDashboard onClose={closeOverlay} />
         </Suspense>
       </div>
     );
@@ -113,5 +161,5 @@ export default function AppRoutes() {
   }
 
   // ─── Main app ─────────────────────────────
-  return <AppLayout />;
+  return <AppLayout onOpenOverlay={openOverlay} />;
 }

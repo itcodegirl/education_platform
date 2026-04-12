@@ -6,7 +6,10 @@
 import { supabase } from '../../../lib/supabaseClient';
 import { wouldLeaveZeroActiveAdmins } from '../adminActions';
 
-async function toggleUserDisabled(user, { onUserUpdated, setActionLoading }) {
+async function toggleUserDisabled(
+  user,
+  { onUserUpdated, setActionLoading, currentAdminId, currentAdminName },
+) {
   const isDisabled = !!user.is_disabled;
   setActionLoading(user.id);
   try {
@@ -36,6 +39,22 @@ async function toggleUserDisabled(user, { onUserUpdated, setActionLoading }) {
     }
 
     onUserUpdated(user.id, { is_disabled: updated[0].is_disabled });
+
+    // Fire-and-forget audit log write. Logging failures must never block
+    // the UI — we already succeeded on the state change — but they
+    // should be visible in the console so they can be investigated.
+    supabase
+      .from('admin_audit_log')
+      .insert({
+        admin_id: currentAdminId,
+        admin_display_name: currentAdminName || null,
+        target_user_id: user.id,
+        target_display_name: user.display_name || null,
+        action: updated[0].is_disabled ? 'user_disabled' : 'user_enabled',
+      })
+      .then(({ error: logError }) => {
+        if (logError) console.error('Failed to write audit log:', logError);
+      });
   } finally {
     setActionLoading(null);
   }
@@ -44,6 +63,7 @@ async function toggleUserDisabled(user, { onUserUpdated, setActionLoading }) {
 export function UsersTab({
   data,
   currentUserId,
+  currentAdminName,
   totalUsers,
   actionLoading,
   setActionLoading,
@@ -65,7 +85,12 @@ export function UsersTab({
     if (!confirm(`${isDisabled ? 'Enable' : 'Disable'} ${u.display_name || 'this user'}?`)) {
       return;
     }
-    await toggleUserDisabled(u, { onUserUpdated, setActionLoading });
+    await toggleUserDisabled(u, {
+      onUserUpdated,
+      setActionLoading,
+      currentAdminId: currentUserId,
+      currentAdminName,
+    });
   };
 
   return (

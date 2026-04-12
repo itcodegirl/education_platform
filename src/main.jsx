@@ -7,6 +7,12 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 
+// Monaco is lazy-loaded by the code editor components themselves —
+// see src/lib/monacoLoader.js and its call sites in CodePreview /
+// CodeChallenge. Do NOT import the loader from here, or Vite pulls
+// the entire Monaco package (all language modes, ~4 MB) into the
+// initial bundle.
+
 const CHUNK_RELOAD_KEY = 'chw:chunk-reload-at';
 const CHUNK_RELOAD_WINDOW_MS = 15000;
 
