@@ -11,6 +11,7 @@ import jsAwakening from './modules/js-awakening.json';
 import dataMastery from './modules/data-mastery.json';
 import userInteraction from './modules/user-interaction.json';
 import advancedArrays from './modules/advanced-arrays.json';
+import apisAsync from './modules/apis-async.json';
 
 // Old modules kept for advanced track (not loaded in core course)
 // import { module201 } from './modules/what-javascript-is.js';
@@ -21,4 +22,5 @@ export const JS_MODULES = [
   dataMastery,
   userInteraction,
   advancedArrays,
+  apisAsync,
 ];

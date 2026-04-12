@@ -1,0 +1,128 @@
+{
+  "id": 305,
+  "emoji": "🌐",
+  "title": "APIs and Async JavaScript",
+  "tagline": "Fetch real data from the internet.",
+  "difficulty": "intermediate",
+  "lessons": [
+    {
+      "id": "js-5-1",
+      "title": "Fetch Data from APIs",
+      "prereqs": [],
+      "difficulty": "intermediate",
+      "duration": "22 min",
+      "metadata": {
+        "estimatedTime": 22,
+        "difficulty": "intermediate",
+        "conceptsCount": 7,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Pull real weather data from the internet into your app",
+          "Understand how websites get data from servers",
+          "Build a weather app that shows live information",
+          "Make your apps dynamic with real-world data"
+        ]
+      },
+      "do": {
+        "title": "Fetch Real Weather Data",
+        "steps": [
+          "Open VS Code or CodePen",
+          "Create weather-app.html",
+          "Copy the code below",
+          "Save and open in browser",
+          "Click 'Get Weather' — see REAL data appear!",
+          "Try different cities",
+          "Watch the console to see the data flow"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Weather App</title>\n  <style>\n    body { margin: 0; padding: 0; min-height: 100vh; background: linear-gradient(135deg, #667eea, #764ba2); font-family: Arial; display: flex; justify-content: center; align-items: center; }\n    .container { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 450px; }\n    h1 { text-align: center; color: #2C3E50; margin: 0 0 30px; }\n    .search { display: flex; gap: 10px; margin-bottom: 30px; }\n    input { flex: 1; padding: 15px; font-size: 16px; border: 2px solid #BDC3C7; border-radius: 10px; }\n    button { padding: 15px 30px; font-size: 16px; font-weight: bold; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 10px; cursor: pointer; }\n    .weather-display { display: none; text-align: center; }\n    .weather-display.show { display: block; }\n    .city-name { font-size: 32px; font-weight: bold; color: #2C3E50; }\n    .temperature { font-size: 72px; font-weight: bold; color: #667eea; margin: 20px 0; }\n    .description { font-size: 24px; color: #7F8C8D; text-transform: capitalize; }\n    .details { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }\n    .detail-item { background: #F8F9FA; padding: 15px; border-radius: 10px; }\n    .detail-label { font-size: 12px; color: #7F8C8D; text-transform: uppercase; }\n    .detail-value { font-size: 20px; font-weight: bold; color: #2C3E50; }\n    .loading, .error { text-align: center; padding: 15px; display: none; }\n    .loading.show, .error.show { display: block; }\n    .error { background: #FADBD8; color: #C0392B; border-radius: 10px; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <h1>🌤️ Weather App</h1>\n    <div class=\"search\">\n      <input type=\"text\" id=\"city-input\" placeholder=\"Enter city name...\" value=\"London\">\n      <button onclick=\"getWeather()\">Get Weather</button>\n    </div>\n    <div class=\"loading\" id=\"loading\">Loading weather data...</div>\n    <div class=\"error\" id=\"error\">City not found. Please try again.</div>\n    <div class=\"weather-display\" id=\"weather-display\">\n      <div class=\"city-name\" id=\"city-name\"></div>\n      <div class=\"temperature\" id=\"temperature\"></div>\n      <div class=\"description\" id=\"description\"></div>\n      <div class=\"details\">\n        <div class=\"detail-item\"><div class=\"detail-label\">Feels Like</div><div class=\"detail-value\" id=\"feels-like\"></div></div>\n        <div class=\"detail-item\"><div class=\"detail-label\">Humidity</div><div class=\"detail-value\" id=\"humidity\"></div></div>\n        <div class=\"detail-item\"><div class=\"detail-label\">Wind</div><div class=\"detail-value\" id=\"wind-speed\"></div></div>\n        <div class=\"detail-item\"><div class=\"detail-label\">Pressure</div><div class=\"detail-value\" id=\"pressure\"></div></div>\n      </div>\n    </div>\n  </div>\n\n  <script>\n    const API_KEY = \"bd5e378503939ddaee76f12ad7a97608\";\n    const API_URL = \"https://api.openweathermap.org/data/2.5/weather\";\n    \n    function getWeather() {\n      const city = document.getElementById(\"city-input\").value;\n      if (!city) return alert(\"Please enter a city name\");\n      \n      document.getElementById(\"loading\").classList.add(\"show\");\n      document.getElementById(\"error\").classList.remove(\"show\");\n      document.getElementById(\"weather-display\").classList.remove(\"show\");\n      \n      const url = `${API_URL}?q=${city}&appid=${API_KEY}&units=metric`;\n      console.log(\"Fetching:\", url);\n      \n      fetch(url)\n        .then(response => {\n          if (!response.ok) throw new Error(\"City not found\");\n          return response.json();\n        })\n        .then(data => {\n          console.log(\"Data:\", data);\n          document.getElementById(\"city-name\").textContent = data.name + \", \" + data.sys.country;\n          document.getElementById(\"temperature\").textContent = Math.round(data.main.temp) + \"°C\";\n          document.getElementById(\"description\").textContent = data.weather[0].description;\n          document.getElementById(\"feels-like\").textContent = Math.round(data.main.feels_like) + \"°C\";\n          document.getElementById(\"humidity\").textContent = data.main.humidity + \"%\";\n          document.getElementById(\"wind-speed\").textContent = data.wind.speed + \" m/s\";\n          document.getElementById(\"pressure\").textContent = data.main.pressure + \" hPa\";\n          document.getElementById(\"loading\").classList.remove(\"show\");\n          document.getElementById(\"weather-display\").classList.add(\"show\");\n        })\n        .catch(error => {\n          console.error(\"Error:\", error);\n          document.getElementById(\"loading\").classList.remove(\"show\");\n          document.getElementById(\"error\").classList.add(\"show\");\n        });\n    }\n    \n    document.getElementById(\"city-input\").addEventListener(\"keypress\", function(e) {\n      if (e.key === \"Enter\") getWeather();\n    });\n  </script>\n</body>\n</html>",
+        "result": "You just fetched REAL weather data from the internet! The data comes from OpenWeatherMap's servers and updates in real-time.",
+        "proofRequired": "Screenshot showing weather data for at least 2 different cities."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "What is an API?",
+            "definition": "API = Application Programming Interface. A URL that returns DATA (usually JSON) instead of a webpage. Websites use them to talk to servers.",
+            "analogy": "A restaurant menu. You (the customer) request items from the menu, and the kitchen (the API) prepares and sends back what you ordered."
+          },
+          {
+            "name": "JSON format",
+            "definition": "JavaScript Object Notation — a text format for data that looks almost exactly like JavaScript objects. Keys in double quotes. Almost every API uses JSON.",
+            "analogy": "A standardized shipping container — every country uses the same format so anything can be shipped anywhere."
+          },
+          {
+            "name": "The fetch() function",
+            "definition": "fetch(url) makes HTTP requests to get data from URLs. Returns a Promise that resolves when the data arrives. The most important function for working with APIs.",
+            "analogy": "Sending a letter — you drop it in the mailbox and get a tracking number (Promise). The response comes back later."
+          },
+          {
+            "name": "What is a Promise?",
+            "definition": "A value that will be available in the future. States: pending (waiting), fulfilled (success), rejected (failed). JavaScript's way of handling operations that take time.",
+            "analogy": "Ordering food at a restaurant. They give you a receipt (Promise) immediately. You can't eat the receipt, but it PROMISES you'll get food later."
+          },
+          {
+            "name": ".then() method",
+            "definition": "Runs code AFTER a Promise resolves. You can chain multiple .then() calls. Each one returns a new Promise. fetch(url).then(res => res.json()).then(data => ...).",
+            "analogy": "A to-do list with dependencies: \"WHEN this finishes, THEN do this, THEN do this.\""
+          },
+          {
+            "name": ".catch() method",
+            "definition": "Runs if ANY Promise in the chain fails. One .catch() at the end handles all errors. Essential for handling network failures and API errors.",
+            "analogy": "A safety net at a circus — catches you no matter which trapeze you fall from."
+          },
+          {
+            "name": "Response object",
+            "definition": "fetch() first returns a Response with metadata. response.ok is true if status is 200-299. Call response.json() to get the actual data (returns another Promise).",
+            "analogy": "An envelope (response) with a letter inside (the data). You have to open it first (response.json()) to read what's inside."
+          }
+        ],
+        "keyTakeaway": "APIs return data as JSON. fetch() gets data but returns a Promise. Use .then() to handle the data when it arrives, and .catch() to handle errors."
+      },
+      "build": {
+        "goal": "Extend the weather app to show multiple cities side-by-side for comparison",
+        "codeComparison": {
+          "old": "// Single city\nfetch(weatherUrl)\n  .then(res => res.json())\n  .then(data => displayWeather(data));",
+          "new": "// Multiple cities in parallel\nlet cities = [];\n\nfunction addCity(cityName) {\n  fetch(`${API_URL}?q=${cityName}&appid=${KEY}`)\n    .then(res => {\n      if (!res.ok) throw new Error('City not found');\n      return res.json();\n    })\n    .then(data => {\n      cities.push(data);\n      renderCities();\n    })\n    .catch(err => alert(err.message));\n}\n\nfunction renderCities() {\n  grid.innerHTML = cities.map(city => `\n    <div class=\"card\">\n      <h2>${city.name}</h2>\n      <div>${Math.round(city.main.temp)}°C</div>\n    </div>\n  `).join('');\n}"
+        },
+        "hint": "Store all city data in an array, then use .map() to create HTML for each city card!"
+      },
+      "challenge": {
+        "title": "Build a GitHub User Profile Viewer",
+        "mission": "Create an app that fetches and displays GitHub user profiles using the GitHub API.",
+        "requirements": [
+          "Input field for GitHub username",
+          "Fetch user data from https://api.github.com/users/{username}",
+          "Display: avatar, name, bio, location, followers, following, repos count",
+          "Fetch repositories from https://api.github.com/users/{username}/repos",
+          "Show each repo: name, description, stars, language",
+          "Sort repos by stars (most popular first)",
+          "Show only top 6 repos",
+          "Handle errors (user not found)",
+          "Add loading state while fetching",
+          "Professional styling"
+        ],
+        "starterCode": "function searchUser() {\n  const username = document.getElementById('username-input').value.trim();\n  \n  // 1. Fetch user profile\n  fetch(`https://api.github.com/users/${username}`)\n    .then(res => {\n      if (!res.ok) throw new Error('User not found');\n      return res.json();\n    })\n    .then(user => displayProfile(user))\n    .catch(err => alert(err.message));\n  \n  // 2. Fetch user repos (parallel!)\n  fetch(`https://api.github.com/users/${username}/repos`)\n    .then(res => res.json())\n    .then(repos => {\n      const top6 = repos\n        .sort((a, b) => b.stargazers_count - a.stargazers_count)\n        .slice(0, 6);\n      displayRepos(top6);\n    });\n}\n\nfunction displayProfile(user) {\n  // Fill in profile: avatar, name, bio, stats\n}\n\nfunction displayRepos(repos) {\n  // Build HTML for each repo card\n}",
+        "bonusChallenge": "Add a \"View on GitHub\" button for each repository that opens it in a new tab using target=\"_blank\"."
+      },
+      "summary": {
+        "capabilities": [
+          "Understand what APIs are and how they work",
+          "Use fetch() to get data from the internet",
+          "Handle Promises with .then() and .catch()",
+          "Parse JSON data from API responses",
+          "Display API data on web pages",
+          "Handle loading states while fetching",
+          "Handle errors when APIs fail",
+          "Make multiple API calls simultaneously",
+          "Build real applications with live data"
+        ]
+      },
+      "bridge": {
+        "preview": "In the next lesson, you'll learn ASYNC/AWAIT — a cleaner, more readable way to write asynchronous code that looks like regular synchronous code.",
+        "nextLessonId": "js-5-2"
+      }
+    }
+  ]
+}
