@@ -1,0 +1,95 @@
+{
+  "id": 204,
+  "emoji": "✨",
+  "title": "Advanced Styling",
+  "tagline": "Animations, transitions, and professional polish.",
+  "difficulty": "advanced",
+  "lessons": [
+    {
+      "id": "css-4-3",
+      "title": "Master CSS Custom Properties",
+      "prereqs": [],
+      "difficulty": "intermediate",
+      "duration": "18 min",
+      "metadata": { "estimatedTime": 18, "difficulty": "intermediate", "conceptsCount": 3, "tasksCount": 3 },
+      "hook": {
+        "accomplishments": [
+          "Create a theme system with CSS variables",
+          "Switch between light and dark modes",
+          "Build a consistent design system",
+          "Update your entire site by changing a few values"
+        ]
+      },
+      "do": {
+        "title": "Create your first CSS variables",
+        "steps": [
+          "Create a new file and save it as css-variables.html",
+          "Copy and paste the code below",
+          "Save and open in browser",
+          "Try changing --primary-color in :root to a different color",
+          "Watch everything using that variable update instantly!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>CSS Variables</title>\n  <style>\n    :root {\n      --primary-color: #667eea;\n      --secondary-color: #764ba2;\n      --text-color: #333;\n      --background-color: #f9f9f9;\n      --card-padding: 24px;\n      --border-radius: 12px;\n    }\n    \n    body {\n      margin: 0;\n      padding: 40px;\n      background-color: var(--background-color);\n      color: var(--text-color);\n      font-family: Arial, sans-serif;\n    }\n    \n    .card {\n      background-color: white;\n      padding: var(--card-padding);\n      border-radius: var(--border-radius);\n      margin-bottom: 20px;\n      box-shadow: 0 2px 8px rgba(0,0,0,0.1);\n    }\n    \n    .button {\n      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));\n      color: white;\n      padding: 12px 24px;\n      border: none;\n      border-radius: var(--border-radius);\n      font-weight: 600;\n      cursor: pointer;\n    }\n    \n    h1 {\n      color: var(--primary-color);\n    }\n  </style>\n</head>\n<body>\n  <h1>CSS Variables Demo</h1>\n  \n  <div class=\"card\">\n    <h2>What are CSS Variables?</h2>\n    <p>CSS variables let you store values and reuse them throughout your stylesheet.</p>\n    <button class=\"button\">Learn More</button>\n  </div>\n  \n  <div class=\"card\">\n    <h2>Why Use Them?</h2>\n    <p>Change one variable, update your entire site. Perfect for themes and design systems!</p>\n    <button class=\"button\">Get Started</button>\n  </div>\n</body>\n</html>",
+        "result": "You defined colors and values once, then reused them everywhere with var(--variable-name)!",
+        "proofRequired": "Screenshot showing cards with your custom color scheme."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "CSS Custom Properties (Variables)",
+            "definition": "Store values you want to reuse throughout your stylesheet. Define with --name: value in :root, use with var(--name) anywhere. Change one value, update everything that uses it.",
+            "analogy": "A nickname. Instead of writing someone's full name every time, you use their nickname. CSS variables are nicknames for values."
+          },
+          {
+            "name": "Theme switching with data attributes",
+            "definition": "Define different variable values under [data-theme=\"dark\"] or [data-theme=\"light\"] selectors. Toggle the data-theme attribute with JavaScript to instantly switch all colors.",
+            "analogy": "A light switch for your entire website \u2014 flip it and every room changes at once."
+          },
+          {
+            "name": "Design systems with variables",
+            "definition": "Organize all your values (colors, spacing, typography, shadows, radii, transitions) as variables. This creates a consistent, maintainable system where everything matches.",
+            "analogy": "A master control panel \u2014 adjust one dial and every part of the building responds."
+          }
+        ],
+        "keyTakeaway": "CSS variables make your code maintainable and your themes switchable. Define once, use everywhere, change in one place."
+      },
+      "build": {
+        "goal": "Build a light/dark theme switcher",
+        "codeComparison": {
+          "old": "/* Hard-coded colors \u2014 change means updating many places */\n.card { background-color: white; }\n.button { background-color: #667eea; }\nh1 { color: #667eea; }",
+          "new": "/* Light theme */\n:root {\n  --primary: #667eea;\n  --bg: #f9f9f9;\n  --card-bg: #ffffff;\n  --text: #333;\n}\n\n/* Dark theme */\n[data-theme=\"dark\"] {\n  --primary: #8b9de8;\n  --bg: #1a1a1a;\n  --card-bg: #2a2a2a;\n  --text: #f0f0f0;\n}\n\n/* Same CSS, different look! */\n.card { background: var(--card-bg); }\n.button { background: var(--primary); }\nh1 { color: var(--primary); }"
+        },
+        "hint": "Add transition: background-color 0.3s ease, color 0.3s ease to body and cards for smooth theme switching!"
+      },
+      "challenge": {
+        "title": "Build a Multi-Theme System",
+        "mission": "Create a website with 3 different themes users can switch between, with localStorage persistence.",
+        "requirements": [
+          "Three complete themes (light, dark, and one custom theme)",
+          "Theme switcher buttons",
+          "Smooth transitions between themes",
+          "All variables update consistently",
+          "Save user preference with localStorage",
+          "Professional design"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Multi-Theme System</title>\n  <style>\n    /* Define three themes using :root and [data-theme] selectors */\n    :root, [data-theme=\"light\"] {\n      --bg: #ffffff;\n      --text: #1a1a1a;\n      --accent: #667eea;\n    }\n    [data-theme=\"dark\"] {\n      --bg: #1a1a1a;\n      --text: #f0f0f0;\n      --accent: #8b9de8;\n    }\n    [data-theme=\"ocean\"] {\n      --bg: #0a192f;\n      --text: #ccd6f6;\n      --accent: #64ffda;\n    }\n  </style>\n</head>\n<body>\n  <nav>\n    <button data-theme=\"light\">Light</button>\n    <button data-theme=\"dark\">Dark</button>\n    <button data-theme=\"ocean\">Ocean</button>\n  </nav>\n  <div class=\"content\">\n    <h1>Multi-Theme Demo</h1>\n    <div class=\"card\">\n      <p>Click theme buttons to switch!</p>\n    </div>\n  </div>\n  <script>\n    // Add theme switching + localStorage\n  </script>\n</body>\n</html>",
+        "bonusChallenge": "Add a fourth purple/pink theme and make the active button visually highlighted!"
+      },
+      "summary": {
+        "capabilities": [
+          "Create and use CSS custom properties (variables)",
+          "Build theme systems with variable scoping",
+          "Switch themes dynamically with JavaScript",
+          "Create comprehensive design systems",
+          "Use variables for colors, spacing, typography, and effects",
+          "Save user preferences with localStorage",
+          "Build maintainable, scalable CSS"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 4.4, you'll learn to rotate, scale, skew, and create 3D effects \u2014 taking your designs to the next level!",
+        "nextLessonId": "css-4-4"
+      }
+    }
+  ]
+}
