@@ -1,0 +1,128 @@
+{
+  "id": 306,
+  "emoji": "🎨",
+  "title": "DOM Manipulation Mastery",
+  "tagline": "Create and control HTML elements with code.",
+  "difficulty": "intermediate",
+  "lessons": [
+    {
+      "id": "js-6-1",
+      "title": "Create Elements Dynamically",
+      "prereqs": [],
+      "difficulty": "intermediate",
+      "duration": "20 min",
+      "metadata": {
+        "estimatedTime": 20,
+        "difficulty": "intermediate",
+        "conceptsCount": 7,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Stop writing HTML by hand — create it with JavaScript!",
+          "Build interactive comment sections that grow dynamically",
+          "Add and remove elements on the fly",
+          "Create entire interfaces programmatically"
+        ]
+      },
+      "do": {
+        "title": "Build a Dynamic Comment Section",
+        "steps": [
+          "Open VS Code or CodePen",
+          "Create dynamic-comments.html",
+          "Copy the code below",
+          "Save and open in browser",
+          "Add comments and see them appear instantly",
+          "Delete comments by clicking the × button",
+          "Notice: NO hardcoded comments in HTML!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Dynamic Comments</title>\n  <style>\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; min-height: 100vh; }\n    .container { max-width: 700px; margin: 0 auto; }\n    h1 { text-align: center; color: white; margin-bottom: 40px; font-size: 42px; }\n    .comment-form { background-color: white; border-radius: 15px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }\n    .form-group { margin-bottom: 20px; }\n    label { display: block; color: #2C3E50; font-weight: bold; margin-bottom: 8px; }\n    input, textarea { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #E0E0E0; border-radius: 8px; font-family: Arial, sans-serif; }\n    textarea { min-height: 100px; resize: vertical; }\n    button { width: 100%; padding: 15px; font-size: 18px; font-weight: bold; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; }\n    button:hover { transform: translateY(-2px); }\n    .comments-section { background-color: white; border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }\n    .comments-header { color: #2C3E50; margin-bottom: 25px; font-size: 24px; }\n    .comment { background-color: #F8F9FA; border-radius: 10px; padding: 20px; margin-bottom: 15px; position: relative; animation: slideIn 0.3s ease-out; }\n    @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }\n    .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }\n    .comment-author { font-weight: bold; color: #2C3E50; }\n    .comment-time { color: #7F8C8D; font-size: 14px; }\n    .comment-text { color: #2C3E50; line-height: 1.6; }\n    .delete-btn { position: absolute; top: 15px; right: 15px; background-color: #E74C3C; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }\n    .empty-state { text-align: center; color: #7F8C8D; padding: 40px; font-size: 18px; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <h1>💬 Dynamic Comments</h1>\n    <div class=\"comment-form\">\n      <div class=\"form-group\">\n        <label for=\"author\">Your Name</label>\n        <input type=\"text\" id=\"author\" placeholder=\"Enter your name\">\n      </div>\n      <div class=\"form-group\">\n        <label for=\"comment-text\">Comment</label>\n        <textarea id=\"comment-text\" placeholder=\"Write your comment here...\"></textarea>\n      </div>\n      <button onclick=\"addComment()\">Post Comment</button>\n    </div>\n    <div class=\"comments-section\">\n      <h2 class=\"comments-header\">Comments (<span id=\"comment-count\">0</span>)</h2>\n      <div id=\"comments-container\">\n        <div class=\"empty-state\">No comments yet. Be the first to comment!</div>\n      </div>\n    </div>\n  </div>\n\n  <script>\n    let comments = [];\n    let commentIdCounter = 1;\n\n    function addComment() {\n      const author = document.getElementById('author').value.trim();\n      const text = document.getElementById('comment-text').value.trim();\n      if (!author) return alert('Please enter your name');\n      if (!text) return alert('Please enter a comment');\n\n      const comment = { id: commentIdCounter++, author, text, timestamp: new Date() };\n      comments.push(comment);\n      createCommentElement(comment);\n      updateCommentCount();\n      document.getElementById('author').value = '';\n      document.getElementById('comment-text').value = '';\n    }\n\n    function createCommentElement(comment) {\n      const container = document.getElementById('comments-container');\n      const emptyState = container.querySelector('.empty-state');\n      if (emptyState) emptyState.remove();\n\n      const commentDiv = document.createElement('div');\n      commentDiv.className = 'comment';\n      commentDiv.setAttribute('data-comment-id', comment.id);\n\n      const header = document.createElement('div');\n      header.className = 'comment-header';\n\n      const authorSpan = document.createElement('span');\n      authorSpan.className = 'comment-author';\n      authorSpan.textContent = comment.author;\n\n      const timeSpan = document.createElement('span');\n      timeSpan.className = 'comment-time';\n      timeSpan.textContent = 'Just now';\n\n      header.appendChild(authorSpan);\n      header.appendChild(timeSpan);\n\n      const textDiv = document.createElement('div');\n      textDiv.className = 'comment-text';\n      textDiv.textContent = comment.text;\n\n      const deleteBtn = document.createElement('button');\n      deleteBtn.className = 'delete-btn';\n      deleteBtn.textContent = '×';\n      deleteBtn.onclick = () => deleteComment(comment.id);\n\n      commentDiv.appendChild(header);\n      commentDiv.appendChild(textDiv);\n      commentDiv.appendChild(deleteBtn);\n      container.insertBefore(commentDiv, container.firstChild);\n    }\n\n    function deleteComment(commentId) {\n      if (!confirm('Delete this comment?')) return;\n      comments = comments.filter(c => c.id !== commentId);\n      const el = document.querySelector(`[data-comment-id=\"${commentId}\"]`);\n      if (el) el.remove();\n      updateCommentCount();\n      const container = document.getElementById('comments-container');\n      if (comments.length === 0) {\n        container.innerHTML = '<div class=\"empty-state\">No comments yet. Be the first to comment!</div>';\n      }\n    }\n\n    function updateCommentCount() {\n      document.getElementById('comment-count').textContent = comments.length;\n    }\n  </script>\n</body>\n</html>",
+        "result": "You created elements with JavaScript! Comments appear without any hardcoded HTML.",
+        "proofRequired": "Screenshot showing at least 3 comments created dynamically."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "What is the DOM?",
+            "definition": "DOM (Document Object Model) is JavaScript's representation of your HTML. It's a tree structure where every HTML element is an object you can manipulate.",
+            "analogy": "Think of HTML as a blueprint and the DOM as the actual building. JavaScript can rearrange rooms (elements) without redrawing the blueprint."
+          },
+          {
+            "name": "document.createElement()",
+            "definition": "Creates a new HTML element in memory (not yet on the page). Syntax: const el = document.createElement('div'). The element exists but is invisible until you add it to the page.",
+            "analogy": "Building furniture in a workshop. It's real, but nobody sees it until you carry it into the room."
+          },
+          {
+            "name": "appendChild() and append()",
+            "definition": "Adds a child element to a parent. parent.appendChild(child) adds it as the last child. Modern parent.append(child) does the same and can add multiple at once.",
+            "analogy": "Stacking books onto a shelf — each new one goes on top of the pile."
+          },
+          {
+            "name": "insertBefore() and prepend()",
+            "definition": "Place an element before another. parent.insertBefore(newEl, referenceEl) is the classic method. parent.prepend(newEl) is the modern shortcut for adding at the start.",
+            "analogy": "Cutting in line at a specific spot — you get to choose exactly where to stand."
+          },
+          {
+            "name": "Element properties: textContent, className, dataset",
+            "definition": "Set text with el.textContent = 'Hello'. Set classes with el.className = 'card' or el.classList.add('active'). Store custom data with el.dataset.userId = '123'.",
+            "analogy": "Labeling a box: textContent is the contents, className is the color stripe, dataset is the hidden inventory tag."
+          },
+          {
+            "name": "innerHTML vs createElement",
+            "definition": "innerHTML is fast to write but vulnerable to XSS with user input and destroys event listeners. createElement is safer, preserves listeners, and gives full control. Use createElement for user-generated content.",
+            "analogy": "innerHTML is like photocopying a whole page. createElement is like typing each word by hand — slower but precise and safe."
+          },
+          {
+            "name": "Removing elements and event delegation",
+            "definition": "el.remove() deletes an element from the DOM. For many dynamic children, add ONE listener to the parent and check e.target — this is 'event delegation' and handles current AND future elements.",
+            "analogy": "Instead of giving every student their own teacher, one teacher watches the whole class — much more efficient."
+          }
+        ],
+        "keyTakeaway": "createElement() builds elements safely. appendChild() adds them to the page. Use data attributes to store information, and event delegation to handle clicks on dynamic elements."
+      },
+      "build": {
+        "goal": "Build a Dynamic Task Manager where you add tasks, mark them complete, and delete them — all with createElement",
+        "codeComparison": {
+          "old": "// Hardcoded HTML - boring!\n<div class=\"task\">Buy groceries</div>\n<div class=\"task\">Walk the dog</div>",
+          "new": "// Dynamic Task Manager - use createElement!\nlet tasks = [];\nlet taskIdCounter = 1;\n\nfunction addTask() {\n  const input = document.getElementById('task-input');\n  const text = input.value.trim();\n  if (!text) return alert('Please enter a task');\n\n  const task = { id: taskIdCounter++, text, completed: false };\n  tasks.push(task);\n  createTaskElement(task);\n  input.value = '';\n}\n\nfunction createTaskElement(task) {\n  const container = document.getElementById('tasks-container');\n\n  const taskDiv = document.createElement('div');\n  taskDiv.className = 'task';\n  taskDiv.dataset.taskId = task.id;\n\n  const checkbox = document.createElement('input');\n  checkbox.type = 'checkbox';\n  checkbox.addEventListener('change', () => toggleTask(task.id));\n\n  const textSpan = document.createElement('span');\n  textSpan.className = 'task-text';\n  textSpan.textContent = task.text;\n\n  const deleteBtn = document.createElement('button');\n  deleteBtn.textContent = 'Delete';\n  deleteBtn.addEventListener('click', () => deleteTask(task.id));\n\n  taskDiv.appendChild(checkbox);\n  taskDiv.appendChild(textSpan);\n  taskDiv.appendChild(deleteBtn);\n  container.appendChild(taskDiv);\n}\n\nfunction toggleTask(id) {\n  const task = tasks.find(t => t.id === id);\n  task.completed = !task.completed;\n  document.querySelector(`[data-task-id=\"${id}\"]`).classList.toggle('completed');\n}\n\nfunction deleteTask(id) {\n  tasks = tasks.filter(t => t.id !== id);\n  document.querySelector(`[data-task-id=\"${id}\"]`).remove();\n}"
+        },
+        "hint": "Use dataset.taskId to store the task ID on each element so you can find it later with querySelector!"
+      },
+      "challenge": {
+        "title": "Build a Dynamic Photo Gallery with Lightbox",
+        "mission": "Create a photo gallery that loads images dynamically, creates thumbnail elements, and opens a lightbox when clicked — all using createElement and DOM manipulation.",
+        "requirements": [
+          "Array of photo objects with: url, title, description",
+          "Create thumbnail grid dynamically (no hardcoded images!)",
+          "Each thumbnail: image, title overlay, click handler",
+          "Click opens lightbox modal",
+          "Lightbox shows: full image, title, description, close button",
+          "Previous/Next buttons to navigate photos",
+          "Keyboard support: Esc to close, arrow keys to navigate",
+          "Create ALL elements with createElement (NO innerHTML!)",
+          "Use event delegation where possible"
+        ],
+        "starterCode": "const photos = [\n  { url: 'https://picsum.photos/400/400?random=1', title: 'Mountain Vista', description: 'Beautiful mountain landscape' },\n  { url: 'https://picsum.photos/400/400?random=2', title: 'Ocean Waves', description: 'Peaceful ocean scene' },\n  { url: 'https://picsum.photos/400/400?random=3', title: 'Forest Path', description: 'Mysterious forest trail' }\n];\n\nfunction createGallery() {\n  const gallery = document.getElementById('gallery');\n  photos.forEach((photo, index) => {\n    const thumbnail = document.createElement('div');\n    thumbnail.className = 'thumbnail';\n\n    const img = document.createElement('img');\n    img.src = photo.url;\n    img.alt = photo.title;\n\n    const overlay = document.createElement('div');\n    overlay.className = 'thumbnail-overlay';\n    overlay.textContent = photo.title;\n\n    thumbnail.appendChild(img);\n    thumbnail.appendChild(overlay);\n    thumbnail.addEventListener('click', () => openLightbox(index));\n\n    gallery.appendChild(thumbnail);\n  });\n}\n\nfunction openLightbox(index) {\n  // TODO: Show full image with navigation\n}\n\ncreateGallery();",
+        "bonusChallenge": "Add a 'Like' button to each photo that shows a heart icon and tracks likes using localStorage!"
+      },
+      "summary": {
+        "capabilities": [
+          "Create HTML elements with document.createElement()",
+          "Add elements to the page with appendChild() and append()",
+          "Remove elements with remove() and removeChild()",
+          "Set element properties: textContent, className, id, attributes",
+          "Use data attributes to store custom information",
+          "Understand innerHTML vs createElement trade-offs",
+          "Add event listeners to dynamically created elements",
+          "Build complete interfaces without hardcoded HTML",
+          "Use event delegation for efficiency",
+          "Create complex, nested element structures"
+        ]
+      },
+      "bridge": {
+        "preview": "Excellent! You can now create and manipulate DOM elements dynamically. In the next lesson, you'll learn advanced DOM techniques — querySelector, traversing the DOM tree, manipulating classes and styles, and building interactive components.",
+        "nextLessonId": "js-6-2"
+      }
+    }
+  ]
+}
