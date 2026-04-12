@@ -232,6 +232,118 @@
         "preview": "Fantastic! You can now handle all kinds of user interactions. In the next lesson, you'll learn complex conditionals, switch statements, and smart decision-making in your code.",
         "nextLessonId": "js-3-3"
       }
+    },
+    {
+      "id": "js-3-3",
+      "title": "Make Smart Decisions with Logic",
+      "prereqs": [
+        "js-3-2"
+      ],
+      "difficulty": "intermediate",
+      "duration": "20 min",
+      "metadata": {
+        "estimatedTime": 20,
+        "difficulty": "intermediate",
+        "conceptsCount": 6,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Build a quiz app that gives different responses based on answers",
+          "Create a shipping calculator with complex pricing rules",
+          "Make a recommendation engine that combines multiple conditions"
+        ]
+      },
+      "do": {
+        "title": "Build a Multi-Condition Checker",
+        "steps": [
+          "Open VS Code or CodePen",
+          "Create age-checker.html",
+          "Copy the code below",
+          "Save and open in browser",
+          "Try different combinations — age 15 with ticket, age 10 with/without parent"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Movie Theater Entry</title>\n  <style>\n    body { display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: linear-gradient(135deg, #6a11cb, #2575fc); font-family: Arial; }\n    .container { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 450px; }\n    h1 { text-align: center; color: #2C3E50; margin: 0 0 30px; }\n    .form-group { margin-bottom: 20px; }\n    label { display: block; margin-bottom: 8px; color: #34495E; font-weight: bold; }\n    input[type=\"number\"] { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #BDC3C7; border-radius: 5px; box-sizing: border-box; }\n    .checkbox-group { display: flex; align-items: center; gap: 10px; }\n    input[type=\"checkbox\"] { width: 20px; height: 20px; cursor: pointer; }\n    button { width: 100%; padding: 15px; font-size: 18px; font-weight: bold; cursor: pointer; background: linear-gradient(135deg, #6a11cb, #2575fc); color: white; border: none; border-radius: 5px; margin-top: 10px; }\n    .result { margin-top: 20px; padding: 20px; border-radius: 10px; text-align: center; font-size: 18px; font-weight: bold; display: none; }\n    .result.show { display: block; }\n    .result.allowed { background: #2ECC71; color: white; }\n    .result.denied { background: #E74C3C; color: white; }\n    .result.warning { background: #F39C12; color: white; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <h1>🎬 Movie Theater Entry</h1>\n    <div class=\"form-group\">\n      <label>Your Age</label>\n      <input type=\"number\" id=\"age\" placeholder=\"Enter your age\" min=\"0\">\n    </div>\n    <div class=\"form-group\">\n      <div class=\"checkbox-group\">\n        <input type=\"checkbox\" id=\"hasTicket\">\n        <label for=\"hasTicket\">I have a ticket</label>\n      </div>\n    </div>\n    <div class=\"form-group\">\n      <div class=\"checkbox-group\">\n        <input type=\"checkbox\" id=\"hasParent\">\n        <label for=\"hasParent\">I'm with a parent/guardian</label>\n      </div>\n    </div>\n    <button onclick=\"checkEntry()\">Check If I Can Enter</button>\n    <div class=\"result\" id=\"result\"></div>\n  </div>\n\n  <script>\n    function checkEntry() {\n      let age = parseInt(document.getElementById(\"age\").value);\n      let hasTicket = document.getElementById(\"hasTicket\").checked;\n      let hasParent = document.getElementById(\"hasParent\").checked;\n      \n      let resultDiv = document.getElementById(\"result\");\n      let message = \"\";\n      let resultClass = \"\";\n      \n      if (!hasTicket) {\n        message = \"❌ You need a ticket to enter!\";\n        resultClass = \"denied\";\n      } else if (age >= 13 && hasTicket) {\n        message = \"✅ Welcome! Enjoy the movie!\";\n        resultClass = \"allowed\";\n      } else if (age < 13 && hasTicket && hasParent) {\n        message = \"✅ Welcome! Enjoy with your parent!\";\n        resultClass = \"allowed\";\n      } else if (age < 13 && hasTicket && !hasParent) {\n        message = \"⚠️ You need to be with a parent!\";\n        resultClass = \"warning\";\n      } else {\n        message = \"❌ Please enter a valid age!\";\n        resultClass = \"denied\";\n      }\n      \n      resultDiv.textContent = message;\n      resultDiv.className = \"result show \" + resultClass;\n    }\n  </script>\n</body>\n</html>",
+        "result": "JavaScript checked MULTIPLE conditions together using AND (&&) and OR (||) operators!",
+        "proofRequired": "Screenshot showing the \"allowed\" result when age is 13+ with a ticket."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "AND operator (&&)",
+            "definition": "Both conditions must be TRUE for the whole thing to be TRUE. if (age >= 18 && hasTicket) only runs if BOTH are true.",
+            "analogy": "You need BOTH a key AND the correct password to open the safe."
+          },
+          {
+            "name": "OR operator (||)",
+            "definition": "At least ONE condition must be TRUE. if (age >= 65 || age <= 12) runs if either is true.",
+            "analogy": "You can enter if you have a ticket OR you're a VIP member — one or the other works."
+          },
+          {
+            "name": "NOT operator (!)",
+            "definition": "Flips TRUE to FALSE and FALSE to TRUE. if (!hasTicket) runs when hasTicket is false.",
+            "analogy": "The opposite. If door is NOT locked, you can enter."
+          },
+          {
+            "name": "Switch statements",
+            "definition": "Cleaner alternative to long if/else chains when checking one variable against multiple specific values. Don't forget the break statement!",
+            "analogy": "A train track switch — route the train (code) to the correct track (case) based on the destination (value)."
+          },
+          {
+            "name": "Truthy and falsy values",
+            "definition": "Falsy: false, 0, \"\", null, undefined, NaN. Everything else is truthy. if (userName) runs if userName has any text.",
+            "analogy": "A yes/no decision — anything \"empty\" or \"zero\" counts as no, everything else counts as yes."
+          },
+          {
+            "name": "Comparison vs Assignment",
+            "definition": "= assigns a value (x = 5). === checks equality (x === 5). Using = in an if statement is a common bug that makes the condition always true.",
+            "analogy": "= is putting water IN a glass. === is asking \"is there water in the glass?\""
+          }
+        ],
+        "keyTakeaway": "&& means \"both must be true\", || means \"at least one must be true\", ! means \"flip it\". Switch is cleaner than long if/else chains."
+      },
+      "build": {
+        "goal": "Build a food ordering system using a switch statement",
+        "codeComparison": {
+          "old": "// Messy if/else chain\nif (meal === \"burger\") {\n  price = 12.99;\n} else if (meal === \"pizza\") {\n  price = 14.99;\n} else if (meal === \"sushi\") {\n  price = 18.99;\n}",
+          "new": "// Clean switch statement\nswitch(meal) {\n  case \"burger\":\n    price = 12.99;\n    break;\n  case \"pizza\":\n    price = 14.99;\n    break;\n  case \"sushi\":\n    price = 18.99;\n    break;\n  default:\n    price = 0;\n}"
+        },
+        "hint": "break exits the switch statement. Without it, execution \"falls through\" into the next case, which is usually a bug!"
+      },
+      "challenge": {
+        "title": "Build a Shipping Calculator",
+        "mission": "Create a shipping cost calculator with complex rules based on weight, destination, and order value.",
+        "requirements": [
+          "Input for package weight (kg)",
+          "Dropdown for destination (Domestic, Canada, International)",
+          "Checkbox for express shipping",
+          "Input for order value ($)",
+          "Base cost: $5 + ($2 per kg)",
+          "Domestic ×1.0, Canada ×1.5, International ×2.5",
+          "Express adds $15",
+          "Free shipping if order ≥ $100 AND not express",
+          "Show itemized breakdown"
+        ],
+        "starterCode": "<!-- Build a shipping calculator using switch + logic operators -->\n<!-- Use parseFloat() to get number values from inputs -->\n<!-- Use switch statement for destination multiplier -->\n<!-- Use && (AND) to check for free shipping condition -->",
+        "bonusChallenge": "Add a \"Fragile Item\" checkbox that adds 20% to the shipping cost!"
+      },
+      "summary": {
+        "capabilities": [
+          "Combine conditions with AND (&&) and OR (||)",
+          "Use NOT operator (!) to flip conditions",
+          "Write complex if/else chains",
+          "Use switch statements for multiple options",
+          "Understand truthy and falsy values",
+          "Validate inputs before calculating",
+          "Build complex pricing systems",
+          "Display itemized breakdowns",
+          "Make intelligent multi-factor decisions"
+        ]
+      },
+      "bridge": {
+        "preview": "In the next lesson, you'll learn about LOOPS in depth — while loops, for...of loops, and how to iterate through data efficiently.",
+        "nextLessonId": "js-3-4"
+      }
     }
   ]
 }
