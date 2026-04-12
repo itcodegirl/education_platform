@@ -739,7 +739,7 @@ textarea:focus-visible,
   cursor: pointer;
   transition: all 0.15s;
 }
-.ham:hover { border-color: var(--pink); color: var(--pink); background: rgba(255,107,157,0.08); }
+.ham:hover { border-color: var(--purple); color: var(--purple); background: rgba(180,74,255,0.08); }
 .bc {
   flex: 1;
   display: flex;
@@ -763,7 +763,7 @@ textarea:focus-visible,
   color: var(--text-dim); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap;
   box-shadow: 0 12px 24px rgba(0,0,0,0.12);
 }
-.mark-btn:hover { border-color: var(--pink); color: var(--pink); transform: translateY(-1px); }
+.mark-btn:hover { border-color: var(--purple); color: var(--purple); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(180,74,255,0.15); }
 .mark-btn.dn { background: var(--cyan-dim); border-color: var(--cyan); color: var(--cyan); }
 
 /* ─── 9. Lesson View ───────────────────────────── */
@@ -785,11 +785,11 @@ textarea:focus-visible,
   inset: 0 auto auto 0;
   width: 180px;
   height: 180px;
-  background: radial-gradient(circle, rgba(255,107,157,0.16), transparent 72%);
+  background: radial-gradient(circle, rgba(180,74,255,0.14), transparent 72%);
   pointer-events: none;
 }
 .lv-head { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 28px; position: relative; z-index: 1; }
-.lv-emoji { font-size: 40px; filter: drop-shadow(0 0 12px var(--pink-dim)); margin-top: 2px; }
+.lv-emoji { font-size: 40px; filter: drop-shadow(0 0 12px rgba(180,74,255,0.3)); margin-top: 2px; }
 .lv-title { font-family: 'Poppins', monospace; font-size: clamp(20px, 1.25rem + 1.5vw, 32px); font-weight: 700; letter-spacing: -1px; line-height: 1.15; flex: 1; }
 .lv-actions { display: flex; gap: 8px; flex-shrink: 0; }
 .lv-action-btn {
@@ -812,11 +812,11 @@ textarea:focus-visible,
   font-weight: 700;
   letter-spacing: 0.03em;
 }
-.lv-action-btn:hover { border-color: var(--pink); color: var(--pink); transform: translateY(-1px); }
-.lv-action-btn.active { background: var(--pink-glow); border-color: var(--pink); color: var(--pink); }
+.lv-action-btn:hover { border-color: var(--purple); color: var(--purple); transform: translateY(-1px); }
+.lv-action-btn.active { background: rgba(180,74,255,0.12); border-color: var(--purple); color: var(--purple); }
 .lv-body { margin-bottom: 32px; position: relative; z-index: 1; }
 .lp { margin-bottom: 16px; font-size: 16px; line-height: 1.8; }
-.lp strong { color: var(--pink); font-weight: 600; }
+.lp strong { color: var(--cyan); font-weight: 600; }
 .lp em { color: var(--cyan); font-style: italic; }
 .lp .ic {
   font-family: 'Poppins', monospace; font-size: 13px;
@@ -1240,7 +1240,7 @@ textarea:focus-visible,
   white-space:nowrap;
   box-shadow:0 12px 24px rgba(0,0,0,0.12);
 }
-.search-trigger:hover { border-color:var(--pink); color:var(--text); transform: translateY(-1px); }
+.search-trigger:hover { border-color:var(--purple); color:var(--text); transform: translateY(-1px); }
 .search-trigger kbd { font-family:'Poppins',monospace; font-size:10px; background:rgba(0,0,0,0.18); padding:2px 6px; border-radius:999px; border:1px solid rgba(255,255,255,0.06); }
 
 /* ─── 15. Panels ─────────────────────────────── */
@@ -1616,8 +1616,8 @@ textarea:focus-visible,
 }
 .nav-btn:hover:not(:disabled) { border-color: var(--pink); color: var(--pink); background: var(--pink-glow); transform: translateY(-1px); }
 .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-.nav-btn.nx { background: var(--pink); color: var(--bg-deep); border-color: var(--pink); }
-.nav-btn.nx:hover:not(:disabled) { background: #ff8fab; color: var(--bg-deep); box-shadow: 0 4px 24px var(--pink-dim); transform: translateY(-2px); }
+.nav-btn.nx { background: var(--grad-brand); color: #fff; border-color: transparent; }
+.nav-btn.nx:hover:not(:disabled) { box-shadow: 0 8px 28px rgba(180,74,255,0.25); transform: translateY(-2px); }
 
 /* ─── 17. XP Bar & Daily Goal ──────────────────── */
 .xp-bar-wrap { margin-top: 12px; }
