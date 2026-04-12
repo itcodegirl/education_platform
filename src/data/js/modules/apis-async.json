@@ -125,6 +125,259 @@
       }
     },
     {
+      "id": "js-5-2",
+      "title": "Master Async/Await",
+      "prereqs": ["js-5-1"],
+      "difficulty": "intermediate",
+      "duration": "20 min",
+      "metadata": {
+        "estimatedTime": 20,
+        "difficulty": "intermediate",
+        "conceptsCount": 6,
+        "tasksCount": 3,
+        "module": "APIs and Async JavaScript",
+        "moduleNumber": 5,
+        "lessonNumber": 2
+      },
+      "hook": {
+        "accomplishments": [
+          "Write asynchronous code that reads like normal code",
+          "Get rid of messy .then() chains",
+          "Handle multiple API calls elegantly",
+          "Make your async code cleaner and easier to understand"
+        ],
+        "tagline": "Stop writing .then().then().then(). Start writing code that looks synchronous but runs asynchronously.",
+        "timeEstimate": "20 minutes",
+        "learningObjectives": [
+          "async functions return Promises automatically",
+          "await pauses execution until Promise resolves",
+          "await only works inside async functions",
+          "try/catch handles errors with async/await",
+          "async/await makes code more readable",
+          "You can await multiple Promises",
+          "Error handling is cleaner with async/await"
+        ]
+      },
+      "do": {
+        "title": "Convert Promise Code to Async/Await",
+        "steps": [
+          "Open VS Code or CodePen",
+          "Create `async-await-demo.html`",
+          "Copy this exact code:",
+          "Save and open in browser",
+          "Open console (F12) and click both buttons",
+          "Compare the code - see how much cleaner async/await is!",
+          "Notice they do the SAME thing, different syntax"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Async/Await Demo</title>\n  <style>\n    body {\n      margin: 0;\n      padding: 40px;\n      min-height: 100vh;\n      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n      font-family: Arial, sans-serif;\n    }\n    .container {\n      max-width: 1200px;\n      margin: 0 auto;\n    }\n    h1 {\n      text-align: center;\n      color: white;\n      margin-bottom: 40px;\n    }\n    .comparison {\n      display: grid;\n      grid-template-columns: 1fr 1fr;\n      gap: 30px;\n      margin-bottom: 40px;\n    }\n    .code-example {\n      background-color: white;\n      padding: 30px;\n      border-radius: 15px;\n      box-shadow: 0 10px 30px rgba(0,0,0,0.3);\n    }\n    .code-example h2 {\n      color: #2C3E50;\n      margin: 0 0 20px 0;\n    }\n    pre {\n      background-color: #2C3E50;\n      color: #2ECC71;\n      padding: 20px;\n      border-radius: 10px;\n      overflow-x: auto;\n      font-size: 14px;\n      line-height: 1.6;\n    }\n    button {\n      width: 100%;\n      padding: 15px;\n      font-size: 18px;\n      font-weight: bold;\n      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n      color: white;\n      border: none;\n      border-radius: 10px;\n      cursor: pointer;\n      margin-top: 20px;\n    }\n    button:hover {\n      transform: translateY(-2px);\n      box-shadow: 0 5px 15px rgba(0,0,0,0.3);\n    }\n    .result {\n      background-color: #F8F9FA;\n      padding: 20px;\n      border-radius: 10px;\n      margin-top: 20px;\n      min-height: 100px;\n      font-family: monospace;\n    }\n    .console-output {\n      background-color: #34495E;\n      color: #2ECC71;\n      padding: 30px;\n      border-radius: 15px;\n      font-family: monospace;\n      font-size: 16px;\n      line-height: 1.8;\n    }\n    .console-output h2 {\n      color: #2ECC71;\n      margin: 0 0 20px 0;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <h1>🔄 Promises vs Async/Await</h1>\n    \n    <div class=\"comparison\">\n      <div class=\"code-example\">\n        <h2>😫 Old Way: .then() Chains</h2>\n        <pre>function getMovieOldWay() {\n  fetch(apiUrl)\n    .then(response => {\n      return response.json();\n    })\n    .then(data => {\n      console.log(data);\n      displayMovie(data);\n    })\n    .catch(error => {\n      console.error(error);\n    });\n}</pre>\n        <button onclick=\"getMovieOldWay()\">Fetch with .then()</button>\n        <div class=\"result\" id=\"result-old\"></div>\n      </div>\n      \n      <div class=\"code-example\">\n        <h2>😊 New Way: Async/Await</h2>\n        <pre>async function getMovieNewWay() {\n  try {\n    const response = await fetch(apiUrl);\n    const data = await response.json();\n    console.log(data);\n    displayMovie(data);\n  } catch (error) {\n    console.error(error);\n  }\n}</pre>\n        <button onclick=\"getMovieNewWay()\">Fetch with Async/Await</button>\n        <div class=\"result\" id=\"result-new\"></div>\n      </div>\n    </div>\n    \n    <div class=\"console-output\">\n      <h2>📺 Console Output</h2>\n      <div id=\"console-display\">Open browser console (F12) and click the buttons above!</div>\n    </div>\n  </div>\n\n  <script>\n    const apiUrl = 'https://www.omdbapi.com/?t=Inception&apikey=6d8b5842';\n    \n    function getMovieOldWay() {\n      console.log('\\n=== OLD WAY: .then() CHAINS ===');\n      console.log('1. Starting fetch...');\n      \n      fetch(apiUrl)\n        .then(response => {\n          console.log('2. Got response:', response);\n          return response.json();\n        })\n        .then(data => {\n          console.log('3. Got data:', data);\n          displayMovie(data, 'result-old');\n        })\n        .catch(error => {\n          console.error('Error:', error);\n        });\n      \n      console.log('4. This runs BEFORE data arrives (non-blocking)');\n    }\n    \n    async function getMovieNewWay() {\n      console.log('\\n=== NEW WAY: ASYNC/AWAIT ===');\n      console.log('1. Starting fetch...');\n      \n      try {\n        const response = await fetch(apiUrl);\n        console.log('2. Got response:', response);\n        \n        const data = await response.json();\n        console.log('3. Got data:', data);\n        \n        displayMovie(data, 'result-new');\n        \n        console.log('4. This runs AFTER data arrives (looks synchronous!)');\n      } catch (error) {\n        console.error('Error:', error);\n      }\n    }\n    \n    function displayMovie(data, elementId) {\n      const html = `\n        <strong>${data.Title}</strong> (${data.Year})<br>\n        ⭐ ${data.imdbRating}/10<br>\n        🎬 ${data.Director}<br>\n        📝 ${data.Plot.substring(0, 100)}...\n      `;\n      document.getElementById(elementId).innerHTML = html;\n    }\n    \n    console.log('💡 Click the buttons and watch this console!');\n    console.log('Notice how async/await makes the code read top-to-bottom');\n    console.log('While .then() chains require callbacks');\n  </script>\n</body>\n</html>",
+        "result": "Both approaches do the SAME thing, but async/await is much cleaner and easier to read!",
+        "proofRequired": "showing movie data fetched using both methods",
+        "escapeHatches": [
+          {
+            "icon": "🤔",
+            "text": "async before a function makes it always return a Promise"
+          },
+          {
+            "icon": "💡",
+            "text": "await pauses the function until the Promise resolves"
+          },
+          {
+            "icon": "🎥",
+            "text": "Watch 2-min video: Async/Await Explained",
+            "link": "#"
+          }
+        ]
+      },
+      "understand": {
+        "title": "How Async/Await Works",
+        "concepts": [
+          {
+            "name": "What is async?",
+            "definition": "The `async` keyword before a function makes it automatically return a Promise.",
+            "comparison": {
+              "regular": "function greet() {\n  return 'Hello';\n}\n\ngreet();  // 'Hello'",
+              "async": "async function greet() {\n  return 'Hello';\n}\n\ngreet();  // Promise { 'Hello' }\ngreet().then(msg => console.log(msg));  // 'Hello'"
+            },
+            "rule": "An async function ALWAYS returns a Promise, even if you return a regular value"
+          },
+          {
+            "name": "What is await?",
+            "definition": "The `await` keyword pauses the async function until the Promise resolves, then returns the resolved value.",
+            "example": {
+              "withoutAwait": "async function getData() {\n  const promise = fetch(url);  // Returns Promise immediately\n  console.log(promise);  // Promise { <pending> }\n}",
+              "withAwait": "async function getData() {\n  const data = await fetch(url);  // WAITS for Promise to resolve\n  console.log(data);  // Response object (resolved value)\n}"
+            },
+            "important": "await ONLY works inside async functions!"
+          },
+          {
+            "name": "Converting .then() to async/await",
+            "examples": [
+              {
+                "scenario": "Simple fetch",
+                "then": "fetch(url)\n  .then(res => res.json())\n  .then(data => console.log(data))\n  .catch(err => console.error(err));",
+                "asyncAwait": "async function getData() {\n  try {\n    const res = await fetch(url);\n    const data = await res.json();\n    console.log(data);\n  } catch (err) {\n    console.error(err);\n  }\n}"
+              },
+              {
+                "scenario": "Multiple API calls",
+                "then": "fetch(userUrl)\n  .then(res => res.json())\n  .then(user => {\n    return fetch(user.postsUrl);\n  })\n  .then(res => res.json())\n  .then(posts => console.log(posts))\n  .catch(err => console.error(err));",
+                "asyncAwait": "async function getUserPosts() {\n  try {\n    const userRes = await fetch(userUrl);\n    const user = await userRes.json();\n    \n    const postsRes = await fetch(user.postsUrl);\n    const posts = await postsRes.json();\n    \n    console.log(posts);\n  } catch (err) {\n    console.error(err);\n  }\n}"
+              },
+              {
+                "scenario": "Using returned values",
+                "then": "function getUser() {\n  return fetch(url)\n    .then(res => res.json())\n    .then(data => data.user);\n}\n\ngetUser().then(user => console.log(user));",
+                "asyncAwait": "async function getUser() {\n  const res = await fetch(url);\n  const data = await res.json();\n  return data.user;\n}\n\nconst user = await getUser();\nconsole.log(user);"
+              }
+            ]
+          },
+          {
+            "name": "Error Handling with try/catch",
+            "definition": "Use try/catch blocks to handle errors in async/await code.",
+            "comparison": {
+              "thenCatch": "fetch(url)\n  .then(res => res.json())\n  .then(data => console.log(data))\n  .catch(error => {\n    console.error('Error:', error);\n  });",
+              "tryCatch": "async function getData() {\n  try {\n    const res = await fetch(url);\n    const data = await res.json();\n    console.log(data);\n  } catch (error) {\n    console.error('Error:', error);\n  }\n}"
+            },
+            "benefit": "try/catch is familiar to developers and works like other programming languages",
+            "advanced": {
+              "specificErrors": "async function getData() {\n  try {\n    const res = await fetch(url);\n    \n    if (!res.ok) {\n      throw new Error(`HTTP ${res.status}: ${res.statusText}`);\n    }\n    \n    const data = await res.json();\n    return data;\n  } catch (error) {\n    if (error.message.includes('HTTP 404')) {\n      console.error('Not found!');\n    } else if (error.message.includes('Failed to fetch')) {\n      console.error('Network error!');\n    } else {\n      console.error('Unknown error:', error);\n    }\n  }\n}"
+            }
+          },
+          {
+            "name": "Awaiting Multiple Promises",
+            "patterns": [
+              {
+                "pattern": "Sequential (one after another)",
+                "code": "async function getSequential() {\n  const user = await fetchUser();      // Wait 1 second\n  const posts = await fetchPosts();    // Wait 1 second\n  const comments = await fetchComments(); // Wait 1 second\n  // Total time: 3 seconds\n}",
+                "use": "When each request depends on the previous one",
+                "timing": "Total = Sum of all request times"
+              },
+              {
+                "pattern": "Parallel (all at once)",
+                "code": "async function getParallel() {\n  const [user, posts, comments] = await Promise.all([\n    fetchUser(),\n    fetchPosts(),\n    fetchComments()\n  ]);\n  // Total time: 1 second (all happen simultaneously)\n}",
+                "use": "When requests are independent - MUCH faster!",
+                "timing": "Total = Longest single request time"
+              },
+              {
+                "pattern": "Parallel with individual error handling",
+                "code": "async function getWithErrors() {\n  const results = await Promise.allSettled([\n    fetchUser(),\n    fetchPosts(),\n    fetchComments()\n  ]);\n  \n  results.forEach((result, index) => {\n    if (result.status === 'fulfilled') {\n      console.log(`Request ${index} succeeded:`, result.value);\n    } else {\n      console.log(`Request ${index} failed:`, result.reason);\n    }\n  });\n}",
+                "use": "When you want all results even if some fail",
+                "benefit": "One failure doesn't stop the others"
+              }
+            ]
+          },
+          {
+            "name": "Common Mistakes",
+            "mistakes": [
+              {
+                "mistake": "Forgetting await",
+                "wrong": "async function getData() {\n  const data = fetch(url);  // Missing await!\n  console.log(data);  // Promise { <pending> }\n}",
+                "right": "async function getData() {\n  const data = await fetch(url);\n  console.log(data);  // Actual data\n}",
+                "fix": "Always use await when calling async operations"
+              },
+              {
+                "mistake": "Using await outside async function",
+                "wrong": "function getData() {\n  const data = await fetch(url);  // ❌ Error!\n}",
+                "right": "async function getData() {\n  const data = await fetch(url);  // ✅ Works\n}",
+                "fix": "Only use await inside async functions"
+              },
+              {
+                "mistake": "Not handling errors",
+                "wrong": "async function getData() {\n  const res = await fetch(url);\n  const data = await res.json();\n  // If fetch fails, error crashes app!\n}",
+                "right": "async function getData() {\n  try {\n    const res = await fetch(url);\n    const data = await res.json();\n    return data;\n  } catch (error) {\n    console.error('Failed:', error);\n    return null;\n  }\n}",
+                "fix": "Always wrap await in try/catch"
+              },
+              {
+                "mistake": "Sequential when should be parallel",
+                "wrong": "// Slow: 3 seconds total\nasync function getData() {\n  const users = await fetch('/users');\n  const posts = await fetch('/posts');\n  const comments = await fetch('/comments');\n}",
+                "right": "// Fast: 1 second total\nasync function getData() {\n  const [users, posts, comments] = await Promise.all([\n    fetch('/users'),\n    fetch('/posts'),\n    fetch('/comments')\n  ]);\n}",
+                "fix": "Use Promise.all() for independent requests"
+              }
+            ]
+          }
+        ],
+        "keyTakeaway": "async/await makes asynchronous code look and behave like synchronous code. It's cleaner, more readable, and easier to debug than .then() chains."
+      },
+      "build": {
+        "title": "Build a Multi-API Movie Search",
+        "goal": "Create a movie search app that fetches data from the OMDB API using async/await.",
+        "fullCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Movie Search - Async/Await</title>\n  <style>\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n    body {\n      font-family: Arial, sans-serif;\n      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);\n      padding: 40px 20px;\n      min-height: 100vh;\n    }\n    .container {\n      max-width: 1000px;\n      margin: 0 auto;\n    }\n    h1 {\n      text-align: center;\n      color: white;\n      margin-bottom: 40px;\n      font-size: 48px;\n    }\n    .search-box {\n      background-color: white;\n      padding: 30px;\n      border-radius: 15px;\n      margin-bottom: 30px;\n      box-shadow: 0 10px 30px rgba(0,0,0,0.3);\n    }\n    .search-input {\n      display: flex;\n      gap: 15px;\n    }\n    input {\n      flex: 1;\n      padding: 15px;\n      font-size: 18px;\n      border: 2px solid #BDC3C7;\n      border-radius: 10px;\n    }\n    button {\n      padding: 15px 40px;\n      font-size: 18px;\n      font-weight: bold;\n      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);\n      color: white;\n      border: none;\n      border-radius: 10px;\n      cursor: pointer;\n    }\n    .loading {\n      text-align: center;\n      color: white;\n      font-size: 24px;\n      padding: 40px;\n      display: none;\n    }\n    .loading.show {\n      display: block;\n    }\n    .movie-details {\n      background-color: white;\n      border-radius: 15px;\n      padding: 40px;\n      box-shadow: 0 10px 30px rgba(0,0,0,0.3);\n      display: none;\n    }\n    .movie-details.show {\n      display: block;\n    }\n    .movie-header {\n      display: grid;\n      grid-template-columns: 300px 1fr;\n      gap: 40px;\n      margin-bottom: 40px;\n    }\n    .poster {\n      width: 100%;\n      border-radius: 10px;\n      box-shadow: 0 5px 15px rgba(0,0,0,0.3);\n    }\n    .movie-info h2 {\n      color: #2C3E50;\n      margin-bottom: 15px;\n      font-size: 36px;\n    }\n    .meta {\n      color: #7F8C8D;\n      margin-bottom: 20px;\n      font-size: 18px;\n    }\n    .ratings {\n      display: grid;\n      grid-template-columns: repeat(3, 1fr);\n      gap: 15px;\n      margin: 20px 0;\n    }\n    .rating-box {\n      background-color: #F8F9FA;\n      padding: 15px;\n      border-radius: 10px;\n      text-align: center;\n    }\n    .rating-source {\n      font-size: 12px;\n      color: #7F8C8D;\n      margin-bottom: 5px;\n    }\n    .rating-value {\n      font-size: 24px;\n      font-weight: bold;\n      color: #2C3E50;\n    }\n    .plot {\n      background-color: #F8F9FA;\n      padding: 20px;\n      border-radius: 10px;\n      margin: 20px 0;\n      line-height: 1.6;\n    }\n    .details-grid {\n      display: grid;\n      grid-template-columns: 1fr 1fr;\n      gap: 15px;\n    }\n    .detail-item {\n      padding: 15px;\n      background-color: #F8F9FA;\n      border-radius: 8px;\n    }\n    .detail-label {\n      color: #7F8C8D;\n      font-size: 14px;\n      margin-bottom: 5px;\n    }\n    .detail-value {\n      color: #2C3E50;\n      font-weight: bold;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <h1>🎬 Movie Search</h1>\n    \n    <div class=\"search-box\">\n      <div class=\"search-input\">\n        <input type=\"text\" id=\"movie-input\" placeholder=\"Enter movie title...\" value=\"Interstellar\">\n        <button onclick=\"searchMovie()\">Search</button>\n      </div>\n    </div>\n    \n    <div class=\"loading\" id=\"loading\">\n      <div>🔍 Searching...</div>\n    </div>\n    \n    <div class=\"movie-details\" id=\"movie-details\">\n      <div class=\"movie-header\">\n        <img class=\"poster\" id=\"poster\" src=\"\" alt=\"Movie Poster\">\n        <div class=\"movie-info\">\n          <h2 id=\"title\"></h2>\n          <div class=\"meta\" id=\"meta\"></div>\n          <div class=\"ratings\" id=\"ratings\"></div>\n          <div class=\"plot\" id=\"plot\"></div>\n        </div>\n      </div>\n      <div class=\"details-grid\" id=\"details\"></div>\n    </div>\n  </div>\n\n  <script>\n    const OMDB_KEY = '6d8b5842';\n    \n    async function searchMovie() {\n      const title = document.getElementById('movie-input').value.trim();\n      \n      if (!title) {\n        alert('Please enter a movie title');\n        return;\n      }\n      \n      showLoading();\n      \n      try {\n        const movieData = await fetchMovieData(title);\n        displayMovie(movieData);\n      } catch (error) {\n        console.error('Error:', error);\n        alert('Movie not found!');\n        hideLoading();\n      }\n    }\n    \n    async function fetchMovieData(title) {\n      const url = `https://www.omdbapi.com/?t=${encodeURIComponent(title)}&apikey=${OMDB_KEY}&plot=full`;\n      \n      const response = await fetch(url);\n      \n      if (!response.ok) {\n        throw new Error('Network response was not ok');\n      }\n      \n      const data = await response.json();\n      \n      if (data.Response === 'False') {\n        throw new Error(data.Error);\n      }\n      \n      return data;\n    }\n    \n    function displayMovie(movie) {\n      document.getElementById('title').textContent = movie.Title;\n      document.getElementById('meta').textContent = `${movie.Year} • ${movie.Rated} • ${movie.Runtime} • ${movie.Genre}`;\n      document.getElementById('poster').src = movie.Poster !== 'N/A' ? movie.Poster : 'https://via.placeholder.com/300x450?text=No+Poster';\n      document.getElementById('plot').textContent = movie.Plot;\n      \n      const ratingsHTML = `\n        <div class=\"rating-box\">\n          <div class=\"rating-source\">IMDB</div>\n          <div class=\"rating-value\">${movie.imdbRating}/10</div>\n        </div>\n        <div class=\"rating-box\">\n          <div class=\"rating-source\">Metascore</div>\n          <div class=\"rating-value\">${movie.Metascore}/100</div>\n        </div>\n        <div class=\"rating-box\">\n          <div class=\"rating-source\">Votes</div>\n          <div class=\"rating-value\">${movie.imdbVotes}</div>\n        </div>\n      `;\n      document.getElementById('ratings').innerHTML = ratingsHTML;\n      \n      const detailsHTML = `\n        <div class=\"detail-item\">\n          <div class=\"detail-label\">Director</div>\n          <div class=\"detail-value\">${movie.Director}</div>\n        </div>\n        <div class=\"detail-item\">\n          <div class=\"detail-label\">Writer</div>\n          <div class=\"detail-value\">${movie.Writer}</div>\n        </div>\n        <div class=\"detail-item\">\n          <div class=\"detail-label\">Actors</div>\n          <div class=\"detail-value\">${movie.Actors}</div>\n        </div>\n        <div class=\"detail-item\">\n          <div class=\"detail-label\">Language</div>\n          <div class=\"detail-value\">${movie.Language}</div>\n        </div>\n        <div class=\"detail-item\">\n          <div class=\"detail-label\">Country</div>\n          <div class=\"detail-value\">${movie.Country}</div>\n        </div>\n        <div class=\"detail-item\">\n          <div class=\"detail-label\">Awards</div>\n          <div class=\"detail-value\">${movie.Awards}</div>\n        </div>\n      `;\n      document.getElementById('details').innerHTML = detailsHTML;\n      \n      hideLoading();\n      document.getElementById('movie-details').classList.add('show');\n    }\n    \n    function showLoading() {\n      document.getElementById('loading').classList.add('show');\n      document.getElementById('movie-details').classList.remove('show');\n    }\n    \n    function hideLoading() {\n      document.getElementById('loading').classList.remove('show');\n    }\n    \n    document.getElementById('movie-input').addEventListener('keypress', (e) => {\n      if (e.key === 'Enter') {\n        searchMovie();\n      }\n    });\n    \n    searchMovie();\n  </script>\n</body>\n</html>",
+        "instructions": [
+          "Copy the code above",
+          "Save as `movie-search.html`",
+          "Open in browser",
+          "Search for different movies",
+          "Open console to see async/await in action",
+          "Notice how clean the code is compared to .then() chains!"
+        ],
+        "newConcepts": [
+          {
+            "name": "Async function as event handler",
+            "code": "async function searchMovie() {\n  const data = await fetch(url);\n  // Works perfectly as onclick handler!\n}",
+            "note": "You can use async functions anywhere you'd use regular functions"
+          }
+        ],
+        "proofRequired": "showing detailed movie information with ratings",
+        "hint": "Use await to pause execution until fetch() completes. The code reads top-to-bottom like synchronous code!"
+      },
+      "challenge": {
+        "title": "Build a Recipe Finder with Multiple APIs",
+        "mission": "Create a recipe search app that fetches from TheMealDB API and displays comprehensive recipe details.",
+        "requirements": [
+          "Search recipes by name",
+          "Fetch from TheMealDB API: https://www.themealdb.com/api/json/v1/1/search.php?s={query}",
+          "Display: recipe image, name, category, area",
+          "Show complete ingredient list with measurements",
+          "Display step-by-step instructions",
+          "Use async/await throughout (NO .then()!)",
+          "Handle loading states",
+          "Handle errors gracefully",
+          "Show multiple recipe results in a grid",
+          "Click a recipe to see full details"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Recipe Finder</title>\n  <style>\n    /* Add your styles */\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <h1>🍳 Recipe Finder</h1>\n    <div class=\"search-bar\">\n      <input type=\"text\" id=\"search-input\" placeholder=\"Search for recipes...\" value=\"chicken\">\n      <button onclick=\"searchRecipes()\">Search</button>\n    </div>\n    <div class=\"recipes-grid\" id=\"recipes-grid\"></div>\n  </div>\n\n  <script>\n    async function searchRecipes() {\n      // TODO: Use async/await to fetch recipes\n    }\n  </script>\n</body>\n</html>",
+        "hints": [
+          {
+            "level": 1,
+            "summary": "Stuck on API Calls? Click for Hint #1",
+            "content": "Use async/await for clean API calls:\n\nasync function searchRecipes() {\n  const query = document.getElementById('search-input').value;\n  const url = `https://www.themealdb.com/api/json/v1/1/search.php?s=${query}`;\n  \n  try {\n    const response = await fetch(url);\n    const data = await response.json();\n    displayRecipes(data.meals);\n  } catch (error) {\n    console.error('Error:', error);\n  }\n}"
+          },
+          {
+            "level": 2,
+            "summary": "Need help with ingredients? Click for Hint #2",
+            "content": "The API returns ingredients as separate properties (strIngredient1, strIngredient2, etc.):\n\nfunction getIngredients(meal) {\n  const ingredients = [];\n  for (let i = 1; i <= 20; i++) {\n    const ingredient = meal[`strIngredient${i}`];\n    const measure = meal[`strMeasure${i}`];\n    if (ingredient && ingredient.trim()) {\n      ingredients.push(`${measure} ${ingredient}`);\n    }\n  }\n  return ingredients;\n}"
+          },
+          {
+            "level": 3,
+            "summary": "Need Full Solution? Click Here",
+            "content": "Complete recipe finder with async/await, showing recipe grid and detailed view!"
+          }
+        ],
+        "sharing": {
+          "instruction": "Screenshot showing recipe cards with ingredients",
+          "socialPrompt": "Share in #wins: 'Built a recipe finder with async/await!'",
+          "hashtags": ["#day18", "#javascript", "#asyncawait"]
+        },
+        "bonusChallenge": "Add a 'Random Recipe' button that fetches from https://www.themealdb.com/api/json/v1/1/random.php"
+      },
+      "summary": {
+        "capabilities": [
+          "Write async functions that return Promises",
+          "Use await to pause execution until Promises resolve",
+          "Convert .then() chains to async/await",
+          "Handle errors with try/catch blocks",
+          "Make multiple parallel API calls with Promise.all()",
+          "Write cleaner, more readable asynchronous code",
+          "Debug async code more easily",
+          "Use async/await in event handlers",
+          "Build professional async applications"
+        ]
+      },
+      "bridge": {
+        "preview": "Fantastic! You now write clean async code with async/await.\n\nNext, you'll learn to handle LOADING STATES and ERRORS professionally - showing users what's happening and handling failures gracefully.",
+        "nextLessonTitle": "Handle Loading States and Errors",
+        "nextLessonId": "js-5-3"
+      }
+    },
+    {
       "id": "js-5-4",
       "title": "Build a Complete API-Powered App",
       "prereqs": ["js-5-1", "js-5-2", "js-5-3"],
