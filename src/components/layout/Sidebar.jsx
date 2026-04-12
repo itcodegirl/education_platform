@@ -27,16 +27,6 @@ function isLessonUnlocked(course, modules, mi, li, completed) {
   return true;
 }
 
-const TOOLS = [
-  { id: 'stats', icon: '📊', label: 'Stats' },
-  { id: 'bookmarks', icon: '★', label: 'Bookmarks' },
-  { id: 'glossary', icon: '📖', label: 'Glossary' },
-  { id: 'challenges', icon: '🏋️', label: 'Challenges' },
-  { id: 'badges', icon: '🏆', label: 'Badges' },
-  { id: 'sr', icon: '🔄', label: 'Review' },
-  { id: 'cheatsheet', icon: '📋', label: 'Cheat Sheets' },
-  { id: 'projects', icon: '🔨', label: 'Projects' },
-];
 
 export const Sidebar = memo(function Sidebar({
   courses,
@@ -58,7 +48,6 @@ export const Sidebar = memo(function Sidebar({
   const { user } = useAuth();
   const [lockMode, setLockMode] = useState(() => localStorage.getItem('chw-lock-mode') === 'true');
   const [popoverOpen, setPopoverOpen] = useState(false);
-  const [toolsOpen, setToolsOpen] = useState(false);
   const asideRef = useRef(null);
   const course = courses[courseIdx];
   const modules = course.modules;
@@ -232,41 +221,10 @@ export const Sidebar = memo(function Sidebar({
               );
             })}
           </nav>
-        </div>
 
-        {/* ─── Footer: Tools + Lock ─── */}
-        <div className="sb-footer">
-          {onOpenTool && (
-            <div className="sb-tools-section">
-              <button
-                type="button"
-                className={`sb-tools-toggle ${toolsOpen ? 'open' : ''}`}
-                onClick={() => setToolsOpen((v) => !v)}
-                aria-expanded={toolsOpen}
-              >
-                <span>🛠 Tools</span>
-                <span className="sb-tools-arrow">{toolsOpen ? '▾' : '▸'}</span>
-              </button>
-              {toolsOpen && (
-                <div className="sb-tools-grid">
-                  {TOOLS.map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      className="sb-tg-btn"
-                      onClick={() => { onOpenTool(t.id); if (isMobile) onClose(); }}
-                      title={t.label}
-                      aria-label={t.label}
-                    >
-                      <span className="sb-tg-icon">{t.icon}</span>
-                      <span className="sb-tg-label">{t.label}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-          <label className="lock-label">
+          {/* ─── Lock toggle ─── */}
+          <div className="sb-lock-row">
+            <label className="lock-label">
             <input
               type="checkbox"
               checked={lockMode}
@@ -274,7 +232,8 @@ export const Sidebar = memo(function Sidebar({
               aria-label="Toggle sequential lock mode"
             />
             <span className="lock-text">{lockMode ? '🔒 Sequential' : '🔓 Free roam'}</span>
-          </label>
+            </label>
+          </div>
         </div>
       </aside>
     </>
