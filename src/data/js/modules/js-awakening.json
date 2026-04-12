@@ -1,0 +1,92 @@
+{
+  "id": 301,
+  "emoji": "⚡",
+  "title": "JavaScript Awakening",
+  "tagline": "Make your pages come alive.",
+  "difficulty": "beginner",
+  "lessons": [
+    {
+      "id": "js-1-1",
+      "title": "Make a Button Talk",
+      "prereqs": [],
+      "difficulty": "beginner",
+      "duration": "15 min",
+      "metadata": { "estimatedTime": 15, "difficulty": "beginner", "conceptsCount": 3, "tasksCount": 3 },
+      "hook": {
+        "accomplishments": [
+          "Create a button that responds when you click it",
+          "Make it say different messages",
+          "Write your first line of JavaScript code"
+        ]
+      },
+      "do": {
+        "title": "Make a Button Say Hello",
+        "steps": [
+          "Open VS Code (or go to CodePen.io in your browser)",
+          "Create a new file and save it as talking-button.html",
+          "Copy and paste the code below",
+          "Save the file",
+          "Double-click the file to open it in your browser",
+          "Click the button \u2014 you'll see a popup appear!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>My Talking Button</title>\n</head>\n<body>\n  <h1>My First JavaScript</h1>\n  <button onclick=\"alert('Hello! You clicked me!')\">Click Me!</button>\n</body>\n</html>",
+        "result": "You just created an interactive button that responds to clicks using JavaScript!",
+        "proofRequired": "Screenshot showing the popup message \"Hello! You clicked me!\" after clicking your button."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "The <button> tag + onclick",
+            "definition": "The button creates a clickable element. The onclick attribute tells it what JavaScript to run when clicked.",
+            "analogy": "A doorbell button on a house. onclick is the wiring that connects it to the chime."
+          },
+          {
+            "name": "alert() function",
+            "definition": "JavaScript code that shows a popup message. Every browser understands alert(). Great for testing, not great for real websites (popups are annoying).",
+            "analogy": "A sticky note that pops up in front of everything until you press OK."
+          },
+          {
+            "name": "HTML creates elements, JavaScript makes them DO things",
+            "definition": "HTML builds the structure (the button). JavaScript adds behavior (what happens when you click). They work together but are different languages.",
+            "analogy": "HTML is building a car. JavaScript is the engine that makes it drive."
+          }
+        ],
+        "keyTakeaway": "HTML creates elements. JavaScript makes them DO things. onclick + alert() is the simplest way to start."
+      },
+      "build": {
+        "goal": "Make the button show a personalized greeting with YOUR name",
+        "codeComparison": {
+          "old": "<button onclick=\"alert('Hello! You clicked me!')\">Click Me!</button>",
+          "new": "<button onclick=\"alert('Hello, Sarah! Welcome to JavaScript!')\">Click Me!</button>\n\n<!-- Replace \"Sarah\" with YOUR actual name! -->"
+        },
+        "hint": "Make sure to keep the quotes around your text: alert('like this'), not alert(like this). The quotes tell JavaScript this is text to display."
+      },
+      "challenge": {
+        "title": "Create a Compliment Button",
+        "mission": "Create a button that gives you a different compliment each time you click it, picked randomly from 3 options.",
+        "requirements": [
+          "Button text says \"Give Me a Compliment\"",
+          "When clicked, shows one of 3 different compliments",
+          "Each compliment is encouraging and positive",
+          "Uses Math.random() to pick randomly"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Compliment Button</title>\n</head>\n<body>\n  <h1>Daily Compliment Generator</h1>\n  <button onclick=\"giveCompliment()\">Give Me a Compliment</button>\n\n  <script>\n    function giveCompliment() {\n      // Your code goes here\n      // Hint: let randomNumber = Math.floor(Math.random() * 3) + 1;\n      // Then use if/else to show different messages\n    }\n  </script>\n</body>\n</html>",
+        "bonusChallenge": "Add 5 compliments instead of 3! Change the random number generator to pick from 1-5."
+      },
+      "summary": {
+        "capabilities": [
+          "Create interactive buttons with JavaScript",
+          "Use alert() to show messages",
+          "Use onclick to make elements respond to clicks",
+          "Write basic JavaScript functions",
+          "Generate random numbers with Math.random()",
+          "Use if/else statements to make decisions"
+        ]
+      },
+      "bridge": {
+        "preview": "In the next lesson, you'll learn how to change what's on the page WITHOUT annoying popups. You'll make text appear, disappear, and change \u2014 all with JavaScript.",
+        "nextLessonId": "js-1-2"
+      }
+    }
+  ]
+}
