@@ -373,6 +373,100 @@
         "preview": "In Lesson 1.5, you'll learn different ways to center things — horizontally, vertically, and both. You'll make layouts that look balanced!",
         "nextLessonId": "css-1-5"
       }
+    },
+    {
+      "id": "css-1-5",
+      "title": "Center Everything",
+      "prereqs": [
+        "css-1-4"
+      ],
+      "difficulty": "beginner",
+      "duration": "20 min",
+      "metadata": {
+        "estimatedTime": 20,
+        "difficulty": "beginner",
+        "conceptsCount": 4,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Center text inside an element",
+          "Center a block element on the page",
+          "Center things vertically (the tricky one!)"
+        ]
+      },
+      "do": {
+        "title": "Center text inside a box",
+        "steps": [
+          "Create a new file and save it as centering.html",
+          "Copy and paste the code below",
+          "Save and open in browser",
+          "All text should be centered inside the blue box!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Centering</title>\n  <style>\n    .centered-text {\n      background-color: lightblue;\n      padding: 40px;\n      text-align: center;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"centered-text\">\n    <h1>This text is centered!</h1>\n    <p>Everything inside this box is centered too.</p>\n  </div>\n</body>\n</html>",
+        "result": "The text-align: center property centered all the text inside the div!",
+        "proofRequired": "Screenshot showing centered text."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "The text-align property",
+            "definition": "Controls horizontal alignment of TEXT and inline elements: left (default), center, right, justify. Only affects content INSIDE the element, not the element itself.",
+            "analogy": "The alignment buttons in Microsoft Word. But this is for text and inline content only."
+          },
+          {
+            "name": "Centering a block with margin: 0 auto",
+            "definition": "To center a block element itself, give it a max-width and set margin: 0 auto. Auto margins on left/right push the box to center.",
+            "analogy": "Putting equal-sized bookends on both sides of books on a shelf — the books end up in the middle."
+          },
+          {
+            "name": "text-align vs margin auto",
+            "definition": "text-align: center centers CONTENT inside a box. margin: 0 auto centers THE BOX itself on the page. They solve different problems.",
+            "analogy": "Centering a painting on a wall (margin auto) vs. centering the signature within the painting (text-align)."
+          },
+          {
+            "name": "max-width for centering",
+            "definition": "A block element is full-width by default, so margin auto has no effect. You must set max-width first to give it a size, THEN auto margins center it.",
+            "analogy": "You can't center a wall-to-wall carpet — it's already touching both sides. Make it smaller first, then center it."
+          }
+        ],
+        "keyTakeaway": "text-align: center for content inside. max-width + margin: 0 auto for the box itself. Memorize both — you'll use them constantly."
+      },
+      "build": {
+        "goal": "Center a box on the page and build a login card",
+        "codeComparison": {
+          "old": ".centered-text {\n  background-color: lightblue;\n  padding: 40px;\n  text-align: center;\n}",
+          "new": ".card {\n  background-color: white;\n  max-width: 400px;\n  margin: 0 auto;\n  padding: 40px;\n  text-align: center;\n  box-shadow: 0 2px 10px rgba(0,0,0,0.1);\n  border-radius: 8px;\n}"
+        },
+        "hint": "margin: 0 auto is the most common centering technique in CSS. 0 = no top/bottom margin, auto = equal left/right margins."
+      },
+      "challenge": {
+        "title": "Create a Hero Section",
+        "mission": "Build a \"hero\" section like you see at the top of websites — big centered text with a call-to-action button.",
+        "requirements": [
+          "Full-width colored background",
+          "Large centered heading",
+          "Subheading text",
+          "Call-to-action button",
+          "Everything centered horizontally",
+          "Looks professional"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Hero Section</title>\n  <style>\n    body {\n      margin: 0;\n      font-family: Arial, sans-serif;\n    }\n    \n    /* Add your hero styles here */\n    \n  </style>\n</head>\n<body>\n  <div class=\"hero\">\n    <h1>Start Your Coding Journey</h1>\n    <p>Learn to build real applications in 8 weeks</p>\n    <button>Get Started Free</button>\n  </div>\n</body>\n</html>",
+        "bonusChallenge": "Add transition: all 0.3s ease; to the button and a :hover rule to make the hover effect smooth!"
+      },
+      "summary": {
+        "capabilities": [
+          "Center text with text-align: center",
+          "Center block elements with margin: 0 auto",
+          "Understand the difference between centering content vs. centering containers",
+          "Create professional centered layouts",
+          "Build hero sections and card layouts"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 1.6, you'll learn to add background images to elements, control how they size and repeat, and create visually stunning sections!",
+        "nextLessonId": "css-1-6"
+      }
     }
   ]
 }
