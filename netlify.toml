@@ -70,6 +70,17 @@
     Cache-Control = "public, max-age=0, must-revalidate"
 
 # Security headers
+#
+# CSP notes:
+#  - Monaco Editor is lazy-loaded by @monaco-editor/react from cdn.jsdelivr.net
+#    and uses `new Function()` internally, so script-src needs that host plus
+#    'unsafe-eval' (and 'wasm-unsafe-eval' for its WASM paths).
+#  - Monaco spawns language workers via blob: URLs, hence worker-src blob:.
+#  - Supabase client talks to *.supabase.co over HTTPS + WSS (realtime).
+#  - OpenAI is never called from the browser — only from netlify/functions/ai.js
+#    — so api.openai.com is intentionally absent from connect-src.
+#  - Lesson previews are rendered with <iframe srcDoc=…>, which inherits the
+#    parent's origin and doesn't need a frame-src exception.
 [[headers]]
   for = "/*"
   [headers.values]
@@ -77,3 +88,4 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' data: https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
