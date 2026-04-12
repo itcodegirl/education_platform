@@ -7,6 +7,7 @@ import { useState, memo, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useProgress, useAuth } from '../../providers';
 import { QUIZ_MAP } from '../../data';
 import { ProfilePopover } from './ProfilePopover';
+import { Logo } from '../shared/Logo';
 
 function isLessonUnlocked(course, modules, mi, li, completed) {
   if (mi === 0 && li === 0) return true;
@@ -110,8 +111,8 @@ export const Sidebar = memo(function Sidebar({
         {/* ─── Brand + Avatar row ─── */}
         <div className="sb-head">
           <div className="brand">
-            <span className="brand-bolt" aria-hidden="true">⚡</span>
-            <h1 className="brand-name">CodeHerWay</h1>
+            <Logo size="sm" />
+            <Logo size="icon" className="brand-icon-only" />
           </div>
           <div className="sb-head-actions">
             <button

@@ -8,6 +8,7 @@ import { useTheme, useAuth, useProgress } from '../providers';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { AppLayout } from '../layouts/AppLayout';
 import { LessonSkeleton, ConnectionError } from '../components/shared/SkeletonLoader';
+import { Logo } from '../components/shared/Logo';
 
 // Admin is lazy — most users never see it
 const AdminDashboard = lazy(() =>
@@ -27,8 +28,8 @@ export default function AppRoutes() {
     return (
       <div className={`loading-screen ${theme}`}>
         <div className="loading-pulse">
-          <span className="loading-bolt">⚡</span>
-          <p>Loading CodeHerWay...</p>
+          <Logo size="lg" />
+          <p style={{marginTop: '12px'}}>Loading...</p>
         </div>
       </div>
     );
@@ -58,7 +59,7 @@ export default function AppRoutes() {
       <div className={theme}>
         <Suspense fallback={
           <div className="loading-screen">
-            <div className="loading-pulse"><span className="loading-bolt">⚡</span><p>Loading profile...</p></div>
+            <div className="loading-pulse"><Logo size="sm" /><p>Loading profile...</p></div>
           </div>
         }>
           <ProfilePage onClose={() => { window.location.hash = ''; window.location.reload(); }} />
@@ -73,7 +74,7 @@ export default function AppRoutes() {
       <div className={theme}>
         <Suspense fallback={
           <div className="loading-screen">
-            <div className="loading-pulse"><span className="loading-bolt">⚡</span><p>Loading admin...</p></div>
+            <div className="loading-pulse"><Logo size="sm" /><p>Loading admin...</p></div>
           </div>
         }>
           <AdminDashboard onClose={() => { window.location.hash = ''; window.location.reload(); }} />

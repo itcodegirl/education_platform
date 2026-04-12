@@ -441,25 +441,51 @@ textarea:focus-visible,
   flex-shrink: 0;
 }
 .brand { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
-.brand-bolt {
-  width: 36px; height: 36px;
-  display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 10px;
-  background: linear-gradient(135deg, rgba(180,74,255,0.25), rgba(224,64,160,0.15));
-  border: 1px solid rgba(180,74,255,0.15);
-  font-size: 18px;
-  filter: drop-shadow(0 0 10px rgba(180,74,255,0.3));
-  flex-shrink: 0;
+/* ─── Logo: <Code>Her</Way> ─── */
+.logo {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+  line-height: 1;
 }
-.brand-name {
-  font-family: 'Poppins', sans-serif;
-  font-size: 16px; font-weight: 700;
-  background: var(--grad-brand);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+.logo-bracket {
+  color: #A9B0D3;
+  font-weight: 400;
+}
+.logo-code,
+.logo-way {
+  color: #A9B0D3;
+  font-weight: 500;
+}
+.logo-her {
+  font-weight: 700;
+  background: linear-gradient(135deg, #7B61FF, #FF6FD8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   background-clip: text;
-  letter-spacing: -0.3px; line-height: 1;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+
+/* Size variants */
+.logo-sm {
+  font-size: 15px;
+  letter-spacing: -0.3px;
+}
+.logo-lg {
+  font-size: 28px;
+  letter-spacing: -0.5px;
+}
+.logo-icon {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Subtle glow on Her (allowed per spec) */
+.logo-her { filter: drop-shadow(0 0 8px rgba(123,97,255,0.3)); }
+
+/* Hide icon variant by default, show in collapsed sidebar */
+.brand-icon-only { display: none; }
+.sb.collapsed .brand-icon-only { display: inline-flex; }
 .sb-head-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 
 /* Avatar button */
@@ -728,7 +754,7 @@ textarea:focus-visible,
   .sb.collapsed { width: var(--sb-width-collapsed); min-width: var(--sb-width-collapsed); }
   .sb.collapsed .sb-head { padding: 14px 10px; justify-content: center; flex-direction: column; gap: 8px; }
   .sb.collapsed .brand { justify-content: center; }
-  .sb.collapsed .brand-name,
+  .sb.collapsed .logo-sm,
   .sb.collapsed .sb-head-actions .sb-collapse,
   .sb.collapsed .cs-trigger-label,
   .sb.collapsed .cs-trigger-meta,

@@ -4,6 +4,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '../../providers';
+import { Logo } from '../shared/Logo';
 
 export function AuthPage({ onPreview }) {
   const { signIn, signUp, signInWithGithub, signInWithGoogle } = useAuth();
@@ -46,8 +47,7 @@ export function AuthPage({ onPreview }) {
       <div className="auth-page">
         <div className="auth-card">
           <div className="auth-brand">
-            <span className="auth-bolt">⚡</span>
-            <h1 className="auth-title">CodeHerWay</h1>
+            <Logo size="lg" />
             <p className="auth-sub">Learn. Build. Ship.</p>
           </div>
           <div className="auth-confirm">

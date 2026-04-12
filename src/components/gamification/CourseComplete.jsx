@@ -72,7 +72,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
               Completed all {lessonCount} lessons
             </div>
             <div className="cc-cert-date">{today}</div>
-            <div className="cc-cert-brand">⚡ CodeHerWay</div>
+            <div className="cc-cert-brand">&lt;Code&gt;<span style={{fontWeight:700,background:'linear-gradient(135deg,#7B61FF,#FF6FD8)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>Her</span>&lt;/Way&gt;</div>
           </div>
         </div>
 
