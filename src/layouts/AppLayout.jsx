@@ -224,12 +224,6 @@ export function AppLayout() {
               showModQuiz={showModQuiz}
             />
             <div className="topbar-actions">
-              {!showModQuiz && (
-                <span className="read-time">
-                  <span className="rt-icon">⏱</span>
-                  {readTime} min
-                </span>
-              )}
               <button
                 type="button"
                 className="search-trigger"
