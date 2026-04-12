@@ -11,7 +11,12 @@
       "prereqs": [],
       "difficulty": "intermediate",
       "duration": "22 min",
-      "metadata": { "estimatedTime": 22, "difficulty": "intermediate", "conceptsCount": 4, "tasksCount": 2 },
+      "metadata": {
+        "estimatedTime": 22,
+        "difficulty": "intermediate",
+        "conceptsCount": 4,
+        "tasksCount": 2
+      },
       "hook": {
         "accomplishments": [
           "Create a card gallery that adapts from 1 to 4 columns",
@@ -26,7 +31,7 @@
           "Create a new file and save it as responsive-gallery.html",
           "Copy and paste the code below",
           "Save and open in browser",
-          "Resize your browser window \u2014 watch cards automatically reflow from 1 to 4 columns!"
+          "Resize your browser window — watch cards automatically reflow from 1 to 4 columns!"
         ],
         "code": "<!DOCTYPE html>\n<html>\n<head>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Responsive Gallery</title>\n  <style>\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n    \n    body {\n      font-family: Arial, sans-serif;\n      background-color: #f5f5f5;\n      padding: 40px 20px;\n    }\n    \n    h1 {\n      text-align: center;\n      color: #333;\n      margin-bottom: 40px;\n      font-size: 36px;\n    }\n    \n    .gallery {\n      display: grid;\n      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));\n      gap: 30px;\n      max-width: 1400px;\n      margin: 0 auto;\n    }\n    \n    .card {\n      background-color: white;\n      border-radius: 12px;\n      overflow: hidden;\n      box-shadow: 0 4px 12px rgba(0,0,0,0.1);\n      transition: all 0.3s ease;\n      display: flex;\n      flex-direction: column;\n    }\n    \n    .card:hover {\n      transform: translateY(-8px);\n      box-shadow: 0 12px 24px rgba(0,0,0,0.15);\n    }\n    \n    .card-image {\n      width: 100%;\n      height: 220px;\n      object-fit: cover;\n    }\n    \n    .card-content {\n      padding: 24px;\n      flex: 1;\n      display: flex;\n      flex-direction: column;\n    }\n    \n    .card-title {\n      font-size: 22px;\n      color: #333;\n      margin-bottom: 12px;\n    }\n    \n    .card-description {\n      color: #666;\n      line-height: 1.6;\n      margin-bottom: 20px;\n      flex: 1;\n    }\n    \n    .card-footer {\n      display: flex;\n      justify-content: space-between;\n      align-items: center;\n      padding-top: 16px;\n      border-top: 1px solid #f0f0f0;\n    }\n    \n    .card-author, .card-date {\n      color: #999;\n      font-size: 14px;\n    }\n    \n    .card-tag {\n      display: inline-block;\n      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n      color: white;\n      padding: 6px 14px;\n      border-radius: 20px;\n      font-size: 12px;\n      font-weight: 600;\n      margin-bottom: 12px;\n    }\n  </style>\n</head>\n<body>\n  <h1>Responsive Card Gallery</h1>\n  \n  <div class=\"gallery\">\n    <div class=\"card\">\n      <img src=\"https://via.placeholder.com/400x300/FF6B6B/FFFFFF?text=Project+1\" alt=\"Project 1\" class=\"card-image\">\n      <div class=\"card-content\">\n        <span class=\"card-tag\">Design</span>\n        <h3 class=\"card-title\">Modern Website Redesign</h3>\n        <p class=\"card-description\">A complete redesign of an e-commerce platform focusing on user experience and mobile responsiveness.</p>\n        <div class=\"card-footer\">\n          <span class=\"card-author\">Sarah Chen</span>\n          <span class=\"card-date\">Mar 15, 2026</span>\n        </div>\n      </div>\n    </div>\n    \n    <div class=\"card\">\n      <img src=\"https://via.placeholder.com/400x300/4ECDC4/FFFFFF?text=Project+2\" alt=\"Project 2\" class=\"card-image\">\n      <div class=\"card-content\">\n        <span class=\"card-tag\">Development</span>\n        <h3 class=\"card-title\">Dashboard Application</h3>\n        <p class=\"card-description\">Interactive dashboard with real-time data visualization and analytics capabilities.</p>\n        <div class=\"card-footer\">\n          <span class=\"card-author\">Alex Morgan</span>\n          <span class=\"card-date\">Mar 12, 2026</span>\n        </div>\n      </div>\n    </div>\n    \n    <div class=\"card\">\n      <img src=\"https://via.placeholder.com/400x300/45B7D1/FFFFFF?text=Project+3\" alt=\"Project 3\" class=\"card-image\">\n      <div class=\"card-content\">\n        <span class=\"card-tag\">Branding</span>\n        <h3 class=\"card-title\">Brand Identity Package</h3>\n        <p class=\"card-description\">Complete brand identity system including logo, color palette, typography, and brand guidelines.</p>\n        <div class=\"card-footer\">\n          <span class=\"card-author\">Jordan Lee</span>\n          <span class=\"card-date\">Mar 10, 2026</span>\n        </div>\n      </div>\n    </div>\n    \n    <div class=\"card\">\n      <img src=\"https://via.placeholder.com/400x300/96CEB4/FFFFFF?text=Project+4\" alt=\"Project 4\" class=\"card-image\">\n      <div class=\"card-content\">\n        <span class=\"card-tag\">Mobile</span>\n        <h3 class=\"card-title\">Fitness Tracking App</h3>\n        <p class=\"card-description\">Mobile-first fitness application with workout tracking, nutrition planning, and progress analytics.</p>\n        <div class=\"card-footer\">\n          <span class=\"card-author\">Emma Davis</span>\n          <span class=\"card-date\">Mar 8, 2026</span>\n        </div>\n      </div>\n    </div>\n    \n    <div class=\"card\">\n      <img src=\"https://via.placeholder.com/400x300/FFEAA7/333333?text=Project+5\" alt=\"Project 5\" class=\"card-image\">\n      <div class=\"card-content\">\n        <span class=\"card-tag\">UI/UX</span>\n        <h3 class=\"card-title\">Booking Platform</h3>\n        <p class=\"card-description\">Intuitive booking system for hotels and accommodations with advanced search and filtering.</p>\n        <div class=\"card-footer\">\n          <span class=\"card-author\">Ryan Patel</span>\n          <span class=\"card-date\">Mar 5, 2026</span>\n        </div>\n      </div>\n    </div>\n    \n    <div class=\"card\">\n      <img src=\"https://via.placeholder.com/400x300/DFE6E9/333333?text=Project+6\" alt=\"Project 6\" class=\"card-image\">\n      <div class=\"card-content\">\n        <span class=\"card-tag\">Web</span>\n        <h3 class=\"card-title\">Portfolio Website</h3>\n        <p class=\"card-description\">Personal portfolio showcasing creative work with interactive elements and smooth animations.</p>\n        <div class=\"card-footer\">\n          <span class=\"card-author\">Maya Johnson</span>\n          <span class=\"card-date\">Mar 1, 2026</span>\n        </div>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
         "result": "The grid automatically adjusts the number of columns based on available space! Cards are always equal height even with different content lengths.",
@@ -42,12 +47,12 @@
           {
             "name": "Equal height cards with Flexbox",
             "definition": "Cards use display: flex + flex-direction: column. Setting flex: 1 on card-content makes it grow to fill available space, so all cards match height regardless of content length.",
-            "analogy": "Like adjustable shelves \u2014 the content area stretches to make all cards the same height."
+            "analogy": "Like adjustable shelves — the content area stretches to make all cards the same height."
           },
           {
             "name": "Hover effects with transform",
             "definition": "transform: translateY(-8px) lifts the card up on hover. Combined with a growing box-shadow, it creates a \"lifting off the page\" effect. transition: all 0.3s ease makes it smooth.",
-            "analogy": "Picking up a card from a table \u2014 it rises and its shadow gets bigger."
+            "analogy": "Picking up a card from a table — it rises and its shadow gets bigger."
           },
           {
             "name": "No media queries needed",
@@ -60,7 +65,7 @@
       "build": {
         "goal": "Add category filter buttons that show/hide cards",
         "codeComparison": {
-          "old": "<!-- Static gallery \u2014 all cards always visible -->\n<div class=\"gallery\">\n  <div class=\"card\">...</div>\n  <div class=\"card\">...</div>\n</div>",
+          "old": "<!-- Static gallery — all cards always visible -->\n<div class=\"gallery\">\n  <div class=\"card\">...</div>\n  <div class=\"card\">...</div>\n</div>",
           "new": "<!-- Filterable gallery -->\n<div class=\"filter-buttons\">\n  <button class=\"filter-btn active\" data-filter=\"all\">All</button>\n  <button class=\"filter-btn\" data-filter=\"design\">Design</button>\n  <button class=\"filter-btn\" data-filter=\"development\">Dev</button>\n</div>\n\n<div class=\"gallery\">\n  <div class=\"card\">...</div>\n</div>\n\n<style>\n.filter-btn {\n  padding: 12px 24px;\n  border-radius: 25px;\n  border: 2px solid #ddd;\n  cursor: pointer;\n  transition: all 0.3s ease;\n}\n.filter-btn.active {\n  background: linear-gradient(135deg, #667eea, #764ba2);\n  color: white;\n  border-color: transparent;\n}\n.card.hidden { display: none; }\n</style>"
         },
         "hint": "JavaScript toggles the .hidden class on cards based on which filter button is clicked. The CSS grid automatically adjusts when cards disappear!"
@@ -92,6 +97,214 @@
       "bridge": {
         "preview": "In Lesson 3.5, you'll learn to make text and spacing scale perfectly across devices using modern CSS techniques like clamp() and CSS variables!",
         "nextLessonId": "css-3-5"
+      }
+    },
+    {
+      "id": "css-3-5",
+      "title": "Responsive Typography and Spacing",
+      "prereqs": [
+        "css-3-4"
+      ],
+      "difficulty": "intermediate",
+      "duration": "18 min",
+      "metadata": {
+        "estimatedTime": 18,
+        "difficulty": "intermediate",
+        "conceptsCount": 3,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Make text scale smoothly across all screen sizes",
+          "Use the clamp() function for fluid typography",
+          "Create consistent spacing with CSS custom properties",
+          "Avoid font size jumps between breakpoints"
+        ]
+      },
+      "do": {
+        "title": "Create fluid typography with clamp()",
+        "steps": [
+          "Create a new file and save it as fluid-typography.html",
+          "Copy and paste the code below",
+          "Save and open in browser",
+          "Slowly resize your browser window — watch text scale smoothly!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Fluid Typography</title>\n  <style>\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n    \n    :root {\n      --space-xs: clamp(0.5rem, 1vw, 1rem);\n      --space-sm: clamp(1rem, 2vw, 1.5rem);\n      --space-md: clamp(1.5rem, 3vw, 2.5rem);\n      --space-lg: clamp(2rem, 5vw, 4rem);\n      --space-xl: clamp(3rem, 8vw, 6rem);\n    }\n    \n    body {\n      font-family: Arial, sans-serif;\n      line-height: 1.6;\n      color: #333;\n      padding: var(--space-md);\n      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n      min-height: 100vh;\n    }\n    \n    .content {\n      max-width: 800px;\n      margin: 0 auto;\n      background-color: white;\n      padding: var(--space-lg);\n      border-radius: 16px;\n      box-shadow: 0 20px 60px rgba(0,0,0,0.3);\n    }\n    \n    h1 {\n      font-size: clamp(2rem, 5vw, 4rem);\n      margin-bottom: var(--space-md);\n      color: #333;\n      line-height: 1.2;\n    }\n    \n    h2 {\n      font-size: clamp(1.5rem, 3.5vw, 2.5rem);\n      margin-top: var(--space-lg);\n      margin-bottom: var(--space-sm);\n      color: #555;\n    }\n    \n    p {\n      font-size: clamp(1rem, 2vw, 1.25rem);\n      margin-bottom: var(--space-md);\n      color: #666;\n    }\n    \n    .highlight {\n      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n      color: white;\n      padding: var(--space-md);\n      border-radius: 8px;\n      margin: var(--space-lg) 0;\n    }\n    \n    .highlight p {\n      color: white;\n      margin-bottom: 0;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"content\">\n    <h1>Fluid Typography That Actually Works</h1>\n    <p>Resize your browser window and watch how the text scales smoothly without jumping between breakpoints.</p>\n    <h2>What's Different?</h2>\n    <p>Traditional responsive design uses media queries to change font sizes at specific breakpoints. This creates sudden jumps. Fluid typography scales continuously.</p>\n    <div class=\"highlight\">\n      <p><strong>Try it now:</strong> Grab the edge of your browser and resize slowly. Notice how headings and text scale smoothly!</p>\n    </div>\n    <h2>Benefits of Fluid Typography</h2>\n    <p>No more awkward font sizes between breakpoints. Text looks perfect at EVERY screen size.</p>\n    <p>Less CSS to maintain — no need for multiple media queries just for font sizes.</p>\n  </div>\n</body>\n</html>",
+        "result": "The clamp() function makes text size scale continuously based on viewport width, with minimum and maximum limits!",
+        "proofRequired": "Screenshot at any size showing the fluid typography."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "The clamp() function",
+            "definition": "clamp(min, preferred, max) sets a value that never goes below MIN, never above MAX, and scales based on PREFERRED (usually viewport units). Example: clamp(2rem, 5vw, 4rem).",
+            "analogy": "A thermostat with minimum and maximum settings. Temperature adjusts automatically but stays within safe limits."
+          },
+          {
+            "name": "Viewport units (vw)",
+            "definition": "1vw = 1% of viewport width. Using vw in clamp's preferred value makes text scale with the screen. 5vw on a 1000px screen = 50px.",
+            "analogy": "Like measuring in percentages of the room size — \"make this 5% as wide as the room.\""
+          },
+          {
+            "name": "CSS custom properties for spacing",
+            "definition": "Define spacing values once in :root with clamp(), then use var(--space-md) everywhere. Change one variable, update the entire site.",
+            "analogy": "A master control panel — adjust one dial and every room in the house responds."
+          }
+        ],
+        "keyTakeaway": "clamp(min, preferred, max) creates smooth, bounded scaling. Combine with CSS variables for a consistent design system."
+      },
+      "build": {
+        "goal": "Build a complete spacing and typography system with CSS variables",
+        "codeComparison": {
+          "old": "/* Fixed sizes — jumps at breakpoints */\nh1 { font-size: 24px; }\n@media (min-width: 768px) {\n  h1 { font-size: 36px; }\n}\n@media (min-width: 1024px) {\n  h1 { font-size: 48px; }\n}",
+          "new": "/* Fluid — smooth scaling, no breakpoints needed */\n:root {\n  --text-2xl: clamp(2rem, 5vw, 4rem);\n  --text-xl: clamp(1.5rem, 3.5vw, 2.5rem);\n  --text-base: clamp(1rem, 2vw, 1.25rem);\n  --space-md: clamp(1.5rem, 3vw, 2.5rem);\n}\n\nh1 { font-size: var(--text-2xl); }\nh2 { font-size: var(--text-xl); }\np { font-size: var(--text-base); }"
+        },
+        "hint": "Using a spacing system makes your design consistent AND responsive. Change one variable, update the entire site!"
+      },
+      "challenge": {
+        "title": "Build a Fluid Article Layout",
+        "mission": "Create a blog article with fluid typography, consistent spacing, and perfect readability at all sizes.",
+        "requirements": [
+          "Article title using clamp()",
+          "Subheadings using clamp()",
+          "Body text with fluid line-height",
+          "Consistent spacing system using CSS variables",
+          "Max-width for readability (use ch units)",
+          "Highlighted quote or callout box",
+          "Professional typography"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Fluid Article</title>\n  <style>\n    :root {\n      /* Add your spacing and typography scales here */\n    }\n    \n    /* Add your article styles here */\n    \n  </style>\n</head>\n<body>\n  <article>\n    <header>\n      <h1>Your Article Title</h1>\n      <p class=\"meta\">By Your Name • March 15, 2026</p>\n    </header>\n    <p>Article content goes here...</p>\n    <h2>Subheading</h2>\n    <p>More content...</p>\n    <blockquote>\n      <p>An inspiring quote that stands out.</p>\n    </blockquote>\n    <p>Conclusion...</p>\n  </article>\n</body>\n</html>",
+        "bonusChallenge": "Add a table of contents that scrolls to sections using scroll-behavior: smooth!"
+      },
+      "summary": {
+        "capabilities": [
+          "Use clamp() for fluid typography",
+          "Create viewport-based scaling with vw units",
+          "Build consistent spacing systems with CSS variables",
+          "Set optimal line-heights for readability",
+          "Use max-width with ch units for readable line lengths",
+          "Combine fluid typography with responsive layouts"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 3.6, you'll combine EVERYTHING you've learned to build a complete, professional portfolio website that works perfectly on any device!",
+        "nextLessonId": "css-3-6"
+      }
+    },
+    {
+      "id": "css-3-6",
+      "title": "Build Your Responsive Portfolio Page",
+      "prereqs": [
+        "css-3-5"
+      ],
+      "difficulty": "intermediate",
+      "duration": "30 min",
+      "metadata": {
+        "estimatedTime": 30,
+        "difficulty": "intermediate",
+        "conceptsCount": 7,
+        "tasksCount": 1
+      },
+      "hook": {
+        "accomplishments": [
+          "Build a complete portfolio website from scratch",
+          "Combine all responsive techniques you've learned",
+          "Create hero section, about, projects, and contact sections",
+          "Make it work perfectly on mobile, tablet, and desktop"
+        ]
+      },
+      "do": {
+        "title": "Build the complete portfolio",
+        "steps": [
+          "Create a new file and save it as my-portfolio.html",
+          "Copy and paste the code below",
+          "Save and open in browser",
+          "Replace \"Your Name\" with your actual name",
+          "Update the about section with your story",
+          "Replace placeholder projects with your actual work"
+        ],
+        "code": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Your Name - Portfolio</title>\n  <style>\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    \n    :root {\n      --space-sm: clamp(1rem, 2vw, 1.5rem);\n      --space-md: clamp(1.5rem, 3vw, 2.5rem);\n      --space-lg: clamp(2rem, 5vw, 4rem);\n      --space-xl: clamp(3rem, 8vw, 6rem);\n      --text-base: clamp(1rem, 2vw, 1.125rem);\n      --text-lg: clamp(1.125rem, 2.5vw, 1.375rem);\n      --text-xl: clamp(1.5rem, 3.5vw, 2rem);\n      --text-2xl: clamp(2rem, 5vw, 3.5rem);\n      --text-3xl: clamp(2.5rem, 6vw, 5rem);\n      --primary: #667eea;\n      --secondary: #764ba2;\n    }\n    \n    html { scroll-behavior: smooth; }\n    body { font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif; line-height: 1.6; color: #1a1a1a; }\n    \n    .nav { background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }\n    .nav-container { max-width: 1200px; margin: 0 auto; padding: var(--space-sm) var(--space-md); display: flex; justify-content: space-between; align-items: center; }\n    .logo { font-size: var(--text-xl); font-weight: 700; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }\n    .nav-links { display: flex; list-style: none; gap: var(--space-md); }\n    .nav-links a { color: #4a4a4a; text-decoration: none; font-weight: 500; transition: color 0.3s; }\n    .nav-links a:hover { color: var(--primary); }\n    \n    .hero { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: var(--space-xl) var(--space-md); text-align: center; min-height: 90vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }\n    .hero h1 { font-size: var(--text-3xl); margin-bottom: var(--space-sm); font-weight: 700; line-height: 1.1; }\n    .hero p { font-size: var(--text-xl); max-width: 600px; margin-bottom: var(--space-lg); opacity: 0.9; }\n    .btn { display: inline-block; padding: var(--space-sm) var(--space-lg); background: white; color: var(--primary); text-decoration: none; border-radius: 50px; font-weight: 600; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }\n    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }\n    \n    section { padding: var(--space-xl) var(--space-md); }\n    .container { max-width: 1200px; margin: 0 auto; }\n    .section-title { font-size: var(--text-2xl); text-align: center; margin-bottom: var(--space-lg); font-weight: 700; }\n    \n    .about { background: #f9f9f9; }\n    .about-content { display: grid; grid-template-columns: 1fr; gap: var(--space-lg); align-items: center; }\n    .about-text p { font-size: var(--text-base); line-height: 1.8; margin-bottom: var(--space-md); color: #4a4a4a; }\n    .skills { display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-top: var(--space-md); }\n    .skill-tag { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 0.5rem 1.25rem; border-radius: 25px; font-size: var(--text-base); font-weight: 600; }\n    \n    .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-lg); }\n    .project-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: all 0.3s; }\n    .project-card:hover { transform: translateY(-8px); box-shadow: 0 12px 24px rgba(0,0,0,0.15); }\n    .project-image { width: 100%; height: 220px; object-fit: cover; }\n    .project-content { padding: var(--space-md); }\n    .project-title { font-size: var(--text-lg); margin-bottom: 0.5rem; }\n    .project-description { font-size: var(--text-base); color: #4a4a4a; line-height: 1.6; margin-bottom: var(--space-md); }\n    .project-link { color: var(--primary); text-decoration: none; font-weight: 600; }\n    \n    .contact { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; text-align: center; }\n    .contact .section-title { color: white; }\n    .contact p { font-size: var(--text-lg); max-width: 600px; margin: 0 auto var(--space-lg); opacity: 0.9; }\n    .contact-links { display: flex; justify-content: center; gap: var(--space-md); flex-wrap: wrap; }\n    .contact-btn { padding: var(--space-sm) var(--space-lg); background: white; color: var(--primary); text-decoration: none; border-radius: 50px; font-weight: 600; transition: all 0.3s; }\n    .contact-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }\n    \n    footer { background: #1a1a1a; color: white; text-align: center; padding: var(--space-lg) var(--space-md); }\n    footer p { opacity: 0.8; }\n    \n    @media (min-width: 768px) { .about-content { grid-template-columns: 1fr 1fr; } }\n    @media (max-width: 768px) { .nav-links { display: none; } }\n  </style>\n</head>\n<body>\n  <nav class=\"nav\"><div class=\"nav-container\"><div class=\"logo\">YourName</div><ul class=\"nav-links\"><li><a href=\"#about\">About</a></li><li><a href=\"#projects\">Projects</a></li><li><a href=\"#contact\">Contact</a></li></ul></div></nav>\n  \n  <section class=\"hero\"><h1>Hi, I'm Your Name</h1><p>I build beautiful, responsive websites that work perfectly on every device.</p><a href=\"#projects\" class=\"btn\">View My Work</a></section>\n  \n  <section id=\"about\" class=\"about\"><div class=\"container\"><h2 class=\"section-title\">About Me</h2><div class=\"about-content\"><div class=\"about-text\"><p>I'm a developer passionate about creating user-friendly web experiences.</p><div class=\"skills\"><span class=\"skill-tag\">HTML</span><span class=\"skill-tag\">CSS</span><span class=\"skill-tag\">Flexbox</span><span class=\"skill-tag\">Grid</span><span class=\"skill-tag\">Responsive</span></div></div><div><img src=\"https://via.placeholder.com/500x500/667eea/FFFFFF?text=Your+Photo\" alt=\"Your Name\" style=\"width:100%;border-radius:12px;\"></div></div></div></section>\n  \n  <section id=\"projects\"><div class=\"container\"><h2 class=\"section-title\">My Projects</h2><div class=\"projects-grid\"><div class=\"project-card\"><img src=\"https://via.placeholder.com/400x300/FF6B6B/FFFFFF?text=Project+1\" class=\"project-image\" alt=\"Project 1\"><div class=\"project-content\"><h3 class=\"project-title\">Portfolio Website</h3><p class=\"project-description\">Responsive personal portfolio with modern design.</p><a href=\"#\" class=\"project-link\">View →</a></div></div><div class=\"project-card\"><img src=\"https://via.placeholder.com/400x300/4ECDC4/FFFFFF?text=Project+2\" class=\"project-image\" alt=\"Project 2\"><div class=\"project-content\"><h3 class=\"project-title\">Landing Page</h3><p class=\"project-description\">Modern landing page with hero and contact form.</p><a href=\"#\" class=\"project-link\">View →</a></div></div><div class=\"project-card\"><img src=\"https://via.placeholder.com/400x300/45B7D1/FFFFFF?text=Project+3\" class=\"project-image\" alt=\"Project 3\"><div class=\"project-content\"><h3 class=\"project-title\">Product Showcase</h3><p class=\"project-description\">E-commerce gallery with filtering and hover effects.</p><a href=\"#\" class=\"project-link\">View →</a></div></div></div></div></section>\n  \n  <section id=\"contact\" class=\"contact\"><div class=\"container\"><h2 class=\"section-title\">Let's Work Together</h2><p>I'm looking for opportunities to collaborate on exciting projects.</p><div class=\"contact-links\"><a href=\"mailto:you@example.com\" class=\"contact-btn\">Email Me</a><a href=\"#\" class=\"contact-btn\">LinkedIn</a><a href=\"#\" class=\"contact-btn\">GitHub</a></div></div></section>\n  \n  <footer><p>&copy; 2026 Your Name. Built with CSS and determination.</p></footer>\n</body>\n</html>",
+        "result": "You built a COMPLETE portfolio website combining sticky nav, hero section, fluid typography, responsive grids, card hover effects, smooth scrolling, and mobile-responsive design!",
+        "proofRequired": "Screenshots at mobile, tablet, and desktop widths."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "Fluid design system",
+            "definition": "CSS variables with clamp() values create a consistent, responsive spacing and typography system used across the entire site.",
+            "analogy": "A master blueprint that scales every measurement proportionally."
+          },
+          {
+            "name": "Sticky navigation",
+            "definition": "position: sticky + top: 0 keeps the nav visible as users scroll. z-index: 1000 ensures it stays above all content.",
+            "analogy": "A floating menu bar that follows you as you scroll through a document."
+          },
+          {
+            "name": "Hero section pattern",
+            "definition": "Full-viewport section with gradient background, centered text, and CTA button. Uses min-height: 90vh and flexbox centering.",
+            "analogy": "The cover of a book — big, bold, and designed to grab attention immediately."
+          },
+          {
+            "name": "Auto-fit project grid",
+            "definition": "repeat(auto-fit, minmax(300px, 1fr)) makes the project cards reflow from 1 to 3+ columns automatically.",
+            "analogy": "Smart shelving that adjusts the number of items per row based on wall width."
+          },
+          {
+            "name": "Card hover effects",
+            "definition": "transform: translateY(-8px) + growing box-shadow creates a \"lifting\" effect on hover. transition: all 0.3s ease makes it smooth.",
+            "analogy": "Picking up a card from a table — it rises and its shadow gets bigger."
+          },
+          {
+            "name": "Gradient text",
+            "definition": "background: linear-gradient() + -webkit-background-clip: text + -webkit-text-fill-color: transparent creates gradient-colored text.",
+            "analogy": "Painting a gradient on paper, then cutting out letter shapes to reveal it."
+          },
+          {
+            "name": "Combining all techniques",
+            "definition": "Professional sites combine multiple CSS techniques: Flexbox for navigation, Grid for projects, clamp() for typography, media queries for layout shifts, transitions for interactions.",
+            "analogy": "A full orchestra — each section plays a different instrument but they all work together to create one song."
+          }
+        ],
+        "keyTakeaway": "A professional portfolio combines every responsive technique: fluid typography, auto-fit grids, Flexbox nav, sticky positioning, hover effects, and media queries all working together."
+      },
+      "build": {
+        "goal": "Customize every section with your own content, colors, and projects",
+        "codeComparison": {
+          "old": "/* Placeholder portfolio */\n.logo { ... } /* \"YourName\" */\n.hero h1 { ... } /* Generic greeting */",
+          "new": "/* YOUR portfolio */\n/* 1. Replace all \"Your Name\" text */\n/* 2. Update --primary and --secondary colors */\n/* 3. Replace placeholder images */\n/* 4. Add your real projects */\n/* 5. Link real email and social profiles */\n/* 6. Test on mobile, tablet, desktop */"
+        },
+        "hint": "Use coolors.co to pick a color scheme, then update --primary and --secondary in :root."
+      },
+      "challenge": {
+        "title": "Make It Yours and Share It",
+        "mission": "Customize this portfolio to represent YOU, then share it with the community!",
+        "requirements": [
+          "All text updated with your real information",
+          "At least 3 real projects (or projects you want to build)",
+          "Custom color scheme matching your personal brand",
+          "Working email and social links",
+          "Tested on mobile, tablet, and desktop",
+          "Shared with the community"
+        ],
+        "starterCode": "<!-- Use the complete portfolio code from Task 1 -->\n<!-- Customize everything to make it yours! -->",
+        "bonusChallenge": "Add a hamburger menu for mobile, a dark mode toggle, or deploy it live to Netlify!"
+      },
+      "summary": {
+        "capabilities": [
+          "Build complete, professional portfolio websites",
+          "Combine all responsive techniques in one project",
+          "Use fluid typography and spacing systems",
+          "Create mobile-first layouts with media queries",
+          "Implement navigation systems with sticky positioning",
+          "Design with visual hierarchy",
+          "Create hover effects and transitions",
+          "Build responsive card grids with auto-fit",
+          "Structure multi-section websites"
+        ]
+      },
+      "bridge": {
+        "preview": "Module 3 complete! In Module 4, you'll learn advanced styling — animations, transitions, transforms, and professional polish that make websites feel alive!",
+        "nextLessonId": "css-4-1"
       }
     }
   ]
