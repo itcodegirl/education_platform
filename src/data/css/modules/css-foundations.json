@@ -185,6 +185,99 @@
         "preview": "In Lesson 1.3, you'll learn spacing — margins, padding, and borders. You'll finally understand why things are squished together and how to fix it!",
         "nextLessonId": "css-1-3"
       }
+    },
+    {
+      "id": "css-1-3",
+      "title": "Add Space Around Things",
+      "prereqs": [
+        "css-1-2"
+      ],
+      "difficulty": "beginner",
+      "duration": "20 min",
+      "metadata": {
+        "estimatedTime": 20,
+        "difficulty": "beginner",
+        "conceptsCount": 4,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Push elements away from each other with margins",
+          "Add breathing room inside boxes with padding",
+          "Understand the difference between margin and padding"
+        ]
+      },
+      "do": {
+        "title": "Stop everything from touching the edges",
+        "steps": [
+          "Create a new file and save it as spacing.html",
+          "Copy and paste the code below",
+          "Save and open in your browser",
+          "See how the content is pushed away from the window edges!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Spacing</title>\n  <style>\n    body {\n      margin: 40px;\n      background-color: lightgray;\n    }\n    \n    h1 {\n      background-color: lightblue;\n    }\n  </style>\n</head>\n<body>\n  <h1>This heading has space around it now!</h1>\n  <p>Notice how everything is pushed away from the edges?</p>\n</body>\n</html>",
+        "result": "You added margin to the body, which creates space between the edge of the browser window and your content!",
+        "proofRequired": "Screenshot showing the gray space around your content."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "Margin",
+            "definition": "Space OUTSIDE an element. It pushes other elements away. The background color does NOT fill the margin area.",
+            "analogy": "The personal space bubble around a person. Margin is the \"don't come closer than this\" zone."
+          },
+          {
+            "name": "Padding",
+            "definition": "Space INSIDE an element, between the border and the content. The background color DOES fill the padding area.",
+            "analogy": "The cushioning inside a picture frame. The padding is between the frame edge and the photo itself."
+          },
+          {
+            "name": "Shorthand values",
+            "definition": "One number applies to all sides: padding: 20px. Two numbers: top/bottom, left/right: padding: 15px 30px. Four numbers: top, right, bottom, left (clockwise).",
+            "analogy": "Like giving directions — you can say \"20 feet\" (all sides) or \"10 feet wide, 20 feet deep\" (two values)."
+          },
+          {
+            "name": "Margin vs Padding",
+            "definition": "Margin = space outside (pushes things apart). Padding = space inside (gives content breathing room). Margin is transparent, padding shows the background color.",
+            "analogy": "Margin is the yard around a house. Padding is the hallway inside the house between walls and furniture."
+          }
+        ],
+        "keyTakeaway": "Margin creates space OUTSIDE an element. Padding creates space INSIDE. Both are essential for layouts that don't look cramped."
+      },
+      "build": {
+        "goal": "Add padding inside the heading and create a styled button with spacing",
+        "codeComparison": {
+          "old": "h1 {\n  background-color: lightblue;\n}",
+          "new": "h1 {\n  background-color: lightblue;\n  padding: 20px;\n}\n\n.button {\n  background-color: coral;\n  color: white;\n  padding: 15px 30px;\n  text-decoration: none;\n  font-weight: bold;\n  font-family: Arial, sans-serif;\n}"
+        },
+        "hint": "padding: 15px 30px means 15px on top/bottom and 30px on left/right. This makes the button wider than it is tall."
+      },
+      "challenge": {
+        "title": "Create a Card Layout",
+        "mission": "Create a styled \"card\" that looks like a social media post or product card.",
+        "requirements": [
+          "Card has a background color different from the page",
+          "Card has padding inside (so content isn't touching edges)",
+          "Card has margin around it (space from page edges)",
+          "Card contains a heading, paragraph, and button",
+          "Everything is nicely spaced"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Card Layout</title>\n  <style>\n    body {\n      background-color: lightgray;\n      margin: 40px;\n    }\n    \n    /* Add your card styles here */\n    \n  </style>\n</head>\n<body>\n  <div class=\"card\">\n    <h2>Product Name</h2>\n    <p>This is a description of the product.</p>\n    <a href=\"#\" class=\"button\">Buy Now</a>\n  </div>\n</body>\n</html>",
+        "bonusChallenge": "Add border-radius: 8px; to your card to give it rounded corners!"
+      },
+      "summary": {
+        "capabilities": [
+          "Add margin to create space OUTSIDE elements",
+          "Add padding to create space INSIDE elements",
+          "Understand the difference between margin and padding",
+          "Create button-like styles with padding",
+          "Build card layouts with proper spacing"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 1.4, you'll learn to add borders around elements, control their thickness and style, and understand the complete box model. You'll make actual boxes!",
+        "nextLessonId": "css-1-4"
+      }
     }
   ]
 }
