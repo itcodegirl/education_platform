@@ -186,6 +186,210 @@
         "preview": "In the next lesson, you'll learn how to change not just the TEXT, but the STYLE — colors, sizes, backgrounds. You'll build a theme switcher that transforms your entire page.",
         "nextLessonId": "js-1-3"
       }
+    },
+    {
+      "id": "js-1-3",
+      "title": "Control Colors and Styles",
+      "prereqs": [
+        "js-1-2"
+      ],
+      "difficulty": "beginner",
+      "duration": "20 min",
+      "metadata": {
+        "estimatedTime": 20,
+        "difficulty": "beginner",
+        "conceptsCount": 5,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Change the background color of your page with a button click",
+          "Build a light/dark mode toggle switch",
+          "Control any CSS property with JavaScript"
+        ]
+      },
+      "do": {
+        "title": "Build a Color-Changing Background",
+        "steps": [
+          "Open VS Code or CodePen",
+          "Create a new file: color-changer.html",
+          "Copy the code below",
+          "Save and open in your browser",
+          "Click each button — watch the background change instantly!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Color Changer</title>\n  <style>\n    body { text-align: center; padding: 50px; transition: background-color 0.5s ease; }\n    button { padding: 15px 30px; font-size: 18px; margin: 10px; cursor: pointer; border: none; border-radius: 5px; }\n    h1 { font-size: 48px; margin-bottom: 30px; }\n  </style>\n</head>\n<body>\n  <h1>Click to Change Colors!</h1>\n  <button onclick=\"makeBlue()\">Ocean Blue</button>\n  <button onclick=\"makePink()\">Sunset Pink</button>\n  <button onclick=\"makePurple()\">Royal Purple</button>\n\n  <script>\n    function makeBlue() {\n      document.body.style.backgroundColor = \"#4A90E2\";\n      document.body.style.color = \"white\";\n    }\n    function makePink() {\n      document.body.style.backgroundColor = \"#FF6B9D\";\n      document.body.style.color = \"white\";\n    }\n    function makePurple() {\n      document.body.style.backgroundColor = \"#9B59B6\";\n      document.body.style.color = \"white\";\n    }\n  </script>\n</body>\n</html>",
+        "result": "JavaScript changed the CSS of your page in real-time. No page reload needed!",
+        "proofRequired": "Screenshot showing the page with one of the colored backgrounds."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "document.body",
+            "definition": "Selects the <body> element of your HTML page. It's the main container holding everything visible.",
+            "analogy": "The walls and floor of a room. When you paint them, the whole room looks different."
+          },
+          {
+            "name": ".style property",
+            "definition": "The bridge between JavaScript and CSS. Lets you read or change any CSS property on any element.",
+            "analogy": "A remote control for your page's appearance."
+          },
+          {
+            "name": "camelCase for CSS properties",
+            "definition": "CSS uses hyphens (background-color), JavaScript uses camelCase (backgroundColor). font-size becomes fontSize, border-radius becomes borderRadius.",
+            "analogy": "Two languages for the same thing — like \"red\" in English and \"rojo\" in Spanish."
+          },
+          {
+            "name": "Changing multiple styles at once",
+            "definition": "You can set multiple .style properties in one function to completely transform an element's appearance.",
+            "analogy": "Redecorating a room — change the paint, furniture, and lighting all at once."
+          },
+          {
+            "name": "if/else for toggling",
+            "definition": "Check the current state, then switch to the opposite. if dark mode is on, switch to light. else switch to dark.",
+            "analogy": "A light switch — check if it's on, then flip it."
+          }
+        ],
+        "keyTakeaway": "If you can style it with CSS, you can change it with JavaScript using element.style.propertyName."
+      },
+      "build": {
+        "goal": "Build a dark mode toggle that switches between light and dark",
+        "codeComparison": {
+          "old": "// One-way color change\nfunction makeBlue() {\n  document.body.style.backgroundColor = \"#4A90E2\";\n}",
+          "new": "// Toggle between two states\nfunction toggleDarkMode() {\n  let page = document.getElementById(\"page\");\n  if (page.style.backgroundColor === \"rgb(34, 34, 34)\") {\n    page.style.backgroundColor = \"white\";\n    page.style.color = \"black\";\n  } else {\n    page.style.backgroundColor = \"#222\";\n    page.style.color = \"white\";\n  }\n}"
+        },
+        "hint": "The if/else checks which mode you're in, then switches to the opposite."
+      },
+      "challenge": {
+        "title": "Build a Theme Picker",
+        "mission": "Create a page with 4 theme buttons (Ocean, Forest, Sunset, Midnight) that each change background, text, and heading colors.",
+        "requirements": [
+          "Four theme buttons with emojis",
+          "Each theme changes background, text, AND heading color",
+          "Large heading that says \"Choose Your Theme\"",
+          "Smooth CSS transitions between themes"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Theme Picker</title>\n  <style>\n    body { margin: 0; padding: 50px; text-align: center; transition: all 0.5s ease; }\n    h1 { font-size: 48px; transition: color 0.5s ease; }\n    button { padding: 15px 30px; margin: 10px; font-size: 18px; cursor: pointer; }\n  </style>\n</head>\n<body>\n  <h1 id=\"title\">Choose Your Theme</h1>\n  <div>\n    <button onclick=\"oceanTheme()\">🌊 Ocean</button>\n    <button onclick=\"forestTheme()\">🌲 Forest</button>\n    <button onclick=\"sunsetTheme()\">🌅 Sunset</button>\n    <button onclick=\"midnightTheme()\">🌙 Midnight</button>\n  </div>\n  <script>\n    function oceanTheme() { /* Your code */ }\n    function forestTheme() { /* Your code */ }\n    function sunsetTheme() { /* Your code */ }\n    function midnightTheme() { /* Your code */ }\n  </script>\n</body>\n</html>",
+        "bonusChallenge": "Make the buttons themselves change color to match the theme they activate!"
+      },
+      "summary": {
+        "capabilities": [
+          "Change any CSS property with JavaScript",
+          "Use .style.backgroundColor, .style.color, .style.fontSize",
+          "Convert CSS property names to JavaScript camelCase",
+          "Build dark mode toggles",
+          "Create complete theme switchers"
+        ]
+      },
+      "bridge": {
+        "preview": "In the next lesson, you'll learn about VARIABLES — how to store information, remember user choices, and make your code smarter.",
+        "nextLessonId": "js-1-4"
+      }
+    },
+    {
+      "id": "js-1-4",
+      "title": "Store and Remember Information",
+      "prereqs": [
+        "js-1-3"
+      ],
+      "difficulty": "beginner",
+      "duration": "22 min",
+      "metadata": {
+        "estimatedTime": 22,
+        "difficulty": "beginner",
+        "conceptsCount": 6,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Store a user's name and display it on the page",
+          "Build a click counter that remembers how many times you clicked",
+          "Create a personalized greeting that updates dynamically"
+        ]
+      },
+      "do": {
+        "title": "Create a Click Counter",
+        "steps": [
+          "Open VS Code or CodePen",
+          "Create click-counter.html",
+          "Copy the code below",
+          "Save and open in browser",
+          "Click the button multiple times — watch the number increase!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Click Counter</title>\n  <style>\n    body { text-align: center; padding: 50px; font-family: Arial, sans-serif; }\n    #counter { font-size: 72px; color: #E74C3C; margin: 30px 0; font-weight: bold; }\n    button { padding: 15px 30px; font-size: 20px; cursor: pointer; background-color: #3498DB; color: white; border: none; border-radius: 5px; }\n    button:hover { background-color: #2980B9; }\n  </style>\n</head>\n<body>\n  <h1>Click Counter</h1>\n  <div id=\"counter\">0</div>\n  <button onclick=\"addClick()\">Click Me!</button>\n\n  <script>\n    let clickCount = 0;\n    \n    function addClick() {\n      clickCount = clickCount + 1;\n      document.getElementById(\"counter\").textContent = clickCount;\n    }\n  </script>\n</body>\n</html>",
+        "result": "The variable clickCount REMEMBERS how many times you clicked!",
+        "proofRequired": "Screenshot showing the counter at 10 or higher."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "What is a variable?",
+            "definition": "A named container that holds information. let clickCount = 0 creates a box labeled \"clickCount\" with 0 inside.",
+            "analogy": "A labeled box. The label is the name, what's inside is the value."
+          },
+          {
+            "name": "let vs const",
+            "definition": "let = value CAN change later (counters, scores). const = value CANNOT change. Use const by default, let when you know it'll change.",
+            "analogy": "let = a whiteboard (erase and rewrite). const = a carved stone tablet (permanent)."
+          },
+          {
+            "name": "Variable scope",
+            "definition": "Variables OUTSIDE functions persist between calls. Variables INSIDE functions are created and destroyed each time.",
+            "analogy": "Outside = whiteboard on the wall (stays). Inside = sticky note (thrown away after use)."
+          },
+          {
+            "name": ".value for input fields",
+            "definition": "Gets whatever the user typed into an <input> element. document.getElementById(\"name-input\").value returns their text.",
+            "analogy": "Reading what someone wrote on a form — .value is the answer they filled in."
+          },
+          {
+            "name": "Template literals",
+            "definition": "Backticks (`) let you insert variables into text using ${variable}. Example: `Hello, ${name}!` becomes \"Hello, Sarah!\"",
+            "analogy": "Mad Libs — the ${} are the blanks that get filled in with your variables."
+          },
+          {
+            "name": "The ++ shorthand",
+            "definition": "clickCount++ is shorthand for clickCount = clickCount + 1. Both add 1 to the variable.",
+            "analogy": "A tally counter — click once, number goes up by one."
+          }
+        ],
+        "keyTakeaway": "Variables let your program REMEMBER things. Without variables, your code has no memory."
+      },
+      "build": {
+        "goal": "Build a personalized greeter using .value and template literals",
+        "codeComparison": {
+          "old": "// Hard-coded greeting\nalert(\"Hello!\");",
+          "new": "// Dynamic greeting from user input\nfunction greetUser() {\n  let userName = document.getElementById(\"name-input\").value;\n  let greeting = `Hello, ${userName}! Welcome!`;\n  document.getElementById(\"greeting\").textContent = greeting;\n}"
+        },
+        "hint": "Template literals use BACKTICKS (`), not regular quotes. The backtick key is usually above Tab."
+      },
+      "challenge": {
+        "title": "Build a Score Tracker",
+        "mission": "Create a game score tracker with +1, +5, and Reset buttons. Track current score AND highest score ever.",
+        "requirements": [
+          "Display current score (starts at 0)",
+          "Display highest score (starts at 0)",
+          "+1 Point button adds 1",
+          "+5 Points button adds 5",
+          "Reset sets current to 0 but keeps high score",
+          "High score updates when current beats it"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Score Tracker</title>\n  <style>\n    body { text-align: center; padding: 50px; font-family: Arial, sans-serif; }\n    .current-score { font-size: 48px; color: #3498DB; font-weight: bold; }\n    .high-score { font-size: 36px; color: #F39C12; font-weight: bold; }\n    button { padding: 15px 25px; margin: 10px; font-size: 18px; cursor: pointer; border: none; border-radius: 5px; color: white; }\n    .add-one { background: #2ECC71; }\n    .add-five { background: #3498DB; }\n    .reset { background: #E74C3C; }\n  </style>\n</head>\n<body>\n  <h1>🎮 Score Tracker</h1>\n  <div>Current Score</div>\n  <div class=\"current-score\" id=\"current-score\">0</div>\n  <div>🏆 Highest Score</div>\n  <div class=\"high-score\" id=\"high-score\">0</div>\n  <button class=\"add-one\" onclick=\"addOne()\">+1</button>\n  <button class=\"add-five\" onclick=\"addFive()\">+5</button>\n  <button class=\"reset\" onclick=\"resetScore()\">Reset</button>\n  <script>\n    let currentScore = 0;\n    let highScore = 0;\n    function addOne() { /* Your code */ }\n    function addFive() { /* Your code */ }\n    function resetScore() { /* Don't reset highScore! */ }\n  </script>\n</body>\n</html>",
+        "bonusChallenge": "Add a +10 button and make the high score turn GOLD when beaten!"
+      },
+      "summary": {
+        "capabilities": [
+          "Create variables with let and const",
+          "Store numbers, text, and any data",
+          "Update variables as your program runs",
+          "Get user input with .value",
+          "Use template literals to insert variables into text",
+          "Build counters, trackers, and dynamic greetings"
+        ]
+      },
+      "bridge": {
+        "preview": "Module 1 complete! You've built buttons, text changers, theme switchers, and score trackers. In Module 2, you'll work with lists, make decisions with logic, and build real interactive apps.",
+        "nextLessonId": "js-2-1"
+      }
     }
   ]
 }
