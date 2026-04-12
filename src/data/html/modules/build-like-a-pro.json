@@ -1,0 +1,125 @@
+{
+  "id": 104,
+  "emoji": "💼",
+  "title": "Build Like a Pro",
+  "tagline": "Professional structure and your first portfolio.",
+  "difficulty": "intermediate",
+  "lessons": [
+    {
+      "id": "lesson-07",
+      "title": "Build Pages Like a Professional (Semantic HTML)",
+      "prereqs": [
+        "lesson-09"
+      ],
+      "difficulty": "intermediate",
+      "duration": "22 min",
+      "metadata": {
+        "estimatedTime": 22,
+        "difficulty": "intermediate",
+        "conceptsCount": 7,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Transform a basic page into a professionally structured page",
+          "Use <header>, <nav>, <main>, <footer> like real developers",
+          "Understand WHY structure matters for accessibility",
+          "Make your code readable and SEO-friendly"
+        ]
+      },
+      "do": {
+        "title": "Transform divs with semantic tags",
+        "steps": [
+          "Create blog.html",
+          "Copy the transformed code below",
+          "Save and open in browser",
+          "Notice: it looks the same but the code has meaning now"
+        ],
+        "code": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>My Blog</title>\n</head>\n<body>\n    <header>\n        <h1>Sarah's Coding Journey</h1>\n        <p>Learning one step at a time</p>\n    </header>\n    \n    <nav>\n        <ul>\n            <li><a href=\"index.html\">Home</a></li>\n            <li><a href=\"about.html\">About</a></li>\n            <li><a href=\"blog.html\">Blog</a></li>\n        </ul>\n    </nav>\n    \n    <main>\n        <article>\n            <h2>My First Week of HTML</h2>\n            <p>I thought I'd never understand tags...</p>\n        </article>\n    </main>\n    \n    <footer>\n        <p>&copy; 2024 Sarah Martinez | Built with HTML</p>\n    </footer>\n</body>\n</html>",
+        "result": "Now the code has semantic meaning. Screen readers can understand your structure!",
+        "proofRequired": "your code showing the semantic tags (<header>, <nav>, <main>, <footer>)"
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "<header> tag",
+            "definition": "Top of page or section. Contains site title, logo, tagline, or article metadata (title, author, date).",
+            "analogy": "The letterhead on official paper - identifies what document this is."
+          },
+          {
+            "name": "<nav> tag",
+            "definition": "Navigation links. Screen readers can jump straight to navigation with one keystroke!",
+            "analogy": "The table of contents in a book - helps you find different sections."
+          },
+          {
+            "name": "<main> tag",
+            "definition": "Primary content. Only ONE per page. This is THE content people came for. Screen readers can skip straight here!",
+            "analogy": "The article in a magazine - not the ads, not the index, just the story."
+          },
+          {
+            "name": "<article> tag",
+            "definition": "Self-contained content. Test: Could this stand alone if copied to another site? If YES → use <article>.",
+            "analogy": "A newspaper article you could cut out and share independently."
+          },
+          {
+            "name": "<section> tag",
+            "definition": "Thematic grouping of content. Each section should have a heading.",
+            "analogy": "Chapters in a book - different themes, different sections."
+          },
+          {
+            "name": "<aside> tag",
+            "definition": "Related but not main content. Sidebars, pull quotes, related links, fun fact boxes.",
+            "analogy": "Sidebar notes in a textbook - related info but not the main lesson."
+          },
+          {
+            "name": "<footer> tag",
+            "definition": "Bottom of page or section. Copyright info, contact details, social links, site map.",
+            "analogy": "The fine print at the bottom of a contract."
+          }
+        ],
+        "keyTakeaway": "Use the RIGHT tag for the job. Semantic HTML makes your code accessible to screen readers and understandable to search engines."
+      },
+      "build": {
+        "goal": "Build a complete semantic page using ALL the semantic tags",
+        "codeComparison": {
+          "old": "<div class=\"header\">Site Title</div>\n<div class=\"nav\">Links</div>\n<div class=\"content\">Main content</div>\n<div class=\"footer\">Copyright</div>",
+          "new": "<header>\n    <h1>Site Title</h1>\n</header>\n\n<nav>\n    <ul>\n        <li><a href=\"/\">Home</a></li>\n    </ul>\n</nav>\n\n<main>\n    <article>\n        <header>\n            <h2>Article Title</h2>\n        </header>\n        <section>\n            <h3>Introduction</h3>\n            <p>Content...</p>\n        </section>\n    </article>\n</main>\n\n<footer>\n    <p>&copy; 2024 Your Name</p>\n</footer>"
+        },
+        "hint": "You can have multiple headers and footers (page header, article header, etc.) but only ONE <main> per page"
+      },
+      "challenge": {
+        "title": "Restructure Your Portfolio Site",
+        "mission": "Go back to your existing pages and replace all divs with proper semantic tags.",
+        "requirements": [
+          "Update index.html with semantic structure",
+          "Add proper <header>, <nav>, <main>, <footer>",
+          "Wrap your navigation in <nav> with a list",
+          "Put main content in <main>",
+          "If you have blog posts or projects, use <article>",
+          "Add proper meta tags in <head>",
+          "Ensure heading hierarchy is correct (h1 → h2 → h3, no skipping)"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Your Name - Portfolio</title>\n</head>\n<body>\n    <header>\n        <h1>Your Name</h1>\n        <p>Your tagline</p>\n    </header>\n    \n    <nav>\n        <ul>\n            <li><a href=\"index.html\">Home</a></li>\n        </ul>\n    </nav>\n    \n    <main>\n        <!-- Your content here -->\n    </main>\n    \n    <footer>\n        <p>&copy; 2024 Your Name</p>\n    </footer>\n</body>\n</html>",
+        "bonusChallenge": "Add <time> tags around dates with proper 'datetime' attributes, and use <mark> to highlight important text"
+      },
+      "summary": {
+        "capabilities": [
+          "Use <header> for page and section headers",
+          "Structure navigation with <nav>",
+          "Mark main content with <main>",
+          "Create standalone content with <article>",
+          "Group thematic content with <section>",
+          "Add related content with <aside>",
+          "Create footers with <footer>",
+          "Understand why semantic HTML matters for accessibility",
+          "Write code that screen readers can understand",
+          "Structure pages like professional developers"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 8, you'll learn text formatting (<strong>, <em>, <mark>), special characters, and developer tools for debugging your code.",
+        "nextLessonId": "lesson-08"
+      }
+    }
+  ]
+}

@@ -1,0 +1,408 @@
+{
+  "id": 103,
+  "emoji": "🧩",
+  "title": "Add More Features",
+  "tagline": "Lists, tables, forms, and media.",
+  "difficulty": "beginner",
+  "lessons": [
+    {
+      "id": "lesson-04",
+      "title": "Organize Information with Lists",
+      "prereqs": [
+        "h1-2"
+      ],
+      "difficulty": "beginner",
+      "duration": "16 min",
+      "metadata": {
+        "estimatedTime": 16,
+        "difficulty": "beginner",
+        "conceptsCount": 3,
+        "tasksCount": 4
+      },
+      "hook": {
+        "accomplishments": [
+          "Create bullet-point lists for your hobbies",
+          "Make numbered step-by-step instructions",
+          "Build a navigation menu with lists",
+          "Nest lists inside other lists"
+        ]
+      },
+      "do": {
+        "title": "Make a bullet-point list",
+        "steps": [
+          "Open any HTML file (try index.html)",
+          "Add this code in your <body>",
+          "Replace these reasons with YOUR actual reasons",
+          "Save and refresh"
+        ],
+        "code": "<h2>Why I'm Learning to Code</h2>\n<ul>\n    <li>I want to build my own projects</li>\n    <li>I'm tired of paying for simple websites</li>\n    <li>I want a career change</li>\n    <li>I love solving puzzles</li>\n</ul>",
+        "result": "You'll see bullet points (•) next to each reason!",
+        "proofRequired": "your bulleted list with YOUR reasons"
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "The <ul> tag (unordered list)",
+            "definition": "Creates bullet-point lists. 'Unordered' means the sequence doesn't matter — you could rearrange items and the meaning stays the same.",
+            "analogy": "A grocery list. Order doesn't matter — you could buy milk before eggs or eggs before milk."
+          },
+          {
+            "name": "The <ol> tag (ordered list)",
+            "definition": "Creates numbered lists. 'Ordered' means sequence MATTERS — step 1 must come before step 2.",
+            "analogy": "A recipe. You can't frost a cake before baking it — order matters!"
+          },
+          {
+            "name": "The <li> tag (list item)",
+            "definition": "Each <li> represents ONE item in the list. Works inside both <ul> and <ol>.",
+            "analogy": "Individual items on your shopping list or steps in your recipe."
+          }
+        ],
+        "keyTakeaway": "<ul> + <li> = bullet-point list for items in any order. <ol> + <li> = numbered list for sequential steps."
+      },
+      "build": {
+        "goal": "Create step-by-step instructions using numbers instead of bullets",
+        "codeComparison": {
+          "old": "<ul>\n    <li>Item one</li>\n    <li>Item two</li>\n</ul>",
+          "new": "<h2>How to Make Coffee (My Way)</h2>\n<ol>\n    <li>Grind fresh coffee beans</li>\n    <li>Boil water to 200°F</li>\n    <li>Pour water over grounds</li>\n    <li>Wait 4 minutes</li>\n    <li>Press plunger slowly</li>\n    <li>Pour and enjoy!</li>\n</ol>"
+        },
+        "hint": "The browser automatically numbers your steps: 1, 2, 3, 4... You don't have to type the numbers!"
+      },
+      "challenge": {
+        "title": "Build a Skills & Resources Page",
+        "mission": "Create a page that lists your current skills, learning goals, and helpful resources — organized with multiple list types.",
+        "requirements": [
+          "Create skills.html",
+          "Use <ul> for your current skills (3+ items)",
+          "Use <ol> for your learning roadmap (5+ steps in order)",
+          "Use nested lists for at least one section",
+          "Add a resources section with links to helpful sites",
+          "Include <nav> with list-based navigation"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n    <title>My Skills & Goals</title>\n</head>\n<body>\n    <h1>My Development Journey</h1>\n    \n    <nav>\n        <ul>\n            <li><a href=\"index.html\">Home</a></li>\n            <!-- Add more nav links -->\n        </ul>\n    </nav>\n    \n    <h2>Skills I'm Building</h2>\n    <ul>\n        <li><!-- Your skill --></li>\n    </ul>\n    \n    <h2>My Learning Roadmap</h2>\n    <ol>\n        <li><!-- Your step --></li>\n    </ol>\n</body>\n</html>",
+        "bonusChallenge": "Add a 'Wins This Week' section with an <ol> listing 3-5 coding accomplishments (even tiny ones count!)"
+      },
+      "summary": {
+        "capabilities": [
+          "Create bullet-point lists with <ul> and <li>",
+          "Create numbered lists with <ol> and <li>",
+          "Build navigation menus using list structure",
+          "Nest lists inside other lists for sub-items",
+          "Choose the right list type for your content",
+          "Understand why lists matter for screen readers"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 5, you'll build interactive forms — text inputs, dropdowns, checkboxes, and buttons that collect information from users.",
+        "nextLessonId": "lesson-05"
+      }
+    },
+    {
+      "id": "lesson-06",
+      "title": "Display Data in Tables",
+      "prereqs": [
+        "lesson-04"
+      ],
+      "difficulty": "beginner",
+      "duration": "18 min",
+      "metadata": {
+        "estimatedTime": 18,
+        "difficulty": "beginner",
+        "conceptsCount": 4,
+        "tasksCount": 4
+      },
+      "hook": {
+        "accomplishments": [
+          "Create a table with rows and columns",
+          "Add headers that describe your data",
+          "Display structured information clearly",
+          "Build a pricing comparison table"
+        ]
+      },
+      "do": {
+        "title": "Make your first table",
+        "steps": [
+          "Create a new file: schedule.html",
+          "Copy the code below",
+          "Save and open in your browser"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n    <title>My Weekly Schedule</title>\n</head>\n<body>\n    <h1>My Learning Schedule</h1>\n    \n    <table border=\"1\">\n        <tr>\n            <td>Monday</td>\n            <td>HTML practice</td>\n            <td>1 hour</td>\n        </tr>\n        <tr>\n            <td>Tuesday</td>\n            <td>Build project</td>\n            <td>2 hours</td>\n        </tr>\n        <tr>\n            <td>Wednesday</td>\n            <td>Watch tutorials</td>\n            <td>1 hour</td>\n        </tr>\n    </table>\n</body>\n</html>",
+        "result": "You'll see a grid with 3 rows and 3 columns, with borders around each cell!",
+        "proofRequired": "your table with borders and data"
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "The <table> tag",
+            "definition": "Creates the container for your entire table. Everything else goes inside it.",
+            "analogy": "The frame of a spreadsheet or Excel grid."
+          },
+          {
+            "name": "The <tr> tag (table row)",
+            "definition": "Each <tr> is ONE row going across the table horizontally. Tables are built row-by-row.",
+            "analogy": "Like horizontal lines on notebook paper - each line is a row."
+          },
+          {
+            "name": "The <td> tag (table data)",
+            "definition": "Each <td> is ONE cell in the row. 'td' stands for 'table data' - it's where your actual content goes.",
+            "analogy": "Individual boxes in the grid where you write information."
+          },
+          {
+            "name": "The <th> tag (table header)",
+            "definition": "Like <td> but for headers. Browsers automatically make it bold and centered. Screen readers announce these as headers.",
+            "analogy": "The column titles in a spreadsheet - the gray row at the top that labels what each column contains."
+          }
+        ],
+        "keyTakeaway": "Tables are built row-by-row. Each <tr> creates a new row. Each <td> inside that row creates a cell."
+      },
+      "build": {
+        "goal": "Add table headers to make the first row stand out",
+        "codeComparison": {
+          "old": "<table border=\"1\">\n    <tr>\n        <td>Monday</td>\n        <td>HTML practice</td>\n        <td>1 hour</td>\n    </tr>\n</table>",
+          "new": "<table border=\"1\">\n    <tr>\n        <th>Day</th>\n        <th>Activity</th>\n        <th>Duration</th>\n    </tr>\n    <tr>\n        <td>Monday</td>\n        <td>HTML practice</td>\n        <td>1 hour</td>\n    </tr>\n    <tr>\n        <td>Tuesday</td>\n        <td>Build project</td>\n        <td>2 hours</td>\n    </tr>\n</table>"
+        },
+        "hint": "The first row is now bold and centered automatically because you used <th> instead of <td>"
+      },
+      "challenge": {
+        "title": "Build a Pricing Comparison Table",
+        "mission": "Create a comparison table showing different plans, features, or options side-by-side.",
+        "requirements": [
+          "Create comparison.html",
+          "Use <thead> and <tbody>",
+          "At least 3 columns comparing different options",
+          "At least 5 rows showing different features/criteria",
+          "Use <th> for both column headers AND row headers",
+          "Add navigation linking back to your other pages"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n    <title>Learning Platform Comparison</title>\n</head>\n<body>\n    <h1>Where Should I Learn?</h1>\n    \n    <table border=\"1\">\n        <thead>\n            <tr>\n                <th>Platform</th>\n                <th>Cost</th>\n                <th>Best For</th>\n                <th>My Rating</th>\n            </tr>\n        </thead>\n        <tbody>\n            <tr>\n                <td><!-- Platform name --></td>\n                <td><!-- Cost --></td>\n                <td><!-- What it's good for --></td>\n                <td><!-- Your rating --></td>\n            </tr>\n            <!-- Add more rows -->\n        </tbody>\n    </table>\n</body>\n</html>",
+        "bonusChallenge": "Add a <tfoot> section at the bottom with a total or summary row"
+      },
+      "summary": {
+        "capabilities": [
+          "Create tables with <table>, <tr>, and <td>",
+          "Add headers with <th> that are bold and centered",
+          "Structure tables with <thead> and <tbody>",
+          "Display data in rows and columns",
+          "Build comparison and schedule tables",
+          "Understand when tables are appropriate (data only!)"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 7, you'll learn Semantic HTML — the difference between beginner code and professional code. You'll use tags like <header>, <nav>, <main>, <section>, <article>, and <footer>.",
+        "nextLessonId": "lesson-07"
+      }
+    },
+    {
+      "id": "lesson-05",
+      "title": "Collect Information with Forms",
+      "prereqs": [
+        "lesson-06"
+      ],
+      "difficulty": "beginner",
+      "duration": "25 min",
+      "metadata": {
+        "estimatedTime": 25,
+        "difficulty": "beginner",
+        "conceptsCount": 6,
+        "tasksCount": 5
+      },
+      "hook": {
+        "accomplishments": [
+          "Create a text input where users can type",
+          "Add a submit button",
+          "Build dropdown menus with multiple choices",
+          "Make checkboxes and radio buttons",
+          "Build a complete contact form"
+        ]
+      },
+      "do": {
+        "title": "Create your first text input",
+        "steps": [
+          "Create a new file: contact.html",
+          "Copy the code below",
+          "Save and open in your browser",
+          "Click in the input box and type your name"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n    <title>Contact Me</title>\n</head>\n<body>\n    <h1>Get in Touch</h1>\n    \n    <form>\n        <label for=\"name\">Your Name:</label>\n        <input type=\"text\" id=\"name\" name=\"name\">\n    </form>\n</body>\n</html>",
+        "result": "You'll see a text box where you can type! The label 'Your Name:' sits next to it.",
+        "proofRequired": "the input box with text typed inside it"
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "The <form> tag",
+            "definition": "A container for all input elements. Think of it as a clipboard that holds all the fields you want someone to fill out.",
+            "analogy": "A clipboard with a form. The <form> tag is the clipboard, labels are printed questions, inputs are blank lines to write on."
+          },
+          {
+            "name": "The <label> tag",
+            "definition": "Text that describes what the input is for. It's clickable — when you click the label, it focuses the input!",
+            "analogy": "The question on a form that tells you what to write in each blank."
+          },
+          {
+            "name": "The <input> tag",
+            "definition": "Creates an input field. It's self-closing (no </input> needed). The 'type' attribute changes what kind of input it is.",
+            "analogy": "Different types of blanks on a form: short line for name, box for checkmark, circle for radio button."
+          },
+          {
+            "name": "The for/id connection",
+            "definition": "The label's 'for' attribute must match the input's 'id' attribute. This connection is REQUIRED for accessibility.",
+            "analogy": "Like matching question numbers on a test - question #1 goes with answer box #1."
+          },
+          {
+            "name": "Radio vs Checkbox",
+            "definition": "Radio buttons: only one choice allowed (same 'name'). Checkboxes: multiple choices allowed.",
+            "analogy": "Radio = multiple choice test question. Checkbox = 'select all that apply' question."
+          },
+          {
+            "name": "The <select> tag",
+            "definition": "Creates a dropdown menu. Each <option> inside represents one choice in the menu.",
+            "analogy": "Like a dropdown menu on a phone - tap it and options appear."
+          }
+        ],
+        "keyTakeaway": "Every input needs a label. Connect them with matching 'for' and 'id' attributes."
+      },
+      "build": {
+        "goal": "Add an email field and a message box to your form",
+        "codeComparison": {
+          "old": "<form>\n    <label for=\"name\">Your Name:</label>\n    <input type=\"text\" id=\"name\" name=\"name\">\n</form>",
+          "new": "<form>\n    <label for=\"name\">Your Name:</label>\n    <input type=\"text\" id=\"name\" name=\"name\">\n    \n    <br><br>\n    \n    <label for=\"email\">Your Email:</label>\n    <input type=\"email\" id=\"email\" name=\"email\">\n    \n    <br><br>\n    \n    <label for=\"message\">Your Message:</label>\n    <textarea id=\"message\" name=\"message\"></textarea>\n    \n    <br><br>\n    \n    <button type=\"submit\">Send Message</button>\n</form>"
+        },
+        "hint": "The email input will validate that it looks like an email address when you submit!"
+      },
+      "challenge": {
+        "title": "Build a Complete Signup Form",
+        "mission": "Create a realistic user registration form with validation.",
+        "requirements": [
+          "Create signup.html",
+          "Include: username, email, password fields",
+          "Add a 'Confirm Password' field",
+          "Use a dropdown for 'How did you hear about us?'",
+          "Add checkboxes for 'I agree to Terms of Service'",
+          "Use the 'required' attribute on at least 3 fields",
+          "Add 'placeholder' attributes to show example text"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n    <title>Sign Up</title>\n</head>\n<body>\n    <h1>Create Your Account</h1>\n    \n    <form>\n        <label for=\"username\">Username:</label>\n        <input type=\"text\" id=\"username\" name=\"username\" required>\n        \n        <!-- Add more fields here -->\n        \n        <button type=\"submit\">Create Account</button>\n    </form>\n</body>\n</html>",
+        "bonusChallenge": "Add a 'Date of Birth' field with type=\"date\" and a phone number field with type=\"tel\""
+      },
+      "summary": {
+        "capabilities": [
+          "Create form containers with <form>",
+          "Add text inputs with <input type=\"text\">",
+          "Validate emails with <input type=\"email\">",
+          "Create password fields with <input type=\"password\">",
+          "Build multi-line text areas with <textarea>",
+          "Make radio buttons for single choices",
+          "Add checkboxes for multiple choices",
+          "Create dropdown menus with <select> and <option>",
+          "Connect labels to inputs with 'for' and 'id'",
+          "Make fields required with the 'required' attribute"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 6, you'll organize data into tables — rows, columns, headers, and structured information display.",
+        "nextLessonId": "lesson-06"
+      }
+    },
+    {
+      "id": "lesson-09",
+      "title": "Add Media to Your Pages",
+      "prereqs": [
+        "lesson-05"
+      ],
+      "difficulty": "beginner",
+      "duration": "22 min",
+      "metadata": {
+        "estimatedTime": 22,
+        "difficulty": "beginner",
+        "conceptsCount": 4,
+        "tasksCount": 4
+      },
+      "hook": {
+        "accomplishments": [
+          "Embed a video that plays in the browser",
+          "Add audio files that users can play",
+          "Embed YouTube videos on your site",
+          "Add Google Maps with iframes",
+          "Understand when to use each media type"
+        ]
+      },
+      "do": {
+        "title": "Add a video to your page",
+        "steps": [
+          "Create a new file: media.html",
+          "Copy the code below",
+          "Save and open in your browser",
+          "Click the play button!"
+        ],
+        "code": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Media Practice</title>\n</head>\n<body>\n    <h1>My Media Gallery</h1>\n    \n    <h2>Sample Video</h2>\n    <video width=\"400\" controls>\n        <source src=\"https://www.w3schools.com/html/mov_bbb.mp4\" type=\"video/mp4\">\n        Your browser doesn't support video playback.\n    </video>\n    \n    <p>Try clicking play! You can pause, adjust volume, and go fullscreen.</p>\n</body>\n</html>",
+        "result": "You'll see a video player with play/pause controls, a timeline, and volume controls!",
+        "proofRequired": "the video player (paused or playing)"
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "The <video> tag",
+            "definition": "Embeds a video file that plays directly in the browser (no YouTube, no external player needed). The 'controls' attribute shows play/pause buttons.",
+            "analogy": "Like a DVD player built into your webpage - plays video right there without opening another app."
+          },
+          {
+            "name": "The <audio> tag",
+            "definition": "Works exactly like <video> but for sound only. Shows a smaller audio player with play/pause and volume.",
+            "analogy": "Like a music player widget - plays sound files without needing a separate music app."
+          },
+          {
+            "name": "The <iframe> tag",
+            "definition": "Embeds another website INSIDE your page. Like a window showing another site. Used for YouTube, Google Maps, CodePen demos.",
+            "analogy": "Picture-in-picture TV showing another channel - a window to another website inside yours."
+          },
+          {
+            "name": "Video/Audio attributes",
+            "definition": "controls (show buttons), autoplay (start automatically - annoying!), loop (repeat forever), muted (start silent), poster (thumbnail image).",
+            "analogy": "Settings on a TV remote: volume, channel, play/pause, mute."
+          }
+        ],
+        "keyTakeaway": "<video controls> adds a video player. <audio controls> adds audio. <iframe> embeds other websites. Always include 'controls' attribute!"
+      },
+      "build": {
+        "goal": "Add audio and a YouTube video to your page",
+        "codeComparison": {
+          "old": "<h2>Sample Video</h2>\n<video width=\"400\" controls>\n    <source src=\"video.mp4\" type=\"video/mp4\">\n</video>",
+          "new": "<h2>Sample Audio</h2>\n<audio controls>\n    <source src=\"https://www.w3schools.com/html/horse.mp3\" type=\"audio/mpeg\">\n    Your browser doesn't support audio playback.\n</audio>\n\n<h2>My Favorite Tutorial</h2>\n<iframe width=\"560\" height=\"315\" \n    src=\"https://www.youtube.com/embed/VIDEO_ID\" \n    title=\"YouTube video player\" \n    allowfullscreen>\n</iframe>"
+        },
+        "hint": "Get YouTube embed code: go to any video, click Share → Embed, copy the <iframe> code"
+      },
+      "challenge": {
+        "title": "Build a Multimedia Portfolio Page",
+        "mission": "Create a page showcasing media — videos about your interests, favorite music, embedded content.",
+        "requirements": [
+          "Create multimedia.html",
+          "Add at least one <video> element (can use sample videos or your own)",
+          "Add at least one <audio> element",
+          "Embed at least one YouTube video relevant to your interests",
+          "Embed a Google Map of a meaningful location",
+          "Use semantic HTML structure (<header>, <main>, <section>, etc.)",
+          "Add descriptions/captions for each media item",
+          "Include navigation back to your other pages"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>My Multimedia Page</title>\n</head>\n<body>\n    <header>\n        <h1>Things I Love</h1>\n        <p>A multimedia showcase</p>\n    </header>\n    \n    <nav>\n        <ul>\n            <li><a href=\"index.html\">Home</a></li>\n            <li><a href=\"about.html\">About</a></li>\n            <li><a href=\"multimedia.html\">Media</a></li>\n        </ul>\n    </nav>\n    \n    <main>\n        <section>\n            <h2><!-- Section title --></h2>\n            <!-- Your media here -->\n            <p><!-- Description --></p>\n        </section>\n        \n        <!-- More sections -->\n    </main>\n    \n    <footer>\n        <p>&copy; 2024 Your Name</p>\n    </footer>\n</body>\n</html>",
+        "bonusChallenge": "Add 'poster' attribute to your video (thumbnail image before playing) and create a video with 'loop' and 'muted' for background ambiance"
+      },
+      "summary": {
+        "capabilities": [
+          "Embed videos with <video> and <source>",
+          "Add audio playback with <audio>",
+          "Use controls, autoplay, loop, and muted attributes",
+          "Embed YouTube videos with <iframe>",
+          "Add Google Maps to your pages",
+          "Understand iframe security considerations",
+          "Provide fallback content for unsupported browsers",
+          "Choose appropriate media formats (mp4, mp3, etc.)"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 10, you'll learn to use Developer Tools to inspect, debug, and understand your HTML. This is THE skill that separates beginners from professionals.",
+        "nextLessonId": "lesson-10"
+      }
+    }
+  ]
+}
