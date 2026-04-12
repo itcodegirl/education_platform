@@ -115,6 +115,123 @@
         "preview": "In the next lesson, you'll learn how to handle EVENTS — clicks, keypresses, mouse movements, and more. You'll build interactive games and tools.",
         "nextLessonId": "js-3-2"
       }
+    },
+    {
+      "id": "js-3-2",
+      "title": "Handle Events Like a Pro",
+      "prereqs": [
+        "js-3-1"
+      ],
+      "difficulty": "intermediate",
+      "duration": "22 min",
+      "metadata": {
+        "estimatedTime": 22,
+        "difficulty": "intermediate",
+        "conceptsCount": 7,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Detect keyboard presses and respond to them",
+          "Build a game you control with arrow keys",
+          "Track mouse movements and clicks",
+          "Create interactive experiences that feel alive"
+        ]
+      },
+      "do": {
+        "title": "Build a Keyboard-Controlled Box",
+        "steps": [
+          "Open VS Code or CodePen",
+          "Create keyboard-control.html",
+          "Copy the code below",
+          "Save and open in browser",
+          "Click anywhere on the page first (to give it focus)",
+          "Press the arrow keys — watch the red box move!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Keyboard Control</title>\n  <style>\n    body { margin: 0; padding: 20px; background-color: #2C3E50; font-family: Arial; overflow: hidden; }\n    h1 { color: white; text-align: center; margin-bottom: 10px; }\n    .instructions { color: #ECF0F1; text-align: center; margin-bottom: 30px; font-size: 18px; }\n    #game-area { position: relative; width: 800px; height: 500px; margin: 0 auto; background-color: #34495E; border-radius: 10px; border: 3px solid #1ABC9C; }\n    #player { position: absolute; width: 50px; height: 50px; background-color: #E74C3C; border-radius: 5px; top: 225px; left: 375px; transition: all 0.1s ease; }\n    #coordinates { color: white; text-align: center; margin-top: 20px; font-size: 20px; font-family: monospace; }\n  </style>\n</head>\n<body>\n  <h1>🎮 Keyboard Controller</h1>\n  <div class=\"instructions\">Use Arrow Keys to move the red box</div>\n  <div id=\"game-area\">\n    <div id=\"player\"></div>\n  </div>\n  <div id=\"coordinates\">X: 375, Y: 225</div>\n\n  <script>\n    let player = document.getElementById(\"player\");\n    let x = 375;\n    let y = 225;\n    let speed = 20;\n    \n    document.addEventListener(\"keydown\", function(event) {\n      if (event.key === \"ArrowUp\") y = y - speed;\n      else if (event.key === \"ArrowDown\") y = y + speed;\n      else if (event.key === \"ArrowLeft\") x = x - speed;\n      else if (event.key === \"ArrowRight\") x = x + speed;\n      \n      if (x < 0) x = 0;\n      if (x > 750) x = 750;\n      if (y < 0) y = 0;\n      if (y > 450) y = 450;\n      \n      player.style.left = x + \"px\";\n      player.style.top = y + \"px\";\n      document.getElementById(\"coordinates\").textContent = \"X: \" + x + \", Y: \" + y;\n    });\n  </script>\n</body>\n</html>",
+        "result": "JavaScript listened for keyboard events and moved the box based on which arrow key you pressed!",
+        "proofRequired": "Screenshot showing the box moved to a different position."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "What is an event?",
+            "definition": "Something that happens in the browser — a user action (click, keypress, mouse move) or browser action (page loaded). JavaScript can listen for these and respond.",
+            "analogy": "A motion sensor — it detects when something happens and triggers a response."
+          },
+          {
+            "name": "addEventListener() vs onclick",
+            "definition": "addEventListener('click', function) is the modern way. Better than onclick because: separates HTML/JS, allows multiple listeners, gives you the event object, can be removed.",
+            "analogy": "onclick is a sticky note on one button. addEventListener is a proper notification system."
+          },
+          {
+            "name": "The event object",
+            "definition": "The function you pass to addEventListener receives an event object with info about what happened: event.key (which key), event.type (what kind), event.target (which element).",
+            "analogy": "A detective report — it tells you what happened, where, when, and how."
+          },
+          {
+            "name": "Keyboard events: keydown and keyup",
+            "definition": "keydown fires when a key is pressed. keyup fires when released. event.key gives the key name: 'ArrowUp', 'Enter', 'a', ' ' (space).",
+            "analogy": "keydown = pressing a piano key. keyup = releasing it."
+          },
+          {
+            "name": "Browser coordinate system",
+            "definition": "X increases left to right. Y increases top to bottom (opposite of math class!). (0,0) is the top-left corner.",
+            "analogy": "Reading a page — you start at the top-left and go right and down."
+          },
+          {
+            "name": "setInterval() for timed events",
+            "definition": "setInterval(function, milliseconds) runs code repeatedly at a set interval. clearInterval(timer) stops it. 1000ms = 1 second.",
+            "analogy": "An alarm clock that goes off every X seconds until you turn it off."
+          },
+          {
+            "name": "Creating elements dynamically",
+            "definition": "document.createElement('div') creates a new element. Set its properties, then element.appendChild(newElement) adds it to the page.",
+            "analogy": "Building a Lego piece (create), decorating it (set properties), then snapping it onto your model (appendChild)."
+          }
+        ],
+        "keyTakeaway": "addEventListener() is the modern way to handle events. The event object tells you everything about what happened."
+      },
+      "build": {
+        "goal": "Build a Click Speed Game with targets, score, and countdown timer",
+        "codeComparison": {
+          "old": "// Old way: onclick in HTML\n<button onclick=\"doSomething()\">Click</button>",
+          "new": "// Modern way: addEventListener in JavaScript\nlet button = document.getElementById(\"myBtn\");\nbutton.addEventListener(\"click\", function(event) {\n  score++;\n  createTarget(); // Create new target\n});\n\n// Timed countdown\nlet timer = setInterval(function() {\n  timeLeft--;\n  if (timeLeft <= 0) clearInterval(timer);\n}, 1000);"
+        },
+        "hint": "setInterval() keeps running until you stop it with clearInterval(). That's how the countdown works!"
+      },
+      "challenge": {
+        "title": "Build a Keyboard Piano",
+        "mission": "Create a virtual piano where pressing A, S, D, F, G, H, J lights up corresponding piano keys.",
+        "requirements": [
+          "At least 7 piano keys (visual rectangles)",
+          "Each responds to a keyboard letter (A-J)",
+          "Keys light up on keydown, return to normal on keyup",
+          "Display which note is being played",
+          "Show clear instructions",
+          "Support both keyboard and mouse click"
+        ],
+        "starterCode": "<!-- Build a piano with .key elements using data-key attributes -->\n<!-- Listen for keydown to add \"active\" class -->\n<!-- Listen for keyup to remove \"active\" class -->\n<!-- Use document.querySelector(`.key[data-key=\"${key}\"]`) to find matching key -->",
+        "bonusChallenge": "Add actual sound using the Web Audio API or HTML5 <audio> elements!"
+      },
+      "summary": {
+        "capabilities": [
+          "Use addEventListener() to handle events properly",
+          "Detect keyboard presses with keydown and keyup",
+          "Access event info through the event object",
+          "Build keyboard-controlled interfaces",
+          "Handle mouse clicks and movements",
+          "Create elements dynamically",
+          "Use setInterval() for timed events",
+          "Generate random numbers with Math.random()",
+          "Build interactive games",
+          "Use data attributes to connect HTML and JavaScript"
+        ]
+      },
+      "bridge": {
+        "preview": "Fantastic! You can now handle all kinds of user interactions. In the next lesson, you'll learn complex conditionals, switch statements, and smart decision-making in your code.",
+        "nextLessonId": "js-3-3"
+      }
     }
   ]
 }
