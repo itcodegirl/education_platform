@@ -341,8 +341,129 @@
         ]
       },
       "bridge": {
-        "preview": "In the next lesson, you'll learn about LOOPS in depth — while loops, for...of loops, and how to iterate through data efficiently.",
+        "preview": "In the next lesson — the Module 3 CAPSTONE — you'll combine EVERYTHING from this module (form input, events, keyboard controls, and smart logic) to build a complete, playable Space Shooter game!",
         "nextLessonId": "js-3-4"
+      }
+    },
+    {
+      "id": "js-3-4",
+      "title": "Module 3 Capstone: Build a Space Shooter Game",
+      "prereqs": [
+        "js-3-3"
+      ],
+      "difficulty": "intermediate",
+      "duration": "30 min",
+      "metadata": {
+        "estimatedTime": 30,
+        "difficulty": "intermediate",
+        "conceptsCount": 7,
+        "tasksCount": 3,
+        "isCapstone": true
+      },
+      "hook": {
+        "accomplishments": [
+          "Build a complete, playable Space Shooter game",
+          "Combine keyboard input, timers, and collision detection",
+          "Track score, lives, and game state like a real game developer",
+          "Create start and game over screens with restart",
+          "Save high scores that persist using localStorage",
+          "Ship something you can actually play and share!"
+        ]
+      },
+      "do": {
+        "title": "Build a Complete Space Shooter",
+        "steps": [
+          "Open VS Code or CodePen",
+          "Create space-shooter.html",
+          "Copy the complete game code below",
+          "Save and open in browser",
+          "Click START to begin",
+          "Use Arrow keys to move, Space to shoot",
+          "Destroy enemies to score points — survive as long as you can!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Space Shooter</title>\n  <style>\n    body { margin: 0; background: #000; font-family: Arial; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; }\n    #game { position: relative; width: 600px; height: 500px; background: linear-gradient(180deg, #000428, #004e92); border: 3px solid #00ff00; overflow: hidden; box-shadow: 0 0 30px rgba(0,255,0,0.5); }\n    #hud { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; z-index: 10; font-weight: bold; font-size: 16px; }\n    #player { position: absolute; bottom: 20px; width: 40px; height: 40px; background: #00ff00; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); transition: left 0.05s linear; }\n    .bullet { position: absolute; width: 4px; height: 12px; background: #ff0; box-shadow: 0 0 8px #ff0; }\n    .enemy { position: absolute; width: 35px; height: 35px; background: #f44; border-radius: 50%; box-shadow: 0 0 10px #f44; }\n    .screen { position: absolute; inset: 0; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; text-align: center; }\n    .screen h1 { font-size: 40px; margin: 0 0 10px; color: #00ff00; text-shadow: 0 0 20px #00ff00; }\n    .screen button { padding: 15px 30px; font-size: 20px; font-weight: bold; background: #00ff00; color: #000; border: none; cursor: pointer; margin-top: 20px; border-radius: 5px; }\n    .screen button:hover { transform: scale(1.05); }\n  </style>\n</head>\n<body>\n  <div id=\"game\">\n    <div id=\"hud\">\n      <span>SCORE: <span id=\"score\">0</span></span>\n      <span>LIVES: <span id=\"lives\">3</span></span>\n      <span>HIGH: <span id=\"high\">0</span></span>\n    </div>\n    <div id=\"player\"></div>\n    <div class=\"screen\" id=\"startScreen\">\n      <h1>🚀 SPACE SHOOTER</h1>\n      <p>Arrow Keys to move, Space to shoot</p>\n      <button onclick=\"startGame()\">START</button>\n    </div>\n    <div class=\"screen\" id=\"overScreen\" style=\"display:none\">\n      <h1>GAME OVER</h1>\n      <p>Final Score: <span id=\"finalScore\">0</span></p>\n      <button onclick=\"startGame()\">PLAY AGAIN</button>\n    </div>\n  </div>\n\n  <script>\n    let state = { running: false, score: 0, lives: 3, x: 280, bullets: [], enemies: [] };\n    let high = parseInt(localStorage.getItem('shooterHigh')) || 0;\n    let gameLoop, spawnLoop;\n    const game = document.getElementById('game');\n    const player = document.getElementById('player');\n    const keys = {};\n    document.getElementById('high').textContent = high;\n    \n    document.addEventListener('keydown', function(e) {\n      keys[e.key] = true;\n      if (e.key === ' ' && state.running) { e.preventDefault(); shoot(); }\n    });\n    document.addEventListener('keyup', function(e) { keys[e.key] = false; });\n    \n    function startGame() {\n      state = { running: true, score: 0, lives: 3, x: 280, bullets: [], enemies: [] };\n      document.querySelectorAll('.bullet, .enemy').forEach(function(el) { el.remove(); });\n      document.getElementById('startScreen').style.display = 'none';\n      document.getElementById('overScreen').style.display = 'none';\n      updateUI();\n      gameLoop = setInterval(loop, 1000 / 60);\n      spawnLoop = setInterval(spawnEnemy, 1200);\n    }\n    \n    function loop() {\n      if (keys['ArrowLeft'] && state.x > 0) state.x -= 6;\n      if (keys['ArrowRight'] && state.x < 560) state.x += 6;\n      player.style.left = state.x + 'px';\n      \n      for (let i = state.bullets.length - 1; i >= 0; i--) {\n        let b = state.bullets[i];\n        b.y -= 8;\n        b.el.style.top = b.y + 'px';\n        if (b.y < 0) { b.el.remove(); state.bullets.splice(i, 1); }\n      }\n      \n      for (let i = state.enemies.length - 1; i >= 0; i--) {\n        let e = state.enemies[i];\n        e.y += 3;\n        e.el.style.top = e.y + 'px';\n        if (e.y > 440 && Math.abs(e.x - state.x) < 40) {\n          hitPlayer(); e.el.remove(); state.enemies.splice(i, 1);\n        } else if (e.y > 500) {\n          e.el.remove(); state.enemies.splice(i, 1);\n        }\n      }\n      \n      for (let i = state.bullets.length - 1; i >= 0; i--) {\n        for (let j = state.enemies.length - 1; j >= 0; j--) {\n          let b = state.bullets[i], e = state.enemies[j];\n          if (b && e && Math.abs(b.x - e.x) < 22 && Math.abs(b.y - e.y) < 22) {\n            b.el.remove(); e.el.remove();\n            state.bullets.splice(i, 1); state.enemies.splice(j, 1);\n            state.score += 10; updateUI();\n            break;\n          }\n        }\n      }\n    }\n    \n    function shoot() {\n      const el = document.createElement('div');\n      el.className = 'bullet';\n      const b = { el: el, x: state.x + 18, y: 440 };\n      el.style.left = b.x + 'px';\n      el.style.top = b.y + 'px';\n      game.appendChild(el);\n      state.bullets.push(b);\n    }\n    \n    function spawnEnemy() {\n      if (!state.running) return;\n      const el = document.createElement('div');\n      el.className = 'enemy';\n      const e = { el: el, x: Math.random() * 560, y: 0 };\n      el.style.left = e.x + 'px';\n      el.style.top = '0px';\n      game.appendChild(el);\n      state.enemies.push(e);\n    }\n    \n    function hitPlayer() {\n      state.lives--;\n      updateUI();\n      if (state.lives <= 0) gameOver();\n    }\n    \n    function gameOver() {\n      state.running = false;\n      clearInterval(gameLoop);\n      clearInterval(spawnLoop);\n      if (state.score > high) {\n        high = state.score;\n        localStorage.setItem('shooterHigh', high);\n        document.getElementById('high').textContent = high;\n      }\n      document.getElementById('finalScore').textContent = state.score;\n      document.getElementById('overScreen').style.display = 'flex';\n    }\n    \n    function updateUI() {\n      document.getElementById('score').textContent = state.score;\n      document.getElementById('lives').textContent = state.lives;\n    }\n  </script>\n</body>\n</html>",
+        "result": "You built a COMPLETE, playable Space Shooter game! Keyboard controls, collision detection, score tracking, lives, game over, and persistent high scores — all in one file.",
+        "proofRequired": "Screenshot showing the game running with at least 50 points scored AND the Game Over screen after losing all lives."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "The game loop",
+            "definition": "A function that runs 60 times per second with setInterval(loop, 1000/60). It updates positions, checks collisions, and redraws — over and over.",
+            "analogy": "A movie projector showing 60 frames per second. Each frame is a tiny update, but they blur together into smooth motion."
+          },
+          {
+            "name": "Game state object",
+            "definition": "One object holds ALL the game's data: score, lives, player position, bullets, enemies. This gives you one source of truth for everything.",
+            "analogy": "A game's scoreboard and playing field combined — one place to see the whole status."
+          },
+          {
+            "name": "Tracking keys with a keys object",
+            "definition": "Instead of moving inside the keydown handler, store which keys are down in an object (keys[e.key] = true) and check them in the game loop. This gives smooth continuous movement.",
+            "analogy": "keydown alone is like tapping a key once. The keys object is like HOLDING it down — the ship glides smoothly."
+          },
+          {
+            "name": "Collision detection",
+            "definition": "Check if two objects overlap by comparing their positions. Math.abs(a.x - b.x) < threshold && Math.abs(a.y - b.y) < threshold is a quick distance check.",
+            "analogy": "Checking if two stickers are close enough on a page that they touch."
+          },
+          {
+            "name": "Spawning objects dynamically",
+            "definition": "Use setInterval to create new enemies at random positions. document.createElement + appendChild adds them to the DOM, and you push them into an array to track them.",
+            "analogy": "A factory conveyor belt — new enemies roll out at a fixed rate, each one brand new."
+          },
+          {
+            "name": "Cleaning up (splice + remove)",
+            "definition": "When an enemy is destroyed or goes off-screen, remove it from the DOM (element.remove()) AND from the tracking array (array.splice). If you forget, the game gets slower and slower.",
+            "analogy": "Taking out the trash. Leave it and it piles up — eventually the whole game chokes."
+          },
+          {
+            "name": "Persisting data with localStorage",
+            "definition": "localStorage.setItem('key', value) saves data in the browser. It survives page reloads. Use parseInt/JSON.parse to read it back. Perfect for high scores.",
+            "analogy": "A save file on your computer. Close the browser, come back tomorrow — your high score is still there."
+          }
+        ],
+        "keyTakeaway": "Games are just: (1) a state object, (2) a game loop that updates it, (3) event listeners for input, (4) collision checks, and (5) cleanup. Master this pattern and you can build any 2D game."
+      },
+      "build": {
+        "goal": "Understand why we track keys in an object instead of handling them directly",
+        "codeComparison": {
+          "old": "// Bad: movement stutters and feels laggy\ndocument.addEventListener('keydown', function(e) {\n  if (e.key === 'ArrowLeft') player.x -= 6;\n  if (e.key === 'ArrowRight') player.x += 6;\n  // Only moves on each key repeat event!\n});",
+          "new": "// Good: smooth continuous movement\nconst keys = {};\ndocument.addEventListener('keydown', function(e) {\n  keys[e.key] = true;\n});\ndocument.addEventListener('keyup', function(e) {\n  keys[e.key] = false;\n});\n\n// In the game loop (60 FPS):\nfunction loop() {\n  if (keys['ArrowLeft']) player.x -= 6;\n  if (keys['ArrowRight']) player.x += 6;\n  // Smooth — moves every frame while held!\n}"
+        },
+        "hint": "The keys object also lets you handle MULTIPLE keys at once — like moving diagonally or moving while shooting. keydown alone can't do that cleanly."
+      },
+      "challenge": {
+        "title": "Build Your Own Game (Choose One)",
+        "mission": "Pick ONE of these game ideas and build it from scratch using the game loop pattern you learned. This is your chance to prove you've mastered Module 3.",
+        "requirements": [
+          "Option A: Typing Speed Game — words fall from the top, type them before they reach the bottom. Track WPM and accuracy.",
+          "Option B: Brick Breaker — paddle at bottom (arrow keys), ball bounces, destroy bricks for points.",
+          "Option C: Snake — classic snake that grows when it eats food. Game over when it hits itself.",
+          "Option D: Dodger — avoid falling obstacles using arrow keys. Score increases with survival time.",
+          "Must include: game state object, game loop with setInterval, keyboard controls, score tracking, game over screen, restart button",
+          "Must save a high score using localStorage"
+        ],
+        "starterCode": "<!-- Start with the game loop skeleton: -->\n<!-- 1. Create a state object for your game -->\n<!-- 2. Set up a game loop: setInterval(loop, 1000/60) -->\n<!-- 3. Track keys with keydown/keyup + keys object -->\n<!-- 4. In the loop: update positions, check collisions, cleanup -->\n<!-- 5. Update the UI when score/lives change -->\n<!-- 6. Save high score to localStorage on game over -->",
+        "bonusChallenge": "Add progressive difficulty (enemies spawn faster as score climbs), sound effects with HTML5 <audio>, and a pause feature (P key)!"
+      },
+      "summary": {
+        "capabilities": [
+          "Build a complete, playable 2D game from scratch",
+          "Run a 60 FPS game loop with setInterval",
+          "Manage game state in a single object",
+          "Handle smooth keyboard input with a keys tracker",
+          "Dynamically spawn and destroy DOM elements",
+          "Detect collisions between game objects",
+          "Implement score, lives, and game over logic",
+          "Persist high scores across sessions with localStorage",
+          "Clean up resources to keep performance smooth",
+          "Ship a finished, shareable project"
+        ]
+      },
+      "bridge": {
+        "preview": "🎉 CONGRATULATIONS! You completed Module 3: User Interaction Mastery! You can now handle forms, events, keyboard input, timers, and complex logic — and build real, interactive games.\n\nNext up: Module 4 — Advanced Array Methods. You'll learn map, filter, and reduce — the trio that transforms how you work with data forever.",
+        "nextLessonId": "js-4-1"
       }
     }
   ]
