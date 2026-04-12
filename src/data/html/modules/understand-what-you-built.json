@@ -1,0 +1,91 @@
+{
+  "id": 102,
+  "emoji": "🧠",
+  "title": "Understand What You Built",
+  "tagline": "Now that it works, learn why.",
+  "difficulty": "beginner",
+  "lessons": [
+    {
+      "id": "lesson-05",
+      "title": "Decode the Secret Language Browsers Speak",
+      "prereqs": ["lesson-08"],
+      "difficulty": "beginner",
+      "duration": "15 min",
+      "metadata": { "estimatedTime": 15, "difficulty": "beginner", "conceptsCount": 3, "tasksCount": 3 },
+      "hook": {
+        "accomplishments": [
+          "Build a webpage that shows HTML vs CSS vs JavaScript",
+          "See exactly what each language does by turning them on and off",
+          "Create a visual demonstration you can show to anyone"
+        ]
+      },
+      "do": {
+        "title": "Build a three-language demo page",
+        "steps": [
+          "Open VS Code",
+          "Create a new file called three-languages.html",
+          "Copy and paste the code below",
+          "Save the file",
+          "Open it in your browser",
+          "Click the button!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>HTML vs CSS vs JavaScript</title>\n  <style>\n    /* This is CSS - it controls appearance */\n    h1 { color: blue; font-size: 40px; }\n    p { background-color: yellow; padding: 10px; }\n  </style>\n</head>\n<body>\n  <h1>This heading is BIG and BLUE</h1>\n  <p>This paragraph has a yellow background</p>\n  <button onclick=\"alert('This is JavaScript!')\">Click Me</button>\n</body>\n</html>",
+        "result": "You just saw HTML (structure), CSS (style), and JavaScript (behavior) working together!",
+        "proofRequired": "Screenshot showing the blue heading, yellow paragraph, AND the popup after clicking the button."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "HTML (HyperText Markup Language)",
+            "definition": "This is the content and structure. The <h1>, <p>, and <button> tags you wrote are HTML. They create the \"things\" on the page. HTML is NOT a programming language — it doesn't calculate, make decisions, or respond to events. It just describes structure.",
+            "analogy": "The frame and walls of a house. You need them first before you can paint or add electricity."
+          },
+          {
+            "name": "CSS (Cascading Style Sheets)",
+            "definition": "This is the visual design. The part between <style> tags made the heading blue and the paragraph yellow.",
+            "analogy": "Paint, wallpaper, and interior design. CSS makes things look good."
+          },
+          {
+            "name": "JavaScript",
+            "definition": "This is the behavior and interactivity. The onclick=\"alert('...')\" part made the button DO something when clicked.",
+            "analogy": "Electricity in the house. It makes things respond and move."
+          }
+        ],
+        "keyTakeaway": "HTML creates the skeleton, CSS makes it beautiful, JavaScript makes it interactive. You need HTML first — the other two are optional add-ons."
+      },
+      "build": {
+        "goal": "See what each language does by removing them one at a time",
+        "codeComparison": {
+          "old": "<!-- Full version with all 3 languages -->\n<style>\n  h1 { color: blue; font-size: 40px; }\n  p { background-color: yellow; padding: 10px; }\n</style>\n<body>\n  <h1>This heading is BIG and BLUE</h1>\n  <p>This paragraph has a yellow background</p>\n  <button onclick=\"alert('JavaScript!')\">Click Me</button>\n</body>",
+          "new": "<!-- Try 1: Delete the <style> section entirely -->\n<!-- Result: Page still works but looks plain and boring! -->\n<!-- HTML works alone. CSS is optional. -->\n\n<!-- Try 2: Undo, then delete onclick=\"...\" from button -->\n<!-- Result: Button looks pretty but doesn't DO anything! -->\n<!-- JavaScript adds behavior. Also optional. -->\n\n<!-- Key insight: HTML is the foundation. -->\n<!-- CSS and JS are add-ons. -->"
+        },
+        "hint": "Use Ctrl+Z (or Cmd+Z on Mac) to undo changes and get back to the working version."
+      },
+      "challenge": {
+        "title": "Build a Language Comparison Page",
+        "mission": "Create a page that clearly shows what each language does using THREE separate sections.",
+        "requirements": [
+          "Section 1: HTML only (no CSS, no JS) — show plain structure",
+          "Section 2: HTML + CSS — show styled content",
+          "Section 3: HTML + CSS + JS — show interactive element",
+          "Each section has a heading explaining what it demonstrates"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Language Comparison</title>\n  <style>\n    /* Add CSS here for Section 2 */\n  </style>\n</head>\n<body>\n  <h1>HTML Alone</h1>\n  <p>This paragraph has no styling.</p>\n  \n  <h1>HTML + CSS</h1>\n  <!-- Add styled content here -->\n  \n  <h1>HTML + CSS + JavaScript</h1>\n  <!-- Add interactive element here -->\n</body>\n</html>",
+        "bonusChallenge": "Make the JavaScript button change the text on the page instead of showing a popup. (Hint: Use document.getElementById() and .innerHTML)"
+      },
+      "summary": {
+        "capabilities": [
+          "Explain the difference between HTML, CSS, and JavaScript",
+          "Build a page that demonstrates all three languages",
+          "Identify which language does what when reading code",
+          "Explain why HTML is NOT a programming language",
+          "Remove CSS or JS from a page and see what HTML does alone"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 6, you'll see how browsers read your HTML code top-to-bottom and build a \"tree\" structure called the DOM. You'll make a page that visualizes this process!",
+        "nextLessonId": "lesson-06"
+      }
+    }
+  ]
+}

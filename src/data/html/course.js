@@ -9,7 +9,7 @@
 
 // Core modules (structured format)
 import getSomethingWorking from './modules/get-something-working.json';
-import { module as understandWhatYouBuilt } from './modules/what-html-actually-is';
+import understandWhatYouBuilt from './modules/understand-what-you-built.json';
 import addMoreFeatures from './modules/add-more-features.json';
 import buildLikeAPro from './modules/build-like-a-pro.json';
 
