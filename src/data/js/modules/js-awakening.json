@@ -11,7 +11,12 @@
       "prereqs": [],
       "difficulty": "beginner",
       "duration": "15 min",
-      "metadata": { "estimatedTime": 15, "difficulty": "beginner", "conceptsCount": 3, "tasksCount": 3 },
+      "metadata": {
+        "estimatedTime": 15,
+        "difficulty": "beginner",
+        "conceptsCount": 3,
+        "tasksCount": 3
+      },
       "hook": {
         "accomplishments": [
           "Create a button that responds when you click it",
@@ -27,7 +32,7 @@
           "Copy and paste the code below",
           "Save the file",
           "Double-click the file to open it in your browser",
-          "Click the button \u2014 you'll see a popup appear!"
+          "Click the button — you'll see a popup appear!"
         ],
         "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>My Talking Button</title>\n</head>\n<body>\n  <h1>My First JavaScript</h1>\n  <button onclick=\"alert('Hello! You clicked me!')\">Click Me!</button>\n</body>\n</html>",
         "result": "You just created an interactive button that responds to clicks using JavaScript!",
@@ -84,8 +89,102 @@
         ]
       },
       "bridge": {
-        "preview": "In the next lesson, you'll learn how to change what's on the page WITHOUT annoying popups. You'll make text appear, disappear, and change \u2014 all with JavaScript.",
+        "preview": "In the next lesson, you'll learn how to change what's on the page WITHOUT annoying popups. You'll make text appear, disappear, and change — all with JavaScript.",
         "nextLessonId": "js-1-2"
+      }
+    },
+    {
+      "id": "js-1-2",
+      "title": "Make Text Change Instantly",
+      "prereqs": [
+        "js-1-1"
+      ],
+      "difficulty": "beginner",
+      "duration": "18 min",
+      "metadata": {
+        "estimatedTime": 18,
+        "difficulty": "beginner",
+        "conceptsCount": 4,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Make text on your page change when you click a button",
+          "Create a name tag that updates in real-time",
+          "Change multiple things on the page at once"
+        ]
+      },
+      "do": {
+        "title": "Make a Headline Change",
+        "steps": [
+          "Open VS Code or CodePen",
+          "Create a new file and save it as changing-text.html",
+          "Copy and paste the code below",
+          "Save and open in browser",
+          "Click the button — watch the headline change instantly!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Changing Text</title>\n  <style>\n    h1 {\n      font-size: 48px;\n      color: purple;\n      text-align: center;\n      margin-top: 50px;\n    }\n    button {\n      display: block;\n      margin: 20px auto;\n      padding: 15px 30px;\n      font-size: 18px;\n      cursor: pointer;\n    }\n  </style>\n</head>\n<body>\n  <h1 id=\"headline\">Hello World</h1>\n  <button onclick=\"changeText()\">Change the Text</button>\n\n  <script>\n    function changeText() {\n      document.querySelector(\"#headline\").textContent = \"I just changed this with JavaScript!\";\n    }\n  </script>\n</body>\n</html>",
+        "result": "The headline text changed WITHOUT reloading the page. That's JavaScript manipulating the DOM!",
+        "proofRequired": "Screenshot showing the headline AFTER clicking (should say \"I just changed this with JavaScript!\")"
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "The id attribute",
+            "definition": "Gives an HTML element a unique name (like a name tag). Every id on a page must be unique. In JavaScript, you find it with #id.",
+            "analogy": "A student ID number. No two students have the same one."
+          },
+          {
+            "name": "document.querySelector()",
+            "definition": "JavaScript's way of saying \"go find this element on the page.\" Use #id for IDs, .class for classes. Returns the first matching element.",
+            "analogy": "A search function — you describe what you're looking for, it finds it and hands it to you."
+          },
+          {
+            "name": ".textContent",
+            "definition": "Changes the text inside an element. Whatever you put after = becomes the new text. Doesn't change HTML structure, just the visible text.",
+            "analogy": "Erasing what's written on a whiteboard and writing something new."
+          },
+          {
+            "name": "The = sign in JavaScript",
+            "definition": "In JavaScript, = means \"assign this value\" (not \"equals\" like math). x = 5 means \"make x equal 5.\" To check equality, use === instead.",
+            "analogy": "Putting something INTO a box (=) vs. checking what's IN the box (===)."
+          }
+        ],
+        "keyTakeaway": "Select an element with querySelector(), then change it with .textContent. That's the core pattern for DOM manipulation."
+      },
+      "build": {
+        "goal": "Create a name tag that updates with YOUR name",
+        "codeComparison": {
+          "old": "document.querySelector(\"#headline\").textContent = \"New text!\";",
+          "new": "// Name tag generator\nfunction addMyName() {\n  document.querySelector(\"#name\").textContent = \"Sarah 👩‍💻\";\n}\n\n// HTML:\n// <div class=\"name-tag\">\n//   <h2>HELLO my name is</h2>\n//   <p id=\"name\">_______</p>\n// </div>\n// <button onclick=\"addMyName()\">Add My Name</button>"
+        },
+        "hint": "Keep the quotes around your name: 'Sarah' not Sarah. Without quotes, JavaScript thinks you're talking about a variable."
+      },
+      "challenge": {
+        "title": "Build a Mood Ring",
+        "mission": "Create three buttons that change a text display to show different moods with emojis.",
+        "requirements": [
+          "Three buttons: \"Happy\", \"Focused\", \"Tired\"",
+          "One text area that displays the current mood",
+          "Each button changes the text + emoji",
+          "The mood text should be big and centered"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Mood Ring</title>\n  <style>\n    .mood-display {\n      font-size: 48px;\n      text-align: center;\n      margin: 50px;\n      min-height: 100px;\n    }\n    .button-container { text-align: center; }\n    button { margin: 10px; padding: 15px 25px; font-size: 16px; cursor: pointer; }\n  </style>\n</head>\n<body>\n  <h1 style=\"text-align: center;\">How are you feeling?</h1>\n  <div class=\"mood-display\" id=\"mood\">Click a button to set your mood</div>\n  <div class=\"button-container\">\n    <button onclick=\"setHappy()\">Happy</button>\n    <button onclick=\"setFocused()\">Focused</button>\n    <button onclick=\"setTired()\">Tired</button>\n  </div>\n  <script>\n    function setHappy() { /* Your code here */ }\n    function setFocused() { /* Your code here */ }\n    function setTired() { /* Your code here */ }\n  </script>\n</body>\n</html>",
+        "bonusChallenge": "Add two more mood buttons: \"Excited\" and \"Calm\" with their own emojis!"
+      },
+      "summary": {
+        "capabilities": [
+          "Change text on a page without reloading",
+          "Use querySelector() to find elements",
+          "Use .textContent to update what elements say",
+          "Give elements IDs and select them with #",
+          "Create multiple functions that change the same element",
+          "Build interactive interfaces that respond to user actions"
+        ]
+      },
+      "bridge": {
+        "preview": "In the next lesson, you'll learn how to change not just the TEXT, but the STYLE — colors, sizes, backgrounds. You'll build a theme switcher that transforms your entire page.",
+        "nextLessonId": "js-1-3"
       }
     }
   ]
