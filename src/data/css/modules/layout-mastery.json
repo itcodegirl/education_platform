@@ -11,7 +11,12 @@
       "prereqs": [],
       "difficulty": "beginner",
       "duration": "16 min",
-      "metadata": { "estimatedTime": 16, "difficulty": "beginner", "conceptsCount": 3, "tasksCount": 3 },
+      "metadata": {
+        "estimatedTime": 16,
+        "difficulty": "beginner",
+        "conceptsCount": 3,
+        "tasksCount": 3
+      },
       "hook": {
         "accomplishments": [
           "See the difference between block, inline, and inline-block",
@@ -36,17 +41,17 @@
           {
             "name": "Block Elements",
             "definition": "Take up the full width available and start on a new line. Default block elements: div, p, h1-h6, section, header, footer.",
-            "analogy": "Shipping boxes stacked in a warehouse \u2014 each one takes up a full shelf."
+            "analogy": "Shipping boxes stacked in a warehouse — each one takes up a full shelf."
           },
           {
             "name": "Inline Elements",
             "definition": "Flow with text, only taking up as much width as their content needs. Width and height properties DON'T WORK on inline elements. Default inline elements: span, a, strong, em.",
-            "analogy": "Words in a sentence \u2014 they flow together on the same line."
+            "analogy": "Words in a sentence — they flow together on the same line."
           },
           {
             "name": "Inline-Block Elements",
             "definition": "The best of both worlds! Flow horizontally like inline, but respect width/height like block. Great for buttons, tags, and navigation items.",
-            "analogy": "Books on a shelf \u2014 they sit side by side, but each book has its own defined size."
+            "analogy": "Books on a shelf — they sit side by side, but each book has its own defined size."
           }
         ],
         "keyTakeaway": "Block stacks vertically (full width). Inline flows with text (no size control). Inline-block flows horizontally WITH size control."
@@ -61,7 +66,7 @@
       },
       "challenge": {
         "title": "Build a Tag Cloud",
-        "mission": "Create a \"tag cloud\" of skill badges using inline-block \u2014 different sized badges that flow and wrap naturally.",
+        "mission": "Create a \"tag cloud\" of skill badges using inline-block — different sized badges that flow and wrap naturally.",
         "requirements": [
           "At least 10 skill tags",
           "Tags use inline-block display",
@@ -83,8 +88,110 @@
         ]
       },
       "bridge": {
-        "preview": "In Lesson 2.6, you'll combine everything you've learned \u2014 Flexbox, positioning, display properties \u2014 to build a professional navigation bar from scratch!",
+        "preview": "In Lesson 2.6, you'll combine everything you've learned — Flexbox, positioning, display properties — to build a professional navigation bar from scratch!",
         "nextLessonId": "css-2-6"
+      }
+    },
+    {
+      "id": "css-2-6",
+      "title": "Build a Complete Navigation Bar",
+      "prereqs": [
+        "css-2-5"
+      ],
+      "difficulty": "intermediate",
+      "duration": "25 min",
+      "metadata": {
+        "estimatedTime": 25,
+        "difficulty": "intermediate",
+        "conceptsCount": 5,
+        "tasksCount": 2
+      },
+      "hook": {
+        "accomplishments": [
+          "Build a real navigation bar from scratch",
+          "Make it sticky when scrolling",
+          "Add a dropdown menu",
+          "Make it responsive for mobile"
+        ]
+      },
+      "do": {
+        "title": "Build the desktop navigation",
+        "steps": [
+          "Create a new file and save it as complete-nav.html",
+          "Copy and paste the code below",
+          "Save and open in browser",
+          "Hover over \"Services\" to see the dropdown",
+          "Scroll down — the nav sticks to the top!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Professional Navigation</title>\n  <style>\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n    \n    body {\n      font-family: Arial, sans-serif;\n    }\n    \n    .navbar {\n      background-color: #333;\n      padding: 0 40px;\n      display: flex;\n      justify-content: space-between;\n      align-items: center;\n      position: sticky;\n      top: 0;\n      z-index: 1000;\n      box-shadow: 0 2px 10px rgba(0,0,0,0.1);\n    }\n    \n    .logo {\n      color: white;\n      font-size: 24px;\n      font-weight: bold;\n      padding: 20px 0;\n    }\n    \n    .nav-links {\n      display: flex;\n      list-style: none;\n      gap: 0;\n    }\n    \n    .nav-links li {\n      position: relative;\n    }\n    \n    .nav-links a {\n      color: white;\n      text-decoration: none;\n      padding: 25px 20px;\n      display: inline-block;\n      transition: background-color 0.3s ease;\n    }\n    \n    .nav-links a:hover {\n      background-color: #555;\n    }\n    \n    .dropdown-content {\n      display: none;\n      position: absolute;\n      top: 100%;\n      left: 0;\n      background-color: white;\n      min-width: 200px;\n      box-shadow: 0 8px 16px rgba(0,0,0,0.2);\n      z-index: 1;\n    }\n    \n    .dropdown-content a {\n      color: #333;\n      padding: 12px 20px;\n      display: block;\n      border-bottom: 1px solid #f0f0f0;\n    }\n    \n    .dropdown-content a:hover {\n      background-color: #f5f5f5;\n      color: #007bff;\n    }\n    \n    .dropdown:hover .dropdown-content {\n      display: block;\n    }\n    \n    .menu-toggle {\n      display: none;\n      background: none;\n      border: none;\n      color: white;\n      font-size: 28px;\n      cursor: pointer;\n      padding: 10px;\n    }\n    \n    .content {\n      padding: 60px 40px;\n      max-width: 800px;\n      margin: 0 auto;\n      line-height: 1.8;\n    }\n    \n    .content h1 {\n      margin-bottom: 20px;\n      color: #333;\n    }\n    \n    .content p {\n      margin-bottom: 20px;\n      color: #666;\n    }\n  </style>\n</head>\n<body>\n  <nav class=\"navbar\">\n    <div class=\"logo\">MyWebsite</div>\n    <button class=\"menu-toggle\">☰</button>\n    <ul class=\"nav-links\">\n      <li><a href=\"#home\">Home</a></li>\n      <li><a href=\"#about\">About</a></li>\n      <li class=\"dropdown\">\n        <a href=\"#services\">Services ▼</a>\n        <div class=\"dropdown-content\">\n          <a href=\"#web-design\">Web Design</a>\n          <a href=\"#development\">Development</a>\n          <a href=\"#consulting\">Consulting</a>\n        </div>\n      </li>\n      <li><a href=\"#portfolio\">Portfolio</a></li>\n      <li><a href=\"#contact\">Contact</a></li>\n    </ul>\n  </nav>\n  \n  <div class=\"content\">\n    <h1>Professional Navigation Bar</h1>\n    <p>Scroll down to see the navigation stick to the top!</p>\n    <p>Hover over \"Services\" to see the dropdown menu appear.</p>\n    <p>More content here...</p>\n    <p>Keep scrolling...</p>\n    <p>The navigation stays at the top as you scroll.</p>\n    <p>This is a common pattern on modern websites.</p>\n    <p>More content to make you scroll...</p>\n    <p>Almost there...</p>\n    <p>Last paragraph!</p>\n  </div>\n</body>\n</html>",
+        "result": "You built a complete, professional navigation bar with sticky positioning, dropdown menus, and smooth hover effects!",
+        "proofRequired": "Screenshot showing the nav bar with dropdown menu visible."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "Flexbox for navbar layout",
+            "definition": "display: flex + justify-content: space-between puts the logo on the left and links on the right. align-items: center vertically centers everything.",
+            "analogy": "Pushing two groups to opposite ends of a shelf — logo on one end, links on the other."
+          },
+          {
+            "name": "Sticky positioning",
+            "definition": "position: sticky + top: 0 makes the navbar scroll normally until it hits the top, then it \"sticks\" there. z-index: 1000 keeps it above other content.",
+            "analogy": "A fridge magnet — it slides around freely until it sticks to the top edge."
+          },
+          {
+            "name": "Dropdown pattern",
+            "definition": "The dropdown is hidden (display: none) and positioned absolutely below its parent. On hover of the parent, it becomes visible (display: block).",
+            "analogy": "A pull-down shade — it's rolled up and hidden until you pull the cord (hover)."
+          },
+          {
+            "name": "Responsive mobile menu",
+            "definition": "On mobile, the menu slides in from off-screen (right: -100% to right: 0) when a hamburger button is clicked. JavaScript toggles the .active class.",
+            "analogy": "A sliding door that's hidden off to the side until you push a button to open it."
+          },
+          {
+            "name": "Combining CSS techniques",
+            "definition": "Professional navbars use Flexbox (layout), positioning (sticky + absolute), display properties (block/none), transitions (smooth effects), and media queries (responsive) all together.",
+            "analogy": "A recipe that uses multiple cooking techniques — searing, braising, and plating — to create one finished dish."
+          }
+        ],
+        "keyTakeaway": "A professional navbar combines Flexbox, positioning, display toggling, transitions, and media queries. Each technique solves one piece of the puzzle."
+      },
+      "build": {
+        "goal": "Make the navigation responsive for mobile with a slide-in menu",
+        "codeComparison": {
+          "old": "/* Desktop only — menu always visible */\n.nav-links {\n  display: flex;\n  list-style: none;\n}",
+          "new": "/* Mobile: slide-in menu */\n@media (max-width: 768px) {\n  .menu-toggle {\n    display: block;\n  }\n  \n  .nav-links {\n    position: fixed;\n    top: 70px;\n    right: -100%;\n    flex-direction: column;\n    background-color: #333;\n    width: 250px;\n    height: calc(100vh - 70px);\n    transition: right 0.3s ease;\n  }\n  \n  .nav-links.active {\n    right: 0;\n  }\n}"
+        },
+        "hint": "The menu starts off-screen (right: -100%) and slides in (right: 0) when active. The transition property makes it smooth!"
+      },
+      "challenge": {
+        "title": "Add Advanced Navigation Features",
+        "mission": "Enhance your navigation bar with professional touches.",
+        "requirements": [
+          "Active page indicator (highlight current page)",
+          "Smooth scroll to sections when clicking links",
+          "Close mobile menu when clicking a link",
+          "Add a subtle animation when page loads",
+          "Social media icons on the right side (desktop only)",
+          "Search bar that works on both desktop and mobile"
+        ],
+        "starterCode": "<!-- Start with your complete-nav.html and add:\n\n1. html { scroll-behavior: smooth; }\n2. .nav-links a.active { background-color: #007bff; }\n3. @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }\n4. .navbar { animation: slideDown 0.5s ease; }\n\nThen add JavaScript for:\n- Toggle mobile menu on hamburger click\n- Close menu when clicking a link on mobile\n- Update active class based on scroll position\n-->",
+        "bonusChallenge": "Add a \"scroll to top\" button that appears when you scroll down!"
+      },
+      "summary": {
+        "capabilities": [
+          "Build complete navigation bars from scratch",
+          "Combine Flexbox, positioning, and display properties",
+          "Create dropdown menus",
+          "Make responsive mobile navigation",
+          "Add smooth scroll and active page indicators",
+          "Use JavaScript to enhance CSS interactions"
+        ]
+      },
+      "bridge": {
+        "preview": "Module 2 complete! In Module 3, you'll learn responsive design — making websites work beautifully on phones, tablets, and desktops using media queries, flexible units, and mobile-first thinking.",
+        "nextLessonId": "css-3-1"
       }
     }
   ]
