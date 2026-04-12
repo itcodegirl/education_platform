@@ -540,48 +540,86 @@ textarea:focus-visible,
 .pp-signout { flex: 1; padding: 8px; background: transparent; border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; color: var(--text-muted); font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
 .pp-signout:hover { border-color: var(--red); color: var(--red); }
 
-/* ─── Course Switcher (2x2 grid) ─── */
-.cs-strip {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 6px;
-  padding: 10px 14px;
+/* ─── Course Switcher (Notion-style dropdown) ─── */
+.cs-dropdown-wrap {
+  padding: 0 14px;
   flex-shrink: 0;
+  position: relative;
 }
-.cs-pill {
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 8px 10px;
+.cs-trigger {
+  width: 100%;
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
   border-radius: 10px;
   border: 1px solid rgba(255,255,255,0.06);
   background: rgba(255,255,255,0.03);
-  color: var(--text-dim);
+  color: var(--text);
   cursor: pointer;
-  font-size: 12px; font-weight: 600;
+  font-size: 14px; font-weight: 600;
   font-family: 'Poppins', sans-serif;
-  white-space: nowrap;
   transition: all 0.2s;
 }
-.cs-pill:hover { border-color: rgba(255,255,255,0.14); color: var(--text); }
-.cs-pill.on {
+.cs-trigger:hover { border-color: rgba(255,255,255,0.12); background: rgba(255,255,255,0.05); }
+.cs-trigger.open {
   border-color: var(--cs-accent, var(--purple));
-  background: color-mix(in srgb, var(--cs-accent, var(--purple)) 12%, transparent);
-  color: var(--cs-accent, var(--purple));
-  box-shadow: 0 0 16px color-mix(in srgb, var(--cs-accent, var(--purple)) 10%, transparent);
+  background: color-mix(in srgb, var(--cs-accent, var(--purple)) 8%, transparent);
 }
-.cs-pill-icon { font-size: 14px; }
-.cs-pill-label { letter-spacing: 0.3px; font-size: 11px; }
+.cs-trigger-icon { font-size: 18px; }
+.cs-trigger-label { flex: 1; text-align: left; }
+.cs-trigger-meta { font-size: 11px; color: var(--text-muted); font-family: 'Poppins', sans-serif; }
+.cs-trigger-arrow { font-size: 10px; color: var(--text-muted); }
 
-/* ─── Compact progress bar ─── */
-.sb-progress-mini {
-  display: flex; align-items: center; gap: 8px;
-  padding: 0 16px;
-  margin-bottom: 6px;
-  flex-shrink: 0;
+/* Integrated progress bar */
+.cs-progress {
+  height: 2px;
+  margin: 4px 14px 8px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 1px;
+  overflow: hidden;
 }
-.sb-pm-text { font-family: 'Poppins', monospace; font-size: 11px; color: var(--text-muted); white-space: nowrap; }
-.sb-pm-track { flex: 1; height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
-.sb-pm-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
-.sb-pm-pct { font-family: 'Poppins', monospace; font-size: 11px; color: var(--text-muted); font-weight: 700; }
+.cs-progress-fill {
+  height: 100%;
+  border-radius: 1px;
+  transition: width 0.5s ease;
+}
+
+/* Flyout menu */
+.cs-flyout {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 14px; right: 14px;
+  background: rgba(16,16,36,0.95);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(180,74,255,0.12);
+  border-radius: 10px;
+  padding: 4px;
+  z-index: 10;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+  animation: fadeIn 0.15s ease;
+}
+.cs-option {
+  width: 100%;
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 13px; font-weight: 500;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.15s;
+  text-align: left;
+}
+.cs-option:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+.cs-option.active {
+  color: var(--cs-accent, var(--purple));
+  font-weight: 600;
+}
+.cs-option-icon { font-size: 16px; }
+.cs-option-label { flex: 1; }
+.cs-option-check { color: var(--cyan); font-size: 14px; }
 
 /* ─── Module Tree ─── */
 .sb-scroll {
@@ -692,14 +730,15 @@ textarea:focus-visible,
   .sb.collapsed .brand { justify-content: center; }
   .sb.collapsed .brand-name,
   .sb.collapsed .sb-head-actions .sb-collapse,
-  .sb.collapsed .cs-pill-label,
-  .sb.collapsed .sb-progress-mini,
+  .sb.collapsed .cs-trigger-label,
+  .sb.collapsed .cs-trigger-meta,
+  .sb.collapsed .cs-trigger-arrow,
+  .sb.collapsed .cs-progress,
   .sb.collapsed .sb-scroll,
   .sb.collapsed .pp { display: none; }
   .sb.collapsed .sb-head-actions { flex-direction: column; }
-  .sb.collapsed .cs-strip { grid-template-columns: 1fr; padding: 8px; gap: 6px; }
-  .sb.collapsed .cs-pill { justify-content: center; padding: 8px; border-radius: 10px; }
-  .sb.collapsed .cs-pill-icon { font-size: 18px; }
+  .sb.collapsed .cs-trigger { justify-content: center; padding: 10px; }
+  .sb.collapsed .cs-trigger-icon { font-size: 20px; }
 }
 
 /* ─── 8. Main Content & Topbar ─────────────────── */

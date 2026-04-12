@@ -48,13 +48,27 @@ export const Sidebar = memo(function Sidebar({
   const { user } = useAuth();
   const [lockMode, setLockMode] = useState(() => localStorage.getItem('chw-lock-mode') === 'true');
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
   const [expandedMod, setExpandedMod] = useState(modIdx);
+  const courseDropdownRef = useRef(null);
   const asideRef = useRef(null);
   const course = courses[courseIdx];
   const modules = course.modules;
 
   // Sync expanded module when active module changes
   useEffect(() => { setExpandedMod(modIdx); }, [modIdx]);
+
+  // Close course dropdown on click-outside
+  useEffect(() => {
+    if (!courseDropdownOpen) return undefined;
+    const handleClick = (e) => {
+      if (courseDropdownRef.current && !courseDropdownRef.current.contains(e.target)) {
+        setCourseDropdownOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', handleClick);
+    return () => document.removeEventListener('pointerdown', handleClick);
+  }, [courseDropdownOpen]);
 
   const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Coder';
   const userInitial = displayName.trim().charAt(0).toUpperCase() || 'C';
@@ -127,31 +141,46 @@ export const Sidebar = memo(function Sidebar({
         {/* ─── Profile Popover ─── */}
         <ProfilePopover isOpen={popoverOpen} onClose={closePopover} isMobile={isMobile} />
 
-        {/* ─── Course Switcher (horizontal pills) ─── */}
-        <div className="cs-strip">
-          {courses.map((c, ci) => (
-            <button
-              key={c.id}
-              type="button"
-              className={`cs-pill ${ci === courseIdx ? 'on' : ''}`}
-              onClick={() => onSelectCourse(ci)}
-              style={{ '--cs-accent': c.accent }}
-              aria-label={`Switch to ${c.label} course`}
-              aria-current={ci === courseIdx ? 'true' : undefined}
-            >
-              <span className="cs-pill-icon">{c.icon}</span>
-              <span className="cs-pill-label">{c.label}</span>
-            </button>
-          ))}
-        </div>
+        {/* ─── Course Switcher (dropdown) ─── */}
+        <div className="cs-dropdown-wrap" ref={courseDropdownRef}>
+          <button
+            type="button"
+            className={`cs-trigger ${courseDropdownOpen ? 'open' : ''}`}
+            onClick={() => setCourseDropdownOpen((v) => !v)}
+            aria-expanded={courseDropdownOpen}
+            aria-haspopup="listbox"
+            style={{ '--cs-accent': course.accent }}
+          >
+            <span className="cs-trigger-icon">{course.icon}</span>
+            <span className="cs-trigger-label">{course.label}</span>
+            <span className="cs-trigger-meta">{courseDone}/{total}</span>
+            <span className="cs-trigger-arrow">{courseDropdownOpen ? '▴' : '▾'}</span>
+          </button>
 
-        {/* ─── Course progress (compact) ─── */}
-        <div className="sb-progress-mini">
-          <span className="sb-pm-text">{courseDone}/{total}</span>
-          <div className="sb-pm-track">
-            <div className="sb-pm-fill" style={{ width: `${pct}%`, background: course.accent }} />
+          {/* Progress bar integrated below trigger */}
+          <div className="cs-progress">
+            <div className="cs-progress-fill" style={{ width: `${pct}%`, background: course.accent }} />
           </div>
-          <span className="sb-pm-pct">{pct}%</span>
+
+          {courseDropdownOpen && (
+            <div className="cs-flyout" role="listbox" aria-label="Select course">
+              {courses.map((c, ci) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  className={`cs-option ${ci === courseIdx ? 'active' : ''}`}
+                  role="option"
+                  aria-selected={ci === courseIdx}
+                  onClick={() => { onSelectCourse(ci); setCourseDropdownOpen(false); }}
+                  style={{ '--cs-accent': c.accent }}
+                >
+                  <span className="cs-option-icon">{c.icon}</span>
+                  <span className="cs-option-label">{c.label}</span>
+                  {ci === courseIdx && <span className="cs-option-check">✓</span>}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* ─── Module/Lesson Tree ─── */}
