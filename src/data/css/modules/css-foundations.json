@@ -160,17 +160,17 @@
         "hint": "Each CSS property needs a semicolon ; at the end. If something doesn't work, check for missing semicolons!"
       },
       "challenge": {
-        "title": "Design a Magazine Cover",
-        "mission": "Create a page that looks like a magazine cover with dramatic typography.",
+        "title": "Style a Blog Post Header",
+        "mission": "Create a styled blog post header that looks like a real article.",
         "requirements": [
-          "Main title at 72px or larger in a bold font",
-          "Subtitle at 24-36px in a lighter weight",
-          "Tagline at 14-16px in italic (use font-style: italic)",
-          "At least 2 different font families used",
-          "A colored background that contrasts with your text"
+          "Blog title in huge text (60px or bigger)",
+          "Author name in medium text (20px)",
+          "Date in small, gray text (14px)",
+          "All using same font family",
+          "Author name is bold"
         ],
-        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>My Magazine</title>\n  <style>\n    body {\n      background-color: #1a1a2e;\n      color: white;\n      text-align: center;\n      padding: 60px 20px;\n    }\n    \n    /* Add your typography styles here */\n    \n  </style>\n</head>\n<body>\n  <h1>MAGAZINE TITLE</h1>\n  <h2>The Subtitle Goes Here</h2>\n  <p>A short tagline that hooks the reader</p>\n</body>\n</html>",
-        "bonusChallenge": "Add a Google Font! Go to fonts.google.com, pick a font, and add the <link> tag they provide in your <head>."
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Blog Post</title>\n  <style>\n    /* Add your CSS here */\n  </style>\n</head>\n<body>\n  <h1>My First Blog Post</h1>\n  <p class=\"author\">By [Your Name]</p>\n  <p class=\"date\">April 11, 2026</p>\n  <p>This is where the blog post content would go...</p>\n</body>\n</html>",
+        "bonusChallenge": "Add a subtitle between the title and author using <h2>. Style it differently!"
       },
       "summary": {
         "capabilities": [
