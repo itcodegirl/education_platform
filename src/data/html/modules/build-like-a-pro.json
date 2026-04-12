@@ -120,6 +120,100 @@
         "preview": "In Lesson 8, you'll learn text formatting (<strong>, <em>, <mark>), special characters, and developer tools for debugging your code.",
         "nextLessonId": "lesson-08"
       }
+    },
+    {
+      "id": "lesson-12",
+      "title": "Build a Real Portfolio Website You Can Share",
+      "prereqs": [
+        "lesson-07"
+      ],
+      "difficulty": "intermediate",
+      "duration": "45 min",
+      "metadata": {
+        "estimatedTime": 45,
+        "difficulty": "intermediate",
+        "conceptsCount": 11,
+        "tasksCount": 5
+      },
+      "hook": {
+        "accomplishments": [
+          "Create a multi-page portfolio website with everything you've learned",
+          "Link pages together with navigation",
+          "Add images, lists, forms, and formatted text",
+          "Deploy it live on the internet (free!)"
+        ]
+      },
+      "do": {
+        "title": "Set up your project and build the home page",
+        "steps": [
+          "Create a new folder on your Desktop called my-portfolio",
+          "Inside that folder, create these files: index.html, about.html, projects.html, contact.html",
+          "Create a subfolder called images inside my-portfolio",
+          "Copy the starter code below into index.html",
+          "Replace [Your Name] with your actual name",
+          "Save and open index.html in your browser"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>[Your Name] - Web Developer</title>\n  <style>\n    body {\n      font-family: Arial, sans-serif;\n      max-width: 800px;\n      margin: 0 auto;\n      padding: 20px;\n      background-color: #f5f5f5;\n    }\n    nav {\n      background-color: #333;\n      padding: 15px;\n      margin-bottom: 30px;\n    }\n    nav a {\n      color: white;\n      text-decoration: none;\n      margin-right: 20px;\n      font-weight: bold;\n    }\n    nav a:hover {\n      color: #4CAF50;\n    }\n    h1 {\n      color: #333;\n      border-bottom: 3px solid #4CAF50;\n      padding-bottom: 10px;\n    }\n  </style>\n</head>\n<body>\n  <nav>\n    <a href=\"index.html\">Home</a>\n    <a href=\"about.html\">About</a>\n    <a href=\"projects.html\">Projects</a>\n    <a href=\"contact.html\">Contact</a>\n  </nav>\n\n  <h1>Welcome! I'm [Your Name]</h1>\n  <p>I'm learning to build websites with HTML, CSS, and JavaScript.</p>\n  \n  <h2>What I'm Learning</h2>\n  <ul>\n    <li>HTML structure and semantic elements</li>\n    <li>CSS styling and layouts</li>\n    <li>Building interactive features</li>\n  </ul>\n\n  <h2>Recent Work</h2>\n  <p>Check out my <a href=\"projects.html\">projects page</a> to see what I've built!</p>\n</body>\n</html>",
+        "result": "You built a professional home page with navigation!",
+        "proofRequired": "Screenshot of your home page in the browser with your name."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "Multi-page structure",
+            "definition": "Real websites have multiple HTML files linked together through navigation. Each page is its own .html file.",
+            "analogy": "Rooms in a house connected by hallways (navigation links)."
+          },
+          {
+            "name": "Consistent navigation",
+            "definition": "The same nav bar appears on every page so users can always get around. Copy it to each file.",
+            "analogy": "The menu at a restaurant — same options no matter what page you're on."
+          },
+          {
+            "name": "Deployment",
+            "definition": "Putting your files on a server so anyone with the URL can see your site. Netlify does this for free by drag-and-drop.",
+            "analogy": "Moving your art from your studio to a gallery where everyone can see it."
+          }
+        ],
+        "keyTakeaway": "A portfolio is just multiple HTML files with the same navigation, organized in one folder, uploaded to a hosting service."
+      },
+      "build": {
+        "goal": "Build the About, Projects, and Contact pages using the same nav bar and style",
+        "codeComparison": {
+          "old": "<!-- Just a home page -->\nindex.html",
+          "new": "<!-- Complete portfolio -->\nmy-portfolio/\n├── index.html      (Home)\n├── about.html      (Your story + skills)\n├── projects.html   (What you've built)\n├── contact.html    (Form to reach you)\n└── images/         (Photos + screenshots)"
+        },
+        "hint": "Copy the entire <style> and <nav> sections from index.html into each new page to keep everything consistent."
+      },
+      "challenge": {
+        "title": "Make It Yours & Deploy It Live",
+        "mission": "Customize your portfolio with your own colors, photos, and content — then deploy it to the internet for free!",
+        "requirements": [
+          "Change colors to your own color scheme",
+          "Add a profile photo to the About page",
+          "Add screenshots of your projects to the Projects page",
+          "Write unique content — make it personal!",
+          "Add a footer with social links on every page",
+          "Deploy to Netlify: go to netlify.com, sign up free, drag your folder"
+        ],
+        "starterCode": "<!-- About page starter (about.html) -->\n<!DOCTYPE html>\n<html>\n<head>\n  <title>About Me - [Your Name]</title>\n  <style>\n    /* Copy styles from index.html */\n  </style>\n</head>\n<body>\n  <nav>\n    <!-- Copy nav from index.html -->\n  </nav>\n  <h1>About Me</h1>\n  <h2>My Journey</h2>\n  <p>Write about why you're learning to code...</p>\n  <h2>My Goals</h2>\n  <p>Describe what you want to build...</p>\n  <h2>Skills I'm Building</h2>\n  <ul>\n    <li>HTML</li>\n    <li>CSS</li>\n    <li>JavaScript</li>\n  </ul>\n</body>\n</html>",
+        "bonusChallenge": "Add a \"Download Resume\" button, create a gallery page with project screenshots, or make it responsive for mobile using CSS media queries."
+      },
+      "summary": {
+        "capabilities": [
+          "Build a complete multi-page website from scratch",
+          "Organize files in a professional project structure",
+          "Link pages together with navigation",
+          "Style consistently across multiple pages",
+          "Create and use forms",
+          "Deploy a live website to the internet",
+          "Share your work with the world!"
+        ]
+      },
+      "bridge": {
+        "preview": "You've completed the HTML course! Next up: the CSS course, where you'll learn professional layouts, responsive design, animations, and flexbox/grid systems.",
+        "nextLessonId": "css-lesson-01"
+      }
     }
   ]
 }
