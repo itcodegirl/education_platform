@@ -108,10 +108,129 @@
       }
     },
     {
+      "id": "js-4-2",
+      "title": "Master Scope and Closures",
+      "prereqs": [
+        "js-4-1"
+      ],
+      "difficulty": "intermediate",
+      "duration": "22 min",
+      "metadata": {
+        "estimatedTime": 22,
+        "difficulty": "intermediate",
+        "conceptsCount": 7,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Understand why some variables are accessible and others aren't",
+          "Create private variables that only your functions can access",
+          "Build a counter that remembers its state",
+          "Prevent variable naming conflicts in large projects"
+        ]
+      },
+      "do": {
+        "title": "See Scope in Action",
+        "steps": [
+          "Open VS Code or CodePen",
+          "Create scope-demo.html",
+          "Copy the code below",
+          "Save and open in browser",
+          "Open the browser console (F12)",
+          "Click the buttons and watch the console",
+          "Notice which variables are accessible where!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Scope Demo</title>\n  <style>\n    body { display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: linear-gradient(135deg, #667eea, #764ba2); font-family: Arial; }\n    .container { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 600px; }\n    h1 { text-align: center; color: #2C3E50; margin: 0 0 30px; }\n    .demo-section { background: #F8F9FA; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #667eea; }\n    .demo-section h3 { margin: 0 0 15px; color: #2C3E50; }\n    button { padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; background: #667eea; color: white; border: none; border-radius: 5px; margin: 5px; }\n    .console-note { background: #34495E; color: #2ECC71; padding: 15px; border-radius: 5px; font-family: monospace; margin-top: 30px; text-align: center; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <h1>🔍 Scope Demonstration</h1>\n    <div class=\"demo-section\">\n      <h3>Global Scope</h3>\n      <button onclick=\"showGlobalVariable()\">Show Global Variable</button>\n    </div>\n    <div class=\"demo-section\">\n      <h3>Function Scope</h3>\n      <button onclick=\"showLocalVariable()\">Show Local Variable</button>\n      <button onclick=\"tryAccessLocal()\">Try to Access Local (fails)</button>\n    </div>\n    <div class=\"demo-section\">\n      <h3>Block Scope</h3>\n      <button onclick=\"demonstrateBlockScope()\">Show Block Scope</button>\n    </div>\n    <div class=\"demo-section\">\n      <h3>Closure Example</h3>\n      <button onclick=\"demonstrateClosure()\">Show Closure</button>\n    </div>\n    <div class=\"console-note\">💡 Open your browser console (F12) to see the results!</div>\n  </div>\n  <script>\n    let globalVariable = \"I'm global! Everyone can see me.\";\n    \n    function showGlobalVariable() {\n      console.log(\"=== GLOBAL SCOPE ===\");\n      console.log(globalVariable);\n    }\n    \n    function showLocalVariable() {\n      let localVariable = \"I'm local! Only this function can see me.\";\n      console.log(\"=== FUNCTION SCOPE ===\");\n      console.log(localVariable);\n    }\n    \n    function tryAccessLocal() {\n      console.log(\"=== TRYING TO ACCESS LOCAL ===\");\n      try { console.log(localVariable); }\n      catch (error) { console.log(\"❌ Error: \" + error.message); }\n    }\n    \n    function demonstrateBlockScope() {\n      console.log(\"=== BLOCK SCOPE ===\");\n      if (true) {\n        let blockVariable = \"I only exist inside this { } block\";\n        console.log(\"Inside block:\", blockVariable);\n      }\n      try { console.log(\"Outside block:\", blockVariable); }\n      catch (error) { console.log(\"❌ Error: let/const are block-scoped!\"); }\n    }\n    \n    function demonstrateClosure() {\n      console.log(\"=== CLOSURE ===\");\n      function createCounter() {\n        let count = 0;\n        return function() {\n          count++;\n          return count;\n        };\n      }\n      let counter = createCounter();\n      console.log(\"Counter call 1:\", counter());\n      console.log(\"Counter call 2:\", counter());\n      console.log(\"Counter call 3:\", counter());\n      console.log(\"✅ The inner function remembers count even after createCounter finished!\");\n    }\n  </script>\n</body>\n</html>",
+        "result": "You saw how different scopes work! Global = everywhere, Local = inside function, Block = inside { }",
+        "proofRequired": "Screenshot of the browser console showing the different scope results."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "What is scope?",
+            "definition": "Scope determines which parts of your code can see and use which variables. Variables declared in one place may or may not be accessible from another place.",
+            "analogy": "Your code is a house. Global variables are like the WiFi password — everyone in every room can use it. Local variables are like items in a bedroom — only accessible in that room."
+          },
+          {
+            "name": "Global scope",
+            "definition": "Variables declared outside all functions. Accessible EVERYWHERE in your code. Too many globals cause naming conflicts and bugs — use sparingly!",
+            "analogy": "A billboard in the middle of town — everyone can see it, but if everyone writes on it, it gets messy fast."
+          },
+          {
+            "name": "Function scope (local)",
+            "definition": "Variables declared inside a function. Only accessible INSIDE that function. Prevents naming conflicts — different functions can use the same variable name safely.",
+            "analogy": "Notes in your personal notebook — only you can read them, and they don't interfere with anyone else's notes."
+          },
+          {
+            "name": "Block scope (let/const)",
+            "definition": "Variables declared with let or const inside { } blocks (if, for, while). Only accessible inside that block. var does NOT have block scope — always use let/const.",
+            "analogy": "A temporary whiteboard in a meeting room — it only exists while the meeting is happening."
+          },
+          {
+            "name": "The scope chain",
+            "definition": "JavaScript looks for variables starting in the current scope, then moves OUTWARD to parent scopes. Inner can access outer, but outer cannot access inner.",
+            "analogy": "Asking for help: ask your sibling first, then your parent, then your grandparent. But grandparents can't ask grandchildren!"
+          },
+          {
+            "name": "What is a closure?",
+            "definition": "When an inner function remembers and can access variables from its outer function, EVEN AFTER the outer function has finished running. The variables are \"trapped\" in the closure.",
+            "analogy": "Giving someone a personalized stamp. You create the stamp with a custom message, then hand it over. Even though you're gone, the stamp still has that message embedded in it."
+          },
+          {
+            "name": "Closures create private data",
+            "definition": "You can use closures to create variables that can ONLY be accessed through specific functions — they're private! This is how you build bank accounts, counters, and secure state in JavaScript.",
+            "analogy": "A safe deposit box — the money inside can only be accessed through the bank's specific procedures. You can't just reach in and grab it."
+          }
+        ],
+        "keyTakeaway": "Scope controls variable access. Closures let inner functions remember outer variables. Together, they enable private data and powerful patterns."
+      },
+      "build": {
+        "goal": "Build a counter factory that produces independent counters with private state",
+        "codeComparison": {
+          "old": "// Global counter — anyone can mess with it\nlet count = 0;\n\nfunction increment() {\n  count++;\n}\n\n// Problem: count = 999 would break everything",
+          "new": "// Factory function with private state\nfunction createCounter(startValue = 0) {\n  let count = startValue; // PRIVATE!\n  \n  return {\n    increment: () => ++count,\n    decrement: () => --count,\n    getValue: () => count,\n    reset: () => { count = startValue; }\n  };\n}\n\nlet counter1 = createCounter(0);\nlet counter2 = createCounter(100);\n// Two completely independent counters!\n// counter1.count is undefined — it's private!"
+        },
+        "hint": "The magic is in the closure! Each counter's count variable is trapped in the closure. The returned methods can access it, but nothing else can."
+      },
+      "challenge": {
+        "title": "Build a Bank Account System with Private Balance",
+        "mission": "Create a bank account factory with private balances. Users can deposit, withdraw, and check balance, but CANNOT directly access the balance variable.",
+        "requirements": [
+          "Factory function createBankAccount(accountName, initialBalance)",
+          "Private balance variable (only accessible through methods)",
+          "Methods: deposit(amount), withdraw(amount), getBalance(), getAccountName()",
+          "Withdraw should fail if balance is insufficient",
+          "All amounts must be positive numbers",
+          "Track transaction history as a private array",
+          "getHistory() method returns transactions",
+          "Display multiple accounts on the page",
+          "Each account shows name, balance, and transaction history"
+        ],
+        "starterCode": "function createBankAccount(accountName, initialBalance) {\n  // PRIVATE variables - trapped in the closure\n  let balance = initialBalance;\n  let transactions = [];\n  \n  // PRIVATE helper function\n  function addTransaction(type, amount) {\n    transactions.push({\n      type: type,\n      amount: amount,\n      date: new Date().toLocaleString(),\n      balanceAfter: balance\n    });\n  }\n  \n  // PUBLIC methods - the only way to interact with the account\n  return {\n    getAccountName: () => accountName,\n    getBalance: () => balance,\n    \n    deposit: function(amount) {\n      if (typeof amount !== 'number' || amount <= 0) {\n        return { success: false, message: 'Invalid amount' };\n      }\n      balance += amount;\n      addTransaction('deposit', amount);\n      return { success: true, message: `Deposited $${amount.toFixed(2)}` };\n    },\n    \n    withdraw: function(amount) {\n      // Your code: validate, check balance, update, add transaction\n    },\n    \n    getHistory: () => [...transactions] // return a copy, not the original\n  };\n}\n\n// Test it:\nlet myAccount = createBankAccount('Sarah', 1000);\nconsole.log(myAccount.balance);     // undefined (private!)\nconsole.log(myAccount.getBalance()); // 1000 (works!)",
+        "bonusChallenge": "Add a transfer() method that moves money from one account to another. Hint: pass another account object as a parameter."
+      },
+      "summary": {
+        "capabilities": [
+          "Understand global, function, and block scope",
+          "Use closures to create private variables",
+          "Build factory functions that return objects with methods",
+          "Protect data from direct access",
+          "Create multiple independent instances with private state",
+          "Understand the scope chain",
+          "Avoid scope-related bugs",
+          "Build professional code with encapsulation"
+        ]
+      },
+      "bridge": {
+        "preview": "In the next lesson, you'll learn about ARROW FUNCTIONS and CALLBACKS — modern JavaScript syntax that makes your code cleaner and more powerful, especially when working with arrays.",
+        "nextLessonId": "js-4-3"
+      }
+    },
+    {
       "id": "js-4-3",
       "title": "Arrow Functions and Callbacks",
       "prereqs": [
-        "js-4-1"
+        "js-4-2"
       ],
       "difficulty": "intermediate",
       "duration": "20 min",
