@@ -148,6 +148,37 @@ async function verifyUser(token) {
   }
 }
 
+// Returns:
+//   true  → user is disabled and must be blocked
+//   false → user is active
+//   null  → couldn't determine (service key missing / network error)
+// Uses the service-role key so the lookup still succeeds after the new
+// disabled-user RLS policies (which would otherwise return zero rows for
+// the disabled user's own profile on an UPDATE, but SELECT is still open).
+async function isUserDisabled(userId) {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey) return null;
+
+  try {
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=is_disabled`,
+      {
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+        },
+      },
+    );
+    if (!res.ok) return null;
+    const rows = await res.json();
+    const row = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+    return row?.is_disabled === true;
+  } catch {
+    return null;
+  }
+}
+
 // ─── Handler ───────────────────────────────────
 export async function handler(event) {
   if (event.httpMethod !== 'POST') {
@@ -170,6 +201,17 @@ export async function handler(event) {
   const user = await verifyUser(token);
   if (!user || !user.id) {
     return json(401, { error: 'Invalid or expired session' });
+  }
+
+  // Block disabled users. A still-valid Supabase JWT shouldn't be enough
+  // to drain OpenAI quota after an admin has suspended the account. We
+  // fail closed when the service-role key is configured and the lookup
+  // indicates disabled; we fail open (allow) only when the lookup itself
+  // returned null (service key missing / transient network error), which
+  // mirrors how the Supabase-backed rate limiter degrades.
+  const disabled = await isUserDisabled(user.id);
+  if (disabled === true) {
+    return json(403, { error: 'Account disabled' });
   }
 
   // 3. Rate-limit per user (persistent via Supabase, with in-memory fallback)
@@ -235,8 +277,18 @@ export async function handler(event) {
     const data = await response.json();
 
     if (!response.ok) {
-      const message = data.error?.message || 'AI request failed';
-      return json(response.status >= 500 ? 502 : response.status, { error: message });
+      // Scrub and cap upstream error messages before relaying them to the
+      // client. Prevents OpenAI from accidentally leaking hostnames, keys,
+      // or long stack traces through this proxy.
+      const rawMessage = data.error?.message || 'AI request failed';
+      const safeMessage = String(rawMessage)
+        .replace(/\b(sk|pk|Bearer)[-_]\S+/gi, '***')
+        .replace(/\bhttps?:\/\/\S+/gi, '***')
+        .slice(0, 200);
+      return json(
+        response.status >= 500 ? 502 : response.status,
+        { error: safeMessage || 'AI request failed' },
+      );
     }
 
     return json(200, { text: data.output_text || '' });

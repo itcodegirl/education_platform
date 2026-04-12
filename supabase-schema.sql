@@ -236,3 +236,110 @@ alter table public.ai_rate_limits enable row level security;
 
 create index if not exists idx_ai_rate_limits_window
   on public.ai_rate_limits(window_start);
+
+-- ═══════════════════════════════════════════════
+-- DISABLED-USER ENFORCEMENT (2026-Q2 audit fix)
+--
+-- Historically `profiles.is_disabled` was checked only in the React app.
+-- A disabled user whose Supabase JWT was still valid could bypass the
+-- frontend and hit the REST API directly to read/write their own rows.
+-- The policies below re-gate every user-owned table on an is_active()
+-- helper, and also exclude disabled admins from is_admin(). Safe to
+-- re-run: every statement drops the previous policy if it exists.
+-- ═══════════════════════════════════════════════
+
+create or replace function public.is_active()
+returns boolean as $$
+begin
+  return not exists (
+    select 1 from public.profiles
+    where id = auth.uid() and coalesce(is_disabled, false) = true
+  );
+end;
+$$ language plpgsql security definer stable;
+
+-- Re-create is_admin() so disabled admins stop being treated as admins.
+create or replace function public.is_admin()
+returns boolean as $$
+begin
+  return exists (
+    select 1 from public.profiles
+    where id = auth.uid()
+      and is_admin = true
+      and coalesce(is_disabled, false) = false
+  );
+end;
+$$ language plpgsql security definer stable;
+
+-- profiles: SELECT must stay open on the user's own row so the React app
+-- can read `is_disabled` and render the "Account Disabled" screen. Writes
+-- are blocked when disabled. (Users never update their own profile from
+-- the UI today; admins do it via the admin bypass policy.)
+drop policy if exists "Users manage own profiles" on public.profiles;
+create policy "Users read own profile"
+  on public.profiles for select using (auth.uid() = id);
+create policy "Users insert own profile"
+  on public.profiles for insert with check (auth.uid() = id);
+create policy "Users update own profile when active"
+  on public.profiles for update
+  using (auth.uid() = id and public.is_active())
+  with check (auth.uid() = id and public.is_active());
+
+-- Every other user-owned table is gated on both ownership AND active status.
+-- Each drop/create pair is idempotent. Using `for all` keeps SELECT blocked
+-- too — a disabled user shouldn't be able to enumerate their own data via
+-- the REST API either.
+drop policy if exists "Users manage own progress" on public.progress;
+create policy "Users manage own progress when active" on public.progress
+  for all using (auth.uid() = user_id and public.is_active())
+          with check (auth.uid() = user_id and public.is_active());
+
+drop policy if exists "Users manage own quiz_scores" on public.quiz_scores;
+create policy "Users manage own quiz_scores when active" on public.quiz_scores
+  for all using (auth.uid() = user_id and public.is_active())
+          with check (auth.uid() = user_id and public.is_active());
+
+drop policy if exists "Users manage own xp" on public.xp;
+create policy "Users manage own xp when active" on public.xp
+  for all using (auth.uid() = user_id and public.is_active())
+          with check (auth.uid() = user_id and public.is_active());
+
+drop policy if exists "Users manage own streaks" on public.streaks;
+create policy "Users manage own streaks when active" on public.streaks
+  for all using (auth.uid() = user_id and public.is_active())
+          with check (auth.uid() = user_id and public.is_active());
+
+drop policy if exists "Users manage own daily_goals" on public.daily_goals;
+create policy "Users manage own daily_goals when active" on public.daily_goals
+  for all using (auth.uid() = user_id and public.is_active())
+          with check (auth.uid() = user_id and public.is_active());
+
+drop policy if exists "Users manage own badges" on public.badges;
+create policy "Users manage own badges when active" on public.badges
+  for all using (auth.uid() = user_id and public.is_active())
+          with check (auth.uid() = user_id and public.is_active());
+
+drop policy if exists "Users manage own sr_cards" on public.sr_cards;
+create policy "Users manage own sr_cards when active" on public.sr_cards
+  for all using (auth.uid() = user_id and public.is_active())
+          with check (auth.uid() = user_id and public.is_active());
+
+drop policy if exists "Users manage own bookmarks" on public.bookmarks;
+create policy "Users manage own bookmarks when active" on public.bookmarks
+  for all using (auth.uid() = user_id and public.is_active())
+          with check (auth.uid() = user_id and public.is_active());
+
+drop policy if exists "Users manage own notes" on public.notes;
+create policy "Users manage own notes when active" on public.notes
+  for all using (auth.uid() = user_id and public.is_active())
+          with check (auth.uid() = user_id and public.is_active());
+
+drop policy if exists "Users manage own courses_visited" on public.courses_visited;
+create policy "Users manage own courses_visited when active" on public.courses_visited
+  for all using (auth.uid() = user_id and public.is_active())
+          with check (auth.uid() = user_id and public.is_active());
+
+drop policy if exists "Users manage own last_position" on public.last_position;
+create policy "Users manage own last_position when active" on public.last_position
+  for all using (auth.uid() = user_id and public.is_active())
+          with check (auth.uid() = user_id and public.is_active());

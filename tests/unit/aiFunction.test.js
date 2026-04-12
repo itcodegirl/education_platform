@@ -12,6 +12,22 @@ import { describe, test, expect, beforeEach, vi } from 'vitest';
 const VALID_TOKEN = 'test-token';
 const VALID_USER = { id: 'user-1' };
 
+// Per-test knobs so a single test can flip the disabled lookup or the
+// OpenAI response without rewriting the whole fetch stub.
+let fetchState;
+
+function resetFetchState() {
+  fetchState = {
+    profileRow: { is_disabled: false },
+    profileLookupOk: true,
+    openai: {
+      ok: true,
+      status: 200,
+      body: { output_text: 'hi from the model' },
+    },
+  };
+}
+
 function stubFetch() {
   global.fetch = vi.fn(async (url, opts) => {
     const href = String(url);
@@ -22,6 +38,17 @@ function stubFetch() {
         json: async () => VALID_USER,
       };
     }
+    // Disabled-user lookup
+    if (href.includes('/rest/v1/profiles')) {
+      if (!fetchState.profileLookupOk) {
+        return { ok: false, status: 500, json: async () => ({}) };
+      }
+      return {
+        ok: true,
+        status: 200,
+        json: async () => (fetchState.profileRow ? [fetchState.profileRow] : []),
+      };
+    }
     // Rate limiter read
     if (href.includes('/rest/v1/ai_rate_limits') && (!opts || opts.method !== 'POST')) {
       return { ok: true, status: 200, json: async () => [] };
@@ -30,12 +57,12 @@ function stubFetch() {
     if (href.includes('/rest/v1/ai_rate_limits') && opts?.method === 'POST') {
       return { ok: true, status: 201, text: async () => '' };
     }
-    // Upstream OpenAI call — happy path
+    // Upstream OpenAI call
     if (href === 'https://api.openai.com/v1/responses') {
       return {
-        ok: true,
-        status: 200,
-        json: async () => ({ output_text: 'hi from the model' }),
+        ok: fetchState.openai.ok,
+        status: fetchState.openai.status,
+        json: async () => fetchState.openai.body,
       };
     }
     throw new Error(`unexpected fetch to ${href}`);
@@ -59,8 +86,10 @@ describe('netlify/functions/ai.js handler', () => {
     process.env.OPENAI_API_KEY = 'sk-test';
     process.env.SUPABASE_URL = 'https://example.supabase.co';
     process.env.SUPABASE_ANON_KEY = 'anon';
-    // Force the in-memory rate-limit fallback by leaving the service key unset
-    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    // The disabled-user check and the persistent rate limiter both need
+    // the service-role key. Set it so the disabled path is exercised.
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'service';
+    resetFetchState();
     stubFetch();
   });
 
@@ -129,5 +158,67 @@ describe('netlify/functions/ai.js handler', () => {
     });
     expect(res.statusCode).toBe(200);
     expect(JSON.parse(res.body)).toEqual({ text: 'hi from the model' });
+  });
+
+  test('blocks disabled users with 403 even if their JWT is valid', async () => {
+    resetFetchState();
+    fetchState.profileRow = { is_disabled: true };
+    stubFetch();
+    const res = await callHandler({
+      messages: [{ role: 'user', content: 'hi' }],
+    });
+    expect(res.statusCode).toBe(403);
+    expect(JSON.parse(res.body).error).toMatch(/disabled/i);
+  });
+
+  test('allows the request when the disabled-user lookup fails (fail-open)', async () => {
+    // Mirrors how the rate limiter degrades: if the service-role lookup
+    // is broken we don't want to lock every user out. The RLS policies
+    // are the real backstop.
+    resetFetchState();
+    fetchState.profileLookupOk = false;
+    stubFetch();
+    const res = await callHandler({
+      messages: [{ role: 'user', content: 'hi' }],
+    });
+    expect(res.statusCode).toBe(200);
+  });
+
+  test('scrubs bearer tokens and URLs from upstream OpenAI errors', async () => {
+    resetFetchState();
+    fetchState.openai = {
+      ok: false,
+      status: 401,
+      body: {
+        error: {
+          message: 'Invalid Bearer sk-live-SUPERSECRET at https://api.openai.internal/v1/responses',
+        },
+      },
+    };
+    stubFetch();
+    const res = await callHandler({
+      messages: [{ role: 'user', content: 'hi' }],
+    });
+    expect(res.statusCode).toBe(401);
+    const body = JSON.parse(res.body);
+    expect(body.error).not.toContain('sk-live-SUPERSECRET');
+    expect(body.error).not.toContain('api.openai.internal');
+    expect(body.error).toContain('***');
+  });
+
+  test('caps upstream error message length', async () => {
+    resetFetchState();
+    fetchState.openai = {
+      ok: false,
+      status: 500,
+      body: { error: { message: 'x'.repeat(1000) } },
+    };
+    stubFetch();
+    const res = await callHandler({
+      messages: [{ role: 'user', content: 'hi' }],
+    });
+    // 5xx errors are remapped to 502
+    expect(res.statusCode).toBe(502);
+    expect(JSON.parse(res.body).error.length).toBeLessThanOrEqual(200);
   });
 });

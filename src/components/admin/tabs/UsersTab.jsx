@@ -4,6 +4,42 @@
 // ═══════════════════════════════════════════════
 
 import { supabase } from '../../../lib/supabaseClient';
+import { wouldLeaveZeroActiveAdmins } from '../adminActions';
+
+async function toggleUserDisabled(user, { onUserUpdated, setActionLoading }) {
+  const isDisabled = !!user.is_disabled;
+  setActionLoading(user.id);
+  try {
+    // .select() forces the API to return the updated row(s) so we can
+    // detect silent failures (RLS rejecting the write, id not found,
+    // etc.) that Supabase would otherwise swallow.
+    const { data: updated, error } = await supabase
+      .from('profiles')
+      .update({ is_disabled: !isDisabled })
+      .eq('id', user.id)
+      .select('id, is_disabled');
+
+    if (error) {
+      console.error('Failed to toggle user:', error);
+      // eslint-disable-next-line no-alert
+      alert(`Could not update ${user.display_name || 'this user'}: ${error.message}`);
+      return;
+    }
+    if (!updated || updated.length === 0) {
+      console.error('Toggle user: no rows updated', user.id);
+      // eslint-disable-next-line no-alert
+      alert(
+        `Could not update ${user.display_name || 'this user'}. `
+        + 'The row was not modified — you may not have permission, or the user no longer exists.',
+      );
+      return;
+    }
+
+    onUserUpdated(user.id, { is_disabled: updated[0].is_disabled });
+  } finally {
+    setActionLoading(null);
+  }
+}
 
 export function UsersTab({
   data,
@@ -13,6 +49,25 @@ export function UsersTab({
   setActionLoading,
   onUserUpdated,
 }) {
+  const handleToggle = async (u) => {
+    const isDisabled = !!u.is_disabled;
+    // Disabling an active admin is only safe if at least one other active
+    // admin remains. Enabling is always fine.
+    if (!isDisabled && wouldLeaveZeroActiveAdmins(data.users, u.id)) {
+      // eslint-disable-next-line no-alert
+      alert(
+        'Refusing to disable the last active admin. '
+        + 'Promote another account to admin first.',
+      );
+      return;
+    }
+    // eslint-disable-next-line no-alert
+    if (!confirm(`${isDisabled ? 'Enable' : 'Disable'} ${u.display_name || 'this user'}?`)) {
+      return;
+    }
+    await toggleUserDisabled(u, { onUserUpdated, setActionLoading });
+  };
+
   return (
     <div className="admin-section">
       <h3 className="admin-section-title">👥 All Users ({totalUsers})</h3>
@@ -20,14 +75,14 @@ export function UsersTab({
         <table className="admin-table">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Status</th>
-              <th>Joined</th>
-              <th>Lessons Done</th>
-              <th>XP</th>
-              <th>Streak</th>
-              <th>Badges</th>
-              <th>Actions</th>
+              <th scope="col">Name</th>
+              <th scope="col">Status</th>
+              <th scope="col">Joined</th>
+              <th scope="col">Lessons Done</th>
+              <th scope="col">XP</th>
+              <th scope="col">Streak</th>
+              <th scope="col">Badges</th>
+              <th scope="col">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -63,21 +118,8 @@ export function UsersTab({
                       <button
                         className={`admin-toggle-btn ${isDisabled ? 'enable' : 'disable'}`}
                         disabled={actionLoading === u.id}
-                        onClick={async () => {
-                          if (!confirm(`${isDisabled ? 'Enable' : 'Disable'} ${u.display_name || 'this user'}?`)) return;
-                          setActionLoading(u.id);
-                          try {
-                            await supabase
-                              .from('profiles')
-                              .update({ is_disabled: !isDisabled })
-                              .eq('id', u.id);
-                            onUserUpdated(u.id, { is_disabled: !isDisabled });
-                          } catch (err) {
-                            console.error('Failed to toggle user:', err);
-                          } finally {
-                            setActionLoading(null);
-                          }
-                        }}
+                        onClick={() => handleToggle(u)}
+                        aria-label={`${isDisabled ? 'Enable' : 'Disable'} ${u.display_name || 'user'}`}
                       >
                         {actionLoading === u.id
                           ? '...'
@@ -94,3 +136,4 @@ export function UsersTab({
     </div>
   );
 }
+
