@@ -123,6 +123,247 @@
         "preview": "In the next lesson, you'll learn ASYNC/AWAIT — a cleaner, more readable way to write asynchronous code that looks like regular synchronous code.",
         "nextLessonId": "js-5-2"
       }
+    },
+    {
+      "id": "js-5-4",
+      "title": "Build a Complete API-Powered App",
+      "prereqs": ["js-5-1", "js-5-2", "js-5-3"],
+      "difficulty": "intermediate",
+      "duration": "24 min",
+      "metadata": {
+        "estimatedTime": 24,
+        "difficulty": "intermediate",
+        "conceptsCount": 8,
+        "tasksCount": 2,
+        "module": "APIs and Async JavaScript",
+        "moduleNumber": 5,
+        "lessonNumber": 4,
+        "isMajorProject": true
+      },
+      "hook": {
+        "accomplishments": [
+          "Build a complete cryptocurrency tracker with live data",
+          "Combine multiple APIs into one cohesive application",
+          "Implement all professional patterns: loading, errors, retry, caching",
+          "Create a real-world app you can actually use",
+          "Handle complex data transformations and displays"
+        ],
+        "tagline": "This is it. Build a REAL application that fetches live data, handles errors, and looks professional.",
+        "timeEstimate": "24 minutes",
+        "learningObjectives": [
+          "Combine multiple API endpoints effectively",
+          "Cache data to reduce API calls",
+          "Handle rate limiting professionally",
+          "Transform complex API responses",
+          "Build responsive, real-time interfaces",
+          "Implement auto-refresh functionality",
+          "Create professional data visualizations",
+          "Deploy production-ready code patterns"
+        ]
+      },
+      "do": {
+        "title": "Build a Live Cryptocurrency Tracker",
+        "steps": [
+          "Open VS Code or CodePen",
+          "Create `crypto-tracker.html`",
+          "Copy this complete application code:",
+          "Save and open in browser",
+          "Watch live cryptocurrency prices update!",
+          "Try searching for different coins",
+          "Notice all the professional touches: loading, errors, caching",
+          "This is a REAL, production-quality application!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Crypto Tracker</title>\n  <style>\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n    body {\n      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);\n      min-height: 100vh;\n      padding: 30px 20px;\n    }\n    .app {\n      max-width: 1400px;\n      margin: 0 auto;\n    }\n    \n    .header {\n      background: rgba(255,255,255,0.1);\n      backdrop-filter: blur(10px);\n      border-radius: 20px;\n      padding: 30px;\n      margin-bottom: 30px;\n      color: white;\n    }\n    .header h1 {\n      font-size: 42px;\n      margin-bottom: 10px;\n    }\n    .header p {\n      opacity: 0.9;\n      font-size: 18px;\n    }\n    .last-update {\n      font-size: 14px;\n      opacity: 0.7;\n      margin-top: 15px;\n    }\n    \n    .controls {\n      background: white;\n      border-radius: 20px;\n      padding: 25px;\n      margin-bottom: 30px;\n      box-shadow: 0 10px 30px rgba(0,0,0,0.2);\n      display: flex;\n      gap: 15px;\n      flex-wrap: wrap;\n    }\n    .search-box {\n      flex: 1;\n      min-width: 300px;\n    }\n    .search-box input {\n      width: 100%;\n      padding: 15px 20px;\n      font-size: 16px;\n      border: 2px solid #E0E0E0;\n      border-radius: 10px;\n      transition: border-color 0.3s;\n    }\n    .search-box input:focus {\n      outline: none;\n      border-color: #1e3c72;\n    }\n    button {\n      padding: 15px 30px;\n      font-size: 16px;\n      font-weight: bold;\n      border: none;\n      border-radius: 10px;\n      cursor: pointer;\n      transition: transform 0.2s;\n    }\n    button:hover {\n      transform: translateY(-2px);\n    }\n    .refresh-btn {\n      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);\n      color: white;\n    }\n    .auto-refresh-toggle {\n      background-color: #2ECC71;\n      color: white;\n    }\n    .auto-refresh-toggle.off {\n      background-color: #95A5A6;\n    }\n    \n    .stats-grid {\n      display: grid;\n      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));\n      gap: 20px;\n      margin-bottom: 30px;\n    }\n    .stat-card {\n      background: white;\n      border-radius: 15px;\n      padding: 25px;\n      box-shadow: 0 5px 15px rgba(0,0,0,0.1);\n    }\n    .stat-label {\n      color: #7F8C8D;\n      font-size: 14px;\n      text-transform: uppercase;\n      margin-bottom: 10px;\n    }\n    .stat-value {\n      font-size: 32px;\n      font-weight: bold;\n      color: #2C3E50;\n    }\n    .stat-value.positive {\n      color: #2ECC71;\n    }\n    .stat-value.negative {\n      color: #E74C3C;\n    }\n    \n    .crypto-grid {\n      display: grid;\n      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));\n      gap: 25px;\n    }\n    .crypto-card {\n      background: white;\n      border-radius: 15px;\n      padding: 25px;\n      box-shadow: 0 5px 15px rgba(0,0,0,0.1);\n      transition: transform 0.3s, box-shadow 0.3s;\n      position: relative;\n      overflow: hidden;\n    }\n    .crypto-card:hover {\n      transform: translateY(-5px);\n      box-shadow: 0 15px 30px rgba(0,0,0,0.2);\n    }\n    .crypto-card.skeleton {\n      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);\n      background-size: 200% 100%;\n      animation: loading 1.5s infinite;\n      min-height: 200px;\n    }\n    @keyframes loading {\n      0% { background-position: 200% 0; }\n      100% { background-position: -200% 0; }\n    }\n    .crypto-header {\n      display: flex;\n      align-items: center;\n      margin-bottom: 20px;\n    }\n    .crypto-icon {\n      width: 50px;\n      height: 50px;\n      margin-right: 15px;\n      border-radius: 50%;\n    }\n    .crypto-name {\n      flex: 1;\n    }\n    .crypto-name h3 {\n      color: #2C3E50;\n      margin-bottom: 5px;\n    }\n    .crypto-symbol {\n      color: #7F8C8D;\n      text-transform: uppercase;\n      font-size: 14px;\n    }\n    .crypto-price {\n      font-size: 36px;\n      font-weight: bold;\n      color: #2C3E50;\n      margin: 15px 0;\n    }\n    .crypto-change {\n      display: inline-block;\n      padding: 8px 15px;\n      border-radius: 8px;\n      font-weight: bold;\n      font-size: 16px;\n    }\n    .crypto-change.positive {\n      background-color: #D5F4E6;\n      color: #27AE60;\n    }\n    .crypto-change.negative {\n      background-color: #FADBD8;\n      color: #E74C3C;\n    }\n    .crypto-stats {\n      margin-top: 20px;\n      padding-top: 20px;\n      border-top: 1px solid #ECF0F1;\n    }\n    .crypto-stat-row {\n      display: flex;\n      justify-content: space-between;\n      margin-bottom: 10px;\n      color: #7F8C8D;\n      font-size: 14px;\n    }\n    .crypto-stat-row strong {\n      color: #2C3E50;\n    }\n    \n    .error-container {\n      background: white;\n      border-radius: 15px;\n      padding: 40px;\n      text-align: center;\n      box-shadow: 0 5px 15px rgba(0,0,0,0.1);\n    }\n    .error-icon {\n      font-size: 64px;\n      margin-bottom: 20px;\n    }\n    .error-message {\n      color: #E74C3C;\n      font-size: 20px;\n      font-weight: bold;\n      margin-bottom: 10px;\n    }\n    .error-details {\n      color: #7F8C8D;\n      margin-bottom: 20px;\n    }\n    .retry-btn {\n      background-color: #E74C3C;\n      color: white;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"app\">\n    <div class=\"header\">\n      <h1>💰 Crypto Tracker</h1>\n      <p>Live cryptocurrency prices and market data</p>\n      <div class=\"last-update\" id=\"last-update\">Loading...</div>\n    </div>\n    \n    <div class=\"controls\">\n      <div class=\"search-box\">\n        <input type=\"text\" id=\"search-input\" placeholder=\"Search cryptocurrencies...\">\n      </div>\n      <button class=\"refresh-btn\" onclick=\"refreshData()\" id=\"refresh-btn\">\n        🔄 Refresh\n      </button>\n      <button class=\"auto-refresh-toggle\" onclick=\"toggleAutoRefresh()\" id=\"auto-refresh-btn\">\n        ⏰ Auto-Refresh: ON\n      </button>\n    </div>\n    \n    <div class=\"stats-grid\" id=\"market-stats\"></div>\n    <div class=\"crypto-grid\" id=\"crypto-grid\"></div>\n  </div>\n\n  <script>\n    const API_BASE = 'https://api.coingecko.com/api/v3';\n    const CACHE_DURATION = 60000;\n    const AUTO_REFRESH_INTERVAL = 30000;\n    \n    let cache = {\n      data: null,\n      timestamp: null\n    };\n    \n    let autoRefreshEnabled = true;\n    let autoRefreshTimer = null;\n    let allCoins = [];\n    let filteredCoins = [];\n    \n    async function fetchCryptoData() {\n      if (cache.data && Date.now() - cache.timestamp < CACHE_DURATION) {\n        console.log('Using cached data');\n        return cache.data;\n      }\n      \n      console.log('Fetching fresh data from API');\n      \n      try {\n        const response = await fetchWithTimeout(\n          `${API_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=false`,\n          10000\n        );\n        \n        if (!response.ok) {\n          throw new Error(`HTTP ${response.status}: ${response.statusText}`);\n        }\n        \n        const data = await response.json();\n        \n        cache = {\n          data: data,\n          timestamp: Date.now()\n        };\n        \n        return data;\n        \n      } catch (error) {\n        console.error('Fetch error:', error);\n        throw error;\n      }\n    }\n    \n    async function fetchWithTimeout(url, timeout = 10000) {\n      const controller = new AbortController();\n      const timeoutId = setTimeout(() => controller.abort(), timeout);\n      \n      try {\n        const response = await fetch(url, { signal: controller.signal });\n        clearTimeout(timeoutId);\n        return response;\n      } catch (error) {\n        if (error.name === 'AbortError') {\n          throw new Error('Request timeout - API is taking too long');\n        }\n        throw error;\n      }\n    }\n    \n    async function loadAndDisplayData() {\n      const grid = document.getElementById('crypto-grid');\n      \n      try {\n        showSkeletonCards();\n        \n        const coins = await fetchCryptoData();\n        allCoins = coins;\n        filteredCoins = coins;\n        \n        displayMarketStats(coins);\n        displayCryptoCards(coins);\n        updateTimestamp();\n        \n      } catch (error) {\n        showError(error.message);\n      }\n    }\n    \n    function showSkeletonCards(count = 9) {\n      const grid = document.getElementById('crypto-grid');\n      grid.innerHTML = '';\n      \n      for (let i = 0; i < count; i++) {\n        grid.innerHTML += '<div class=\"crypto-card skeleton\"></div>';\n      }\n    }\n    \n    function displayMarketStats(coins) {\n      const totalMarketCap = coins.reduce((sum, coin) => sum + coin.market_cap, 0);\n      const avgChange = coins.reduce((sum, coin) => sum + coin.price_change_percentage_24h, 0) / coins.length;\n      const positiveCoins = coins.filter(coin => coin.price_change_percentage_24h > 0).length;\n      \n      document.getElementById('market-stats').innerHTML = `\n        <div class=\"stat-card\">\n          <div class=\"stat-label\">Total Market Cap</div>\n          <div class=\"stat-value\">$${(totalMarketCap / 1e9).toFixed(2)}B</div>\n        </div>\n        <div class=\"stat-card\">\n          <div class=\"stat-label\">Average 24h Change</div>\n          <div class=\"stat-value ${avgChange >= 0 ? 'positive' : 'negative'}\">\n            ${avgChange >= 0 ? '+' : ''}${avgChange.toFixed(2)}%\n          </div>\n        </div>\n        <div class=\"stat-card\">\n          <div class=\"stat-label\">Gainers / Losers</div>\n          <div class=\"stat-value\">\n            ${positiveCoins} / ${coins.length - positiveCoins}\n          </div>\n        </div>\n      `;\n    }\n    \n    function displayCryptoCards(coins) {\n      const grid = document.getElementById('crypto-grid');\n      \n      if (coins.length === 0) {\n        grid.innerHTML = `\n          <div class=\"error-container\" style=\"grid-column: 1/-1;\">\n            <div class=\"error-icon\">🔍</div>\n            <div class=\"error-message\">No cryptocurrencies found</div>\n            <div class=\"error-details\">Try a different search term</div>\n          </div>\n        `;\n        return;\n      }\n      \n      grid.innerHTML = coins.map(coin => `\n        <div class=\"crypto-card\">\n          <div class=\"crypto-header\">\n            <img class=\"crypto-icon\" src=\"${coin.image}\" alt=\"${coin.name}\">\n            <div class=\"crypto-name\">\n              <h3>${coin.name}</h3>\n              <div class=\"crypto-symbol\">${coin.symbol}</div>\n            </div>\n          </div>\n          \n          <div class=\"crypto-price\">\n            $${formatNumber(coin.current_price)}\n          </div>\n          \n          <div class=\"crypto-change ${coin.price_change_percentage_24h >= 0 ? 'positive' : 'negative'}\">\n            ${coin.price_change_percentage_24h >= 0 ? '▲' : '▼'}\n            ${Math.abs(coin.price_change_percentage_24h).toFixed(2)}%\n          </div>\n          \n          <div class=\"crypto-stats\">\n            <div class=\"crypto-stat-row\">\n              <span>Market Cap:</span>\n              <strong>$${formatLargeNumber(coin.market_cap)}</strong>\n            </div>\n            <div class=\"crypto-stat-row\">\n              <span>24h Volume:</span>\n              <strong>$${formatLargeNumber(coin.total_volume)}</strong>\n            </div>\n            <div class=\"crypto-stat-row\">\n              <span>24h High:</span>\n              <strong>$${formatNumber(coin.high_24h)}</strong>\n            </div>\n            <div class=\"crypto-stat-row\">\n              <span>24h Low:</span>\n              <strong>$${formatNumber(coin.low_24h)}</strong>\n            </div>\n          </div>\n        </div>\n      `).join('');\n    }\n    \n    function showError(message) {\n      const grid = document.getElementById('crypto-grid');\n      grid.innerHTML = `\n        <div class=\"error-container\" style=\"grid-column: 1/-1;\">\n          <div class=\"error-icon\">❌</div>\n          <div class=\"error-message\">Failed to Load Data</div>\n          <div class=\"error-details\">${message}</div>\n          <button class=\"retry-btn\" onclick=\"refreshData()\">Retry</button>\n        </div>\n      `;\n    }\n    \n    function handleSearch() {\n      const searchTerm = document.getElementById('search-input').value.toLowerCase();\n      \n      if (!searchTerm) {\n        filteredCoins = allCoins;\n      } else {\n        filteredCoins = allCoins.filter(coin => \n          coin.name.toLowerCase().includes(searchTerm) ||\n          coin.symbol.toLowerCase().includes(searchTerm)\n        );\n      }\n      \n      displayCryptoCards(filteredCoins);\n    }\n    \n    document.getElementById('search-input').addEventListener('input', handleSearch);\n    \n    async function refreshData() {\n      const btn = document.getElementById('refresh-btn');\n      btn.disabled = true;\n      btn.textContent = '⏳ Loading...';\n      \n      cache = { data: null, timestamp: null };\n      \n      await loadAndDisplayData();\n      \n      btn.disabled = false;\n      btn.textContent = '🔄 Refresh';\n    }\n    \n    function toggleAutoRefresh() {\n      autoRefreshEnabled = !autoRefreshEnabled;\n      const btn = document.getElementById('auto-refresh-btn');\n      \n      if (autoRefreshEnabled) {\n        btn.textContent = '⏰ Auto-Refresh: ON';\n        btn.classList.remove('off');\n        startAutoRefresh();\n      } else {\n        btn.textContent = '⏰ Auto-Refresh: OFF';\n        btn.classList.add('off');\n        stopAutoRefresh();\n      }\n    }\n    \n    function startAutoRefresh() {\n      stopAutoRefresh();\n      autoRefreshTimer = setInterval(() => {\n        console.log('Auto-refreshing data...');\n        refreshData();\n      }, AUTO_REFRESH_INTERVAL);\n    }\n    \n    function stopAutoRefresh() {\n      if (autoRefreshTimer) {\n        clearInterval(autoRefreshTimer);\n        autoRefreshTimer = null;\n      }\n    }\n    \n    function formatNumber(num) {\n      if (num >= 1) {\n        return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });\n      } else {\n        return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 });\n      }\n    }\n    \n    function formatLargeNumber(num) {\n      if (num >= 1e9) {\n        return (num / 1e9).toFixed(2) + 'B';\n      } else if (num >= 1e6) {\n        return (num / 1e6).toFixed(2) + 'M';\n      } else if (num >= 1e3) {\n        return (num / 1e3).toFixed(2) + 'K';\n      }\n      return num.toFixed(2);\n    }\n    \n    function updateTimestamp() {\n      const now = new Date();\n      document.getElementById('last-update').textContent = \n        `Last updated: ${now.toLocaleTimeString()}`;\n    }\n    \n    loadAndDisplayData();\n    startAutoRefresh();\n    \n    document.addEventListener('visibilitychange', () => {\n      if (document.hidden && autoRefreshEnabled) {\n        stopAutoRefresh();\n      } else if (!document.hidden && autoRefreshEnabled) {\n        startAutoRefresh();\n      }\n    });\n  </script>\n</body>\n</html>",
+        "result": "You built a COMPLETE, production-ready cryptocurrency tracker with live data, caching, auto-refresh, search, and professional error handling!",
+        "proofRequired": "showing the crypto tracker with live prices and market stats",
+        "escapeHatches": [
+          {
+            "icon": "🤔",
+            "text": "This app uses caching to avoid hitting the API too frequently - saves money and improves speed"
+          },
+          {
+            "icon": "💡",
+            "text": "Auto-refresh pauses when you switch tabs - smart performance optimization!"
+          },
+          {
+            "icon": "🎥",
+            "text": "Watch 2-min video: Building Production Apps",
+            "link": "#"
+          }
+        ]
+      },
+      "understand": {
+        "title": "Production-Ready Application Patterns",
+        "concepts": [
+          {
+            "name": "API Caching Strategy",
+            "definition": "Store API responses temporarily to avoid redundant requests.",
+            "benefits": [
+              "Reduces API costs (many APIs charge per request)",
+              "Faster user experience (instant loading from cache)",
+              "Reduces server load",
+              "Works offline with stale data"
+            ],
+            "implementation": {
+              "basic": "let cache = {\n  data: null,\n  timestamp: null\n};\n\nconst CACHE_DURATION = 60000;\n\nif (cache.data && Date.now() - cache.timestamp < CACHE_DURATION) {\n  return cache.data;\n} else {\n  const freshData = await fetch(url);\n  cache = { data: freshData, timestamp: Date.now() };\n  return freshData;\n}"
+            }
+          },
+          {
+            "name": "Auto-Refresh Pattern",
+            "definition": "Automatically update data at regular intervals.",
+            "implementation": "let refreshTimer = null;\nconst REFRESH_INTERVAL = 30000;\n\nfunction startAutoRefresh() {\n  stopAutoRefresh();\n  refreshTimer = setInterval(() => {\n    fetchData();\n  }, REFRESH_INTERVAL);\n}\n\nfunction stopAutoRefresh() {\n  if (refreshTimer) {\n    clearInterval(refreshTimer);\n    refreshTimer = null;\n  }\n}\n\ndocument.addEventListener('visibilitychange', () => {\n  if (document.hidden) {\n    stopAutoRefresh();\n  } else {\n    startAutoRefresh();\n  }\n});",
+            "bestPractices": [
+              "Pause when tab is hidden (saves battery/bandwidth)",
+              "Use exponential backoff if errors occur",
+              "Let users control refresh rate",
+              "Show last update timestamp"
+            ]
+          },
+          {
+            "name": "Rate Limiting Handling",
+            "definition": "Gracefully handle API rate limits (HTTP 429).",
+            "strategies": [
+              {
+                "strategy": "Respect Retry-After header",
+                "code": "if (response.status === 429) {\n  const retryAfter = response.headers.get('Retry-After') || 60;\n  showMessage(`Rate limited. Retrying in ${retryAfter} seconds...`);\n  await delay(retryAfter * 1000);\n  return fetchData();\n}"
+              }
+            ]
+          },
+          {
+            "name": "Data Transformation",
+            "definition": "Convert raw API data into formats suitable for display.",
+            "examples": [
+              {
+                "transformation": "Large numbers to readable format",
+                "input": "1234567890",
+                "output": "1.23B",
+                "code": "function formatLargeNumber(num) {\n  if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';\n  if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';\n  if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';\n  return num.toString();\n}"
+              }
+            ]
+          },
+          {
+            "name": "Search/Filter Implementation",
+            "definition": "Client-side filtering of cached data for instant results.",
+            "pattern": "let allData = [];\nlet filteredData = [];\n\nasync function loadData() {\n  allData = await fetchData();\n  filteredData = allData;\n  displayData(filteredData);\n}\n\nfunction handleSearch(searchTerm) {\n  filteredData = allData.filter(item =>\n    item.name.toLowerCase().includes(searchTerm.toLowerCase())\n  );\n  displayData(filteredData);\n}"
+          },
+          {
+            "name": "Progressive Enhancement",
+            "definition": "Build features that work even when parts fail.",
+            "levels": [
+              {
+                "level": "Core functionality",
+                "description": "Basic data display - must always work",
+                "fallback": "Show cached data if API fails"
+              },
+              {
+                "level": "Enhanced features",
+                "description": "Search, filters, sorting - nice to have",
+                "fallback": "Disable if data incomplete"
+              }
+            ]
+          },
+          {
+            "name": "Performance Optimizations",
+            "techniques": [
+              {
+                "technique": "Lazy Loading",
+                "description": "Load data only when needed"
+              },
+              {
+                "technique": "Debouncing",
+                "description": "Delay execution until user stops action"
+              },
+              {
+                "technique": "Request Batching",
+                "description": "Combine multiple requests into one"
+              }
+            ]
+          },
+          {
+            "name": "Error Recovery Strategies",
+            "strategies": [
+              {
+                "strategy": "Graceful Degradation",
+                "description": "Show partial data when some requests fail"
+              },
+              {
+                "strategy": "Automatic Retry",
+                "description": "Retry failed requests with backoff"
+              },
+              {
+                "strategy": "Fallback to Cached Data",
+                "description": "Show stale data if fresh data fails"
+              }
+            ]
+          }
+        ],
+        "keyTakeaway": "Production apps handle edge cases, optimize performance, cache intelligently, and degrade gracefully. Every feature should have a failure mode."
+      },
+      "challenge": {
+        "title": "Build a News Aggregator with Multi-Source APIs",
+        "mission": "Create a news aggregator that fetches articles from multiple news APIs, combines them, removes duplicates, sorts by relevance, caches results, and provides advanced filtering and search.",
+        "requirements": [
+          "Fetch from News API",
+          "Fetch from at least 2 different endpoints/categories",
+          "Combine results from multiple sources",
+          "Remove duplicate articles (same title/URL)",
+          "Sort by: newest, oldest, relevance",
+          "Filter by: category, source, date range",
+          "Search by keyword across all fields",
+          "Implement caching (5 minute expiration)",
+          "Show loading states for each source",
+          "Handle partial failures (some sources work, others don't)",
+          "Save user preferences (sort, filters) to localStorage",
+          "Auto-refresh every 5 minutes",
+          "Pagination (show 10 articles at a time)",
+          "Professional UI with skeleton screens"
+        ],
+        "hints": [
+          {
+            "level": 1,
+            "summary": "Stuck on Multi-Source Fetching? Click for Hint #1",
+            "content": "Fetch from multiple endpoints in parallel using Promise.allSettled"
+          },
+          {
+            "level": 2,
+            "summary": "Need help with deduplication? Click for Hint #2",
+            "content": "Remove duplicates by URL using a Set data structure"
+          },
+          {
+            "level": 3,
+            "summary": "Need Full Solution? Click Here",
+            "content": "Complete news aggregator with all features!"
+          }
+        ],
+        "sharing": {
+          "instruction": "Screenshot showing news aggregator with articles from multiple sources, working search, and filters",
+          "socialPrompt": "Share in #wins: 'Built a complete news aggregator pulling from multiple APIs!'",
+          "hashtags": ["#day20", "#javascript", "#capstone"]
+        },
+        "bonusChallenge": "Add a 'Save for Later' feature that stores bookmarked articles in localStorage and shows them in a separate tab!"
+      },
+      "summary": {
+        "capabilities": [
+          "Fetch data from multiple APIs simultaneously",
+          "Implement intelligent caching strategies",
+          "Handle rate limiting and API quotas",
+          "Transform complex API responses for display",
+          "Build search and filter functionality",
+          "Implement auto-refresh with pause/resume",
+          "Combine data from multiple sources",
+          "Remove duplicates from merged datasets",
+          "Create production-ready, polished applications",
+          "Optimize performance with debouncing and throttling",
+          "Handle partial failures gracefully",
+          "Save user preferences across sessions"
+        ]
+      },
+      "bridge": {
+        "preview": "🎉 Congratulations! You've completed Module 5: APIs and Async JavaScript!\n\nYou've learned:\n✅ Fetch data from APIs with fetch()\n✅ Handle Promises with .then() and .catch()\n✅ Write clean async code with async/await\n✅ Show professional loading states\n✅ Handle errors gracefully with retry logic\n✅ Build complete, production-ready applications\n\nYou've built:\n✅ Weather app with live data\n✅ GitHub profile viewer\n✅ Movie search with async/await\n✅ Professional dashboard with error handling\n✅ Cryptocurrency tracker (CAPSTONE!)\n\nYou can now build real applications that fetch live data from the internet!\n\n🚀 NEXT MODULE:\nIn Module 6, you'll learn DOM Manipulation Mastery - creating elements dynamically, building interactive components, and animating your interfaces!",
+        "nextModuleTitle": "Module 6: DOM Manipulation Mastery",
+        "nextLessonTitle": "Create Elements Dynamically",
+        "nextLessonId": "js-6-1"
+      }
     }
   ]
 }
