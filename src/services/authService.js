@@ -1,14 +1,17 @@
 // ═══════════════════════════════════════════════
 // AUTH SERVICE — All Supabase auth operations
 // Context calls these; this file owns the DB logic.
+//
+// Error handling convention: every function returns a
+// `{ data, error }` tuple — callers never need try/catch.
 // ═══════════════════════════════════════════════
 
 import { supabase } from '../lib/supabaseClient';
 
 export async function getInitialSession() {
-  const { data: { session }, error } = await supabase.auth.getSession();
-  if (error) throw error;
-  return session?.user ?? null;
+  const { data: { session } = {}, error } = await supabase.auth.getSession();
+  if (error) return { data: null, error };
+  return { data: session?.user ?? null, error: null };
 }
 
 export function onAuthStateChange(callback) {
@@ -19,12 +22,12 @@ export function onAuthStateChange(callback) {
 }
 
 export async function loadProfile(userId) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('profiles')
     .select('display_name, avatar_url, is_admin, is_disabled')
     .eq('id', userId)
     .maybeSingle();
-  return data || null;
+  return { data: data || null, error };
 }
 
 export async function signInWithEmail(email, password) {
@@ -58,5 +61,5 @@ export async function signInWithGoogle() {
 
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
-  return { error };
+  return { data: null, error };
 }

@@ -25,27 +25,22 @@ export function AuthProvider({ children }) {
   // ─── Load profile ──────────────────────────
   const handleLoadProfile = async (userId) => {
     if (!userId) { setProfile(null); return; }
-    try {
-      const data = await authService.loadProfile(userId);
-      setProfile(data);
-    } catch {
-      setProfile(null);
-    }
+    const { data } = await authService.loadProfile(userId);
+    setProfile(data);
   };
 
   // ─── Get initial session ──────────────────
   useEffect(() => {
     const init = async () => {
-      try {
-        const u = await authService.getInitialSession();
+      const { data: u, error } = await authService.getInitialSession();
+      if (error) {
+        console.error('Auth session error:', error.message);
+        setUser(null);
+      } else {
         setUser(u);
         if (u) handleLoadProfile(u.id);
-      } catch (err) {
-        console.error('Auth session error:', err.message);
-        setUser(null);
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     };
     init();
   }, []);
@@ -61,51 +56,21 @@ export function AuthProvider({ children }) {
   }, []);
 
   // ─── Auth actions (thin wrappers) ─────────
-  const signIn = async (email, password) => {
-    try {
-      const { data, error } = await authService.signInWithEmail(email, password);
-      return { data, error };
-    } catch (err) {
-      return { data: null, error: err };
-    }
-  };
+  // authService always returns { data, error } tuples, so no try/catch needed.
+  const signIn = (email, password) =>
+    authService.signInWithEmail(email, password);
 
-  const signUp = async (email, password, displayName) => {
-    try {
-      const { data, error } = await authService.signUpWithEmail(email, password, displayName);
-      return { data, error };
-    } catch (err) {
-      return { data: null, error: err };
-    }
-  };
+  const signUp = (email, password, displayName) =>
+    authService.signUpWithEmail(email, password, displayName);
 
-  const handleGithub = async () => {
-    try {
-      const { data, error } = await authService.signInWithGithub();
-      return { data, error };
-    } catch (err) {
-      return { data: null, error: err };
-    }
-  };
-
-  const handleGoogle = async () => {
-    try {
-      const { data, error } = await authService.signInWithGoogle();
-      return { data, error };
-    } catch (err) {
-      return { data: null, error: err };
-    }
-  };
+  const handleGithub = () => authService.signInWithGithub();
+  const handleGoogle = () => authService.signInWithGoogle();
 
   const handleSignOut = async () => {
     setProfile(null);
-    try {
-      const { error } = await authService.signOut();
-      if (!error) setUser(null);
-      return { error };
-    } catch (err) {
-      return { error: err };
-    }
+    const { error } = await authService.signOut();
+    if (!error) setUser(null);
+    return { error };
   };
 
   // ─── Memoized value ──────────────────────

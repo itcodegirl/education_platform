@@ -16,10 +16,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          # package-lock.json is intentionally gitignored in this repo, so
+          # we use `npm install` below and skip the setup-node cache key.
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --no-audit --no-fund
+
+      - name: Run unit tests
+        run: npm test
 
       - name: Build
         run: npm run build
