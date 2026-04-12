@@ -467,6 +467,95 @@
         "preview": "In Lesson 1.6, you'll learn to add background images to elements, control how they size and repeat, and create visually stunning sections!",
         "nextLessonId": "css-1-6"
       }
+    },
+    {
+      "id": "css-1-6",
+      "title": "Add Background Images",
+      "prereqs": [
+        "css-1-5"
+      ],
+      "difficulty": "beginner",
+      "duration": "18 min",
+      "metadata": {
+        "estimatedTime": 18,
+        "difficulty": "beginner",
+        "conceptsCount": 3,
+        "tasksCount": 2
+      },
+      "hook": {
+        "accomplishments": [
+          "Add a background image to any element",
+          "Control image size, position, and repeat",
+          "Create a parallax scrolling effect",
+          "Build a professional hero section with image overlay"
+        ]
+      },
+      "do": {
+        "title": "Add your first background image",
+        "steps": [
+          "Create a new file and save it as background-images.html",
+          "Copy and paste the code below",
+          "Save and open in browser",
+          "You should see a full-width hero with a background image!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Background Images</title>\n  <style>\n    body { margin: 0; font-family: Arial, sans-serif; }\n    \n    .hero {\n      background-image: url(\"https://images.unsplash.com/photo-1557683316-973673baf926\");\n      background-size: cover;\n      background-position: center;\n      height: 500px;\n      display: flex;\n      justify-content: center;\n      align-items: center;\n      color: white;\n    }\n    \n    .hero-content {\n      background-color: rgba(0, 0, 0, 0.5);\n      padding: 40px;\n      border-radius: 12px;\n      text-align: center;\n    }\n    \n    .hero h1 { font-size: 48px; margin: 0; }\n  </style>\n</head>\n<body>\n  <div class=\"hero\">\n    <div class=\"hero-content\">\n      <h1>Welcome to My Website</h1>\n    </div>\n  </div>\n</body>\n</html>",
+        "result": "Background image fills the hero section with background-size: cover!",
+        "proofRequired": "Screenshot showing your hero section with background image."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "background-image and background-size",
+            "definition": "background-image: url() sets the image. background-size: cover fills the container (may crop). background-size: contain fits inside (may have gaps).",
+            "analogy": "Cover is like stretching wallpaper to fill a wall. Contain is like fitting a poster inside a frame."
+          },
+          {
+            "name": "background-position and repeat",
+            "definition": "background-position: center centers the image. background-repeat: no-repeat stops tiling. These control where the image sits and whether it repeats.",
+            "analogy": "Positioning a photo on a wall — center it, pin it to a corner, or tile it like bathroom tiles."
+          },
+          {
+            "name": "Overlays with rgba()",
+            "definition": "Place a semi-transparent color over the image using rgba(0,0,0,0.5). This darkens the image so text on top is readable.",
+            "analogy": "Putting tinted glass over a photo — you can still see the image but text on top is easier to read."
+          }
+        ],
+        "keyTakeaway": "background-size: cover + background-position: center is the most common pattern. Add a dark overlay for text readability."
+      },
+      "build": {
+        "goal": "Create a parallax scrolling section",
+        "codeComparison": {
+          "old": ".hero {\n  background-image: url(\"image.jpg\");\n  background-size: cover;\n}",
+          "new": ".parallax-section {\n  background-image: url(\"image.jpg\");\n  background-attachment: fixed;\n  background-size: cover;\n  background-position: center;\n  min-height: 600px;\n}"
+        },
+        "hint": "background-attachment: fixed makes the background stay still while content scrolls over it — the parallax effect!"
+      },
+      "challenge": {
+        "title": "Build a Professional Hero Section",
+        "mission": "Create a full-screen hero with background image, dark overlay, heading, subtitle, and CTA button.",
+        "requirements": [
+          "Full viewport height (min-height: 100vh)",
+          "Background image with cover sizing",
+          "Dark overlay for text readability using rgba()",
+          "Large centered heading",
+          "CTA button with hover effect"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Hero Section</title>\n  <style>\n    body { margin: 0; font-family: Arial, sans-serif; }\n    /* Add your hero styles here */\n  </style>\n</head>\n<body>\n  <div class=\"hero\">\n    <div class=\"hero-content\">\n      <h1>Your Heading</h1>\n      <p>Your subtitle</p>\n      <a href=\"#\" class=\"cta-btn\">Get Started</a>\n    </div>\n  </div>\n</body>\n</html>",
+        "bonusChallenge": "Add background-attachment: fixed for a parallax effect!"
+      },
+      "summary": {
+        "capabilities": [
+          "Add background images with background-image",
+          "Control sizing with background-size (cover vs contain)",
+          "Position images with background-position",
+          "Create parallax effects with background-attachment: fixed",
+          "Add dark overlays with rgba() for readability"
+        ]
+      },
+      "bridge": {
+        "preview": "Module 1 complete! In Module 2, you'll learn Flexbox — the modern way to arrange elements side by side, space them out, and create real layouts.",
+        "nextLessonId": "css-2-1"
+      }
     }
   ]
 }

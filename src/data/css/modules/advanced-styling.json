@@ -6,9 +6,190 @@
   "difficulty": "advanced",
   "lessons": [
     {
+      "id": "css-4-1",
+      "title": "Add Smooth Transitions",
+      "prereqs": [
+        "css-3-6"
+      ],
+      "difficulty": "intermediate",
+      "duration": "18 min",
+      "metadata": {
+        "estimatedTime": 18,
+        "difficulty": "intermediate",
+        "conceptsCount": 3,
+        "tasksCount": 2
+      },
+      "hook": {
+        "accomplishments": [
+          "Make hover effects smooth instead of instant",
+          "Control transition speed and timing",
+          "Create professional button and card interactions",
+          "Understand timing functions"
+        ]
+      },
+      "do": {
+        "title": "Add hover transitions",
+        "steps": [
+          "Create a new file and save it as transitions.html",
+          "Copy and paste the code below",
+          "Save and open in browser",
+          "Hover over the button and card — smooth transitions!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>CSS Transitions</title>\n  <style>\n    body { padding: 40px; font-family: Arial, sans-serif; background-color: #f5f5f5; }\n    .button {\n      background-color: #667eea;\n      color: white;\n      padding: 15px 30px;\n      border: none;\n      border-radius: 8px;\n      font-size: 16px;\n      cursor: pointer;\n      transition: all 0.3s ease;\n    }\n    .button:hover {\n      background-color: #5568d3;\n      transform: translateY(-2px);\n      box-shadow: 0 4px 12px rgba(0,0,0,0.2);\n    }\n    .card {\n      background-color: white;\n      padding: 30px;\n      border-radius: 12px;\n      margin: 20px 0;\n      box-shadow: 0 2px 8px rgba(0,0,0,0.1);\n      transition: transform 0.3s ease, box-shadow 0.3s ease;\n    }\n    .card:hover {\n      transform: translateY(-8px);\n      box-shadow: 0 8px 24px rgba(0,0,0,0.15);\n    }\n  </style>\n</head>\n<body>\n  <button class=\"button\">Hover Me</button>\n  <div class=\"card\">\n    <h2>Hover This Card</h2>\n    <p>Watch it lift up smoothly!</p>\n  </div>\n</body>\n</html>",
+        "result": "Hover effects are now smooth instead of instant — that's the transition property!",
+        "proofRequired": "Screenshot showing the hover effect."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "The transition property",
+            "definition": "transition: property duration timing-function. Tells the browser to animate between states smoothly. Example: transition: all 0.3s ease.",
+            "analogy": "Instead of flicking a light switch (instant), you install a dimmer (smooth transition)."
+          },
+          {
+            "name": "Timing functions",
+            "definition": "ease (default, slow-fast-slow), linear (constant speed), ease-in (slow start), ease-out (slow end), ease-in-out (slow start and end).",
+            "analogy": "How a car accelerates: ease = normal driving, linear = cruise control, ease-in = slow start fast finish."
+          },
+          {
+            "name": "What can be transitioned",
+            "definition": "Colors, backgrounds, transforms, opacity, shadows, sizes, padding, margins. NOT display or visibility (use opacity instead).",
+            "analogy": "You can smoothly change paint color or move furniture, but you can't smoothly make a wall appear/disappear."
+          }
+        ],
+        "keyTakeaway": "Add transition: all 0.3s ease to any element, then change properties on :hover for smooth effects."
+      },
+      "build": {
+        "goal": "Create cards with multiple transition properties",
+        "codeComparison": {
+          "old": ".card:hover { background-color: blue; }",
+          "new": ".card {\n  transition: all 0.3s ease;\n}\n.card:hover {\n  transform: translateY(-8px);\n  box-shadow: 0 8px 24px rgba(0,0,0,0.15);\n}"
+        },
+        "hint": "transition: all catches every property change. For performance, list specific properties instead."
+      },
+      "challenge": {
+        "title": "Animated Feature Cards",
+        "mission": "Create 3 feature cards that scale and glow on hover.",
+        "requirements": [
+          "Three side-by-side cards",
+          "Smooth hover lift with transform",
+          "Growing box-shadow on hover",
+          "Color change on hover",
+          "Transition duration 0.3s",
+          "Professional design"
+        ],
+        "starterCode": "<!-- Create feature-cards.html -->",
+        "bonusChallenge": "Add a colored box-shadow glow effect that matches each card's theme color!"
+      },
+      "summary": {
+        "capabilities": [
+          "Add smooth transitions with the transition property",
+          "Control speed with duration",
+          "Choose timing functions for different feels",
+          "Create professional hover effects on buttons and cards"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 4.2, you'll learn CSS animations with @keyframes — effects that run continuously without user interaction!",
+        "nextLessonId": "css-4-2"
+      }
+    },
+    {
+      "id": "css-4-2",
+      "title": "Create CSS Animations",
+      "prereqs": [
+        "css-4-1"
+      ],
+      "difficulty": "intermediate",
+      "duration": "20 min",
+      "metadata": {
+        "estimatedTime": 20,
+        "difficulty": "intermediate",
+        "conceptsCount": 3,
+        "tasksCount": 2
+      },
+      "hook": {
+        "accomplishments": [
+          "Create animations that run automatically",
+          "Build a pulsing button effect",
+          "Make a loading spinner",
+          "Animate elements on page load"
+        ]
+      },
+      "do": {
+        "title": "Create a pulsing button",
+        "steps": [
+          "Create a new file and save it as animations.html",
+          "Copy and paste the code below",
+          "Save and open in browser",
+          "The button pulses and the spinner spins — no hovering needed!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>CSS Animations</title>\n  <style>\n    body { padding: 60px; font-family: Arial, sans-serif; text-align: center; }\n    \n    @keyframes pulse {\n      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(102,126,234,0.7); }\n      50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(102,126,234,0); }\n      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(102,126,234,0); }\n    }\n    \n    .pulse-button {\n      background-color: #667eea;\n      color: white;\n      padding: 20px 40px;\n      border: none;\n      border-radius: 50px;\n      font-size: 18px;\n      font-weight: bold;\n      cursor: pointer;\n      animation: pulse 2s ease-in-out infinite;\n    }\n    \n    @keyframes spin {\n      from { transform: rotate(0deg); }\n      to { transform: rotate(360deg); }\n    }\n    \n    .spinner {\n      width: 50px; height: 50px;\n      border: 5px solid #f0f0f0;\n      border-top-color: #667eea;\n      border-radius: 50%;\n      animation: spin 1s linear infinite;\n      margin: 40px auto;\n    }\n  </style>\n</head>\n<body>\n  <button class=\"pulse-button\">Click Me!</button>\n  <div class=\"spinner\"></div>\n</body>\n</html>",
+        "result": "The button pulses continuously and the spinner rotates — all with CSS animations!",
+        "proofRequired": "Screenshot showing the pulsing button and spinner."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "@keyframes",
+            "definition": "Defines animation steps. Use percentages (0%, 50%, 100%) or from/to for start/end. Each step defines the CSS state at that point.",
+            "analogy": "A flipbook — each keyframe is a page, and the browser fills in the frames between them."
+          },
+          {
+            "name": "The animation property",
+            "definition": "animation: name duration timing-function iteration-count. Example: animation: pulse 2s ease-in-out infinite. Can also add delay, direction, fill-mode.",
+            "analogy": "A movie director telling actors: which scene (name), how long (duration), how to move (timing), how many takes (count)."
+          },
+          {
+            "name": "animation-fill-mode",
+            "definition": "forwards = stay at final state. backwards = start at first keyframe. both = apply both. Without fill-mode, element snaps back to original state.",
+            "analogy": "After a play, do actors stay in their final positions (forwards) or go back to starting marks (none)?"
+          }
+        ],
+        "keyTakeaway": "@keyframes defines the animation, animation property applies it. Use infinite for continuous effects, forwards for one-shot animations."
+      },
+      "build": {
+        "goal": "Create a fade-in animation for page load",
+        "codeComparison": {
+          "old": ".element { opacity: 1; }",
+          "new": "@keyframes fadeIn {\n  from { opacity: 0; transform: translateY(20px); }\n  to { opacity: 1; transform: translateY(0); }\n}\n\n.fade-in {\n  animation: fadeIn 1s ease forwards;\n}\n\n/* Stagger multiple elements */\n.fade-in:nth-child(2) { animation-delay: 0.2s; }\n.fade-in:nth-child(3) { animation-delay: 0.4s; }"
+        },
+        "hint": "Use animation-delay and nth-child to stagger animations for a cascading effect!"
+      },
+      "challenge": {
+        "title": "Loading Spinner Collection",
+        "mission": "Create 3 different loading spinners using CSS animations.",
+        "requirements": [
+          "Spinner 1: rotating border circle",
+          "Spinner 2: pulsing/scaling dots",
+          "Spinner 3: bouncing bars",
+          "All smooth and continuous",
+          "Professional styling",
+          "Centered on page"
+        ],
+        "starterCode": "<!-- Create spinners.html -->",
+        "bonusChallenge": "Create a 4th spinner that uses multiple animations on the same element!"
+      },
+      "summary": {
+        "capabilities": [
+          "Define animations with @keyframes",
+          "Apply animations with the animation property",
+          "Create continuous effects with infinite",
+          "Build loading spinners and pulse effects",
+          "Stagger animations with delay and nth-child"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 4.3, you'll learn CSS custom properties (variables) — the key to building maintainable design systems and theme switchers!",
+        "nextLessonId": "css-4-3"
+      }
+    },
+    {
       "id": "css-4-3",
       "title": "Master CSS Custom Properties",
-      "prereqs": [],
+      "prereqs": [
+        "css-4-2"
+      ],
       "difficulty": "intermediate",
       "duration": "18 min",
       "metadata": {

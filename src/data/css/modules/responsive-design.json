@@ -6,9 +6,265 @@
   "difficulty": "intermediate",
   "lessons": [
     {
+      "id": "css-3-1",
+      "title": "Make It Work on Phones",
+      "prereqs": [
+        "css-2-6"
+      ],
+      "difficulty": "beginner",
+      "duration": "18 min",
+      "metadata": {
+        "estimatedTime": 18,
+        "difficulty": "beginner",
+        "conceptsCount": 2,
+        "tasksCount": 2
+      },
+      "hook": {
+        "accomplishments": [
+          "Write your first media query",
+          "Make boxes stack on mobile",
+          "Understand breakpoints",
+          "Create a responsive navigation"
+        ]
+      },
+      "do": {
+        "title": "Your first media query",
+        "steps": [
+          "Create a new file and save it as media-queries.html",
+          "Copy and paste the code below",
+          "Save and open in browser",
+          "Resize your browser — boxes stack on narrow screens!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Media Queries</title>\n  <style>\n    .container {\n      display: flex;\n      gap: 20px;\n      padding: 20px;\n    }\n    .box {\n      flex: 1;\n      background-color: #667eea;\n      color: white;\n      padding: 40px;\n      text-align: center;\n      border-radius: 8px;\n    }\n    @media (max-width: 768px) {\n      .container {\n        flex-direction: column;\n      }\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"box\">Box 1</div>\n    <div class=\"box\">Box 2</div>\n    <div class=\"box\">Box 3</div>\n  </div>\n</body>\n</html>",
+        "result": "Boxes sit side by side on desktop and stack vertically on mobile!",
+        "proofRequired": "Screenshots at desktop and mobile widths."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "Media queries",
+            "definition": "@media (max-width: 768px) { } applies CSS only when screen is 768px or narrower. Common breakpoints: 768px (mobile), 1024px (tablet), 1200px (desktop).",
+            "analogy": "A thermostat for your layout — when the temperature (screen width) drops below a threshold, the heating (different styles) kicks in."
+          },
+          {
+            "name": "The viewport meta tag",
+            "definition": "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> tells mobile browsers to use the device width, not a zoomed-out desktop view. REQUIRED for responsive design.",
+            "analogy": "Telling a projector to auto-adjust to the screen size instead of showing a tiny desktop view."
+          }
+        ],
+        "keyTakeaway": "Media queries let you apply different CSS at different screen sizes. Always include the viewport meta tag."
+      },
+      "build": {
+        "goal": "Add tablet and desktop breakpoints",
+        "codeComparison": {
+          "old": "@media (max-width: 768px) {\n  .container { flex-direction: column; }\n}",
+          "new": "/* Mobile default */\n.container { flex-direction: column; }\n\n/* Tablet */\n@media (min-width: 768px) {\n  .container { flex-direction: row; flex-wrap: wrap; }\n  .box { flex: 1 1 45%; }\n}\n\n/* Desktop */\n@media (min-width: 1024px) {\n  .box { flex: 1; }\n}"
+        },
+        "hint": "Use min-width for mobile-first approach — styles build up from mobile to desktop."
+      },
+      "challenge": {
+        "title": "Responsive Navigation",
+        "mission": "Create nav with horizontal links on desktop, stacked on mobile.",
+        "requirements": [
+          "Links horizontal on desktop",
+          "Links stack vertically on mobile",
+          "Hamburger icon visible only on mobile",
+          "Different padding at different sizes",
+          "Smooth transitions"
+        ],
+        "starterCode": "<!-- Create responsive-nav.html -->",
+        "bonusChallenge": "Add JavaScript to toggle mobile menu open/closed!"
+      },
+      "summary": {
+        "capabilities": [
+          "Write media queries for different screen sizes",
+          "Use the viewport meta tag",
+          "Make layouts stack on mobile",
+          "Understand common breakpoints"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 3.2, you'll learn mobile-first design — the modern approach that starts with mobile and builds up to desktop.",
+        "nextLessonId": "css-3-2"
+      }
+    },
+    {
+      "id": "css-3-2",
+      "title": "Mobile-First Design",
+      "prereqs": [
+        "css-3-1"
+      ],
+      "difficulty": "beginner",
+      "duration": "18 min",
+      "metadata": {
+        "estimatedTime": 18,
+        "difficulty": "beginner",
+        "conceptsCount": 2,
+        "tasksCount": 2
+      },
+      "hook": {
+        "accomplishments": [
+          "Build layouts that start mobile and scale up",
+          "Use min-width instead of max-width",
+          "Understand why mobile-first is better",
+          "Create a responsive product grid"
+        ]
+      },
+      "do": {
+        "title": "Build mobile-first",
+        "steps": [
+          "Create a new file and save it as mobile-first.html",
+          "Copy and paste the code below",
+          "Save and open in browser",
+          "Start narrow, then widen — columns appear as space allows!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Mobile First</title>\n  <style>\n    /* Mobile first: single column */\n    .grid {\n      display: grid;\n      grid-template-columns: 1fr;\n      gap: 20px;\n      padding: 20px;\n    }\n    .card {\n      background-color: white;\n      padding: 20px;\n      border-radius: 8px;\n      box-shadow: 0 2px 8px rgba(0,0,0,0.1);\n    }\n    /* Tablet: 2 columns */\n    @media (min-width: 600px) {\n      .grid { grid-template-columns: 1fr 1fr; }\n    }\n    /* Desktop: 3 columns */\n    @media (min-width: 900px) {\n      .grid { grid-template-columns: 1fr 1fr 1fr; }\n    }\n  </style>\n</head>\n<body>\n  <div class=\"grid\">\n    <div class=\"card\"><h3>Card 1</h3><p>Content</p></div>\n    <div class=\"card\"><h3>Card 2</h3><p>Content</p></div>\n    <div class=\"card\"><h3>Card 3</h3><p>Content</p></div>\n    <div class=\"card\"><h3>Card 4</h3><p>Content</p></div>\n  </div>\n</body>\n</html>",
+        "result": "1 column on mobile, 2 on tablet, 3 on desktop — all with min-width!",
+        "proofRequired": "Screenshots at three different widths."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "Mobile-first vs Desktop-first",
+            "definition": "Mobile-first: write mobile styles as default, use min-width to add desktop styles. Desktop-first: write desktop styles, use max-width to override for mobile. Mobile-first is the modern standard.",
+            "analogy": "Building a house: mobile-first starts with a tiny house and adds rooms. Desktop-first builds a mansion and removes rooms."
+          },
+          {
+            "name": "Why mobile-first wins",
+            "definition": "Most users are on mobile. Simpler base styles load faster. Progressive enhancement (add features for bigger screens) is easier than graceful degradation (remove features for smaller screens).",
+            "analogy": "Starting with the essentials and adding luxuries is easier than starting with everything and figuring out what to remove."
+          }
+        ],
+        "keyTakeaway": "Write mobile styles first (default), then use min-width media queries to enhance for larger screens."
+      },
+      "build": {
+        "goal": "Convert a desktop-first layout to mobile-first",
+        "codeComparison": {
+          "old": "/* Desktop first (old way) */\n.grid { grid-template-columns: 1fr 1fr 1fr; }\n@media (max-width: 768px) {\n  .grid { grid-template-columns: 1fr; }\n}",
+          "new": "/* Mobile first (modern way) */\n.grid { grid-template-columns: 1fr; }\n@media (min-width: 768px) {\n  .grid { grid-template-columns: 1fr 1fr 1fr; }\n}"
+        },
+        "hint": "Flip from max-width to min-width and swap the default and media query styles."
+      },
+      "challenge": {
+        "title": "Responsive Product Grid",
+        "mission": "Create product cards: 1 column mobile, 2 tablet, 4 desktop.",
+        "requirements": [
+          "Single column on mobile (default)",
+          "2 columns at 600px",
+          "4 columns at 1200px",
+          "Cards with image, title, price",
+          "Professional styling"
+        ],
+        "starterCode": "<!-- Create products.html -->",
+        "bonusChallenge": "Add a \"featured\" product that spans 2 columns on desktop!"
+      },
+      "summary": {
+        "capabilities": [
+          "Build mobile-first layouts",
+          "Use min-width media queries",
+          "Progressive enhancement approach",
+          "Create responsive product grids"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 3.3, you'll learn responsive images and media — making images scale, fit containers, and load appropriate sizes.",
+        "nextLessonId": "css-3-3"
+      }
+    },
+    {
+      "id": "css-3-3",
+      "title": "Responsive Images and Media",
+      "prereqs": [
+        "css-3-2"
+      ],
+      "difficulty": "beginner",
+      "duration": "16 min",
+      "metadata": {
+        "estimatedTime": 16,
+        "difficulty": "beginner",
+        "conceptsCount": 3,
+        "tasksCount": 2
+      },
+      "hook": {
+        "accomplishments": [
+          "Make images scale with their container",
+          "Control image cropping with object-fit",
+          "Load different images for different screen sizes",
+          "Build a responsive image gallery"
+        ]
+      },
+      "do": {
+        "title": "Make images responsive",
+        "steps": [
+          "Create a new file and save it as responsive-images.html",
+          "Copy and paste the code below",
+          "Save and resize your browser",
+          "Images scale smoothly!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Responsive Images</title>\n  <style>\n    img {\n      max-width: 100%;\n      height: auto;\n      display: block;\n    }\n    .container {\n      max-width: 800px;\n      margin: 0 auto;\n      padding: 20px;\n    }\n    .image-grid {\n      display: grid;\n      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));\n      gap: 20px;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <h1>Responsive Images</h1>\n    <img src=\"https://via.placeholder.com/1200x600\" alt=\"Hero\">\n    <div class=\"image-grid\">\n      <img src=\"https://via.placeholder.com/400x300\" alt=\"Image 1\">\n      <img src=\"https://via.placeholder.com/400x300\" alt=\"Image 2\">\n      <img src=\"https://via.placeholder.com/400x300\" alt=\"Image 3\">\n    </div>\n  </div>\n</body>\n</html>",
+        "result": "Images scale with their container and never overflow!",
+        "proofRequired": "Screenshot showing responsive images at different widths."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "max-width: 100% + height: auto",
+            "definition": "The essential responsive image rule. max-width: 100% means never wider than container. height: auto maintains aspect ratio. display: block removes inline gap.",
+            "analogy": "A photo that automatically shrinks to fit any frame, keeping its proportions."
+          },
+          {
+            "name": "object-fit",
+            "definition": "Controls how images fill a fixed-size container. cover = fills and crops. contain = fits inside with gaps. fill = stretches to fill.",
+            "analogy": "cover = cropping a photo to fill a frame. contain = fitting the whole photo with empty space around it."
+          },
+          {
+            "name": "Responsive background images",
+            "definition": "Use media queries to load different background images for different screen sizes — smaller images on mobile save bandwidth.",
+            "analogy": "Serving a small appetizer on mobile, a full plate on desktop."
+          }
+        ],
+        "keyTakeaway": "img { max-width: 100%; height: auto; display: block; } makes any image responsive. Use object-fit for fixed containers."
+      },
+      "build": {
+        "goal": "Use object-fit for a consistent image grid",
+        "codeComparison": {
+          "old": "img {\n  max-width: 100%;\n  height: auto;\n}",
+          "new": ".image-container {\n  width: 100%;\n  height: 200px;\n}\n.image-container img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover; /* Fills and crops */\n}"
+        },
+        "hint": "object-fit: cover is perfect for card images — consistent height, no distortion."
+      },
+      "challenge": {
+        "title": "Responsive Magazine Layout",
+        "mission": "Create an article with images that flow with text responsively.",
+        "requirements": [
+          "Hero image full-width",
+          "Text wraps around image on desktop",
+          "Images stack on mobile",
+          "All images responsive (max-width: 100%)",
+          "Consistent image heights in grid sections"
+        ],
+        "starterCode": "<!-- Create magazine.html -->",
+        "bonusChallenge": "Use different background images for mobile vs desktop with media queries!"
+      },
+      "summary": {
+        "capabilities": [
+          "Make images responsive with max-width: 100%",
+          "Control cropping with object-fit",
+          "Build responsive image grids",
+          "Load different images per screen size"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 3.4, you'll build a responsive card gallery with auto-fit grids, hover effects, and filter buttons!",
+        "nextLessonId": "css-3-4"
+      }
+    },
+    {
       "id": "css-3-4",
       "title": "Build a Responsive Card Gallery",
-      "prereqs": [],
+      "prereqs": [
+        "css-3-3"
+      ],
       "difficulty": "intermediate",
       "duration": "22 min",
       "metadata": {

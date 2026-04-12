@@ -6,9 +6,360 @@
   "difficulty": "intermediate",
   "lessons": [
     {
+      "id": "css-2-1",
+      "title": "Line Things Up with Flexbox",
+      "prereqs": [
+        "css-1-6"
+      ],
+      "difficulty": "beginner",
+      "duration": "18 min",
+      "metadata": {
+        "estimatedTime": 18,
+        "difficulty": "beginner",
+        "conceptsCount": 3,
+        "tasksCount": 2
+      },
+      "hook": {
+        "accomplishments": [
+          "Make boxes sit side by side instead of stacking",
+          "Control direction (horizontal or vertical)",
+          "Add gaps between items",
+          "Build a three-column layout"
+        ]
+      },
+      "do": {
+        "title": "Make boxes sit side by side",
+        "steps": [
+          "Create a new file and save it as flexbox-intro.html",
+          "Copy and paste the code below",
+          "Save and open in browser",
+          "Boxes sit side by side instead of stacking!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Flexbox Magic</title>\n  <style>\n    .container {\n      display: flex;\n      background-color: #f0f0f0;\n      padding: 20px;\n      gap: 20px;\n    }\n    \n    .box {\n      background-color: #667eea;\n      color: white;\n      padding: 40px;\n      border-radius: 8px;\n      font-size: 20px;\n      font-weight: bold;\n    }\n  </style>\n</head>\n<body>\n  <h1>Flexbox Demo</h1>\n  <div class=\"container\">\n    <div class=\"box\">Box 1</div>\n    <div class=\"box\">Box 2</div>\n    <div class=\"box\">Box 3</div>\n  </div>\n</body>\n</html>",
+        "result": "display: flex made boxes sit side by side instead of stacking!",
+        "proofRequired": "Screenshot showing three boxes in a row."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "display: flex",
+            "definition": "Turns a container into a flex container. All direct children become flex items and line up in a row by default.",
+            "analogy": "A shelf that automatically arranges books horizontally."
+          },
+          {
+            "name": "flex-direction",
+            "definition": "row (default) = horizontal. column = vertical. row-reverse and column-reverse flip the order.",
+            "analogy": "Choosing whether to stack books horizontally on a shelf or vertically in a pile."
+          },
+          {
+            "name": "gap",
+            "definition": "Adds equal space between flex items without needing margins. gap: 20px puts 20px between each item.",
+            "analogy": "Spacers between books on a shelf — keeps them evenly apart."
+          }
+        ],
+        "keyTakeaway": "display: flex + gap is all you need to make items sit side by side with space between them."
+      },
+      "build": {
+        "goal": "Change direction to vertical and use flex: 1 for equal widths",
+        "codeComparison": {
+          "old": ".container { display: flex; gap: 20px; }",
+          "new": ".container { display: flex; gap: 20px; }\n.box { flex: 1; } /* Equal width columns! */\n\n.vertical { flex-direction: column; }"
+        },
+        "hint": "flex: 1 on each child makes them share space equally."
+      },
+      "challenge": {
+        "title": "Build a Three-Column Layout",
+        "mission": "Create a layout with header, three equal columns, and footer.",
+        "requirements": [
+          "Header spans full width",
+          "Three equal-width columns using flex: 1",
+          "Footer spans full width",
+          "Proper gap between columns",
+          "Different background colors for each section"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Layout</title>\n  <style>\n    body { margin: 0; font-family: Arial, sans-serif; }\n    /* Add styles here */\n  </style>\n</head>\n<body>\n  <header>Header</header>\n  <div class=\"columns\">\n    <div class=\"col\">Column 1</div>\n    <div class=\"col\">Column 2</div>\n    <div class=\"col\">Column 3</div>\n  </div>\n  <footer>Footer</footer>\n</body>\n</html>",
+        "bonusChallenge": "Make it responsive — stack columns on mobile with flex-direction: column inside a media query!"
+      },
+      "summary": {
+        "capabilities": [
+          "Activate Flexbox with display: flex",
+          "Change direction with flex-direction",
+          "Add spacing with gap",
+          "Create equal columns with flex: 1"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 2.2, you'll learn to space things out with justify-content and align-items — the two most powerful Flexbox properties!",
+        "nextLessonId": "css-2-2"
+      }
+    },
+    {
+      "id": "css-2-2",
+      "title": "Space Things Out with Justify and Align",
+      "prereqs": [
+        "css-2-1"
+      ],
+      "difficulty": "beginner",
+      "duration": "20 min",
+      "metadata": {
+        "estimatedTime": 20,
+        "difficulty": "beginner",
+        "conceptsCount": 2,
+        "tasksCount": 2
+      },
+      "hook": {
+        "accomplishments": [
+          "Push items to opposite sides of a container",
+          "Center everything perfectly",
+          "Distribute space evenly between items",
+          "Vertically center content"
+        ]
+      },
+      "do": {
+        "title": "Space items apart",
+        "steps": [
+          "Create a new file and save it as justify-align.html",
+          "Copy and paste the code below",
+          "Save and open in browser",
+          "See how each justify-content value arranges items differently!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Justify Content</title>\n  <style>\n    .flex-container {\n      display: flex;\n      background-color: #f5f5f5;\n      padding: 20px;\n      margin-bottom: 20px;\n    }\n    .item {\n      background-color: #4ECDC4;\n      padding: 20px 30px;\n      color: white;\n      font-weight: bold;\n      border-radius: 8px;\n    }\n  </style>\n</head>\n<body>\n  <h2>space-between</h2>\n  <div class=\"flex-container\" style=\"justify-content: space-between;\">\n    <div class=\"item\">Item 1</div>\n    <div class=\"item\">Item 2</div>\n    <div class=\"item\">Item 3</div>\n  </div>\n  <h2>center</h2>\n  <div class=\"flex-container\" style=\"justify-content: center; gap: 20px;\">\n    <div class=\"item\">Item 1</div>\n    <div class=\"item\">Item 2</div>\n    <div class=\"item\">Item 3</div>\n  </div>\n  <h2>space-evenly</h2>\n  <div class=\"flex-container\" style=\"justify-content: space-evenly;\">\n    <div class=\"item\">Item 1</div>\n    <div class=\"item\">Item 2</div>\n    <div class=\"item\">Item 3</div>\n  </div>\n</body>\n</html>",
+        "result": "Each justify-content value distributes items differently along the main axis!",
+        "proofRequired": "Screenshot showing all three justify-content examples."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "justify-content (main axis)",
+            "definition": "Controls horizontal distribution: flex-start (left), center, flex-end (right), space-between (max gaps), space-around (equal around), space-evenly (equal everywhere).",
+            "analogy": "Arranging photos on a wall — left-aligned, centered, spread out, or evenly spaced."
+          },
+          {
+            "name": "align-items (cross axis)",
+            "definition": "Controls vertical alignment: stretch (fill height, default), flex-start (top), center (middle), flex-end (bottom).",
+            "analogy": "Hanging pictures at different heights — top of wall, middle, bottom, or stretched to fill."
+          }
+        ],
+        "keyTakeaway": "justify-content = horizontal spacing. align-items = vertical alignment. Together they control exactly where items sit."
+      },
+      "build": {
+        "goal": "Center items both horizontally and vertically",
+        "codeComparison": {
+          "old": ".container { display: flex; }",
+          "new": ".container {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  min-height: 100vh;\n}"
+        },
+        "hint": "justify-content: center + align-items: center + min-height: 100vh = perfect centering!"
+      },
+      "challenge": {
+        "title": "Build a Pricing Table",
+        "mission": "Create three pricing cards side by side with centered content.",
+        "requirements": [
+          "Three cards with centered text",
+          "Cards spaced evenly with gap",
+          "Each card has a title, price, features list, and button",
+          "Price should be large and bold",
+          "Middle card highlighted as \"popular\""
+        ],
+        "starterCode": "<!-- Create pricing-table.html -->",
+        "bonusChallenge": "Add hover effect that scales the card up!"
+      },
+      "summary": {
+        "capabilities": [
+          "Distribute items with justify-content",
+          "Align items vertically with align-items",
+          "Center content both ways",
+          "Build pricing tables and card layouts"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 2.3, you'll learn CSS Grid — the most powerful layout system for creating complex, two-dimensional layouts!",
+        "nextLessonId": "css-2-3"
+      }
+    },
+    {
+      "id": "css-2-3",
+      "title": "Create Grids That Actually Work",
+      "prereqs": [
+        "css-2-2"
+      ],
+      "difficulty": "intermediate",
+      "duration": "22 min",
+      "metadata": {
+        "estimatedTime": 22,
+        "difficulty": "intermediate",
+        "conceptsCount": 3,
+        "tasksCount": 2
+      },
+      "hook": {
+        "accomplishments": [
+          "Create a grid layout with rows and columns",
+          "Make items span multiple columns or rows",
+          "Build responsive grids with auto-fit",
+          "Create a dashboard layout"
+        ]
+      },
+      "do": {
+        "title": "Create a simple grid",
+        "steps": [
+          "Create a new file and save it as css-grid.html",
+          "Copy and paste the code below",
+          "Save and open in browser",
+          "Items automatically arranged into 3 equal columns!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>CSS Grid</title>\n  <style>\n    .grid-container {\n      display: grid;\n      grid-template-columns: 1fr 1fr 1fr;\n      gap: 20px;\n      padding: 20px;\n      background-color: #f5f5f5;\n    }\n    .grid-item {\n      background-color: #FF6B6B;\n      color: white;\n      padding: 40px;\n      text-align: center;\n      font-size: 20px;\n      font-weight: bold;\n      border-radius: 8px;\n    }\n  </style>\n</head>\n<body>\n  <h1>CSS Grid Demo</h1>\n  <div class=\"grid-container\">\n    <div class=\"grid-item\">1</div>\n    <div class=\"grid-item\">2</div>\n    <div class=\"grid-item\">3</div>\n    <div class=\"grid-item\">4</div>\n    <div class=\"grid-item\">5</div>\n    <div class=\"grid-item\">6</div>\n  </div>\n</body>\n</html>",
+        "result": "Items automatically arranged into 3 equal columns!",
+        "proofRequired": "Screenshot showing your 3-column grid."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "display: grid and grid-template-columns",
+            "definition": "display: grid activates Grid. grid-template-columns defines column widths. 1fr = 1 fraction of available space. repeat(3, 1fr) = three equal columns.",
+            "analogy": "Drawing a table on paper — you define how many columns and how wide each one is."
+          },
+          {
+            "name": "auto-fit and minmax()",
+            "definition": "repeat(auto-fit, minmax(250px, 1fr)) automatically adjusts the number of columns based on available space. No media queries needed!",
+            "analogy": "A smart shelf that adds or removes dividers based on how wide it is."
+          },
+          {
+            "name": "Grid vs Flexbox",
+            "definition": "Flexbox = one direction (row OR column). Grid = two directions (rows AND columns). Use Flexbox for components, Grid for page layouts.",
+            "analogy": "Flexbox is a clothesline (one line). Grid is a chessboard (rows and columns)."
+          }
+        ],
+        "keyTakeaway": "Grid is for two-dimensional layouts. auto-fit + minmax() creates responsive grids without media queries."
+      },
+      "build": {
+        "goal": "Create a responsive grid with auto-fit",
+        "codeComparison": {
+          "old": ".grid { grid-template-columns: 1fr 1fr 1fr; }",
+          "new": ".grid {\n  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));\n}\n/* Automatically adjusts columns based on screen width! */"
+        },
+        "hint": "1fr means \"one fraction of available space.\" Three 1fr columns means three equal columns."
+      },
+      "challenge": {
+        "title": "Build a Dashboard Layout",
+        "mission": "Create a dashboard with header, sidebar, main content, and footer using CSS Grid.",
+        "requirements": [
+          "Header spans full width across top",
+          "Sidebar on the left (narrower)",
+          "Main content area (wider)",
+          "Footer spans full width across bottom",
+          "Use grid-template-areas for named regions"
+        ],
+        "starterCode": "<!-- Create dashboard.html -->",
+        "bonusChallenge": "Make the sidebar collapse on mobile using a media query!"
+      },
+      "summary": {
+        "capabilities": [
+          "Create grid layouts with display: grid",
+          "Define columns with grid-template-columns",
+          "Use 1fr for flexible column widths",
+          "Build responsive grids with auto-fit + minmax",
+          "Choose between Grid and Flexbox"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 2.4, you'll learn CSS positioning — how to place elements exactly where you want them with sticky headers, fixed elements, and overlays.",
+        "nextLessonId": "css-2-4"
+      }
+    },
+    {
+      "id": "css-2-4",
+      "title": "Position Things Exactly Where You Want",
+      "prereqs": [
+        "css-2-3"
+      ],
+      "difficulty": "intermediate",
+      "duration": "20 min",
+      "metadata": {
+        "estimatedTime": 20,
+        "difficulty": "intermediate",
+        "conceptsCount": 3,
+        "tasksCount": 2
+      },
+      "hook": {
+        "accomplishments": [
+          "Create a sticky header that follows you",
+          "Build a modal overlay",
+          "Position elements on top of each other",
+          "Understand z-index stacking"
+        ]
+      },
+      "do": {
+        "title": "Create a sticky header",
+        "steps": [
+          "Create a new file and save it as positioning.html",
+          "Copy and paste the code below",
+          "Save and open in browser",
+          "Scroll down — the nav sticks to the top!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Positioning</title>\n  <style>\n    body { margin: 0; font-family: Arial, sans-serif; }\n    .sticky-nav {\n      position: sticky;\n      top: 0;\n      background-color: #333;\n      color: white;\n      padding: 20px;\n      z-index: 100;\n    }\n    .content {\n      padding: 40px;\n      min-height: 2000px;\n    }\n  </style>\n</head>\n<body>\n  <nav class=\"sticky-nav\">\n    <h1>Sticky Navigation</h1>\n  </nav>\n  <div class=\"content\">\n    <h2>Scroll down...</h2>\n    <p>The navigation stays at the top!</p>\n  </div>\n</body>\n</html>",
+        "result": "The navigation sticks to the top as you scroll!",
+        "proofRequired": "Screenshot showing the sticky nav at the top after scrolling."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "Position values",
+            "definition": "static (default, normal flow), relative (offset from normal), absolute (relative to positioned parent), fixed (relative to viewport), sticky (sticks when scrolling).",
+            "analogy": "static = sitting in your assigned seat. relative = leaning in your chair. absolute = floating above the room. fixed = bolted to the wall. sticky = a magnet on a whiteboard."
+          },
+          {
+            "name": "z-index",
+            "definition": "Controls stacking order. Higher z-index = appears on top. Only works on positioned elements (not static). Think of it as layers in Photoshop.",
+            "analogy": "A stack of papers on a desk — higher z-index means the paper is on top of the pile."
+          },
+          {
+            "name": "Position absolute + relative",
+            "definition": "Absolute positions relative to the nearest parent that has position: relative. This pattern lets you place elements precisely inside a container.",
+            "analogy": "Absolute = placing a sticker. Relative parent = the page you're sticking it on."
+          }
+        ],
+        "keyTakeaway": "sticky for headers, fixed for modals, absolute + relative for precise placement inside containers."
+      },
+      "build": {
+        "goal": "Create a modal overlay with fixed positioning",
+        "codeComparison": {
+          "old": ".nav { position: sticky; top: 0; }",
+          "new": ".modal-overlay {\n  position: fixed;\n  top: 0; left: 0;\n  width: 100%; height: 100%;\n  background: rgba(0,0,0,0.8);\n  z-index: 1000;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n.modal-content {\n  background: white;\n  padding: 40px;\n  border-radius: 12px;\n}"
+        },
+        "hint": "Fixed positioning removes the element from normal flow and positions it relative to the viewport."
+      },
+      "challenge": {
+        "title": "Build a Dismissible Banner",
+        "mission": "Create an announcement banner that sticks to the top of the page with a close button.",
+        "requirements": [
+          "Banner sticks to top with position: sticky",
+          "Close button in the top-right corner using position: absolute",
+          "Banner has a colored background with text",
+          "Proper z-index so it stays above content",
+          "Professional styling"
+        ],
+        "starterCode": "<!-- Create banner.html -->",
+        "bonusChallenge": "Add JavaScript to actually hide the banner when clicking the close button!"
+      },
+      "summary": {
+        "capabilities": [
+          "Create sticky headers with position: sticky",
+          "Build overlays with position: fixed",
+          "Place elements precisely with absolute + relative",
+          "Control stacking with z-index",
+          "Understand all five position values"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 2.5, you'll learn display properties — the difference between block, inline, and inline-block, and how to fix common layout bugs.",
+        "nextLessonId": "css-2-5"
+      }
+    },
+    {
       "id": "css-2-5",
       "title": "Understanding Display Properties",
-      "prereqs": [],
+      "prereqs": [
+        "css-2-4"
+      ],
       "difficulty": "beginner",
       "duration": "16 min",
       "metadata": {
