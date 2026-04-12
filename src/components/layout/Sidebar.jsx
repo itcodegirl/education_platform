@@ -48,9 +48,13 @@ export const Sidebar = memo(function Sidebar({
   const { user } = useAuth();
   const [lockMode, setLockMode] = useState(() => localStorage.getItem('chw-lock-mode') === 'true');
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [expandedMod, setExpandedMod] = useState(modIdx);
   const asideRef = useRef(null);
   const course = courses[courseIdx];
   const modules = course.modules;
+
+  // Sync expanded module when active module changes
+  useEffect(() => { setExpandedMod(modIdx); }, [modIdx]);
 
   const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Coder';
   const userInitial = displayName.trim().charAt(0).toUpperCase() || 'C';
@@ -171,13 +175,20 @@ export const Sidebar = memo(function Sidebar({
               ).length;
               const isModUnlocked = !lockMode || isLessonUnlocked(course, modules, mi, 0, completed);
 
+              const isExpanded = expandedMod === mi;
+
               return (
-                <div key={module.id} className={`mg ${mi === modIdx ? 'act' : ''} ${!isModUnlocked ? 'locked' : ''}`}>
+                <div key={module.id} className={`mg ${mi === modIdx ? 'act' : ''} ${isExpanded ? 'expanded' : ''} ${!isModUnlocked ? 'locked' : ''}`}>
                   <button
                     type="button"
                     className="mg-btn"
-                    onClick={() => isModUnlocked && onSelectLesson(mi, 0)}
+                    onClick={() => {
+                      if (!isModUnlocked) return;
+                      // Toggle expand/collapse; if collapsing the current, just collapse
+                      setExpandedMod(isExpanded ? -1 : mi);
+                    }}
                     disabled={!isModUnlocked}
+                    aria-expanded={isExpanded}
                   >
                     <span className="mg-emoji">{isModUnlocked ? module.emoji : '🔒'}</span>
                     <div className="mg-info">
@@ -186,7 +197,7 @@ export const Sidebar = memo(function Sidebar({
                     </div>
                   </button>
 
-                  {mi === modIdx && (
+                  {isExpanded && (
                     <div className="lg">
                       {module.lessons.map((lesson, li) => {
                         const key = `${course.label}|${module.title}|${lesson.title}`;
@@ -196,7 +207,7 @@ export const Sidebar = memo(function Sidebar({
                           <button
                             key={lesson.id}
                             type="button"
-                            className={`lg-btn ${li === lesIdx && !showModQuiz ? 'act' : ''} ${isDone ? 'dn' : ''} ${!unlocked ? 'locked' : ''}`}
+                            className={`lg-btn ${mi === modIdx && li === lesIdx && !showModQuiz ? 'act' : ''} ${isDone ? 'dn' : ''} ${!unlocked ? 'locked' : ''}`}
                             onClick={() => unlocked && onSelectLesson(mi, li)}
                             disabled={!unlocked}
                           >

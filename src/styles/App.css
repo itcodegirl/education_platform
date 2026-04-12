@@ -615,47 +615,57 @@ textarea:focus-visible,
 
 .sb-nav { padding: 0; }
 
-/* ─── Module groups (glass cards) ─── */
+/* ─── Module groups ─── */
 .mg {
-  margin-bottom: 6px;
-  border: 1px solid rgba(255,255,255,0.05);
+  margin-bottom: 4px;
   border-radius: 12px;
-  background: rgba(255,255,255,0.02);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
   overflow: hidden;
-  transition: border-color 0.2s;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+  transition: all 0.2s;
 }
-.mg:hover { border-color: rgba(255,255,255,0.08); }
+.mg.expanded {
+  background: rgba(180,74,255,0.04);
+  border: 1px solid rgba(180,74,255,0.1);
+  margin-bottom: 8px;
+}
+.mg:not(.expanded) { border: 1px solid transparent; }
 .mg-btn {
-  width: 100%; display: flex; align-items: center; gap: 10px; padding: 11px 14px;
+  width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px;
   background: none; border: none; color: var(--text); cursor: pointer; text-align: left; transition: all 0.15s;
+  border-radius: 12px;
 }
-.mg-btn:hover { background: rgba(255,255,255,0.03); }
-.mg.act > .mg-btn {
-  background: linear-gradient(90deg, rgba(180,74,255,0.1), rgba(224,64,160,0.05));
-  border-left: 2px solid var(--purple);
-  padding-left: 12px;
+.mg-btn:hover { background: rgba(255,255,255,0.04); }
+.mg.act > .mg-btn { color: var(--text); }
+.mg-emoji {
+  font-size: 18px;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 10px;
+  background: rgba(180,74,255,0.12);
+  border: 1px solid rgba(180,74,255,0.08);
+  flex-shrink: 0;
 }
-.mg-emoji { font-size: 18px; }
-.mg-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.mg.act .mg-emoji {
+  background: rgba(180,74,255,0.2);
+  border-color: rgba(180,74,255,0.2);
+}
+.mg-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
 .mg-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mg-sub { font-size: 10px; color: var(--text-muted); font-family: 'Poppins', monospace; }
+.mg-sub { font-size: 10px; color: var(--text-muted); font-family: 'Poppins', sans-serif; }
 .mg.locked { opacity: 0.35; }
 
 /* ─── Lesson list ─── */
-.lg { padding: 2px 0 8px; animation: fadeIn 0.2s ease-out; }
+.lg { padding: 4px 0 8px; animation: fadeIn 0.15s ease-out; }
 .lg-btn {
-  width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 14px 8px 40px;
-  background: none; border: none; border-left: 2px solid transparent;
+  width: 100%; display: flex; align-items: center; gap: 10px; padding: 7px 14px 7px 60px;
+  background: none; border: none;
   color: var(--text-dim); cursor: pointer; text-align: left;
-  font-size: 12px; transition: all 0.15s;
+  font-size: 13px; transition: all 0.15s;
+  border-radius: 6px;
 }
 .lg-btn:hover { color: var(--text); background: rgba(255,255,255,0.03); }
-.lg-btn.act { color: var(--cyan); font-weight: 600; border-left-color: var(--purple); background: rgba(180,74,255,0.06); }
+.lg-btn.act { color: var(--cyan); font-weight: 600; }
 .lg-btn.dn .lg-chk { color: var(--cyan); }
-.lg-chk { font-size: 12px; width: 16px; flex-shrink: 0; transition: color 0.2s; }
+.lg-chk { font-size: 12px; width: 14px; flex-shrink: 0; transition: color 0.2s; color: var(--text-muted); }
 .lg-btn.locked { opacity: 0.3; pointer-events: none; }
 .lg-quiz { color: var(--text-muted) !important; font-style: italic; }
 .lg-quiz.act { color: var(--text) !important; font-style: normal; font-weight: 600; }
