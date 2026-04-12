@@ -24,7 +24,12 @@ export const LessonView = memo(function LessonView({
   const { toggleBookmark, isBookmarked, saveNote, getNote } = useProgress();
   const [noteText, setNoteText] = useState("");
   const [showNotes, setShowNotes] = useState(false);
-  const [checkedTasks, setCheckedTasks] = useState(new Set());
+  const [checkedTasks, setCheckedTasks] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("chw-tasks") || "{}");
+      return new Set(saved[lessonKey] || []);
+    } catch { return new Set(); }
+  });
   const [showDevFession, setShowDevFession] = useState(false);
   const saveTimer = useRef(null);
   const bookmarked = isBookmarked(lessonKey);
@@ -50,7 +55,11 @@ export const LessonView = memo(function LessonView({
   useEffect(() => {
     setNoteText(getNote(lessonKey));
     setShowNotes(false);
-    setCheckedTasks(new Set());
+    // Restore persisted task state for this lesson
+    try {
+      const saved = JSON.parse(localStorage.getItem("chw-tasks") || "{}");
+      setCheckedTasks(new Set(saved[lessonKey] || []));
+    } catch { setCheckedTasks(new Set()); }
     setShowDevFession(false);
   }, [lessonKey, getNote]);
 
@@ -68,6 +77,12 @@ export const LessonView = memo(function LessonView({
       const next = new Set(prev);
       if (next.has(index)) next.delete(index);
       else next.add(index);
+      // Persist to localStorage
+      try {
+        const all = JSON.parse(localStorage.getItem("chw-tasks") || "{}");
+        all[lessonKey] = [...next];
+        localStorage.setItem("chw-tasks", JSON.stringify(all));
+      } catch { /* silent */ }
       return next;
     });
   };

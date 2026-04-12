@@ -174,6 +174,7 @@ export function AppLayout() {
   // ─── Render ───────────────────────────────
   return (
     <div className={`shell ${theme}`} data-course={course.id}>
+      <a className="skip-link" href="#main-content">Skip to main content</a>
       <EmailVerifyBanner />
       <OfflineIndicator />
       <Sidebar
@@ -196,7 +197,7 @@ export function AppLayout() {
         onOpenTool={handleOpenTool}
       />
 
-      <main className="mn" ref={mainRef}>
+      <main className="mn" ref={mainRef} id="main-content">
         <div className="topbar">
           <div className="topbar-inner">
             <button
