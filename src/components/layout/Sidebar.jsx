@@ -1,7 +1,12 @@
-import { useState, memo, useMemo, useEffect, useRef } from 'react';
+// ═══════════════════════════════════════════════
+// SIDEBAR — Navigation-first glassmorphism design
+// Stats moved to ProfilePopover (avatar click)
+// ═══════════════════════════════════════════════
+
+import { useState, memo, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useProgress, useAuth } from '../../providers';
-import { getLevel, getXPInLevel, XP_PER_LEVEL, DAILY_GOAL } from '../../utils/helpers';
 import { QUIZ_MAP } from '../../data';
+import { ProfilePopover } from './ProfilePopover';
 
 function isLessonUnlocked(course, modules, mi, li, completed) {
   if (mi === 0 && li === 0) return true;
@@ -23,14 +28,14 @@ function isLessonUnlocked(course, modules, mi, li, completed) {
 }
 
 const TOOLS = [
-  { id: 'stats', icon: '📊', label: 'Your Stats' },
+  { id: 'stats', icon: '📊', label: 'Stats' },
   { id: 'bookmarks', icon: '★', label: 'Bookmarks' },
   { id: 'glossary', icon: '📖', label: 'Glossary' },
   { id: 'challenges', icon: '🏋️', label: 'Challenges' },
   { id: 'badges', icon: '🏆', label: 'Badges' },
-  { id: 'sr', icon: '🔄', label: 'Review Queue' },
+  { id: 'sr', icon: '🔄', label: 'Review' },
   { id: 'cheatsheet', icon: '📋', label: 'Cheat Sheets' },
-  { id: 'projects', icon: '🔨', label: 'Build Projects' },
+  { id: 'projects', icon: '🔨', label: 'Projects' },
 ];
 
 export const Sidebar = memo(function Sidebar({
@@ -49,42 +54,37 @@ export const Sidebar = memo(function Sidebar({
   onSelectModQuiz,
   onOpenTool,
 }) {
-  const { completed = [], xpTotal = 0, streak = 0, dailyCount = 0 } = useProgress();
-  const { user, signOut } = useAuth();
+  const { completed = [] } = useProgress();
+  const { user } = useAuth();
   const [lockMode, setLockMode] = useState(() => localStorage.getItem('chw-lock-mode') === 'true');
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
   const asideRef = useRef(null);
   const course = courses[courseIdx];
   const modules = course.modules;
 
+  const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Coder';
+  const userInitial = displayName.trim().charAt(0).toUpperCase() || 'C';
+
   const { total, courseDone, pct } = useMemo(() => {
-    const totalLessons = modules.reduce((sum, module) => sum + module.lessons.length, 0);
-    const completedLessons = completed.filter((key) => key.startsWith(course.label)).length;
+    const totalLessons = modules.reduce((sum, m) => sum + m.lessons.length, 0);
+    const completedLessons = completed.filter((k) => k.startsWith(course.label)).length;
     const progressPct = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
     return { total: totalLessons, courseDone: completedLessons, pct: progressPct };
   }, [modules, completed, course.label]);
 
-  const level = getLevel(xpTotal);
-  const inLevel = getXPInLevel(xpTotal);
-  const xpPct = Math.round((inLevel / XP_PER_LEVEL) * 100);
-  const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Coder';
-  const userInitial = displayName.trim().charAt(0).toUpperCase() || 'C';
+  const togglePopover = useCallback(() => setPopoverOpen((v) => !v), []);
+  const closePopover = useCallback(() => setPopoverOpen(false), []);
 
+  // Mobile: lock body scroll, Escape to close
   useEffect(() => {
     if (!isMobile || !isOpen) return undefined;
-
-    const previousOverflow = document.body.style.overflow;
+    const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     asideRef.current?.focus();
-
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') onClose();
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener('keydown', handleKeyDown);
-    };
+    const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handleKey);
+    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', handleKey); };
   }, [isMobile, isOpen, onClose]);
 
   return (
@@ -100,127 +100,71 @@ export const Sidebar = memo(function Sidebar({
         role={isMobile ? 'dialog' : 'complementary'}
         tabIndex={isMobile ? -1 : undefined}
       >
+        {/* ─── Brand + Avatar row ─── */}
         <div className="sb-head">
           <div className="brand">
-            <span className="brand-bolt">⚡</span>
-            <div className="brand-copy">
-              <h1 className="brand-name">CodeHerWay</h1>
-              <span className="brand-sub">Learn. Build. Ship.</span>
-              <span className="brand-course">{course.icon} {course.label}</span>
-            </div>
+            <span className="brand-bolt" aria-hidden="true">⚡</span>
+            <h1 className="brand-name">CodeHerWay</h1>
           </div>
-          {!isMobile && (
+          <div className="sb-head-actions">
             <button
               type="button"
-              className="sb-collapse"
-              onClick={onToggleCollapse}
-              aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              className={`sb-avatar ${popoverOpen ? 'active' : ''}`}
+              onClick={togglePopover}
+              aria-label="Open profile and stats"
+              aria-expanded={popoverOpen}
+              title={displayName}
             >
-              {isCollapsed ? '»' : '«'}
+              {userInitial}
             </button>
-          )}
-          <button type="button" className="sb-close" onClick={onClose} aria-label="Close sidebar">✕</button>
+            {!isMobile && (
+              <button
+                type="button"
+                className="sb-collapse"
+                onClick={onToggleCollapse}
+                aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              >
+                {isCollapsed ? '»' : '«'}
+              </button>
+            )}
+            <button type="button" className="sb-close" onClick={onClose} aria-label="Close sidebar">✕</button>
+          </div>
         </div>
 
-        <div className="user-info">
-          <div
-            className="user-avatar"
-            style={{ cursor: 'pointer' }}
-            onClick={() => { window.location.hash = '#profile'; window.location.reload(); }}
-            title="View profile"
-            role="button"
-            tabIndex={0}
-          >
-            {userInitial}
-          </div>
-          <div className="user-details">
-            <span
-              className="user-name"
-              style={{ cursor: 'pointer' }}
-              onClick={() => { window.location.hash = '#profile'; window.location.reload(); }}
-              title="View profile"
-            >
-              {displayName}
-            </span>
-            <span className="user-level">Level {level}</span>
-          </div>
-          <button type="button" className="user-logout" onClick={signOut} title="Sign out" aria-label="Sign out">↗</button>
-        </div>
+        {/* ─── Profile Popover ─── */}
+        <ProfilePopover isOpen={popoverOpen} onClose={closePopover} isMobile={isMobile} />
 
-        <div className="sb-section-title">Choose a path</div>
-        <div className="course-switcher">
-          {courses.map((courseOption, ci) => (
+        {/* ─── Course Switcher (horizontal pills) ─── */}
+        <div className="cs-strip">
+          {courses.map((c, ci) => (
             <button
-              key={courseOption.id}
+              key={c.id}
               type="button"
-              className={`cs-btn ${ci === courseIdx ? 'on' : ''}`}
+              className={`cs-pill ${ci === courseIdx ? 'on' : ''}`}
               onClick={() => onSelectCourse(ci)}
-              style={ci === courseIdx ? { '--cs-accent': courseOption.accent } : undefined}
+              style={{ '--cs-accent': c.accent }}
+              aria-label={`Switch to ${c.label} course`}
+              aria-current={ci === courseIdx ? 'true' : undefined}
             >
-              <span className="cs-icon">{courseOption.icon}</span>
-              <span className="cs-label">{courseOption.label}</span>
+              <span className="cs-pill-icon">{c.icon}</span>
+              <span className="cs-pill-label">{c.label}</span>
             </button>
           ))}
         </div>
 
-        <div className="sb-section-title">Your momentum</div>
-        {completed.length === 0 && (
-          <div className="sb-empty-state">
-            <span className="sb-empty-icon">🚀</span>
-            <p>Your first lesson is waiting! Complete it to start tracking your progress.</p>
+        {/* ─── Course progress (compact) ─── */}
+        <div className="sb-progress-mini">
+          <span className="sb-pm-text">{courseDone}/{total}</span>
+          <div className="sb-pm-track">
+            <div className="sb-pm-fill" style={{ width: `${pct}%`, background: course.accent }} />
           </div>
-        )}
-        <div className="prog">
-          <div className="prog-info">
-            <span>{courseDone}/{total} lessons</span>
-            <span className="prog-pct">{pct}%</span>
-          </div>
-          <div className="prog-track">
-            <div className="prog-fill" style={{ width: `${pct}%`, background: course.accent }} />
-          </div>
+          <span className="sb-pm-pct">{pct}%</span>
         </div>
 
-        <div className="stats-panel">
-          <div className="stats-row">
-            <div className="stat-card">
-              <div className="stat-num">{completed.length}</div>
-              <div className="stat-label">Done</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-num">{streak}🔥</div>
-              <div className="stat-label">Streak</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-num">{Math.floor(completed.length * 3 / 60)}h</div>
-              <div className="stat-label">Time</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="xp-bar-wrap">
-          <div className="xp-info">
-            <span className="xp-level">Level <span className="lvl-num">{level}</span></span>
-            <span className="xp-amount">{inLevel}/{XP_PER_LEVEL} XP</span>
-          </div>
-          <div className="xp-track"><div className="xp-fill" style={{ width: `${xpPct}%` }} /></div>
-        </div>
-
-        <div className="daily-goal">
-          <div className="dg-head">
-            <span className="dg-label">Daily Goal</span>
-            <span className="dg-count">{dailyCount}/{DAILY_GOAL} {dailyCount >= DAILY_GOAL ? '✅' : ''}</span>
-          </div>
-          <div className="dg-dots">
-            {Array.from({ length: DAILY_GOAL }, (_, index) => (
-              <div key={index} className={`dg-dot ${index < dailyCount ? 'filled' : ''}`} />
-            ))}
-          </div>
-        </div>
-
+        {/* ─── Module/Lesson Tree ─── */}
         <div className="sb-scroll">
-          <div className="sb-section-title sb-section-title-nav">
-            Course map
+          <div className="sb-map-header">
+            <span className="sb-map-title">Modules</span>
             <button
               type="button"
               className="sb-roadmap-btn"
@@ -231,40 +175,34 @@ export const Sidebar = memo(function Sidebar({
               🗺️
             </button>
           </div>
-          <nav className="sb-nav">
+          <nav className="sb-nav" aria-label="Course modules and lessons">
             {modules.map((module, mi) => {
-              const moduleCompletedCount = module.lessons.filter((lesson) =>
-                completed.includes(`${course.label}|${module.title}|${lesson.title}`)
+              const modDone = module.lessons.filter((l) =>
+                completed.includes(`${course.label}|${module.title}|${l.title}`),
               ).length;
-              const isModuleUnlocked = !lockMode || isLessonUnlocked(course, modules, mi, 0, completed);
+              const isModUnlocked = !lockMode || isLessonUnlocked(course, modules, mi, 0, completed);
 
               return (
-                <div key={module.id} className={`mg ${mi === modIdx ? 'act' : ''} ${!isModuleUnlocked ? 'locked' : ''}`}>
+                <div key={module.id} className={`mg ${mi === modIdx ? 'act' : ''} ${!isModUnlocked ? 'locked' : ''}`}>
                   <button
                     type="button"
                     className="mg-btn"
-                    onClick={() => isModuleUnlocked && onSelectLesson(mi, 0)}
-                    disabled={!isModuleUnlocked}
+                    onClick={() => isModUnlocked && onSelectLesson(mi, 0)}
+                    disabled={!isModUnlocked}
                   >
-                    <span className="mg-emoji">{isModuleUnlocked ? module.emoji : '🔒'}</span>
+                    <span className="mg-emoji">{isModUnlocked ? module.emoji : '🔒'}</span>
                     <div className="mg-info">
                       <span className="mg-name">{module.title}</span>
-                      <span className="mg-sub">
-                        {moduleCompletedCount}/{module.lessons.length}
-                        {module.difficulty && (
-                          <span className={`mg-diff mg-diff-${module.difficulty}`}>{module.difficulty}</span>
-                        )}
-                      </span>
+                      <span className="mg-sub">{modDone}/{module.lessons.length}</span>
                     </div>
                   </button>
 
                   {mi === modIdx && (
                     <div className="lg">
                       {module.lessons.map((lesson, li) => {
-                        const lessonKey = `${course.label}|${module.title}|${lesson.title}`;
-                        const isDone = completed.includes(lessonKey);
+                        const key = `${course.label}|${module.title}|${lesson.title}`;
+                        const isDone = completed.includes(key);
                         const unlocked = !lockMode || isLessonUnlocked(course, modules, mi, li, completed);
-
                         return (
                           <button
                             key={lesson.id}
@@ -278,7 +216,6 @@ export const Sidebar = memo(function Sidebar({
                           </button>
                         );
                       })}
-
                       {QUIZ_MAP.has(`m:${module.id}`) && (
                         <button
                           type="button"
@@ -297,45 +234,43 @@ export const Sidebar = memo(function Sidebar({
           </nav>
         </div>
 
-        {onOpenTool && (
-          <>
-            <div className="sb-section-title sb-tools-title">Tools</div>
-            <div className="sb-tools">
-              {TOOLS.map((tool) => (
-                <button
-                  key={tool.id}
-                  type="button"
-                  className="sb-tool-btn"
-                  onClick={() => {
-                    onOpenTool(tool.id);
-                    if (isMobile) onClose();
-                  }}
-                >
-                  <span className="sb-tool-icon">{tool.icon}</span>
-                  <span className="sb-tool-label">{tool.label}</span>
-                </button>
-              ))}
+        {/* ─── Footer: Tools + Lock ─── */}
+        <div className="sb-footer">
+          {onOpenTool && (
+            <div className="sb-tools-section">
               <button
                 type="button"
-                className="sb-tool-btn"
-                onClick={() => window.print()}
+                className={`sb-tools-toggle ${toolsOpen ? 'open' : ''}`}
+                onClick={() => setToolsOpen((v) => !v)}
+                aria-expanded={toolsOpen}
               >
-                <span className="sb-tool-icon">🖨️</span>
-                <span className="sb-tool-label">Print / PDF</span>
+                <span>🛠 Tools</span>
+                <span className="sb-tools-arrow">{toolsOpen ? '▾' : '▸'}</span>
               </button>
+              {toolsOpen && (
+                <div className="sb-tools-grid">
+                  {TOOLS.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      className="sb-tg-btn"
+                      onClick={() => { onOpenTool(t.id); if (isMobile) onClose(); }}
+                      title={t.label}
+                      aria-label={t.label}
+                    >
+                      <span className="sb-tg-icon">{t.icon}</span>
+                      <span className="sb-tg-label">{t.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          </>
-        )}
-
-        <div className="sb-lock-toggle">
+          )}
           <label className="lock-label">
             <input
               type="checkbox"
               checked={lockMode}
-              onChange={(event) => {
-                setLockMode(event.target.checked);
-                localStorage.setItem('chw-lock-mode', event.target.checked);
-              }}
+              onChange={(e) => { setLockMode(e.target.checked); localStorage.setItem('chw-lock-mode', e.target.checked); }}
               aria-label="Toggle sequential lock mode"
             />
             <span className="lock-text">{lockMode ? '🔒 Sequential' : '🔓 Free roam'}</span>
