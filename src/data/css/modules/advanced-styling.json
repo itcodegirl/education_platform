@@ -11,7 +11,12 @@
       "prereqs": [],
       "difficulty": "intermediate",
       "duration": "18 min",
-      "metadata": { "estimatedTime": 18, "difficulty": "intermediate", "conceptsCount": 3, "tasksCount": 3 },
+      "metadata": {
+        "estimatedTime": 18,
+        "difficulty": "intermediate",
+        "conceptsCount": 3,
+        "tasksCount": 3
+      },
       "hook": {
         "accomplishments": [
           "Create a theme system with CSS variables",
@@ -43,12 +48,12 @@
           {
             "name": "Theme switching with data attributes",
             "definition": "Define different variable values under [data-theme=\"dark\"] or [data-theme=\"light\"] selectors. Toggle the data-theme attribute with JavaScript to instantly switch all colors.",
-            "analogy": "A light switch for your entire website \u2014 flip it and every room changes at once."
+            "analogy": "A light switch for your entire website — flip it and every room changes at once."
           },
           {
             "name": "Design systems with variables",
             "definition": "Organize all your values (colors, spacing, typography, shadows, radii, transitions) as variables. This creates a consistent, maintainable system where everything matches.",
-            "analogy": "A master control panel \u2014 adjust one dial and every part of the building responds."
+            "analogy": "A master control panel — adjust one dial and every part of the building responds."
           }
         ],
         "keyTakeaway": "CSS variables make your code maintainable and your themes switchable. Define once, use everywhere, change in one place."
@@ -56,7 +61,7 @@
       "build": {
         "goal": "Build a light/dark theme switcher",
         "codeComparison": {
-          "old": "/* Hard-coded colors \u2014 change means updating many places */\n.card { background-color: white; }\n.button { background-color: #667eea; }\nh1 { color: #667eea; }",
+          "old": "/* Hard-coded colors — change means updating many places */\n.card { background-color: white; }\n.button { background-color: #667eea; }\nh1 { color: #667eea; }",
           "new": "/* Light theme */\n:root {\n  --primary: #667eea;\n  --bg: #f9f9f9;\n  --card-bg: #ffffff;\n  --text: #333;\n}\n\n/* Dark theme */\n[data-theme=\"dark\"] {\n  --primary: #8b9de8;\n  --bg: #1a1a1a;\n  --card-bg: #2a2a2a;\n  --text: #f0f0f0;\n}\n\n/* Same CSS, different look! */\n.card { background: var(--card-bg); }\n.button { background: var(--primary); }\nh1 { color: var(--primary); }"
         },
         "hint": "Add transition: background-color 0.3s ease, color 0.3s ease to body and cards for smooth theme switching!"
@@ -87,8 +92,196 @@
         ]
       },
       "bridge": {
-        "preview": "In Lesson 4.4, you'll learn to rotate, scale, skew, and create 3D effects \u2014 taking your designs to the next level!",
+        "preview": "In Lesson 4.4, you'll learn to rotate, scale, skew, and create 3D effects — taking your designs to the next level!",
         "nextLessonId": "css-4-4"
+      }
+    },
+    {
+      "id": "css-4-4",
+      "title": "Transforms and Advanced Effects",
+      "prereqs": [
+        "css-4-3"
+      ],
+      "difficulty": "intermediate",
+      "duration": "20 min",
+      "metadata": {
+        "estimatedTime": 20,
+        "difficulty": "intermediate",
+        "conceptsCount": 4,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Rotate, scale, and skew elements",
+          "Create 3D card flip effects",
+          "Add perspective for depth",
+          "Build interactive hover transformations"
+        ]
+      },
+      "do": {
+        "title": "Transform elements",
+        "steps": [
+          "Create a new file and save it as transforms.html",
+          "Copy and paste the code below",
+          "Save and open in browser",
+          "Hover over each box to see different transforms!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>CSS Transforms</title>\n  <style>\n    body {\n      margin: 0;\n      padding: 60px 40px;\n      font-family: Arial, sans-serif;\n      background-color: #f5f5f5;\n    }\n    \n    h2 {\n      text-align: center;\n      color: #333;\n      margin-bottom: 30px;\n    }\n    \n    .demo-grid {\n      display: grid;\n      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));\n      gap: 40px;\n      max-width: 1000px;\n      margin: 60px auto;\n    }\n    \n    .box {\n      width: 150px;\n      height: 150px;\n      background: linear-gradient(135deg, #667eea, #764ba2);\n      margin: 0 auto;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n      color: white;\n      font-weight: bold;\n      border-radius: 12px;\n      transition: transform 0.3s ease;\n    }\n    \n    .rotate:hover { transform: rotate(45deg); }\n    .scale:hover { transform: scale(1.3); }\n    .skew:hover { transform: skew(-10deg, -10deg); }\n    .translate:hover { transform: translateY(-20px); }\n    .multi:hover { transform: rotate(15deg) scale(1.2) translateY(-10px); }\n  </style>\n</head>\n<body>\n  <h1 style=\"text-align: center; color: #333;\">CSS Transform Effects</h1>\n  <p style=\"text-align: center; color: #666;\">Hover over each box to see the transform!</p>\n  \n  <div class=\"demo-grid\">\n    <div class=\"box rotate\">Rotate</div>\n    <div class=\"box scale\">Scale</div>\n    <div class=\"box skew\">Skew</div>\n    <div class=\"box translate\">Move</div>\n    <div class=\"box multi\">Multi</div>\n  </div>\n</body>\n</html>",
+        "result": "The transform property lets you rotate, scale, skew, and move elements — all with smooth transitions!",
+        "proofRequired": "Screenshot showing the transform examples."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "rotate(), scale(), translate()",
+            "definition": "rotate(45deg) spins an element. scale(1.3) makes it 130% size. translate(50px, -20px) moves it. Can combine: transform: rotate(15deg) scale(1.2).",
+            "analogy": "Giving an object physical instructions — \"turn 45 degrees, grow to 130%, move up 20 pixels.\"​"
+          },
+          {
+            "name": "3D transforms with perspective",
+            "definition": "perspective: 1000px creates 3D space. rotateY(180deg) flips a card. transform-style: preserve-3d enables 3D on children. backface-visibility: hidden hides the back.",
+            "analogy": "Looking through a window at objects in 3D space — perspective controls how far away you are from the window."
+          },
+          {
+            "name": "Why transforms are special",
+            "definition": "Transforms don't affect document flow (other elements don't move). They're GPU-accelerated for smooth performance. They don't trigger layout recalculation.",
+            "analogy": "Moving a sticker on a whiteboard — everything underneath stays exactly where it was."
+          },
+          {
+            "name": "transform-origin",
+            "definition": "Controls the pivot point for transforms. Default is center. transform-origin: top left makes rotation pivot from the corner.",
+            "analogy": "The pin in a pinwheel — it determines what point the element spins around."
+          }
+        ],
+        "keyTakeaway": "Transform lets you rotate, scale, skew, and move elements without affecting layout. Combine with transitions for smooth interactive effects."
+      },
+      "build": {
+        "goal": "Create a 3D card flip and a hover gallery with transforms",
+        "codeComparison": {
+          "old": "/* Simple hover — just changes color */\n.card:hover {\n  background-color: blue;\n}",
+          "new": "/* 3D card flip */\n.card-container {\n  perspective: 1000px;\n}\n.card-flip {\n  transform-style: preserve-3d;\n  transition: transform 0.6s;\n}\n.card-container:hover .card-flip {\n  transform: rotateY(180deg);\n}\n.card-front, .card-back {\n  backface-visibility: hidden;\n}\n.card-back {\n  transform: rotateY(180deg);\n}"
+        },
+        "hint": "The back card starts rotated 180deg so when the container flips, it appears facing forward!"
+      },
+      "challenge": {
+        "title": "Build an Animated Product Showcase",
+        "mission": "Create a product card with multiple transform effects — rotation, scale, and 3D perspective.",
+        "requirements": [
+          "Product image with hover zoom",
+          "Card rotates slightly in 3D on hover",
+          "\"Add to Cart\" button scales on hover",
+          "Price tag with attention-grabbing pulse animation",
+          "Smooth transitions on all transforms",
+          "Professional design"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Product Showcase</title>\n  <style>\n    body {\n      margin: 0;\n      padding: 80px 40px;\n      font-family: Arial, sans-serif;\n      background: linear-gradient(135deg, #667eea, #764ba2);\n      min-height: 100vh;\n      display: flex;\n      justify-content: center;\n      align-items: center;\n    }\n    \n    /* Add your product card styles here */\n    \n  </style>\n</head>\n<body>\n  <div class=\"product-card\">\n    <div class=\"product-image\">\n      <img src=\"https://via.placeholder.com/400x300/4ECDC4/FFFFFF?text=Product\" alt=\"Product\">\n      <span class=\"sale-badge\">SALE</span>\n    </div>\n    <div class=\"product-info\">\n      <h2>Amazing Product</h2>\n      <p>This is the best product you'll ever own.</p>\n      <div class=\"product-footer\">\n        <span class=\"price\">9.99</span>\n        <button class=\"add-to-cart\">Add to Cart</button>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+        "bonusChallenge": "Add a \"Quick View\" modal that appears when clicking the image!"
+      },
+      "summary": {
+        "capabilities": [
+          "Use transform functions (rotate, scale, skew, translate)",
+          "Combine multiple transforms",
+          "Create 3D card flip effects",
+          "Use perspective for depth",
+          "Build interactive hover transformations",
+          "Control transform-origin",
+          "Create product showcases with advanced effects"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 4.5, you'll learn to add shadows, blur, brightness, and other visual effects to create depth and polish!",
+        "nextLessonId": "css-4-5"
+      }
+    },
+    {
+      "id": "css-4-5",
+      "title": "Shadows, Filters, and Visual Effects",
+      "prereqs": [
+        "css-4-4"
+      ],
+      "difficulty": "intermediate",
+      "duration": "18 min",
+      "metadata": {
+        "estimatedTime": 18,
+        "difficulty": "intermediate",
+        "conceptsCount": 3,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Add realistic shadows for depth",
+          "Use filters to blur, brighten, and adjust images",
+          "Create glassmorphism effects",
+          "Build glowing elements"
+        ]
+      },
+      "do": {
+        "title": "Master box-shadow",
+        "steps": [
+          "Create a new file and save it as shadows-filters.html",
+          "Copy and paste the code below",
+          "Save and open in browser",
+          "See how different shadows create different levels of depth!"
+        ],
+        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Shadows & Filters</title>\n  <style>\n    body {\n      margin: 0;\n      padding: 60px 40px;\n      font-family: Arial, sans-serif;\n      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n      min-height: 100vh;\n    }\n    \n    h1 {\n      text-align: center;\n      color: white;\n      margin-bottom: 60px;\n    }\n    \n    .shadow-examples {\n      display: grid;\n      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));\n      gap: 40px;\n      max-width: 1200px;\n      margin: 0 auto;\n    }\n    \n    .shadow-card {\n      background-color: white;\n      padding: 40px 30px;\n      border-radius: 12px;\n      text-align: center;\n    }\n    \n    .shadow-card h3 { margin: 0 0 10px 0; color: #333; }\n    .shadow-card p { margin: 0; color: #666; font-size: 14px; }\n    \n    .subtle { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }\n    .medium { box-shadow: 0 4px 12px rgba(0,0,0,0.15); }\n    .strong { box-shadow: 0 10px 30px rgba(0,0,0,0.2); }\n    .colored { box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4); }\n    .layered { box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1), 0 16px 32px rgba(0,0,0,0.1); }\n    .inner { box-shadow: inset 0 2px 10px rgba(0,0,0,0.1); }\n  </style>\n</head>\n<body>\n  <h1>Box Shadow Examples</h1>\n  <div class=\"shadow-examples\">\n    <div class=\"shadow-card subtle\"><h3>Subtle</h3><p>Cards and containers</p></div>\n    <div class=\"shadow-card medium\"><h3>Medium</h3><p>Interactive elements</p></div>\n    <div class=\"shadow-card strong\"><h3>Strong</h3><p>Strong elevation</p></div>\n    <div class=\"shadow-card colored\"><h3>Colored</h3><p>Brand personality</p></div>\n    <div class=\"shadow-card layered\"><h3>Layered</h3><p>Multiple shadows</p></div>\n    <div class=\"shadow-card inner\"><h3>Inner</h3><p>Inset effect</p></div>\n  </div>\n</body>\n</html>",
+        "result": "Box-shadow adds depth and elevation, making flat designs feel three-dimensional!",
+        "proofRequired": "Screenshot showing the different shadow styles."
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "box-shadow",
+            "definition": "Syntax: box-shadow: horizontal vertical blur spread color. Creates depth. Use multiple shadows (comma-separated) for realistic layered effects. Add \"inset\" for inner shadows.",
+            "analogy": "A light source creating a shadow. Higher elevation = larger, softer shadow. Like picking up a card from a table."
+          },
+          {
+            "name": "CSS filters",
+            "definition": "filter: blur(4px), grayscale(100%), brightness(150%), saturate(200%), hue-rotate(180deg). Apply visual effects to any element. Can combine: filter: blur(2px) brightness(120%).",
+            "analogy": "Instagram filters for CSS — blur, black-and-white, brightness, all applied in code."
+          },
+          {
+            "name": "Glassmorphism with backdrop-filter",
+            "definition": "backdrop-filter: blur(10px) blurs content BEHIND the element. Combined with rgba() semi-transparent backgrounds and subtle borders, creates the modern \"frosted glass\" effect.",
+            "analogy": "Looking through frosted glass — you can see shapes and colors behind it, but they're blurred and softened."
+          }
+        ],
+        "keyTakeaway": "box-shadow creates depth, filter transforms elements visually, backdrop-filter blurs what's behind an element. Together they create modern, polished designs."
+      },
+      "build": {
+        "goal": "Apply filters to images and create a glassmorphism card",
+        "codeComparison": {
+          "old": "/* Flat card — no depth */\n.card {\n  background: white;\n  border: 1px solid #ddd;\n}",
+          "new": "/* Glassmorphism card */\n.glass-card {\n  background: rgba(255, 255, 255, 0.1);\n  backdrop-filter: blur(10px);\n  -webkit-backdrop-filter: blur(10px);\n  border-radius: 20px;\n  border: 1px solid rgba(255, 255, 255, 0.2);\n  padding: 40px;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);\n}"
+        },
+        "hint": "backdrop-filter needs the -webkit- prefix for Safari. Always include both!"
+      },
+      "challenge": {
+        "title": "Build a Modern Login Card",
+        "mission": "Create a beautiful login form with glassmorphism, shadows, and filter effects.",
+        "requirements": [
+          "Glassmorphism card on a gradient background",
+          "Layered shadows for depth",
+          "Input fields with focus glow effects",
+          "Smooth transitions on all interactions",
+          "Semi-transparent styling throughout",
+          "Professional, modern design"
+        ],
+        "starterCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Modern Login</title>\n  <style>\n    body {\n      font-family: Arial, sans-serif;\n      background: linear-gradient(135deg, #667eea, #764ba2);\n      min-height: 100vh;\n      display: flex;\n      justify-content: center;\n      align-items: center;\n    }\n    \n    /* Add your glassmorphism login card styles here */\n    \n  </style>\n</head>\n<body>\n  <div class=\"login-card\">\n    <h2>Welcome Back</h2>\n    <form>\n      <input type=\"email\" placeholder=\"Email\" required>\n      <input type=\"password\" placeholder=\"Password\" required>\n      <button type=\"submit\">Sign In</button>\n    </form>\n    <p>Don't have an account? <a href=\"#\">Sign up</a></p>\n  </div>\n</body>\n</html>",
+        "bonusChallenge": "Add social login buttons (Google, GitHub) with icon styling!"
+      },
+      "summary": {
+        "capabilities": [
+          "Create depth with box-shadow",
+          "Use multiple layered shadows",
+          "Apply CSS filters (blur, grayscale, brightness)",
+          "Create glassmorphism effects with backdrop-filter",
+          "Build modern login forms",
+          "Combine shadows and filters for visual impact"
+        ]
+      },
+      "bridge": {
+        "preview": "In Lesson 4.6, you'll combine EVERYTHING you've learned across all 4 modules to build a complete, professional, polished portfolio website. This is your CSS capstone project!",
+        "nextLessonId": "css-4-6"
       }
     }
   ]
