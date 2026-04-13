@@ -1,0 +1,371 @@
+{
+  "id": 501,
+  "emoji": "🐍",
+  "title": "Python Foundations",
+  "tagline": "Write real Python code from your very first line.",
+  "difficulty": "beginner",
+  "lessons": [
+    {
+      "id": "py-1-1",
+      "title": "Run Your First Python Code",
+      "prereqs": [],
+      "difficulty": "beginner",
+      "duration": "15 min",
+      "metadata": {
+        "estimatedTime": 15,
+        "difficulty": "beginner",
+        "conceptsCount": 3,
+        "tasksCount": 2
+      },
+      "hook": {
+        "accomplishments": [
+          "Install Python on your computer",
+          "Write your first line of code",
+          "See it work in real-time"
+        ]
+      },
+      "do": {
+        "title": "Install Python and run your first code",
+        "steps": [
+          "Go to python.org/downloads",
+          "Click the big yellow 'Download Python' button",
+          "Run the installer",
+          "IMPORTANT: Check the box that says 'Add Python to PATH' before clicking Install",
+          "Click 'Install Now' and wait for installation (2-3 minutes)",
+          "Open Visual Studio Code (or download it free from code.visualstudio.com)",
+          "Click File → New File",
+          "Click File → Save As",
+          "Name it hello.py (the .py tells your computer it's Python code)",
+          "Save it to your Desktop"
+        ],
+        "code": "print(\"Hello, CodeHerWay! I just ran my first Python code\")",
+        "result": "Your computer just read your Python code and displayed your message!",
+        "proofRequired": "your code AND the output message in the terminal"
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "Python (programming language)",
+            "definition": "A programming language - a way to give instructions to your computer. Unlike HTML (which structures content) or CSS (which styles content), Python can perform actions, make decisions, and process data.",
+            "analogy": "If HTML is the blueprint of a house and CSS is the paint, Python is the electricity that makes things actually work."
+          },
+          {
+            "name": "The print() function",
+            "definition": "Tells Python to display something on the screen. Whatever you put inside the parentheses () will appear in the terminal.",
+            "analogy": "print() doesn't print to a printer. It 'prints' (displays) text on your screen."
+          },
+          {
+            "name": "The .py file extension",
+            "definition": "Tells your computer 'this is Python code'. Just like .html tells your computer 'this is a webpage' and .docx means 'this is a Word document'.",
+            "analogy": "A label on a container - .py tells your computer how to open and run the file."
+          }
+        ],
+        "keyTakeaway": "Python reads your code top to bottom and executes (runs) each instruction."
+      },
+      "build": {
+        "goal": "Personalize the message with your actual name and something you're excited to learn",
+        "codeComparison": {
+          "old": "print(\"Hello, CodeHerWay! I just ran my first Python code\")",
+          "new": "print(\"Hello! My name is YOUR_NAME and I'm learning Python to build AI apps!\")"
+        },
+        "hint": "Try adding more lines! Each print() creates a new line:\nprint(\"Hello! My name is Jenna\")\nprint(\"I'm learning Python\")\nprint(\"This is my first lesson and I'm already running code!\")"
+      },
+      "challenge": {
+        "title": "Make a Motivational Message Generator",
+        "mission": "Create a Python file that displays a three-part motivational message when you run it.",
+        "requirements": [
+          "Use 3 separate print() statements",
+          "First line: Your name + a greeting",
+          "Second line: What you're learning",
+          "Third line: Why it matters to you"
+        ],
+        "starterCode": "print(\"...\")\nprint(\"...\")\nprint(\"...\")",
+        "bonusChallenge": "Add emojis to each line to make it more fun! (Yes, Python supports emojis)"
+      },
+      "summary": {
+        "capabilities": [
+          "Install Python on your computer",
+          "Create and save .py files",
+          "Write code using the print() function",
+          "Run Python code and see results"
+        ]
+      },
+      "bridge": {
+        "preview": "In the next lesson, you'll learn about variables - how to store and reuse information in your code (so you don't have to type the same thing over and over)."
+      },
+      "devFession": "I spent 45 minutes trying to install Python the first time because I forgot to check 'Add to PATH'. Then I blamed my computer. It was me the whole time."
+    },
+    {
+      "id": "py-1-2",
+      "title": "Store Information with Variables",
+      "prereqs": ["py-1-1"],
+      "difficulty": "beginner",
+      "duration": "18 min",
+      "metadata": {
+        "estimatedTime": 18,
+        "difficulty": "beginner",
+        "conceptsCount": 4,
+        "tasksCount": 3
+      },
+      "hook": {
+        "accomplishments": [
+          "Store your name in code (so you can reuse it)",
+          "Create a 'user profile' with multiple pieces of information",
+          "Understand why variables are the foundation of ALL programming"
+        ]
+      },
+      "do": {
+        "title": "Create your first variable",
+        "steps": [
+          "Open VS Code",
+          "Create a new file: File → New File",
+          "Save it as variables.py on your Desktop",
+          "Copy the code below",
+          "Save the file (Ctrl+S or Cmd+S)",
+          "Run it: Right-click → Run Python File in Terminal",
+          "Watch what happens - your name appears 3 times!"
+        ],
+        "code": "name = \"Jenna\"\n\nprint(name)\nprint(name)\nprint(name)",
+        "result": "You stored 'Jenna' in a container called name, then displayed it 3 times without typing it 3 times. That's the power of variables!",
+        "proofRequired": "your code AND the terminal with your name repeated 3 times"
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "Variables",
+            "definition": "A labeled container that stores information. Once you store something, you can reuse it over and over without retyping it.",
+            "analogy": "A labeled box in your house. You put your keys in a box labeled 'keys', so you always know where to find them. In code, you put 'Jenna' in a variable called name, so you can always access it."
+          },
+          {
+            "name": "The equals sign (=)",
+            "definition": "Stores a value in a variable. In Python, = doesn't mean 'equals' like in math. It means 'store this value in this variable.'",
+            "analogy": "name = \"Jenna\" isn't asking 'does name equal Jenna?' - it's saying 'put Jenna in the name container.'"
+          },
+          {
+            "name": "Data Types",
+            "definition": "Different kinds of data that Python can work with: Strings (text in quotes), Integers (whole numbers without quotes), and Booleans (True/False).",
+            "analogy": "Like different containers for different things - you wouldn't put soup in a paper bag. Each type of data needs to be handled in the right way."
+          },
+          {
+            "name": "Variable naming rules",
+            "definition": "Variables must start with a letter or underscore, can contain letters/numbers/underscores, no spaces allowed, and are case sensitive (Name and name are different).",
+            "analogy": "Like naming files on your computer - there are rules about what characters you can use."
+          }
+        ],
+        "keyTakeaway": "Variables let you write code once and reuse it infinitely."
+      },
+      "build": {
+        "goal": "Create multiple variables to store different pieces of information about yourself",
+        "codeComparison": {
+          "old": "name = \"Jenna\"\nprint(name)",
+          "new": "name = \"Jenna\"\nage = 32\ncity = \"Chicago\"\nis_learning_python = True\n\nprint(\"Name:\", name)\nprint(\"Age:\", age)\nprint(\"City:\", city)\nprint(\"Learning Python:\", is_learning_python)"
+        },
+        "hint": "When you print text + a variable, use a comma: print(\"Label:\", variable_name)"
+      },
+      "challenge": {
+        "title": "Build a 'Two Truths and a Lie' Profile",
+        "mission": "Create a fun profile with 3 facts about yourself, but make one of them false!",
+        "requirements": [
+          "Create 6 variables: name, age, city, fact_1, fact_2, fact_3",
+          "Make all 3 facts strings (in quotes)",
+          "Print your name, then the 3 facts",
+          "One fact should be a lie (be creative!)"
+        ],
+        "starterCode": "name = \"...\"\nage = ...\ncity = \"...\"\n\nfact_1 = \"...\"\nfact_2 = \"...\"\nfact_3 = \"...\"\n\nprint(\"About\", name)\nprint(\"Fact 1:\", fact_1)\n# Add fact 2 and 3",
+        "bonusChallenge": "Add a 4th variable called the_lie that stores which number is false, then print it at the end as a reveal!"
+      },
+      "summary": {
+        "capabilities": [
+          "Create variables to store information",
+          "Use different data types (strings, integers, booleans)",
+          "Reuse variables multiple times",
+          "Follow variable naming rules",
+          "Combine text and variables in print statements"
+        ]
+      },
+      "bridge": {
+        "preview": "In the next lesson, you'll learn about operators - how to do math, compare values, and make decisions in your code."
+      },
+      "devFession": "I once spent 20 minutes debugging because I named a variable 'Class' (capital C) and kept referencing 'class' (lowercase). Python saw them as two completely different things."
+    },
+    {
+      "id": "py-1-3",
+      "title": "Operators & Math",
+      "prereqs": ["py-1-2"],
+      "difficulty": "beginner",
+      "duration": "18 min",
+      "metadata": {
+        "estimatedTime": 18,
+        "difficulty": "beginner",
+        "conceptsCount": 3,
+        "tasksCount": 2
+      },
+      "hook": {
+        "accomplishments": [
+          "Do math with Python",
+          "Compare values to get True/False answers",
+          "Build a simple calculator"
+        ]
+      },
+      "do": {
+        "title": "Use Python as a calculator",
+        "steps": [
+          "Create a new file: operators.py",
+          "Copy the code below",
+          "Run it and see the results"
+        ],
+        "code": "# Basic math\nprint(10 + 3)    # Addition: 13\nprint(10 - 3)    # Subtraction: 7\nprint(10 * 3)    # Multiplication: 30\nprint(10 / 3)    # Division: 3.333...\nprint(10 ** 2)   # Power: 100\nprint(10 % 3)    # Remainder: 1\n\n# Comparison (gives True or False)\nprint(10 > 5)    # True\nprint(10 == 10)  # True (== means 'is equal to?')\nprint(10 != 5)   # True (!= means 'is NOT equal to?')",
+        "result": "Python can do math AND compare values. The comparison operators return True or False - you'll use these everywhere in the next lesson!",
+        "proofRequired": "your code and the terminal output showing all the results"
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "Arithmetic operators",
+            "definition": "Symbols that perform math: + (add), - (subtract), * (multiply), / (divide), ** (power), % (remainder/modulo).",
+            "analogy": "The same math you already know, just written slightly differently. The * for multiply and ** for power are the only new ones."
+          },
+          {
+            "name": "Comparison operators",
+            "definition": "Symbols that compare two values and return True or False: == (equal?), != (not equal?), > (greater?), < (less?), >= (greater or equal?), <= (less or equal?).",
+            "analogy": "Like a judge comparing two things and giving a yes/no verdict."
+          },
+          {
+            "name": "Logical operators",
+            "definition": "Words that combine True/False values: 'and' (both must be true), 'or' (at least one must be true), 'not' (flips True to False).",
+            "analogy": "Like combining rules: 'You can enter IF you're 21 AND you have ID' vs 'You can enter IF you're a member OR you have a ticket.'"
+          }
+        ],
+        "keyTakeaway": "Operators let you calculate values and compare them. Comparison results (True/False) are the foundation of decision-making in code."
+      },
+      "build": {
+        "goal": "Build a tip calculator using variables and operators",
+        "codeComparison": {
+          "old": "print(10 + 3)",
+          "new": "bill = 48.50\ntip_percent = 20\n\ntip = bill * (tip_percent / 100)\ntotal = bill + tip\n\nprint(\"Bill: $\" + str(bill))\nprint(\"Tip (\" + str(tip_percent) + \"%): $\" + str(tip))\nprint(\"Total: $\" + str(total))"
+        },
+        "hint": "Use str() to convert numbers to text when combining with + in print statements."
+      },
+      "challenge": {
+        "title": "Build a Grade Calculator",
+        "mission": "Create a program that takes 3 test scores, calculates the average, and determines if the student passed.",
+        "requirements": [
+          "Store 3 test scores in variables",
+          "Calculate the average",
+          "Determine if average >= 70 (passing)",
+          "Print the average and pass/fail status"
+        ],
+        "starterCode": "score_1 = 85\nscore_2 = 72\nscore_3 = 90\n\n# Calculate average\naverage = ___\n\n# Check if passing\npassing = average >= 70\n\nprint(\"Average:\", average)\nprint(\"Passing:\", passing)",
+        "bonusChallenge": "Add a letter grade: 90+ = A, 80+ = B, 70+ = C, 60+ = D, below 60 = F (hint: you'll need if/elif from the next lesson!)"
+      },
+      "summary": {
+        "capabilities": [
+          "Perform arithmetic with Python",
+          "Compare values using comparison operators",
+          "Combine conditions with logical operators",
+          "Build simple calculators"
+        ]
+      },
+      "bridge": {
+        "preview": "In the next lesson, you'll learn about if statements - how to make your code choose different paths based on conditions (using those True/False comparisons you just learned!)."
+      },
+      "devFession": "I used = instead of == to compare values for an entire week before someone told me the difference. = stores a value. == checks if two values are equal. I still mess this up sometimes."
+    },
+    {
+      "id": "py-1-4",
+      "title": "Make Decisions with If Statements",
+      "prereqs": ["py-1-3"],
+      "difficulty": "beginner",
+      "duration": "22 min",
+      "metadata": {
+        "estimatedTime": 22,
+        "difficulty": "beginner",
+        "conceptsCount": 4,
+        "tasksCount": 4
+      },
+      "hook": {
+        "accomplishments": [
+          "Make your code choose different paths",
+          "Build a program that responds differently based on input",
+          "Create your first interactive decision system",
+          "Understand how every app makes choices"
+        ]
+      },
+      "do": {
+        "title": "Write code that makes a choice",
+        "steps": [
+          "Create a new file in VS Code",
+          "Save it as decisions.py",
+          "Copy the code below",
+          "Save and run it",
+          "You'll see 'You are an adult!' appear!",
+          "Now change age to 15 and run again - notice nothing prints!"
+        ],
+        "code": "age = 20\n\nif age >= 18:\n    print(\"You are an adult!\")\n\n# Now try changing age to 15 and run again.\n# Nothing prints! The code was skipped.",
+        "result": "Your code just made a decision. When age was 20, the condition was True, so it ran. When age was 15, the condition was False, so it skipped that code entirely.",
+        "proofRequired": "your code with age = 15 and NO output in the terminal"
+      },
+      "understand": {
+        "concepts": [
+          {
+            "name": "If statements",
+            "definition": "How code makes decisions. IF a condition is True, run this code. IF it's False, skip it.",
+            "analogy": "A bouncer at a club checking IDs. IF you're 21+, you enter. IF not, you don't. The bouncer doesn't let everyone in - they make a decision based on a rule."
+          },
+          {
+            "name": "Indentation (CRITICAL)",
+            "definition": "The code INSIDE the if statement MUST be indented (4 spaces or 1 tab). Python uses indentation to know what's inside vs outside the if statement.",
+            "analogy": "Like nesting - the indented code 'belongs to' the if statement above it. No indentation = error."
+          },
+          {
+            "name": "Else statement",
+            "definition": "If the condition is False, do this instead. A fork in the road - your code always takes one path.",
+            "analogy": "A fork in the road. You MUST go one way or the other. You can't skip both."
+          },
+          {
+            "name": "Elif (else if)",
+            "definition": "If the first condition was False, check this one. Like a multiple choice quiz - Python checks each option in order and stops at the first True one.",
+            "analogy": "A multiple choice quiz. Python checks the first answer. If wrong, checks the second. Else = 'none of the above.'"
+          }
+        ],
+        "keyTakeaway": "If statements let your code choose different paths based on conditions. Every app you use makes thousands of decisions per second using this exact concept."
+      },
+      "build": {
+        "goal": "Build a multi-condition age checker with elif",
+        "codeComparison": {
+          "old": "age = 20\n\nif age >= 18:\n    print(\"You are an adult!\")",
+          "new": "age = 45\n\nif age < 13:\n    print(\"You are a child.\")\nelif age < 20:\n    print(\"You are a teenager.\")\nelif age < 65:\n    print(\"You are an adult.\")\nelse:\n    print(\"You are a senior.\")"
+        },
+        "hint": "Try running with different ages: 10, 16, 45, 70 — watch how it picks different messages!"
+      },
+      "challenge": {
+        "title": "Build a Movie Ticket Pricer",
+        "mission": "Create a program that calculates movie ticket prices based on age and other factors.",
+        "requirements": [
+          "Create variables: age, is_student, day_of_week",
+          "Children under 12: $8",
+          "Students (with ID): $10",
+          "Seniors 65+: $9",
+          "Regular adults: $15",
+          "Tuesday discount: Take $2 off any price",
+          "Print the final price with a message"
+        ],
+        "starterCode": "age = 25\nis_student = False\nday_of_week = \"Tuesday\"\n\n# Your price logic here\nif age < 12:\n    price = 8\n    category = \"Child\"\n# Add more conditions...\n\n# Tuesday discount\nif day_of_week == \"Tuesday\":\n    price = price - 2\n\nprint(\"Category:\", category)\nprint(\"Final price: $\" + str(price))",
+        "bonusChallenge": "Add a weekend surcharge! If it's Saturday or Sunday, add $3 to the price."
+      },
+      "summary": {
+        "capabilities": [
+          "Write if statements to make decisions",
+          "Use else to handle alternative outcomes",
+          "Chain multiple conditions with elif",
+          "Combine logical operators inside if statements",
+          "Build complex decision trees"
+        ]
+      },
+      "bridge": {
+        "preview": "In the next lesson, you'll learn about loops - how to make your code repeat actions automatically (without copy/pasting the same code 100 times)."
+      },
+      "devFession": "I once wrote 47 separate if statements instead of using elif. My code worked but my coworker literally laughed out loud during code review. Now I always use elif."
+    }
+  ]
+}
