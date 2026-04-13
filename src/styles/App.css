@@ -1958,8 +1958,18 @@ textarea:focus-visible,
 .auth-preview-btn:hover { border-color: var(--purple); color: var(--text); }
 
 /* ─── Roadmap Panel ─────────────────────────────── */
-.roadmap-panel { max-width: 720px; width: 95vw; max-height: 85vh; overflow-y: auto; }
-.roadmap-body { padding: 0 24px 24px; }
+.roadmap-panel { max-width: 720px; width: 95vw; max-height: 85vh; overflow: hidden; }
+.roadmap-body {
+  padding: 0 24px 24px;
+  overflow-y: auto;
+  max-height: calc(85vh - 80px);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(180,74,255,0.2) transparent;
+}
+.roadmap-body::-webkit-scrollbar { width: 6px; }
+.roadmap-body::-webkit-scrollbar-track { background: transparent; }
+.roadmap-body::-webkit-scrollbar-thumb { background: rgba(180,74,255,0.3); border-radius: 3px; }
+.roadmap-body::-webkit-scrollbar-thumb:hover { background: rgba(180,74,255,0.5); }
 .rm-course { margin-bottom: 8px; }
 .rm-course.rm-current { background: var(--bg-surface); border-radius: var(--radius-lg); padding: 16px; margin: -8px; margin-bottom: 8px; }
 .rm-course-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
