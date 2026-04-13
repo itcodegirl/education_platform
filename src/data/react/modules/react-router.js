@@ -1,52 +1,16 @@
 export const module13 = {
-    id: 313,
-    emoji: '🧭',
-    title: 'React Router',
-    tagline: 'Multiple pages, one app.',
-    difficulty: 'intermediate',
-    lessons: [
-        {
-            id: 'r13-1',
-            prereqs: ['r12-1'],
-            title: 'Client-Side Routing',
-            difficulty: 'beginner',
-            duration: '14 min',
-            concepts: ['React Router enables multi-page navigation without full page reloads.', 'BrowserRouter wraps your app, Routes contains Route definitions.', 'Link replaces <a> tags for navigation — no page refresh.', 'useParams reads URL parameters, useNavigate programmatically navigates.'],
-            code: `import { BrowserRouter, Routes, Route, Link,
-         useParams, useNavigate } from "react-router-dom";
-
-function App() {
-    return (
-        <BrowserRouter>
-            <nav>
-                <Link to="/">Home</Link>
-                <Link to="/about">About</Link>
-                <Link to="/user/42">User 42</Link>
-            </nav>
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/user/:id" element={<UserProfile />} />
-                <Route path="*" element={<NotFound />} />
-            </Routes>
-        </BrowserRouter>
-    );
-}
-
-function UserProfile() {
-    const { id } = useParams();
-    const navigate = useNavigate();
-    return (
-        <div>
-            <h1>User {id}</h1>
-            <button onClick={() => navigate("/")}>Go Home</button>
-        </div>
-    );
-}`,
-            output: 'A multi-page app with Home, About, dynamic User, and 404 routes.',
-            tasks: ['Set up React Router with 3 routes.', 'Create a dynamic route with useParams.', 'Use useNavigate to redirect after a form submit.'],
-            challenge: 'Build a blog app with routes for home (/), post list (/posts), and individual post (/posts/:id).',
-            devFession: 'I used <a href> instead of <Link> and the entire app reloaded on every navigation. Link prevents that.'
-        }
-    ]
+  id: 313, emoji: '🧭', title: 'Routing & Navigation',
+  tagline: 'Multi-page apps with React Router.', difficulty: 'intermediate',
+  lessons: [
+    { id: 'r13-1', title: 'React Router Basics', prereqs: ['r16-3'], difficulty: 'intermediate', duration: '35 min',
+      concepts: ['Client-side routing: navigate between pages without full page reload. BrowserRouter + Routes + Route.', 'Link vs anchor: <Link to="/about"> navigates without reload. <a href="/about"> causes full page refresh. Always use Link.', 'URL parameters: /post/:id captures dynamic segments. useParams() extracts them. /post/42 → { id: "42" }.', 'Nested routes: routes inside routes for layouts. /dashboard wraps /dashboard/posts and /dashboard/settings.', '404 handling: <Route path="*" element={<NotFound />} /> catches all unmatched URLs.'],
+      code: `import { BrowserRouter, Routes, Route, Link, useParams } from 'react-router-dom';\n\nfunction App() {\n    return (\n        <BrowserRouter>\n            <nav>\n                <Link to="/">Home</Link>\n                <Link to="/posts">Posts</Link>\n                <Link to="/about">About</Link>\n            </nav>\n            <Routes>\n                <Route path="/" element={<Home />} />\n                <Route path="/posts" element={<PostList />} />\n                <Route path="/post/:id" element={<PostDetail />} />\n                <Route path="/about" element={<About />} />\n                <Route path="*" element={<NotFound />} />\n            </Routes>\n        </BrowserRouter>\n    );\n}\n\nfunction PostDetail() {\n    const { id } = useParams();\n    return <h1>Post #{id}</h1>;\n}`,
+      output: 'Multi-page app with navigation, dynamic routes, and 404 handling. No page reloads!', tasks: ['Set up BrowserRouter with 3 routes', 'Create navigation with Link components', 'Use URL parameters for dynamic pages', 'Add nested routes for a dashboard layout', 'Handle 404s'],
+      challenge: 'Multi-Page Blog: routes for /, /posts, /post/:id, /category/:name, /about, 404. Nav bar, active links, breadcrumbs.', devFession: 'I used <a href> instead of <Link> and wondered why my entire app state reset on every navigation. Full page reload = full state reset.' },
+    { id: 'r13-2', title: 'Protected Routes & Advanced Routing', prereqs: ['r13-1'], difficulty: 'intermediate', duration: '30 min',
+      concepts: ['Protected routes: check auth before showing a page. If not logged in, redirect to /login.', 'useNavigate: programmatic navigation. navigate("/dashboard") after login, navigate(-1) to go back.', 'useSearchParams: read/write URL query parameters. /search?q=react → searchParams.get("q") → "react".', 'Navigate component: declarative redirect. <Navigate to="/login" /> redirects immediately.'],
+      code: `function ProtectedRoute({ children }) {\n    const { user } = useAuth();\n    if (!user) return <Navigate to="/login" />;\n    return children;\n}\n\n// Usage:\n<Route path="/dashboard" element={\n    <ProtectedRoute><Dashboard /></ProtectedRoute>\n} />\n\n// Programmatic navigation:\nfunction LoginPage() {\n    const navigate = useNavigate();\n    const handleLogin = async () => {\n        await login(email, password);\n        navigate('/dashboard'); // Redirect after login\n    };\n}\n\n// Query parameters:\nfunction SearchPage() {\n    const [params, setParams] = useSearchParams();\n    const query = params.get('q') || '';\n    // URL: /search?q=react\n}`,
+      output: 'Protected routes redirect unauthenticated users. Query params power search and filters via the URL.', tasks: ['Build a ProtectedRoute component', 'Navigate programmatically after login', 'Use query parameters for search', 'Redirect after authentication'],
+      challenge: 'E-Commerce Store: protected routes (cart, checkout, account), query params for filters, redirect after login, multi-step checkout, 404 for invalid products.', devFession: 'I built a "protected" page by just hiding the nav link. Users could still type the URL directly and see everything. ProtectedRoute actually blocks access.' },
+  ],
 };

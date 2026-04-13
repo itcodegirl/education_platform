@@ -1,52 +1,21 @@
 export const module15 = {
-    id: 315,
-    emoji: '🧰',
-    title: 'useReducer',
-    tagline: 'Complex state, simplified.',
-    difficulty: 'intermediate',
-    lessons: [
-        {
-            id: 'r15-1',
-            prereqs: ['r14-1'],
-            title: 'useReducer for Complex State',
-            difficulty: 'intermediate',
-            duration: '12 min',
-            concepts: [
-                'useReducer is useState for complex state logic — multiple related values.',
-                'A reducer function takes (state, action) and returns new state.',
-                'Actions describe WHAT happened: { type: "INCREMENT" }.',
-                'dispatch sends actions to the reducer.',
-                'Use when: state has many sub-values, or next state depends on previous state.'
-            ],
-            code: `import { useReducer } from "react";
-
-function reducer(state, action) {
-    switch (action.type) {
-        case "INCREMENT": return { ...state, count: state.count + 1 };
-        case "DECREMENT": return { ...state, count: state.count - 1 };
-        case "SET_NAME":  return { ...state, name: action.payload };
-        case "RESET":     return { count: 0, name: "" };
-        default: return state;
-    }
-}
-
-function App() {
-    const [state, dispatch] = useReducer(reducer, { count: 0, name: "" });
-    return (
-        <div>
-            <p>{state.name}: {state.count}</p>
-            <button onClick={() => dispatch({ type: "INCREMENT" })}>+</button>
-            <button onClick={() => dispatch({ type: "RESET" })}>Reset</button>
-            <input onChange={e =>
-                dispatch({ type: "SET_NAME", payload: e.target.value })
-            } />
-        </div>
-    );
-}`,
-            output: 'A counter with name input managed by useReducer.',
-            tasks: ['Convert a useState component to useReducer.', 'Create a reducer with 4+ action types.', 'Dispatch actions from buttons and inputs.'],
-            challenge: 'Build a shopping cart with ADD_ITEM, REMOVE_ITEM, UPDATE_QUANTITY, and CLEAR actions.',
-            devFession: 'I had 8 useState calls in one component. useReducer consolidated them into one state object with clear actions.'
-        }
-    ]
+  id: 315, emoji: '🏗️', title: 'Advanced State Management',
+  tagline: 'useReducer, Context API, and scalable state patterns.', difficulty: 'intermediate',
+  lessons: [
+    { id: 'r15-1', title: 'useReducer — Complex State Logic', prereqs: ['r9-3'], difficulty: 'intermediate', duration: '35 min',
+      concepts: ['useReducer: like useState but for complex state. dispatch(action) → reducer(state, action) → newState. Pure function, predictable transitions.', 'Actions: objects with type field. { type: "INCREMENT" } or { type: "SET_NAME", payload: "Jenna" }. Describe WHAT happened, not HOW.', 'When to use: multiple related state values, complex transitions, state logic you want to test independently. useState for simple, useReducer for complex.'],
+      code: `function reducer(state, action) {\n    switch (action.type) {\n        case 'ADD_ITEM': return { ...state, items: [...state.items, action.payload] };\n        case 'REMOVE_ITEM': return { ...state, items: state.items.filter(i => i.id !== action.payload) };\n        case 'SET_FILTER': return { ...state, filter: action.payload };\n        case 'CLEAR': return { ...state, items: [] };\n        default: return state;\n    }\n}\n\nfunction TodoApp() {\n    const [state, dispatch] = React.useReducer(reducer, { items: [], filter: 'all' });\n    // dispatch({ type: 'ADD_ITEM', payload: { id: 1, text: 'Learn React' } })\n}`,
+      output: 'All state transitions in one predictable reducer. Easy to test, easy to debug.', tasks: ['Build a counter with useReducer', 'Create a shopping cart reducer', 'Build a form with useReducer', 'Compare useState vs useReducer'],
+      challenge: 'Multi-Step Wizard: 3 steps, Next/Previous, validation, progress indicator, review step.', devFession: 'I had 8 useState calls in one component. useReducer turned them into one state object and the component was half the size.' },
+    { id: 'r15-2', title: 'Context API — Global State', prereqs: ['r15-1'], difficulty: 'intermediate', duration: '35 min',
+      concepts: ['Context solves prop drilling: put state in Context, any component accesses it directly. createContext + Provider + useContext.', 'Multiple contexts: AuthContext for user, ThemeContext for UI, CartContext for shopping. Don\'t put everything in one context.', 'When NOT to use: frequently changing values cause all consumers to re-render. Context is best for slow-changing data (theme, auth, locale).'],
+      code: `const ThemeContext = React.createContext();\n\nfunction ThemeProvider({ children }) {\n    const [theme, setTheme] = React.useState('dark');\n    const toggle = () => setTheme(t => t === 'dark' ? 'light' : 'dark');\n    return <ThemeContext.Provider value={{ theme, toggle }}>{children}</ThemeContext.Provider>;\n}\n\nfunction useTheme() { return React.useContext(ThemeContext); }\n\n// ANY component accesses theme — no drilling!\nfunction Header() {\n    const { theme, toggle } = useTheme();\n    return <header style={{ background: theme === 'dark' ? '#1a1a2e' : '#fff' }}>\n        <button onClick={toggle}>Toggle</button>\n    </header>;\n}`,
+      output: 'Theme available everywhere without prop drilling. Custom useTheme hook for clean access.', tasks: ['Create ThemeContext with toggle', 'Build AuthContext for login state', 'Use multiple contexts in one app', 'Create custom hooks for each context'],
+      challenge: 'Complete App State: AuthContext, CartContext, UIContext — each with Provider and custom hook.', devFession: 'I put EVERYTHING in one context. Every keystroke re-rendered the entire app. Separate contexts fixed it.' },
+    { id: 'r15-3', title: 'Context + useReducer Pattern', prereqs: ['r15-2'], difficulty: 'intermediate', duration: '40 min',
+      concepts: ['Context + useReducer: the scalable React pattern. Context provides access, useReducer manages transitions. Essentially simplified Redux.', 'Action creators: functions returning action objects. addToCart(item) returns { type: "ADD", payload: item }. Cleaner than raw dispatch.', 'This pattern handles medium-complexity apps. For large apps, consider Zustand or Redux Toolkit.'],
+      code: `const CartContext = React.createContext();\n\nfunction cartReducer(state, action) {\n    switch (action.type) {\n        case 'ADD': {\n            const exists = state.find(i => i.id === action.payload.id);\n            if (exists) return state.map(i => i.id === action.payload.id ? {...i, qty: i.qty+1} : i);\n            return [...state, {...action.payload, qty: 1}];\n        }\n        case 'REMOVE': return state.filter(i => i.id !== action.payload);\n        case 'CLEAR': return [];\n        default: return state;\n    }\n}\n\nfunction CartProvider({ children }) {\n    const [items, dispatch] = React.useReducer(cartReducer, []);\n    const add = (item) => dispatch({ type: 'ADD', payload: item });\n    const remove = (id) => dispatch({ type: 'REMOVE', payload: id });\n    const total = items.reduce((s, i) => s + i.price * i.qty, 0);\n    return <CartContext.Provider value={{ items, total, add, remove }}>{children}</CartContext.Provider>;\n}\n\nfunction useCart() { return React.useContext(CartContext); }`,
+      output: 'Complete cart store with Context + useReducer. Clean API via custom useCart hook.', tasks: ['Build cart store with Context + useReducer', 'Add action creators', 'Create custom useCart hook', 'Build NotificationContext with auto-dismiss'],
+      challenge: 'Chat State: chatReducer + authReducer, both with Context. Custom hooks: useChat, useAuth.', devFession: 'Interviewer asked "do you know Redux?" I said "I know Context + useReducer — same concept, different API." Got the job.' },
+  ],
 };

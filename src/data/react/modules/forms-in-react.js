@@ -1,46 +1,21 @@
 export const module8 = {
-    id: 308,
-    emoji: '📝',
-    title: 'Forms in React',
-    tagline: 'Controlled inputs, clean data.',
-    difficulty: 'beginner',
-    lessons: [
-        {
-            id: 'r8-1',
-            prereqs: ['r7-2'],
-            title: 'Controlled Components & Form Handling',
-            difficulty: 'beginner',
-            duration: '12 min',
-            concepts: ['Controlled components: React state is the single source of truth for input values.', 'value={state} + onChange={setSetter} = controlled input.', 'onSubmit on the form + e.preventDefault() handles submission.', 'Manage multiple inputs with one state object.'],
-            code: `function ContactForm() {
-    const [form, setForm] = useState({ name: "", email: "", message: "" });
-
-    const handleChange = (e) => {
-        setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        console.log("Submitted:", form);
-        setForm({ name: "", email: "", message: "" });
-    };
-
-    return (
-        <form onSubmit={handleSubmit}>
-            <input name="name" value={form.name}
-                   onChange={handleChange} placeholder="Name" />
-            <input name="email" value={form.email}
-                   onChange={handleChange} placeholder="Email" />
-            <textarea name="message" value={form.message}
-                      onChange={handleChange} placeholder="Message" />
-            <button type="submit">Send</button>
-        </form>
-    );
-}`,
-            output: 'A controlled form with name, email, message, and submit handling.',
-            tasks: ['Build a controlled input with value and onChange.', 'Handle multiple inputs with one state object.', 'Clear the form after submission.'],
-            challenge: 'Build a registration form with validation — show errors for empty or invalid fields.',
-            devFession: 'I forgot to add value= to my input and it became uncontrolled. React was tracking nothing.'
-        }
-    ]
+  id: 308, emoji: '📝', title: 'Forms & Validation',
+  tagline: 'Controlled components, validation, React Hook Form, and multi-step flows.', difficulty: 'intermediate',
+  lessons: [
+    { id: 'r8-1', title: 'Advanced Form Patterns', prereqs: ['r13-2'], difficulty: 'intermediate', duration: '30 min',
+      concepts: ['Controlled vs uncontrolled: controlled = React owns the value (value + onChange). Uncontrolled = DOM owns it (ref). Controlled is preferred.', 'Validation patterns: validate on change (instant feedback), on blur (when leaving field), on submit (all at once). Choose based on UX needs.', 'Error state: store errors as an object { email: "Required", password: "Too short" }. Display inline next to each field.', 'Multiple inputs: use one state object + spread. onChange={e => setState({...state, [e.target.name]: e.target.value})}.'],
+      code: `function ContactForm() {\n    const [form, setForm] = React.useState({ name: '', email: '', message: '' });\n    const [errors, setErrors] = React.useState({});\n\n    const validate = () => {\n        const errs = {};\n        if (!form.name) errs.name = 'Name is required';\n        if (!form.email.includes('@')) errs.email = 'Invalid email';\n        if (form.message.length < 10) errs.message = 'Min 10 characters';\n        setErrors(errs);\n        return Object.keys(errs).length === 0;\n    };\n\n    const handleSubmit = (e) => {\n        e.preventDefault();\n        if (validate()) alert('Form submitted!');\n    };\n\n    const handleChange = (e) => {\n        setForm({ ...form, [e.target.name]: e.target.value });\n    };\n\n    return (\n        <form onSubmit={handleSubmit}>\n            <input name="name" value={form.name} onChange={handleChange} />\n            {errors.name && <span className="error">{errors.name}</span>}\n            <input name="email" value={form.email} onChange={handleChange} />\n            {errors.email && <span className="error">{errors.email}</span>}\n            <textarea name="message" value={form.message} onChange={handleChange} />\n            {errors.message && <span className="error">{errors.message}</span>}\n            <button type="submit">Send</button>\n        </form>\n    );\n}`,
+      output: 'Form with inline validation errors. Validates all fields on submit, shows specific error messages.', tasks: ['Build a contact form with validation', 'Show inline error messages per field', 'Validate on submit and on blur', 'Handle different input types (text, select, checkbox, textarea)'],
+      challenge: 'Contact Form: name (required, min 2), email (required, valid format), phone (optional, valid if provided), message (required, min 10). Field-specific errors, disable submit if invalid.', devFession: 'I validated forms by checking if inputs were "truthy." An email of "asdfgh" passed validation. Always validate the FORMAT, not just the presence.' },
+    { id: 'r8-2', title: 'React Hook Form & Yup', prereqs: ['r8-1'], difficulty: 'intermediate', duration: '35 min',
+      concepts: ['React Hook Form: form library that uses refs for performance. useForm() gives register, handleSubmit, errors. Minimal re-renders.', 'register(): connects inputs to the form. <input {...register("email", { required: true })} />. No onChange or value needed!', 'Yup validation: schema-based validation. Define rules as an object, RHF validates against it automatically.', 'Field arrays: dynamic lists of inputs (work experience, skills). useFieldArray() manages add/remove.'],
+      code: `import { useForm } from 'react-hook-form';\nimport * as yup from 'yup';\nimport { yupResolver } from '@hookform/resolvers/yup';\n\nconst schema = yup.object({\n    name: yup.string().required('Name is required').min(2),\n    email: yup.string().required('Email is required').email('Invalid email'),\n    age: yup.number().required().min(18, 'Must be 18+'),\n});\n\nfunction SignupForm() {\n    const { register, handleSubmit, formState: { errors } } = useForm({\n        resolver: yupResolver(schema)\n    });\n\n    const onSubmit = (data) => console.log('Valid:', data);\n\n    return (\n        <form onSubmit={handleSubmit(onSubmit)}>\n            <input {...register('name')} />\n            {errors.name && <p>{errors.name.message}</p>}\n            <input {...register('email')} />\n            {errors.email && <p>{errors.email.message}</p>}\n            <input type="number" {...register('age')} />\n            {errors.age && <p>{errors.age.message}</p>}\n            <button type="submit">Sign Up</button>\n        </form>\n    );\n}`,
+      output: 'React Hook Form with Yup validation. Declarative schema, automatic error messages, minimal re-renders.', tasks: ['Set up React Hook Form basics', 'Add Yup validation schema', 'Handle field arrays (dynamic inputs)', 'Build a job application form with file upload'],
+      challenge: 'Job Application Form: personal info, dynamic work experience section, education, skills, resume upload. All validated with Yup.', devFession: 'I wrote 200 lines of custom validation logic. Then I discovered Yup schemas and replaced it all with 15 lines. Same validation, 10x less code.' },
+    { id: 'r8-3', title: 'Multi-Step Forms', prereqs: ['r8-2'], difficulty: 'advanced', duration: '35 min',
+      concepts: ['Multi-step architecture: each step is a component. Parent manages current step and all form data. Steps validate independently.', 'State preservation: form data stays in parent state across steps. Going back shows previously entered data.', 'Progress indicators: show which step user is on. Visual progress bar or numbered steps.', 'Async validation: check username availability or verify email via API before allowing next step.'],
+      code: `function MultiStepForm() {\n    const [step, setStep] = React.useState(1);\n    const [data, setData] = React.useState({\n        name: '', email: '', address: '', city: '', cardNumber: ''\n    });\n\n    const updateData = (fields) => setData({ ...data, ...fields });\n    const next = () => setStep(s => Math.min(s + 1, 4));\n    const prev = () => setStep(s => Math.max(s - 1, 1));\n\n    return (\n        <div>\n            <ProgressBar current={step} total={4} />\n            {step === 1 && <PersonalInfo data={data} update={updateData} onNext={next} />}\n            {step === 2 && <ShippingInfo data={data} update={updateData} onNext={next} onPrev={prev} />}\n            {step === 3 && <PaymentInfo data={data} update={updateData} onNext={next} onPrev={prev} />}\n            {step === 4 && <ReviewStep data={data} onPrev={prev} onSubmit={() => alert('Done!')} />}\n        </div>\n    );\n}`,
+      output: 'Multi-step form with progress bar, back/next navigation, and data preserved across steps.', tasks: ['Build step navigation with progress bar', 'Preserve data across steps', 'Validate each step before allowing next', 'Add review step showing all entered data'],
+      challenge: 'Complete Checkout: Step 1 Shipping, Step 2 Payment (Luhn validation), Step 3 Review, Step 4 Confirmation. Auto-save to localStorage, restore on reload.', devFession: 'I built a multi-step form that lost all data when you clicked Back. Users filled out 3 pages, clicked Back to fix a typo, and everything was gone. State preservation is critical.' },
+  ],
 };

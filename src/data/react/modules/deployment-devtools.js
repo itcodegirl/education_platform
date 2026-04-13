@@ -1,68 +1,21 @@
 export const module23 = {
-    id: 323,
-    emoji: '🚀',
-    title: 'Deployment & DevTools',
-    tagline: 'Ship it to the world.',
-    difficulty: 'advanced',
-    lessons: [
-        {
-            id: 'r23-1',
-            prereqs: ['r22-1'],
-            title: 'Deploying React Apps',
-            difficulty: 'beginner',
-            duration: '10 min',
-            concepts: [
-                'npm run build creates an optimized production build in the dist/ folder.',
-                'Netlify: drag dist/ folder or connect to GitHub for auto-deploys.',
-                'Vercel: connect GitHub repo, it detects React/Vite automatically.',
-                'Add environment variables in your hosting platform\'s settings, not in code.',
-                'Set up _redirects or netlify.toml for client-side routing.'
-            ],
-            code: `// Build for production
-// npm run build
-
-// netlify.toml for React Router
-// [[redirects]]
-//   from = "/*"
-//   to = "/index.html"
-//   status = 200
-
-// Environment variables in Netlify/Vercel:
-// VITE_API_URL=https://api.example.com
-// VITE_SUPABASE_KEY=your-key-here
-
-// Access in code:
-const apiUrl = import.meta.env.VITE_API_URL;`,
-            output: 'A production build deployed to Netlify or Vercel.',
-            tasks: ['Run npm run build and inspect the dist/ folder.', 'Deploy to Netlify using drag-and-drop.', 'Connect a GitHub repo for auto-deploys.', 'Add environment variables in the hosting settings.'],
-            challenge: 'Deploy a React app to Netlify with environment variables and working client-side routing.',
-            devFession: 'I deployed and every route except "/" gave a 404. You need redirect rules for client-side routing.'
-        },
-        {
-            id: 'r23-2',
-            prereqs: ['r23-1'],
-            title: 'React DevTools & Debugging',
-            difficulty: 'beginner',
-            duration: '8 min',
-            concepts: ['React DevTools browser extension shows your component tree.', 'You can inspect props, state, hooks, and context for any component.', 'The Profiler tab shows which components re-rendered and how long they took.', 'Highlight updates mode visually shows re-renders in real-time.'],
-            code: `// Install React DevTools extension for Chrome/Firefox
-// Then open DevTools → Components tab
-
-// What you can do:
-// - Click any component to see its props and state
-// - Edit state values in real-time
-// - See the component hierarchy
-// - Search for components by name
-
-// Profiler:
-// - Record a session
-// - See which components re-rendered
-// - Identify performance bottlenecks
-// - Find unnecessary re-renders`,
-            output: 'The React DevTools showing component tree, state, and profiler.',
-            tasks: ['Install React DevTools extension.', 'Inspect a component\'s props and state.', 'Use the Profiler to record and analyze re-renders.'],
-            challenge: 'Use React DevTools to find and fix an unnecessary re-render in your app.',
-            devFession: 'I console.logged everything to debug state. React DevTools shows you state, props, and context live. No console.logs needed.'
-        }
-    ]
+  id: 323, emoji: '🚀', title: 'Build Tools & Deployment',
+  tagline: 'Vite, production optimization, CI/CD, and deploying to the web.', difficulty: 'advanced',
+  lessons: [
+    { id: 'r23-1', title: 'Vite & Modern Build Tools', prereqs: ['r20-3'], difficulty: 'intermediate', duration: '40 min',
+      concepts: ['Vite: modern build tool. Dev server with instant HMR (hot module replacement). Production builds with Rollup.', 'vite.config.js: path aliases (@/components), environment variables (.env), manual chunks for code splitting, plugins.', 'Environment variables: .env.development for dev, .env.production for prod. Access via import.meta.env.VITE_API_URL. Prefix with VITE_ to expose to client.', 'Build output: npm run build creates dist/ folder. Hashed filenames for cache busting. Tree-shaking removes unused code.'],
+      code: `// vite.config.js\nimport { defineConfig } from 'vite';\nimport react from '@vitejs/plugin-react';\nimport path from 'path';\n\nexport default defineConfig({\n    plugins: [react()],\n    resolve: {\n        alias: { '@': path.resolve(__dirname, './src') }\n    },\n    build: {\n        rollupOptions: {\n            output: {\n                manualChunks: {\n                    'vendor-react': ['react', 'react-dom'],\n                    'vendor-router': ['react-router-dom'],\n                }\n            }\n        }\n    }\n});\n\n// .env.production\n// VITE_API_URL=https://api.myapp.com\n// VITE_APP_VERSION=2.0.0\n\n// Usage in code:\n// const apiUrl = import.meta.env.VITE_API_URL;`,
+      output: 'Optimized build with vendor code splitting, path aliases, and environment-specific config.', tasks: ['Create a Vite + React project from scratch', 'Configure path aliases for cleaner imports', 'Set up .env files for dev/prod', 'Configure manual chunks for vendor splitting', 'Analyze bundle size'],
+      challenge: 'Optimize Build: path aliases, env vars, manual chunks, source maps, custom port, measure and optimize bundle to <200kb.', devFession: 'I committed my .env file with API keys to a public GitHub repo. Someone found it in 6 minutes and started using my API. Always add .env to .gitignore.' },
+    { id: 'r23-2', title: 'Production Optimization', prereqs: ['r23-1'], difficulty: 'advanced', duration: '45 min',
+      concepts: ['Code splitting: React.lazy for every route. Users only download code for pages they visit.', 'Image optimization: WebP format, lazy loading (loading="lazy"), responsive srcset, CDN hosting.', 'PWA: Progressive Web App. Service worker for offline, manifest.json for installability, cache strategies.', 'Web Vitals: LCP (Largest Contentful Paint), FID (First Input Delay), CLS (Cumulative Layout Shift). Lighthouse measures all 3.'],
+      code: `// Production checklist:\n\n// 1. Code split all routes\nconst Home = React.lazy(() => import('./pages/Home'));\nconst About = React.lazy(() => import('./pages/About'));\n\n// 2. Optimize images\n<img src="photo.webp" loading="lazy" width="400" height="300" alt="..." />\n\n// 3. PWA manifest.json\n{\n    "name": "My App",\n    "short_name": "App",\n    "start_url": "/",\n    "display": "standalone",\n    "theme_color": "#667eea"\n}\n\n// 4. Service worker registration\nif ('serviceWorker' in navigator) {\n    navigator.serviceWorker.register('/sw.js');\n}\n\n// 5. Lighthouse audit: npm run build && npx serve dist`,
+      output: 'Production-ready app: code split, images optimized, PWA enabled, Lighthouse 90+.', tasks: ['Code split all routes with React.lazy', 'Convert images to WebP and add lazy loading', 'Create manifest.json for PWA', 'Run Lighthouse audit and fix issues', 'Achieve 90+ on all Lighthouse metrics'],
+      challenge: 'Lighthouse 90+: start with a slow app (800kb bundle, no splitting, unoptimized images). Apply all optimizations. Target: Performance/A11y/Best Practices/SEO all >90.', devFession: 'Our app scored 23 on Lighthouse Performance. After code splitting, image optimization, and caching: 96. Same app, same features, 4x faster.' },
+    { id: 'r23-3', title: 'Deployment & CI/CD', prereqs: ['r23-2'], difficulty: 'advanced', duration: '50 min',
+      concepts: ['Static hosting: Vercel, Netlify, GitHub Pages. npm run build → upload dist/ folder. Auto-deploy from GitHub.', 'Environment variables: set in hosting dashboard (not in code). Different values for staging vs production.', 'CI/CD: GitHub Actions runs tests → builds → deploys automatically on every push. No manual deployment.', 'Preview deployments: every PR gets its own URL for testing before merging to production.'],
+      code: `# .github/workflows/deploy.yml\nname: Deploy\non:\n  push:\n    branches: [main]\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with: { node-version: 20 }\n      - run: npm ci\n      - run: npm test -- --coverage\n      - run: npm run build\n      # Deploy to Netlify/Vercel via their CLI or GitHub integration`,
+      output: 'Push to main → tests run → build → deploy. Fully automated. No manual steps.', tasks: ['Deploy to Netlify (drag and drop, then auto-deploy)', 'Configure environment variables in hosting dashboard', 'Set up GitHub Actions for CI/CD', 'Create preview deployments for PRs', 'Add custom domain and HTTPS'],
+      challenge: 'Full Deployment Pipeline: deploy to Netlify/Vercel, custom domain, HTTPS, GitHub Actions CI/CD, run tests before deploy, preview deploys for PRs.', devFession: 'I deployed by FTP-ing files to a server manually. One time I uploaded the wrong folder. With CI/CD, the computer deploys the right thing every time. I sleep better now.' },
+  ],
 };

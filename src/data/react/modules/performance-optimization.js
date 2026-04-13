@@ -1,56 +1,24 @@
 export const module16 = {
-    id: 316,
-    emoji: '⚡',
-    title: 'Performance & Optimization',
-    tagline: 'Make it fast. Keep it fast.',
-    difficulty: 'intermediate',
-    lessons: [
-        {
-            id: 'r16-1',
-            prereqs: ['r15-1'],
-            title: 'React.memo, useMemo & useCallback',
-            difficulty: 'intermediate',
-            duration: '14 min',
-            concepts: [
-                'React re-renders a component when its state or props change.',
-                'React.memo wraps a component to skip re-renders if props haven\'t changed.',
-                'useMemo caches an expensive calculation — only recalculates when dependencies change.',
-                'useCallback caches a function reference — prevents child re-renders from new function references.',
-                'Don\'t optimize prematurely — only use these when you notice performance issues.'
-            ],
-            code: `import { memo, useMemo, useCallback } from "react";
-
-// React.memo: skip re-render if props are same
-const ExpensiveList = memo(function ExpensiveList({ items }) {
-    console.log("List rendered");
-    return items.map(i => <p key={i.id}>{i.name}</p>);
-});
-
-function App() {
-    const [count, setCount] = useState(0);
-    const [items] = useState([{ id: 1, name: "A" }, { id: 2, name: "B" }]);
-
-    // useMemo: cache calculation
-    const total = useMemo(() => {
-        return items.reduce((sum, i) => sum + i.price, 0);
-    }, [items]);
-
-    // useCallback: cache function
-    const handleClick = useCallback(() => {
-        console.log("clicked");
-    }, []);
-
-    return (
-        <div>
-            <button onClick={() => setCount(c => c + 1)}>Count: {count}</button>
-            <ExpensiveList items={items} onClick={handleClick} />
-        </div>
-    );
-}`,
-            output: 'ExpensiveList only re-renders when items change, not when count changes.',
-            tasks: ['Wrap a component in React.memo.', 'Use useMemo to cache a filtered list.', 'Use useCallback on a function passed to a memoized child.'],
-            challenge: 'Identify a re-render issue in a component and fix it with memo/useMemo/useCallback.',
-            devFession: 'I wrapped everything in React.memo. It made things slower because the comparison itself costs performance. Only memo what needs it.'
-        }
-    ]
+  id: 316, emoji: '⚡', title: 'Performance Optimization',
+  tagline: 'React.memo, useMemo, useCallback, code splitting, and virtualization.', difficulty: 'advanced',
+  lessons: [
+    { id: 'r16-1', title: 'React.memo, useMemo, useCallback', prereqs: ['r15-3'], difficulty: 'intermediate', duration: '30 min',
+      concepts: ['React.memo: wraps a component to skip re-renders if props haven\'t changed. Only for expensive components.', 'useMemo: memoize expensive calculations. const sorted = useMemo(() => items.sort(), [items]). Only recalculates when dependencies change.', 'useCallback: memoize functions to prevent child re-renders. const handleClick = useCallback(() => {...}, [deps]). Stabilizes function references.', 'When NOT to optimize: premature optimization is the root of all evil. Profile first, optimize second. Most components don\'t need memoization.'],
+      code: `// React.memo — skip re-render if props unchanged\nconst ExpensiveList = React.memo(function ExpensiveList({ items }) {\n    console.log('ExpensiveList rendered');\n    return <ul>{items.map(i => <li key={i.id}>{i.name}</li>)}</ul>;\n});\n\n// useMemo — cache expensive calculation\nfunction Dashboard({ transactions }) {\n    const total = React.useMemo(() => {\n        console.log('Recalculating total...');\n        return transactions.reduce((sum, t) => sum + t.amount, 0);\n    }, [transactions]); // Only recalculates when transactions change\n    \n    return <h2>Total: \${total}</h2>;\n}\n\n// useCallback — stabilize function reference\nfunction Parent() {\n    const [count, setCount] = React.useState(0);\n    const handleClick = React.useCallback(() => {\n        console.log('Clicked!');\n    }, []); // Same function reference every render\n    \n    return <ExpensiveChild onClick={handleClick} />;\n}`,
+      output: 'memo prevents re-renders. useMemo caches calculations. useCallback stabilizes functions. Only use when you\'ve measured a performance problem.',
+      tasks: ['Wrap expensive component with React.memo', 'Memoize a sorting calculation with useMemo', 'Stabilize callbacks with useCallback', 'Profile with React DevTools to find actual bottlenecks'],
+      challenge: 'Optimize a Slow Dashboard: React.memo on widgets, useMemo on chart data, useCallback on handlers. Measure before/after performance.', devFession: 'I wrapped every component in React.memo "for performance." My senior dev said "you just made your code harder to read for zero benefit. Profile first."' },
+    { id: 'r16-2', title: 'Code Splitting & Lazy Loading', prereqs: ['r16-1'], difficulty: 'intermediate', duration: '25 min',
+      concepts: ['React.lazy: load components only when needed. const AdminPage = React.lazy(() => import("./AdminPage")). Reduces initial bundle.', 'Suspense: shows fallback UI while lazy component loads. <Suspense fallback={<Spinner />}><AdminPage /></Suspense>.', 'Route-based splitting: lazy load each page/route. Users only download the code for pages they visit.', 'Error boundaries: catch errors from lazy components with componentDidCatch or error boundary libraries.'],
+      code: `const AdminPage = React.lazy(() => import('./AdminPage'));\nconst SettingsPage = React.lazy(() => import('./SettingsPage'));\n\nfunction App() {\n    return (\n        <div>\n            <nav>...</nav>\n            <React.Suspense fallback={<div>Loading...</div>}>\n                {page === 'admin' && <AdminPage />}\n                {page === 'settings' && <SettingsPage />}\n            </React.Suspense>\n        </div>\n    );\n}`,
+      output: 'AdminPage only downloads when user navigates to it. Initial bundle stays small.',
+      tasks: ['Lazy load a heavy component', 'Add Suspense fallback with skeleton loader', 'Code split routes', 'Measure bundle size reduction'],
+      challenge: 'Lazy-Loaded Admin Panel: 5+ pages with lazy loading, skeleton states, error boundaries, retry mechanism.', devFession: 'Our app took 8 seconds to load. Code splitting routes cut it to 2 seconds. Same app, same features, 4x faster.' },
+    { id: 'r16-3', title: 'List Virtualization & Advanced Performance', prereqs: ['r16-2'], difficulty: 'advanced', duration: '30 min',
+      concepts: ['Virtual scrolling: only render visible rows in a long list. 100,000 items? Only render ~20 visible ones. react-window library.', 'Infinite scroll: load more data as user scrolls near the bottom. Combine with virtualization for massive lists.', 'Image lazy loading: use loading="lazy" or Intersection Observer to defer off-screen images.'],
+      code: `// Concept: virtual scrolling\n// Instead of rendering 100,000 <li> elements:\n// Only render the ~20 that are visible in the viewport\n// As user scrolls, swap which items are rendered\n\n// With react-window:\nimport { FixedSizeList } from 'react-window';\n\nfunction VirtualList({ items }) {\n    const Row = ({ index, style }) => (\n        <div style={style}>{items[index].name}</div>\n    );\n    return (\n        <FixedSizeList height={400} itemCount={items.length} itemSize={35} width=\"100%\">\n            {Row}\n        </FixedSizeList>\n    );\n}`,
+      output: '100,000 rows rendered smoothly. Only visible rows are in the DOM.',
+      tasks: ['Implement virtual scrolling with react-window', 'Build infinite scroll with loading indicator', 'Lazy load images with Intersection Observer', 'Profile and optimize a slow list'],
+      challenge: 'High-Performance Data Grid: 100k rows, column sorting, filtering, virtual scrolling, fixed header, CSV export.', devFession: 'I rendered 50,000 list items without virtualization. The page froze for 12 seconds. With react-window, it loaded instantly. Same data, zero lag.' },
+  ],
 };

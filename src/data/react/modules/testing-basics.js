@@ -1,41 +1,21 @@
 export const module20 = {
-    id: 320,
-    emoji: '🧪',
-    title: 'Testing Basics',
-    tagline: 'Code with confidence.',
-    difficulty: 'advanced',
-    lessons: [
-        {
-            id: 'r20-1',
-            prereqs: ['r19-1'],
-            title: 'Testing React Components',
-            difficulty: 'intermediate',
-            duration: '12 min',
-            concepts: ['Jest is the test runner — it runs your tests and reports results.', 'React Testing Library tests components the way users interact with them.', 'render() mounts a component, screen.getByText() finds elements, fireEvent simulates actions.', 'Test behavior, not implementation — don\'t test internal state, test what the user sees.'],
-            code: `import { render, screen, fireEvent } from "@testing-library/react";
-import Counter from "./Counter";
-
-test("renders initial count", () => {
-    render(<Counter />);
-    expect(screen.getByText("Count: 0")).toBeInTheDocument();
-});
-
-test("increments on click", () => {
-    render(<Counter />);
-    fireEvent.click(screen.getByText("+"));
-    expect(screen.getByText("Count: 1")).toBeInTheDocument();
-});
-
-test("resets to zero", () => {
-    render(<Counter />);
-    fireEvent.click(screen.getByText("+"));
-    fireEvent.click(screen.getByText("Reset"));
-    expect(screen.getByText("Count: 0")).toBeInTheDocument();
-});`,
-            output: 'Three passing tests for a Counter component.',
-            tasks: ['Write a test that checks initial render output.', 'Write a test that simulates a button click.', 'Write a test that checks multiple interactions.'],
-            challenge: 'Write tests for a TodoList: add item, mark complete, delete item.',
-            devFession: 'I never wrote tests. Then a "small change" broke 3 features in production. Tests would have caught it in 2 seconds.'
-        }
-    ]
+  id: 320, emoji: '🧪', title: 'Testing React Applications',
+  tagline: 'Jest, React Testing Library, and professional testing patterns.', difficulty: 'advanced',
+  lessons: [
+    { id: 'r20-1', title: 'Testing Basics — Jest & RTL', prereqs: ['r8-3'], difficulty: 'intermediate', duration: '35 min',
+      concepts: ['React Testing Library philosophy: test what users see and do, not implementation details. Query by text, role, label — not by class or ID.', 'Rendering: render(<Component />) puts your component in a virtual DOM. screen.getByText("Hello") finds elements.', 'Events: fireEvent.click(button) or userEvent.click(button) simulates user interaction. Check state changes via DOM updates.', 'Assertions: expect(element).toBeInTheDocument(), toHaveTextContent(), toBeDisabled(), toHaveBeenCalled().'],
+      code: `import { render, screen, fireEvent } from '@testing-library/react';\n\nfunction Counter() {\n    const [count, setCount] = React.useState(0);\n    return (\n        <div>\n            <p>Count: {count}</p>\n            <button onClick={() => setCount(c => c + 1)}>Increment</button>\n            <button onClick={() => setCount(0)} disabled={count === 0}>Reset</button>\n        </div>\n    );\n}\n\n// Tests:\ntest('renders with initial count of 0', () => {\n    render(<Counter />);\n    expect(screen.getByText('Count: 0')).toBeInTheDocument();\n});\n\ntest('increments when clicked', () => {\n    render(<Counter />);\n    fireEvent.click(screen.getByText('Increment'));\n    expect(screen.getByText('Count: 1')).toBeInTheDocument();\n});\n\ntest('reset disabled when count is 0', () => {\n    render(<Counter />);\n    expect(screen.getByText('Reset')).toBeDisabled();\n});`,
+      output: '3 tests passing: renders correctly, increments on click, reset disabled at 0.', tasks: ['Write your first component test', 'Test button clicks and state changes', 'Test disabled states', 'Test multiple user interactions in sequence'],
+      challenge: 'Test a Counter: initial count 0, increment works, decrement works, reset works, decrement disabled at 0, multiple increments work.', devFession: 'I shipped a component without tests. A refactor broke it silently. 3 days later a user reported the bug. Tests would have caught it in seconds.' },
+    { id: 'r20-2', title: 'Testing Async & API Calls', prereqs: ['r20-1'], difficulty: 'advanced', duration: '40 min',
+      concepts: ['Testing async: use findBy queries (they wait) or waitFor(() => expect(...)). Don\'t use getBy for async content — it doesn\'t wait.', 'Mocking fetch: jest.fn() creates mock functions. Mock fetch to return test data without real API calls.', 'Loading/error states: verify loading indicator appears, then data shows after resolve, or error shows after reject.', 'act() warnings: React needs effects to complete inside act(). Usually handled by RTL, but async operations may need explicit wrapping.'],
+      code: `// Mock fetch\nglobal.fetch = jest.fn();\n\nfunction UserProfile({ userId }) {\n    const [user, setUser] = React.useState(null);\n    const [loading, setLoading] = React.useState(true);\n    \n    React.useEffect(() => {\n        fetch(\`/api/users/\${userId}\`)\n            .then(r => r.json())\n            .then(data => { setUser(data); setLoading(false); });\n    }, [userId]);\n    \n    if (loading) return <p>Loading...</p>;\n    return <h1>{user.name}</h1>;\n}\n\ntest('shows loading then user data', async () => {\n    fetch.mockResolvedValue({\n        json: () => Promise.resolve({ name: 'Jenna' })\n    });\n    \n    render(<UserProfile userId="1" />);\n    expect(screen.getByText('Loading...')).toBeInTheDocument();\n    \n    const heading = await screen.findByText('Jenna');\n    expect(heading).toBeInTheDocument();\n});`,
+      output: 'Test verifies loading state appears, then user data shows after the mock API resolves.', tasks: ['Mock fetch with jest.fn()', 'Test loading state appears first', 'Test data renders after async resolve', 'Test error state when API fails'],
+      challenge: 'Test a User Search: mock API, test loading state, test success display, test 404 handling, test network error, test debounce.', devFession: 'I tested async code with getByText and the test always failed. findByText waits for the element to appear. One word change fixed 12 failing tests.' },
+    { id: 'r20-3', title: 'Testing Hooks, Context & Integration', prereqs: ['r20-2'], difficulty: 'advanced', duration: '40 min',
+      concepts: ['Testing custom hooks: renderHook(() => useMyHook()) from @testing-library/react-hooks. Test the hook in isolation.', 'Testing Context: wrap component in Provider with test values. Create a helper wrapper function.', 'Integration tests: test multiple components working together. User adds item to cart → cart count updates → total recalculates.', 'Code coverage: jest --coverage shows which lines are tested. Aim for 80%+ on critical paths.'],
+      code: `// Testing with Context\nfunction renderWithCart(ui, initialItems = []) {\n    return render(\n        <CartProvider initialItems={initialItems}>\n            {ui}\n        </CartProvider>\n    );\n}\n\ntest('add to cart updates count', () => {\n    renderWithCart(<ProductList />);\n    \n    const addButton = screen.getByText('Add to Cart');\n    fireEvent.click(addButton);\n    \n    expect(screen.getByText('Cart (1)')).toBeInTheDocument();\n});\n\ntest('full checkout flow', async () => {\n    renderWithCart(<App />);\n    \n    // Add product\n    fireEvent.click(screen.getByText('Add to Cart'));\n    // Go to cart\n    fireEvent.click(screen.getByText('Cart (1)'));\n    // Verify total\n    expect(screen.getByText('Total: $29.99')).toBeInTheDocument();\n    // Checkout\n    fireEvent.click(screen.getByText('Checkout'));\n    // Verify redirect\n    expect(await screen.findByText('Shipping Info')).toBeInTheDocument();\n});`,
+      output: 'Integration test covering the full user flow: add to cart → view cart → checkout.', tasks: ['Test a custom hook with renderHook', 'Create a wrapper for testing with Context', 'Write integration tests for a full user flow', 'Generate code coverage report'],
+      challenge: 'Test a Shopping Cart: test CartContext (add, remove, total), test ProductList + Cart interaction, full checkout flow integration test. Target 80% coverage.', devFession: 'I had 95% code coverage and felt invincible. Then a user found a bug in the ONE flow I didn\'t test. Coverage doesn\'t mean correctness — test the critical paths.' },
+  ],
 };
