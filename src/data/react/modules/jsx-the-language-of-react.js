@@ -1,41 +1,107 @@
-export const module2 = {
-    id: 302,
-    emoji: '📝',
-    title: 'JSX — The Language of React',
-    tagline: 'HTML meets JavaScript.',
-    difficulty: 'beginner',
-    lessons: [
-        {
-            id: 'r2-1',
-            prereqs: ['r1-2'],
-            title: 'JSX Rules & Expressions',
-            difficulty: 'beginner',
-            duration: '10 min',
-            concepts: [
-                'JSX looks like HTML but compiles to JavaScript function calls.',
-                'Rule 1: Every component must return ONE parent element (use <div> or <>).',
-                'Rule 2: Use className instead of class, htmlFor instead of for.',
-                'Rule 3: All tags must be closed — including self-closing (<img />, <br />).',
-                'Embed JavaScript in JSX with curly braces: {expression}.'
-            ],
-            code: `function Profile() {
-    const name = "Jenna";
-    const skills = ["HTML", "CSS", "JS"];
-    const isOnline = true;
+// ═══════════════════════════════════════════════
+// REACT MODULE 2: React Fundamentals — Part 2
+// Replaces old JSX stub. Lessons 6-10 from HTML files.
+// Events → Conditional Rendering → Lists → Forms → Project
+// ═══════════════════════════════════════════════
 
-    return (
-        <div className="profile">
-            <h1>Hello, {name}!</h1>
-            <p>Skills: {skills.length}</p>
-            <p>Status: {isOnline ? "Online" : "Offline"}</p>
-            <img src="avatar.jpg" alt="Profile" />
-        </div>
-    );
-}`,
-            output: 'A profile component with dynamic name, skill count, and status.',
-            tasks: ['Create a component that uses className and embeds a variable.', 'Use a ternary expression inside JSX.', 'Return multiple elements wrapped in a fragment (<>...</>).'],
-            challenge: 'Build a user card component that displays name, email, and "Active"/"Inactive" status dynamically.',
-            devFession: 'I wrote class= instead of className= and spent 20 minutes debugging. React warns you, but only in the console.'
-        }
-    ]
+export const module2 = {
+  id: 302,
+  emoji: '🖱️',
+  title: 'React Fundamentals — Part 2',
+  tagline: 'Events, conditionals, lists, forms, and your first project.',
+  difficulty: 'beginner',
+  lessons: [
+    {
+      id: 'r2-1',
+      title: 'Event Handling',
+      prereqs: ['r1-5'],
+      difficulty: 'beginner',
+      duration: '30 min',
+      concepts: [
+        'React events use camelCase (onClick, onChange) and pass function references, not strings. Pass handleClick, not handleClick().',
+        'The event object: React passes a synthetic event with target, type, clientX. Use event.target.value for input values.',
+        'Common events: onClick (buttons), onChange (inputs), onSubmit (forms), onMouseEnter/Leave (hover), onKeyDown (keyboard).',
+        'Prevent default: use event.preventDefault() in form handlers to stop page refresh on submit.',
+        'Passing handlers as props: parent defines the function, child receives it via props and calls it on events.',
+      ],
+      code: `function ClickCounter() {\n    const [count, setCount] = React.useState(0);\n\n    function handleClick() {\n        setCount(count + 1);\n    }\n\n    return (\n        <div>\n            <p>Clicked {count} times</p>\n            <button onClick={handleClick}>Click Me!</button>\n        </div>\n    );\n}\n\n// Input tracking\nfunction NameInput() {\n    const [name, setName] = React.useState('');\n    return (\n        <div>\n            <input onChange={(e) => setName(e.target.value)} />\n            <p>Hello, {name || 'stranger'}!</p>\n        </div>\n    );\n}`,
+      output: 'Interactive counter and live name input — events make React components respond to users!',
+      tasks: ['Handle your first click event — build a counter', 'Capture form input changes with onChange', 'Pass event handlers as props to child components', 'Prevent default form submission with preventDefault()'],
+      challenge: 'Build an Interactive Color Picker: 3 color buttons (Red, Blue, Green) that change a box\'s background. Reset button to set white. Display current color name.',
+      devFession: 'I wrote onClick={handleClick()} with parentheses and the function ran immediately on render. The counter went to infinity. My browser crashed.',
+    },
+    {
+      id: 'r2-2',
+      title: 'Conditional Rendering',
+      prereqs: ['r2-1'],
+      difficulty: 'beginner',
+      duration: '25 min',
+      concepts: [
+        'Ternary operator (? :): for TWO options. condition ? <ShowThis /> : <ShowThat />. Like if/else inline.',
+        'Logical AND (&&): show something OR nothing. condition && <ShowThis />. Perfect for error messages, badges.',
+        'If/else before return: for complex logic with multiple conditions. Calculate what to show, then return it.',
+        'Variables for JSX: store JSX in variables for readable complex conditions. let content = isLoggedIn ? <Dashboard /> : <Login />;',
+      ],
+      code: `function WelcomeMessage() {\n    const [isLoggedIn, setIsLoggedIn] = React.useState(false);\n\n    return (\n        <div>\n            {isLoggedIn ? (\n                <h1>Welcome back!</h1>\n            ) : (\n                <h1>Please log in</h1>\n            )}\n\n            <button onClick={() => setIsLoggedIn(!isLoggedIn)}>\n                {isLoggedIn ? 'Log Out' : 'Log In'}\n            </button>\n        </div>\n    );\n}`,
+      output: 'The UI changes based on state — logged in shows welcome, logged out shows login prompt!',
+      tasks: ['Toggle login state with ternary operator', 'Show error messages conditionally with &&', 'Build multi-state UI (idle → loading → success → error)', 'Use if/else before return for complex logic'],
+      challenge: 'Build a Theme Switcher: toggle light/dark mode. Different background and text colors. Button text changes. Show sun or moon emoji.',
+      devFession: 'I used && when I needed ternary and couldn\'t figure out why my "else" case never showed. && = show or nothing. Ternary = A or B. Know the difference.',
+    },
+    {
+      id: 'r2-3',
+      title: 'Lists and Keys',
+      prereqs: ['r2-2'],
+      difficulty: 'beginner',
+      duration: '32 min',
+      concepts: [
+        '.map() transforms arrays into JSX: users.map(user => <UserCard key={user.id} user={user} />). This is how lists render in React.',
+        'Keys help React track items: unique identifier for each list item. React uses keys to know what changed, was added, or removed.',
+        'Good keys vs bad keys: use stable IDs from data (user.id). AVOID array index as key — breaks when items reorder.',
+        'Keys must be unique among siblings, not globally. Two different lists can use the same key values.',
+      ],
+      code: `function UserList() {\n    const users = [\n        { id: 1, name: 'Sarah', role: 'Developer' },\n        { id: 2, name: 'Alex', role: 'Designer' },\n        { id: 3, name: 'Jordan', role: 'Manager' },\n    ];\n\n    return (\n        <ul>\n            {users.map(user => (\n                <li key={user.id}>\n                    <strong>{user.name}</strong> — {user.role}\n                </li>\n            ))}\n        </ul>\n    );\n}`,
+      output: 'A dynamic list rendered from an array. Add items to the array and the UI updates automatically!',
+      tasks: ['Render an array of strings with .map()', 'Render objects with multiple properties', 'Combine .filter() and .map() to show specific items', 'Build a shopping list with add/remove'],
+      challenge: 'Build a Contact List: array of contacts (id, name, email, phone). Display with .map() and proper keys. Add search input to filter by name. Show "No contacts found" when empty.',
+      devFession: 'I ignored the key warning for weeks. Then I built a sortable list and items kept jumping around randomly. Keys aren\'t optional — they\'re how React tracks your list.',
+    },
+    {
+      id: 'r2-4',
+      title: 'Controlled Forms',
+      prereqs: ['r2-3'],
+      difficulty: 'beginner',
+      duration: '35 min',
+      concepts: [
+        'Controlled components: input value is managed by React state. value={name} + onChange={setName}. Single source of truth.',
+        'Why controlled?: easy validation, can modify input before display, easy reset, consistent data flow. React owns the data.',
+        'Multiple inputs: use object state with spread. setState({...state, [e.target.name]: e.target.value}) handles any field.',
+        'Form submission: always use onSubmit + event.preventDefault(). Never let the form refresh the page.',
+        'Different input types: text (value), checkbox (checked), select (value), textarea (value). Each follows the same controlled pattern.',
+      ],
+      code: `function NameForm() {\n    const [name, setName] = React.useState('');\n\n    function handleSubmit(e) {\n        e.preventDefault();\n        alert(\`Hello, \${name}!\`);\n    }\n\n    return (\n        <form onSubmit={handleSubmit}>\n            <input\n                type="text"\n                value={name}\n                onChange={(e) => setName(e.target.value)}\n                placeholder="Enter your name"\n            />\n            <button type="submit">Submit</button>\n        </form>\n    );\n}`,
+      output: 'A controlled form where React manages the input value. Submit shows an alert with the entered name.',
+      tasks: ['Create a controlled text input', 'Handle multiple form fields with object state', 'Add form validation (email format, password length)', 'Build a complete form with different input types'],
+      challenge: 'Build a Survey Form: name (text), age (number), favorite color (select), bio (textarea), subscribe (checkbox), submit button. Display submitted data. Clear form after submit.',
+      devFession: 'I forgot e.preventDefault() and spent 20 minutes wondering why my form data disappeared on submit. The page was refreshing every time. Every. Time.',
+    },
+    {
+      id: 'r2-5',
+      title: 'Weather Dashboard Project',
+      prereqs: ['r2-4'],
+      difficulty: 'intermediate',
+      duration: '90 min',
+      concepts: [
+        'Full project combining ALL Module 1 concepts: components, props, state, events, conditionals, lists, forms.',
+        'Component architecture: App (container) → SearchForm + WeatherDisplay + FavoritesList. Each has one job.',
+        'Async operations: mock API with promises. Loading → success/error states. Real-world data flow pattern.',
+        'Complex state: multiple useState hooks working together (weather, favorites, loading, error, searchCity).',
+      ],
+      code: `// Architecture:\n// WeatherApp (all state lives here)\n//   ├── SearchForm (controlled input + submit)\n//   ├── WeatherDisplay (current + forecast)\n//   └── FavoritesList (saved cities)\n\nfunction WeatherApp() {\n    const [weather, setWeather] = React.useState(null);\n    const [favorites, setFavorites] = React.useState([]);\n    const [loading, setLoading] = React.useState(false);\n    const [error, setError] = React.useState('');\n\n    async function handleSearch(cityName) {\n        setLoading(true);\n        setError('');\n        try {\n            const data = await getWeather(cityName);\n            setWeather(data);\n        } catch (err) {\n            setError(err.message);\n            setWeather(null);\n        } finally {\n            setLoading(false);\n        }\n    }\n\n    // SearchForm, WeatherDisplay, FavoritesList\n    // each receive props from this parent\n}`,
+      output: 'A complete weather dashboard with search, current weather, forecast, favorites, and loading/error states!',
+      tasks: ['Set up component structure with all state variables', 'Build SearchForm as a controlled component', 'Create mock weather data and getWeather function', 'Display weather with conditional rendering (loading/error/data)', 'Build favorites list with add/remove', 'Integrate all components into the dashboard'],
+      challenge: 'Extend the dashboard: add temperature unit toggle (°C/°F), 5-day forecast instead of 3, weather icons, and "last searched" history.',
+      devFession: 'My first React project was one 800-line component. Splitting it into SearchForm + WeatherDisplay + FavoritesList made each piece simple. That\'s when React "clicked" for me.',
+    },
+  ],
 };
