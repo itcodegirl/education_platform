@@ -160,7 +160,6 @@ export function LandingHeroIntro({ onStart, compact = false }) {
       ref={introRef}
       className={`lh-intro ${compact ? 'lh-intro-compact' : ''} ${introInView ? 'in-view' : ''}`}
     >
-      <span className="lh-eyebrow">Free · browser-based · built for you</span>
       <h1 className="lh-headline">
         Learn to code by{' '}
         <span className="lh-headline-grad">building something real.</span>
