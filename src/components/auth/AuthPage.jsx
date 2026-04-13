@@ -2,9 +2,10 @@
 // AUTH PAGE — Login / Signup with CodeHerWay branding
 // ═══════════════════════════════════════════════
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '../../providers';
 import { Logo } from '../shared/Logo';
+import { LandingHero } from './LandingHero';
 
 export function AuthPage({ onPreview }) {
   const { signIn, signUp, signInWithGithub, signInWithGoogle } = useAuth();
@@ -15,6 +16,12 @@ export function AuthPage({ onPreview }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [confirmSent, setConfirmSent] = useState(false);
+  const authCardRef = useRef(null);
+
+  const scrollToAuth = (nextMode) => {
+    if (nextMode) setMode(nextMode);
+    authCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -64,7 +71,9 @@ export function AuthPage({ onPreview }) {
 
   return (
     <div className="auth-page">
-      <div className="auth-card">
+      <LandingHero onStart={() => scrollToAuth('signup')} />
+
+      <div className="auth-card" ref={authCardRef}>
         <div className="auth-brand">
           <span className="auth-bolt">⚡</span>
           <h1 className="auth-title">CodeHerWay</h1>

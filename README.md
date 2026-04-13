@@ -189,11 +189,12 @@ Full threat model and disclosure process: [`SECURITY.md`](./SECURITY.md).
 
 ## Roadmap
 
-- [ ] Public progress pages (`/u/:handle`) with shareable OG cards
-- [ ] AI-generated personalized practice quizzes from missed concepts
-- [ ] Animated landing-page hero with scroll-driven storytelling
-- [ ] Self-host fonts to drop `'unsafe-inline'` from the style CSP
-- [ ] Migrate `src/` to TypeScript
+- [x] Animated landing-page hero with scroll-driven storytelling
+- [x] Public profile pages (`/#u/:handle`) — opt-in, RLS-gated
+- [x] AI-generated personalized practice quizzes from missed concepts
+- [x] Self-host fonts to drop the font CDN from the CSP
+- [ ] Server-rendered OG images for public profile pages
+- [ ] Migrate components to TypeScript
 
 ## Contributing
 

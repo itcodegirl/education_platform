@@ -21,6 +21,24 @@ const ProfilePage = lazy(() =>
 const Styleguide = lazy(() =>
   import('../components/shared/Styleguide').then(m => ({ default: m.Styleguide }))
 );
+// Public user profile page (/#u/:handle) — also public, also lazy.
+const PublicProfile = lazy(() =>
+  import('../components/shared/PublicProfile').then(m => ({ default: m.PublicProfile }))
+);
+
+// Parse "#u/jenna" out of window.location.hash. Returns null if it's
+// not a public-profile hash. We do this in-line (no react-router) so
+// the rest of the routing layer doesn't need to change.
+function parsePublicProfileHash() {
+  if (typeof window === 'undefined') return null;
+  const hash = window.location.hash || '';
+  const match = hash.match(/^#u\/([^/?#]+)/);
+  if (!match) return null;
+  // Only allow simple handles: letters, numbers, dash, underscore, 2-30 chars.
+  const handle = decodeURIComponent(match[1]);
+  if (!/^[A-Za-z0-9_-]{2,30}$/.test(handle)) return null;
+  return handle;
+}
 
 export default function AppRoutes() {
   const { theme } = useTheme();
@@ -40,6 +58,27 @@ export default function AppRoutes() {
           </div>
         }>
           <Styleguide onClose={() => { window.location.hash = ''; window.location.reload(); }} />
+        </Suspense>
+      </div>
+    );
+  }
+
+  // ─── Public profile route (public, no auth) ───
+  // URL shape: #u/:handle. Uses the public_profiles VIEW in Supabase
+  // (see supabase-schema.sql) so only opt-in users appear.
+  const publicHandle = parsePublicProfileHash();
+  if (publicHandle) {
+    return (
+      <div className={theme}>
+        <Suspense fallback={
+          <div className="loading-screen">
+            <div className="loading-pulse"><Logo size="sm" /><p>Loading profile...</p></div>
+          </div>
+        }>
+          <PublicProfile
+            handle={publicHandle}
+            onClose={() => { window.location.hash = ''; window.location.reload(); }}
+          />
         </Suspense>
       </div>
     );

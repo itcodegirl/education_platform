@@ -2,11 +2,12 @@
 // PROFILE PAGE — User info, stats, and badges
 // ═══════════════════════════════════════════════
 
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useAuth, useProgress, useTheme } from '../../providers';
 import { COURSES } from '../../data';
 import { BADGE_DEFS } from '../../context/ProgressContext';
 import { getLevel, getXPInLevel, XP_PER_LEVEL } from '../../utils/helpers';
+import { supabase } from '../../lib/supabaseClient';
 
 export const ProfilePage = memo(function ProfilePage({ onClose }) {
   const { user, profile, signOut } = useAuth();
@@ -15,6 +16,70 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
     completed = [], xpTotal = 0, streak = 0,
     earnedBadges = {}, bookmarks = [], notes = {},
   } = useProgress();
+
+  // ─── Public profile toggle ────────────────
+  // Loads straight from the profiles row so we don't block on a
+  // round-trip through ProgressContext.
+  const [isPublic, setIsPublic] = useState(false);
+  const [publicHandle, setPublicHandle] = useState('');
+  const [publicSaving, setPublicSaving] = useState(false);
+  const [publicError, setPublicError] = useState('');
+  const [publicSaved, setPublicSaved] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      if (!user?.id) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('is_public, public_handle')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (cancelled || !data) return;
+      setIsPublic(!!data.is_public);
+      setPublicHandle(data.public_handle || '');
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
+  const savePublicSettings = async (nextIsPublic, nextHandle) => {
+    setPublicSaving(true);
+    setPublicError('');
+    setPublicSaved(false);
+
+    const cleanHandle = (nextHandle || '').trim().toLowerCase();
+
+    if (nextIsPublic) {
+      if (!/^[a-z0-9_-]{2,30}$/.test(cleanHandle)) {
+        setPublicError('Handle must be 2–30 chars: letters, numbers, dash, underscore.');
+        setPublicSaving(false);
+        return;
+      }
+    }
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        is_public: nextIsPublic,
+        public_handle: nextIsPublic ? cleanHandle : null,
+      })
+      .eq('id', user.id);
+
+    setPublicSaving(false);
+    if (error) {
+      // unique_violation on public_handle
+      if ((error.code || '').startsWith('23')) {
+        setPublicError('That handle is already taken. Try another.');
+      } else {
+        setPublicError(error.message || 'Could not save.');
+      }
+      return;
+    }
+    setIsPublic(nextIsPublic);
+    setPublicHandle(nextIsPublic ? cleanHandle : '');
+    setPublicSaved(true);
+  };
 
   const displayName = profile?.display_name || user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Learner';
   const level = getLevel(xpTotal);
@@ -99,6 +164,77 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
               </div>
             );
           })}
+        </div>
+
+        <h3 className="pp-section-title">Public profile</h3>
+        <div className="pp-public-card">
+          <div className="pp-public-head">
+            <div>
+              <div className="pp-public-title">Share a public page</div>
+              <div className="pp-public-sub">
+                A read-only page at <code>/#u/your-handle</code> showing your level, XP, streak, and badge count. Nothing else is exposed.
+              </div>
+            </div>
+            <label className="pp-public-switch">
+              <input
+                type="checkbox"
+                checked={isPublic}
+                disabled={publicSaving}
+                onChange={(e) => {
+                  const next = e.target.checked;
+                  // When turning ON without a handle, don't save yet — wait for user to type one.
+                  if (next && !publicHandle) {
+                    setIsPublic(true);
+                    return;
+                  }
+                  savePublicSettings(next, publicHandle);
+                }}
+              />
+              <span>{isPublic ? 'Public' : 'Private'}</span>
+            </label>
+          </div>
+
+          {isPublic && (
+            <div className="pp-public-form">
+              <label className="pp-public-label" htmlFor="pp-handle">Handle</label>
+              <div className="pp-public-row">
+                <span className="pp-public-prefix">/#u/</span>
+                <input
+                  id="pp-handle"
+                  className="pp-public-input"
+                  type="text"
+                  value={publicHandle}
+                  onChange={(e) => setPublicHandle(e.target.value)}
+                  placeholder="jenna"
+                  maxLength={30}
+                  disabled={publicSaving}
+                />
+                <button
+                  type="button"
+                  className="pp-public-save"
+                  disabled={publicSaving}
+                  onClick={() => savePublicSettings(true, publicHandle)}
+                >
+                  {publicSaving ? 'Saving…' : 'Save'}
+                </button>
+              </div>
+              {publicHandle && !publicError && publicSaved && (
+                <a
+                  className="pp-public-link"
+                  href={`#u/${publicHandle}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  View your public page →
+                </a>
+              )}
+            </div>
+          )}
+
+          {publicError && <div className="pp-public-error">{publicError}</div>}
+          {publicSaved && !publicError && (
+            <div className="pp-public-success">Saved.</div>
+          )}
         </div>
 
         <h3 className="pp-section-title">Activity</h3>

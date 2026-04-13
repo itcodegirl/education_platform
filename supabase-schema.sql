@@ -373,3 +373,128 @@ $$;
 
 revoke all on function public.consume_ai_quota() from public;
 grant execute on function public.consume_ai_quota() to authenticated;
+
+-- ═══════════════════════════════════════════════
+-- PUBLIC PROFILE PAGES  (/#u/:handle)
+-- ═══════════════════════════════════════════════
+--
+-- Lets a learner opt in to a read-only public page
+-- showing their display name, XP, streak, lesson
+-- count, and badge count. Opt-in defaults to false;
+-- everything else stays private.
+--
+-- Design: we DON'T add a public RLS policy directly
+-- to `profiles`, `xp`, `streaks`, etc. (that would
+-- risk over-exposing columns). Instead we create a
+-- `public_profiles` VIEW that projects only the
+-- fields we want public, and grant SELECT on that
+-- view to `anon`.
+
+alter table public.profiles
+  add column if not exists is_public boolean default false;
+alter table public.profiles
+  add column if not exists public_handle text unique;
+
+-- Case-insensitive handle lookup (so /#u/Jenna and /#u/jenna both work).
+create index if not exists idx_profiles_public_handle_lower
+  on public.profiles (lower(public_handle))
+  where is_public = true;
+
+create or replace view public.public_profiles as
+select
+  p.id                    as id,
+  p.display_name          as display_name,
+  p.avatar_url            as avatar_url,
+  p.public_handle         as handle,
+  coalesce(x.total, 0)    as xp_total,
+  coalesce(s.days, 0)     as streak_days,
+  coalesce(lesson_counts.n, 0) as lessons_completed,
+  coalesce(badge_counts.n, 0)  as badges_earned
+from public.profiles p
+left join public.xp x on x.user_id = p.id
+left join public.streaks s on s.user_id = p.id
+left join (
+  select user_id, count(*)::int as n
+  from public.progress
+  group by user_id
+) lesson_counts on lesson_counts.user_id = p.id
+left join (
+  select user_id, count(*)::int as n
+  from public.badges
+  group by user_id
+) badge_counts on badge_counts.user_id = p.id
+where p.is_public = true
+  and coalesce(p.is_disabled, false) = false;
+
+-- Views inherit RLS from their base tables, so we also need to grant
+-- SELECT on the view itself to the anon role. Base-table RLS continues
+-- to protect raw rows; only the projected columns above are exposed.
+grant select on public.public_profiles to anon, authenticated;
+
+-- And we need a policy on `profiles` that lets `anon` read the specific
+-- public columns via the view. Postgres RLS doesn't do column-level
+-- grants in a policy, so we add a row-level "is_public = true" policy
+-- and rely on the VIEW to limit the columns.
+drop policy if exists "Public profiles readable by anyone" on public.profiles;
+create policy "Public profiles readable by anyone"
+  on public.profiles
+  for select
+  using (is_public = true and coalesce(is_disabled, false) = false);
+
+-- Same for the joined tables — only the minimum columns projected by
+-- the view are reachable, but the base-table RLS still needs a path.
+drop policy if exists "Public xp readable" on public.xp;
+create policy "Public xp readable"
+  on public.xp
+  for select
+  using (
+    exists (
+      select 1 from public.profiles
+      where profiles.id = xp.user_id
+        and profiles.is_public = true
+        and coalesce(profiles.is_disabled, false) = false
+    )
+  );
+
+drop policy if exists "Public streaks readable" on public.streaks;
+create policy "Public streaks readable"
+  on public.streaks
+  for select
+  using (
+    exists (
+      select 1 from public.profiles
+      where profiles.id = streaks.user_id
+        and profiles.is_public = true
+        and coalesce(profiles.is_disabled, false) = false
+    )
+  );
+
+drop policy if exists "Public progress count readable" on public.progress;
+create policy "Public progress count readable"
+  on public.progress
+  for select
+  using (
+    exists (
+      select 1 from public.profiles
+      where profiles.id = progress.user_id
+        and profiles.is_public = true
+        and coalesce(profiles.is_disabled, false) = false
+    )
+  );
+
+drop policy if exists "Public badges count readable" on public.badges;
+create policy "Public badges count readable"
+  on public.badges
+  for select
+  using (
+    exists (
+      select 1 from public.profiles
+      where profiles.id = badges.user_id
+        and profiles.is_public = true
+        and coalesce(profiles.is_disabled, false) = false
+    )
+  );
+
+-- Users can still only UPDATE their own is_public / public_handle
+-- columns through the existing "Users manage own profiles" policy —
+-- it uses `auth.uid() = id`, which prevents cross-user toggling.

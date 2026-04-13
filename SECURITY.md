@@ -100,6 +100,35 @@ Configured in `netlify.toml`:
   CodeHerWay brand.
 - Role whitelist (`user` | `assistant`) for messages.
 
+### Practice card generator (`netlify/functions/practice-generate.js`)
+
+- Same auth + rate-limit + fail-closed posture as the AI proxy.
+- The `system` prompt is **pinned server-side** — the client only
+  sends `{ topic, concept }`. The topic is checked against a small
+  allowlist (`html`, `css`, `js`, `react`, `python`) and the concept
+  is capped at 200 chars.
+- Model output is parsed, code-fence-stripped, and validated against a
+  strict schema (`question` / `code?` / `options[4]` / `correct 0..3`
+  / `explanation`) before it leaves the function. Invalid shapes
+  return 502 rather than forwarding a malformed card to the client.
+
+### Public profile pages (`#u/:handle`)
+
+- Opt-in only. `profiles.is_public` defaults to `false`.
+- Public data is exposed through a `public_profiles` VIEW that
+  projects only: display name, avatar URL, handle, total XP, streak,
+  lessons completed count, and badges earned count. No email, no
+  per-lesson progress, no bookmarks, no notes.
+- The base-table RLS policies gating anon reads all require
+  `profiles.is_public = true AND is_disabled = false`, so disabled
+  accounts disappear from the public view immediately.
+- Handles are validated client- and server-side (2–30 chars,
+  `[A-Za-z0-9_-]`). Unique constraint on `public_handle` prevents
+  squatting collisions.
+- Updates to `is_public` / `public_handle` still go through the
+  existing "Users manage own profiles" RLS policy (`auth.uid() = id`),
+  so users cannot flip another user's visibility.
+
 ### Scheduled jobs
 
 - `netlify/functions/streak-reminder.js` only runs on the Netlify

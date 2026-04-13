@@ -1,12 +1,52 @@
 import { useState } from 'react';
 import { useProgress } from '../../providers';
+import { generatePracticeCard } from '../../services/practiceService';
+
+const TOPICS = [
+  { id: 'html',   label: 'HTML'   },
+  { id: 'css',    label: 'CSS'    },
+  { id: 'js',     label: 'JS'     },
+  { id: 'react',  label: 'React'  },
+  { id: 'python', label: 'Python' },
+];
 
 export function SRPanel({ isOpen, onClose }) {
-  const { getDueSRCards, updateSRCard, srCards = [] } = useProgress();
+  const { getDueSRCards, updateSRCard, addToSRQueue, srCards = [] } = useProgress();
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answered, setAnswered] = useState(null);
   const [sessionRight, setSessionRight] = useState(0);
   const [sessionWrong, setSessionWrong] = useState(0);
+  const [genTopic, setGenTopic] = useState('html');
+  const [genConcept, setGenConcept] = useState('');
+  const [genLoading, setGenLoading] = useState(false);
+  const [genError, setGenError] = useState('');
+  const [genSuccess, setGenSuccess] = useState('');
+
+  const handleGenerate = async (event) => {
+    event.preventDefault();
+    if (genLoading) return;
+    const concept = genConcept.trim();
+    if (!concept) {
+      setGenError('Tell the AI which concept you want to practice.');
+      return;
+    }
+    setGenLoading(true);
+    setGenError('');
+    setGenSuccess('');
+    try {
+      const card = await generatePracticeCard({ topic: genTopic, concept });
+      // addToSRQueue takes an array and de-dupes by question text.
+      if (typeof addToSRQueue === 'function') {
+        await addToSRQueue([card]);
+      }
+      setGenSuccess('New practice card added to your review queue.');
+      setGenConcept('');
+    } catch (err) {
+      setGenError(err.message || 'Could not generate a practice card.');
+    } finally {
+      setGenLoading(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -47,6 +87,48 @@ export function SRPanel({ isOpen, onClose }) {
         </div>
 
         <div className="cheatsheet-body">
+          {/* ─── AI practice card generator ─── */}
+          <form className="sr-generate" onSubmit={handleGenerate}>
+            <div className="sr-generate-head">
+              <span className="sr-generate-title">🤖 Generate a practice card</span>
+              <span className="sr-generate-sub">
+                Tell the AI which concept you want to drill — it builds a fresh card for your queue.
+              </span>
+            </div>
+            <div className="sr-generate-row">
+              <select
+                className="sr-generate-topic"
+                value={genTopic}
+                onChange={(e) => setGenTopic(e.target.value)}
+                disabled={genLoading}
+                aria-label="Topic"
+              >
+                {TOPICS.map((t) => (
+                  <option key={t.id} value={t.id}>{t.label}</option>
+                ))}
+              </select>
+              <input
+                type="text"
+                className="sr-generate-concept"
+                placeholder="e.g. flexbox gap vs margin, async/await errors, useEffect deps…"
+                value={genConcept}
+                onChange={(e) => setGenConcept(e.target.value)}
+                disabled={genLoading}
+                maxLength={200}
+                aria-label="Concept to practice"
+              />
+              <button
+                type="submit"
+                className="sr-generate-btn"
+                disabled={genLoading}
+              >
+                {genLoading ? 'Generating…' : 'Generate'}
+              </button>
+            </div>
+            {genError && <div className="sr-generate-error">{genError}</div>}
+            {genSuccess && <div className="sr-generate-success">{genSuccess}</div>}
+          </form>
+
           {due.length === 0 ? (
             <div className="sr-empty">
               <span className="sr-empty-icon">Done</span>
