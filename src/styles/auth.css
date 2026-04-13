@@ -125,7 +125,7 @@
   border-radius: 12px;
   background: rgba(255,255,255,0.04);
   color: var(--text); font-size: 15px;
-  outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
   font-family: 'Inter', sans-serif;
 }
 .auth-field input:focus {

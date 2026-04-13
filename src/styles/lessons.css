@@ -310,7 +310,6 @@
   font-family: 'Inter', sans-serif;
   line-height: 1.6;
   resize: vertical;
-  outline: none;
   min-height: 100px;
 }
 .notes-input::placeholder { color: var(--text-muted); }
@@ -422,7 +421,7 @@
 }
 .search-input-wrap { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; }
 .search-icon { font-size:20px; color:var(--text-muted); }
-.search-input { flex:1; background:none; border:none; color:var(--text); font-size:17px; outline:none; font-family:'Inter',sans-serif; }
+.search-input { flex:1; background:none; border:none; color:var(--text); font-size:17px; font-family:'Inter',sans-serif; }
 .search-input::placeholder { color:var(--text-muted); }
 .search-hint { font-size:11px; color:var(--text-muted); font-family:'Poppins',monospace; background:var(--bg-surface); padding:2px 8px; border-radius:4px; }
 .search-results { overflow-y:auto; flex:1; padding:8px; }

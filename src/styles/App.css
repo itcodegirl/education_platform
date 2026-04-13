@@ -1168,7 +1168,7 @@
   flex: 1; padding: 10px 14px; border-radius: 8px;
   background: var(--bg-deep); border: 1px solid var(--border);
   color: var(--text); font-family: 'Inter', sans-serif;
-  font-size: 14px; resize: none; outline: none;
+  font-size: 14px; resize: none;
   transition: border-color 0.15s;
 }
 .ai-input:focus { border-color: var(--cyan); }
@@ -1960,7 +1960,7 @@
 .cc-ai-input {
   flex: 1; padding: 8px 12px; border-radius: 8px;
   background: var(--bg-deep); border: 1px solid var(--border);
-  color: var(--text); font-size: 13px; outline: none;
+  color: var(--text); font-size: 13px;
   font-family: 'Inter', sans-serif;
   transition: border-color 0.15s;
 }
@@ -2103,7 +2103,7 @@
   width: 100%; min-height: 280px;
   padding: 16px; margin: 0;
   background: #0a0a14; color: #e0e0ec;
-  border: none; outline: none; resize: vertical;
+  border: none; resize: vertical;
   font-family: 'Poppins', 'Courier New', monospace;
   font-size: 14px; line-height: 1.6;
   tab-size: 2; white-space: pre;
@@ -2672,7 +2672,7 @@ img {
   background: var(--bg-card); border: 2px solid var(--border);
   border-radius: var(--radius-md); color: var(--text);
   font-family: 'Poppins', monospace; font-size: 15px;
-  outline: none; transition: border-color var(--duration-fast);
+  transition: border-color var(--duration-fast);
 }
 .qq-fill-input:focus { border-color: var(--cyan); }
 .qq-fill-input.is-correct { border-color: #10b981; background: #10b98108; }
@@ -3020,7 +3020,7 @@ img {
   border: 1px solid var(--border); border-radius: 8px;
   background: var(--bg-surface); color: var(--text);
   font-size: 14px; font-family: 'Inter', sans-serif;
-  outline: none; transition: border-color 0.15s;
+  transition: border-color 0.15s;
 }
 .lb-wrap input:focus,
 .lb-wrap select:focus,

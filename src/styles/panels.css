@@ -417,7 +417,7 @@
 .cs-item:hover { border-color: var(--border-bright); }
 .cs-item code { font-family:'Poppins',monospace; font-size:12px; color:var(--amber); }
 .cs-desc { font-size:12px; color:var(--text-dim); margin-top:2px; }
-.glossary-search { width:100%; padding:10px 16px; border:1px solid var(--border); border-radius:8px; background:var(--bg-surface); color:var(--text); font-size:14px; margin-bottom:16px; outline:none; transition:border-color 0.2s; font-family:'Inter',sans-serif; }
+.glossary-search { width:100%; padding:10px 16px; border:1px solid var(--border); border-radius:8px; background:var(--bg-surface); color:var(--text); font-size:14px; margin-bottom:16px; transition:border-color 0.2s; font-family:'Inter',sans-serif; }
 .glossary-search:focus { border-color: var(--purple); }
 .gl-term {
   margin-bottom: 12px;
