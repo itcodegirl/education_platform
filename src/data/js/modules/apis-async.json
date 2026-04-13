@@ -2,127 +2,72 @@
   "id": 305,
   "emoji": "🌐",
   "title": "APIs and Async JavaScript",
-  "tagline": "Fetch real data from the internet.",
+  "tagline": "Fetch real data, master async/await, and build production-ready apps.",
   "difficulty": "intermediate",
   "lessons": [
     {
       "id": "js-5-1",
       "title": "Fetch Data from APIs",
-      "prereqs": [],
+      "prereqs": ["js-4-4"],
       "difficulty": "intermediate",
       "duration": "22 min",
-      "metadata": {
-        "estimatedTime": 22,
-        "difficulty": "intermediate",
-        "conceptsCount": 7,
-        "tasksCount": 3
-      },
-      "hook": {
-        "accomplishments": [
-          "Pull real weather data from the internet into your app",
-          "Understand how websites get data from servers",
-          "Build a weather app that shows live information",
-          "Make your apps dynamic with real-world data"
-        ]
-      },
-      "do": {
-        "title": "Fetch Real Weather Data",
-        "steps": [
-          "Open VS Code or CodePen",
-          "Create weather-app.html",
-          "Copy the code below",
-          "Save and open in browser",
-          "Click 'Get Weather' — see REAL data appear!",
-          "Try different cities",
-          "Watch the console to see the data flow"
-        ],
-        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Weather App</title>\n  <style>\n    body { margin: 0; padding: 0; min-height: 100vh; background: linear-gradient(135deg, #667eea, #764ba2); font-family: Arial; display: flex; justify-content: center; align-items: center; }\n    .container { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 450px; }\n    h1 { text-align: center; color: #2C3E50; margin: 0 0 30px; }\n    .search { display: flex; gap: 10px; margin-bottom: 30px; }\n    input { flex: 1; padding: 15px; font-size: 16px; border: 2px solid #BDC3C7; border-radius: 10px; }\n    button { padding: 15px 30px; font-size: 16px; font-weight: bold; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 10px; cursor: pointer; }\n    .weather-display { display: none; text-align: center; }\n    .weather-display.show { display: block; }\n    .city-name { font-size: 32px; font-weight: bold; color: #2C3E50; }\n    .temperature { font-size: 72px; font-weight: bold; color: #667eea; margin: 20px 0; }\n    .description { font-size: 24px; color: #7F8C8D; text-transform: capitalize; }\n    .details { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }\n    .detail-item { background: #F8F9FA; padding: 15px; border-radius: 10px; }\n    .detail-label { font-size: 12px; color: #7F8C8D; text-transform: uppercase; }\n    .detail-value { font-size: 20px; font-weight: bold; color: #2C3E50; }\n    .loading, .error { text-align: center; padding: 15px; display: none; }\n    .loading.show, .error.show { display: block; }\n    .error { background: #FADBD8; color: #C0392B; border-radius: 10px; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <h1>🌤️ Weather App</h1>\n    <div class=\"search\">\n      <input type=\"text\" id=\"city-input\" placeholder=\"Enter city name...\" value=\"London\">\n      <button onclick=\"getWeather()\">Get Weather</button>\n    </div>\n    <div class=\"loading\" id=\"loading\">Loading weather data...</div>\n    <div class=\"error\" id=\"error\">City not found. Please try again.</div>\n    <div class=\"weather-display\" id=\"weather-display\">\n      <div class=\"city-name\" id=\"city-name\"></div>\n      <div class=\"temperature\" id=\"temperature\"></div>\n      <div class=\"description\" id=\"description\"></div>\n      <div class=\"details\">\n        <div class=\"detail-item\"><div class=\"detail-label\">Feels Like</div><div class=\"detail-value\" id=\"feels-like\"></div></div>\n        <div class=\"detail-item\"><div class=\"detail-label\">Humidity</div><div class=\"detail-value\" id=\"humidity\"></div></div>\n        <div class=\"detail-item\"><div class=\"detail-label\">Wind</div><div class=\"detail-value\" id=\"wind-speed\"></div></div>\n        <div class=\"detail-item\"><div class=\"detail-label\">Pressure</div><div class=\"detail-value\" id=\"pressure\"></div></div>\n      </div>\n    </div>\n  </div>\n\n  <script>\n    const API_KEY = \"bd5e378503939ddaee76f12ad7a97608\";\n    const API_URL = \"https://api.openweathermap.org/data/2.5/weather\";\n    \n    function getWeather() {\n      const city = document.getElementById(\"city-input\").value;\n      if (!city) return alert(\"Please enter a city name\");\n      \n      document.getElementById(\"loading\").classList.add(\"show\");\n      document.getElementById(\"error\").classList.remove(\"show\");\n      document.getElementById(\"weather-display\").classList.remove(\"show\");\n      \n      const url = `${API_URL}?q=${city}&appid=${API_KEY}&units=metric`;\n      console.log(\"Fetching:\", url);\n      \n      fetch(url)\n        .then(response => {\n          if (!response.ok) throw new Error(\"City not found\");\n          return response.json();\n        })\n        .then(data => {\n          console.log(\"Data:\", data);\n          document.getElementById(\"city-name\").textContent = data.name + \", \" + data.sys.country;\n          document.getElementById(\"temperature\").textContent = Math.round(data.main.temp) + \"°C\";\n          document.getElementById(\"description\").textContent = data.weather[0].description;\n          document.getElementById(\"feels-like\").textContent = Math.round(data.main.feels_like) + \"°C\";\n          document.getElementById(\"humidity\").textContent = data.main.humidity + \"%\";\n          document.getElementById(\"wind-speed\").textContent = data.wind.speed + \" m/s\";\n          document.getElementById(\"pressure\").textContent = data.main.pressure + \" hPa\";\n          document.getElementById(\"loading\").classList.remove(\"show\");\n          document.getElementById(\"weather-display\").classList.add(\"show\");\n        })\n        .catch(error => {\n          console.error(\"Error:\", error);\n          document.getElementById(\"loading\").classList.remove(\"show\");\n          document.getElementById(\"error\").classList.add(\"show\");\n        });\n    }\n    \n    document.getElementById(\"city-input\").addEventListener(\"keypress\", function(e) {\n      if (e.key === \"Enter\") getWeather();\n    });\n  </script>\n</body>\n</html>",
-        "result": "You just fetched REAL weather data from the internet! The data comes from OpenWeatherMap's servers and updates in real-time.",
-        "proofRequired": "Screenshot showing weather data for at least 2 different cities."
-      },
-      "understand": {
-        "concepts": [
-          {
-            "name": "What is an API?",
-            "definition": "API = Application Programming Interface. A URL that returns DATA (usually JSON) instead of a webpage. Websites use them to talk to servers.",
-            "analogy": "A restaurant menu. You (the customer) request items from the menu, and the kitchen (the API) prepares and sends back what you ordered."
-          },
-          {
-            "name": "JSON format",
-            "definition": "JavaScript Object Notation — a text format for data that looks almost exactly like JavaScript objects. Keys in double quotes. Almost every API uses JSON.",
-            "analogy": "A standardized shipping container — every country uses the same format so anything can be shipped anywhere."
-          },
-          {
-            "name": "The fetch() function",
-            "definition": "fetch(url) makes HTTP requests to get data from URLs. Returns a Promise that resolves when the data arrives. The most important function for working with APIs.",
-            "analogy": "Sending a letter — you drop it in the mailbox and get a tracking number (Promise). The response comes back later."
-          },
-          {
-            "name": "What is a Promise?",
-            "definition": "A value that will be available in the future. States: pending (waiting), fulfilled (success), rejected (failed). JavaScript's way of handling operations that take time.",
-            "analogy": "Ordering food at a restaurant. They give you a receipt (Promise) immediately. You can't eat the receipt, but it PROMISES you'll get food later."
-          },
-          {
-            "name": ".then() method",
-            "definition": "Runs code AFTER a Promise resolves. You can chain multiple .then() calls. Each one returns a new Promise. fetch(url).then(res => res.json()).then(data => ...).",
-            "analogy": "A to-do list with dependencies: \"WHEN this finishes, THEN do this, THEN do this.\""
-          },
-          {
-            "name": ".catch() method",
-            "definition": "Runs if ANY Promise in the chain fails. One .catch() at the end handles all errors. Essential for handling network failures and API errors.",
-            "analogy": "A safety net at a circus — catches you no matter which trapeze you fall from."
-          },
-          {
-            "name": "Response object",
-            "definition": "fetch() first returns a Response with metadata. response.ok is true if status is 200-299. Call response.json() to get the actual data (returns another Promise).",
-            "analogy": "An envelope (response) with a letter inside (the data). You have to open it first (response.json()) to read what's inside."
-          }
-        ],
-        "keyTakeaway": "APIs return data as JSON. fetch() gets data but returns a Promise. Use .then() to handle the data when it arrives, and .catch() to handle errors."
-      },
-      "build": {
-        "goal": "Extend the weather app to show multiple cities side-by-side for comparison",
-        "codeComparison": {
-          "old": "// Single city\nfetch(weatherUrl)\n  .then(res => res.json())\n  .then(data => displayWeather(data));",
-          "new": "// Multiple cities in parallel\nlet cities = [];\n\nfunction addCity(cityName) {\n  fetch(`${API_URL}?q=${cityName}&appid=${KEY}`)\n    .then(res => {\n      if (!res.ok) throw new Error('City not found');\n      return res.json();\n    })\n    .then(data => {\n      cities.push(data);\n      renderCities();\n    })\n    .catch(err => alert(err.message));\n}\n\nfunction renderCities() {\n  grid.innerHTML = cities.map(city => `\n    <div class=\"card\">\n      <h2>${city.name}</h2>\n      <div>${Math.round(city.main.temp)}°C</div>\n    </div>\n  `).join('');\n}"
-        },
-        "hint": "Store all city data in an array, then use .map() to create HTML for each city card!"
-      },
-      "challenge": {
-        "title": "Build a GitHub User Profile Viewer",
-        "mission": "Create an app that fetches and displays GitHub user profiles using the GitHub API.",
-        "requirements": [
-          "Input field for GitHub username",
-          "Fetch user data from https://api.github.com/users/{username}",
-          "Display: avatar, name, bio, location, followers, following, repos count",
-          "Fetch repositories from https://api.github.com/users/{username}/repos",
-          "Show each repo: name, description, stars, language",
-          "Sort repos by stars (most popular first)",
-          "Show only top 6 repos",
-          "Handle errors (user not found)",
-          "Add loading state while fetching",
-          "Professional styling"
-        ],
-        "starterCode": "function searchUser() {\n  const username = document.getElementById('username-input').value.trim();\n  \n  // 1. Fetch user profile\n  fetch(`https://api.github.com/users/${username}`)\n    .then(res => {\n      if (!res.ok) throw new Error('User not found');\n      return res.json();\n    })\n    .then(user => displayProfile(user))\n    .catch(err => alert(err.message));\n  \n  // 2. Fetch user repos (parallel!)\n  fetch(`https://api.github.com/users/${username}/repos`)\n    .then(res => res.json())\n    .then(repos => {\n      const top6 = repos\n        .sort((a, b) => b.stargazers_count - a.stargazers_count)\n        .slice(0, 6);\n      displayRepos(top6);\n    });\n}\n\nfunction displayProfile(user) {\n  // Fill in profile: avatar, name, bio, stats\n}\n\nfunction displayRepos(repos) {\n  // Build HTML for each repo card\n}",
-        "bonusChallenge": "Add a \"View on GitHub\" button for each repository that opens it in a new tab using target=\"_blank\"."
-      },
-      "summary": {
-        "capabilities": [
-          "Understand what APIs are and how they work",
-          "Use fetch() to get data from the internet",
-          "Handle Promises with .then() and .catch()",
-          "Parse JSON data from API responses",
-          "Display API data on web pages",
-          "Handle loading states while fetching",
-          "Handle errors when APIs fail",
-          "Make multiple API calls simultaneously",
-          "Build real applications with live data"
-        ]
-      },
-      "bridge": {
-        "preview": "In the next lesson, you'll learn ASYNC/AWAIT — a cleaner, more readable way to write asynchronous code that looks like regular synchronous code.",
-        "nextLessonId": "js-5-2"
-      }
+      "metadata": { "estimatedTime": 22, "difficulty": "intermediate", "conceptsCount": 8, "tasksCount": 3 },
+      "hook": { "accomplishments": ["Connect your code to real APIs on the internet", "Fetch live weather data, user profiles, and more", "Display dynamic content from external sources", "Build apps that use real-time information"] },
+      "do": { "title": "Build a Weather App with Real API Data", "steps": ["Create weather-app.html", "Copy the code — a complete weather app", "Enter a city name and click 'Get Weather'", "See REAL weather data from OpenWeatherMap API!", "Try different cities — it's pulling live data!"], "code": "const API_KEY = 'your-key-here';\nconst API_URL = 'https://api.openweathermap.org/data/2.5/weather';\n\nfunction getWeather() {\n    const city = document.getElementById('city-input').value;\n    const url = `${API_URL}?q=${city}&appid=${API_KEY}&units=metric`;\n\n    fetch(url)\n        .then(response => {\n            if (!response.ok) throw new Error('City not found');\n            return response.json();\n        })\n        .then(data => {\n            document.getElementById('city-name').textContent = `${data.name}, ${data.sys.country}`;\n            document.getElementById('temperature').textContent = `${Math.round(data.main.temp)}°C`;\n            document.getElementById('description').textContent = data.weather[0].description;\n        })\n        .catch(error => {\n            console.error('Error:', error);\n            alert('City not found. Please try again.');\n        });\n}", "result": "You fetched REAL weather data from an API!", "proofRequired": "showing weather data for at least 2 different cities" },
+      "understand": { "concepts": [{ "name": "What is an API?", "definition": "Application Programming Interface — a way for your code to request data from another server. You send a request, the server sends back data (usually JSON).", "analogy": "A restaurant: you (code) are the customer, the menu is the API docs, your order is the request, the kitchen is the server, the food is the response." }, { "name": "How fetch() Works", "definition": "JavaScript's built-in function for HTTP requests. fetch(url) returns a Promise. .then(response => response.json()) parses the data. .catch() handles errors.", "analogy": "Ordering delivery: place order (fetch), get confirmation (Promise), wait (pending), food arrives (.then) or they can't deliver (.catch)." }, { "name": "Promises", "definition": "Represent a value that will be available in the future. Three states: Pending (waiting), Fulfilled (got data, .then runs), Rejected (error, .catch runs).", "analogy": "A delivery tracking number — it represents food that hasn't arrived yet but will." }, { "name": "JSON", "definition": "JavaScript Object Notation — how APIs send data. Looks like JS objects but is text. response.json() parses it automatically.", "analogy": "A universal language all programming languages can read — like English in international business." }], "keyTakeaway": "APIs let you fetch real data from the internet. Use fetch() to request, .then() to handle response, .catch() for errors. Data comes as JSON." },
+      "build": { "goal": "Build a GitHub Profile Viewer", "codeComparison": { "old": "fetch(url).then(r => r.json()).then(data => console.log(data))", "new": "// Fetch user profile\nfetch(`https://api.github.com/users/${username}`)\n    .then(r => r.json())\n    .then(user => {\n        document.getElementById('name').textContent = user.name;\n        document.getElementById('avatar').src = user.avatar_url;\n        document.getElementById('repos').textContent = user.public_repos;\n    })\n    .catch(err => alert('User not found'));" }, "hint": "GitHub API doesn't need an API key for public data!" },
+      "challenge": { "title": "Build a Movie Search App", "mission": "Use the OMDB API to search movies and display poster, title, year, rating, plot, director, and actors.", "requirements": ["Search input for movie titles", "Fetch from OMDB API with API key", "Display movie poster, title, year, rating, plot", "Show multiple ratings (IMDB, Rotten Tomatoes)", "Handle 'Movie not found' errors", "Add loading indicator"], "starterCode": "function searchMovie() {\n    const title = document.getElementById('movie-input').value;\n    const url = `http://www.omdbapi.com/?apikey=YOUR_KEY&t=${title}`;\n    // TODO: Fetch, display, handle errors\n}", "bonusChallenge": "Add autocomplete suggestions as the user types." },
+      "summary": { "capabilities": ["Understand APIs and how they work", "Use fetch() to request data", "Work with Promises (.then/.catch)", "Parse JSON responses", "Build API URLs with query parameters", "Handle errors gracefully", "Display loading states"] },
+      "bridge": { "preview": "Great! You can fetch data. But there's a cleaner way to write async code — async/await makes it read like normal code." },
+      "devFession": "I hardcoded API responses for a demo and forgot to switch to real fetch before the presentation. The CEO asked why the weather was always 72°F and sunny. In December. In Chicago."
+    },
+    {
+      "id": "js-5-2",
+      "title": "Master Async/Await",
+      "prereqs": ["js-5-1"],
+      "difficulty": "intermediate",
+      "duration": "20 min",
+      "metadata": { "estimatedTime": 20, "difficulty": "intermediate", "conceptsCount": 6, "tasksCount": 3 },
+      "hook": { "accomplishments": ["Write asynchronous code that reads like normal code", "Get rid of messy .then() chains", "Handle multiple API calls elegantly", "Make async code cleaner and easier to understand"] },
+      "do": { "title": "Convert Promise Code to Async/Await", "steps": ["Create async-await-demo.html", "Copy the code — side-by-side comparison", "Click both buttons and compare", "Notice they do the SAME thing, different syntax"], "code": "// Old way: .then() chains\nfunction getMovieOldWay() {\n    fetch(apiUrl)\n        .then(response => response.json())\n        .then(data => displayMovie(data))\n        .catch(error => console.error(error));\n}\n\n// New way: async/await\nasync function getMovieNewWay() {\n    try {\n        const response = await fetch(apiUrl);\n        const data = await response.json();\n        displayMovie(data);\n    } catch (error) {\n        console.error(error);\n    }\n}", "result": "Both do the SAME thing, but async/await is much cleaner!", "proofRequired": "showing movie data fetched using both methods" },
+      "understand": { "concepts": [{ "name": "async keyword", "definition": "Makes a function always return a Promise. async function greet() { return 'Hello'; } — greet() returns Promise('Hello').", "analogy": "Putting a 'this is async' label on a function so JavaScript knows to handle it specially." }, { "name": "await keyword", "definition": "Pauses the async function until the Promise resolves, then returns the value. Only works inside async functions.", "analogy": "A pause button — 'wait here until the data arrives, then continue.'" }, { "name": "try/catch for errors", "definition": "Replaces .catch(). Wrap await calls in try/catch for clean error handling. Familiar pattern from other languages.", "analogy": "A safety net — try to do something, catch it if it falls." }, { "name": "Promise.all() for parallel", "definition": "Run multiple async operations simultaneously. const [users, posts] = await Promise.all([fetchUsers(), fetchPosts()]). Much faster than sequential.", "analogy": "Ordering 3 dishes at once vs ordering one, waiting, then ordering the next." }], "keyTakeaway": "async/await makes asynchronous code look synchronous. It's cleaner, more readable, and easier to debug." },
+      "build": { "goal": "Build a Multi-API Movie Search with async/await", "codeComparison": { "old": "fetch(url).then(r => r.json()).then(data => display(data)).catch(err => handle(err))", "new": "async function searchMovie() {\n    try {\n        const response = await fetch(url);\n        const data = await response.json();\n        displayMovie(data);\n    } catch (error) {\n        showError(error.message);\n    }\n}" }, "hint": "You can use async functions anywhere — even as onclick handlers!" },
+      "challenge": { "title": "Build a Recipe Finder with Multiple APIs", "mission": "Search recipes from TheMealDB API, display image, ingredients, and step-by-step instructions. Use async/await throughout.", "requirements": ["Search recipes by name using async/await", "Display recipe image, name, category", "Show ingredient list with measurements", "Display instructions", "Handle errors and loading", "Show multiple results in a grid", "Click recipe for full details"], "starterCode": "async function searchRecipes() {\n    const query = document.getElementById('search-input').value;\n    const url = `https://www.themealdb.com/api/json/v1/1/search.php?s=${query}`;\n    // TODO: await fetch, display results\n}", "bonusChallenge": "Add a 'Random Recipe' button using the random endpoint." },
+      "summary": { "capabilities": ["Write async functions", "Use await to pause for Promises", "Convert .then() chains to async/await", "Handle errors with try/catch", "Make parallel calls with Promise.all()", "Write cleaner async code"] },
+      "bridge": { "preview": "Next: professional loading states and error handling — spinners, skeletons, retry logic." },
+      "devFession": "I forgot 'await' before a fetch call and spent 45 minutes wondering why my data was always 'Promise { <pending> }'. One missing word. 45 minutes."
+    },
+    {
+      "id": "js-5-3",
+      "title": "Handle Loading States and Errors",
+      "prereqs": ["js-5-2"],
+      "difficulty": "intermediate",
+      "duration": "20 min",
+      "metadata": { "estimatedTime": 20, "difficulty": "intermediate", "conceptsCount": 6, "tasksCount": 3 },
+      "hook": { "accomplishments": ["Show users when data is loading (no more blank screens!)", "Handle errors gracefully with helpful messages", "Add retry functionality when requests fail", "Build professional UIs that feel polished"] },
+      "do": { "title": "Build a Professional Loading System", "steps": ["Create loading-states.html", "Copy the code — 6 different loading patterns", "Click each button to see: spinner, skeleton, dots, error with retry, progress bar, network error", "Each gives the user clear feedback"], "code": "async function fetchWithRetry(url, retries = 3) {\n    for (let i = 0; i < retries; i++) {\n        try {\n            const response = await fetch(url);\n            if (!response.ok) throw new Error(`HTTP ${response.status}`);\n            return await response.json();\n        } catch (error) {\n            if (i === retries - 1) throw error;\n            console.log(`Retry ${i + 1}/${retries}`);\n            await new Promise(r => setTimeout(r, 1000 * (i + 1)));\n        }\n    }\n}\n\nasync function fetchWithTimeout(url, timeout = 5000) {\n    const controller = new AbortController();\n    const timeoutId = setTimeout(() => controller.abort(), timeout);\n    try {\n        const response = await fetch(url, { signal: controller.signal });\n        clearTimeout(timeoutId);\n        return response;\n    } catch (error) {\n        clearTimeout(timeoutId);\n        if (error.name === 'AbortError') throw new Error('Request timeout');\n        throw error;\n    }\n}", "result": "You saw 6 professional loading patterns: spinner, skeleton, dots, error+retry, progress, network error!", "proofRequired": "showing at least 3 different loading states working" },
+      "understand": { "concepts": [{ "name": "Why Loading States Matter", "definition": "Users need feedback. Without indicators, they think your app is broken. 0-100ms = instant. 100ms-1s = brief indicator. 1s-10s = progress. 10s+ = progress + time estimate.", "analogy": "An elevator without a floor indicator — you'd think it's stuck." }, { "name": "Skeleton Screens", "definition": "Gray placeholder shapes that mimic the layout while loading. Better than spinners because they show what's coming.", "analogy": "A blueprint of a house while it's being built — you can see the structure before it's finished." }, { "name": "Retry Logic", "definition": "Automatically retry failed requests with exponential backoff: 1st try immediate, 2nd wait 1s, 3rd wait 2s, 4th wait 4s.", "analogy": "If someone doesn't answer the phone, you wait a bit longer each time before calling again." }, { "name": "Timeout Handling", "definition": "AbortController cancels requests that take too long. Prevents infinite waits. Set 5-10s for API calls, 30s for uploads.", "analogy": "Setting a timer when waiting for food delivery — if it takes too long, you cancel and order elsewhere." }], "keyTakeaway": "Professional apps show loading states, handle errors with helpful messages, and retry automatically. Never leave users confused." },
+      "build": { "goal": "Build a Professional Data Dashboard with independent loading states per section", "codeComparison": { "old": "// No loading state\nconst data = await fetch(url);", "new": "// With loading, error, retry\nshowSkeleton();\ntry {\n    const data = await fetchWithRetry(url);\n    displayData(data);\n    showTimestamp();\n} catch (error) {\n    showError(error.message, () => refreshSection());\n}" }, "hint": "Each section has its own loading state. They don't block each other!" },
+      "challenge": { "title": "Build a Robust Image Gallery", "mission": "Gallery with skeleton loading, individual image error handling, retry with backoff, rate limit handling, progress indicator, and timeout.", "requirements": ["Skeleton screens while loading", "Handle individual image failures", "Retry with exponential backoff", "Specific error messages per error type", "Load More button with loading state", "Handle rate limits (429) differently", "Fallback placeholder for broken images", "Progress: 'Loading 3 of 9 images...'", "Timeout after 10 seconds per image"], "starterCode": "async function loadImages() {\n    // TODO: Implement with retry and error handling\n}", "bonusChallenge": "Show banner when 3+ images fail: 'Having trouble loading. Check your connection.'" },
+      "summary": { "capabilities": ["Show loading indicators (spinners, skeletons, progress)", "Handle different error types", "Implement retry with backoff", "Set timeouts to prevent infinite waits", "Write helpful error messages", "Build polished professional UIs"] },
+      "bridge": { "preview": "Final lesson: combine everything into a complete, production-ready application!" },
+      "devFession": "I deployed an app with no loading states. Users clicked the button, saw nothing for 3 seconds, clicked again, and again. Each click fired a new API call. The server got 47 requests for the same data."
+    },
+    {
+      "id": "js-5-4",
+      "title": "Build a Complete API-Powered App",
+      "prereqs": ["js-5-3"],
+      "difficulty": "intermediate",
+      "duration": "24 min",
+      "metadata": { "estimatedTime": 24, "difficulty": "intermediate", "conceptsCount": 8, "tasksCount": 2 },
+      "hook": { "accomplishments": ["Build a complete cryptocurrency tracker with live data", "Combine multiple APIs into one cohesive application", "Implement caching, auto-refresh, and search", "Create a real-world app you can actually use"] },
+      "do": { "title": "Build a Live Cryptocurrency Tracker", "steps": ["Create crypto-tracker.html", "Copy the complete application code", "Watch live crypto prices update!", "Try searching for different coins", "Notice: caching, auto-refresh, error handling — all production patterns"], "code": "const API_BASE = 'https://api.coingecko.com/api/v3';\nconst CACHE_DURATION = 60000;\nlet cache = { data: null, timestamp: null };\nlet autoRefreshEnabled = true;\n\nasync function fetchCryptoData() {\n    // Check cache first\n    if (cache.data && Date.now() - cache.timestamp < CACHE_DURATION) {\n        return cache.data;\n    }\n    \n    const response = await fetchWithTimeout(\n        `${API_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20`,\n        10000\n    );\n    if (!response.ok) throw new Error(`HTTP ${response.status}`);\n    \n    const data = await response.json();\n    cache = { data, timestamp: Date.now() };\n    return data;\n}\n\nasync function loadAndDisplayData() {\n    try {\n        showSkeletonCards();\n        const coins = await fetchCryptoData();\n        displayMarketStats(coins);\n        displayCryptoCards(coins);\n        updateTimestamp();\n    } catch (error) {\n        showError(error.message);\n    }\n}\n\n// Auto-refresh, pause when tab hidden\ndocument.addEventListener('visibilitychange', () => {\n    if (document.hidden) stopAutoRefresh();\n    else if (autoRefreshEnabled) startAutoRefresh();\n});", "result": "A COMPLETE, production-ready crypto tracker with caching, auto-refresh, search, and error handling!", "proofRequired": "showing the crypto tracker with live prices and market stats" },
+      "understand": { "concepts": [{ "name": "API Caching", "definition": "Store responses temporarily to avoid redundant requests. Check timestamp — if fresh enough, return cached data instead of fetching.", "analogy": "Checking your fridge before going to the grocery store — no need to buy milk if you already have some." }, { "name": "Auto-Refresh", "definition": "Update data at regular intervals. setInterval for polling. Pause when tab is hidden (saves battery/bandwidth). Let users toggle it.", "analogy": "A news ticker that updates every 30 seconds — but pauses when you walk away from the TV." }, { "name": "Data Transformation", "definition": "Convert raw API data into display-friendly formats: 1234567890 → '1.23B', timestamps → 'Just now', percentages → colored badges.", "analogy": "Raw ingredients → a plated dish. Same data, different presentation." }, { "name": "Search/Filter on Cached Data", "definition": "Filter client-side for instant results. allData.filter(item => item.name.includes(searchTerm)). No API call needed.", "analogy": "Searching your bookshelf vs going to the library — local search is instant." }], "keyTakeaway": "Production apps cache intelligently, auto-refresh responsibly, transform data for display, and degrade gracefully when things fail." },
+      "build": { "goal": "Extend the crypto tracker with favorites and charts", "codeComparison": { "old": "const data = await fetch(url);", "new": "// Complete production pattern:\n// 1. Check cache → 2. Fetch with timeout →\n// 3. Update cache → 4. Transform data →\n// 5. Display with search/filter →\n// 6. Auto-refresh → 7. Handle errors" }, "hint": "Use localStorage to persist favorites across page refreshes." },
+      "challenge": { "title": "Build a News Aggregator", "mission": "Aggregate from multiple news APIs, deduplicate, sort, filter, cache, and auto-refresh.", "requirements": ["Fetch from at least 2 endpoints", "Combine results and remove duplicates", "Sort by: newest, oldest, relevance", "Filter by category and source", "Search by keyword", "Cache for 5 minutes", "Loading states per source", "Handle partial failures (some sources fail)", "Save preferences to localStorage", "Auto-refresh every 5 minutes", "Pagination (10 articles at a time)"], "starterCode": "async function fetchAllNews() {\n    const results = await Promise.allSettled([\n        fetch(source1Url),\n        fetch(source2Url)\n    ]);\n    // TODO: Combine, deduplicate, display\n}", "bonusChallenge": "Add 'Save for Later' with localStorage bookmarks." },
+      "summary": { "capabilities": ["Fetch from multiple APIs simultaneously", "Implement intelligent caching", "Handle rate limiting", "Transform complex API responses", "Build search and filter on cached data", "Implement auto-refresh with pause/resume", "Combine data from multiple sources", "Build production-ready applications"] },
+      "bridge": { "preview": "Module 5 complete! You can now build real applications that fetch live data. Next: DOM Manipulation Mastery — create elements, animate, and build interactive components!" },
+      "devFession": "I built a crypto tracker that refreshed every second. The API rate-limited me after 2 minutes. 30-second intervals with caching is the sweet spot."
     }
   ]
 }

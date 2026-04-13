@@ -2,127 +2,56 @@
   "id": 306,
   "emoji": "🎨",
   "title": "DOM Manipulation Mastery",
-  "tagline": "Create and control HTML elements with code.",
+  "tagline": "Create elements, animate, and build interactive components from scratch.",
   "difficulty": "intermediate",
   "lessons": [
     {
-      "id": "js-6-1",
-      "title": "Create Elements Dynamically",
-      "prereqs": [],
-      "difficulty": "intermediate",
-      "duration": "20 min",
-      "metadata": {
-        "estimatedTime": 20,
-        "difficulty": "intermediate",
-        "conceptsCount": 7,
-        "tasksCount": 3
-      },
-      "hook": {
-        "accomplishments": [
-          "Stop writing HTML by hand — create it with JavaScript!",
-          "Build interactive comment sections that grow dynamically",
-          "Add and remove elements on the fly",
-          "Create entire interfaces programmatically"
-        ]
-      },
-      "do": {
-        "title": "Build a Dynamic Comment Section",
-        "steps": [
-          "Open VS Code or CodePen",
-          "Create dynamic-comments.html",
-          "Copy the code below",
-          "Save and open in browser",
-          "Add comments and see them appear instantly",
-          "Delete comments by clicking the × button",
-          "Notice: NO hardcoded comments in HTML!"
-        ],
-        "code": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Dynamic Comments</title>\n  <style>\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; min-height: 100vh; }\n    .container { max-width: 700px; margin: 0 auto; }\n    h1 { text-align: center; color: white; margin-bottom: 40px; font-size: 42px; }\n    .comment-form { background-color: white; border-radius: 15px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }\n    .form-group { margin-bottom: 20px; }\n    label { display: block; color: #2C3E50; font-weight: bold; margin-bottom: 8px; }\n    input, textarea { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #E0E0E0; border-radius: 8px; font-family: Arial, sans-serif; }\n    textarea { min-height: 100px; resize: vertical; }\n    button { width: 100%; padding: 15px; font-size: 18px; font-weight: bold; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; }\n    button:hover { transform: translateY(-2px); }\n    .comments-section { background-color: white; border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }\n    .comments-header { color: #2C3E50; margin-bottom: 25px; font-size: 24px; }\n    .comment { background-color: #F8F9FA; border-radius: 10px; padding: 20px; margin-bottom: 15px; position: relative; animation: slideIn 0.3s ease-out; }\n    @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }\n    .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }\n    .comment-author { font-weight: bold; color: #2C3E50; }\n    .comment-time { color: #7F8C8D; font-size: 14px; }\n    .comment-text { color: #2C3E50; line-height: 1.6; }\n    .delete-btn { position: absolute; top: 15px; right: 15px; background-color: #E74C3C; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }\n    .empty-state { text-align: center; color: #7F8C8D; padding: 40px; font-size: 18px; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <h1>💬 Dynamic Comments</h1>\n    <div class=\"comment-form\">\n      <div class=\"form-group\">\n        <label for=\"author\">Your Name</label>\n        <input type=\"text\" id=\"author\" placeholder=\"Enter your name\">\n      </div>\n      <div class=\"form-group\">\n        <label for=\"comment-text\">Comment</label>\n        <textarea id=\"comment-text\" placeholder=\"Write your comment here...\"></textarea>\n      </div>\n      <button onclick=\"addComment()\">Post Comment</button>\n    </div>\n    <div class=\"comments-section\">\n      <h2 class=\"comments-header\">Comments (<span id=\"comment-count\">0</span>)</h2>\n      <div id=\"comments-container\">\n        <div class=\"empty-state\">No comments yet. Be the first to comment!</div>\n      </div>\n    </div>\n  </div>\n\n  <script>\n    let comments = [];\n    let commentIdCounter = 1;\n\n    function addComment() {\n      const author = document.getElementById('author').value.trim();\n      const text = document.getElementById('comment-text').value.trim();\n      if (!author) return alert('Please enter your name');\n      if (!text) return alert('Please enter a comment');\n\n      const comment = { id: commentIdCounter++, author, text, timestamp: new Date() };\n      comments.push(comment);\n      createCommentElement(comment);\n      updateCommentCount();\n      document.getElementById('author').value = '';\n      document.getElementById('comment-text').value = '';\n    }\n\n    function createCommentElement(comment) {\n      const container = document.getElementById('comments-container');\n      const emptyState = container.querySelector('.empty-state');\n      if (emptyState) emptyState.remove();\n\n      const commentDiv = document.createElement('div');\n      commentDiv.className = 'comment';\n      commentDiv.setAttribute('data-comment-id', comment.id);\n\n      const header = document.createElement('div');\n      header.className = 'comment-header';\n\n      const authorSpan = document.createElement('span');\n      authorSpan.className = 'comment-author';\n      authorSpan.textContent = comment.author;\n\n      const timeSpan = document.createElement('span');\n      timeSpan.className = 'comment-time';\n      timeSpan.textContent = 'Just now';\n\n      header.appendChild(authorSpan);\n      header.appendChild(timeSpan);\n\n      const textDiv = document.createElement('div');\n      textDiv.className = 'comment-text';\n      textDiv.textContent = comment.text;\n\n      const deleteBtn = document.createElement('button');\n      deleteBtn.className = 'delete-btn';\n      deleteBtn.textContent = '×';\n      deleteBtn.onclick = () => deleteComment(comment.id);\n\n      commentDiv.appendChild(header);\n      commentDiv.appendChild(textDiv);\n      commentDiv.appendChild(deleteBtn);\n      container.insertBefore(commentDiv, container.firstChild);\n    }\n\n    function deleteComment(commentId) {\n      if (!confirm('Delete this comment?')) return;\n      comments = comments.filter(c => c.id !== commentId);\n      const el = document.querySelector(`[data-comment-id=\"${commentId}\"]`);\n      if (el) el.remove();\n      updateCommentCount();\n      const container = document.getElementById('comments-container');\n      if (comments.length === 0) {\n        container.innerHTML = '<div class=\"empty-state\">No comments yet. Be the first to comment!</div>';\n      }\n    }\n\n    function updateCommentCount() {\n      document.getElementById('comment-count').textContent = comments.length;\n    }\n  </script>\n</body>\n</html>",
-        "result": "You created elements with JavaScript! Comments appear without any hardcoded HTML.",
-        "proofRequired": "Screenshot showing at least 3 comments created dynamically."
-      },
-      "understand": {
-        "concepts": [
-          {
-            "name": "What is the DOM?",
-            "definition": "DOM (Document Object Model) is JavaScript's representation of your HTML. It's a tree structure where every HTML element is an object you can manipulate.",
-            "analogy": "Think of HTML as a blueprint and the DOM as the actual building. JavaScript can rearrange rooms (elements) without redrawing the blueprint."
-          },
-          {
-            "name": "document.createElement()",
-            "definition": "Creates a new HTML element in memory (not yet on the page). Syntax: const el = document.createElement('div'). The element exists but is invisible until you add it to the page.",
-            "analogy": "Building furniture in a workshop. It's real, but nobody sees it until you carry it into the room."
-          },
-          {
-            "name": "appendChild() and append()",
-            "definition": "Adds a child element to a parent. parent.appendChild(child) adds it as the last child. Modern parent.append(child) does the same and can add multiple at once.",
-            "analogy": "Stacking books onto a shelf — each new one goes on top of the pile."
-          },
-          {
-            "name": "insertBefore() and prepend()",
-            "definition": "Place an element before another. parent.insertBefore(newEl, referenceEl) is the classic method. parent.prepend(newEl) is the modern shortcut for adding at the start.",
-            "analogy": "Cutting in line at a specific spot — you get to choose exactly where to stand."
-          },
-          {
-            "name": "Element properties: textContent, className, dataset",
-            "definition": "Set text with el.textContent = 'Hello'. Set classes with el.className = 'card' or el.classList.add('active'). Store custom data with el.dataset.userId = '123'.",
-            "analogy": "Labeling a box: textContent is the contents, className is the color stripe, dataset is the hidden inventory tag."
-          },
-          {
-            "name": "innerHTML vs createElement",
-            "definition": "innerHTML is fast to write but vulnerable to XSS with user input and destroys event listeners. createElement is safer, preserves listeners, and gives full control. Use createElement for user-generated content.",
-            "analogy": "innerHTML is like photocopying a whole page. createElement is like typing each word by hand — slower but precise and safe."
-          },
-          {
-            "name": "Removing elements and event delegation",
-            "definition": "el.remove() deletes an element from the DOM. For many dynamic children, add ONE listener to the parent and check e.target — this is 'event delegation' and handles current AND future elements.",
-            "analogy": "Instead of giving every student their own teacher, one teacher watches the whole class — much more efficient."
-          }
-        ],
-        "keyTakeaway": "createElement() builds elements safely. appendChild() adds them to the page. Use data attributes to store information, and event delegation to handle clicks on dynamic elements."
-      },
-      "build": {
-        "goal": "Build a Dynamic Task Manager where you add tasks, mark them complete, and delete them — all with createElement",
-        "codeComparison": {
-          "old": "// Hardcoded HTML - boring!\n<div class=\"task\">Buy groceries</div>\n<div class=\"task\">Walk the dog</div>",
-          "new": "// Dynamic Task Manager - use createElement!\nlet tasks = [];\nlet taskIdCounter = 1;\n\nfunction addTask() {\n  const input = document.getElementById('task-input');\n  const text = input.value.trim();\n  if (!text) return alert('Please enter a task');\n\n  const task = { id: taskIdCounter++, text, completed: false };\n  tasks.push(task);\n  createTaskElement(task);\n  input.value = '';\n}\n\nfunction createTaskElement(task) {\n  const container = document.getElementById('tasks-container');\n\n  const taskDiv = document.createElement('div');\n  taskDiv.className = 'task';\n  taskDiv.dataset.taskId = task.id;\n\n  const checkbox = document.createElement('input');\n  checkbox.type = 'checkbox';\n  checkbox.addEventListener('change', () => toggleTask(task.id));\n\n  const textSpan = document.createElement('span');\n  textSpan.className = 'task-text';\n  textSpan.textContent = task.text;\n\n  const deleteBtn = document.createElement('button');\n  deleteBtn.textContent = 'Delete';\n  deleteBtn.addEventListener('click', () => deleteTask(task.id));\n\n  taskDiv.appendChild(checkbox);\n  taskDiv.appendChild(textSpan);\n  taskDiv.appendChild(deleteBtn);\n  container.appendChild(taskDiv);\n}\n\nfunction toggleTask(id) {\n  const task = tasks.find(t => t.id === id);\n  task.completed = !task.completed;\n  document.querySelector(`[data-task-id=\"${id}\"]`).classList.toggle('completed');\n}\n\nfunction deleteTask(id) {\n  tasks = tasks.filter(t => t.id !== id);\n  document.querySelector(`[data-task-id=\"${id}\"]`).remove();\n}"
-        },
-        "hint": "Use dataset.taskId to store the task ID on each element so you can find it later with querySelector!"
-      },
-      "challenge": {
-        "title": "Build a Dynamic Photo Gallery with Lightbox",
-        "mission": "Create a photo gallery that loads images dynamically, creates thumbnail elements, and opens a lightbox when clicked — all using createElement and DOM manipulation.",
-        "requirements": [
-          "Array of photo objects with: url, title, description",
-          "Create thumbnail grid dynamically (no hardcoded images!)",
-          "Each thumbnail: image, title overlay, click handler",
-          "Click opens lightbox modal",
-          "Lightbox shows: full image, title, description, close button",
-          "Previous/Next buttons to navigate photos",
-          "Keyboard support: Esc to close, arrow keys to navigate",
-          "Create ALL elements with createElement (NO innerHTML!)",
-          "Use event delegation where possible"
-        ],
-        "starterCode": "const photos = [\n  { url: 'https://picsum.photos/400/400?random=1', title: 'Mountain Vista', description: 'Beautiful mountain landscape' },\n  { url: 'https://picsum.photos/400/400?random=2', title: 'Ocean Waves', description: 'Peaceful ocean scene' },\n  { url: 'https://picsum.photos/400/400?random=3', title: 'Forest Path', description: 'Mysterious forest trail' }\n];\n\nfunction createGallery() {\n  const gallery = document.getElementById('gallery');\n  photos.forEach((photo, index) => {\n    const thumbnail = document.createElement('div');\n    thumbnail.className = 'thumbnail';\n\n    const img = document.createElement('img');\n    img.src = photo.url;\n    img.alt = photo.title;\n\n    const overlay = document.createElement('div');\n    overlay.className = 'thumbnail-overlay';\n    overlay.textContent = photo.title;\n\n    thumbnail.appendChild(img);\n    thumbnail.appendChild(overlay);\n    thumbnail.addEventListener('click', () => openLightbox(index));\n\n    gallery.appendChild(thumbnail);\n  });\n}\n\nfunction openLightbox(index) {\n  // TODO: Show full image with navigation\n}\n\ncreateGallery();",
-        "bonusChallenge": "Add a 'Like' button to each photo that shows a heart icon and tracks likes using localStorage!"
-      },
-      "summary": {
-        "capabilities": [
-          "Create HTML elements with document.createElement()",
-          "Add elements to the page with appendChild() and append()",
-          "Remove elements with remove() and removeChild()",
-          "Set element properties: textContent, className, id, attributes",
-          "Use data attributes to store custom information",
-          "Understand innerHTML vs createElement trade-offs",
-          "Add event listeners to dynamically created elements",
-          "Build complete interfaces without hardcoded HTML",
-          "Use event delegation for efficiency",
-          "Create complex, nested element structures"
-        ]
-      },
-      "bridge": {
-        "preview": "Excellent! You can now create and manipulate DOM elements dynamically. In the next lesson, you'll learn advanced DOM techniques — querySelector, traversing the DOM tree, manipulating classes and styles, and building interactive components.",
-        "nextLessonId": "js-6-2"
-      }
+      "id": "js-6-1", "title": "Create Elements Dynamically", "prereqs": ["js-5-4"], "difficulty": "intermediate", "duration": "20 min",
+      "metadata": { "estimatedTime": 20, "difficulty": "intermediate", "conceptsCount": 7, "tasksCount": 3 },
+      "hook": { "accomplishments": ["Create HTML elements with JavaScript", "Add, remove, and modify elements on the fly", "Build interactive comments and cards", "Use textContent safely instead of innerHTML"] },
+      "do": { "title": "Build a Dynamic Comment Section", "steps": ["Create dynamic-comments.html", "Copy the code — a complete comment system", "Post comments that appear without refreshing", "Delete with the delete button", "All built with createElement — no hardcoded HTML"], "code": "function createCommentElement(author, text) {\n    commentId++;\n    const comment = document.createElement('div');\n    comment.className = 'comment';\n    comment.dataset.id = commentId;\n\n    const authorEl = document.createElement('div');\n    authorEl.textContent = author;\n\n    const textEl = document.createElement('div');\n    textEl.textContent = text;\n\n    const deleteBtn = document.createElement('button');\n    deleteBtn.textContent = 'Delete';\n    deleteBtn.addEventListener('click', () => comment.remove());\n\n    comment.appendChild(authorEl);\n    comment.appendChild(textEl);\n    comment.appendChild(deleteBtn);\n\n    document.getElementById('comments-list')\n        .insertBefore(comment, commentsList.firstChild);\n}", "result": "You created HTML elements with JavaScript!", "proofRequired": "3 comments created with delete working" },
+      "understand": { "concepts": [{ "name": "createElement()", "definition": "Creates a new HTML element in memory. Set properties, then appendChild to put it on the page.", "analogy": "Building a Lego piece in your hands before snapping it onto the board." }, { "name": "textContent vs innerHTML", "definition": "textContent sets plain text safely. innerHTML parses HTML — dangerous with user input (XSS). NEVER use innerHTML with user content.", "analogy": "textContent = writing on paper. innerHTML = giving someone a microphone — they could say anything." }, { "name": "insertBefore()", "definition": "Insert before a specific child. list.insertBefore(newItem, list.firstChild) adds to the beginning.", "analogy": "Cutting in line — you pick exactly where to insert." }, { "name": "Data Attributes", "definition": "Store custom data: element.dataset.id = '123'. HTML: data-id=\"123\". Retrieve: element.dataset.id.", "analogy": "Name tags with extra info — elements carry their own metadata." }], "keyTakeaway": "createElement makes elements. appendChild adds them. textContent for safety. Data attributes for metadata." },
+      "build": { "goal": "Build a Dynamic Task Manager", "codeComparison": { "old": "innerHTML += '<div>Comment</div>'", "new": "const el = document.createElement('div');\nel.textContent = text;\nel.dataset.id = id;\nlist.appendChild(el);" }, "hint": "Create a reusable createTaskElement(text, id) function." },
+      "challenge": { "title": "Build a Photo Gallery with Lightbox", "mission": "Dynamic thumbnails, click to open modal, prev/next navigation, keyboard support. All built with createElement.", "requirements": ["Create thumbnails from array with createElement", "Click opens modal lightbox", "Close, prev/next navigation", "Keyboard: ESC, arrows", "Modal built with createElement", "Smooth animations"], "starterCode": "const images = [{url: '...', title: '...'}];\n// TODO: Build gallery and lightbox", "bonusChallenge": "Add download button in lightbox." },
+      "summary": { "capabilities": ["createElement()", "appendChild() and insertBefore()", "remove()", "textContent safely", "Data attributes", "Event listeners on dynamic elements"] },
+      "bridge": { "preview": "Next: querySelector, classList, DOM traversal, and event delegation." },
+      "devFession": "I used innerHTML to render user comments. Someone typed <script>alert('hacked')</script> and it ran. textContent would have prevented it."
+    },
+    {
+      "id": "js-6-2", "title": "Manipulate the DOM Like a Pro", "prereqs": ["js-6-1"], "difficulty": "intermediate", "duration": "22 min",
+      "metadata": { "estimatedTime": 22, "difficulty": "intermediate", "conceptsCount": 7, "tasksCount": 3 },
+      "hook": { "accomplishments": ["Find any element with querySelector", "Navigate the DOM tree", "Toggle classes and styles dynamically", "Build tabbed interfaces with event delegation"] },
+      "do": { "title": "Build an Interactive Image Gallery", "steps": ["Create gallery-navigation.html", "Click thumbnails to change the main image", "Previous/Next buttons and keyboard arrows", "Active thumbnail highlighting with classList"], "code": "document.getElementById('thumbnails').addEventListener('click', (e) => {\n    if (e.target.classList.contains('thumbnail')) {\n        const index = parseInt(e.target.dataset.index);\n        showImage(index);\n    }\n});\n\nfunction showImage(index) {\n    currentIndex = index;\n    mainImage.src = thumbnails[index].src;\n    document.querySelector('.thumbnail.active')?.classList.remove('active');\n    thumbnails[index].classList.add('active');\n}\n\ndocument.addEventListener('keydown', (e) => {\n    if (e.key === 'ArrowLeft') navigate(-1);\n    if (e.key === 'ArrowRight') navigate(1);\n});", "result": "Gallery with querySelector, classList, event delegation, keyboard nav!", "proofRequired": "gallery with keyboard navigation and active states" },
+      "understand": { "concepts": [{ "name": "querySelector", "definition": "Find elements with CSS selectors. querySelector('.btn.active') returns first match. querySelectorAll returns all.", "analogy": "CSS selectors in JavaScript — same syntax you already know." }, { "name": "classList", "definition": ".add(), .remove(), .toggle(), .contains(), .replace(). Modern way to manage CSS classes.", "analogy": "A class manager — add/remove labels without touching other classes." }, { "name": "DOM Traversal", "definition": "parentElement, children, firstElementChild, nextElementSibling, previousElementSibling, closest(selector).", "analogy": "Family tree navigation — go to parent, find siblings, visit children." }, { "name": "Event Delegation", "definition": "One listener on parent handles all children. parent.addEventListener('click', e => { if (e.target.matches('.item')) handle(e) }).", "analogy": "One receptionist for the whole building instead of a doorbell on every room." }], "keyTakeaway": "querySelector for finding. classList for classes. Traversal for navigation. Delegation for efficiency." },
+      "build": { "goal": "Build a Tabbed Interface", "codeComparison": { "old": "btn1.onclick = ...; btn2.onclick = ...", "new": "container.addEventListener('click', e => {\n    if (e.target.matches('.tab')) {\n        document.querySelector('.tab.active').classList.remove('active');\n        e.target.classList.add('active');\n        showPanel(e.target.dataset.panel);\n    }\n});" }, "hint": "Store panel ID in data-panel on each tab." },
+      "challenge": { "title": "Build a Filterable Product Grid", "mission": "Products with category filters, sorting, search, event delegation.", "requirements": ["12+ products with image, name, price, category", "Filter buttons by category", "Sort by price or name", "Search by name", "Visible product count", "Event delegation for clicks", "Smooth filter animations"], "starterCode": "function filterByCategory(cat) {\n    document.querySelectorAll('.product').forEach(p => {\n        p.style.display = (cat === 'all' || p.dataset.category === cat) ? 'block' : 'none';\n    });\n}", "bonusChallenge": "Add price range slider!" },
+      "summary": { "capabilities": ["querySelector/querySelectorAll", "classList management", "DOM traversal", "Style manipulation", "Event delegation", "matches() checking"] },
+      "bridge": { "preview": "Next: animate elements with Intersection Observer and scroll triggers." },
+      "devFession": "I added click listeners to 500 items individually. Event delegation: one listener on the parent. Performance went from laggy to instant."
+    },
+    {
+      "id": "js-6-3", "title": "Animate Elements with JavaScript", "prereqs": ["js-6-2"], "difficulty": "intermediate", "duration": "24 min",
+      "metadata": { "estimatedTime": 24, "difficulty": "intermediate", "conceptsCount": 6, "tasksCount": 3 },
+      "hook": { "accomplishments": ["Create smooth scroll-triggered animations", "Build animated counters and progress bars", "Master Intersection Observer API", "Create parallax and reveal effects"] },
+      "do": { "title": "Build Scroll-Triggered Reveal Animations", "steps": ["Create scroll-animations.html", "Scroll down slowly", "Watch elements fade in and slide up!", "See counters animate when visible", "Uses Intersection Observer — modern and performant!"], "code": "const observer = new IntersectionObserver((entries) => {\n    entries.forEach(entry => {\n        if (entry.isIntersecting) {\n            entry.target.classList.add('active');\n            if (entry.target.classList.contains('stat-card')) {\n                animateCounter(entry.target);\n            }\n        }\n    });\n}, { threshold: 0.1, rootMargin: '0px 0px -100px 0px' });\n\ndocument.querySelectorAll('.reveal, .feature-card, .stat-card')\n    .forEach(el => observer.observe(el));\n\nfunction animateCounter(element) {\n    const target = parseInt(element.dataset.count);\n    const numEl = element.querySelector('.stat-number');\n    let current = 0;\n    const increment = target / (2000 / 16);\n    function update() {\n        current += increment;\n        if (current < target) {\n            numEl.textContent = Math.floor(current);\n            requestAnimationFrame(update);\n        } else numEl.textContent = target;\n    }\n    requestAnimationFrame(update);\n}", "result": "Scroll reveals, animated counters, and parallax — all performant!", "proofRequired": "page with multiple animated sections" },
+      "understand": { "concepts": [{ "name": "Intersection Observer", "definition": "Detects when elements enter/leave viewport. Better than scroll events. threshold: 0.1 = trigger at 10% visible.", "analogy": "A security camera at a doorway — notices when someone enters, doesn't constantly check." }, { "name": "CSS Transitions + JS Classes", "definition": "CSS defines animation (.reveal { opacity: 0; transition: 0.8s }). JS adds the class (.reveal.active { opacity: 1 }). Best of both worlds.", "analogy": "CSS is the choreographer, JS is the stage manager who says 'go.'" }, { "name": "requestAnimationFrame", "definition": "Syncs JS animations with browser repaints (60fps). Better than setInterval. Pauses when tab hidden.", "analogy": "Dancing to the beat — syncs your animation to the browser's rhythm." }, { "name": "Performance: transform + opacity", "definition": "Only animate these for 60fps — they're GPU-accelerated. Avoid width, height, top, left (trigger layout).", "analogy": "Moving a sticker on glass (transform) vs rebuilding the glass (layout)." }], "keyTakeaway": "Intersection Observer for visibility. CSS for animations. requestAnimationFrame for smooth JS. Only animate transform and opacity." },
+      "build": { "goal": "Build an Animated Landing Page with 5+ sections", "codeComparison": { "old": "window.addEventListener('scroll', () => { /* fires constantly */ })", "new": "observer.observe(element); // only fires on visibility change" }, "hint": "Set different transition-delay on cards for staggered effect." },
+      "challenge": { "title": "Build an Interactive Portfolio", "mission": "Scroll progress bar, parallax hero, animated skill bars, project cards, smooth navigation.", "requirements": ["Scroll progress bar at top", "Parallax hero", "Skill bars fill when visible", "Project cards with hover effects", "Smooth scroll navigation", "60fps animations", "Mobile-friendly"], "starterCode": "const observer = new IntersectionObserver(callback, options);", "bonusChallenge": "Add dark/light mode with smooth transitions." },
+      "summary": { "capabilities": ["Intersection Observer", "Scroll-triggered reveals", "Animated counters", "Parallax effects", "CSS transitions + JS", "Staggered animations", "Performance optimization"] },
+      "bridge": { "preview": "Final lesson: build 5 essential UI components — modals, dropdowns, tabs, accordions, tooltips." },
+      "devFession": "I used scroll listeners for 200 animations. 8fps. Intersection Observer: 60fps with less code."
+    },
+    {
+      "id": "js-6-4", "title": "Build Interactive Components", "prereqs": ["js-6-3"], "difficulty": "intermediate", "duration": "28 min",
+      "metadata": { "estimatedTime": 28, "difficulty": "intermediate", "conceptsCount": 8, "tasksCount": 2 },
+      "hook": { "accomplishments": ["Build 5 essential UI components from scratch", "Modals, dropdowns, tabs, accordions, tooltips", "Master accessibility (keyboard, ARIA)", "Handle focus management and escape key"] },
+      "do": { "title": "Build a Complete Component Library", "steps": ["Create component-library.html", "Copy the code — 5 production-ready components", "Try each: modal, dropdown, tabs, accordion, tooltip", "Use keyboard (Tab, Enter, Escape, Arrows)", "Production-ready code you can reuse!"], "code": "// MODAL\nfunction openModal(id) {\n    document.getElementById(id).classList.add('active');\n    document.body.style.overflow = 'hidden';\n}\ndocument.addEventListener('keydown', e => {\n    if (e.key === 'Escape') closeAllModals();\n});\n\n// DROPDOWN: close on outside click\ndocument.addEventListener('click', e => {\n    if (!e.target.closest('.dropdown'))\n        document.querySelectorAll('.dropdown-menu.active')\n            .forEach(m => m.classList.remove('active'));\n});\n\n// TABS: event delegation + keyboard\ntabList.addEventListener('click', e => {\n    if (e.target.matches('.tab')) activateTab(e.target);\n});\ntabList.addEventListener('keydown', e => {\n    if (e.key === 'ArrowRight') focusNextTab();\n    if (e.key === 'ArrowLeft') focusPrevTab();\n});\n\n// ACCORDION: toggle with delegation\naccordion.addEventListener('click', e => {\n    const header = e.target.closest('.accordion-header');\n    if (header) {\n        header.classList.toggle('active');\n        header.nextElementSibling.classList.toggle('active');\n    }\n});", "result": "5 professional components with accessibility and keyboard support!", "proofRequired": "all 5 components working" },
+      "understand": { "concepts": [{ "name": "Modal Pattern", "definition": "Overlay that traps focus. Close on ESC and overlay click. Prevent background scroll. Focus first element on open.", "analogy": "A pop-up shop — demands attention, can't interact with store behind it." }, { "name": "Dropdown Pattern", "definition": "Menu below trigger. Closes on outside click (document listener checks closest('.dropdown')).", "analogy": "An umbrella — opens on click, closes when you tap anywhere else." }, { "name": "Tabs Pattern", "definition": "One panel at a time. Arrow keys navigate. ARIA: role=tablist, role=tab, aria-selected.", "analogy": "File folders — pull one out, others stay." }, { "name": "Focus Management", "definition": "Modal open → focus first element. Close → return to trigger. Tab trapping keeps focus inside.", "analogy": "A tour guide in a museum — directs you where to go and keeps you from wandering off." }, { "name": "ARIA Attributes", "definition": "Help screen readers: role (what it is), aria-label (name), aria-expanded (open/closed), aria-selected (active).", "analogy": "Labels for blind visitors describing what each element does." }], "keyTakeaway": "Components need focus management, keyboard support, and ARIA. Event delegation makes them scalable." },
+      "build": { "goal": "Build an Image Carousel with controls, dots, auto-play, keyboard", "codeComparison": { "old": "btn.addEventListener('click', handler)", "new": "openModal → trap focus → ESC close → overlay close → return focus" }, "hint": "Use transform: translateX() for smooth sliding." },
+      "challenge": { "title": "Build a Complete Admin Dashboard", "mission": "Dashboard combining all 5 component patterns plus sidebar nav and toast notifications.", "requirements": ["Sidebar with accordion sections", "Header dropdown", "Modal for creating items", "Tabs for data views", "Tooltips on buttons", "Toast notifications", "Search modal (Ctrl+K)", "Responsive sidebar", "All keyboard accessible", "ARIA throughout"], "starterCode": "// TODO: Combine all component patterns into dashboard", "bonusChallenge": "Add drag-and-drop to reorder widgets!" },
+      "summary": { "capabilities": ["Build modals, dropdowns, tabs, accordions, tooltips", "Focus trapping", "Keyboard navigation", "ARIA attributes", "Event delegation", "Complete component libraries"] },
+      "bridge": { "preview": "JavaScript course modules complete! You can now build interactive, accessible, professional web applications." },
+      "devFession": "I built a modal without ESC close, focus trapping, or background scroll lock. A screen reader user couldn't use my app. Accessibility isn't optional."
     }
   ]
 }
