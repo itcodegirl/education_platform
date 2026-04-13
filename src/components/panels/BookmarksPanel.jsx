@@ -46,23 +46,34 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
           ) : (
             bookmarks.map((bookmark) => {
               const { moduleTitle } = parseLessonKey(bookmark.lesson_key);
+              const coursePath = `${bookmark.course_id.toUpperCase()} > ${moduleTitle || 'Saved lesson'}`;
 
+              // Two sibling buttons inside a pure-layout div: the
+              // primary "open bookmark" action and the secondary
+              // "remove bookmark" action. Previously the whole row
+              // was a <div onClick>, which meant keyboard users could
+              // not activate it. Nesting isn't an option because the
+              // remove button is a <button> and HTML forbids nested
+              // buttons.
               return (
-                <div key={bookmark.id || bookmark.lesson_key} className="bookmark-item" onClick={() => handleClick(bookmark)}>
-                  <div className="bk-info">
-                    <div className="bk-title">{bookmark.lesson_title}</div>
-                    <div className="bk-path">
-                      {bookmark.course_id.toUpperCase()} {'>'} {moduleTitle || 'Saved lesson'}
-                    </div>
-                  </div>
+                <div key={bookmark.id || bookmark.lesson_key} className="bookmark-item">
+                  <button
+                    type="button"
+                    className="bk-main"
+                    onClick={() => handleClick(bookmark)}
+                    aria-label={`Open ${bookmark.lesson_title} (${coursePath})`}
+                  >
+                    <span className="bk-info">
+                      <span className="bk-title">{bookmark.lesson_title}</span>
+                      <span className="bk-path">{coursePath}</span>
+                    </span>
+                  </button>
                   <button
                     type="button"
                     className="bk-remove"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      toggleBookmark(bookmark.lesson_key, bookmark.course_id, bookmark.lesson_title);
-                    }}
+                    onClick={() => toggleBookmark(bookmark.lesson_key, bookmark.course_id, bookmark.lesson_title)}
                     title="Remove bookmark"
+                    aria-label={`Remove bookmark for ${bookmark.lesson_title}`}
                   >
                     x
                   </button>
