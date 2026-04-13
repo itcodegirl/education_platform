@@ -337,6 +337,73 @@
 .lg-quiz { color: var(--text-muted) !important; font-style: italic; }
 .lg-quiz.act { color: var(--text) !important; font-style: normal; font-weight: 600; }
 
+/* ─── Sidebar Tools (cheat sheets, glossary, bookmarks, etc.) ─── */
+.sb-tools {
+  padding: 14px 16px 10px;
+  border-top: 1px solid var(--border);
+  margin-top: 12px;
+}
+.sb-tools-title {
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 10px;
+  padding-left: 2px;
+}
+.sb-tools-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.sb-tool-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out),
+              border-color var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-out),
+              transform var(--duration-fast) var(--ease-out);
+}
+.sb-tool-btn:hover {
+  background: rgba(180, 74, 255, 0.08);
+  border-color: var(--purple);
+  color: var(--text);
+  transform: translateY(-1px);
+}
+.sb-tool-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.sb-tool-label {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Collapsed sidebar: show only the icons, stack them vertically. */
+.sb.collapsed .sb-tools-title { display: none; }
+.sb.collapsed .sb-tools-grid {
+  grid-template-columns: 1fr;
+  gap: 4px;
+}
+.sb.collapsed .sb-tool-btn {
+  justify-content: center;
+  padding: 10px 0;
+}
+.sb.collapsed .sb-tool-label { display: none; }
+
 /* ─── Lock toggle (inside scroll area) ─── */
 .sb-lock-row {
   padding: 12px 8px 16px;

@@ -266,6 +266,72 @@ export const Sidebar = memo(function Sidebar({
             })}
           </nav>
 
+          {/* ─── Tools ─── */}
+          {/* Visible entry points for the learning tools. These used to
+              live only in the floating bottom-right toolbar (hidden on
+              mobile). Surfacing them here makes cheat sheets, glossary,
+              bookmarks, and review queue reachable in one click from
+              every viewport. */}
+          <div className="sb-tools" role="group" aria-label="Learning tools">
+            <div className="sb-tools-title">Tools</div>
+            <div className="sb-tools-grid">
+              <button
+                type="button"
+                className="sb-tool-btn"
+                onClick={() => onOpenTool('cheatsheet')}
+                title="Cheat sheets"
+              >
+                <span className="sb-tool-icon">📋</span>
+                <span className="sb-tool-label">Cheat Sheets</span>
+              </button>
+              <button
+                type="button"
+                className="sb-tool-btn"
+                onClick={() => onOpenTool('glossary')}
+                title="Glossary"
+              >
+                <span className="sb-tool-icon">📖</span>
+                <span className="sb-tool-label">Glossary</span>
+              </button>
+              <button
+                type="button"
+                className="sb-tool-btn"
+                onClick={() => onOpenTool('bookmarks')}
+                title="Bookmarks"
+              >
+                <span className="sb-tool-icon">⭐</span>
+                <span className="sb-tool-label">Bookmarks</span>
+              </button>
+              <button
+                type="button"
+                className="sb-tool-btn"
+                onClick={() => onOpenTool('sr')}
+                title="Review queue"
+              >
+                <span className="sb-tool-icon">🔄</span>
+                <span className="sb-tool-label">Review</span>
+              </button>
+              <button
+                type="button"
+                className="sb-tool-btn"
+                onClick={() => onOpenTool('challenges')}
+                title="Code challenges"
+              >
+                <span className="sb-tool-icon">🏋️</span>
+                <span className="sb-tool-label">Challenges</span>
+              </button>
+              <button
+                type="button"
+                className="sb-tool-btn"
+                onClick={() => onOpenTool('badges')}
+                title="Badges"
+              >
+                <span className="sb-tool-icon">🏆</span>
+                <span className="sb-tool-label">Badges</span>
+              </button>
+            </div>
+          </div>
+
           {/* ─── Lock toggle ─── */}
           <div className="sb-lock-row">
             <label className="lock-label">
