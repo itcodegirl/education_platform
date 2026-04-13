@@ -1,9 +1,4 @@
 User-agent: *
 Allow: /
 
-# Block admin and profile deep links from search indexing — these
-# are per-user and the content is behind auth anyway.
-Disallow: /#admin
-Disallow: /#profile
-
 Sitemap: https://mellow-sunflower-9c92cd.netlify.app/sitemap.xml

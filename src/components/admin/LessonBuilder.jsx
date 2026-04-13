@@ -374,6 +374,7 @@ ${lessonsCode},
                   value={c}
                   onChange={(e) => updateArrayItem('concepts', i, e.target.value)}
                   placeholder="Enter a key concept..."
+                  aria-label={`Key concept ${i + 1}`}
                 />
                 <button
                   type="button"
@@ -422,6 +423,7 @@ ${lessonsCode},
                   value={t}
                   onChange={(e) => updateArrayItem('tasks', i, e.target.value)}
                   placeholder="Enter a practice task..."
+                  aria-label={`Practice task ${i + 1}`}
                 />
                 <button
                   type="button"
@@ -584,14 +586,18 @@ export const MODULES = [..., mod${moduleInfo.id || 'XX'}];`}
 }
 
 // ─── Reusable Field Component ──────────────────
+// Children are placed inside <label> so the input is implicitly
+// associated with its label text (no htmlFor/id pairing required).
 function LBField({ label, hint, span2, children }) {
   return (
     <div className={`lb-field ${span2 ? 'lb-field-span2' : ''}`}>
       <label className="lb-label">
-        {label}
-        {hint && <span className="lb-hint">{hint}</span>}
+        <span className="lb-label-text">
+          {label}
+          {hint && <span className="lb-hint">{hint}</span>}
+        </span>
+        {children}
       </label>
-      {children}
     </div>
   );
 }
