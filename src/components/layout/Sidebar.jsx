@@ -127,15 +127,98 @@ export const Sidebar = memo(function Sidebar({
   const togglePopover = useCallback(() => setPopoverOpen((v) => !v), []);
   const closePopover = useCallback(() => setPopoverOpen(false), []);
 
-  // Mobile: lock body scroll, Escape to close
+  // Mobile drawer behavior: body-scroll lock, Escape to close, AND a
+  // focus trap that keeps Tab navigation inside the drawer. Without
+  // the trap, Tab would escape the aria-modal dialog into the page
+  // behind it — a WCAG 2.4.3 failure flagged in the portfolio audit.
   useEffect(() => {
     if (!isMobile || !isOpen) return undefined;
-    const prev = document.body.style.overflow;
+
+    // Lock page scroll so the backdrop doesn't move while the drawer
+    // is open. Restored in the cleanup.
+    const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+
+    // Remember who had focus before we opened so we can return it on
+    // close (usually the hamburger button in the topbar). Without this
+    // the user loses their tab position every time the drawer closes.
+    const previouslyFocused = document.activeElement;
+
+    // Focus the drawer container itself (it has tabIndex=-1 on mobile).
+    // The first Tab keypress will then move into the real controls.
     asideRef.current?.focus();
-    const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
+
+    // Returns the currently-visible, tabbable descendants of the
+    // drawer. Re-queried on every Tab because the tree mutates as the
+    // user expands modules and opens popouts, so a cached snapshot
+    // would go stale immediately.
+    const getTabbables = () => {
+      const root = asideRef.current;
+      if (!root) return [];
+      const selector =
+        'a[href], button:not([disabled]), input:not([disabled]), ' +
+        'select:not([disabled]), textarea:not([disabled]), ' +
+        '[tabindex]:not([tabindex="-1"])';
+      return Array.from(root.querySelectorAll(selector)).filter((el) => {
+        // offsetParent is null for display:none elements; aria-hidden
+        // subtrees should also be skipped.
+        if (el.offsetParent === null) return false;
+        if (el.closest('[aria-hidden="true"]')) return false;
+        return true;
+      });
+    };
+
+    const handleKey = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+
+      const tabbables = getTabbables();
+      if (tabbables.length === 0) {
+        // Nothing tabbable — keep focus on the drawer itself.
+        e.preventDefault();
+        asideRef.current?.focus();
+        return;
+      }
+
+      const first = tabbables[0];
+      const last = tabbables[tabbables.length - 1];
+      const active = document.activeElement;
+
+      // If focus has somehow escaped the drawer (e.g., a portal'd
+      // overlay closed mid-tab), pull it back to the first tabbable.
+      if (!asideRef.current?.contains(active)) {
+        e.preventDefault();
+        first.focus();
+        return;
+      }
+
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
     window.addEventListener('keydown', handleKey);
-    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', handleKey); };
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', handleKey);
+      // Restore focus to the element that had it before the drawer
+      // opened, if it's still in the DOM. Guards against the case
+      // where the trigger was unmounted while the drawer was open.
+      if (
+        previouslyFocused &&
+        previouslyFocused instanceof HTMLElement &&
+        document.contains(previouslyFocused)
+      ) {
+        previouslyFocused.focus();
+      }
+    };
   }, [isMobile, isOpen, onClose]);
 
   return (
