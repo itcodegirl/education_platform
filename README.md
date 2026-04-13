@@ -12,12 +12,24 @@
 [![Made with React](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=white)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-6-646cff?logo=vite&logoColor=white)](https://vitejs.dev)
 [![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase&logoColor=white)](https://supabase.com)
+[![a11y: WCAG AA](https://img.shields.io/badge/a11y-WCAG%20AA-22c55e)](./docs/accessibility.md)
+
+![CodeHerWay screenshot](./docs/screenshot.png)
 
 <!--
-TODO: Add a screenshot here. Drop a PNG/GIF at /docs/screenshot.png and
-uncomment the line below. A still of the lesson view + AI tutor side by
-side is the highest-impact image you can ship.
-![CodeHerWay screenshot](./docs/screenshot.png)
+📸 SCREENSHOT TODO — this line currently 404s until docs/screenshot.png
+exists. Take a still of the lesson view with the AI tutor open on
+the right and save it to docs/screenshot.png. Recommended: 1600x900,
+lossless PNG, under 500KB. A GIF/MP4 of the code editor + live
+preview interaction is even higher impact if you have the bandwidth.
+-->
+<!--
+📊 LIGHTHOUSE TODO — once you've run a real Lighthouse audit on the
+production URL, add a badge like:
+  [![Lighthouse](https://img.shields.io/badge/Lighthouse-95%2F100-22c55e)](./docs/lighthouse.png)
+and drop the full report at docs/lighthouse.png. Target: 95+ for
+Performance, Accessibility, Best Practices, and SEO after the
+a11y sweep.
 -->
 
 ---
@@ -94,7 +106,7 @@ walk through the threat model and the fixes I made.
 | Functions | Netlify Functions (Node 20 ESM) | One platform, scheduled jobs included |
 | AI | OpenAI Responses API (gpt-4o-mini) | Behind an authenticated proxy |
 | Fonts | `@fontsource` self-hosted | No `fonts.googleapis.com` in the CSP |
-| Unit tests | Vitest | 22 passing; covers gamification + learning engine |
+| Unit tests | Vitest + React Testing Library + jsdom | 34 passing; covers gamification, learning engine, and component behavior |
 | E2E | Playwright | Already wired into CI |
 | CI | GitHub Actions | build · smoke tests · `tsc` · `vitest` · `npm audit` · `gitleaks` |
 
@@ -187,14 +199,68 @@ supabase-schema.sql tables · RLS · triggers · RPCs · audit log
 
 Full threat model and disclosure process: [`SECURITY.md`](./SECURITY.md).
 
+## Accessibility highlights
+
+Everything in the app targets WCAG 2.1 AA. Recent a11y sweep, in
+rough order of impact:
+
+- ♿ **Semantic HTML landmarks everywhere.** `<main>`, `<nav>`,
+  `<header>`, `<footer>` on the app shell + every sidebar. Screen
+  reader users can jump between "Course navigation", "Topbar",
+  "Main", and "Lesson pagination" with a single rotor key.
+- ♿ **One `<h1>` per page.** Lesson titles are the document h1,
+  not the brand name. The landing page, auth page, lesson view,
+  admin dashboard, and every modal dialog each have exactly one.
+- ♿ **Focus traps on every modal dialog.** Extracted a reusable
+  [`useFocusTrap`](./src/hooks/useFocusTrap.js) hook applied to
+  14 modals (sidebar drawer, cheatsheet, glossary, bookmarks,
+  badges, projects, challenges, stats, review queue, roadmap,
+  welcome back, break prompt, course complete, badge unlock,
+  what's new). Tab stays inside, Shift+Tab wraps backward, Escape
+  closes, focus returns to the trigger on close.
+- ♿ **WCAG AA color contrast on every token.** Every text
+  token (`--text`, `--text-dim`, `--text-muted`) passes 4.5:1 on
+  every background surface (`--bg-deep` through `--bg-surface`).
+  The palette was mathematically verified with the WCAG 2.1
+  relative-luminance formula — the worst ratio in the system is
+  5.22:1 (muted on surface).
+- ♿ **Visible keyboard focus everywhere.** Global
+  `:focus-visible` outline for keyboard users,
+  `:focus:not(:focus-visible)` suppresses the ring for mouse
+  clicks. Ten previously-broken per-element overrides have been
+  removed.
+- ♿ **`type="button"` on every button** — codemod swept 23
+  unflagged buttons that defaulted to `submit` (a latent
+  form-submission bug).
+- ♿ **Real buttons, not `<div onClick>`.** BookmarksPanel rows
+  split into sibling `<button>`s so keyboard users can actually
+  activate them.
+- ♿ **`prefers-reduced-motion` respected globally** — collapses
+  every keyframe animation to 0.01ms.
+- ♿ **Skip-to-content link** at the top of the app shell.
+- ♿ **ARIA live regions** on toast notifications and the new
+  sync-failed banner so they announce without stealing focus.
+- ♿ **aria-hidden on decorative emoji** throughout (`📸`, `🔗`,
+  `✨`, etc.) so they don't pollute the screen-reader stream.
+
+The threat model in [`SECURITY.md`](./SECURITY.md) and the
+accessibility work are intentionally paired — both care about
+"who can actually use this, and in what conditions".
+
 ## Roadmap
 
 - [x] Animated landing-page hero with scroll-driven storytelling
 - [x] Public profile pages (`/#u/:handle`) — opt-in, RLS-gated
 - [x] AI-generated personalized practice quizzes from missed concepts
 - [x] Self-host fonts to drop the font CDN from the CSP
+- [x] Semantic HTML landmarks + WCAG AA contrast sweep
+- [x] `useFocusTrap` hook + focus traps on every modal
+- [x] Component-level test coverage (React Testing Library + jsdom)
+- [x] Split three 400+ LOC god-components into focused children
 - [ ] Server-rendered OG images for public profile pages
 - [ ] Migrate components to TypeScript
+- [ ] Wire ErrorBoundary to Sentry / LogRocket for prod telemetry
+- [ ] Real Lighthouse CI with a committed score badge
 
 ## Contributing
 
