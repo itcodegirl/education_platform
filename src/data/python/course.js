@@ -1,17 +1,22 @@
 // ═══════════════════════════════════════════════
-// PYTHON COURSE — Module 1: Python Foundations (7 lessons)
+// PYTHON COURSE — 3 Modules, 16 Lessons
 //
-//   1. Run Your First Python Code
-//   2. Store Information with Variables
-//   3. Operators & Math
-//   4. Make Decisions with If Statements
-//   5. Automate with For Loops
-//   6. Organize Data with Lists
-//   7. Build Reusable Code with Functions
+// Module 1: Python Foundations (7 lessons)
+//   1-7: print, variables, operators, if, loops, lists, functions
+//
+// Module 2: Working with Data (5 lessons)
+//   8-12: dictionaries, files, error handling, JSON, strings
+//
+// Module 3: APIs & Automation (4 lessons)
+//   13-16: API requests, web scraping, scheduling, capstone
 // ═══════════════════════════════════════════════
 
 import pythonFoundations from './modules/python-foundations.json';
+import workingWithData from './modules/working-with-data.json';
+import apisAndAutomation from './modules/apis-and-automation.json';
 
 export const PYTHON_MODULES = [
   pythonFoundations,
+  workingWithData,
+  apisAndAutomation,
 ];
