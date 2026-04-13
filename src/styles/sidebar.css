@@ -344,7 +344,8 @@
    context strip below the tabs shows which course the user is viewing
    and its progress. */
 .sb-tabs {
-  position: relative;
+  /* No `position: relative` — the popout is `position: fixed` and
+     escapes the sidebar's overflow:hidden entirely. */
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
@@ -385,7 +386,9 @@
   opacity: 0.6;
   transition: transform var(--duration-fast);
 }
-.sb-tab.active .sb-tab-arrow { transform: rotate(180deg); }
+/* Arrow points right (▸) when closed, rotates down when active so it
+   points toward the popout that just opened to the right. */
+.sb-tab.active .sb-tab-arrow { transform: rotate(90deg); opacity: 1; }
 
 /* Active-course context strip under the tabs. Reminds the user which
    course the module tree below belongs to, and shows progress. */
@@ -429,29 +432,35 @@
   transition: width 0.5s var(--ease-out);
 }
 
-/* ─── Popout card (mirrors .cs-flyout) ─── */
+/* ─── Side popout card ───────────────────────
+   Flies out to the RIGHT of the sidebar. Uses
+   position: fixed so it escapes the sidebar's
+   overflow:hidden. Top/left are set inline from the
+   tabs bar's bounding rect in openPopout(). */
 .sb-tab-flyout {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 14px;
-  right: 14px;
+  position: fixed;
+  width: 240px;
+  max-height: 70vh;
+  overflow-y: auto;
   background: rgba(16, 16, 36, 0.95);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(180, 74, 255, 0.12);
-  border-radius: 12px;
-  padding: 6px;
-  z-index: 20;
+  border: 1px solid rgba(180, 74, 255, 0.2);
+  border-radius: 14px;
+  padding: 8px;
+  z-index: 1000;
   box-shadow:
-    0 16px 48px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(180, 74, 255, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  animation: fadeIn 0.15s var(--ease-out);
+    0 24px 64px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(180, 74, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  animation: sbTabSlideIn 0.18s var(--ease-out);
   display: flex;
   flex-direction: column;
   gap: 2px;
-  max-height: 60vh;
-  overflow-y: auto;
+}
+@keyframes sbTabSlideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
 /* Resources tool row — parallel to .cs-option but for tool actions. */
@@ -486,7 +495,7 @@
   font-weight: 600;
 }
 
-/* ─── Collapsed sidebar: icons only, popout flies right ─── */
+/* ─── Collapsed sidebar: icons only ─── */
 .sb.collapsed .sb-tabs {
   grid-template-columns: 1fr;
   gap: 4px;
@@ -496,12 +505,6 @@
 .sb.collapsed .sb-tab-arrow { display: none; }
 .sb.collapsed .sb-tab { padding: 10px 0; }
 .sb.collapsed .sb-tabs-context { display: none; }
-.sb.collapsed .sb-tab-flyout {
-  left: calc(100% + 6px);
-  right: auto;
-  top: 0;
-  width: 220px;
-}
 
 /* ─── Lock toggle (inside scroll area) ─── */
 .sb-lock-row {

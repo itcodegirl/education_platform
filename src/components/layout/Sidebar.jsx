@@ -54,8 +54,13 @@ export const Sidebar = memo(function Sidebar({
   // state for the Courses + Resources tab bar. Only one popout can be
   // open at a time; clicking a tab while the other is open switches.
   const [activePopout, setActivePopout] = useState(null); // 'courses' | 'resources' | null
+  // The popout is `position: fixed` and flies out to the right of the
+  // sidebar. We compute its viewport coordinates from the tab bar's
+  // bounding rect when it opens, then close it on window resize.
+  const [popoutPos, setPopoutPos] = useState(null);
   const [expandedMod, setExpandedMod] = useState(modIdx);
   const tabsRef = useRef(null);
+  const popoutRef = useRef(null);
   const asideRef = useRef(null);
   const course = courses[courseIdx];
   const modules = course.modules;
@@ -63,22 +68,49 @@ export const Sidebar = memo(function Sidebar({
   // Sync expanded module when active module changes
   useEffect(() => { setExpandedMod(modIdx); }, [modIdx]);
 
-  // Close the active popout on click-outside or Escape.
+  const openPopout = useCallback((which) => {
+    setActivePopout((prev) => {
+      const next = prev === which ? null : which;
+      if (next && tabsRef.current) {
+        const rect = tabsRef.current.getBoundingClientRect();
+        setPopoutPos({ top: rect.top, left: rect.right + 8 });
+      } else {
+        setPopoutPos(null);
+      }
+      return next;
+    });
+  }, []);
+
+  // Close the active popout on click-outside, Escape, or window resize.
+  // Click-outside checks BOTH the tab bar (so you can click a tab again
+  // to toggle off) AND the popout card (so clicks inside don't close it).
   useEffect(() => {
     if (!activePopout) return undefined;
     const handlePointerDown = (e) => {
-      if (tabsRef.current && !tabsRef.current.contains(e.target)) {
+      const inTabs = tabsRef.current && tabsRef.current.contains(e.target);
+      const inPopout = popoutRef.current && popoutRef.current.contains(e.target);
+      if (!inTabs && !inPopout) {
         setActivePopout(null);
+        setPopoutPos(null);
       }
     };
     const handleEscape = (e) => {
-      if (e.key === 'Escape') setActivePopout(null);
+      if (e.key === 'Escape') {
+        setActivePopout(null);
+        setPopoutPos(null);
+      }
+    };
+    const handleResize = () => {
+      setActivePopout(null);
+      setPopoutPos(null);
     };
     document.addEventListener('pointerdown', handlePointerDown);
     document.addEventListener('keydown', handleEscape);
+    window.addEventListener('resize', handleResize);
     return () => {
       document.removeEventListener('pointerdown', handlePointerDown);
       document.removeEventListener('keydown', handleEscape);
+      window.removeEventListener('resize', handleResize);
     };
   }, [activePopout]);
 
@@ -155,36 +187,38 @@ export const Sidebar = memo(function Sidebar({
         <ProfilePopover isOpen={popoverOpen} onClose={closePopover} isMobile={isMobile} />
 
         {/* ─── Tab bar: Courses + Resources ─── */}
-        {/* Two tabs side-by-side. Each opens a small popout card below.
+        {/* Two tabs side-by-side. Each opens a small popout card that
+            flies out to the RIGHT of the sidebar (position: fixed, so
+            it escapes the sidebar's overflow: hidden).
             Courses: switches between course tracks (HTML/CSS/JS/React/Python).
             Resources: opens a quick-launcher for the learning tools
             (cheat sheets, glossary, bookmarks, review queue, challenges, badges).
-            Click-outside and Escape both close the active popout. */}
+            Click-outside, Escape, and window resize close the active popout. */}
         <div className="sb-tabs" ref={tabsRef} role="tablist" aria-label="Sidebar navigation">
           <button
             type="button"
             className={`sb-tab ${activePopout === 'courses' ? 'active' : ''}`}
-            onClick={() => setActivePopout((p) => (p === 'courses' ? null : 'courses'))}
+            onClick={() => openPopout('courses')}
             aria-expanded={activePopout === 'courses'}
             aria-controls="sb-tab-panel-courses"
             role="tab"
           >
             <span className="sb-tab-icon" aria-hidden="true">📚</span>
             <span className="sb-tab-label">Courses</span>
-            <span className="sb-tab-arrow" aria-hidden="true">▾</span>
+            <span className="sb-tab-arrow" aria-hidden="true">▸</span>
           </button>
 
           <button
             type="button"
             className={`sb-tab ${activePopout === 'resources' ? 'active' : ''}`}
-            onClick={() => setActivePopout((p) => (p === 'resources' ? null : 'resources'))}
+            onClick={() => openPopout('resources')}
             aria-expanded={activePopout === 'resources'}
             aria-controls="sb-tab-panel-resources"
             role="tab"
           >
             <span className="sb-tab-icon" aria-hidden="true">📋</span>
             <span className="sb-tab-label">Resources</span>
-            <span className="sb-tab-arrow" aria-hidden="true">▾</span>
+            <span className="sb-tab-arrow" aria-hidden="true">▸</span>
           </button>
 
           {/* Active-course context strip — shows which course you're in
@@ -200,20 +234,31 @@ export const Sidebar = memo(function Sidebar({
               />
             </div>
           </div>
+        </div>
 
-          {activePopout === 'courses' && (
-            <div
-              id="sb-tab-panel-courses"
-              className="sb-tab-flyout sb-tab-flyout-courses"
-              role="tabpanel"
-              aria-label="Select course"
-            >
-              {courses.map((c, ci) => (
+        {/* Popout card — rendered OUTSIDE .sb-tabs so it can escape the
+            sidebar's overflow:hidden via position:fixed. Position is
+            computed from the tab bar's bounding rect in openPopout(). */}
+        {activePopout && popoutPos && (
+          <div
+            ref={popoutRef}
+            id={`sb-tab-panel-${activePopout}`}
+            className={`sb-tab-flyout sb-tab-flyout-${activePopout}`}
+            role="tabpanel"
+            aria-label={activePopout === 'courses' ? 'Select course' : 'Open a learning tool'}
+            style={{ top: popoutPos.top, left: popoutPos.left }}
+          >
+            {activePopout === 'courses' &&
+              courses.map((c, ci) => (
                 <button
                   key={c.id}
                   type="button"
                   className={`cs-option ${ci === courseIdx ? 'active' : ''}`}
-                  onClick={() => { onSelectCourse(ci); setActivePopout(null); }}
+                  onClick={() => {
+                    onSelectCourse(ci);
+                    setActivePopout(null);
+                    setPopoutPos(null);
+                  }}
                   style={{ '--cs-accent': c.accent }}
                 >
                   <span className="cs-option-icon">{c.icon}</span>
@@ -221,17 +266,9 @@ export const Sidebar = memo(function Sidebar({
                   {ci === courseIdx && <span className="cs-option-check">✓</span>}
                 </button>
               ))}
-            </div>
-          )}
 
-          {activePopout === 'resources' && (
-            <div
-              id="sb-tab-panel-resources"
-              className="sb-tab-flyout sb-tab-flyout-resources"
-              role="tabpanel"
-              aria-label="Open a learning tool"
-            >
-              {[
+            {activePopout === 'resources' &&
+              [
                 { key: 'cheatsheet', icon: '📋', label: 'Cheat Sheets' },
                 { key: 'glossary',   icon: '📖', label: 'Glossary'     },
                 { key: 'bookmarks',  icon: '⭐', label: 'Bookmarks'    },
@@ -243,15 +280,18 @@ export const Sidebar = memo(function Sidebar({
                   key={t.key}
                   type="button"
                   className="sb-tab-opt"
-                  onClick={() => { onOpenTool(t.key); setActivePopout(null); }}
+                  onClick={() => {
+                    onOpenTool(t.key);
+                    setActivePopout(null);
+                    setPopoutPos(null);
+                  }}
                 >
                   <span className="sb-tab-opt-icon" aria-hidden="true">{t.icon}</span>
                   <span className="sb-tab-opt-label">{t.label}</span>
                 </button>
               ))}
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* ─── Module/Lesson Tree ─── */}
         <div className="sb-scroll">
