@@ -93,7 +93,7 @@ export function AdminDashboard({ onClose }) {
         <span className="admin-denied-icon">🔒</span>
         <h2>Access Denied</h2>
         <p>You don't have admin privileges.</p>
-        <button className="admin-back-btn" onClick={onClose}>← Back to Platform</button>
+        <button type="button" className="admin-back-btn" onClick={onClose}>← Back to Platform</button>
       </div>
     </div>
   );
@@ -104,7 +104,7 @@ export function AdminDashboard({ onClose }) {
         <span className="admin-denied-icon">📡</span>
         <h2>Connection Error</h2>
         <p>{loadError}</p>
-        <button className="admin-back-btn" onClick={() => window.location.reload()}>↺ Retry</button>
+        <button type="button" className="admin-back-btn" onClick={() => window.location.reload()}>↺ Retry</button>
       </div>
     </div>
   );
@@ -187,7 +187,7 @@ export function AdminDashboard({ onClose }) {
               <p className="admin-subtitle">CodeHerWay Platform Analytics</p>
             </div>
           </div>
-          <button className="admin-back-btn" onClick={onClose}>← Back to Platform</button>
+          <button type="button" className="admin-back-btn" onClick={onClose}>← Back to Platform</button>
         </div>
 
         {/* Tabs */}
@@ -199,7 +199,7 @@ export function AdminDashboard({ onClose }) {
             { id: 'quizzes', label: '📝 Quizzes' },
             { id: 'builder', label: '🛠️ Lesson Builder' },
           ].map(t => (
-            <button
+            <button type="button"
               key={t.id}
               className={`admin-tab ${tab === t.id ? 'active' : ''}`}
               onClick={() => setTab(t.id)}
@@ -332,7 +332,7 @@ export function AdminDashboard({ onClose }) {
                               {isSelf ? (
                                 <span className="admin-action-disabled">You</span>
                               ) : (
-                                <button
+                                <button type="button"
                                   className={`admin-toggle-btn ${isDisabled ? 'enable' : 'disable'}`}
                                   disabled={actionLoading === u.id}
                                   onClick={async () => {

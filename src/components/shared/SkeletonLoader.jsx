@@ -94,7 +94,7 @@ export function ConnectionError({ onRetry }) {
       <p className="conn-msg">
         Could not connect to the database. Check your internet connection or try again.
       </p>
-      <button className="conn-retry" onClick={onRetry}>
+      <button type="button" className="conn-retry" onClick={onRetry}>
         ↺ Retry Connection
       </button>
     </div>

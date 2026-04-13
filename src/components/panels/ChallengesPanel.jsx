@@ -17,10 +17,10 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
       <div className="panel-overlay" onClick={onClose}>
         <div className="panel challenges-panel wide" onClick={(e) => e.stopPropagation()}>
           <div className="panel-head">
-            <button className="panel-back" onClick={() => setActiveChallenge(null)}>
+            <button type="button" className="panel-back" onClick={() => setActiveChallenge(null)}>
               ← Back to Challenges
             </button>
-            <button className="panel-close" onClick={onClose}>✕</button>
+            <button type="button" className="panel-close" onClick={onClose}>✕</button>
           </div>
           <div className="panel-body">
             <CodeChallenge
@@ -41,7 +41,7 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
       <div className="panel challenges-panel" onClick={(e) => e.stopPropagation()}>
         <div className="panel-head">
           <h3 className="panel-title">🏋️ Code Challenges</h3>
-          <button className="panel-close" onClick={onClose}>✕</button>
+          <button type="button" className="panel-close" onClick={onClose}>✕</button>
         </div>
         <div className="panel-body">
           {challenges.length === 0 ? (
@@ -52,7 +52,7 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
           ) : (
             <div className="challenges-list">
               {challenges.map(ch => (
-                <button
+                <button type="button"
                   key={ch.id}
                   className={`challenge-card ${completed.has(ch.id) ? 'done' : ''}`}
                   onClick={() => setActiveChallenge(ch)}

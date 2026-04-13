@@ -77,7 +77,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
         </div>
 
         <div className="cc-actions">
-          <button
+          <button type="button"
             className="cc-download-btn"
             onClick={handleDownload}
             disabled={downloading}
@@ -85,7 +85,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
             {downloading ? '⏳ Generating...' : '📄 Download Certificate (PDF)'}
           </button>
 
-          <button className="cc-share-btn" onClick={() => {
+          <button type="button" className="cc-share-btn" onClick={() => {
             const text = `I just completed the ${course.label} course on CodeHerWay! 🎉 ${lessonCount} lessons done. #CodeHerWay #WomenInTech #LearnToCode`;
             if (navigator.share) {
               navigator.share({ title: 'CodeHerWay Certificate', text });
@@ -97,7 +97,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
             📤 Share Achievement
           </button>
 
-          <button className="cc-close-btn" onClick={onClose}>
+          <button type="button" className="cc-close-btn" onClick={onClose}>
             Keep Going →
           </button>
         </div>

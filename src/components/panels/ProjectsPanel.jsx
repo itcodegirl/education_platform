@@ -16,7 +16,7 @@ export function ProjectsPanel({ isOpen, onClose, currentCourse }) {
       <div className="search-modal">
         <div className="cheatsheet-head">
           <h2>🔨 Build Projects</h2>
-          <button className="cheatsheet-close" onClick={onClose}>✕</button>
+          <button type="button" className="cheatsheet-close" onClick={onClose}>✕</button>
         </div>
         <div className="cs-btn-row">
           {Object.keys(PROJECTS).map((k) => (

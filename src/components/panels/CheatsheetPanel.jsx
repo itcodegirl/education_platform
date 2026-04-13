@@ -17,7 +17,7 @@ export function CheatsheetPanel({ isOpen, onClose, currentCourse }) {
       <div className="search-modal">
         <div className="cheatsheet-head">
           <h2>📋 {activeCourse.toUpperCase()} Cheat Sheet</h2>
-          <button className="cheatsheet-close" onClick={onClose}>✕</button>
+          <button type="button" className="cheatsheet-close" onClick={onClose}>✕</button>
         </div>
         <div className="cs-btn-row">
           {courseKeys.map((k) => (

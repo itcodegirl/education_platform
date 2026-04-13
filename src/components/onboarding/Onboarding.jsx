@@ -105,23 +105,23 @@ export function Onboarding({ isOpen, onClose, displayName }) {
         {/* Actions */}
         <div className="ob-actions">
           {!isFirst && (
-            <button className="ob-back" onClick={() => setStep(s => s - 1)}>
+            <button type="button" className="ob-back" onClick={() => setStep(s => s - 1)}>
               ← Back
             </button>
           )}
 
           {isFirst && (
-            <button className="ob-skip" onClick={handleFinish}>
+            <button type="button" className="ob-skip" onClick={handleFinish}>
               Skip tour
             </button>
           )}
 
           {isLast ? (
-            <button className="ob-start" onClick={handleFinish}>
+            <button type="button" className="ob-start" onClick={handleFinish}>
               Start Learning →
             </button>
           ) : (
-            <button className="ob-next" onClick={() => setStep(s => s + 1)}>
+            <button type="button" className="ob-next" onClick={() => setStep(s => s + 1)}>
               Next →
             </button>
           )}

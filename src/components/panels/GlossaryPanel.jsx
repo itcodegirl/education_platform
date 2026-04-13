@@ -19,7 +19,7 @@ export function GlossaryPanel({ isOpen, onClose }) {
       <div className="search-modal">
         <div className="cheatsheet-head">
           <h2>📖 Glossary</h2>
-          <button className="cheatsheet-close" onClick={onClose}>✕</button>
+          <button type="button" className="cheatsheet-close" onClick={onClose}>✕</button>
         </div>
         <div className="cheatsheet-body">
           <input className="glossary-search" placeholder="Search terms..."

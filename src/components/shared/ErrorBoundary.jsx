@@ -43,10 +43,10 @@ export class ErrorBoundary extends Component {
               </div>
             )}
             <div className="eb-actions">
-              <button className="eb-retry" onClick={this.handleRetry}>
+              <button type="button" className="eb-retry" onClick={this.handleRetry}>
                 ↺ Try Again
               </button>
-              <button className="eb-reload" onClick={this.handleReload}>
+              <button type="button" className="eb-reload" onClick={this.handleReload}>
                 ⟳ Reload Page
               </button>
             </div>
