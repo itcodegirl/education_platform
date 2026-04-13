@@ -63,18 +63,49 @@ const ProgressContext = createContext({
   dataLoaded: false,
   loadError: null,
   retryLoad: () => {},
+  // Count of DB writes that failed since the last successful read.
+  // Used by the UI to show a "sync failed" banner; the optimistic
+  // state is still the source of truth for the current session.
+  syncFailed: 0,
+  clearSyncFailed: () => {},
 });
 
 export function ProgressProvider({ children }) {
   const { user } = useAuth();
   const [loadVersion, setLoadVersion] = useState(0);
+  // Counter for DB writes that have failed since the last successful
+  // load. The optimistic state is still the source of truth for the
+  // session — this is just so the UI can surface "your progress did
+  // not save to the cloud" instead of silently losing writes.
+  const [syncFailed, setSyncFailed] = useState(0);
 
-  // Silent Supabase write — state is already updated optimistically.
-  // If the write fails, local state is correct for the session,
-  // it just won't persist until the next successful write.
-  const dbWrite = useCallback(async (operation) => {
-    try { await operation; } catch { /* silent — optimistic state is source of truth */ }
+  // Supabase write helper. Optimistic state is updated BEFORE this is
+  // called, so we catch and report failures rather than rollback.
+  // Previously this silently swallowed all errors, which made every
+  // sync failure invisible — a real correctness bug flagged in the
+  // portfolio audit. Now we:
+  //   1. console.warn in dev so the developer sees it immediately
+  //   2. bump the syncFailed counter exposed via context so the UI
+  //      can show a "sync failed, your work is still saved locally"
+  //      banner. Calling retryLoad() will reset the counter.
+  //   3. accept a human-readable label so the warning identifies
+  //      which service call failed.
+  const dbWrite = useCallback(async (operation, label = 'db-write') => {
+    try {
+      await operation;
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[ProgressContext] ${label} failed — optimistic state kept:`,
+          err,
+        );
+      }
+      setSyncFailed((count) => count + 1);
+    }
   }, []);
+
+  const clearSyncFailed = useCallback(() => setSyncFailed(0), []);
 
   // ─── State ─────────────────────────────────────
   const [completed, setCompleted] = useState([]);
@@ -220,7 +251,7 @@ export function ProgressProvider({ children }) {
     setStreak(newDays);
     setStreakLastDate(today);
 
-    dbWrite(progressService.updateStreak(user.id, newDays, today));
+    dbWrite(progressService.updateStreak(user.id, newDays, today), 'updateStreak');
   }, [user, dataLoaded, streakLastDate, streak, dbWrite]);
 
   // ─── Progress ─────────────────────────────────
@@ -232,17 +263,17 @@ export function ProgressProvider({ children }) {
 
     if (has) {
       setCompleted(prev => prev.filter(k => k !== lessonKey));
-      dbWrite(progressService.removeLesson(user.id, lessonKey));
+      dbWrite(progressService.removeLesson(user.id, lessonKey), 'removeLesson');
     } else {
       setCompleted(prev => [...prev, lessonKey]);
-      dbWrite(progressService.addLesson(user.id, lessonKey));
+      dbWrite(progressService.addLesson(user.id, lessonKey), 'addLesson');
     }
   }, [user, completedSet]);
 
   const saveQuizScore = useCallback(async (quizKey, score) => {
     if (!user) return;
     setQuizScores(prev => ({ ...prev, [quizKey]: score }));
-    dbWrite(progressService.saveQuizScore(user.id, quizKey, score));
+    dbWrite(progressService.saveQuizScore(user.id, quizKey, score), 'saveQuizScore');
   }, [user]);
 
   // ─── XP ───────────────────────────────────────
@@ -259,7 +290,7 @@ export function ProgressProvider({ children }) {
       newLevel: newLevel > oldLevel ? newLevel : null,
     });
 
-    dbWrite(progressService.updateXP(user.id, newTotal));
+    dbWrite(progressService.updateXP(user.id, newTotal), 'updateXP');
   }, [user, xpTotal]);
 
   const clearXPPopup = useCallback(() => setXpPopup(null), []);
@@ -274,7 +305,7 @@ export function ProgressProvider({ children }) {
     setDailyCount(newCount);
     setDailyDate(today);
 
-    dbWrite(progressService.updateDailyGoal(user.id, today, newCount));
+    dbWrite(progressService.updateDailyGoal(user.id, today, newCount), 'updateDailyGoal');
   }, [user, dailyCount, dailyDate]);
 
   // ─── Badges ───────────────────────────────────
@@ -326,7 +357,7 @@ export function ProgressProvider({ children }) {
         updated[b.id] = { date: getTodayString() };
         if (!foundNew) foundNew = b;
 
-        dbWrite(progressService.awardBadge(user.id, b.id));
+        dbWrite(progressService.awardBadge(user.id, b.id), `awardBadge:${b.id}`);
       }
     }
 
@@ -351,7 +382,7 @@ export function ProgressProvider({ children }) {
     setSrCards(prev => [...prev, ...newCards]);
 
     for (const card of newCards) {
-      dbWrite(progressService.addSRCard(user.id, card));
+      dbWrite(progressService.addSRCard(user.id, card), 'addSRCard');
     }
   }, [user, srCards]);
 
@@ -386,7 +417,7 @@ export function ProgressProvider({ children }) {
     const newEase = correct ? Math.min(card.ease + 0.1, 3.0) : Math.max(card.ease - 0.2, 1.3);
     const nextReview = new Date(Date.now() + (correct ? newInterval : 1) * TIMING.dayMs);
 
-    dbWrite(progressService.updateSRCard(user.id, question, { next_review: nextReview.toISOString(), interval_days: newInterval, ease: newEase }));
+    dbWrite(progressService.updateSRCard(user.id, question, { next_review: nextReview.toISOString(), interval_days: newInterval, ease: newEase }), 'updateSRCard');
   }, [user, srCards, dbWrite]);
 
   const getDueSRCards = useCallback(() => {
@@ -400,11 +431,11 @@ export function ProgressProvider({ children }) {
 
     if (existing) {
       setBookmarks(prev => prev.filter(b => b.lesson_key !== lessonKey));
-      dbWrite(progressService.removeBookmark(user.id, lessonKey));
+      dbWrite(progressService.removeBookmark(user.id, lessonKey), 'removeBookmark');
     } else {
       const newBookmark = { lesson_key: lessonKey, course_id: courseId, lesson_title: lessonTitle, created_at: new Date().toISOString() };
       setBookmarks(prev => [...prev, newBookmark]);
-      dbWrite(progressService.addBookmark(user.id, { lessonKey, courseId, lessonTitle }));
+      dbWrite(progressService.addBookmark(user.id, { lessonKey, courseId, lessonTitle }), 'addBookmark');
     }
   }, [user, bookmarks, dbWrite]);
 
@@ -416,7 +447,7 @@ export function ProgressProvider({ children }) {
   const saveNote = useCallback(async (lessonKey, content) => {
     if (!user) return;
     setNotes(prev => ({ ...prev, [lessonKey]: content }));
-    dbWrite(progressService.saveNote(user.id, lessonKey, content));
+    dbWrite(progressService.saveNote(user.id, lessonKey, content), 'saveNote');
   }, [user]);
 
   const getNote = useCallback((lessonKey) => {
@@ -427,7 +458,7 @@ export function ProgressProvider({ children }) {
   const savePosition = useCallback(async (pos) => {
     if (!user) return;
     setLastPosition(prev => ({ ...prev, ...pos, time: Date.now() }));
-    dbWrite(progressService.savePosition(user.id, pos));
+    dbWrite(progressService.savePosition(user.id, pos), 'savePosition');
   }, [user, dbWrite]);
 
   // ─── Courses Visited ──────────────────────────
@@ -435,12 +466,15 @@ export function ProgressProvider({ children }) {
     if (!user) return;
     if (coursesVisited.includes(courseId)) return;
     setCoursesVisited(prev => [...prev, courseId]);
-    dbWrite(progressService.trackCourseVisit(user.id, courseId));
+    dbWrite(progressService.trackCourseVisit(user.id, courseId), 'trackCourseVisit');
   }, [user, coursesVisited, dbWrite]);
 
   const retryLoad = useCallback(() => {
     setDataLoaded(false);
     setLoadError(null);
+    // A fresh load replaces optimistic state with canonical DB state,
+    // so any stale "sync failed" counter is irrelevant after this.
+    setSyncFailed(0);
     setLoadVersion((version) => version + 1);
   }, []);
 
@@ -462,6 +496,8 @@ export function ProgressProvider({ children }) {
     lastPosition, savePosition, coursesVisited, trackCourseVisit,
     // State
     dataLoaded, loadError, retryLoad,
+    // Sync failure surface (formerly silent)
+    syncFailed, clearSyncFailed,
   }), [
     completed, completedSet, toggleLesson, quizScores, saveQuizScore,
     xpTotal, awardXP, xpPopup, clearXPPopup,
@@ -472,6 +508,7 @@ export function ProgressProvider({ children }) {
     notes, saveNote, getNote,
     lastPosition, savePosition, coursesVisited, trackCourseVisit,
     dataLoaded, loadError, retryLoad,
+    syncFailed, clearSyncFailed,
   ]);
 
   return (
