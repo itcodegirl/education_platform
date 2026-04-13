@@ -112,6 +112,7 @@ export const Sidebar = memo(function Sidebar({
         <div className="sb-head">
           <div className="brand">
             <Logo size="sm" />
+            <span className="brand-robot" aria-hidden="true">🤖</span>
             <Logo size="icon" className="brand-icon-only" />
           </div>
           <div className="sb-head-actions">
@@ -243,6 +244,7 @@ export const Sidebar = memo(function Sidebar({
                           >
                             <span className="lg-chk">{isDone ? '✓' : unlocked ? '○' : '🔒'}</span>
                             <span>{lesson.title}</span>
+                            {mi === modIdx && li === lesIdx && !showModQuiz && <span className="lg-robot" aria-hidden="true">🤖</span>}
                           </button>
                         );
                       })}

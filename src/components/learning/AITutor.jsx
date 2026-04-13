@@ -140,7 +140,7 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
         aria-expanded={isOpen}
         aria-controls="lesson-ai-tutor-panel"
       >
-        <span className="ai-tutor-icon">🤖</span>
+        <span className="ai-tutor-icon robot-glow">🤖</span>
         <span className="ai-tutor-label">AI Tutor</span>
         <span className="ai-tutor-hint">
           {isOpen ? 'Close' : 'Ask about this lesson'}
