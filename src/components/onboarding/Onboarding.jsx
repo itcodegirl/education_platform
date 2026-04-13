@@ -4,6 +4,7 @@
 // ═══════════════════════════════════════════════
 
 import { useState, useEffect } from 'react';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
 
 const STEPS = [
   {
@@ -45,6 +46,7 @@ const STEPS = [
 export function Onboarding({ isOpen, onClose, displayName }) {
   const [step, setStep] = useState(0);
   const [show, setShow] = useState(false);
+  const [, setOnboarded] = useLocalStorage('chw-onboarded', false);
 
   useEffect(() => {
     if (isOpen) {
@@ -63,7 +65,7 @@ export function Onboarding({ isOpen, onClose, displayName }) {
   const isFirst = step === 0;
 
   const handleFinish = () => {
-    localStorage.setItem('chw-onboarded', 'true');
+    setOnboarded(true);
     onClose();
   };
 

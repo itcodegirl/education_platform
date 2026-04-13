@@ -88,12 +88,15 @@ walk through the threat model and the fixes I made.
 | Layer | Choice | Why |
 | --- | --- | --- |
 | UI | React 18 + Vite 6 | Fast HMR, modern bundler, real code-splitting |
+| Types | TypeScript (services layer) | Hand-written row/DTO types in `src/services/supabaseTypes.ts`; `tsc --noEmit` in CI |
 | Editor | `@monaco-editor/react` | Same editor that powers VS Code |
 | Backend | Supabase (Postgres + Auth + RLS) | Real auth + a real database without a server |
 | Functions | Netlify Functions (Node 20 ESM) | One platform, scheduled jobs included |
 | AI | OpenAI Responses API (gpt-4o-mini) | Behind an authenticated proxy |
+| Fonts | `@fontsource` self-hosted | No `fonts.googleapis.com` in the CSP |
+| Unit tests | Vitest | 22 passing; covers gamification + learning engine |
 | E2E | Playwright | Already wired into CI |
-| CI | GitHub Actions | build · smoke tests · `npm audit` · `gitleaks` · weekly ops checks |
+| CI | GitHub Actions | build · smoke tests · `tsc` · `vitest` · `npm audit` · `gitleaks` |
 
 ## Architecture at a glance
 
@@ -147,6 +150,9 @@ After bootstrap, every subsequent admin change must go through the
 | `npm run dev` | Vite dev server |
 | `npm run build` | Production build to `dist/` |
 | `npm run preview` | Preview the production build |
+| `npm test` | Vitest unit tests (services + pure logic) |
+| `npm run test:watch` | Vitest in watch mode |
+| `npm run typecheck` | `tsc --noEmit` across TS services |
 | `npm run test:e2e` | Run Playwright E2E suite |
 | `npm run test:e2e:ui` | Playwright in UI mode |
 

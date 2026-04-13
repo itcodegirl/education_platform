@@ -4,9 +4,16 @@
 // ═══════════════════════════════════════════════
 
 import { BADGE_DEFS } from '../context/ProgressContext';
+import type {
+  BadgeDef,
+  BadgeEligibility,
+  BadgeEligibilityContext,
+} from './supabaseTypes';
 
 // ─── Badge eligibility check ────────────────
-export function checkBadgeEligibility(ctx) {
+export function checkBadgeEligibility(
+  ctx: BadgeEligibilityContext,
+): BadgeEligibility {
   return {
     first_lesson: ctx.completedCount >= 1,
     five_lessons: ctx.completedCount >= 5,
@@ -30,11 +37,14 @@ export function checkBadgeEligibility(ctx) {
 }
 
 // ─── Find newly earned badges ───────────────
-export function getNewBadges(eligibility, alreadyEarned) {
-  const newBadges = [];
+export function getNewBadges(
+  eligibility: BadgeEligibility,
+  alreadyEarned: string[],
+): BadgeDef[] {
+  const newBadges: BadgeDef[] = [];
   for (const [id, eligible] of Object.entries(eligibility)) {
     if (eligible && !alreadyEarned.includes(id)) {
-      const def = BADGE_DEFS.find(b => b.id === id);
+      const def = (BADGE_DEFS as BadgeDef[]).find((b) => b.id === id);
       if (def) newBadges.push(def);
     }
   }
@@ -44,14 +54,14 @@ export function getNewBadges(eligibility, alreadyEarned) {
 // ─── XP level calculations ─────────────────
 export const XP_PER_LEVEL = 150;
 
-export function getLevel(xp) {
+export function getLevel(xp: number): number {
   return Math.floor(xp / XP_PER_LEVEL) + 1;
 }
 
-export function getXPInLevel(xp) {
+export function getXPInLevel(xp: number): number {
   return xp % XP_PER_LEVEL;
 }
 
-export function getXPProgress(xp) {
+export function getXPProgress(xp: number): number {
   return Math.round((getXPInLevel(xp) / XP_PER_LEVEL) * 100);
 }

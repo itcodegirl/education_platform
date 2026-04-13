@@ -1,0 +1,79 @@
+/* ═══════════════════════════════════════════════
+   ANIMATIONS — Core @keyframes reused across the
+   app (fades, slides, pulses, glows) and the motion
+   utilities that pair with them.
+
+   Per-component animations still live next to their
+   component rules in App.css; this file holds the
+   shared ones.
+
+   Depends on tokens.css.
+   ═══════════════════════════════════════════════ */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 20px var(--pink-dim); }
+  50% { box-shadow: 0 0 40px var(--pink-dim), 0 0 60px var(--pink-glow); }
+}
+@keyframes robotGlow {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(180,74,255,0.3)); }
+  50% { filter: drop-shadow(0 0 12px rgba(0,229,255,0.5)) drop-shadow(0 0 20px rgba(180,74,255,0.3)); }
+}
+
+/* Robot emoji — pulse glow */
+.robot-glow {
+  animation: robotGlow 2.5s ease-in-out infinite;
+}
+
+/* Brand area robot */
+.brand-robot {
+  font-size: 20px;
+  margin-left: auto;
+  animation: robotGlow 3s ease-in-out infinite;
+}
+.sb.collapsed .brand-robot { display: none; }
+
+/* Active lesson robot indicator */
+.lg-robot {
+  font-size: 14px;
+  margin-left: auto;
+  flex-shrink: 0;
+  animation: robotGlow 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}

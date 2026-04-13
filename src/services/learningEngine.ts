@@ -5,11 +5,21 @@
 // ═══════════════════════════════════════════════
 
 import { XP_VALUES } from '../utils/helpers';
+import type {
+  ChallengeResult,
+  LearningEngineDeps,
+  QuizSubmitResult,
+} from './supabaseTypes';
 
-export function createLearningEngine({ toggleLesson, saveQuizScore, awardXP, recordDailyActivity, completedSet }) {
-
+export function createLearningEngine({
+  toggleLesson,
+  saveQuizScore,
+  awardXP,
+  recordDailyActivity,
+  completedSet,
+}: LearningEngineDeps) {
   // ─── Lesson completion ────────────────────
-  function completeLesson(lessonKey) {
+  function completeLesson(lessonKey: string): void {
     const alreadyDone = completedSet.has(lessonKey);
     toggleLesson(lessonKey);
 
@@ -20,14 +30,14 @@ export function createLearningEngine({ toggleLesson, saveQuizScore, awardXP, rec
   }
 
   // ─── Undo lesson completion ───────────────
-  function uncompleteLesson(lessonKey) {
+  function uncompleteLesson(lessonKey: string): void {
     if (completedSet.has(lessonKey)) {
       toggleLesson(lessonKey);
     }
   }
 
   // ─── Toggle (mark/unmark) ─────────────────
-  function toggleLessonDone(lessonKey) {
+  function toggleLessonDone(lessonKey: string): void {
     if (completedSet.has(lessonKey)) {
       uncompleteLesson(lessonKey);
     } else {
@@ -36,7 +46,11 @@ export function createLearningEngine({ toggleLesson, saveQuizScore, awardXP, rec
   }
 
   // ─── Quiz submission ──────────────────────
-  function submitQuiz(quizKey, score, total) {
+  function submitQuiz(
+    quizKey: string,
+    score: number,
+    total: number,
+  ): QuizSubmitResult {
     const pct = Math.round((score / total) * 100);
     saveQuizScore(quizKey, `${score}/${total}`);
     awardXP(XP_VALUES.quiz, 'Quiz completed');
@@ -45,7 +59,7 @@ export function createLearningEngine({ toggleLesson, saveQuizScore, awardXP, rec
   }
 
   // ─── Challenge completion ─────────────────
-  function completeChallenge(challengeId) {
+  function completeChallenge(challengeId: string): ChallengeResult {
     awardXP(XP_VALUES.challenge || 25, 'Challenge completed');
     recordDailyActivity();
     return { challengeId, completed: true };
@@ -59,3 +73,5 @@ export function createLearningEngine({ toggleLesson, saveQuizScore, awardXP, rec
     completeChallenge,
   };
 }
+
+export type LearningEngine = ReturnType<typeof createLearningEngine>;

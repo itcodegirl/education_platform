@@ -12,7 +12,7 @@ on:
 
 jobs:
   npm-audit:
-    name: npm audit
+    name: npm audit + unit tests + typecheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,6 +28,12 @@ jobs:
 
       - name: Run npm audit (high + critical)
         run: npm audit --audit-level=high
+
+      - name: Typecheck (TypeScript services)
+        run: npm run typecheck
+
+      - name: Run unit tests (Vitest)
+        run: npm test
 
   gitleaks:
     name: gitleaks secret scan

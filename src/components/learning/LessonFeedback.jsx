@@ -3,32 +3,18 @@
 // Stores in localStorage (no backend needed)
 // ═══════════════════════════════════════════════
 
-import { useState, memo } from 'react';
+import { memo } from 'react';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
 
 const STORAGE_KEY = 'chw-lesson-feedback';
 
-function getFeedback(lessonKey) {
-  try {
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    return data[lessonKey] || null;
-  } catch { return null; }
-}
-
-function saveFeedback(lessonKey, value) {
-  try {
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    data[lessonKey] = value;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch { /* non-critical */ }
-}
-
 export const LessonFeedback = memo(function LessonFeedback({ lessonKey }) {
-  const [feedback, setFeedback] = useState(() => getFeedback(lessonKey));
+  const [allFeedback, setAllFeedback] = useLocalStorage(STORAGE_KEY, {});
+  const feedback = allFeedback?.[lessonKey] ?? null;
 
   const handleFeedback = (value) => {
     const next = feedback === value ? null : value;
-    setFeedback(next);
-    saveFeedback(lessonKey, next);
+    setAllFeedback((prev) => ({ ...(prev || {}), [lessonKey]: next }));
   };
 
   return (

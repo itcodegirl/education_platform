@@ -4,6 +4,7 @@
 // ═══════════════════════════════════════════════
 
 import { useState, useEffect, memo } from 'react';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
 
 const APP_VERSION = '2.1.0';
 const SEEN_KEY = 'chw-whats-new-seen';
@@ -27,18 +28,18 @@ const CHANGELOG = [
 
 export const WhatsNew = memo(function WhatsNew() {
   const [show, setShow] = useState(false);
+  const [seenVersion, setSeenVersion] = useLocalStorage(SEEN_KEY, '');
 
   useEffect(() => {
-    const seen = localStorage.getItem(SEEN_KEY);
-    if (seen !== APP_VERSION) {
+    if (seenVersion !== APP_VERSION) {
       const timer = setTimeout(() => setShow(true), 1500);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [seenVersion]);
 
   const handleClose = () => {
     setShow(false);
-    localStorage.setItem(SEEN_KEY, APP_VERSION);
+    setSeenVersion(APP_VERSION);
   };
 
   if (!show) return null;

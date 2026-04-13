@@ -30,133 +30,19 @@
    ═══════════════════════════════════════════════ */
 
 /* ─── 1. Fonts & Variables ─────────────────────── */
-/* Brand fonts: Inter (clarity) + Poppins (warmth) — per platform_design.docx */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+/* Brand fonts — Inter, Poppins, Space Mono — are self-hosted via
+   @fontsource packages imported in src/main.jsx. That lets us drop
+   fonts.googleapis.com / fonts.gstatic.com from the CSP entirely.
 
-/* Design tokens — colors, spacing, type, radii, motion, layout.
-   Extracted so the styleguide page (and any new module) can consume
-   them without dragging in this 5k-line file. */
+   Design tokens, base styles (reset/body/focus/skip-link), and
+   shared animations are split into their own files. Everything below
+   this block is per-feature styling that still lives in this file
+   for now.
+   TODO(portfolio-polish): carve up the rest into layout.css,
+   panels.css, lessons.css, responsive.css. */
 @import './tokens.css';
-
-/* ─── 2. Reset & Base ──────────────────────────── */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: 'Inter', system-ui, sans-serif;
-  background:
-    radial-gradient(ellipse at top left, rgba(180, 74, 255, 0.1), transparent 40%),
-    radial-gradient(ellipse at bottom right, rgba(224, 64, 160, 0.08), transparent 40%),
-    linear-gradient(180deg, #0d0d1a 0%, #08081a 100%);
-  color: var(--text);
-  line-height: 1.7;
-  -webkit-font-smoothing: antialiased;
-}
-
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-[role="button"]:focus-visible,
-[tabindex]:focus-visible {
-  outline: 3px solid var(--cyan);
-  outline-offset: 3px;
-}
-:focus:not(:focus-visible) { outline: none; }
-
-/* ─── Skip Link ────────────────────────────────── */
-.skip-link {
-  position: absolute;
-  top: -100%;
-  left: var(--space-4);
-  z-index: 9999;
-  background: var(--cyan);
-  color: #000;
-  padding: var(--space-2) var(--space-4);
-  border-radius: 0 0 var(--radius-md) var(--radius-md);
-  font-weight: 700;
-  font-size: var(--text-base);
-  text-decoration: none;
-  transition: top var(--duration-fast);
-}
-.skip-link:focus { top: 0; }
-
-/* ─── Reduced motion ─────────────────────────── */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* ─── 3. Animations ───────────────────────────── */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(-16px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-@keyframes slideInRight {
-  from { opacity: 0; transform: translateX(16px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-@keyframes glow {
-  0%, 100% { box-shadow: 0 0 20px var(--pink-dim); }
-  50% { box-shadow: 0 0 40px var(--pink-dim), 0 0 60px var(--pink-glow); }
-}
-@keyframes robotGlow {
-  0%, 100% { filter: drop-shadow(0 0 4px rgba(180,74,255,0.3)); }
-  50% { filter: drop-shadow(0 0 12px rgba(0,229,255,0.5)) drop-shadow(0 0 20px rgba(180,74,255,0.3)); }
-}
-
-/* Robot emoji — pulse glow */
-.robot-glow {
-  animation: robotGlow 2.5s ease-in-out infinite;
-}
-
-/* Brand area robot */
-.brand-robot {
-  font-size: 20px;
-  margin-left: auto;
-  animation: robotGlow 3s ease-in-out infinite;
-}
-.sb.collapsed .brand-robot { display: none; }
-
-/* Active lesson robot indicator */
-.lg-robot {
-  font-size: 14px;
-  margin-left: auto;
-  flex-shrink: 0;
-  animation: robotGlow 2s ease-in-out infinite;
-}
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
-}
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
+@import './base.css';
+@import './animations.css';
 
 /* ─── 4. Auth Page — Brand Aligned ────────────── */
 .auth-page {

@@ -5,6 +5,7 @@
 // ═══════════════════════════════════════════════
 
 import { useState, useEffect, memo } from 'react';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
 
 const DISMISS_KEY = 'chw-install-dismissed';
 const DISMISS_DAYS = 7;
@@ -12,11 +13,11 @@ const DISMISS_DAYS = 7;
 export const InstallPrompt = memo(function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [show, setShow] = useState(false);
+  const [dismissedAt, setDismissedAt] = useLocalStorage(DISMISS_KEY, 0);
 
   useEffect(() => {
     // Check if user dismissed recently
-    const dismissed = localStorage.getItem(DISMISS_KEY);
-    if (dismissed && Date.now() - parseInt(dismissed) < DISMISS_DAYS * 86400000) return;
+    if (dismissedAt && Date.now() - Number(dismissedAt) < DISMISS_DAYS * 86400000) return;
 
     // Check if already installed
     if (window.matchMedia('(display-mode: standalone)').matches) return;
@@ -29,7 +30,7 @@ export const InstallPrompt = memo(function InstallPrompt() {
 
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
+  }, [dismissedAt]);
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;
@@ -43,7 +44,7 @@ export const InstallPrompt = memo(function InstallPrompt() {
 
   const handleDismiss = () => {
     setShow(false);
-    localStorage.setItem(DISMISS_KEY, String(Date.now()));
+    setDismissedAt(Date.now());
   };
 
   if (!show) return null;

@@ -10,6 +10,7 @@ import { useState, useEffect, useRef, memo } from "react";
 import { renderMarkdown } from "../../utils/markdown";
 import { CodePreview } from "./CodePreview";
 import { useProgress } from "../../providers";
+import { useLocalStorage } from "../../hooks/useLocalStorage";
 import { AITutor } from "./AITutor";
 import { LessonFeedback } from "./LessonFeedback";
 
@@ -24,12 +25,11 @@ export const LessonView = memo(function LessonView({
   const { toggleBookmark, isBookmarked, saveNote, getNote } = useProgress();
   const [noteText, setNoteText] = useState("");
   const [showNotes, setShowNotes] = useState(false);
-  const [checkedTasks, setCheckedTasks] = useState(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem("chw-tasks") || "{}");
-      return new Set(saved[lessonKey] || []);
-    } catch { return new Set(); }
-  });
+  // Per-lesson task state persisted under one key.
+  const [allTasks, setAllTasks] = useLocalStorage("chw-tasks", {});
+  const [checkedTasks, setCheckedTasks] = useState(
+    () => new Set(allTasks?.[lessonKey] || []),
+  );
   const [showDevFession, setShowDevFession] = useState(false);
   const saveTimer = useRef(null);
   const bookmarked = isBookmarked(lessonKey);
@@ -55,12 +55,11 @@ export const LessonView = memo(function LessonView({
   useEffect(() => {
     setNoteText(getNote(lessonKey));
     setShowNotes(false);
-    // Restore persisted task state for this lesson
-    try {
-      const saved = JSON.parse(localStorage.getItem("chw-tasks") || "{}");
-      setCheckedTasks(new Set(saved[lessonKey] || []));
-    } catch { setCheckedTasks(new Set()); }
+    setCheckedTasks(new Set(allTasks?.[lessonKey] || []));
     setShowDevFession(false);
+    // allTasks is intentionally NOT in the dep list — we only reseed
+    // when the active lesson changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonKey, getNote]);
 
   const handleNoteChange = (event) => {
@@ -77,12 +76,7 @@ export const LessonView = memo(function LessonView({
       const next = new Set(prev);
       if (next.has(index)) next.delete(index);
       else next.add(index);
-      // Persist to localStorage
-      try {
-        const all = JSON.parse(localStorage.getItem("chw-tasks") || "{}");
-        all[lessonKey] = [...next];
-        localStorage.setItem("chw-tasks", JSON.stringify(all));
-      } catch { /* silent */ }
+      setAllTasks((all) => ({ ...(all || {}), [lessonKey]: [...next] }));
       return next;
     });
   };

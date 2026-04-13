@@ -4,37 +4,49 @@
 // ═══════════════════════════════════════════════
 
 import { supabase } from '../lib/supabaseClient';
+import type { Profile, UUID } from './supabaseTypes';
 
-export async function getInitialSession() {
+type SupabaseAuthUser = Awaited<
+  ReturnType<typeof supabase.auth.getUser>
+>['data']['user'];
+
+export async function getInitialSession(): Promise<SupabaseAuthUser | null> {
   const { data: { session }, error } = await supabase.auth.getSession();
   if (error) throw error;
   return session?.user ?? null;
 }
 
-export function onAuthStateChange(callback) {
+type AuthChangeCallback = (user: SupabaseAuthUser | null) => void;
+
+export function onAuthStateChange(callback: AuthChangeCallback) {
   const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    (_event, session) => callback(session?.user ?? null)
+    (_event, session) => callback(session?.user ?? null),
   );
   return subscription;
 }
 
-export async function loadProfile(userId) {
+export async function loadProfile(userId: UUID): Promise<Profile | null> {
   const { data } = await supabase
     .from('profiles')
     .select('display_name, avatar_url, is_admin, is_disabled')
     .eq('id', userId)
     .maybeSingle();
-  return data || null;
+  return (data as Profile | null) || null;
 }
 
-export async function signInWithEmail(email, password) {
+export async function signInWithEmail(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   return { data, error };
 }
 
-export async function signUpWithEmail(email, password, displayName) {
+export async function signUpWithEmail(
+  email: string,
+  password: string,
+  displayName: string,
+) {
   const { data, error } = await supabase.auth.signUp({
-    email, password,
+    email,
+    password,
     options: { data: { display_name: displayName } },
   });
   return { data, error };

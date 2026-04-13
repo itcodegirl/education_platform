@@ -2,28 +2,28 @@
 // THEME CONTEXT — Dark/Light mode
 // ═══════════════════════════════════════════════
 
-import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import { createContext, useContext, useMemo, useCallback } from 'react';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 const ThemeContext = createContext({ theme: 'dark', toggle: () => {} });
 
+function detectInitialTheme() {
+  if (typeof window === 'undefined') return 'dark';
+  try {
+    if (window.matchMedia?.('(prefers-color-scheme: light)').matches) return 'light';
+  } catch {
+    /* ignore */
+  }
+  return 'dark';
+}
+
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => {
-    try {
-      const saved = localStorage.getItem('chw-theme');
-      if (saved) return saved;
-      // Auto-detect system preference on first visit
-      if (window.matchMedia?.('(prefers-color-scheme: light)').matches) return 'light';
-      return 'dark';
-    } catch {
-      return 'dark';
-    }
-  });
+  const [theme, setTheme] = useLocalStorage('chw-theme', detectInitialTheme());
 
-  useEffect(() => {
-    localStorage.setItem('chw-theme', theme);
-  }, [theme]);
-
-  const toggle = useCallback(() => setTheme(t => (t === 'dark' ? 'light' : 'dark')), []);
+  const toggle = useCallback(
+    () => setTheme((t) => (t === 'dark' ? 'light' : 'dark')),
+    [setTheme],
+  );
 
   const value = useMemo(() => ({ theme, toggle }), [theme, toggle]);
 

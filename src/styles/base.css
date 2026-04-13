@@ -1,0 +1,61 @@
+/* ═══════════════════════════════════════════════
+   BASE — Reset, body styles, focus rings, skip link,
+   and the global reduced-motion escape hatch.
+
+   Depends on tokens.css (for --text, --cyan,
+   --space-*, --radius-*, --duration-*).
+   ═══════════════════════════════════════════════ */
+
+/* ─── Reset ──────────────────────────────────── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background:
+    radial-gradient(ellipse at top left, rgba(180, 74, 255, 0.1), transparent 40%),
+    radial-gradient(ellipse at bottom right, rgba(224, 64, 160, 0.08), transparent 40%),
+    linear-gradient(180deg, #0d0d1a 0%, #08081a 100%);
+  color: var(--text);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Focus rings (keyboard-only) ───────────── */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--cyan);
+  outline-offset: 3px;
+}
+:focus:not(:focus-visible) { outline: none; }
+
+/* ─── Skip Link ─────────────────────────────── */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--space-4);
+  z-index: 9999;
+  background: var(--cyan);
+  color: #000;
+  padding: var(--space-2) var(--space-4);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  font-weight: 700;
+  font-size: var(--text-base);
+  text-decoration: none;
+  transition: top var(--duration-fast);
+}
+.skip-link:focus { top: 0; }
+
+/* ─── Reduced motion ────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

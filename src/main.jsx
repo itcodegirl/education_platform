@@ -4,6 +4,21 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+
+// ─── Self-hosted fonts ─────────────────────────
+// Bundled via @fontsource(-variable) packages so we can drop
+// fonts.googleapis.com / fonts.gstatic.com from the CSP entirely.
+// Inter ships as a variable font (single file, 100-900), Poppins +
+// Space Mono as discrete weights.
+import '@fontsource-variable/inter';
+import '@fontsource/poppins/400.css';
+import '@fontsource/poppins/500.css';
+import '@fontsource/poppins/600.css';
+import '@fontsource/poppins/700.css';
+import '@fontsource/poppins/800.css';
+import '@fontsource/space-mono/400.css';
+import '@fontsource/space-mono/700.css';
+
 import App from './App';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 

@@ -11,6 +11,7 @@ import { usePanels } from "../hooks/usePanels";
 import { useKeyboardNav } from "../hooks/useKeyboardNav";
 import { useLearning } from "../hooks/useLearning";
 import { useIsMobile } from "../hooks/useIsMobile";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 import { estimateReadingTime } from "../utils/helpers";
 
 // Layout components
@@ -51,10 +52,10 @@ export function AppLayout() {
   const panels = usePanels({ dataLoaded, user: true, lastPosition });
   const learn = useLearning();
   const isMobile = useIsMobile(901);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.localStorage.getItem("chw-sidebar-collapsed") === "true";
-  });
+  const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage(
+    "chw-sidebar-collapsed",
+    false,
+  );
 
   const {
     course,
@@ -84,12 +85,7 @@ export function AppLayout() {
     if (isMobile) {
       setSidebarCollapsed(false);
     }
-  }, [isMobile]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem("chw-sidebar-collapsed", String(sidebarCollapsed));
-  }, [sidebarCollapsed]);
+  }, [isMobile, setSidebarCollapsed]);
 
   // ─── Dynamic page title ───────────────────
   useEffect(() => {

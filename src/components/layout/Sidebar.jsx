@@ -5,6 +5,7 @@
 
 import { useState, memo, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useProgress, useAuth } from '../../providers';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { QUIZ_MAP } from '../../data';
 import { ProfilePopover } from './ProfilePopover';
 import { Logo } from '../shared/Logo';
@@ -47,7 +48,7 @@ export const Sidebar = memo(function Sidebar({
 }) {
   const { completed = [] } = useProgress();
   const { user } = useAuth();
-  const [lockMode, setLockMode] = useState(() => localStorage.getItem('chw-lock-mode') === 'true');
+  const [lockMode, setLockMode] = useLocalStorage('chw-lock-mode', false);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
   const [expandedMod, setExpandedMod] = useState(modIdx);
@@ -271,7 +272,7 @@ export const Sidebar = memo(function Sidebar({
             <input
               type="checkbox"
               checked={lockMode}
-              onChange={(e) => { setLockMode(e.target.checked); localStorage.setItem('chw-lock-mode', e.target.checked); }}
+              onChange={(e) => setLockMode(e.target.checked)}
               aria-label="Toggle sequential lock mode"
             />
             <span className="lock-text">{lockMode ? '🔒 Sequential' : '🔓 Free roam'}</span>
