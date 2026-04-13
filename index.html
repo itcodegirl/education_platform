@@ -8,26 +8,66 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="theme-color" content="#08080f" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#f5f5f8" media="(prefers-color-scheme: light)" />
-    <meta name="description" content="CodeHerWay — A coding education platform for women in tech. Learn HTML, CSS, JavaScript, and React with an AI tutor, code editor, and auto-graded challenges." />
-    <meta name="keywords" content="learn to code, women in tech, HTML, CSS, JavaScript, React, coding bootcamp, free coding course" />
+    <meta name="description" content="CodeHerWay — A free, browser-based coding bootcamp for women. Learn HTML, CSS, JavaScript, React, and Python with an AI tutor, live code editor, and auto-graded challenges." />
+    <meta name="keywords" content="learn to code, women in tech, HTML, CSS, JavaScript, React, Python, coding bootcamp, free coding course, AI tutor" />
+    <meta name="author" content="CodeHerWay" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Canonical — avoid duplicate-content hits when the site is
+         reachable via both codeherway.com and the netlify preview URL. -->
+    <link rel="canonical" href="https://mellow-sunflower-9c92cd.netlify.app/" />
 
     <!-- Open Graph -->
     <meta property="og:title" content="CodeHerWay — Learn. Build. Ship." />
-    <meta property="og:description" content="Where women code, lead, and rewrite the future of tech." />
+    <meta property="og:description" content="A free, browser-based coding bootcamp for women. HTML → CSS → JavaScript → React → Python, with an AI tutor and a real code editor." />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://codeherway.com" />
-    <meta property="og:image" content="/og-image.svg" />
+    <meta property="og:url" content="https://mellow-sunflower-9c92cd.netlify.app/" />
+    <meta property="og:image" content="https://mellow-sunflower-9c92cd.netlify.app/og-image.svg" />
+    <meta property="og:image:alt" content="CodeHerWay logo — a cyan angle-bracket wrapping the word 'Her' in pink-purple gradient" />
+    <meta property="og:site_name" content="CodeHerWay" />
+    <meta property="og:locale" content="en_US" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="CodeHerWay — Learn. Build. Ship." />
-    <meta name="twitter:description" content="Where women code, lead, and rewrite the future of tech." />
-    <meta name="twitter:image" content="/og-image.svg" />
+    <meta name="twitter:description" content="A free, browser-based coding bootcamp for women. HTML → CSS → JavaScript → React → Python, with an AI tutor and a real code editor." />
+    <meta name="twitter:image" content="https://mellow-sunflower-9c92cd.netlify.app/og-image.svg" />
+    <meta name="twitter:image:alt" content="CodeHerWay logo" />
 
     <title>CodeHerWay — Learn. Build. Ship.</title>
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
+
+    <!-- JSON-LD structured data: EducationalOrganization + WebSite.
+         Helps search engines present the right knowledge-panel chips
+         and enables sitelinks in Google results. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "EducationalOrganization",
+          "@id": "https://mellow-sunflower-9c92cd.netlify.app/#org",
+          "name": "CodeHerWay",
+          "url": "https://mellow-sunflower-9c92cd.netlify.app/",
+          "logo": "https://mellow-sunflower-9c92cd.netlify.app/icon.svg",
+          "description": "A free, browser-based coding bootcamp for women learning to ship. HTML, CSS, JavaScript, React, and Python with an AI tutor and live code editor.",
+          "sameAs": [
+            "https://github.com/itcodegirl/education_platform"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://mellow-sunflower-9c92cd.netlify.app/#website",
+          "url": "https://mellow-sunflower-9c92cd.netlify.app/",
+          "name": "CodeHerWay",
+          "inLanguage": "en-US",
+          "publisher": { "@id": "https://mellow-sunflower-9c92cd.netlify.app/#org" }
+        }
+      ]
+    }
+    </script>
 
     <!-- Fonts are self-hosted via @fontsource, so no font CDN preconnects. -->
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />

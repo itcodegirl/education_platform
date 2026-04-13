@@ -34,8 +34,13 @@ export function GlossaryPanel({ isOpen, onClose }) {
           <button type="button" className="cheatsheet-close" onClick={onClose}>✕</button>
         </div>
         <div className="cheatsheet-body">
-          <input className="glossary-search" placeholder="Search terms..."
-                 value={query} onChange={(e) => setQuery(e.target.value)} autoFocus />
+          <input
+            className="glossary-search"
+            placeholder="Search terms..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-label="Search glossary terms"
+          />{/* autoFocus removed — useFocusTrap's initialFocus lands here first */}
           {filtered.length === 0 ? (
             <p className="no-match-msg">No matches.</p>
           ) : filtered.map((g, i) => (
