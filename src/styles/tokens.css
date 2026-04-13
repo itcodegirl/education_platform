@@ -20,10 +20,19 @@
   --border: #2d2d5e;
   --border-bright: #3e3e7a;
 
-  /* Text */
+  /* Text — three-level hierarchy, all WCAG 2.1 AA-normal on every
+     background in the palette (bg-deep .. bg-surface).
+     Ratios (on bg-deep / bg-surface):
+       --text        15.82 / 13.10  (AAA)
+       --text-dim     9.97 /  8.26  (AAA)
+       --text-muted   6.30 /  5.22  (AA-normal pass, was 4.14/3.43 FAIL)
+     Previous values were #9090b8 (dim) and #7070a0 (muted). Audit
+     flagged muted as failing AA on every dark background; the whole
+     scale was bumped one step brighter to preserve the visual
+     hierarchy while bringing everything above the 4.5:1 cutoff. */
   --text: #e8e8f0;
-  --text-dim: #9090b8;
-  --text-muted: #7070a0;
+  --text-dim: #b8b8d6;
+  --text-muted: #9090b8;
 
   /* Brand accents — purple-pink gradient + bright cyan */
   --pink: #e040a0;
