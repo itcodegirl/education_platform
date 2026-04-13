@@ -201,11 +201,175 @@ create policy "Admins read all xp" on public.xp for select using (is_admin());
 create policy "Admins read all streaks" on public.streaks for select using (is_admin());
 create policy "Admins read all badges" on public.badges for select using (is_admin());
 
--- To make yourself admin, run in Supabase SQL Editor:
--- UPDATE public.profiles SET is_admin = true WHERE id = 'YOUR-USER-UUID-HERE';
+-- To bootstrap the FIRST admin, run in Supabase SQL Editor (uses the
+-- postgres role, which bypasses the trigger added below):
+--   UPDATE public.profiles SET is_admin = true WHERE id = 'YOUR-USER-UUID-HERE';
+-- Subsequent admin changes MUST go through public.set_user_admin() (see below).
 
 -- Add is_disabled flag to profiles
 alter table public.profiles add column if not exists is_disabled boolean default false;
 
--- Admins can update profiles (to disable/enable users)
+-- Admins can update profiles (to disable/enable users). The trigger
+-- defined below blocks any UPDATE that would change is_admin via this
+-- broad policy — so admins can flip is_disabled freely but cannot
+-- escalate themselves or anyone else without going through the
+-- set_user_admin() RPC.
 create policy "Admins update all profiles" on public.profiles for update using (is_admin());
+
+-- ═══════════════════════════════════════════════
+-- ADMIN ESCALATION GUARD
+-- ═══════════════════════════════════════════════
+--
+-- Problem: the "Admins update all profiles" policy above lets any admin
+-- run `UPDATE profiles SET is_admin = true WHERE id = ...` on ANY row,
+-- including their own. One compromised admin = permanent platform
+-- takeover. Below we:
+--   1. Block direct edits to the is_admin column from the REST API.
+--   2. Force admin promotion/demotion through a SECURITY DEFINER RPC
+--      that refuses self-edits and writes an audit log row.
+
+create table if not exists public.admin_audit_log (
+  id uuid default gen_random_uuid() primary key,
+  actor_id uuid not null,
+  target_id uuid not null,
+  action text not null,
+  details jsonb,
+  created_at timestamptz default now()
+);
+
+alter table public.admin_audit_log enable row level security;
+
+create policy "Admins read audit log" on public.admin_audit_log
+  for select using (is_admin());
+
+-- Trigger: refuse any UPDATE that flips is_admin unless the change is
+-- explicitly sanctioned by set_user_admin() (which sets a session flag)
+-- or comes from a database superuser running raw SQL (migrations,
+-- bootstrap, the initial admin).
+create or replace function public.guard_profile_admin_changes()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.is_admin is distinct from old.is_admin then
+    -- Allow if explicitly sanctioned by set_user_admin().
+    if coalesce(current_setting('app.bypass_admin_guard', true), 'false') = 'true' then
+      return new;
+    end if;
+    -- Allow superuser / migrations (Supabase SQL Editor).
+    if current_user in ('postgres', 'supabase_admin') then
+      return new;
+    end if;
+    raise exception 'is_admin can only be changed via public.set_user_admin()';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_guard_profile_admin_changes on public.profiles;
+create trigger trg_guard_profile_admin_changes
+  before update of is_admin on public.profiles
+  for each row execute function public.guard_profile_admin_changes();
+
+-- Sanctioned RPC for promoting/demoting admins. Refuses self-edits.
+create or replace function public.set_user_admin(
+  target_user_id uuid,
+  make_admin boolean
+) returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_caller uuid := auth.uid();
+begin
+  if v_caller is null then
+    raise exception 'Authentication required';
+  end if;
+  if not public.is_admin() then
+    raise exception 'Admin privileges required';
+  end if;
+  if v_caller = target_user_id then
+    raise exception 'Admins cannot change their own is_admin flag';
+  end if;
+
+  -- Sanction the change for the trigger above, then immediately clear
+  -- the flag so it can't leak into other statements in the same tx.
+  perform set_config('app.bypass_admin_guard', 'true', true);
+  update public.profiles set is_admin = make_admin where id = target_user_id;
+  perform set_config('app.bypass_admin_guard', 'false', true);
+
+  insert into public.admin_audit_log (actor_id, target_id, action, details)
+  values (
+    v_caller,
+    target_user_id,
+    case when make_admin then 'grant_admin' else 'revoke_admin' end,
+    jsonb_build_object('make_admin', make_admin)
+  );
+end;
+$$;
+
+revoke all on function public.set_user_admin(uuid, boolean) from public;
+grant execute on function public.set_user_admin(uuid, boolean) to authenticated;
+
+-- ═══════════════════════════════════════════════
+-- AI RATE LIMITING
+-- ═══════════════════════════════════════════════
+--
+-- Replaces the in-memory rate limit in netlify/functions/ai.js, which
+-- resets on every cold start and isn't shared across concurrent
+-- function instances.
+--
+-- The Netlify function calls public.consume_ai_quota() with the user's
+-- bearer token; the function reads auth.uid() server-side so callers
+-- can't spoof another user. Limits are HARDCODED inside the function
+-- so authenticated callers can't pass a higher cap.
+
+create table if not exists public.ai_rate_limits (
+  user_id uuid references auth.users on delete cascade primary key,
+  window_start timestamptz not null default now(),
+  count integer not null default 0
+);
+
+alter table public.ai_rate_limits enable row level security;
+-- No CRUD policies — only the SECURITY DEFINER function below can
+-- read or write this table from the REST API.
+
+create or replace function public.consume_ai_quota()
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user uuid := auth.uid();
+  v_max constant integer := 10;        -- 10 requests
+  v_window constant integer := 60;     -- per 60 seconds
+  v_now timestamptz := now();
+  v_count integer;
+begin
+  if v_user is null then
+    return false;
+  end if;
+
+  insert into public.ai_rate_limits (user_id, window_start, count)
+  values (v_user, v_now, 1)
+  on conflict (user_id) do update
+    set window_start = case
+          when public.ai_rate_limits.window_start < v_now - make_interval(secs => v_window)
+            then v_now
+          else public.ai_rate_limits.window_start
+        end,
+        count = case
+          when public.ai_rate_limits.window_start < v_now - make_interval(secs => v_window)
+            then 1
+          else public.ai_rate_limits.count + 1
+        end
+  returning count into v_count;
+
+  return v_count <= v_max;
+end;
+$$;
+
+revoke all on function public.consume_ai_quota() from public;
+grant execute on function public.consume_ai_quota() to authenticated;

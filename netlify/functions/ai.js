@@ -5,20 +5,26 @@
 //
 // Security controls:
 //   1. Require a valid Supabase session token.
-//   2. Per-user rate limit (best-effort, in-memory).
-//   3. Strict payload caps (length, message count).
-//   4. Mandatory server-side guardrail prefix prepended
+//   2. Per-user rate limit enforced in Postgres via the
+//      public.consume_ai_quota() SECURITY DEFINER RPC.
+//      Survives cold starts and is shared across all
+//      concurrent function instances.
+//   3. In-memory rate limit as a defense-in-depth
+//      fallback for the hot instance.
+//   4. Strict payload caps (length, message count).
+//   5. Mandatory server-side guardrail prefix prepended
 //      to whatever `system` the client sends — this
 //      prevents the endpoint from being used as a free
 //      general-purpose LLM under someone else's brand.
-//   5. Role whitelist for messages.
+//   6. Role whitelist for messages.
 // ═══════════════════════════════════════════════
 
 const OPENAI_URL = 'https://api.openai.com/v1/responses';
 
-// ─── Rate limiting (per function instance) ─────
-// Resets on cold start — good enough for basic abuse prevention.
-// For stricter limits, move to a database counter.
+// ─── In-memory rate limit (defense in depth) ───
+// The authoritative limit lives in Postgres (consume_ai_quota); this
+// hot-instance check just shaves obvious bursts off before we hit the
+// database. Resets on cold start.
 const WINDOW_MS = 60_000; // 1 minute
 const MAX_REQUESTS = 10;  // 10 requests per minute per user
 const rateLimits = new Map();
@@ -93,21 +99,55 @@ function toInputItems(system, messages) {
   return items;
 }
 
-async function verifyUser(token) {
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+function getSupabaseConfig() {
+  return {
+    url: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
+    key: process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY,
+  };
+}
 
-  if (!supabaseUrl || !supabaseKey) return null;
+async function verifyUser(token) {
+  const { url, key } = getSupabaseConfig();
+  if (!url || !key) return null;
 
   try {
-    const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    const res = await fetch(`${url}/auth/v1/user`, {
       headers: {
         Authorization: `Bearer ${token}`,
-        apikey: supabaseKey,
+        apikey: key,
       },
     });
     if (!res.ok) return null;
     return res.json();
+  } catch {
+    return null;
+  }
+}
+
+// Atomic, persistent per-user rate limit. Calls public.consume_ai_quota()
+// in Postgres with the user's JWT — the RPC reads auth.uid() server-side
+// so the user can't spoof their own id. Returns:
+//   true  — quota OK, request may proceed
+//   false — quota exceeded, return 429
+//   null  — RPC failed / unreachable (caller decides)
+async function consumeQuotaPersistent(token) {
+  const { url, key } = getSupabaseConfig();
+  if (!url || !key) return null;
+
+  try {
+    const res = await fetch(`${url}/rest/v1/rpc/consume_ai_quota`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        apikey: key,
+        'Content-Type': 'application/json',
+      },
+      body: '{}',
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    // The RPC returns a bare boolean.
+    return data === true;
   } catch {
     return null;
   }
@@ -137,9 +177,21 @@ export async function handler(event) {
     return json(401, { error: 'Invalid or expired session' });
   }
 
-  // 3. Rate-limit per user
+  // 3a. Hot-instance rate limit (defense in depth — best-effort).
   if (!checkRateLimit(user.id)) {
     return json(429, { error: 'Too many requests. Please wait a moment and try again.' });
+  }
+
+  // 3b. Authoritative persistent rate limit, enforced in Postgres.
+  // Survives cold starts and is shared across concurrent function
+  // instances. If the RPC fails (network / DB issue), fail closed:
+  // we'd rather return 503 than burn OpenAI quota with no limiter.
+  const quotaOk = await consumeQuotaPersistent(token);
+  if (quotaOk === false) {
+    return json(429, { error: 'Too many requests. Please wait a moment and try again.' });
+  }
+  if (quotaOk === null) {
+    return json(503, { error: 'Rate limiter unavailable, try again shortly.' });
   }
 
   // 4. Parse + validate the request (strict limits)

@@ -37,7 +37,7 @@ commits and forks are out of scope.
 | Learner accounts | Account takeover via XSS, session theft, OAuth redirect hijack | HTML-escaping in all `dangerouslySetInnerHTML` sinks, strict CSP, short-lived Supabase sessions, Supabase URL allowlist for OAuth |
 | Learner data (progress, notes) | Cross-tenant read/write | Row-Level Security on every Supabase table (`auth.uid() = user_id`) |
 | OpenAI API key | Exfiltration, free LLM abuse | Key is server-only, never shipped to the browser; Netlify Function gateway requires a valid Supabase session, applies per-user rate limiting, caps payload size, and prepends a mandatory server-side guardrail prompt |
-| Admin surface | Privilege escalation | Admin flag stored in `profiles.is_admin`; enforced by RLS `is_admin()` function, not by the client; admin UI is a convenience layer, not a security boundary |
+| Admin surface | Privilege escalation | Admin flag stored in `profiles.is_admin`; enforced by RLS `is_admin()` function, not by the client; admin UI is a convenience layer, not a security boundary. Direct UPDATEs to `is_admin` are blocked by a Postgres trigger; promotions must go through the `set_user_admin()` SECURITY DEFINER RPC, which refuses self-edits and writes to `admin_audit_log` |
 | Learner code playground | Escape from the code sandbox to the parent origin | `<iframe sandbox="allow-scripts">` with **no** `allow-same-origin`, so learner code cannot read the parent origin, cookies, or `localStorage` |
 | Build pipeline | Malicious dependencies, supply-chain compromise | `package-lock.json` is committed; `npm audit` runs in CI; dependency updates go through PR review |
 
@@ -84,7 +84,15 @@ Configured in `netlify.toml`:
 
 - Requires a valid Supabase bearer token (verified against
   `/auth/v1/user`).
-- Per-user rate limit (10 requests/minute, best-effort in-memory).
+- **Persistent per-user rate limit** enforced in Postgres via the
+  `public.consume_ai_quota()` SECURITY DEFINER RPC. The RPC reads
+  `auth.uid()` server-side so callers cannot spoof another user, and
+  the limits (10 req / 60 s) are hardcoded inside the function so an
+  authenticated caller cannot pass a higher cap. The function fails
+  closed: if the rate-limit RPC is unreachable, the request is
+  rejected with 503 rather than forwarded to OpenAI.
+- A second, in-memory limit on the hot Netlify instance acts as
+  defense-in-depth.
 - Strict payload caps: system prompt ≤ 2000 chars, ≤ 20 messages,
   ≤ 4000 chars per message, ≤ 12000 chars total, ≤ 1024 output tokens.
 - Mandatory server-side guardrail prefix prepended to every request so

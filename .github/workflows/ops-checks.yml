@@ -64,20 +64,24 @@ jobs:
         env:
           SITE_URL: ${{ steps.site.outputs.site_url }}
         run: |
+          # Hit the AI function with no Authorization header. Since the
+          # function requires a valid Supabase session, we expect 401 +
+          # "Authentication required". This proves the function is
+          # reachable AND that the auth gate is in place.
           code=$(curl -sS -o ai.json -w "%{http_code}" \
             -X POST \
             -H "Content-Type: application/json" \
             -d '{}' \
             "$SITE_URL/.netlify/functions/ai")
 
-          if [ "$code" != "400" ]; then
-            echo "AI function health check expected HTTP 400 for empty payload, got $code"
+          if [ "$code" != "401" ]; then
+            echo "AI function health check expected HTTP 401 (auth required), got $code"
             cat ai.json
             exit 1
           fi
 
-          if ! grep -q "No AI input provided" ai.json; then
-            echo "AI function response did not match expected validation message"
+          if ! grep -q "Authentication required" ai.json; then
+            echo "AI function response did not match expected auth-gate message"
             cat ai.json
             exit 1
           fi
