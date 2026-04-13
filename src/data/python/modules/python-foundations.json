@@ -366,6 +366,193 @@
         "preview": "In the next lesson, you'll learn about loops - how to make your code repeat actions automatically (without copy/pasting the same code 100 times)."
       },
       "devFession": "I once wrote 47 separate if statements instead of using elif. My code worked but my coworker literally laughed out loud during code review. Now I always use elif."
+    },
+    {
+      "id": "py-1-5",
+      "title": "Automate with For Loops",
+      "prereqs": ["py-1-4"],
+      "difficulty": "beginner",
+      "duration": "25 min",
+      "metadata": { "estimatedTime": 25, "difficulty": "beginner", "conceptsCount": 5, "tasksCount": 4 },
+      "hook": {
+        "accomplishments": [
+          "Make Python repeat tasks automatically",
+          "Print your name 100 times without typing it 100 times",
+          "Loop through lists of data",
+          "Build a countdown timer"
+        ]
+      },
+      "do": {
+        "title": "Print 'Hello' 5 times without typing it 5 times",
+        "steps": [
+          "Create a new file: loops.py",
+          "Copy the code below",
+          "Save and run it",
+          "Watch 'Hello, CodeHerWay!' appear 5 times!"
+        ],
+        "code": "for i in range(5):\n    print(\"Hello, CodeHerWay!\")\n\n# Now try range(100) — watch Python print 100 times instantly!",
+        "result": "You just told Python: 'Do this thing 5 times.' And it did. Instantly. Try range(100) and watch it go!",
+        "proofRequired": "your code with range(100) and the terminal full of repeated messages"
+      },
+      "understand": {
+        "concepts": [
+          { "name": "For loops", "definition": "Repeats code a specific number of times. Write it once, tell Python how many times to run it.", "analogy": "Setting a timer for jumping jacks. 'Do 20 jumping jacks' is one instruction, not 20 separate ones." },
+          { "name": "The range() function", "definition": "Creates a sequence of numbers. range(5) gives 0,1,2,3,4. range(1,6) gives 1,2,3,4,5. range(10,0,-1) counts backwards.", "analogy": "A number generator — you tell it where to start, stop, and how to count." },
+          { "name": "The loop variable (i)", "definition": "Holds the current number in each iteration. First loop: i=0. Second: i=1. And so on.", "analogy": "A page counter in a book — it tracks which page you're currently on." },
+          { "name": "Indentation (again!)", "definition": "Code inside the loop MUST be indented. Indented = repeats. Not indented = runs once after the loop.", "analogy": "Same rule as if statements — Python uses indentation to know what's inside." },
+          { "name": "The Accumulator Pattern", "definition": "Start with an initial value (like total=0), add to it each loop, use the final result. Used for totals, averages, counting.", "analogy": "A piggy bank. Start with $0, add money each day, count the total at the end." }
+        ],
+        "keyTakeaway": "Loops let you automate repetitive tasks with a single instruction. This is the entire reason programming exists."
+      },
+      "build": {
+        "goal": "Build a countdown timer and a number accumulator",
+        "codeComparison": {
+          "old": "for i in range(5):\n    print(\"Hello, CodeHerWay!\")",
+          "new": "# Countdown\nfor i in range(10, 0, -1):\n    print(i)\nprint(\"Blastoff!\")\n\n# Accumulator: add 1 through 10\ntotal = 0\nfor i in range(1, 11):\n    total += i\n    print(\"Added\", i, \"- Total:\", total)"
+        },
+        "hint": "range(10, 0, -1) means: start at 10, stop before 0, count by -1 (backwards)."
+      },
+      "challenge": {
+        "title": "Build a Multiplication Table Generator",
+        "mission": "Create a program that prints the multiplication table for any number.",
+        "requirements": [
+          "Store the number in a variable",
+          "Use a loop to multiply by 1 through 10",
+          "Print each result in a readable format",
+          "Calculate and display the sum of all results"
+        ],
+        "starterCode": "number = 7\ntotal = 0\n\nfor i in range(1, 11):\n    result = ___\n    print(___)\n    total += ___\n\nprint(\"Sum of all results:\", total)",
+        "bonusChallenge": "Make it generate multiplication tables for multiple numbers! Loop through 1-5 and print each table."
+      },
+      "summary": { "capabilities": ["Write for loops to repeat code", "Use range() with start, stop, and step", "Count forwards and backwards", "Accumulate totals across loops", "Understand why loops are essential"] },
+      "bridge": { "preview": "In the next lesson, you'll learn about lists - how to store multiple pieces of data together and loop through them (which is where loops get REALLY powerful)." },
+      "devFession": "I once copy-pasted the same print statement 50 times instead of using a loop. When my bootcamp instructor saw my code, she just said 'Oh honey, no.' and taught me for loops."
+    },
+    {
+      "id": "py-1-6",
+      "title": "Organize Data with Lists",
+      "prereqs": ["py-1-5"],
+      "difficulty": "beginner",
+      "duration": "28 min",
+      "metadata": { "estimatedTime": 28, "difficulty": "beginner", "conceptsCount": 6, "tasksCount": 5 },
+      "hook": {
+        "accomplishments": [
+          "Store multiple pieces of data in a single variable",
+          "Access individual items from a list",
+          "Add, remove, and modify list items",
+          "Loop through lists to process data",
+          "Build a real task manager"
+        ]
+      },
+      "do": {
+        "title": "Create your first list",
+        "steps": [
+          "Create a new file: lists.py",
+          "Copy the code below",
+          "Run it and see the list printed",
+          "Then access individual items by index"
+        ],
+        "code": "fruits = [\"apple\", \"banana\", \"cherry\", \"mango\"]\n\nprint(fruits)       # Whole list\nprint(fruits[0])    # First item: apple\nprint(fruits[1])    # Second item: banana\nprint(fruits[-1])   # Last item: mango",
+        "result": "You stored 4 pieces of data in a SINGLE variable. Instead of fruit1, fruit2, fruit3, fruit4, you grouped them all together!",
+        "proofRequired": "your list and printing the first and last items"
+      },
+      "understand": {
+        "concepts": [
+          { "name": "Lists", "definition": "A collection of items stored in a single variable, kept in order. Created with square brackets [].", "analogy": "A shopping list on paper. All items on ONE list, numbered in order." },
+          { "name": "Index positions (start at 0!)", "definition": "Python counts list positions from 0, not 1. First item is [0], second is [1]. Negative numbers count from the end: [-1] is the last item.", "analogy": "Apartment numbers starting from 0 instead of 1. Confusing at first, but every programming language works this way." },
+          { "name": "List methods", "definition": "append() adds to the end, remove() removes a specific item, insert() adds at a position, pop() removes and returns the last item, len() counts items.", "analogy": "Tools in a toolbox — each one modifies your list in a specific way." },
+          { "name": "Looping through lists", "definition": "for item in my_list: processes every item automatically. This is the most common pattern in programming.", "analogy": "A conveyor belt — each item passes through your code one at a time." },
+          { "name": "The 'in' keyword", "definition": "Checks if something exists in a list: if 'eggs' in shopping_list. Returns True or False.", "analogy": "Ctrl+F for lists — searches through every item to find a match." }
+        ],
+        "keyTakeaway": "Lists store multiple items in order. Access by index (starting from 0). Loop through them to process every item automatically."
+      },
+      "build": {
+        "goal": "Modify your list and loop through it with conditions",
+        "codeComparison": {
+          "old": "fruits = [\"apple\", \"banana\", \"cherry\"]\nprint(fruits)",
+          "new": "fruits = [\"apple\", \"banana\", \"cherry\"]\nfruits.append(\"mango\")\nfruits[1] = \"blueberry\"\nfruits.remove(\"cherry\")\n\nfor fruit in fruits:\n    print(\"I love\", fruit + \"s!\")\n\nprint(\"Total fruits:\", len(fruits))"
+        },
+        "hint": "len(my_list) gives you the count. If a list has 5 items, len() returns 5, but the last index is 4 (because we start at 0)!"
+      },
+      "challenge": {
+        "title": "Build a Task Manager",
+        "mission": "Create a task manager that stores tasks, marks them complete, and shows progress.",
+        "requirements": [
+          "Create a list of 5 tasks",
+          "Create a parallel list tracking completion (True/False)",
+          "Loop through and print incomplete tasks only",
+          "Mark a task as complete and show the update",
+          "Show count of total and completed tasks with percentage"
+        ],
+        "starterCode": "tasks = [\"Learn Python\", \"Build a project\", \"Practice loops\", \"Master lists\", \"Celebrate!\"]\ncompleted = [False, False, False, False, False]\n\n# Show incomplete tasks\nfor i in range(len(tasks)):\n    if not completed[i]:\n        print(i + 1, \"-\", tasks[i])\n\n# Mark task 0 complete\ncompleted[0] = True\n\n# Count progress\ntotal = len(tasks)\ndone = 0\nfor status in completed:\n    if status:\n        done += 1\nprint(\"Progress:\", done, \"/\", total)",
+        "bonusChallenge": "Add the ability to add new tasks using append() on both lists!"
+      },
+      "summary": { "capabilities": ["Create lists to store multiple items", "Access items by index", "Add, remove, and modify items", "Loop through lists", "Combine lists with if statements", "Search for items with 'in'", "Build data management systems"] },
+      "bridge": { "preview": "In the next lesson, you'll learn about functions - how to package your code into reusable blocks that you can call anytime." },
+      "devFession": "I once created 200 separate variables (item1, item2, item3...) instead of using a list. My mentor looked at my code and said 'I'm going to teach you something that will change your life.' She was right."
+    },
+    {
+      "id": "py-1-7",
+      "title": "Build Reusable Code with Functions",
+      "prereqs": ["py-1-6"],
+      "difficulty": "beginner",
+      "duration": "30 min",
+      "metadata": { "estimatedTime": 30, "difficulty": "beginner", "conceptsCount": 6, "tasksCount": 5 },
+      "hook": {
+        "accomplishments": [
+          "Package code into reusable blocks",
+          "Create functions that accept inputs and return outputs",
+          "Stop repeating yourself in code",
+          "Build a library of your own tools"
+        ]
+      },
+      "do": {
+        "title": "Create your first function",
+        "steps": [
+          "Create a new file: functions.py",
+          "Copy the code below",
+          "Run it — the greeting appears!",
+          "Now call greet() three more times"
+        ],
+        "code": "def greet():\n    print(\"Hello, CodeHerWay!\")\n    print(\"Welcome to functions!\")\n\n# Call it!\ngreet()\ngreet()\ngreet()",
+        "result": "You wrote the code ONCE inside the function, then ran it 3 times by calling its name. Write once, use forever!",
+        "proofRequired": "your function being called at least 3 times with output"
+      },
+      "understand": {
+        "concepts": [
+          { "name": "Functions", "definition": "A named block of code you can run anytime by calling its name. Write once, reuse forever.", "analogy": "A recipe. You write it once, then cook that dish anytime. You don't rewrite the recipe each time." },
+          { "name": "The def keyword", "definition": "Tells Python 'here comes a reusable block of code.' Always followed by the function name, parentheses, and a colon.", "analogy": "Like labeling a container — def gives your code block a name so you can find it later." },
+          { "name": "Parameters and Arguments", "definition": "Parameters are input slots in the function definition. Arguments are the actual values you pass when calling. def greet(name) has a parameter; greet('Jenna') passes an argument.", "analogy": "A machine with input slots (parameters). You feed in materials (arguments), it processes them." },
+          { "name": "The return statement", "definition": "Sends a value back to whoever called the function. Without return, a function does its work but gives nothing back.", "analogy": "Sending a package. Data goes IN (parameters), function processes it, result comes BACK (return)." },
+          { "name": "Print vs Return", "definition": "print() shows text on screen but returns None. return gives back a value you can store and reuse. Use return when you need the result elsewhere.", "analogy": "print = showing someone a number. return = handing them the number so they can use it." }
+        ],
+        "keyTakeaway": "Functions let you write code once and reuse it anywhere. Parameters make them flexible. Return makes their results usable."
+      },
+      "build": {
+        "goal": "Build a calculator with multiple functions that work together",
+        "codeComparison": {
+          "old": "def greet():\n    print(\"Hello, CodeHerWay!\")\n\ngreet()",
+          "new": "def add(a, b):\n    return a + b\n\ndef subtract(a, b):\n    return a - b\n\ndef multiply(a, b):\n    return a * b\n\ndef divide(a, b):\n    if b == 0:\n        return \"Cannot divide by zero!\"\n    return a / b\n\nprint(\"10 + 5 =\", add(10, 5))\nprint(\"10 - 5 =\", subtract(10, 5))\nprint(\"10 * 5 =\", multiply(10, 5))\nprint(\"10 / 0 =\", divide(10, 0))"
+        },
+        "hint": "Always check for edge cases! Like dividing by zero."
+      },
+      "challenge": {
+        "title": "Build a Grade Calculator System",
+        "mission": "Create a complete grading system using multiple functions that work together.",
+        "requirements": [
+          "Function to calculate average from a list of scores",
+          "Function to convert average to letter grade (A, B, C, D, F)",
+          "Function to determine if student passed (C or better)",
+          "Function to generate a full report card",
+          "Process multiple students using loops",
+          "Return and print results for each student"
+        ],
+        "starterCode": "def calculate_average(scores):\n    return sum(scores) / len(scores)\n\ndef get_letter_grade(average):\n    if average >= 90:\n        return \"A\"\n    elif average >= 80:\n        return \"B\"\n    elif average >= 70:\n        return \"C\"\n    elif average >= 60:\n        return \"D\"\n    else:\n        return \"F\"\n\ndef is_passing(grade):\n    return grade in [\"A\", \"B\", \"C\"]\n\n# Build generate_report() that uses all the above!\n# Then process multiple students with a loop.",
+        "bonusChallenge": "Add weighted grades (homework 40%, tests 60%) and class-wide statistics."
+      },
+      "summary": { "capabilities": ["Define functions with def", "Add parameters for flexible inputs", "Return values for reusable results", "Build complex systems from small functions", "Process lists using functions", "Combine functions, loops, lists, and if statements"] },
+      "bridge": { "preview": "You've completed Module 1: Foundations! In Module 2, you'll learn dictionaries, file handling, error handling, and working with external data." },
+      "devFession": "I once copied the same 15 lines of code into 8 different places in my program. When I needed to fix a bug, I had to fix it 8 times. Functions exist so you never have to do that."
     }
   ]
 }

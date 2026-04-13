@@ -1,11 +1,13 @@
 // ═══════════════════════════════════════════════
-// PYTHON COURSE — Module 1: Python Foundations
+// PYTHON COURSE — Module 1: Python Foundations (7 lessons)
 //
-// Module 1: Python Foundations (4 lessons)
-//   - Lesson 1: Run Your First Python Code
-//   - Lesson 2: Store Information with Variables
-//   - Lesson 3: Operators & Math
-//   - Lesson 4: Make Decisions with If Statements
+//   1. Run Your First Python Code
+//   2. Store Information with Variables
+//   3. Operators & Math
+//   4. Make Decisions with If Statements
+//   5. Automate with For Loops
+//   6. Organize Data with Lists
+//   7. Build Reusable Code with Functions
 // ═══════════════════════════════════════════════
 
 import pythonFoundations from './modules/python-foundations.json';
