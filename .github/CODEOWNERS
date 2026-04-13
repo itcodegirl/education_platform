@@ -1,0 +1,24 @@
+# CODEOWNERS
+# Every file needs a review from the listed owners before a PR can
+# merge to main (once branch protection is enabled).
+#
+# See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-security/customizing-your-repository/about-code-owners
+
+# Default: everything needs maintainer review.
+*                               @itcodegirl
+
+# Security-sensitive areas get an extra nudge. Today the maintainer is
+# the only reviewer, but duplicating the owner here documents intent —
+# if a co-maintainer is ever added, they should be @-mentioned on any
+# touch of these paths.
+/SECURITY.md                    @itcodegirl
+/supabase-schema.sql            @itcodegirl
+/netlify.toml                   @itcodegirl
+/netlify/functions/             @itcodegirl
+/.github/workflows/             @itcodegirl
+/.github/dependabot.yml         @itcodegirl
+/src/lib/supabaseClient.js      @itcodegirl
+/src/services/authService.ts    @itcodegirl
+/src/services/aiService.ts      @itcodegirl
+/src/services/practiceService.js @itcodegirl
+/src/utils/markdown.jsx         @itcodegirl

@@ -221,5 +221,15 @@ MIT — see [`LICENSE`](./LICENSE).
 
 ---
 
+## Further reading
+
+- [`SECURITY.md`](./SECURITY.md) — full threat model, disclosure process
+- [`docs/architecture.md`](./docs/architecture.md) — how the pieces fit together
+- [`docs/setup-checklist.md`](./docs/setup-checklist.md) — post-deploy operational steps (Supabase migration, Netlify env vars, GitHub settings)
+- [`CHANGELOG.md`](./CHANGELOG.md) — release history
+- [`CONTRIBUTING.md`](./CONTRIBUTING.md) — contributing guide
+
+---
+
 Built by [@itcodegirl](https://github.com/itcodegirl) for women who
 code, lead, and rewrite the future of tech.
