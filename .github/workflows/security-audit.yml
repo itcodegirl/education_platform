@@ -1,0 +1,42 @@
+name: security-audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly audit on Monday at 09:00 UTC so we see new advisories
+    # even if no one is pushing code.
+    - cron: '0 9 * * 1'
+
+jobs:
+  npm-audit:
+    name: npm audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        # --ignore-scripts reduces supply-chain blast radius during CI.
+        run: npm ci --ignore-scripts
+
+      - name: Run npm audit (high + critical)
+        run: npm audit --audit-level=high
+
+  gitleaks:
+    name: gitleaks secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

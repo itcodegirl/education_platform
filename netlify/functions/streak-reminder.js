@@ -25,6 +25,19 @@ export async function handler(event) {
     return json(405, { error: 'Method not allowed' });
   }
 
+  // Require a shared secret for manual POST triggers.
+  // Netlify scheduled invocations set the 'x-netlify-event' header, so
+  // they bypass this check. Anyone else must present the secret.
+  const isScheduled = !!event.headers['x-netlify-event'];
+  if (!isScheduled) {
+    const expected = process.env.STREAK_REMINDER_SECRET;
+    const provided =
+      event.headers['x-webhook-secret'] || event.headers['X-Webhook-Secret'] || '';
+    if (!expected || provided !== expected) {
+      return json(401, { error: 'Unauthorized' });
+    }
+  }
+
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 
@@ -90,10 +103,11 @@ export async function handler(event) {
       };
     });
 
-    console.log(`[streak-reminder] ${reminders.length} users at risk of losing their streak:`);
-    reminders.forEach((r) => {
-      console.log(`  → ${r.name} (${r.email}): ${r.streakDays}-day streak, last active ${r.lastActive}`);
-    });
+    // Avoid logging PII (email, name) to Netlify function logs.
+    // Count + anonymized streak distribution is enough for observability.
+    console.log(
+      `[streak-reminder] ${reminders.length} users at risk of losing their streak`,
+    );
 
     // ─── Email sending (uncomment when provider is configured) ───
     //
@@ -123,10 +137,11 @@ export async function handler(event) {
     //   }
     // }
 
+    // Don't return names/emails in the response — the function can be
+    // reached with the shared secret and the response shouldn't leak PII.
     return json(200, {
       message: `Found ${reminders.length} at-risk users`,
       count: reminders.length,
-      users: reminders.map((r) => ({ name: r.name, streak: r.streakDays })),
     });
   } catch (error) {
     console.error('[streak-reminder] Error:', error);

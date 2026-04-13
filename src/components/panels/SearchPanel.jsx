@@ -46,13 +46,27 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
     setActiveIndex(-1);
   }, [query]);
 
+  // SECURITY: Escape HTML in the source text AND the query before any
+  // regex substitution, then wrap matches in <mark>. Without escaping,
+  // a query like `<img src=x onerror=alert(1)>` (or future user-generated
+  // search entries) would inject live markup into the DOM via
+  // dangerouslySetInnerHTML below.
+  const escapeHtml = (s) =>
+    String(s).replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    })[c]);
+
   const highlight = (text) => {
-    if (!q) return text;
-    const regex = new RegExp(
-      `(${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-      "gi",
-    );
-    return text.replace(regex, "<mark>$1</mark>");
+    const safe = escapeHtml(text);
+    if (!q) return safe;
+    const needle = escapeHtml(q).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (!needle) return safe;
+    const regex = new RegExp(`(${needle})`, "gi");
+    return safe.replace(regex, "<mark>$1</mark>");
   };
 
   const handleClick = (entry) => {

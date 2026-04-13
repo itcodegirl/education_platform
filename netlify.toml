@@ -74,6 +74,17 @@
     Cache-Control = "public, max-age=0, must-revalidate"
 
 # Security headers
+#
+# Content-Security-Policy notes:
+# - 'wasm-unsafe-eval' is required by the Monaco editor's tokenizer.
+# - 'unsafe-inline' for style-src is needed because Google Fonts injects
+#   inline <style> blocks and because Vite inlines critical CSS in index.html.
+#   If we self-host fonts and move critical CSS to a file, we can drop it.
+# - connect-src allows Supabase (auth + REST + realtime) and our own
+#   Netlify Functions (same-origin, covered by 'self').
+# - frame-src 'self' is enough for the learner-code iframe because it
+#   uses srcDoc, which inherits the parent origin.
+# - frame-ancestors 'none' matches X-Frame-Options: DENY.
 [[headers]]
   for = "/*"
   [headers.values]
@@ -81,3 +92,7 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Resource-Policy = "same-origin"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests"
