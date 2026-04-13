@@ -141,18 +141,23 @@ export const Sidebar = memo(function Sidebar({
   return (
     <>
       {isMobile && isOpen && <div className="overlay" onClick={onClose} aria-hidden="true" />}
-      <aside
+      {/* Semantic <nav> landmark for the course navigation tree.
+          On mobile the same element flips into an off-canvas dialog
+          (role="dialog" + aria-modal), which is why the role attribute
+          is conditional — a <nav> inside a <dialog> role is fine and
+          still exposes both landmarks to assistive tech. */}
+      <nav
         ref={asideRef}
         id="course-sidebar"
         className={`sb ${isOpen ? 'open' : ''} ${!isMobile && isCollapsed ? 'collapsed' : ''}`}
-        aria-label="Course navigation sidebar"
+        aria-label="Course navigation"
         aria-hidden={isMobile ? !isOpen : false}
         aria-modal={isMobile && isOpen ? 'true' : undefined}
-        role={isMobile ? 'dialog' : 'complementary'}
+        role={isMobile ? 'dialog' : undefined}
         tabIndex={isMobile ? -1 : undefined}
       >
         {/* ─── Brand + Avatar row ─── */}
-        <div className="sb-head">
+        <header className="sb-head">
           <div className="brand">
             <Logo size="sm" />
             <span className="brand-robot" aria-hidden="true">🤖</span>
@@ -181,7 +186,7 @@ export const Sidebar = memo(function Sidebar({
             )}
             <button type="button" className="sb-close" onClick={onClose} aria-label="Close sidebar">✕</button>
           </div>
-        </div>
+        </header>
 
         {/* ─── Profile Popover ─── */}
         <ProfilePopover isOpen={popoverOpen} onClose={closePopover} isMobile={isMobile} />
@@ -307,7 +312,10 @@ export const Sidebar = memo(function Sidebar({
               🗺️
             </button>
           </div>
-          <nav className="sb-nav" aria-label="Course modules and lessons">
+          {/* The outer <nav aria-label="Course navigation"> already exposes
+              this region as a landmark — this inner list doesn't need its
+              own nested <nav> (would be noisy for screen readers). */}
+          <div className="sb-nav">
             {modules.map((module, mi) => {
               const modDone = module.lessons.filter((l) =>
                 completed.includes(`${course.label}|${module.title}|${l.title}`),
@@ -371,7 +379,7 @@ export const Sidebar = memo(function Sidebar({
                 </div>
               );
             })}
-          </nav>
+          </div>
 
           {/* The Tools grid was moved into the Resources popout at the
               top of the sidebar (see .sb-tabs above). */}
@@ -389,7 +397,7 @@ export const Sidebar = memo(function Sidebar({
             </label>
           </div>
         </div>
-      </aside>
+      </nav>
     </>
   );
 });

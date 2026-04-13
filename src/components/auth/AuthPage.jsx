@@ -58,34 +58,38 @@ export function AuthPage({ onPreview }) {
 
   if (confirmSent) {
     return (
-      <div className="auth-page">
+      <main className="auth-page">
         <div className="auth-card">
           <div className="auth-brand">
             <Logo size="lg" showTagline />
           </div>
           <div className="auth-confirm">
-            <span className="auth-confirm-icon">📧</span>
-            <h2>Check your email</h2>
+            <span className="auth-confirm-icon" aria-hidden="true">📧</span>
+            <h1>Check your email</h1>
             <p>We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.</p>
-            <button className="auth-btn" onClick={() => { setConfirmSent(false); setMode('login'); }}>
+            <button type="button" className="auth-btn" onClick={() => { setConfirmSent(false); setMode('login'); }}>
               Back to Login
             </button>
           </div>
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="auth-page auth-with-hero">
-      {/* Above the fold: intro on the left, auth card on the right. */}
+    <main className="auth-page auth-with-hero">
+      {/* Above the fold: intro on the left, auth card on the right.
+          LandingHeroIntro provides the single <h1> for this page. The
+          auth card's brand row used to be a second <h1>, which is a
+          classic a11y bug (two top-level headings) — it is now a
+          visually-styled <p> so the outline stays clean. */}
       <div className="auth-top">
         <LandingHeroIntro compact onStart={() => scrollToAuth('signup')} />
 
         <div className="auth-card" ref={authCardRef}>
           <div className="auth-brand">
-            <span className="auth-bolt">⚡</span>
-            <h1 className="auth-title">CodeHerWay</h1>
+            <span className="auth-bolt" aria-hidden="true">⚡</span>
+            <p className="auth-title">CodeHerWay</p>
             <p className="auth-sub">Learn. Build. Ship.</p>
           </div>
 
@@ -182,6 +186,6 @@ export function AuthPage({ onPreview }) {
 
       {/* The scroll story lives below the fold — 4 code panels + outro. */}
       <LandingHeroStory />
-    </div>
+    </main>
   );
 }

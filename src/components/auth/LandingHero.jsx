@@ -143,7 +143,18 @@ function HeroPanel({ panel, index }) {
         </div>
         <div className="lh-preview-card">
           <div className="lh-preview-label">PREVIEW</div>
-          <div className="lh-preview-body">{panel.preview}</div>
+          {/* role="img" hides the inner markup from the a11y tree — the
+              preview body contains literal <h1>/<button> elements to
+              demonstrate the learner's output, and without this wrapper
+              they would pollute the landing page's heading outline with
+              3 extra h1s. The aria-label describes the whole thing. */}
+          <div
+            className="lh-preview-body"
+            role="img"
+            aria-label={`Preview of ${panel.title}`}
+          >
+            {panel.preview}
+          </div>
         </div>
       </div>
     </section>

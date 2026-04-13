@@ -59,6 +59,25 @@
   filter: drop-shadow(0 0 16px rgba(180,74,255,0.4));
   animation: float 3s ease-in-out infinite;
 }
+/* The brand title used to be an <h1>, which gave LandingHeroIntro +
+   AuthPage two top-level headings on the same page. It is now a <p>
+   with the visual weight of the original <h1> preserved here. */
+.auth-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(26px, 1.5rem + 1vw, 32px);
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 0 0 6px;
+  background: var(--grad-brand);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+}
+.auth-sub {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
 .auth-logo {
   font-family: 'Poppins', sans-serif;
   font-size: 30px; font-weight: 800;

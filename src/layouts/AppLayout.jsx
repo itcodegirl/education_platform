@@ -195,7 +195,7 @@ export function AppLayout() {
       />
 
       <main className="mn" ref={mainRef} id="main-content">
-        <div className="topbar">
+        <header className="topbar">
           <div className="topbar-inner">
             <button
               type="button"
@@ -242,14 +242,14 @@ export function AppLayout() {
               )}
             </div>
           </div>
-        </div>
+        </header>
 
         <div className="lv-wrap">
           {showModQuiz && moduleQuiz ? (
             <div className="lv">
               <div className="lv-head">
                 <span className="lv-emoji">📝</span>
-                <h2 className="lv-title">{mod.title} — Module Quiz</h2>
+                <h1 className="lv-title">{mod.title} — Module Quiz</h1>
               </div>
               <p className="lp">
                 Test your knowledge of <strong>{mod.title}</strong>.
@@ -285,7 +285,7 @@ export function AppLayout() {
           )}
         </div>
 
-        <div className="nav-row">
+        <nav className="nav-row" aria-label="Lesson pagination">
           <button
             type="button"
             className="nav-btn"
@@ -307,7 +307,7 @@ export function AppLayout() {
                 ? "Module Quiz →"
                 : "Next →"}
           </button>
-        </div>
+        </nav>
       </main>
 
       <ThemeToggle />

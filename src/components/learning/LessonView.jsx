@@ -94,7 +94,7 @@ export const LessonView = memo(function LessonView({
               <span className="lv-kicker-value">{moduleTitle}</span>
             </div>
           )}
-          <h2 className="lv-title">{lesson.title}</h2>
+          <h1 className="lv-title">{lesson.title}</h1>
           {difficulty && (
             <div className="lv-meta">
               <span className={`lv-diff lv-diff-${difficulty}`}>
