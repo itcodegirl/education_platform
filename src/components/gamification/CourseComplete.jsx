@@ -2,14 +2,16 @@
 // COURSE COMPLETE — Celebration + downloadable certificate
 // ═══════════════════════════════════════════════
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { generateCertificate } from '../../utils/certificate';
 import { useToast } from '../shared/Toast';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 export function CourseComplete({ isOpen, onClose, course, displayName, lessonCount }) {
   const [show, setShow] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const toast = useToast();
+  const modalRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -19,6 +21,8 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
       setShow(false);
     }
   }, [isOpen]);
+
+  useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
 
   if (!isOpen) return null;
 
@@ -49,7 +53,15 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
 
   return (
     <div className="cc-overlay" onClick={onClose}>
-      <div className={`cc-card ${show ? 'show' : ''}`} onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={modalRef}
+        className={`cc-card ${show ? 'show' : ''}`}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${course.label} course complete`}
+        tabIndex={-1}
+      >
         <div className="cc-badge-row">
           <span className="cc-trophy">🏆</span>
         </div>

@@ -4,15 +4,27 @@
 // progress, completion status, and current position.
 // ═══════════════════════════════════════════════
 
+import { useRef } from 'react';
 import { COURSES } from '../../data';
 import { useProgress } from '../../providers';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx }) {
   const { completed = [], completedSet = new Set() } = useProgress();
+  const modalRef = useRef(null);
+  useFocusTrap(modalRef, { enabled: true, onEscape: onClose });
 
   return (
     <div className="panel-overlay" onClick={onClose}>
-      <div className="panel roadmap-panel" onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={modalRef}
+        className="panel roadmap-panel"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Your learning roadmap"
+        tabIndex={-1}
+      >
         <div className="panel-head">
           <h2 className="panel-title">🗺️ Your Learning Roadmap</h2>
           <button type="button" className="panel-close" onClick={onClose} aria-label="Close roadmap">

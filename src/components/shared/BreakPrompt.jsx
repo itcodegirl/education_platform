@@ -5,8 +5,9 @@
 // for the rest of the session.
 // ═══════════════════════════════════════════════
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useProgress } from '../../providers';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 const BREAK_THRESHOLD = 5; // lessons in one session
 const SESSION_KEY = 'chw-session-lessons';
@@ -16,6 +17,12 @@ export function BreakPrompt() {
   const [show, setShow] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const sessionStart = useRef(completed.length);
+  const modalRef = useRef(null);
+
+  const dismiss = useCallback(() => {
+    setShow(false);
+    setDismissed(true);
+  }, []);
 
   useEffect(() => {
     if (dismissed) return;
@@ -25,13 +32,23 @@ export function BreakPrompt() {
     }
   }, [completed.length, dismissed]);
 
+  useFocusTrap(modalRef, { enabled: show && !dismissed, onEscape: dismiss });
+
   if (!show || dismissed) return null;
 
   return (
-    <div className="break-overlay" onClick={() => { setShow(false); setDismissed(true); }}>
-      <div className="break-card" onClick={(e) => e.stopPropagation()}>
-        <span className="break-icon">☕</span>
-        <h3 className="break-title">You&apos;re on a roll!</h3>
+    <div className="break-overlay" onClick={dismiss}>
+      <div
+        ref={modalRef}
+        className="break-card"
+        onClick={(e) => e.stopPropagation()}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="break-prompt-title"
+        tabIndex={-1}
+      >
+        <span className="break-icon" aria-hidden="true">☕</span>
+        <h3 id="break-prompt-title" className="break-title">You&apos;re on a roll!</h3>
         <p className="break-msg">
           You&apos;ve completed {BREAK_THRESHOLD}+ lessons this session. Your brain absorbs more when you take breaks between study sessions.
         </p>
@@ -42,14 +59,14 @@ export function BreakPrompt() {
           <button
             type="button"
             className="break-continue"
-            onClick={() => { setShow(false); setDismissed(true); }}
+            onClick={dismiss}
           >
             I&apos;m good, keep going 💪
           </button>
           <button
             type="button"
             className="break-rest"
-            onClick={() => { setShow(false); setDismissed(true); }}
+            onClick={dismiss}
           >
             Good idea, I&apos;ll take a break
           </button>

@@ -10,10 +10,11 @@
 //   6. Activity & badges
 // ═══════════════════════════════════════════════
 
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { useProgress, BADGE_DEFS } from '../../providers';
 import { COURSES } from '../../data';
 import { getLevel, getXPInLevel, XP_PER_LEVEL } from '../../utils/helpers';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 export function StudentStats({ isOpen, onClose }) {
   const {
@@ -98,6 +99,9 @@ export function StudentStats({ isOpen, onClose }) {
     };
   }, [completed, quizScores, xpTotal, streak, dailyCount, earnedBadges, srCards, bookmarks, notes]);
 
+  const modalRef = useRef(null);
+  useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
+
   if (!isOpen) return null;
 
   // ─── Helpers ──────────────────────────────────
@@ -122,7 +126,14 @@ export function StudentStats({ isOpen, onClose }) {
 
   return (
     <div className="search-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="search-modal ss-modal">
+      <div
+        ref={modalRef}
+        className="search-modal ss-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Your progress"
+        tabIndex={-1}
+      >
         <div className="ss-head">
           <h2 className="ss-title">📊 Your Progress</h2>
           <button type="button" className="cheatsheet-close" onClick={onClose}>✕</button>

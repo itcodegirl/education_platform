@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useProgress } from '../../providers';
 import { generatePracticeCard } from '../../services/practiceService';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 const TOPICS = [
   { id: 'html',   label: 'HTML'   },
@@ -13,6 +14,8 @@ const TOPICS = [
 export function SRPanel({ isOpen, onClose }) {
   const { getDueSRCards, updateSRCard, addToSRQueue, srCards = [] } = useProgress();
   const [currentIdx, setCurrentIdx] = useState(0);
+  const modalRef = useRef(null);
+  useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
   const [answered, setAnswered] = useState(null);
   const [sessionRight, setSessionRight] = useState(0);
   const [sessionWrong, setSessionWrong] = useState(0);
@@ -80,7 +83,14 @@ export function SRPanel({ isOpen, onClose }) {
 
   return (
     <div className="search-overlay" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <div className="search-modal">
+      <div
+        ref={modalRef}
+        className="search-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Review queue (${due.length} cards due)`}
+        tabIndex={-1}
+      >
         <div className="cheatsheet-head">
           <h2>Review ({due.length} due)</h2>
           <button type="button" className="cheatsheet-close" onClick={onClose}>x</button>

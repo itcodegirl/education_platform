@@ -3,19 +3,33 @@
 // Opens the CodeChallenge component inline
 // ═══════════════════════════════════════════════
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { getChallengesForCourse } from '../../data/challenges';
 import { CodeChallenge } from '../learning/CodeChallenge';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 export function ChallengesPanel({ courseId, lang, onClose }) {
   const challenges = getChallengesForCourse(courseId);
   const [activeChallenge, setActiveChallenge] = useState(null);
   const [completed, setCompleted] = useState(new Set());
+  const modalRef = useRef(null);
+  // Same ref works for both the list view and the active-challenge
+  // view — only one is mounted at a time, and React updates the ref
+  // to point at whichever .panel div is currently rendered.
+  useFocusTrap(modalRef, { enabled: true, onEscape: onClose });
 
   if (activeChallenge) {
     return (
       <div className="panel-overlay" onClick={onClose}>
-        <div className="panel challenges-panel wide" onClick={(e) => e.stopPropagation()}>
+        <div
+          ref={modalRef}
+          className="panel challenges-panel wide"
+          onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Challenge: ${activeChallenge.title}`}
+          tabIndex={-1}
+        >
           <div className="panel-head">
             <button type="button" className="panel-back" onClick={() => setActiveChallenge(null)}>
               ← Back to Challenges
@@ -38,7 +52,15 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
 
   return (
     <div className="panel-overlay" onClick={onClose}>
-      <div className="panel challenges-panel" onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={modalRef}
+        className="panel challenges-panel"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Code challenges"
+        tabIndex={-1}
+      >
         <div className="panel-head">
           <h3 className="panel-title">🏋️ Code Challenges</h3>
           <button type="button" className="panel-close" onClick={onClose}>✕</button>

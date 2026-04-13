@@ -4,9 +4,10 @@
 // Stats celebrate progress, not shame zeros.
 // ═══════════════════════════════════════════════
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useProgress } from '../../providers';
 import { getLevel, getXPInLevel, XP_PER_LEVEL, DAILY_GOAL } from '../../utils/helpers';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 const MOTIVATIONS = {
   newUser: [
@@ -76,6 +77,7 @@ export function WelcomeBack({
   const { xpTotal = 0, streak = 0, dailyCount = 0 } = useProgress();
   const [show, setShow] = useState(false);
   const [motivation] = useState(() => getMotivation(streak, completedCount));
+  const modalRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -84,6 +86,8 @@ export function WelcomeBack({
     }
     setShow(false);
   }, [isOpen]);
+
+  useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
 
   if (!isOpen) return null;
 
@@ -96,11 +100,19 @@ export function WelcomeBack({
 
   return (
     <div className="welcome-overlay" onClick={onClose}>
-      <div className={`welcome-card ${show ? 'show' : ''}`} onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={modalRef}
+        className={`welcome-card ${show ? 'show' : ''}`}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="welcome-back-title"
+        tabIndex={-1}
+      >
 
         {/* ─── Greeting ─── */}
         <div className="wb-greeting">
-          <h2 className="wb-hello">
+          <h2 id="welcome-back-title" className="wb-hello">
             {greeting}, <span className="wb-name">{displayName || 'Learner'}</span>
           </h2>
           <p className="wb-motivation">{motivation}</p>

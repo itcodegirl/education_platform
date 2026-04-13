@@ -1,5 +1,7 @@
+import { useRef } from 'react';
 import { useProgress } from '../../providers';
 import { COURSES } from '../../data';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 function parseLessonKey(lessonKey) {
   const [courseLabel = '', moduleTitle = '', lessonTitle = ''] = (lessonKey || '').split('|');
@@ -8,6 +10,8 @@ function parseLessonKey(lessonKey) {
 
 export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
   const { bookmarks, toggleBookmark } = useProgress();
+  const modalRef = useRef(null);
+  useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
   if (!isOpen) return null;
 
   const handleClick = (bookmark) => {
@@ -29,7 +33,14 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
 
   return (
     <div className="search-overlay" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <div className="search-modal">
+      <div
+        ref={modalRef}
+        className="search-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Bookmarks (${bookmarks.length})`}
+        tabIndex={-1}
+      >
         <div className="cheatsheet-head">
           <h2>Bookmarks ({bookmarks.length})</h2>
           <button type="button" className="cheatsheet-close" onClick={onClose}>x</button>

@@ -2,11 +2,16 @@
 // GLOSSARY PANEL — Searchable term definitions
 // ═══════════════════════════════════════════════
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { GLOSSARY } from '../../data/reference/glossary';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 export function GlossaryPanel({ isOpen, onClose }) {
   const [query, setQuery] = useState('');
+  const modalRef = useRef(null);
+  // initialFocus: first-tabbable lands the user on the search input
+  // instead of the dialog shell, so they can start typing immediately.
+  useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose, initialFocus: 'first-tabbable' });
   if (!isOpen) return null;
 
   const q = query.toLowerCase();
@@ -16,7 +21,14 @@ export function GlossaryPanel({ isOpen, onClose }) {
 
   return (
     <div className="search-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="search-modal">
+      <div
+        ref={modalRef}
+        className="search-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Glossary"
+        tabIndex={-1}
+      >
         <div className="cheatsheet-head">
           <h2>📖 Glossary</h2>
           <button type="button" className="cheatsheet-close" onClick={onClose}>✕</button>

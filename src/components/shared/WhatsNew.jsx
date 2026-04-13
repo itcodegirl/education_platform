@@ -3,8 +3,9 @@
 // Update APP_VERSION and CHANGELOG when shipping
 // ═══════════════════════════════════════════════
 
-import { useState, useEffect, memo } from 'react';
+import { useState, useEffect, memo, useRef } from 'react';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 const APP_VERSION = '2.1.0';
 const SEEN_KEY = 'chw-whats-new-seen';
@@ -29,6 +30,7 @@ const CHANGELOG = [
 export const WhatsNew = memo(function WhatsNew() {
   const [show, setShow] = useState(false);
   const [seenVersion, setSeenVersion] = useLocalStorage(SEEN_KEY, '');
+  const modalRef = useRef(null);
 
   useEffect(() => {
     if (seenVersion !== APP_VERSION) {
@@ -42,13 +44,22 @@ export const WhatsNew = memo(function WhatsNew() {
     setSeenVersion(APP_VERSION);
   };
 
+  useFocusTrap(modalRef, { enabled: show, onEscape: handleClose });
+
   if (!show) return null;
 
   const latest = CHANGELOG[0];
 
   return (
     <div className="search-overlay" onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}>
-      <div className="search-modal wn-modal">
+      <div
+        ref={modalRef}
+        className="search-modal wn-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`What's new in version ${latest.version}`}
+        tabIndex={-1}
+      >
         <div className="wn-header">
           <span className="wn-icon">🎉</span>
           <span className="wn-title">What's New</span>

@@ -2,17 +2,28 @@
 // BADGES PANEL — Achievement grid
 // ═══════════════════════════════════════════════
 
+import { useRef } from 'react';
 import { useProgress, BADGE_DEFS } from '../../providers';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 export function BadgesPanel({ isOpen, onClose }) {
   const { earnedBadges } = useProgress();
+  const modalRef = useRef(null);
+  useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
   if (!isOpen) return null;
 
   const earnedCount = Object.keys(earnedBadges).length;
 
   return (
     <div className="search-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="search-modal">
+      <div
+        ref={modalRef}
+        className="search-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Badges (${earnedCount} of ${BADGE_DEFS.length} earned)`}
+        tabIndex={-1}
+      >
         <div className="cheatsheet-head">
           <h2>🏆 Badges ({earnedCount}/{BADGE_DEFS.length})</h2>
           <button type="button" className="cheatsheet-close" onClick={onClose}>✕</button>

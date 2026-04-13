@@ -2,11 +2,14 @@
 // CHEATSHEET PANEL — Quick reference cards
 // ═══════════════════════════════════════════════
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { CHEATSHEETS } from '../../data/reference/cheatsheets';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 export function CheatsheetPanel({ isOpen, onClose, currentCourse }) {
   const [activeCourse, setActiveCourse] = useState(currentCourse);
+  const modalRef = useRef(null);
+  useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
   if (!isOpen) return null;
 
   const sections = CHEATSHEETS[activeCourse] || CHEATSHEETS.html;
@@ -14,7 +17,14 @@ export function CheatsheetPanel({ isOpen, onClose, currentCourse }) {
 
   return (
     <div className="search-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="search-modal">
+      <div
+        ref={modalRef}
+        className="search-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${activeCourse.toUpperCase()} cheat sheet`}
+        tabIndex={-1}
+      >
         <div className="cheatsheet-head">
           <h2>📋 {activeCourse.toUpperCase()} Cheat Sheet</h2>
           <button type="button" className="cheatsheet-close" onClick={onClose}>✕</button>

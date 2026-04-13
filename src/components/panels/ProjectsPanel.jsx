@@ -2,18 +2,28 @@
 // PROJECTS PANEL — Build project ideas
 // ═══════════════════════════════════════════════
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { PROJECTS } from '../../data/reference/projects';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 export function ProjectsPanel({ isOpen, onClose, currentCourse }) {
   const [activeCourse, setActiveCourse] = useState(currentCourse);
+  const modalRef = useRef(null);
+  useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
   if (!isOpen) return null;
 
   const projects = PROJECTS[activeCourse] || PROJECTS.html;
 
   return (
     <div className="search-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="search-modal">
+      <div
+        ref={modalRef}
+        className="search-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Build projects"
+        tabIndex={-1}
+      >
         <div className="cheatsheet-head">
           <h2>🔨 Build Projects</h2>
           <button type="button" className="cheatsheet-close" onClick={onClose}>✕</button>

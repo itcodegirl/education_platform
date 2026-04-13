@@ -2,14 +2,16 @@
 // BADGE UNLOCK — Amplified celebration with particles
 // ═══════════════════════════════════════════════
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useProgress } from '../../providers';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 const BURST_COLORS = ['#ff6b9d', '#4ecdc4', '#ffa726', '#a78bfa', '#ff8fab', '#66d9e8', '#ffd93d'];
 
 export function BadgeUnlock() {
   const { newBadge, clearNewBadge } = useProgress();
   const [show, setShow] = useState(false);
+  const modalRef = useRef(null);
 
   // Generate burst particles when badge changes
   const particles = useMemo(() => {
@@ -34,18 +36,30 @@ export function BadgeUnlock() {
     }
   }, [newBadge, clearNewBadge]);
 
-  if (!newBadge) return null;
-
   const dismiss = () => { setShow(false); setTimeout(clearNewBadge, 500); };
+
+  // role="dialog" + aria-modal live on the INNER container, not the
+  // backdrop — the backdrop is a presentational overlay, the inner
+  // element is the actual announcement.
+  useFocusTrap(modalRef, { enabled: !!newBadge && show, onEscape: dismiss });
+
+  if (!newBadge) return null;
 
   return (
     <div
       className="badge-unlock-overlay"
       onClick={dismiss}
-      role="dialog"
-      aria-label={`Badge unlocked: ${newBadge.name}`}
+      aria-hidden="true"
     >
-      <div className={`badge-unlock ${show ? 'show' : ''}`} onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={modalRef}
+        className={`badge-unlock ${show ? 'show' : ''}`}
+        onClick={(e) => e.stopPropagation()}
+        role="alertdialog"
+        aria-modal="true"
+        aria-label={`Badge unlocked: ${newBadge.name}`}
+        tabIndex={-1}
+      >
         {/* Particle burst */}
         <div className="bu-particles" aria-hidden="true">
           {particles.map((p, i) => (
