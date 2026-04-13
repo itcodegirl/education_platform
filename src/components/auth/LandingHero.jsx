@@ -150,41 +150,51 @@ function HeroPanel({ panel, index }) {
   );
 }
 
-export function LandingHero({ onStart }) {
+// Just the headline + lede + CTA row. Exported so AuthPage can place
+// it next to the auth card in a 2-column grid above the fold.
+export function LandingHeroIntro({ onStart, compact = false }) {
   const [introRef, introInView] = useInView({ threshold: 0.1 });
 
   return (
-    <div className="landing-hero">
-      <section
-        ref={introRef}
-        className={`lh-intro ${introInView ? 'in-view' : ''}`}
-      >
-        <span className="lh-eyebrow">Free · browser-based · built for you</span>
-        <h1 className="lh-headline">
-          Learn to code by{' '}
-          <span className="lh-headline-grad">building something real.</span>
-        </h1>
-        <p className="lh-lede">
-          CodeHerWay takes you from <code>&lt;h1&gt;Hi&lt;/h1&gt;</code> to a
-          shipped React app — one honest, opinionated lesson at a time. Write
-          the code, see it run, ask the tutor when you&apos;re stuck.
-        </p>
-        <div className="lh-cta-row">
-          {onStart && (
-            <button type="button" className="lh-cta" onClick={onStart}>
-              Start learning free
-            </button>
-          )}
-          <a className="lh-cta-ghost" href="#styleguide">
-            Peek the design system →
-          </a>
-        </div>
+    <section
+      ref={introRef}
+      className={`lh-intro ${compact ? 'lh-intro-compact' : ''} ${introInView ? 'in-view' : ''}`}
+    >
+      <span className="lh-eyebrow">Free · browser-based · built for you</span>
+      <h1 className="lh-headline">
+        Learn to code by{' '}
+        <span className="lh-headline-grad">building something real.</span>
+      </h1>
+      <p className="lh-lede">
+        CodeHerWay takes you from <code>&lt;h1&gt;Hi&lt;/h1&gt;</code> to a
+        shipped React app — one honest, opinionated lesson at a time. Write
+        the code, see it run, ask the tutor when you&apos;re stuck.
+      </p>
+      <div className="lh-cta-row">
+        {onStart && (
+          <button type="button" className="lh-cta" onClick={onStart}>
+            Start learning free
+          </button>
+        )}
+        <a className="lh-cta-ghost" href="#styleguide">
+          Peek the design system →
+        </a>
+      </div>
+      {!compact && (
         <div className="lh-scroll-cue" aria-hidden="true">
           <span />
           <span>scroll to see what you&apos;ll build</span>
         </div>
-      </section>
+      )}
+    </section>
+  );
+}
 
+// The scroll story (4 panels + outro). Exported so AuthPage can render
+// it full-width below the 2-column intro+auth-card block.
+export function LandingHeroStory() {
+  return (
+    <div className="landing-hero landing-hero-story">
       {PANELS.map((panel, index) => (
         <HeroPanel key={panel.id} panel={panel} index={index} />
       ))}
@@ -192,15 +202,25 @@ export function LandingHero({ onStart }) {
       <section className="lh-outro">
         <h2 className="lh-outro-title">Ready when you are.</h2>
         <p className="lh-outro-blurb">
-          The first lesson is free. No credit card, no scroll-jacking signup
-          wall, no pressure.
+          You&apos;ve seen what you&apos;ll build. The first lesson is free —
+          no credit card, no scroll-jacking signup wall.
         </p>
-        {onStart && (
-          <button type="button" className="lh-cta" onClick={onStart}>
-            Create a free account ↓
-          </button>
-        )}
+        <a className="lh-cta" href="#top">
+          Back to top ↑
+        </a>
       </section>
+    </div>
+  );
+}
+
+// Backwards-compat wrapper — still renders the full hero if someone
+// imports <LandingHero /> directly. AuthPage uses the split exports
+// above so the auth card can sit next to the intro.
+export function LandingHero({ onStart }) {
+  return (
+    <div className="landing-hero">
+      <LandingHeroIntro onStart={onStart} />
+      <LandingHeroStory />
     </div>
   );
 }

@@ -5,7 +5,7 @@
 import { useState, useRef } from 'react';
 import { useAuth } from '../../providers';
 import { Logo } from '../shared/Logo';
-import { LandingHero } from './LandingHero';
+import { LandingHeroIntro, LandingHeroStory } from './LandingHero';
 
 export function AuthPage({ onPreview }) {
   const { signIn, signUp, signInWithGithub, signInWithGoogle } = useAuth();
@@ -20,7 +20,14 @@ export function AuthPage({ onPreview }) {
 
   const scrollToAuth = (nextMode) => {
     if (nextMode) setMode(nextMode);
-    authCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // On desktop the card is already in the first viewport — scroll is a
+    // no-op. On mobile it scrolls the form into view. Either way, focus
+    // the email input so keyboard users land in the right place.
+    authCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Defer focus until after the smooth scroll settles.
+    setTimeout(() => {
+      document.getElementById('auth-email')?.focus();
+    }, 450);
   };
 
   const handleSubmit = async (e) => {
@@ -70,15 +77,17 @@ export function AuthPage({ onPreview }) {
   }
 
   return (
-    <div className="auth-page">
-      <LandingHero onStart={() => scrollToAuth('signup')} />
+    <div className="auth-page auth-with-hero">
+      {/* Above the fold: intro on the left, auth card on the right. */}
+      <div className="auth-top">
+        <LandingHeroIntro compact onStart={() => scrollToAuth('signup')} />
 
-      <div className="auth-card" ref={authCardRef}>
-        <div className="auth-brand">
-          <span className="auth-bolt">⚡</span>
-          <h1 className="auth-title">CodeHerWay</h1>
-          <p className="auth-sub">Learn. Build. Ship.</p>
-        </div>
+        <div className="auth-card" ref={authCardRef}>
+          <div className="auth-brand">
+            <span className="auth-bolt">⚡</span>
+            <h1 className="auth-title">CodeHerWay</h1>
+            <p className="auth-sub">Learn. Build. Ship.</p>
+          </div>
 
         <div className="auth-tabs">
           <button
@@ -165,10 +174,14 @@ export function AuthPage({ onPreview }) {
           </button>
         )}
 
-        <p className="auth-footer">
-          Where women code, lead, and rewrite the future of tech.
-        </p>
+          <p className="auth-footer">
+            Where women code, lead, and rewrite the future of tech.
+          </p>
+        </div>
       </div>
+
+      {/* The scroll story lives below the fold — 4 code panels + outro. */}
+      <LandingHeroStory />
     </div>
   );
 }

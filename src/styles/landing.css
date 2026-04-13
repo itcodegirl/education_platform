@@ -13,6 +13,39 @@
    to its final state.
    ═══════════════════════════════════════════════ */
 
+/* ─── Page-level layout ─────────────────────── */
+/* When .auth-page renders the landing hero, override the default
+   centered-flex behavior so the page becomes a column of sections. */
+.auth-page.auth-with-hero {
+  display: block;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 0;
+}
+
+/* Above-the-fold 2-column block: intro on the left, auth card on the
+   right. Max-width matches the hero story below so the visual rhythm
+   lines up. */
+.auth-top {
+  position: relative;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) var(--space-6);
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: var(--space-6);
+  align-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+.auth-top .auth-card {
+  margin: 0;
+  justify-self: end;
+  width: 100%;
+}
+
+/* ─── Landing hero container ────────────────── */
 .landing-hero {
   width: 100%;
   max-width: 1100px;
@@ -21,6 +54,13 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-10);
+}
+/* The story half (when it's rendered standalone below .auth-top) gets
+   a top border so it reads as a separate section. */
+.landing-hero-story {
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-8);
+  margin-top: var(--space-4);
 }
 
 /* ─── Intro ─────────────────────────────────── */
@@ -34,6 +74,22 @@
 .lh-intro.in-view {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* Compact intro — used inside .auth-top, where the intro sits beside
+   the auth card. Align left, drop the extra padding, drop the scroll
+   cue (which lives on the full-width hero below). */
+.lh-intro-compact {
+  text-align: left;
+  padding: 0;
+  max-width: 560px;
+}
+.lh-intro-compact .lh-lede {
+  margin-left: 0;
+  margin-right: 0;
+}
+.lh-intro-compact .lh-cta-row {
+  justify-content: flex-start;
 }
 
 .lh-eyebrow {
@@ -376,6 +432,32 @@
   color: var(--text-dim);
   margin-bottom: var(--space-5);
   font-size: var(--text-md);
+}
+
+/* ─── Tablet: collapse the above-the-fold split ── */
+@media (max-width: 960px) {
+  .auth-top {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+    min-height: auto;
+    padding: var(--space-5) var(--space-4) var(--space-6);
+  }
+  .auth-top .auth-card {
+    justify-self: center;
+    max-width: 440px;
+  }
+  .lh-intro-compact {
+    text-align: center;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .lh-intro-compact .lh-lede {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .lh-intro-compact .lh-cta-row {
+    justify-content: center;
+  }
 }
 
 /* ─── Mobile ────────────────────────────────── */
