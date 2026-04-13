@@ -50,9 +50,12 @@ export const Sidebar = memo(function Sidebar({
   const { user } = useAuth();
   const [lockMode, setLockMode] = useLocalStorage('chw-lock-mode', false);
   const [popoverOpen, setPopoverOpen] = useState(false);
-  const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
+  // `activePopout` replaces the old `courseDropdownOpen` — a single
+  // state for the Courses + Resources tab bar. Only one popout can be
+  // open at a time; clicking a tab while the other is open switches.
+  const [activePopout, setActivePopout] = useState(null); // 'courses' | 'resources' | null
   const [expandedMod, setExpandedMod] = useState(modIdx);
-  const courseDropdownRef = useRef(null);
+  const tabsRef = useRef(null);
   const asideRef = useRef(null);
   const course = courses[courseIdx];
   const modules = course.modules;
@@ -60,17 +63,24 @@ export const Sidebar = memo(function Sidebar({
   // Sync expanded module when active module changes
   useEffect(() => { setExpandedMod(modIdx); }, [modIdx]);
 
-  // Close course dropdown on click-outside
+  // Close the active popout on click-outside or Escape.
   useEffect(() => {
-    if (!courseDropdownOpen) return undefined;
-    const handleClick = (e) => {
-      if (courseDropdownRef.current && !courseDropdownRef.current.contains(e.target)) {
-        setCourseDropdownOpen(false);
+    if (!activePopout) return undefined;
+    const handlePointerDown = (e) => {
+      if (tabsRef.current && !tabsRef.current.contains(e.target)) {
+        setActivePopout(null);
       }
     };
-    document.addEventListener('pointerdown', handleClick);
-    return () => document.removeEventListener('pointerdown', handleClick);
-  }, [courseDropdownOpen]);
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') setActivePopout(null);
+    };
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [activePopout]);
 
   const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Coder';
   const userInitial = displayName.trim().charAt(0).toUpperCase() || 'C';
@@ -144,42 +154,99 @@ export const Sidebar = memo(function Sidebar({
         {/* ─── Profile Popover ─── */}
         <ProfilePopover isOpen={popoverOpen} onClose={closePopover} isMobile={isMobile} />
 
-        {/* ─── Course Switcher (dropdown) ─── */}
-        <div className="cs-dropdown-wrap" ref={courseDropdownRef}>
+        {/* ─── Tab bar: Courses + Resources ─── */}
+        {/* Two tabs side-by-side. Each opens a small popout card below.
+            Courses: switches between course tracks (HTML/CSS/JS/React/Python).
+            Resources: opens a quick-launcher for the learning tools
+            (cheat sheets, glossary, bookmarks, review queue, challenges, badges).
+            Click-outside and Escape both close the active popout. */}
+        <div className="sb-tabs" ref={tabsRef} role="tablist" aria-label="Sidebar navigation">
           <button
             type="button"
-            className={`cs-trigger ${courseDropdownOpen ? 'open' : ''}`}
-            onClick={() => setCourseDropdownOpen((v) => !v)}
-            aria-expanded={courseDropdownOpen}
-            aria-haspopup="listbox"
-            style={{ '--cs-accent': course.accent }}
+            className={`sb-tab ${activePopout === 'courses' ? 'active' : ''}`}
+            onClick={() => setActivePopout((p) => (p === 'courses' ? null : 'courses'))}
+            aria-expanded={activePopout === 'courses'}
+            aria-controls="sb-tab-panel-courses"
+            role="tab"
           >
-            <span className="cs-trigger-icon">{course.icon}</span>
-            <span className="cs-trigger-label">{course.label}</span>
-            <span className="cs-trigger-meta">{courseDone}/{total}</span>
-            <span className="cs-trigger-arrow">{courseDropdownOpen ? '▴' : '▾'}</span>
+            <span className="sb-tab-icon" aria-hidden="true">📚</span>
+            <span className="sb-tab-label">Courses</span>
+            <span className="sb-tab-arrow" aria-hidden="true">▾</span>
           </button>
 
-          {/* Progress bar integrated below trigger */}
-          <div className="cs-progress">
-            <div className="cs-progress-fill" style={{ width: `${pct}%`, background: course.accent }} />
+          <button
+            type="button"
+            className={`sb-tab ${activePopout === 'resources' ? 'active' : ''}`}
+            onClick={() => setActivePopout((p) => (p === 'resources' ? null : 'resources'))}
+            aria-expanded={activePopout === 'resources'}
+            aria-controls="sb-tab-panel-resources"
+            role="tab"
+          >
+            <span className="sb-tab-icon" aria-hidden="true">📋</span>
+            <span className="sb-tab-label">Resources</span>
+            <span className="sb-tab-arrow" aria-hidden="true">▾</span>
+          </button>
+
+          {/* Active-course context strip — shows which course you're in
+              and its progress, now that the course name isn't the trigger label. */}
+          <div className="sb-tabs-context" style={{ '--cs-accent': course.accent }}>
+            <span className="sb-tabs-context-icon">{course.icon}</span>
+            <span className="sb-tabs-context-label">{course.label}</span>
+            <span className="sb-tabs-context-meta">{courseDone}/{total}</span>
+            <div className="sb-tabs-context-progress">
+              <div
+                className="sb-tabs-context-fill"
+                style={{ width: `${pct}%`, background: course.accent }}
+              />
+            </div>
           </div>
 
-          {courseDropdownOpen && (
-            <div className="cs-flyout" role="listbox" aria-label="Select course">
+          {activePopout === 'courses' && (
+            <div
+              id="sb-tab-panel-courses"
+              className="sb-tab-flyout sb-tab-flyout-courses"
+              role="tabpanel"
+              aria-label="Select course"
+            >
               {courses.map((c, ci) => (
                 <button
                   key={c.id}
                   type="button"
                   className={`cs-option ${ci === courseIdx ? 'active' : ''}`}
-                  role="option"
-                  aria-selected={ci === courseIdx}
-                  onClick={() => { onSelectCourse(ci); setCourseDropdownOpen(false); }}
+                  onClick={() => { onSelectCourse(ci); setActivePopout(null); }}
                   style={{ '--cs-accent': c.accent }}
                 >
                   <span className="cs-option-icon">{c.icon}</span>
                   <span className="cs-option-label">{c.label}</span>
                   {ci === courseIdx && <span className="cs-option-check">✓</span>}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {activePopout === 'resources' && (
+            <div
+              id="sb-tab-panel-resources"
+              className="sb-tab-flyout sb-tab-flyout-resources"
+              role="tabpanel"
+              aria-label="Open a learning tool"
+            >
+              {[
+                { key: 'cheatsheet', icon: '📋', label: 'Cheat Sheets' },
+                { key: 'glossary',   icon: '📖', label: 'Glossary'     },
+                { key: 'bookmarks',  icon: '⭐', label: 'Bookmarks'    },
+                { key: 'sr',         icon: '🔄', label: 'Review'       },
+                { key: 'challenges', icon: '🏋️', label: 'Challenges'   },
+                { key: 'badges',     icon: '🏆', label: 'Badges'       },
+              ].map((t) => (
+                <button
+                  key={t.key}
+                  type="button"
+                  className="sb-tab-opt"
+                  onClick={() => { onOpenTool(t.key); setActivePopout(null); }}
+                >
+                  <span className="sb-tab-opt-icon" aria-hidden="true">{t.icon}</span>
+                  <span className="sb-tab-opt-label">{t.label}</span>
                 </button>
               ))}
             </div>
@@ -266,71 +333,8 @@ export const Sidebar = memo(function Sidebar({
             })}
           </nav>
 
-          {/* ─── Tools ─── */}
-          {/* Visible entry points for the learning tools. These used to
-              live only in the floating bottom-right toolbar (hidden on
-              mobile). Surfacing them here makes cheat sheets, glossary,
-              bookmarks, and review queue reachable in one click from
-              every viewport. */}
-          <div className="sb-tools" role="group" aria-label="Learning tools">
-            <div className="sb-tools-title">Tools</div>
-            <div className="sb-tools-grid">
-              <button
-                type="button"
-                className="sb-tool-btn"
-                onClick={() => onOpenTool('cheatsheet')}
-                title="Cheat sheets"
-              >
-                <span className="sb-tool-icon">📋</span>
-                <span className="sb-tool-label">Cheat Sheets</span>
-              </button>
-              <button
-                type="button"
-                className="sb-tool-btn"
-                onClick={() => onOpenTool('glossary')}
-                title="Glossary"
-              >
-                <span className="sb-tool-icon">📖</span>
-                <span className="sb-tool-label">Glossary</span>
-              </button>
-              <button
-                type="button"
-                className="sb-tool-btn"
-                onClick={() => onOpenTool('bookmarks')}
-                title="Bookmarks"
-              >
-                <span className="sb-tool-icon">⭐</span>
-                <span className="sb-tool-label">Bookmarks</span>
-              </button>
-              <button
-                type="button"
-                className="sb-tool-btn"
-                onClick={() => onOpenTool('sr')}
-                title="Review queue"
-              >
-                <span className="sb-tool-icon">🔄</span>
-                <span className="sb-tool-label">Review</span>
-              </button>
-              <button
-                type="button"
-                className="sb-tool-btn"
-                onClick={() => onOpenTool('challenges')}
-                title="Code challenges"
-              >
-                <span className="sb-tool-icon">🏋️</span>
-                <span className="sb-tool-label">Challenges</span>
-              </button>
-              <button
-                type="button"
-                className="sb-tool-btn"
-                onClick={() => onOpenTool('badges')}
-                title="Badges"
-              >
-                <span className="sb-tool-icon">🏆</span>
-                <span className="sb-tool-label">Badges</span>
-              </button>
-            </div>
-          </div>
+          {/* The Tools grid was moved into the Resources popout at the
+              top of the sidebar (see .sb-tabs above). */}
 
           {/* ─── Lock toggle ─── */}
           <div className="sb-lock-row">

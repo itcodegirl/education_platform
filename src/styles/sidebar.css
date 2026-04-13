@@ -337,72 +337,171 @@
 .lg-quiz { color: var(--text-muted) !important; font-style: italic; }
 .lg-quiz.act { color: var(--text) !important; font-style: normal; font-weight: 600; }
 
-/* ─── Sidebar Tools (cheat sheets, glossary, bookmarks, etc.) ─── */
-.sb-tools {
-  padding: 14px 16px 10px;
-  border-top: 1px solid var(--border);
-  margin-top: 12px;
-}
-.sb-tools-title {
-  font-family: 'Space Mono', ui-monospace, monospace;
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  margin-bottom: 10px;
-  padding-left: 2px;
-}
-.sb-tools-grid {
+/* ─── Sidebar tab bar (Courses + Resources) ─── */
+/* Replaces the old course switcher at the top of the sidebar. Two
+   symmetric pill buttons side-by-side; each opens a small popout card
+   below. Only one popout can be open at a time. The active-course
+   context strip below the tabs shows which course the user is viewing
+   and its progress. */
+.sb-tabs {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
+  padding: 4px 14px 12px;
 }
-.sb-tool-btn {
+.sb-tab {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 6px;
   padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-md);
   color: var(--text-dim);
   font-family: inherit;
   font-size: var(--text-sm);
-  text-align: left;
+  font-weight: 600;
   cursor: pointer;
   transition: background var(--duration-fast) var(--ease-out),
               border-color var(--duration-fast) var(--ease-out),
               color var(--duration-fast) var(--ease-out),
               transform var(--duration-fast) var(--ease-out);
 }
-.sb-tool-btn:hover {
+.sb-tab:hover {
   background: rgba(180, 74, 255, 0.08);
   border-color: var(--purple);
   color: var(--text);
-  transform: translateY(-1px);
 }
-.sb-tool-icon {
-  font-size: 16px;
-  flex-shrink: 0;
+.sb-tab.active {
+  background: color-mix(in srgb, var(--purple) 12%, transparent);
+  border-color: var(--purple);
+  color: var(--text);
 }
-.sb-tool-label {
+.sb-tab-icon { font-size: 15px; flex-shrink: 0; }
+.sb-tab-arrow {
+  font-size: 10px;
+  opacity: 0.6;
+  transition: transform var(--duration-fast);
+}
+.sb-tab.active .sb-tab-arrow { transform: rotate(180deg); }
+
+/* Active-course context strip under the tabs. Reminds the user which
+   course the module tree below belongs to, and shows progress. */
+.sb-tabs-context {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 6px;
+  padding: 10px 12px;
+  margin-top: 6px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
+}
+.sb-tabs-context-icon { font-size: 16px; }
+.sb-tabs-context-label {
+  font-size: var(--text-sm);
+  color: var(--text);
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.sb-tabs-context-meta {
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.sb-tabs-context-progress {
+  grid-column: 1 / -1;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 1px;
+  overflow: hidden;
+}
+.sb-tabs-context-fill {
+  height: 100%;
+  border-radius: 1px;
+  transition: width 0.5s var(--ease-out);
+}
 
-/* Collapsed sidebar: show only the icons, stack them vertically. */
-.sb.collapsed .sb-tools-title { display: none; }
-.sb.collapsed .sb-tools-grid {
+/* ─── Popout card (mirrors .cs-flyout) ─── */
+.sb-tab-flyout {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 14px;
+  right: 14px;
+  background: rgba(16, 16, 36, 0.95);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(180, 74, 255, 0.12);
+  border-radius: 12px;
+  padding: 6px;
+  z-index: 20;
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(180, 74, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  animation: fadeIn 0.15s var(--ease-out);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* Resources tool row — parallel to .cs-option but for tool actions. */
+.sb-tab-opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--duration-fast),
+              color var(--duration-fast);
+}
+.sb-tab-opt:hover {
+  background: rgba(180, 74, 255, 0.08);
+  color: var(--text);
+}
+.sb-tab-opt-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+.sb-tab-opt-label {
+  font-weight: 600;
+}
+
+/* ─── Collapsed sidebar: icons only, popout flies right ─── */
+.sb.collapsed .sb-tabs {
   grid-template-columns: 1fr;
   gap: 4px;
+  padding: 4px 8px 10px;
 }
-.sb.collapsed .sb-tool-btn {
-  justify-content: center;
-  padding: 10px 0;
+.sb.collapsed .sb-tab-label,
+.sb.collapsed .sb-tab-arrow { display: none; }
+.sb.collapsed .sb-tab { padding: 10px 0; }
+.sb.collapsed .sb-tabs-context { display: none; }
+.sb.collapsed .sb-tab-flyout {
+  left: calc(100% + 6px);
+  right: auto;
+  top: 0;
+  width: 220px;
 }
-.sb.collapsed .sb-tool-label { display: none; }
 
 /* ─── Lock toggle (inside scroll area) ─── */
 .sb-lock-row {
