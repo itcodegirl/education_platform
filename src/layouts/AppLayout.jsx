@@ -5,7 +5,7 @@
 
 import { useCallback, useMemo, useEffect, useState } from "react";
 import { COURSES } from "../data";
-import { useTheme, useAuth, useProgress } from "../providers";
+import { useTheme, useAuth, useProgress, useCourseContent } from "../providers";
 import { useNavigation } from "../hooks/useNavigation";
 import { usePanels } from "../hooks/usePanels";
 import { useKeyboardNav } from "../hooks/useKeyboardNav";
@@ -56,6 +56,29 @@ export function AppLayout() {
     "chw-sidebar-collapsed",
     false,
   );
+
+  // Lazy-load the currently-selected course's lesson content. The
+  // CourseContentProvider caches loads and auto-fetches the default
+  // ('html') on mount — this effect keeps it in sync as the user
+  // switches courses so we don't over-fetch.
+  const {
+    setActiveCourseId,
+    isActiveCourseLoaded,
+    isCourseLoaded,
+  } = useCourseContent();
+  const activeCourseMeta = COURSES[nav.courseIdx];
+  useEffect(() => {
+    if (activeCourseMeta?.id) {
+      setActiveCourseId(activeCourseMeta.id);
+    }
+  }, [activeCourseMeta?.id, setActiveCourseId]);
+  // While the active course's modules are in flight we render a
+  // minimal skeleton instead of the lesson view. Without this gate
+  // useNavigation would briefly resolve to EMPTY_LESSON / EMPTY_MODULE
+  // and flash undefined-looking UI.
+  const activeCourseReady =
+    isActiveCourseLoaded ||
+    (activeCourseMeta?.id && isCourseLoaded(activeCourseMeta.id));
 
   const {
     course,
@@ -169,6 +192,30 @@ export function AppLayout() {
   });
 
   // ─── Render ───────────────────────────────
+  // If the active course's content hasn't finished lazy-loading,
+  // show a minimal skeleton instead of the lesson UI. This is fast
+  // (~100-300ms on a warm cache, once per course per session) and
+  // prevents the hot path from rendering empty lesson data.
+  if (!activeCourseReady) {
+    return (
+      <div className={`shell ${theme}`} data-course={activeCourseMeta?.id || 'html'}>
+        <a className="skip-link" href="#main-content">Skip to main content</a>
+        <EmailVerifyBanner />
+        <OfflineIndicator />
+        <main id="main-content" className="mn course-skeleton" aria-busy="true" aria-live="polite">
+          <div className="course-skeleton-inner">
+            <span className="course-skeleton-emoji" aria-hidden="true">
+              {activeCourseMeta?.icon || '⚡'}
+            </span>
+            <p className="course-skeleton-label">
+              Loading {activeCourseMeta?.label || 'course'}…
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className={`shell ${theme}`} data-course={course.id}>
       <a className="skip-link" href="#main-content">Skip to main content</a>

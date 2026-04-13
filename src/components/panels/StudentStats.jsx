@@ -10,8 +10,8 @@
 //   6. Activity & badges
 // ═══════════════════════════════════════════════
 
-import { useMemo, useRef } from 'react';
-import { useProgress, BADGE_DEFS } from '../../providers';
+import { useEffect, useMemo, useRef } from 'react';
+import { useProgress, BADGE_DEFS, useCourseContent } from '../../providers';
 import { COURSES } from '../../data';
 import { getLevel, getXPInLevel, XP_PER_LEVEL } from '../../utils/helpers';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
@@ -21,6 +21,9 @@ export function StudentStats({ isOpen, onClose }) {
     completed, quizScores, xpTotal, streak,
     dailyCount, earnedBadges, srCards, bookmarks, notes,
   } = useProgress();
+  // Stats roll up across every course, so load them all on mount.
+  const { ensureAllLoaded } = useCourseContent();
+  useEffect(() => { ensureAllLoaded(); }, [ensureAllLoaded]);
 
   // ─── Computed analytics ───────────────────────
   const stats = useMemo(() => {

@@ -6,6 +6,15 @@
 import { useState, useCallback, useRef } from 'react';
 import { COURSES, QUIZ_MAP } from '../data';
 
+// Safe empty shells used when a course's modules haven't loaded yet.
+// AppLayout gates the real UI behind isActiveCourseLoaded, so these
+// defaults should never actually render — they exist so that
+// useNavigation can run to completion without crashing on the very
+// first frame, before the active course has been fetched.
+const EMPTY_LESSON = { id: '', title: '', content: '', code: '' };
+const EMPTY_MODULE = { id: '', title: '', emoji: '', lessons: [EMPTY_LESSON] };
+const EMPTY_COURSE = { id: '', label: '', icon: '', accent: '', modules: [EMPTY_MODULE] };
+
 function findSavedPosition(lastPosition) {
   if (!lastPosition?.course || !lastPosition?.mod || !lastPosition?.les) {
     return null;
@@ -15,6 +24,7 @@ function findSavedPosition(lastPosition) {
   if (courseIndex === -1) return null;
 
   const course = COURSES[courseIndex];
+  if (!course.modules.length) return null; // course not loaded yet
   const moduleIndex = course.modules.findIndex((module) => lastPosition.mod.includes(module.title));
   if (moduleIndex === -1) return null;
 
@@ -35,18 +45,24 @@ export function useNavigation() {
   const [showModQuiz, setShowModQuiz] = useState(false);
   const mainRef = useRef(null);
 
-  const course = COURSES[courseIdx];
-  const modules = course.modules;
-  const mod = modules[modIdx];
-  const les = mod.lessons[lesIdx];
-  const isLastLesson = lesIdx === mod.lessons.length - 1;
-  const lessonQuiz = QUIZ_MAP.get(`l:${les.id}`);
-  const moduleQuiz = QUIZ_MAP.get(`m:${mod.id}`);
-  const lessonKey = `${course.label}|${mod.title}|${les.title}`;
+  // Defensive reads — COURSES is mutable and may temporarily have
+  // empty modules while CourseContentProvider is still fetching the
+  // active course. AppLayout's loading gate prevents these fallbacks
+  // from actually rendering, but they let this hook compute safely.
+  const course = COURSES[courseIdx] || EMPTY_COURSE;
+  const modules = course.modules?.length ? course.modules : EMPTY_COURSE.modules;
+  const mod = modules[modIdx] || EMPTY_MODULE;
+  const les = (mod.lessons && mod.lessons[lesIdx]) || EMPTY_LESSON;
+  const isLastLesson = lesIdx === (mod.lessons?.length || 1) - 1;
+  const lessonQuiz = les.id ? QUIZ_MAP.get(`l:${les.id}`) : undefined;
+  const moduleQuiz = mod.id ? QUIZ_MAP.get(`m:${mod.id}`) : undefined;
+  const lessonKey = course.label && mod.title && les.title
+    ? `${course.label}|${mod.title}|${les.title}`
+    : '';
 
-  const courseTotal = modules.reduce((s, m) => s + m.lessons.length, 0);
+  const courseTotal = modules.reduce((s, m) => s + (m.lessons?.length || 0), 0);
   const isFirst = modIdx === 0 && lesIdx === 0 && !showModQuiz;
-  const isLast = modIdx === modules.length - 1 && lesIdx === mod.lessons.length - 1 && (showModQuiz || !moduleQuiz);
+  const isLast = modIdx === modules.length - 1 && lesIdx === (mod.lessons?.length || 1) - 1 && (showModQuiz || !moduleQuiz);
 
   const scrollTop = () => {
     const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';

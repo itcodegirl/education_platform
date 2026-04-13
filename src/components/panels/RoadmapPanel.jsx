@@ -4,13 +4,20 @@
 // progress, completion status, and current position.
 // ═══════════════════════════════════════════════
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { COURSES } from '../../data';
-import { useProgress } from '../../providers';
+import { useProgress, useCourseContent } from '../../providers';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx }) {
   const { completed = [], completedSet = new Set() } = useProgress();
+  // RoadmapPanel shows every course, so trigger the full load on
+  // mount. If the user has only visited HTML so far, the other 4
+  // course chunks haven't been fetched yet and their .modules
+  // arrays are empty — without this the roadmap cards would
+  // silently show "0/0 lessons" for the unloaded courses.
+  const { ensureAllLoaded, allCoursesLoaded } = useCourseContent();
+  useEffect(() => { ensureAllLoaded(); }, [ensureAllLoaded]);
   const modalRef = useRef(null);
   useFocusTrap(modalRef, { enabled: true, onEscape: onClose });
 
@@ -33,6 +40,9 @@ export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx }) {
         </div>
 
         <div className="roadmap-body">
+          {!allCoursesLoaded && (
+            <p className="roadmap-loading" aria-live="polite">Loading roadmap…</p>
+          )}
           {COURSES.map((course, ci) => {
             const totalLessons = course.modules.reduce((s, m) => s + m.lessons.length, 0);
             const doneLessons = completed.filter((k) => k.startsWith(course.label)).length;

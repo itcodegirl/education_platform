@@ -14,8 +14,8 @@
 // Split from a single 520-LOC component per the portfolio audit.
 // ═══════════════════════════════════════════════
 
-import { useMemo, useState, lazy, Suspense } from 'react';
-import { useAuth } from '../../providers';
+import { useEffect, useMemo, useState, lazy, Suspense } from 'react';
+import { useAuth, useCourseContent } from '../../providers';
 import { useAdminData } from '../../hooks/useAdminData';
 import { COURSES } from '../../data';
 import { AdminOverviewTab } from './AdminOverviewTab';
@@ -81,6 +81,10 @@ export function AdminDashboard({ onClose }) {
   const { user } = useAuth();
   const { isAdmin, checking, data, setData, loading, loadError } = useAdminData(user);
   const [tab, setTab] = useState('overview');
+  // Admin stats span every course, so load them all on mount.
+  // Safe: if the courses are already loaded, this is a no-op.
+  const { ensureAllLoaded, allCoursesLoaded } = useCourseContent();
+  useEffect(() => { ensureAllLoaded(); }, [ensureAllLoaded]);
 
   // ─── Derived stats ─── memoized so tab switches don't recompute
   const stats = useMemo(() => {
@@ -181,7 +185,7 @@ export function AdminDashboard({ onClose }) {
           ))}
         </nav>
 
-        {loading || !stats ? (
+        {loading || !stats || !allCoursesLoaded ? (
           <div className="admin-loading">Loading data...</div>
         ) : (
           <div className="admin-content">

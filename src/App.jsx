@@ -2,7 +2,7 @@
 // APP — Providers + Routes. That's it.
 // ═══════════════════════════════════════════════
 
-import { AuthProvider, ThemeProvider, ProgressProvider } from './providers';
+import { AuthProvider, ThemeProvider, ProgressProvider, CourseContentProvider } from './providers';
 import { ToastProvider } from './components/shared/Toast';
 import { InstallPrompt } from './components/shared/InstallPrompt';
 import AppRoutes from './routes/AppRoutes';
@@ -13,10 +13,12 @@ export default function App() {
     <AuthProvider>
       <ThemeProvider>
         <ProgressProvider>
-          <ToastProvider>
-            <InstallPrompt />
-            <AppRoutes />
-          </ToastProvider>
+          <CourseContentProvider>
+            <ToastProvider>
+              <InstallPrompt />
+              <AppRoutes />
+            </ToastProvider>
+          </CourseContentProvider>
         </ProgressProvider>
       </ThemeProvider>
     </AuthProvider>

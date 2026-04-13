@@ -49,17 +49,20 @@ export default defineConfig({
           // if (id.includes('node_modules/jspdf')) return 'vendor-jspdf';
           // if (id.includes('node_modules/html2canvas')) return 'vendor-html2canvas';
 
-          // Per-course content. These are still in the static graph
-          // today (src/data/index.js imports all 5 courses eagerly),
-          // so they will still be preloaded. A follow-up will convert
-          // them to dynamic imports; when that happens the data-*
-          // chunks will naturally fall out of the preload list.
+          // Per-course content. src/data/loaders.js dynamically
+          // imports each course's course.js + quizzes.js + challenges.js,
+          // so these chunks are naturally lazy and NOT preloaded.
+          // Naming them keeps the build output readable for audit.
           if (id.includes('/src/data/html/')) return 'data-html';
           if (id.includes('/src/data/css/')) return 'data-css';
           if (id.includes('/src/data/js/')) return 'data-js';
           if (id.includes('/src/data/react/')) return 'data-react';
           if (id.includes('/src/data/python/')) return 'data-python';
-          if (id.includes('/src/data/reference/')) return 'data-reference';
+          // NOTE: data-reference is intentionally NOT assigned to a
+          // named chunk. Each reference file (cheatsheets, glossary,
+          // projects) is imported by exactly one lazy panel chunk,
+          // so Vite can inline it into the owning panel and avoid
+          // a shared chunk that gets auto-preloaded.
 
           return undefined; // let Vite decide for everything else
         },

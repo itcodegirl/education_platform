@@ -1,5 +1,5 @@
-import { useRef } from 'react';
-import { useProgress } from '../../providers';
+import { useEffect, useRef } from 'react';
+import { useProgress, useCourseContent } from '../../providers';
 import { COURSES } from '../../data';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
@@ -12,6 +12,13 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
   const { bookmarks, toggleBookmark } = useProgress();
   const modalRef = useRef(null);
   useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
+  // Bookmarks can point to any course. Trigger a full load so that
+  // when the user clicks one, handleClick below can resolve the
+  // moduleIndex + lessonIndex synchronously.
+  const { ensureAllLoaded } = useCourseContent();
+  useEffect(() => {
+    if (isOpen) ensureAllLoaded();
+  }, [isOpen, ensureAllLoaded]);
   if (!isOpen) return null;
 
   const handleClick = (bookmark) => {

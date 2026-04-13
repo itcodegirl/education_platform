@@ -4,16 +4,32 @@
 // before signing up. No auth required.
 // ═══════════════════════════════════════════════
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { COURSES } from '../../data';
+import { useCourseContent } from '../../providers';
 import { renderMarkdown } from '../../utils/markdown';
 import { CodePreview } from '../learning/CodePreview';
 
 export function GuestPreview({ onBack }) {
-  const course = COURSES[0]; // HTML
-  const firstModule = course.modules[0];
-  const firstLesson = firstModule.lessons[0];
+  // HTML is lazy-loaded. CourseContentProvider auto-fetches the
+  // default active course on mount, so this is usually a no-op by
+  // the time a guest clicks "preview a lesson" — but we still show
+  // a skeleton for the split-second before the fetch resolves.
+  const { ensureLoaded, isCourseLoaded } = useCourseContent();
+  useEffect(() => { ensureLoaded('html'); }, [ensureLoaded]);
+  const htmlReady = isCourseLoaded('html');
+  const course = COURSES[0];
+  const firstModule = htmlReady ? course.modules[0] : null;
+  const firstLesson = firstModule?.lessons?.[0] || null;
   const [showSignup, setShowSignup] = useState(false);
+
+  if (!htmlReady || !firstLesson) {
+    return (
+      <div className="guest-preview guest-preview-loading" aria-busy="true">
+        <p>Loading preview…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="guest-preview">

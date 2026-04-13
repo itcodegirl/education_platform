@@ -58,6 +58,31 @@
     transparent;
   padding-bottom: 120px;
 }
+
+/* Course skeleton — shown while a lazy-loaded course is still
+   in flight. Intentionally lightweight (no animation frames,
+   no keyframes) so the skeleton itself can't add to TBT. */
+.course-skeleton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+}
+.course-skeleton-inner { text-align: center; }
+.course-skeleton-emoji {
+  display: block;
+  font-size: clamp(48px, 8vw, 72px);
+  margin-bottom: 18px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.course-skeleton-label {
+  color: var(--text-dim);
+  font-size: 15px;
+  letter-spacing: 0.5px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .course-skeleton-emoji { animation: none; }
+}
 .topbar {
   position: sticky; top: 0; z-index: 50;
   padding: 14px 24px;

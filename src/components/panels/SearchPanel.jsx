@@ -2,15 +2,33 @@
 // SEARCH PANEL - Cross-course search (Cmd/Ctrl+K)
 // ===============================================
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { buildSearchIndex } from "../../data/reference/search-index";
-
-const searchIndex = buildSearchIndex();
+import { useCourseContent } from "../../providers";
 
 export function SearchPanel({ isOpen, onClose, onNavigate }) {
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef(null);
+
+  // Previously the search index was computed at module init time
+  // (`const searchIndex = buildSearchIndex();` at the top of the file),
+  // which froze the index with whatever COURSES contained the moment
+  // this chunk loaded — typically just the active course. Now that
+  // courses are lazy-loaded, we build the index inside a useMemo
+  // keyed on how many courses are loaded, and we trigger the rest to
+  // load on mount. The search works immediately for the active
+  // course and expands as the others stream in.
+  const { ensureAllLoaded, loadedCourseIds, allCoursesLoaded } = useCourseContent();
+  useEffect(() => { ensureAllLoaded(); }, [ensureAllLoaded]);
+  // `loadedCourseIds` is a stable Set reference that changes identity
+  // when new courses load, so useMemo will rebuild the index as each
+  // new course chunk arrives.
+  const searchIndex = useMemo(
+    () => buildSearchIndex(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [loadedCourseIds],
+  );
 
   useEffect(() => {
     if (isOpen) {

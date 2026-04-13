@@ -1,30 +1,38 @@
 // ═══════════════════════════════════════════════
-// COURSE INDEX — Assembles all courses + quizzes
+// DATA INDEX — Public API for course data
+//
+// COURSES and QUIZ_MAP are now MUTABLE, lazy-filled containers.
+// They start with metadata only (empty modules, empty map) and get
+// populated by CourseContentProvider as courses are loaded on
+// demand. That's how we keep ~900 KB of course content out of the
+// initial module preload list.
+//
+// Important: components that read COURSES or QUIZ_MAP at module
+// init time (or in the body of a static import) will see the EMPTY
+// state. Only components that read them from a live render (after
+// CourseContentProvider has loaded the active course) see populated
+// data. The provider triggers a re-render when new data lands, so
+// React's natural reactivity handles the update.
+//
+// If you need a guaranteed-loaded set of courses (e.g. search,
+// roadmap, admin dashboard), call ensureAllLoaded() from the
+// useCourseContent() hook before rendering.
 // ═══════════════════════════════════════════════
 
-import { HTML_MODULES } from './html/course';
-import { CSS_MODULES } from './css/course';
-import { JS_MODULES } from './js/course';
-import { REACT_MODULES } from './react/course';
-import { PYTHON_MODULES } from './python/course';
+import { COURSE_METADATA } from './metadata';
 
-export const COURSES = [
-  { id: 'html',   label: 'HTML',   icon: '🧱', accent: '#ff6b9d', modules: HTML_MODULES },
-  { id: 'css',    label: 'CSS',    icon: '🎨', accent: '#4ecdc4', modules: CSS_MODULES },
-  { id: 'js',     label: 'JS',     icon: '⚡', accent: '#ffa726', modules: JS_MODULES },
-  { id: 'react',  label: 'React',  icon: '⚛️', accent: '#a78bfa', modules: REACT_MODULES },
-  { id: 'python', label: 'Python', icon: '🐍', accent: '#3b82f6', modules: PYTHON_MODULES },
-];
+export { COURSE_METADATA } from './metadata';
+export { loadCourse, COURSE_LOADER_IDS } from './loaders';
 
-// Per-course quiz imports
-import { HTML_QUIZZES } from './html/quizzes';
-import { CSS_QUIZZES } from './css/quizzes';
-import { JS_QUIZZES } from './js/quizzes';
-import { REACT_QUIZZES } from './react/quizzes';
-import { PYTHON_QUIZZES } from './python/quizzes';
+// Mutable! CourseContentProvider writes to `modules` as courses load.
+// Components should prefer reading via useCourseContent() so React
+// re-renders them when new data arrives.
+export const COURSES = COURSE_METADATA.map((m) => ({
+  ...m,
+  modules: [],
+}));
 
+// Mutable map of lessonId/moduleId -> quiz. Starts empty, filled by
+// the provider as courses load. Safe to read in a render because the
+// provider triggers re-renders when it mutates.
 export const QUIZ_MAP = new Map();
-[...HTML_QUIZZES, ...CSS_QUIZZES, ...JS_QUIZZES, ...REACT_QUIZZES, ...PYTHON_QUIZZES].forEach((q) => {
-  if (q.lessonId) QUIZ_MAP.set(`l:${q.lessonId}`, q);
-  if (q.moduleId) QUIZ_MAP.set(`m:${q.moduleId}`, q);
-});

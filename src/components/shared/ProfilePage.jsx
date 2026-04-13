@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════
 
 import { memo, useEffect, useState } from 'react';
-import { useAuth, useProgress, useTheme } from '../../providers';
+import { useAuth, useProgress, useTheme, useCourseContent } from '../../providers';
 import { COURSES } from '../../data';
 import { BADGE_DEFS } from '../../context/ProgressContext';
 import { getLevel, getXPInLevel, XP_PER_LEVEL } from '../../utils/helpers';
@@ -16,6 +16,9 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
     completed = [], xpTotal = 0, streak = 0,
     earnedBadges = {}, bookmarks = [], notes = {},
   } = useProgress();
+  // Profile stats roll up across every course — load them all.
+  const { ensureAllLoaded } = useCourseContent();
+  useEffect(() => { ensureAllLoaded(); }, [ensureAllLoaded]);
 
   // ─── Public profile toggle ────────────────
   // Loads straight from the profiles row so we don't block on a
