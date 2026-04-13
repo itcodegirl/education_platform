@@ -16,7 +16,14 @@ export class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('CodeHerWay Error:', error, errorInfo);
+    // In dev, log the full error to the console so the developer sees
+    // the stack trace immediately. In production, we don't want to
+    // pollute the user's devtools (and a real deployment should wire
+    // this to Sentry / LogRocket / similar — tracked in the roadmap).
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.error('CodeHerWay render error:', error, errorInfo);
+    }
   }
 
   handleRetry = () => {

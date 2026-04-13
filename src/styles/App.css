@@ -2584,6 +2584,38 @@ img {
   background: #10b981; color: #fff;
   animation: slideDown 0.3s var(--ease-out), fadeOut 0.5s 2.5s forwards;
 }
+/* Sync-failed state — writes to Supabase silently failed. Amber
+   warning, not red (user's local state is still correct — it's a
+   "heads up" not a "disaster"). Two action buttons: Retry (does a
+   full retryLoad) and Dismiss (clears the counter). */
+.offline-banner.is-sync-failed {
+  background: #f59e0b; color: #1a1a2e;
+  animation: slideDown 0.3s var(--ease-out);
+}
+.offline-retry,
+.offline-dismiss {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+.offline-retry {
+  background: rgba(0, 0, 0, 0.85);
+  color: #f59e0b;
+  border: 1px solid rgba(0, 0, 0, 0.9);
+}
+.offline-retry:hover { transform: translateY(-1px); background: #000; }
+.offline-dismiss {
+  background: transparent;
+  color: #1a1a2e;
+  border: 1px solid rgba(26, 26, 46, 0.3);
+  padding: 4px 8px;
+}
+.offline-dismiss:hover { background: rgba(0, 0, 0, 0.1); }
 .offline-icon { font-size: 16px; flex-shrink: 0; }
 .offline-text { flex: 1; }
 
