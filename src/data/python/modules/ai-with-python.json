@@ -1,0 +1,86 @@
+{
+  "id": 504,
+  "emoji": "🤖",
+  "title": "AI with Python",
+  "tagline": "Connect to GPT, build chatbots, and add intelligence to your code.",
+  "difficulty": "advanced",
+  "lessons": [
+    {
+      "id": "py-4-1",
+      "title": "Make Your First AI API Call",
+      "prereqs": ["py-3-1"],
+      "difficulty": "advanced",
+      "duration": "35 min",
+      "metadata": { "estimatedTime": 35, "difficulty": "advanced", "conceptsCount": 6, "tasksCount": 5 },
+      "hook": {
+        "accomplishments": [
+          "Connect to OpenAI's GPT API",
+          "Generate AI-powered text responses",
+          "Build a working chatbot in Python",
+          "Understand prompts, completions, and tokens",
+          "Create an AI assistant that answers questions"
+        ]
+      },
+      "do": {
+        "title": "Set up OpenAI and make your first AI call",
+        "steps": [
+          "Install OpenAI library: pip install openai",
+          "Get API key from platform.openai.com/api-keys",
+          "Create file: ai_practice.py",
+          "Copy the code below",
+          "Run it — you just talked to an AI!"
+        ],
+        "code": "from openai import OpenAI\n\nclient = OpenAI()  # Uses OPENAI_API_KEY env var\n\nresponse = client.chat.completions.create(\n    model=\"gpt-3.5-turbo\",\n    messages=[\n        {\"role\": \"user\", \"content\": \"Say hello and introduce yourself in one sentence.\"}\n    ]\n)\n\nai_message = response.choices[0].message.content\nprint(\"AI Response:\", ai_message)\nprint(\"\\nYour first AI API call worked!\")",
+        "result": "You just talked to an AI! The model read your message and generated a unique response.",
+        "proofRequired": "your terminal showing a successful AI response"
+      },
+      "understand": {
+        "concepts": [
+          { "name": "Large Language Models (LLMs)", "definition": "AI models trained on massive text to understand and generate human-like responses. GPT-4, Claude, Gemini, Llama are all LLMs.", "analogy": "A student who has read every book in every library. They can discuss any topic because they've seen so much text." },
+          { "name": "Prompts", "definition": "The instructions you give the AI. Better prompts = better responses. Types: direct questions, instructions, role-based ('You are a tutor'), few-shot (examples).", "analogy": "Ordering at a restaurant. 'Give me food' gets you something random. 'I want a medium-rare ribeye with mashed potatoes' gets exactly what you want." },
+          { "name": "Tokens", "definition": "Pieces of text the AI reads and generates. ~4 characters = 1 token. 1000 tokens ≈ 750 words. You pay per token.", "analogy": "Like phone minutes. Each word costs a tiny amount. More words = higher bill." },
+          { "name": "Chat Message Format", "definition": "Messages are a list of {role, content} objects. Roles: 'system' (sets behavior), 'user' (your messages), 'assistant' (AI responses). History enables conversation memory.", "analogy": "A script for a play. Each line has a character (role) and their dialogue (content)." },
+          { "name": "Temperature", "definition": "Controls randomness (0.0-2.0). Low (0.1) = focused, deterministic. High (1.5) = creative, varied. Default 0.7 is a good balance.", "analogy": "A creativity dial. Turn it down for math answers, turn it up for poetry." },
+          { "name": "System Prompts", "definition": "The 'system' role message that shapes AI personality and behavior. 'You are a Python tutor' vs 'You are a pirate' produces completely different responses.", "analogy": "Giving an actor their character description before the scene. Same script, different performance." }
+        ],
+        "keyTakeaway": "AI APIs let you add intelligence to any application. System prompts control behavior, messages enable conversation, tokens determine cost."
+      },
+      "build": {
+        "goal": "Build a chatbot with conversation memory and custom personality",
+        "codeComparison": {
+          "old": "response = client.chat.completions.create(\n    model=\"gpt-3.5-turbo\",\n    messages=[{\"role\": \"user\", \"content\": \"Hello\"}]\n)",
+          "new": "messages = [\n    {\"role\": \"system\", \"content\": \"You are a friendly Python tutor.\"}\n]\n\nwhile True:\n    user_input = input(\"You: \")\n    if user_input == 'quit': break\n    messages.append({\"role\": \"user\", \"content\": user_input})\n    \n    response = client.chat.completions.create(\n        model=\"gpt-3.5-turbo\",\n        messages=messages\n    )\n    ai_reply = response.choices[0].message.content\n    messages.append({\"role\": \"assistant\", \"content\": ai_reply})\n    print(f\"AI: {ai_reply}\")"
+        },
+        "hint": "The key to conversation memory: keep ALL messages in the list. Each new message adds to the history."
+      },
+      "challenge": {
+        "title": "Build an AI-Powered Study Assistant",
+        "mission": "Create a smart study tool that explains topics, generates quizzes, and grades answers.",
+        "requirements": [
+          "Explain any topic in simple terms",
+          "Generate practice questions on demand",
+          "Quiz the user and grade their answers",
+          "Save conversation history to JSON file",
+          "Track token usage and estimated costs",
+          "Allow switching between topics"
+        ],
+        "starterCode": "from openai import OpenAI\nimport json\n\nclient = OpenAI()\n\nclass StudyAssistant:\n    def __init__(self):\n        self.messages = []\n        self.total_tokens = 0\n    \n    def explain_topic(self, topic):\n        pass  # Generate simple explanation\n    \n    def generate_quiz(self, topic, num_questions):\n        pass  # Create practice questions\n    \n    def grade_answer(self, question, user_answer):\n        pass  # Evaluate response\n    \n    def save_session(self):\n        pass  # Save to JSON\n    \n    def run(self):\n        pass  # Main loop",
+        "bonusChallenge": "Add flashcard generation, difficulty levels, and learning progress tracking."
+      },
+      "summary": {
+        "capabilities": [
+          "Connect to OpenAI's GPT API",
+          "Generate AI text responses",
+          "Build conversational AI with memory",
+          "Control AI behavior with system prompts",
+          "Track token usage and costs",
+          "Create practical AI tools"
+        ]
+      },
+      "bridge": {
+        "preview": "Next: Build AI-Powered Tools — summarizers, translators, content generators, and more."
+      },
+      "devFession": "I spent $47 on OpenAI tokens in one day because I forgot to set max_tokens and my loop kept running. Always set limits. Always check your usage dashboard."
+    }
+  ]
+}

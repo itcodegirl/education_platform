@@ -14,9 +14,11 @@
 import pythonFoundations from './modules/python-foundations.json';
 import workingWithData from './modules/working-with-data.json';
 import apisAndAutomation from './modules/apis-and-automation.json';
+import aiWithPython from './modules/ai-with-python.json';
 
 export const PYTHON_MODULES = [
   pythonFoundations,
   workingWithData,
   apisAndAutomation,
+  aiWithPython,
 ];
