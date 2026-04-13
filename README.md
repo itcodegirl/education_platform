@@ -196,9 +196,21 @@ security improvements. CI must pass (`ci-smoke`, `security-audit`).
 For security issues, **do not open a public issue** — see
 [`SECURITY.md`](./SECURITY.md).
 
+## Design system preview
+
+Every color, spacing value, type size, radius, and motion curve lives
+in [`src/styles/tokens.css`](./src/styles/tokens.css). Preview them
+live at `#styleguide` — the page is public (no auth required) and
+intended to be linkable during design review:
+
+```
+http://localhost:5173/#styleguide
+https://mellow-sunflower-9c92cd.netlify.app/#styleguide
+```
+
 ## License
 
-MIT — see [`LICENSE`](./LICENSE) (coming soon).
+MIT — see [`LICENSE`](./LICENSE).
 
 ---
 

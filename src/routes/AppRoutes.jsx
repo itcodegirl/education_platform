@@ -17,11 +17,33 @@ const AdminDashboard = lazy(() =>
 const ProfilePage = lazy(() =>
   import('../components/shared/ProfilePage').then(m => ({ default: m.ProfilePage }))
 );
+// Styleguide is public (no auth required) and lazy — design review only.
+const Styleguide = lazy(() =>
+  import('../components/shared/Styleguide').then(m => ({ default: m.Styleguide }))
+);
 
 export default function AppRoutes() {
   const { theme } = useTheme();
   const { user, profile, loading: authLoading, signOut } = useAuth();
   const { dataLoaded, loadError, retryLoad } = useProgress();
+
+  // ─── Styleguide route (public, no auth) ───
+  // Deliberately checked before authLoading so anyone can preview the
+  // design system — useful for code review, design handoff, and as a
+  // portfolio artifact.
+  if (typeof window !== 'undefined' && window.location.hash === '#styleguide') {
+    return (
+      <div className={theme}>
+        <Suspense fallback={
+          <div className="loading-screen">
+            <div className="loading-pulse"><Logo size="sm" /><p>Loading styleguide...</p></div>
+          </div>
+        }>
+          <Styleguide onClose={() => { window.location.hash = ''; window.location.reload(); }} />
+        </Suspense>
+      </div>
+    );
+  }
 
   // ─── Loading (auth check in progress) ─────
   if (authLoading) {

@@ -33,82 +33,10 @@
 /* Brand fonts: Inter (clarity) + Poppins (warmth) — per platform_design.docx */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap');
 
-:root {
-  /* ── Brand Palette (from platform_design.docx) ── */
-  /* Dark Indigo base — deep navy-purple, not pure black */
-  --bg-deep: #0d0d1a;
-  --bg-dark: #12122a;
-  --bg-card: #181836;
-  --bg-surface: #1e1e40;
-  --border: #2d2d5e;
-  --border-bright: #3e3e7a;
-
-  /* Text */
-  --text: #e8e8f0;
-  --text-dim: #9090b8;
-  --text-muted: #7070a0;
-
-  /* Brand accents — purple-pink gradient + bright cyan */
-  --pink: #e040a0;
-  --pink-dim: #e040a040;
-  --pink-glow: #e040a020;
-  --cyan: #00e5ff;
-  --cyan-dim: #00e5ff30;
-  --purple: #b44aff;
-  --purple-dim: #b44aff30;
-  --amber: #ffa726;
-  --amber-dim: #ffa72630;
-  --red: #ff5c7c;
-
-  /* Brand gradients */
-  --grad-brand: linear-gradient(135deg, #b44aff 0%, #e040a0 50%, #ff6b9d 100%);
-  --grad-neon: linear-gradient(135deg, #b44aff, #00e5ff);
-  --grad-warm: linear-gradient(135deg, #e040a0, #ff6b9d);
-  --grad-glow: linear-gradient(135deg, rgba(180,74,255,0.15), rgba(224,64,160,0.1));
-
-  /* Spacing scale (8pt grid — per brand doc) */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 16px;
-  --space-4: 24px;
-  --space-5: 32px;
-  --space-6: 40px;
-  --space-7: 48px;
-  --space-8: 56px;
-  --space-9: 64px;
-  --space-10: 80px;
-
-  /* Type scale — fluid with clamp() */
-  --text-xs: 11px;
-  --text-sm: 13px;
-  --text-base: clamp(14px, 0.875rem + 0.15vw, 15px);
-  --text-md: clamp(15px, 0.9rem + 0.2vw, 16px);
-  --text-lg: clamp(16px, 1rem + 0.25vw, 18px);
-  --text-xl: clamp(19px, 1.1rem + 0.4vw, 22px);
-  --text-2xl: clamp(22px, 1.25rem + 0.75vw, 28px);
-  --text-3xl: clamp(26px, 1.5rem + 1.2vw, 36px);
-
-  /* Radius */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-full: 9999px;
-
-  /* Transitions */
-  --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --duration-fast: 0.15s;
-  --duration-normal: 0.25s;
-  --duration-slow: 0.35s;
-
-  /* Layout */
-  --sb-width: 320px;
-  --sb-width-collapsed: 88px;
-  --content-max: 920px;
-  --shell-max: 1180px;
-  --topbar-height: 52px;
-}
+/* Design tokens — colors, spacing, type, radii, motion, layout.
+   Extracted so the styleguide page (and any new module) can consume
+   them without dragging in this 5k-line file. */
+@import './tokens.css';
 
 /* ─── 2. Reset & Base ──────────────────────────── */
 * { margin: 0; padding: 0; box-sizing: border-box; }
