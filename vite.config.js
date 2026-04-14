@@ -2,8 +2,34 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
+// ─── Async CSS plugin ────────────────────────────────
+// Converts the bundled <link rel="stylesheet"> tag into an async
+// preload pattern so the 174KB CSS bundle stops blocking first paint.
+// Critical above-the-fold CSS (body bg, loading screen) is already
+// inlined in index.html, so the preloaded stylesheet swaps in once
+// the app mounts — invisible to the user.
+//
+// Pattern: <link rel="preload" as="style" onload="this.rel='stylesheet'">
+//          + <noscript> fallback for JS-disabled browsers.
+// Runs in post order so Vite's own asset injection happens first.
+const asyncCss = {
+  name: 'async-css',
+  apply: 'build',
+  transformIndexHtml: {
+    order: 'post',
+    handler(html) {
+      return html.replace(
+        /<link rel="stylesheet"([^>]*?)href="([^"]+)"([^>]*)>/g,
+        (_match, before, href, after) =>
+          `<link rel="preload" as="style"${before}href="${href}"${after} onload="this.onload=null;this.rel='stylesheet'">` +
+          `<noscript><link rel="stylesheet"${before}href="${href}"${after}></noscript>`,
+      );
+    },
+  },
+};
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), asyncCss],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
