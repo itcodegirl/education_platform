@@ -69,47 +69,51 @@ export const Sidebar = memo(function Sidebar({
   // Sync expanded module when active module changes
   useEffect(() => { setExpandedMod(modIdx); }, [modIdx]);
 
-  const openPopout = useCallback((which) => {
-    setActivePopout((prev) => {
-      const next = prev === which ? null : which;
-      if (next && tabsRef.current) {
-        const rect = tabsRef.current.getBoundingClientRect();
-        // Popout width matches .sb-tab-flyout in CSS (~240px). We try to
-        // place it to the RIGHT of the tab bar so it flies out of the
-        // sidebar. If that would overflow the viewport (narrow windows,
-        // mobile drawer) OR if the tab bar itself is still animating
-        // in from off-screen-left (drawer mid-transition), flip it
-        // BELOW the tab bar instead, clamped to the viewport on both
-        // sides so it stays fully visible.
-        const POPOUT_WIDTH = 240;
-        const PADDING = 8;
-        const vw = window.innerWidth;
-        const wantLeft = rect.right + PADDING;
-        const fitsRight =
-          wantLeft >= PADDING &&
-          wantLeft + POPOUT_WIDTH <= vw - PADDING;
-        // Clamp the flipped-below left position so the popout is never
-        // off-screen on either edge, even if rect.left is negative
-        // (sidebar still transitioning in from translateX(-100%)).
-        const belowLeft = Math.max(
-          PADDING,
-          Math.min(rect.left, vw - POPOUT_WIDTH - PADDING),
-        );
-        setPopoutPos(
-          fitsRight
-            ? { top: rect.top, left: wantLeft }
-            : { top: rect.bottom + PADDING, left: belowLeft },
-        );
-      } else {
-        setPopoutPos(null);
-      }
-      return next;
-    });
+  // Shared position calculator so the same logic runs on initial open
+  // and on every window resize. Returns null if the tab bar ref isn't
+  // mounted yet (shouldn't happen once the sidebar is rendered).
+  //
+  // Popout width matches .sb-tab-flyout in CSS (~240px). We try to
+  // place it to the RIGHT of the tab bar so it flies out of the
+  // sidebar. If that would overflow the viewport (narrow windows,
+  // mobile drawer) OR if the tab bar itself is still animating in
+  // from off-screen-left (drawer mid-transition), flip it BELOW the
+  // tab bar instead, clamped to the viewport on both sides so it
+  // stays fully visible.
+  const computePopoutPos = useCallback(() => {
+    if (!tabsRef.current) return null;
+    const rect = tabsRef.current.getBoundingClientRect();
+    const POPOUT_WIDTH = 240;
+    const PADDING = 8;
+    const vw = window.innerWidth;
+    const wantLeft = rect.right + PADDING;
+    const fitsRight =
+      wantLeft >= PADDING &&
+      wantLeft + POPOUT_WIDTH <= vw - PADDING;
+    const belowLeft = Math.max(
+      PADDING,
+      Math.min(rect.left, vw - POPOUT_WIDTH - PADDING),
+    );
+    return fitsRight
+      ? { top: rect.top, left: wantLeft }
+      : { top: rect.bottom + PADDING, left: belowLeft };
   }, []);
 
-  // Close the active popout on click-outside, Escape, or window resize.
-  // Click-outside checks BOTH the tab bar (so you can click a tab again
-  // to toggle off) AND the popout card (so clicks inside don't close it).
+  const openPopout = useCallback(
+    (which) => {
+      setActivePopout((prev) => {
+        const next = prev === which ? null : which;
+        setPopoutPos(next ? computePopoutPos() : null);
+        return next;
+      });
+    },
+    [computePopoutPos],
+  );
+
+  // While a popout is active, close it on click-outside or Escape,
+  // and REPOSITION (not close) it on window resize so users who
+  // drag the browser edge to test responsiveness don't see the
+  // popout disappear on the first resize event.
   useEffect(() => {
     if (!activePopout) return undefined;
     const handlePointerDown = (e) => {
@@ -127,8 +131,14 @@ export const Sidebar = memo(function Sidebar({
       }
     };
     const handleResize = () => {
-      setActivePopout(null);
-      setPopoutPos(null);
+      // Recompute instead of close. If the tab bar is no longer in
+      // the DOM (hot-reload edge case), fall back to closing.
+      const nextPos = computePopoutPos();
+      if (nextPos) setPopoutPos(nextPos);
+      else {
+        setActivePopout(null);
+        setPopoutPos(null);
+      }
     };
     document.addEventListener('pointerdown', handlePointerDown);
     document.addEventListener('keydown', handleEscape);
@@ -138,7 +148,7 @@ export const Sidebar = memo(function Sidebar({
       document.removeEventListener('keydown', handleEscape);
       window.removeEventListener('resize', handleResize);
     };
-  }, [activePopout]);
+  }, [activePopout, computePopoutPos]);
 
   const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Coder';
   const userInitial = displayName.trim().charAt(0).toUpperCase() || 'C';
