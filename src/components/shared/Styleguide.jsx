@@ -86,7 +86,13 @@ export function Styleguide({ onClose }) {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        // `dvh` handles mobile browser chrome better than `vh`. All
+        // evergreen browsers support it (Safari 15.4+, Chrome 108+,
+        // Firefox 101+). The duplicate `minHeight: '100vh'` fallback
+        // that used to sit here was silently overwritten by this line
+        // in the JS object anyway — in a React style={} object, the
+        // second key just wins, so the fallback was dead code that
+        // also tripped an esbuild duplicate-key warning on every build.
         minHeight: '100dvh',
         background: 'var(--bg-deep)',
         color: 'var(--text)',
