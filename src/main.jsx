@@ -19,6 +19,19 @@ import '@fontsource/poppins/800.css';
 import '@fontsource/space-mono/400.css';
 import '@fontsource/space-mono/700.css';
 
+// ─── Monaco editor loader ──────────────────────
+// Must run before any component mounts a Monaco editor. Configures
+// @monaco-editor/react to use our Vite-bundled, minimal Monaco build
+// instead of fetching monaco-editor from cdn.jsdelivr.net at runtime
+// (which the CSP `script-src 'self'` blocks).
+import './lib/monacoLoader';
+
+// ─── Service worker registration ───────────────
+// Moved out of an inline <script> in index.html because the strict
+// CSP blocks inline-script execution. Importing from a module works
+// because Vite serves it from our own origin, matching 'self'.
+import './lib/registerSW';
+
 import App from './App';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 

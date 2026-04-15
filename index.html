@@ -91,48 +91,11 @@
   <body>
     <div id="root"></div>
     <div id="modal-root"></div>
+    <!-- Main app entry. SW registration is imported from
+         src/lib/registerSW.js inside main.jsx, so it's served from
+         our own origin and passes the strict CSP `script-src 'self'`.
+         The old inline SW registration was blocked on every page
+         load, which also prevented SW updates from taking effect. -->
     <script type="module" src="/src/main.jsx"></script>
-    <script>
-      // Register the PWA service worker and auto-refresh once when a new one takes over.
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', async () => {
-          let refreshing = false;
-
-          navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (refreshing) return;
-            refreshing = true;
-            window.location.reload();
-          });
-
-          try {
-            const reg = await navigator.serviceWorker.register('/sw.js', {
-              updateViaCache: 'none',
-            });
-
-            console.log('SW registered:', reg.scope);
-            reg.update().catch((err) => {
-              console.log('SW update skipped:', err);
-            });
-
-            if (reg.waiting) {
-              reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-            }
-
-            reg.addEventListener('updatefound', () => {
-              const worker = reg.installing;
-              if (!worker) return;
-
-              worker.addEventListener('statechange', () => {
-                if (worker.state === 'installed' && navigator.serviceWorker.controller) {
-                  worker.postMessage({ type: 'SKIP_WAITING' });
-                }
-              });
-            });
-          } catch (err) {
-            console.log('SW registration failed:', err);
-          }
-        });
-      }
-    </script>
   </body>
 </html>
