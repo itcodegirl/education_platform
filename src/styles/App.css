@@ -105,7 +105,14 @@
   gap: 10px;
 }
 .ham {
-  display: none;
+  /* No `display` here on purpose — the two breakpoint media queries
+     (responsive.css `@media (max-width: 900px)` sets `display: block`,
+     and App.css EOF `@media (min-width: 901px)` sets `display: inline-flex`)
+     together cover every viewport. A default `display: none` used to
+     live here, but because App.css is loaded AFTER responsive.css, the
+     unconditional `none` won the cascade on mobile and made the
+     hamburger invisible on narrow screens — so the drawer couldn't
+     be opened at all. */
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.08);
   color: var(--text);

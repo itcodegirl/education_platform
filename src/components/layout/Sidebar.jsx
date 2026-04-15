@@ -77,16 +77,28 @@ export const Sidebar = memo(function Sidebar({
         // Popout width matches .sb-tab-flyout in CSS (~240px). We try to
         // place it to the RIGHT of the tab bar so it flies out of the
         // sidebar. If that would overflow the viewport (narrow windows,
-        // mobile drawer), flip it BELOW the tab bar instead — clamped
-        // to the sidebar's left edge so it stays fully visible.
+        // mobile drawer) OR if the tab bar itself is still animating
+        // in from off-screen-left (drawer mid-transition), flip it
+        // BELOW the tab bar instead, clamped to the viewport on both
+        // sides so it stays fully visible.
         const POPOUT_WIDTH = 240;
         const PADDING = 8;
+        const vw = window.innerWidth;
         const wantLeft = rect.right + PADDING;
-        const fitsRight = wantLeft + POPOUT_WIDTH <= window.innerWidth - PADDING;
+        const fitsRight =
+          wantLeft >= PADDING &&
+          wantLeft + POPOUT_WIDTH <= vw - PADDING;
+        // Clamp the flipped-below left position so the popout is never
+        // off-screen on either edge, even if rect.left is negative
+        // (sidebar still transitioning in from translateX(-100%)).
+        const belowLeft = Math.max(
+          PADDING,
+          Math.min(rect.left, vw - POPOUT_WIDTH - PADDING),
+        );
         setPopoutPos(
           fitsRight
             ? { top: rect.top, left: wantLeft }
-            : { top: rect.bottom + PADDING, left: Math.max(PADDING, rect.left) },
+            : { top: rect.bottom + PADDING, left: belowLeft },
         );
       } else {
         setPopoutPos(null);
