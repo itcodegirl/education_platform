@@ -89,7 +89,7 @@ export function AuthPage({ onPreview }) {
         <div className="auth-card" ref={authCardRef}>
           <div className="auth-brand">
             <span className="auth-bolt" aria-hidden="true">⚡</span>
-            <p className="auth-title">CodeHerWay</p>
+            <h2 className="auth-title">CodeHerWay</h2>
             <p className="auth-sub">Learn. Build. Ship.</p>
           </div>
 

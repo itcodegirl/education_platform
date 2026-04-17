@@ -11,7 +11,7 @@ If you believe you've found a security issue, **please do not open a
 public GitHub issue**. Instead, email the maintainer privately at the
 address listed on the profile page of
 [@itcodegirl](https://github.com/itcodegirl), or open a
-[private security advisory](https://github.com/itcodegirl/education_platform/security/advisories/new)
+[private security advisory](https://github.com/itcodegirl/codeherway-platform/security/advisories/new)
 on this repository.
 
 Please include:

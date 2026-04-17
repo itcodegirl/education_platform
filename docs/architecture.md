@@ -269,7 +269,107 @@ Preview every token live at **`/#styleguide`**.
 
 ---
 
-## 6. Chunking strategy
+## 6. Consolidation References
+
+The notes below document approved reference-only materials used during
+the repo consolidation. They are here to preserve decision context,
+not to authorize additional migration scope.
+
+### 6.1. Route Architecture References
+
+Reference-only page inventory from
+`codeherway-education-platform/src/pages/...` helped clarify the
+desired route separation:
+
+- Public entry surfaces:
+  `landingPage.jsx`, `loginPage.jsx`, `signupPage.jsx`
+- Authenticated app surfaces:
+  `dashboardPage.jsx`, `profilePage.jsx`, `settingsPage.jsx`
+- Admin surface:
+  `adminPage.jsx`
+
+What was useful:
+
+- The scaffold repo made the public/app/admin split explicit.
+- The public pages reinforced that landing and auth belong to the
+  public side of the router, even when they share a shell.
+- The app pages reinforced that profile/settings are authenticated
+  route concerns, separate from the learning shell itself.
+- The admin page confirmed the admin area should be a distinct route
+  branch, not a special case buried in the main app path.
+
+What was not adopted directly:
+
+- No placeholder page implementations were copied.
+- No mocked route logic or fake auth redirects were brought over.
+- The canonical repo kept its stronger hash-based runtime and real
+  `AuthProvider` / `profile.is_admin` checks.
+
+### 6.2. Layout Architecture References
+
+Reference-only layout files from
+`codeherway-education-platform/src/layouts/...` were used as boundary
+inspiration only:
+
+- `publicLayout.jsx`
+- `appLayout.jsx`
+- `adminLayout.jsx`
+
+What was useful:
+
+- The source repo expressed a clean separation between public,
+  authenticated app, and admin shells.
+- That boundary model informed the current route/layout split:
+  `PublicLayout`, `AppLayout`, and `AdminLayout`.
+
+What was preserved from the canonical repo:
+
+- The mature `AppLayout` remained the real authenticated app shell.
+- `AuthLayout` remained responsible for the auth/guest-preview flow.
+- New public/admin shells were kept intentionally lightweight so they
+  wrap the stronger existing UI instead of replacing it with scaffold
+  chrome.
+
+### 6.3. UI Inventory References
+
+Reference-only UI material from `codeherway-platform` was used to
+document inventory and styling ideas:
+
+- `src/components/ui/`
+- `components.json`
+- `src/App.css`
+
+Inventory notes:
+
+- `src/components/ui/` contains a large shadcn-style component set:
+  overlays, form controls, navigation, feedback, data display, and
+  layout primitives such as `dialog`, `drawer`, `dropdown-menu`,
+  `navigation-menu`, `scroll-area`, `tabs`, `table`, `toast`, and
+  `tooltip`.
+- `components.json` confirms that inventory was built around a
+  Tailwind + shadcn registry with path aliases for `components`,
+  `ui`, `hooks`, and `lib`.
+
+Styling notes from `src/App.css`:
+
+- It showed strong emphasis on compact sidebar navigation, visible
+  progress bars, quiz framing, search modal treatment, and dashboard-
+  style stat cards.
+- Those ideas were used only as visual reference while preserving the
+  canonical repo's stronger modular CSS system in
+  `src/styles/sidebar.css`, `src/styles/lessons.css`, and related
+  files.
+
+What was not adopted directly:
+
+- No Tailwind/shadcn stack was imported.
+- No `src/components/ui/` files were copied into the canonical repo.
+- No localStorage-driven app shell behavior came across with the UI
+  references.
+
+---
+
+## 7. Chunking strategy
 
 `vite.config.js` manually chunks to keep the initial bundle small and
 course-scoped:
@@ -295,7 +395,7 @@ is still open.
 
 ---
 
-## 7. What's NOT here (and why)
+## 8. What's NOT here (and why)
 
 - **No Redux / Zustand / TanStack Query.** State lives in React
   Context — progress, theme, auth. The app is small enough that a

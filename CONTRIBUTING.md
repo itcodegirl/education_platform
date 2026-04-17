@@ -17,8 +17,8 @@ lessons, accessibility fixes, and security improvements.
 ## Local setup
 
 ```bash
-git clone https://github.com/itcodegirl/education_platform.git
-cd education_platform
+git clone https://github.com/itcodegirl/codeherway-platform.git
+cd codeherway-platform
 npm ci
 cp .env.example .env        # fill in Supabase URL + anon key
 npm run dev                 # http://localhost:5173
