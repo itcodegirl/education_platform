@@ -14,12 +14,17 @@ export function LessonNotesPanel({ lessonKey }) {
   const { saveNote, getNote } = useSR();
   const [noteText, setNoteText] = useState(() => getNote(lessonKey));
   const saveTimer = useRef(null);
+  const latestNoteText = useRef(noteText);
 
   // Re-seed when the user navigates to a different lesson. Without
   // this, a fresh open of lesson B would still show lesson A's draft.
   useEffect(() => {
     setNoteText(getNote(lessonKey));
   }, [lessonKey, getNote]);
+
+  useEffect(() => {
+    latestNoteText.current = noteText;
+  }, [noteText]);
 
   const handleChange = (event) => {
     const value = event.target.value;
@@ -36,9 +41,13 @@ export function LessonNotesPanel({ lessonKey }) {
     return () => {
       if (saveTimer.current) {
         clearTimeout(saveTimer.current);
+        const currentSavedText = getNote(lessonKey);
+        if (latestNoteText.current !== currentSavedText) {
+          saveNote(lessonKey, latestNoteText.current);
+        }
       }
     };
-  }, []);
+  }, [lessonKey, getNote, saveNote]);
 
   const savedText = getNote(lessonKey);
   const isDirty = noteText !== savedText;
