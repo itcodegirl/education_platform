@@ -167,6 +167,7 @@ After bootstrap, every subsequent admin change must go through the
 | `npm run test:watch` | Vitest in watch mode |
 | `npm run typecheck` | `tsc --noEmit` across TS services |
 | `npm run test:e2e` | Run Playwright E2E suite |
+| `npm run test:e2e:update-snapshots` | Rebaseline Playwright visual snapshots |
 | `npm run test:e2e:ui` | Playwright in UI mode |
 
 ### E2E note
@@ -177,6 +178,11 @@ Authenticated E2E specs are intentionally skipped unless you provide:
 - `E2E_PASSWORD`
 
 Public auth smoke tests run without these credentials.
+
+Playwright now includes an auth setup project that captures storage
+state to `playwright/.auth/user.json` before authenticated visual
+tests run. If auth env vars are missing, the authenticated visual
+suite is skipped cleanly and public visual tests still run.
 
 ## Project layout
 
