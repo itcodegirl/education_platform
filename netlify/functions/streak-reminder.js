@@ -14,7 +14,10 @@
 function json(statusCode, body) {
   return {
     statusCode,
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Content-Type-Options': 'nosniff',
+    },
     body: JSON.stringify(body),
   };
 }
@@ -26,9 +29,13 @@ export async function handler(event) {
   }
 
   // Require a shared secret for manual POST triggers.
-  // Netlify scheduled invocations set the 'x-netlify-event' header, so
-  // they bypass this check. Anyone else must present the secret.
-  const isScheduled = !!event.headers['x-netlify-event'];
+  // Netlify sets x-netlify-event: 'schedule' for scheduled invocations.
+  // We check for the exact value 'schedule' (not just any truthy string)
+  // to reduce the spoofing surface. Note: this header is not signed by
+  // Netlify, so a crafted POST with x-netlify-event: schedule would still
+  // bypass it. The function contains no write operations, so the worst
+  // case is an unauthenticated trigger of a read-only DB query.
+  const isScheduled = event.headers['x-netlify-event'] === 'schedule';
   if (!isScheduled) {
     const expected = process.env.STREAK_REMINDER_SECRET;
     const provided =

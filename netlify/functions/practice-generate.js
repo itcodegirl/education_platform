@@ -69,7 +69,11 @@ function checkRateLimit(userId) {
 function json(statusCode, body) {
   return {
     statusCode,
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      // Prevent MIME-type sniffing on JSON responses.
+      'X-Content-Type-Options': 'nosniff',
+    },
     body: JSON.stringify(body),
   };
 }

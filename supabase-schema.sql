@@ -6,8 +6,8 @@
 -- 1. User Profiles (extends Supabase auth.users)
 create table if not exists public.profiles (
   id uuid references auth.users on delete cascade primary key,
-  display_name text,
-  avatar_url text,
+  display_name text check (char_length(display_name) <= 60),
+  avatar_url text check (char_length(avatar_url) <= 500),
   created_at timestamptz default now()
 );
 
@@ -94,7 +94,7 @@ create table if not exists public.notes (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references auth.users on delete cascade not null,
   lesson_key text not null,
-  content text not null,
+  content text not null check (char_length(content) <= 10000),
   updated_at timestamptz default now(),
   unique(user_id, lesson_key)
 );
@@ -393,7 +393,9 @@ grant execute on function public.consume_ai_quota() to authenticated;
 alter table public.profiles
   add column if not exists is_public boolean default false;
 alter table public.profiles
-  add column if not exists public_handle text unique;
+  add column if not exists public_handle text unique
+    check (public_handle ~ '^[a-z0-9_-]{3,30}$');
+-- ^ Enforce URL-safe lowercase handles: 3-30 chars, alphanumeric/dash/underscore only.
 
 -- Case-insensitive handle lookup (so /#u/Jenna and /#u/jenna both work).
 create index if not exists idx_profiles_public_handle_lower
