@@ -26,7 +26,7 @@ export const Breadcrumb = memo(function Breadcrumb({
         {mod.emoji} {mod.title}
       </span>
       <span className="bc-sep">›</span>
-      <span className="bc-les" title={currentLesson}>
+      <span className="bc-les" title={currentLesson} aria-current="page">
         {currentLesson}
       </span>
     </nav>

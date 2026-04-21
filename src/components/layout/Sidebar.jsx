@@ -301,6 +301,7 @@ export const Sidebar = memo(function Sidebar({
                     setPopoutPos(null);
                   }}
                   style={{ '--cs-accent': c.accent }}
+                  aria-label={`Switch to ${c.label} course`}
                 >
                   <span className="cs-option-icon">{c.icon}</span>
                   <span className="cs-option-label">{c.label}</span>
@@ -327,6 +328,7 @@ export const Sidebar = memo(function Sidebar({
                     setActivePopout(null);
                     setPopoutPos(null);
                   }}
+                  aria-label={`Open ${t.label} panel`}
                 >
                   <span className="sb-tab-opt-icon" aria-hidden="true">{t.icon}</span>
                   <span className="sb-tab-opt-label">{t.label}</span>
@@ -373,6 +375,7 @@ export const Sidebar = memo(function Sidebar({
                     }}
                     disabled={!isModUnlocked}
                     aria-expanded={isExpanded}
+                    aria-label={`${module.title} module${isModUnlocked ? `, ${modDone}/${module.lessons.length} lessons completed` : ', locked by sequence mode'}`}
                   >
                     <span className="mg-emoji">{isModUnlocked ? module.emoji : '🔒'}</span>
                     <div className="mg-info">
@@ -394,6 +397,8 @@ export const Sidebar = memo(function Sidebar({
                             className={`lg-btn ${mi === modIdx && li === lesIdx && !showModQuiz ? 'act' : ''} ${isDone ? 'dn' : ''} ${!unlocked ? 'locked' : ''}`}
                             onClick={() => unlocked && onSelectLesson(mi, li)}
                             disabled={!unlocked}
+                            aria-label={`${lesson.title} lesson${isDone ? ', completed' : ''}${!unlocked ? ', locked' : ''}`}
+                            aria-current={mi === modIdx && li === lesIdx && !showModQuiz ? 'page' : undefined}
                           >
                             <span className="lg-chk">{isDone ? '✓' : unlocked ? '○' : '🔒'}</span>
                             <span>{lesson.title}</span>
@@ -406,6 +411,7 @@ export const Sidebar = memo(function Sidebar({
                           type="button"
                           className={`lg-btn lg-quiz ${showModQuiz && mi === modIdx ? 'act' : ''}`}
                           onClick={() => onSelectModQuiz(mi)}
+                          aria-label={`Open module quiz for ${module.title}`}
                         >
                           <span className="lg-chk">📝</span>
                           <span>Module Quiz</span>

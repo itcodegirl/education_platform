@@ -1,4 +1,4 @@
-import { memo } from 'react';
+﻿import { memo } from 'react';
 
 export const LessonNavBar = memo(function LessonNavBar({
   onPrev,
@@ -16,8 +16,16 @@ export const LessonNavBar = memo(function LessonNavBar({
   const nextLabel = isLast
     ? 'Complete!'
     : isLastLesson && hasModuleQuiz && !showModQuiz
-      ? 'Quiz →'
-      : 'Next →';
+      ? 'Quiz ->'
+      : 'Next ->';
+
+  const nextAriaLabel = isLast
+    ? 'Finish this lesson flow'
+    : isLastLesson && hasModuleQuiz && !showModQuiz
+      ? 'Go to module quiz'
+      : 'Go to next lesson';
+
+  const doneAriaLabel = isDone ? 'Unmark lesson as complete' : 'Mark this lesson complete';
 
   return (
     <nav className="lesson-nav" aria-label="Lesson navigation">
@@ -26,9 +34,9 @@ export const LessonNavBar = memo(function LessonNavBar({
         className="lesson-nav-btn lesson-nav-prev"
         onClick={onPrev}
         disabled={isFirst}
-        aria-label="Previous lesson"
+        aria-label={isFirst ? 'No previous lesson' : 'Go to previous lesson'}
       >
-        <span className="lesson-nav-icon">←</span>
+        <span className="lesson-nav-icon">&lt;-</span>
         <span className="lesson-nav-label">Prev</span>
       </button>
 
@@ -38,9 +46,9 @@ export const LessonNavBar = memo(function LessonNavBar({
           className={`lesson-nav-btn lesson-nav-done ${isDone ? 'is-done' : ''}`}
           onClick={onMarkDone}
           disabled={marking}
-          aria-label={isDone ? 'Lesson completed' : 'Mark lesson as done'}
+          aria-label={doneAriaLabel}
         >
-          <span className="lesson-nav-icon">{marking ? '...' : isDone ? '✓' : '○'}</span>
+          <span className="lesson-nav-icon">{marking ? '...' : isDone ? '✓' : '◌'}</span>
           <span className="lesson-nav-label">{marking ? '...' : isDone ? 'Done' : 'Mark Done'}</span>
         </button>
       )}
@@ -51,10 +59,10 @@ export const LessonNavBar = memo(function LessonNavBar({
         onClick={onNext}
         disabled={isLast}
         style={!isLast ? { background: accent } : undefined}
-        aria-label="Next lesson"
+        aria-label={nextAriaLabel}
       >
         <span className="lesson-nav-label">{nextLabel}</span>
-        {!isLast && <span className="lesson-nav-icon">→</span>}
+        {!isLast && <span className="lesson-nav-icon">{'->'}</span>}
       </button>
     </nav>
   );
