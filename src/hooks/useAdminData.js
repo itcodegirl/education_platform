@@ -25,10 +25,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
-// Safety cap — prevents an unbounded full-table scan as the platform
-// grows. If any table returns exactly PAGE_SIZE rows we surface a
-// warning in the UI so the admin knows results may be incomplete.
-const PAGE_SIZE = 500;
+const USERS_PAGE_SIZE = 25;
 
 const INITIAL_DATA = {
   users: [],
@@ -37,7 +34,6 @@ const INITIAL_DATA = {
   xp: [],
   streaks: [],
   badges: [],
-  truncated: [],   // list of table names that hit PAGE_SIZE
 };
 
 export function useAdminData(user) {
@@ -47,6 +43,10 @@ export function useAdminData(user) {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [fetchVersion, setFetchVersion] = useState(0);
+  const [usersPage, setUsersPage] = useState(1);
+  const [usersTotal, setUsersTotal] = useState(0);
+  const [newUsersWeek, setNewUsersWeek] = useState(0);
+  const [newUsersMonth, setNewUsersMonth] = useState(0);
 
   // Admin check — runs once per authenticated user. A failure here
   // defaults to NOT admin (closed rather than open).
@@ -88,13 +88,25 @@ export function useAdminData(user) {
       setLoading(true);
       setLoadError(null);
       try {
-        const [users, progress, quizScores, xp, streaks, badges] = await Promise.all([
-          supabase.from('profiles').select('*').order('created_at', { ascending: false }).limit(PAGE_SIZE),
-          supabase.from('progress').select('*').limit(PAGE_SIZE),
-          supabase.from('quiz_scores').select('*').limit(PAGE_SIZE),
-          supabase.from('xp').select('*').limit(PAGE_SIZE),
-          supabase.from('streaks').select('*').limit(PAGE_SIZE),
-          supabase.from('badges').select('*').limit(PAGE_SIZE),
+        const now = new Date();
+        const weekAgoISO = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
+        const monthAgoISO = new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString();
+        const from = (usersPage - 1) * USERS_PAGE_SIZE;
+        const to = from + USERS_PAGE_SIZE - 1;
+
+        const [users, progress, quizScores, xp, streaks, badges, usersWeekCount, usersMonthCount] = await Promise.all([
+          supabase
+            .from('profiles')
+            .select('*', { count: 'exact' })
+            .order('created_at', { ascending: false })
+            .range(from, to),
+          supabase.from('progress').select('*'),
+          supabase.from('quiz_scores').select('*'),
+          supabase.from('xp').select('*'),
+          supabase.from('streaks').select('*'),
+          supabase.from('badges').select('*'),
+          supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', weekAgoISO),
+          supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', monthAgoISO),
         ]);
         const errors = [
           ['profiles', users.error],
@@ -103,6 +115,8 @@ export function useAdminData(user) {
           ['xp', xp.error],
           ['streaks', streaks.error],
           ['badges', badges.error],
+          ['profiles_week_count', usersWeekCount.error],
+          ['profiles_month_count', usersMonthCount.error],
         ].filter(([, error]) => !!error);
 
         if (errors.length > 0) {
@@ -112,18 +126,10 @@ export function useAdminData(user) {
           throw new Error(details);
         }
 
-        const truncated = [
-          ['users', users.data],
-          ['progress', progress.data],
-          ['quiz_scores', quizScores.data],
-          ['xp', xp.data],
-          ['streaks', streaks.data],
-          ['badges', badges.data],
-        ]
-          .filter(([, rows]) => rows?.length === PAGE_SIZE)
-          .map(([name]) => name);
-
         if (cancelled) return;
+        setUsersTotal(users.count || 0);
+        setNewUsersWeek(usersWeekCount.count || 0);
+        setNewUsersMonth(usersMonthCount.count || 0);
         setData({
           users: users.data || [],
           progress: progress.data || [],
@@ -131,7 +137,6 @@ export function useAdminData(user) {
           xp: xp.data || [],
           streaks: streaks.data || [],
           badges: badges.data || [],
-          truncated,
         });
       } catch (error) {
         if (!cancelled) {
@@ -147,11 +152,55 @@ export function useAdminData(user) {
     }
     fetchAll();
     return () => { cancelled = true; };
-  }, [isAdmin, fetchVersion]);
+  }, [isAdmin, fetchVersion, usersPage]);
 
   const refetch = useCallback(() => {
     setFetchVersion((v) => v + 1);
   }, []);
 
-  return { isAdmin, checking, data, setData, loading, loadError, refetch };
+  const usersTotalPages = Math.max(1, Math.ceil(usersTotal / USERS_PAGE_SIZE));
+
+  useEffect(() => {
+    if (usersPage > usersTotalPages) {
+      setUsersPage(usersTotalPages);
+    }
+  }, [usersPage, usersTotalPages]);
+
+  const goToUsersPage = useCallback((page) => {
+    const nextPage = Math.min(Math.max(1, page), usersTotalPages);
+    setUsersPage(nextPage);
+  }, [usersTotalPages]);
+
+  const nextUsersPage = useCallback(() => {
+    setUsersPage((page) => Math.min(page + 1, usersTotalPages));
+  }, [usersTotalPages]);
+
+  const prevUsersPage = useCallback(() => {
+    setUsersPage((page) => Math.max(page - 1, 1));
+  }, []);
+
+  return {
+    isAdmin,
+    checking,
+    data,
+    setData,
+    loading,
+    loadError,
+    refetch,
+    usersCounts: {
+      total: usersTotal,
+      newWeek: newUsersWeek,
+      newMonth: newUsersMonth,
+    },
+    usersPagination: {
+      page: usersPage,
+      pageSize: USERS_PAGE_SIZE,
+      totalPages: usersTotalPages,
+      hasPrev: usersPage > 1,
+      hasNext: usersPage < usersTotalPages,
+      goToPage: goToUsersPage,
+      nextPage: nextUsersPage,
+      prevPage: prevUsersPage,
+    },
+  };
 }

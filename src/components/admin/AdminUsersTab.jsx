@@ -13,7 +13,41 @@
 import { useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 
-export function AdminUsersTab({ data, currentUserId, setData }) {
+function UsersPager({ usersPagination, usersTotal }) {
+  const start = usersTotal === 0 ? 0 : (usersPagination.page - 1) * usersPagination.pageSize + 1;
+  const end = Math.min(usersPagination.page * usersPagination.pageSize, usersTotal);
+
+  return (
+    <div className="admin-pager" role="navigation" aria-label="Users pagination">
+      <div className="admin-pager-meta">
+        Showing {start}-{end} of {usersTotal}
+      </div>
+      <div className="admin-pager-actions">
+        <button
+          type="button"
+          className="admin-page-btn"
+          onClick={usersPagination.prevPage}
+          disabled={!usersPagination.hasPrev}
+        >
+          ← Prev
+        </button>
+        <span className="admin-page-indicator">
+          Page {usersPagination.page} / {usersPagination.totalPages}
+        </span>
+        <button
+          type="button"
+          className="admin-page-btn"
+          onClick={usersPagination.nextPage}
+          disabled={!usersPagination.hasNext}
+        >
+          Next →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function AdminUsersTab({ data, currentUserId, setData, usersPagination, usersTotal }) {
   const [actionLoading, setActionLoading] = useState(null);
 
   const handleToggleDisabled = async (u) => {
@@ -44,7 +78,8 @@ export function AdminUsersTab({ data, currentUserId, setData }) {
 
   return (
     <div className="admin-section">
-      <h3 className="admin-section-title">👥 All Users ({data.users.length})</h3>
+      <h3 className="admin-section-title">👥 All Users ({usersTotal})</h3>
+      <UsersPager usersPagination={usersPagination} usersTotal={usersTotal} />
       <div className="admin-table-wrap">
         <table className="admin-table">
           <thead>
@@ -109,6 +144,7 @@ export function AdminUsersTab({ data, currentUserId, setData }) {
           </tbody>
         </table>
       </div>
+      <UsersPager usersPagination={usersPagination} usersTotal={usersTotal} />
     </div>
   );
 }

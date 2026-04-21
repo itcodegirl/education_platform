@@ -115,3 +115,48 @@
   .bc-mod, .bc-sep:nth-of-type(1) { display: none; }
 }
 
+/* ─── 25c. Ultra-small devices (<=400px) ────── */
+@media (max-width: 400px) {
+  .topbar { padding: 8px 10px; }
+  .topbar-inner { gap: 6px; }
+  .ham { width: 34px; height: 34px; }
+  .topbar-pill { padding: 6px 8px; font-size: 11px; }
+  .bc { padding: 6px 8px; border-radius: 10px; }
+  .bc-lesson { font-size: 11px; }
+
+  .mn { padding-bottom: 88px; }
+  .lesson-nav { padding: 8px 10px; gap: 6px; }
+  .lesson-nav-btn { padding: 8px 4px; border-radius: 10px; min-height: 44px; }
+  .lesson-nav-label { font-size: 11px; }
+
+  .lp { font-size: 14px; line-height: 1.7; }
+  .box { padding: 12px 14px; border-radius: 12px; }
+  .cpv-tabs { gap: 6px; padding: 10px 12px; }
+  .cpv-tab { padding: 8px 10px; font-size: 12px; }
+  .cpv-code { font-size: 11px; padding: 12px; }
+
+  .ss-modal,
+  .search-modal,
+  .cheatsheet-modal,
+  .bookmarks-modal,
+  .badges-modal,
+  .projects-modal,
+  .challenges-modal,
+  .roadmap-modal {
+    width: calc(100vw - 14px);
+    margin: 7px;
+    border-radius: 14px;
+  }
+
+  .auth-card { padding: 18px 14px; border-radius: 14px; }
+  .auth-logo { font-size: 20px; }
+  .auth-tagline { font-size: 12px; }
+
+  .admin-tabs { gap: 2px; padding: 3px; }
+  .admin-tab { padding: 8px 8px; font-size: 11px; }
+  .admin-table th,
+  .admin-table td { padding: 8px 10px; font-size: 11px; }
+  .admin-pager { flex-direction: column; align-items: flex-start; }
+  .admin-pager-actions { width: 100%; justify-content: space-between; }
+}
+

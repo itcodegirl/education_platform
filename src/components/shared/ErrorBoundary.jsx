@@ -4,6 +4,7 @@
 // ═══════════════════════════════════════════════
 
 import { Component } from 'react';
+import { reportException } from '../../lib/sentry';
 
 export class ErrorBoundary extends Component {
   constructor(props) {
@@ -16,10 +17,11 @@ export class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
+    reportException(error, { componentStack: errorInfo?.componentStack });
+
     // In dev, log the full error to the console so the developer sees
     // the stack trace immediately. In production, we don't want to
-    // pollute the user's devtools (and a real deployment should wire
-    // this to Sentry / LogRocket / similar — tracked in the roadmap).
+    // pollute the user's devtools.
     if (import.meta.env.DEV) {
       console.error('CodeHerWay render error:', error, errorInfo);
     }

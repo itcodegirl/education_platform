@@ -139,6 +139,9 @@ The AI tutor is disabled in local dev unless you also run
 `netlify dev` with `OPENAI_API_KEY` set. The full env reference is in
 [`.env.example`](./.env.example).
 
+Optional production telemetry is now supported via Sentry when
+`VITE_SENTRY_DSN` is configured (guarded by env flags, no-op otherwise).
+
 ### One-time database setup
 
 Open your Supabase project's SQL Editor, paste
@@ -266,7 +269,7 @@ accessibility work are intentionally paired — both care about
 - [x] Split three 400+ LOC god-components into focused children
 - [ ] Server-rendered OG images for public profile pages
 - [ ] Migrate components to TypeScript
-- [ ] Wire ErrorBoundary to Sentry / LogRocket for prod telemetry
+- [x] Optional Sentry integration for ErrorBoundary production telemetry
 - [ ] Real Lighthouse CI with a committed score badge
 
 ## Repo presentation checklist

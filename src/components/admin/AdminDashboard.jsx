@@ -79,7 +79,16 @@ function computeTopUsers(xp, users) {
 
 export function AdminDashboard({ onClose }) {
   const { user } = useAuth();
-  const { isAdmin, checking, data, setData, loading, loadError, refetch } = useAdminData(user);
+  const {
+    isAdmin,
+    checking,
+    data,
+    setData,
+    loading,
+    loadError,
+    usersCounts,
+    usersPagination,
+  } = useAdminData(user);
   const [tab, setTab] = useState('overview');
   // Admin stats span every course, so load them all on mount.
   // Safe: if the courses are already loaded, this is a no-op.
@@ -91,11 +100,10 @@ export function AdminDashboard({ onClose }) {
     if (loading || !isAdmin) return null;
     const now = new Date();
     const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
-    const monthAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
     return {
-      totalUsers: data.users.length,
-      newUsersWeek: data.users.filter((u) => new Date(u.created_at) > weekAgo).length,
-      newUsersMonth: data.users.filter((u) => new Date(u.created_at) > monthAgo).length,
+      totalUsers: usersCounts.total,
+      newUsersWeek: usersCounts.newWeek,
+      newUsersMonth: usersCounts.newMonth,
       totalCompletions: data.progress.length,
       activeUsers: new Set(
         data.progress
@@ -108,7 +116,7 @@ export function AdminDashboard({ onClose }) {
       courseStats: computeCourseStats(COURSES, data.progress),
       topUsers: computeTopUsers(data.xp, data.users),
     };
-  }, [data, loading, isAdmin]);
+  }, [data, loading, isAdmin, usersCounts]);
 
   // ─── Early-return states ───
   if (checking) {
@@ -189,14 +197,6 @@ export function AdminDashboard({ onClose }) {
           <div className="admin-loading">Loading data...</div>
         ) : (
           <div className="admin-content">
-            {data.truncated?.length > 0 && (
-              <div className="admin-truncation-warning" role="alert">
-                <strong>⚠️ Partial data:</strong> The following tables returned the maximum
-                of 500 rows and may be incomplete: {data.truncated.join(', ')}.
-                Results shown are the most recent records. Contact engineering to add
-                server-side pagination if your user base has grown past this limit.
-              </div>
-            )}
             {tab === 'overview' && (
               <div id="admin-tab-panel-overview" role="tabpanel">
                 <AdminOverviewTab {...stats} />
@@ -204,7 +204,13 @@ export function AdminDashboard({ onClose }) {
             )}
             {tab === 'users' && (
               <div id="admin-tab-panel-users" role="tabpanel">
-                <AdminUsersTab data={data} currentUserId={user.id} setData={setData} />
+                <AdminUsersTab
+                  data={data}
+                  currentUserId={user.id}
+                  setData={setData}
+                  usersPagination={usersPagination}
+                  usersTotal={usersCounts.total}
+                />
               </div>
             )}
             {tab === 'courses' && (

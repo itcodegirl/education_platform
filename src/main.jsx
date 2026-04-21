@@ -24,9 +24,14 @@ import '@fontsource/space-mono/700.css';
 // CSP blocks inline-script execution. Importing from a module works
 // because Vite serves it from our own origin, matching 'self'.
 import './lib/registerSW';
+import { initSentry } from './lib/sentry';
 
 import App from './App';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
+
+initSentry().catch(() => {
+  // Optional telemetry should never block rendering.
+});
 
 const CHUNK_RELOAD_KEY = 'chw:chunk-reload-at';
 const CHUNK_RELOAD_WINDOW_MS = 15000;
