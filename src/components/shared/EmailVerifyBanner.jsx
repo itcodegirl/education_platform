@@ -17,7 +17,7 @@ export const EmailVerifyBanner = memo(function EmailVerifyBanner() {
 
   return (
     <div className="verify-banner" role="alert">
-      <span className="verify-icon">📧</span>
+      <span className="verify-icon" aria-hidden="true">📧</span>
       <span className="verify-text">
         Please verify your email to save your progress across devices.
         Check your inbox for the confirmation link.

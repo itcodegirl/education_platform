@@ -43,7 +43,7 @@ export function GuestPreview({ onBack }) {
 
       <div className="gp-content">
         <div className="gp-banner">
-          <span className="gp-banner-icon">👀</span>
+          <span className="gp-banner-icon" aria-hidden="true">👀</span>
           <p>
             You&apos;re previewing the first lesson.{' '}
             <button type="button" className="gp-inline-link" onClick={onBack}>

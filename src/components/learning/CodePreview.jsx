@@ -106,7 +106,7 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
       {/* Scaffolding badge */}
       {scaffolding !== 'full' && (
         <div className={`cpv-scaffolding cpv-scaffolding-${scaffolding}`}>
-          <span className="cpv-scaffolding-icon">{level.icon}</span>
+          <span className="cpv-scaffolding-icon" aria-hidden="true">{level.icon}</span>
           <span className="cpv-scaffolding-label">{level.label}</span>
           <span className="cpv-scaffolding-hint">{level.hint}</span>
         </div>

@@ -61,7 +61,7 @@ export const WhatsNew = memo(function WhatsNew() {
         tabIndex={-1}
       >
         <div className="wn-header">
-          <span className="wn-icon">🎉</span>
+          <span className="wn-icon" aria-hidden="true">🎉</span>
           <span className="wn-title">What's New</span>
           <span className="wn-version">v{latest.version}</span>
           <button type="button" className="cheatsheet-close" onClick={handleClose} aria-label="Close changelog">✕</button>

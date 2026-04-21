@@ -133,7 +133,7 @@ Rules:
       {/* Header */}
       <div className="cc-header">
         <div className="cc-header-left">
-          <span className="cc-icon">🏆</span>
+          <span className="cc-icon" aria-hidden="true">🏆</span>
           <div>
             <h3 className="cc-title">{challenge.title}</h3>
             <p className="cc-description">{challenge.description}</p>
@@ -307,12 +307,12 @@ Rules:
           <div className="cc-results-header">
             {allPassed ? (
               <>
-                <span className="cc-results-icon">🎉</span>
+                <span className="cc-results-icon" aria-hidden="true">🎉</span>
                 <span className="cc-results-text">All tests passed! You nailed it.</span>
               </>
             ) : (
               <>
-                <span className="cc-results-icon">🔧</span>
+                <span className="cc-results-icon" aria-hidden="true">🔧</span>
                 <span className="cc-results-text">{passCount}/{totalTests} tests passing — keep going!</span>
               </>
             )}

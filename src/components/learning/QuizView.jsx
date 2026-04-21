@@ -267,7 +267,7 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
   return (
     <div className="quiz-container">
       <div className="quiz-header">
-        <span className="quiz-icon">📝</span>
+        <span className="quiz-icon" aria-hidden="true">📝</span>
         <div>
           <h3 className="quiz-title">{label}</h3>
           <span className="quiz-count">{total} question{total > 1 ? 's' : ''}</span>
@@ -304,7 +304,7 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
 
                 {submitted && q.explanation && (
                   <div className={`qq-explain ${correct ? 'right' : 'wrong'}`}>
-                    <span className="qq-explain-icon">{correct ? '✓' : '✕'}</span>
+                    <span className="qq-explain-icon" aria-label={correct ? 'Correct' : 'Incorrect'}>{correct ? '✓' : '✕'}</span>
                     <span>{q.explanation}</span>
                   </div>
                 )}

@@ -89,7 +89,7 @@ export function LessonSkeleton() {
 export function ConnectionError({ onRetry }) {
   return (
     <div className="conn-error">
-      <span className="conn-icon">📡</span>
+      <span className="conn-icon" aria-hidden="true">📡</span>
       <h3 className="conn-title">Connection Issue</h3>
       <p className="conn-msg">
         Could not connect to the database. Check your internet connection or try again.
