@@ -43,6 +43,7 @@ export function Onboarding({ isOpen, onClose, displayName }) {
   const [show, setShow] = useState(false);
   const [, setOnboarded] = useLocalStorage('chw-onboarded', false);
   const dialogRef = useRef(null);
+  const headingRef = useRef(null);
   const headingId = useId();
   const subtitleId = useId();
   const progressTextId = useId();
@@ -69,6 +70,12 @@ export function Onboarding({ isOpen, onClose, displayName }) {
     return undefined;
   }, [isOpen]);
 
+  useEffect(() => {
+    if (isOpen && show && headingRef.current) {
+      headingRef.current.focus();
+    }
+  }, [isOpen, show, step]);
+
   if (!isOpen) return null;
 
   const current = STEPS[step];
@@ -86,7 +93,12 @@ export function Onboarding({ isOpen, onClose, displayName }) {
         aria-describedby={`${subtitleId} onboarding-kicker ${progressTextId}`}
         tabIndex={-1}
       >
-        <p id={progressTextId} className="ob-a11y-status">
+        <p
+          id={progressTextId}
+          className="ob-a11y-status"
+          role="status"
+          aria-live="polite"
+        >
           Step {step + 1} of {STEPS.length}
         </p>
 
@@ -111,7 +123,12 @@ export function Onboarding({ isOpen, onClose, displayName }) {
         <span className="ob-eyebrow">{current.eyebrow}</span>
         <div className="ob-icon">{current.icon}</div>
 
-        <h2 id={headingId} className="ob-title">
+        <h2
+          id={headingId}
+          className="ob-title"
+          ref={headingRef}
+          tabIndex={-1}
+        >
           {step === 0 && displayName ? `Welcome, ${displayName}!` : current.title}
         </h2>
 
@@ -146,7 +163,7 @@ export function Onboarding({ isOpen, onClose, displayName }) {
             </button>
           )}
 
-          {isFirst && (
+          {!isLast && (
             <button type="button" className="ob-skip" onClick={handleFinish} aria-label="Skip onboarding tour">
               Skip tour
             </button>

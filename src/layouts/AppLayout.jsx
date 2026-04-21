@@ -311,11 +311,25 @@ export function AppLayout() {
             />
             <div className="topbar-status" aria-label="Current learning status">
               <span className="topbar-greeting">Keep building, {learnerName}.</span>
-              {!showModQuiz && <span className="topbar-pill">{readTime} read</span>}
-              <span className="topbar-pill">Lv {level}</span>
-              <span className="topbar-pill">{coursePct}% track</span>
-              {streak > 0 && <span className="topbar-pill streak">ðŸ”¥ {streak} day streak</span>}
-              {dailyCount > 0 && <span className="topbar-pill warm">{dailyCount} lesson{dailyCount === 1 ? '' : 's'} today</span>}
+              {!showModQuiz && (
+                <span className="topbar-pill" aria-label={`Estimated read time: ${readTime}`}>
+                  {readTime} read
+                </span>
+              )}
+              <span className="topbar-pill" aria-label={`Level ${level}`}>Lv {level}</span>
+              <span className="topbar-pill" aria-label={`Course completion ${coursePct} percent`}>
+                {coursePct}% track
+              </span>
+              {streak > 0 && (
+                <span className="topbar-pill streak" aria-label={`${streak} day streak`}>
+                  ðŸ”¥ {streak} day streak
+                </span>
+              )}
+              {dailyCount > 0 && (
+                <span className="topbar-pill warm" aria-label={`Lessons done today: ${dailyCount}`}>
+                  {dailyCount} lesson{dailyCount === 1 ? '' : 's'} today
+                </span>
+              )}
             </div>
             <div className="topbar-actions">
               <button
@@ -336,6 +350,7 @@ export function AppLayout() {
                 onClick={handleMarkDone}
                 disabled={marking}
                 aria-label={marking ? "Saving lesson completion" : isDone ? "Mark lesson as not done" : "Mark lesson complete"}
+                aria-pressed={isDone}
               >
                 {marking ? "..." : isDone ? "âœ“ Done" : "Mark Done"}
               </button>

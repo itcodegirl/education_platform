@@ -17,6 +17,11 @@ export function LessonHeader({
   if (conceptCount > 0) summaryBits.push(`${conceptCount} core concept${conceptCount === 1 ? '' : 's'}`);
   if (taskCount > 0) summaryBits.push(`${taskCount} practice task${taskCount === 1 ? '' : 's'}`);
 
+  const summary = summaryBits.length > 0
+    ? `One build session - ${summaryBits.join(' - ')}`
+    : 'One build session';
+  const bookmarkLabel = bookmarked ? 'Remove bookmark' : 'Bookmark this lesson';
+
   return (
     <div className="lv-head">
       <span className="lv-emoji" aria-hidden="true">{emoji}</span>
@@ -28,9 +33,9 @@ export function LessonHeader({
           </div>
         )}
         <h1 className="lv-title">{lesson.title}</h1>
-        {summaryBits.length > 0 && (
+        {summary && (
           <p className="lv-summaryline">
-            One build session · {summaryBits.join(' · ')}.
+            {summary}.
           </p>
         )}
         {difficulty && (
@@ -55,12 +60,12 @@ export function LessonHeader({
           type="button"
           className={`lv-action-btn ${bookmarked ? 'active' : ''}`}
           onClick={onToggleBookmark}
-          title={bookmarked ? 'Remove bookmark' : 'Bookmark this lesson'}
+          title={bookmarkLabel}
           aria-pressed={bookmarked}
-          aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark this lesson'}
+          aria-label={bookmarkLabel}
           data-label={bookmarked ? 'Saved' : 'Save'}
         >
-          {bookmarked ? '★' : '☆'}
+          {bookmarked ? '\u2605' : '\u2606'}
         </button>
         <button
           type="button"
@@ -77,4 +82,3 @@ export function LessonHeader({
     </div>
   );
 }
-
