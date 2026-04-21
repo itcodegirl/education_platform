@@ -4281,6 +4281,13 @@
   font-family: 'Poppins', monospace;
 }
 
+.admin-action-error {
+  font-size: 12px;
+  color: #ff6b6b;
+  margin: 0 0 12px;
+  font-family: 'Poppins', monospace;
+}
+
 /* Disabled row styling */
 .admin-row-disabled td {
   opacity: 0.5;

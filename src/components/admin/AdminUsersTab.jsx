@@ -1,16 +1,4 @@
-// ═══════════════════════════════════════════════
-// ADMIN USERS TAB — Table of every user with inline
-// enable/disable action. Optimistically updates the
-// parent's data state so the UI reflects the change
-// before Supabase confirms.
-//
-// The "can't disable yourself" guard lives here because
-// it's a UX concern (showing "You" instead of a button),
-// but the real security guard is a Postgres RLS policy
-// on profiles.is_disabled.
-// ═══════════════════════════════════════════════
-
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 
 function UsersPager({ usersPagination, usersTotal }) {
@@ -26,10 +14,11 @@ function UsersPager({ usersPagination, usersTotal }) {
         <button
           type="button"
           className="admin-page-btn"
+          aria-label="Go to previous users page"
           onClick={usersPagination.prevPage}
           disabled={!usersPagination.hasPrev}
         >
-          ← Prev
+          &lt; Prev
         </button>
         <span className="admin-page-indicator">
           Page {usersPagination.page} / {usersPagination.totalPages}
@@ -37,10 +26,11 @@ function UsersPager({ usersPagination, usersTotal }) {
         <button
           type="button"
           className="admin-page-btn"
+          aria-label="Go to next users page"
           onClick={usersPagination.nextPage}
           disabled={!usersPagination.hasNext}
         >
-          Next →
+          Next &gt;
         </button>
       </div>
     </div>
@@ -49,6 +39,7 @@ function UsersPager({ usersPagination, usersTotal }) {
 
 export function AdminUsersTab({ data, currentUserId, setData, usersPagination, usersTotal }) {
   const [actionLoading, setActionLoading] = useState(null);
+  const [actionError, setActionError] = useState(null);
 
   const handleToggleDisabled = async (u) => {
     const isDisabled = !!u.is_disabled;
@@ -56,18 +47,25 @@ export function AdminUsersTab({ data, currentUserId, setData, usersPagination, u
       return;
     }
     setActionLoading(u.id);
+    setActionError(null);
     try {
-      await supabase
+      const { error } = await supabase
         .from('profiles')
         .update({ is_disabled: !isDisabled })
         .eq('id', u.id);
+      if (error) {
+        throw error;
+      }
       setData((prev) => ({
         ...prev,
-        users: prev.users.map((usr) =>
-          usr.id === u.id ? { ...usr, is_disabled: !isDisabled } : usr,
-        ),
+        users: prev.users.map((usr) => (usr.id === u.id ? { ...usr, is_disabled: !isDisabled } : usr)),
       }));
     } catch (err) {
+      setActionError(
+        `Could not ${isDisabled ? 'enable' : 'disable'} ${
+          u.display_name || 'this user'
+        }. Please try again.`
+      );
       if (import.meta.env.DEV) {
         console.error('Failed to toggle user:', err);
       }
@@ -79,6 +77,11 @@ export function AdminUsersTab({ data, currentUserId, setData, usersPagination, u
   return (
     <div className="admin-section">
       <h3 className="admin-section-title">👥 All Users ({usersTotal})</h3>
+      {actionError && (
+        <p className="admin-action-error" role="alert">
+          {actionError}
+        </p>
+      )}
       <UsersPager usersPagination={usersPagination} usersTotal={usersTotal} />
       <div className="admin-table-wrap">
         <table className="admin-table">
@@ -102,6 +105,7 @@ export function AdminUsersTab({ data, currentUserId, setData, usersPagination, u
               const userBadges = data.badges.filter((b) => b.user_id === u.id).length;
               const isDisabled = !!u.is_disabled;
               const isSelf = u.id === currentUserId;
+
               return (
                 <tr key={u.id} className={isDisabled ? 'admin-row-disabled' : ''}>
                   <td className="admin-user-name">
@@ -110,7 +114,7 @@ export function AdminUsersTab({ data, currentUserId, setData, usersPagination, u
                   </td>
                   <td>
                     <span className={`admin-status ${isDisabled ? 'disabled' : 'active'}`}>
-                      {isDisabled ? '🚫 Disabled' : '✅ Active'}
+                      {isDisabled ? '⚪ Disabled' : '✅ Active'}
                     </span>
                   </td>
                   <td className="admin-date">
@@ -127,6 +131,7 @@ export function AdminUsersTab({ data, currentUserId, setData, usersPagination, u
                       <button
                         type="button"
                         className={`admin-toggle-btn ${isDisabled ? 'enable' : 'disable'}`}
+                        aria-label={`${isDisabled ? 'Enable' : 'Disable'} user ${u.display_name || u.email || 'this user'}`}
                         disabled={actionLoading === u.id}
                         onClick={() => handleToggleDisabled(u)}
                       >
