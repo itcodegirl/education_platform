@@ -49,6 +49,13 @@ export default defineConfig({
           // if (id.includes('node_modules/jspdf')) return 'vendor-jspdf';
           // if (id.includes('node_modules/html2canvas')) return 'vendor-html2canvas';
 
+          // Monaco editor — large (~250 kB gzipped). Keeping it in its
+          // own named chunk gives it a stable cache key independent of
+          // app code changes. It only loads when a lesson with a code
+          // editor is first rendered (via the lazy import chain in
+          // CodePreview / CodeChallenge).
+          if (id.includes('node_modules/monaco-editor/')) return 'vendor-monaco';
+
           // Per-course content. src/data/loaders.js dynamically
           // imports each course's course.js + quizzes.js + challenges.js,
           // so these chunks are naturally lazy and NOT preloaded.

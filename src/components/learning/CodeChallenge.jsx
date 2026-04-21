@@ -10,7 +10,12 @@ import { askChallengeTutor } from '../../services/aiService';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { defineMonacoTheme, MONACO_THEME_NAME, MONACO_OPTIONS } from '../../utils/monacoTheme';
 
-const MonacoEditor = lazy(() => import('@monaco-editor/react'));
+// Chain monacoLoader so it runs its side-effects (loader.config,
+// MonacoEnvironment) before @monaco-editor/react is evaluated. Both
+// end up in the same lazy chunk, keeping Monaco out of the main bundle.
+const MonacoEditor = lazy(() =>
+  import('../../lib/monacoLoader').then(() => import('@monaco-editor/react'))
+);
 
 export function CodeChallenge({ challenge, lang, onComplete }) {
   const isMobile = useIsMobile();

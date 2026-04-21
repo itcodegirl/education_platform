@@ -4,7 +4,12 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { defineMonacoTheme, MONACO_THEME_NAME, MONACO_OPTIONS } from '../../utils/monacoTheme';
 import { explainCode as explainCodeRequest } from '../../services/aiService';
 
-const MonacoEditor = lazy(() => import('@monaco-editor/react'));
+// Chain monacoLoader so it runs its side-effects (loader.config,
+// MonacoEnvironment) before @monaco-editor/react is evaluated. Both
+// end up in the same lazy chunk, keeping Monaco out of the main bundle.
+const MonacoEditor = lazy(() =>
+  import('../../lib/monacoLoader').then(() => import('@monaco-editor/react'))
+);
 
 const SCAFFOLDING = {
   full:         { icon: '📝', label: 'Complete Example',    hint: 'Study this code, then try modifying it in the Editor tab.' },
