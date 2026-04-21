@@ -130,13 +130,13 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
           <input
             ref={inputRef}
             className="search-input"
-            placeholder="Search lessons, topics, tags..."
+            placeholder="Search lessons, modules, and concepts..."
             aria-label="Search lessons"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleInputKeyDown}
           />
-          <span className="search-hint">ESC</span>
+          <span className="search-hint">ESC close</span>
         </div>
 
         <div className="search-results">
@@ -148,17 +148,20 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
 
           {normalizedQuery.length < 2 ? (
             <div className="search-empty">
-              Start with at least two characters to search lessons, modules, and concepts across the platform.
+              Start with at least two characters. Example: flexbox, arrays, props, or loops.
             </div>
           ) : results.length === 0 ? (
             <div className="search-empty">
-              No results for "{query}". Try a concept, module name, or keyword like state, API, or flexbox.
+              No matches for "{query}". Try a broader term, module name, or concept keyword.
             </div>
           ) : (
             <>
               <div className="search-meta">
                 {results.length} result{results.length === 1 ? '' : 's'}
               </div>
+              <p className="panel-meta search-support">
+                Tip: use arrow keys to highlight a result, then press Enter to jump there.
+              </p>
               {results.map((result, index) => (
                 <button
                   key={`${result.course}-${result.module}-${result.title}-${index}`}

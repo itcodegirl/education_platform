@@ -36,7 +36,7 @@ export function SRPanel({ isOpen, onClose }) {
 
     const concept = genConcept.trim();
     if (!concept) {
-      setGenError("Tell the AI which concept you want to practice.");
+      setGenError("Enter a concept first so we can generate a focused practice card.");
       return;
     }
 
@@ -49,10 +49,10 @@ export function SRPanel({ isOpen, onClose }) {
       if (typeof addToSRQueue === "function") {
         await addToSRQueue([card]);
       }
-      setGenSuccess("New practice card added to your review queue.");
+      setGenSuccess("Practice card added. It is now ready in your review queue.");
       setGenConcept("");
     } catch (err) {
-      setGenError(err.message || "Could not generate a practice card.");
+      setGenError(err.message || "Could not generate a card right now. Try a narrower concept.");
     } finally {
       setGenLoading(false);
     }
@@ -124,8 +124,8 @@ export function SRPanel({ isOpen, onClose }) {
             <div className="sr-generate-head">
               <span className="sr-generate-title">🤖 Generate a practice card</span>
               <span className="sr-generate-sub">
-                Tell the AI which concept you want to drill and it will add a
-                fresh card to your queue.
+                Enter one concept to drill. The generated card appears in this
+                queue immediately.
               </span>
             </div>
             <div className="sr-generate-row">
@@ -224,13 +224,15 @@ export function SRPanel({ isOpen, onClose }) {
 
                 {answered !== null && (
                   <div className={`sr-result ${answered === currentCard?.correct ? "right" : "wrong"}`}>
-                    {answered === currentCard?.correct ? "Correct" : "Incorrect"} {currentCard?.explanation}
+                    {answered === currentCard?.correct
+                      ? "Correct. Strong recall."
+                      : "Not quite. Review this explanation:"} {currentCard?.explanation}
                   </div>
                 )}
               </div>
 
               <p className="sr-progress-label">
-                {currentIdx + 1} of {due.length}
+                Card {currentIdx + 1} of {due.length}
               </p>
             </>
           )}

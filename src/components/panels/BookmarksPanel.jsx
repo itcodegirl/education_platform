@@ -54,16 +54,19 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
             <h2>Bookmarks ({bookmarks.length})</h2>
           </div>
           <button type="button" className="cheatsheet-close" onClick={onClose} aria-label="Close bookmarks">
-            ×
+            x
           </button>
         </div>
         <div className="cheatsheet-body">
+          <p className="panel-meta">
+            Save lessons from the lesson header star so you can jump back in quickly.
+          </p>
           {bookmarks.length === 0 ? (
             <div className="sr-empty">
-              <span className="sr-empty-icon" aria-hidden="true">★</span>
+              <span className="sr-empty-icon" aria-hidden="true">*</span>
               <p><strong>No bookmarks yet</strong></p>
               <p className="empty-state-msg">
-                Save standout lessons from any track and they will be ready here for a quick jump back in.
+                Mark a lesson as saved from the header star, and it will appear here for one-click return.
               </p>
             </div>
           ) : (

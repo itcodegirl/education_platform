@@ -38,7 +38,7 @@ export function OfflineIndicator() {
       <div className="offline-banner is-offline" role="status" aria-live="polite">
         <span className="offline-icon" aria-hidden="true">!</span>
         <span className="offline-text">
-          You are currently offline. Lessons are available from cache and progress will sync when you reconnect.
+          You are offline. You can keep learning, and we will sync your progress automatically when your connection returns.
         </span>
       </div>
     );
@@ -51,9 +51,9 @@ export function OfflineIndicator() {
         <span className="offline-icon" aria-hidden="true">!</span>
         <span className="offline-text">
           {syncFailed === 1
-            ? 'A progress update could not sync to the cloud.'
-            : `${syncFailed} progress updates could not sync to the cloud.`}
-          Your work is still saved locally.
+            ? 'One progress update could not sync to the cloud yet.'
+            : `${syncFailed} progress updates could not sync to the cloud yet.`}
+          Your work is still saved on this device.
         </span>
         <button
           type="button"
@@ -61,7 +61,7 @@ export function OfflineIndicator() {
           onClick={() => { retryLoad(); }}
           aria-label="Retry syncing to the cloud"
         >
-          Retry
+          Sync now
         </button>
         <button
           type="button"
@@ -80,7 +80,7 @@ export function OfflineIndicator() {
     return (
       <div className="offline-banner is-online" role="status" aria-live="polite">
         <span className="offline-icon" aria-hidden="true">✓</span>
-        <span className="offline-text">Back online. Syncing your progress.</span>
+        <span className="offline-text">Back online. Your progress is syncing now.</span>
       </div>
     );
   }
