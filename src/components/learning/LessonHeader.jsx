@@ -1,12 +1,3 @@
-// ═══════════════════════════════════════════════
-// LESSON HEADER — Metadata row + bookmark & notes toggle
-//
-// Pure presentational component. Takes the lesson object, the
-// bookmark state, and the notes toggle state; renders the kicker,
-// title, difficulty chips, and the two action buttons. Owns
-// nothing — the parent LessonView orchestrates state.
-// ═══════════════════════════════════════════════
-
 export function LessonHeader({
   lesson,
   emoji,
@@ -22,7 +13,7 @@ export function LessonHeader({
   onToggleNotes,
 }) {
   const summaryBits = [];
-  if (duration) summaryBits.push(duration);
+  if (duration) summaryBits.push(`${duration}`);
   if (conceptCount > 0) summaryBits.push(`${conceptCount} core concept${conceptCount === 1 ? '' : 's'}`);
   if (taskCount > 0) summaryBits.push(`${taskCount} practice task${taskCount === 1 ? '' : 's'}`);
 
@@ -39,20 +30,20 @@ export function LessonHeader({
         <h1 className="lv-title">{lesson.title}</h1>
         {summaryBits.length > 0 && (
           <p className="lv-summaryline">
-            One honest build session. {summaryBits.join(' · ')}.
+            One build session · {summaryBits.join(' · ')}.
           </p>
         )}
         {difficulty && (
           <div className="lv-meta">
             <span className={`lv-diff lv-diff-${difficulty}`}>{difficulty}</span>
-            {duration && <span className="lv-dur">⏱ {duration}</span>}
+            {duration && <span className="lv-dur">Duration: {duration}</span>}
             {conceptCount > 0 && <span className="lv-chip">{conceptCount} concepts</span>}
             {taskCount > 0 && <span className="lv-chip">{taskCount} tasks</span>}
             {scaffolding && scaffolding !== 'full' && (
               <span className={`lv-scaffolding lv-scaffolding-${scaffolding}`}>
-                {scaffolding === 'partial' && '🔧 Partial template'}
-                {scaffolding === 'starter' && '🚀 Starter code'}
-                {scaffolding === 'requirements' && '📋 Write from scratch'}
+                {scaffolding === 'partial' && 'Partial template'}
+                {scaffolding === 'starter' && 'Starter code'}
+                {scaffolding === 'requirements' && 'Write from scratch'}
               </span>
             )}
           </div>
@@ -80,9 +71,10 @@ export function LessonHeader({
           aria-label="Toggle lesson notes"
           data-label="Notes"
         >
-          ✎
+          Notes
         </button>
       </div>
     </div>
   );
 }
+
