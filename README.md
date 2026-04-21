@@ -209,9 +209,13 @@ Public visual suites and auth flows are designed to skip cleanly when credential
 
 1. `npm run lint`
 2. `npm run typecheck`
-3. `npm test`
-4. `npm run build`
+3. `npm run build`
+4. `npm test`
 5. `npm run test:e2e` (if environment allows)
+
+Use a single command for the standard fast checks:
+
+1. `npm run check:quality`
 
 ---
 
