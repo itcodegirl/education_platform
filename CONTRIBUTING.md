@@ -31,16 +31,16 @@ Preview the design tokens at `http://localhost:5173/#styleguide`.
 Run these locally — the same checks run in CI:
 
 ```bash
-npm run build               # must pass with no errors
-npm run test:e2e            # Playwright E2E
+npm run check               # lint + typecheck + build + unit tests
+npm run check:ci            # adds Playwright integration/e2e coverage
 npm audit --audit-level=high
 ```
 
 ## PR checklist
 
 - [ ] Branch is up to date with `main`
-- [ ] Build passes (`npm run build`)
-- [ ] E2E tests pass (`npm run test:e2e`)
+- [ ] Fast checks pass (`npm run check`)
+- [ ] Integration/E2E checks pass (`npm run check:ci`)
 - [ ] No secrets committed (check `git diff` carefully)
 - [ ] No new high-severity `npm audit` findings
 - [ ] Commit messages follow the existing style

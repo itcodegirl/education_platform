@@ -198,8 +198,11 @@ After this, admin role changes are managed by RPC and trigger controls.
 | `npm run preview` | Preview the production build |
 | `npm run lint` | ESLint across the app |
 | `npm run typecheck` | TypeScript `--noEmit` |
-| `npm test` | Vitest suite |
-| `npm run test:e2e` | Playwright E2E |
+| `npm test` / `npm run test:unit` | Vitest unit suite |
+| `npm run test:integration` | Playwright integration/E2E suite |
+| `npm run test:e2e` | Alias for `test:integration` |
+| `npm run check` | Fast local gate (`lint + typecheck + build + unit`) |
+| `npm run check:ci` | CI parity gate (`check + Playwright`) |
 | `npm run test:e2e:headed` | Playwright headed mode |
 | `npm run test:e2e:update-snapshots` | Rebaseline visual snapshots |
 
@@ -207,15 +210,8 @@ Public visual suites and auth flows are designed to skip cleanly when credential
 
 ### Release checks used by this portfolio
 
-1. `npm run lint`
-2. `npm run typecheck`
-3. `npm run build`
-4. `npm test`
-5. `npm run test:e2e` (if environment allows)
-
-Use a single command for the standard fast checks:
-
-1. `npm run check:quality`
+1. `npm run check`
+2. `npm run check:ci` (when Playwright environment is available)
 
 ---
 

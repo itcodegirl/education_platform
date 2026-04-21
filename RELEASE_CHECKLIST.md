@@ -5,8 +5,8 @@ Use this checklist for Netlify releases and hotfix deploys.
 ## Before Deploy
 
 - Confirm the branch is correct and the working tree is clean.
-- Run `npm run check:quality` (lint + typecheck + build).
-- If feature code changed, run `npm test`.
+- Run `npm run check` (lint + typecheck + build + unit tests).
+- Run `npm run check:ci` when Playwright environment variables are available.
 - Confirm required Netlify env vars are present:
   - `VITE_SUPABASE_URL`
   - `VITE_SUPABASE_ANON_KEY`
@@ -43,7 +43,7 @@ Use this checklist for Netlify releases and hotfix deploys.
   - confirm the sidebar scrolls
   - confirm the sidebar closes cleanly
 - Optional QA:
-  - run `npm run test:e2e` if environment variables for authenticated flows are available
+  - run `npm run test:e2e` (or `npm run test:integration`) if environment variables for authenticated flows are available
 
 ## PWA / Cache Check
 
