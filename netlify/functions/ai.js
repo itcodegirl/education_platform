@@ -48,24 +48,26 @@ const GUARDRAIL_PREFIX = [
   'Keep responses concise and beginner-friendly.',
   '---',
 ].join('\n');
-const items = [];
 
-if (system) {
-  items.push({
-    role: 'system',
-    content: [{ type: 'input_text', text: system }],
-  });
-}
+function toInputItems(system, messages) {
+  const items = [];
 
-for (const message of messages || []) {
-  if (!message?.content) continue;
-  items.push({
-    role: message.role === 'assistant' ? 'assistant' : 'user',
-    content: [{ type: 'input_text', text: message.content }],
-  });
-}
+  if (system) {
+    items.push({
+      role: 'system',
+      content: [{ type: 'input_text', text: system }],
+    });
+  }
 
-return items;
+  for (const message of messages || []) {
+    if (!message?.content) continue;
+    items.push({
+      role: message.role === 'assistant' ? 'assistant' : 'user',
+      content: [{ type: 'input_text', text: message.content }],
+    });
+  }
+
+  return items;
 }
 
 // ─── Handler ───────────────────────────────────
