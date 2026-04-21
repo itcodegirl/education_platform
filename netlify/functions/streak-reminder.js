@@ -11,16 +11,7 @@
 //   schedule = "0 18 * * *"
 // ═══════════════════════════════════════════════
 
-function json(statusCode, body) {
-  return {
-    statusCode,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Content-Type-Options': 'nosniff',
-    },
-    body: JSON.stringify(body),
-  };
-}
+import { json } from './_shared.js';
 
 export async function handler(event) {
   // Only allow scheduled invocations or POST from admin

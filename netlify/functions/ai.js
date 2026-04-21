@@ -19,6 +19,8 @@
 //   6. Role whitelist for messages.
 // ═══════════════════════════════════════════════
 
+import { json, verifyUser, consumeQuotaPersistent, createRateLimiter } from './_shared.js';
+
 const OPENAI_URL = 'https://api.openai.com/v1/responses';
 
 // ─── In-memory rate limit (defense in depth) ───
@@ -27,7 +29,7 @@ const OPENAI_URL = 'https://api.openai.com/v1/responses';
 // database. Resets on cold start.
 const WINDOW_MS = 60_000; // 1 minute
 const MAX_REQUESTS = 10;  // 10 requests per minute per user
-const rateLimits = new Map();
+const checkRateLimit = createRateLimiter(WINDOW_MS, MAX_REQUESTS);
 
 // ─── Payload limits ────────────────────────────
 const MAX_SYSTEM_CHARS = 2000;
@@ -46,115 +48,24 @@ const GUARDRAIL_PREFIX = [
   'Keep responses concise and beginner-friendly.',
   '---',
 ].join('\n');
+const items = [];
 
-function checkRateLimit(userId) {
-  const now = Date.now();
-  let timestamps = rateLimits.get(userId) || [];
-  timestamps = timestamps.filter((t) => t > now - WINDOW_MS);
-
-  if (timestamps.length >= MAX_REQUESTS) {
-    return false;
-  }
-
-  timestamps.push(now);
-  rateLimits.set(userId, timestamps);
-
-  // Prevent memory leak: prune inactive users every 100 entries
-  if (rateLimits.size > 200) {
-    for (const [key, ts] of rateLimits) {
-      if (ts.every((t) => t <= now - WINDOW_MS)) rateLimits.delete(key);
-    }
-  }
-
-  return true;
+if (system) {
+  items.push({
+    role: 'system',
+    content: [{ type: 'input_text', text: system }],
+  });
 }
 
-// ─── Helpers ───────────────────────────────────
-function json(statusCode, body) {
-  return {
-    statusCode,
-    headers: {
-      'Content-Type': 'application/json',
-      // Prevent MIME-type sniffing on JSON responses.
-      'X-Content-Type-Options': 'nosniff',
-    },
-    body: JSON.stringify(body),
-  };
+for (const message of messages || []) {
+  if (!message?.content) continue;
+  items.push({
+    role: message.role === 'assistant' ? 'assistant' : 'user',
+    content: [{ type: 'input_text', text: message.content }],
+  });
 }
 
-function toInputItems(system, messages) {
-  const items = [];
-
-  if (system) {
-    items.push({
-      role: 'system',
-      content: [{ type: 'input_text', text: system }],
-    });
-  }
-
-  for (const message of messages || []) {
-    if (!message?.content) continue;
-    items.push({
-      role: message.role === 'assistant' ? 'assistant' : 'user',
-      content: [{ type: 'input_text', text: message.content }],
-    });
-  }
-
-  return items;
-}
-
-function getSupabaseConfig() {
-  return {
-    url: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
-    key: process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY,
-  };
-}
-
-async function verifyUser(token) {
-  const { url, key } = getSupabaseConfig();
-  if (!url || !key) return null;
-
-  try {
-    const res = await fetch(`${url}/auth/v1/user`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        apikey: key,
-      },
-    });
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
-}
-
-// Atomic, persistent per-user rate limit. Calls public.consume_ai_quota()
-// in Postgres with the user's JWT — the RPC reads auth.uid() server-side
-// so the user can't spoof their own id. Returns:
-//   true  — quota OK, request may proceed
-//   false — quota exceeded, return 429
-//   null  — RPC failed / unreachable (caller decides)
-async function consumeQuotaPersistent(token) {
-  const { url, key } = getSupabaseConfig();
-  if (!url || !key) return null;
-
-  try {
-    const res = await fetch(`${url}/rest/v1/rpc/consume_ai_quota`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        apikey: key,
-        'Content-Type': 'application/json',
-      },
-      body: '{}',
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    // The RPC returns a bare boolean.
-    return data === true;
-  } catch {
-    return null;
-  }
+return items;
 }
 
 // ─── Handler ───────────────────────────────────

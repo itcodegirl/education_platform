@@ -22,12 +22,14 @@
 //      forwarding a malformed card to the client.
 // ═══════════════════════════════════════════════
 
+import { json, verifyUser, consumeQuotaPersistent, createRateLimiter } from './_shared.js';
+
 const OPENAI_URL = 'https://api.openai.com/v1/responses';
 
 // ─── In-memory rate limit (defense in depth) ───
 const WINDOW_MS = 60_000;
 const MAX_REQUESTS = 10;
-const rateLimits = new Map();
+const checkRateLimit = createRateLimiter(WINDOW_MS, MAX_REQUESTS);
 
 // ─── Payload limits ────────────────────────────
 const MAX_TOPIC_CHARS = 60;
@@ -50,75 +52,6 @@ const SYSTEM_PROMPT = [
   '  - explanation: string, one-sentence explanation of why the correct option is correct (max 240 chars)',
   'You must refuse anything that is not about learning to code. If the topic is off-topic, return {"question":"refused","options":["","","",""],"correct":0,"explanation":"off-topic"} so the server can discard it.',
 ].join('\n');
-
-function checkRateLimit(userId) {
-  const now = Date.now();
-  let timestamps = rateLimits.get(userId) || [];
-  timestamps = timestamps.filter((t) => t > now - WINDOW_MS);
-  if (timestamps.length >= MAX_REQUESTS) return false;
-  timestamps.push(now);
-  rateLimits.set(userId, timestamps);
-  if (rateLimits.size > 200) {
-    for (const [key, ts] of rateLimits) {
-      if (ts.every((t) => t <= now - WINDOW_MS)) rateLimits.delete(key);
-    }
-  }
-  return true;
-}
-
-function json(statusCode, body) {
-  return {
-    statusCode,
-    headers: {
-      'Content-Type': 'application/json',
-      // Prevent MIME-type sniffing on JSON responses.
-      'X-Content-Type-Options': 'nosniff',
-    },
-    body: JSON.stringify(body),
-  };
-}
-
-function getSupabaseConfig() {
-  return {
-    url: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
-    key: process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY,
-  };
-}
-
-async function verifyUser(token) {
-  const { url, key } = getSupabaseConfig();
-  if (!url || !key) return null;
-  try {
-    const res = await fetch(`${url}/auth/v1/user`, {
-      headers: { Authorization: `Bearer ${token}`, apikey: key },
-    });
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
-}
-
-async function consumeQuotaPersistent(token) {
-  const { url, key } = getSupabaseConfig();
-  if (!url || !key) return null;
-  try {
-    const res = await fetch(`${url}/rest/v1/rpc/consume_ai_quota`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        apikey: key,
-        'Content-Type': 'application/json',
-      },
-      body: '{}',
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data === true;
-  } catch {
-    return null;
-  }
-}
 
 // ─── JSON validation ─────────────────────────
 function validateCard(raw) {
