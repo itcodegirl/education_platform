@@ -107,7 +107,12 @@ export function PublicProfile({ handle, onClose }) {
       <header className="pub-header">
         <Logo size="sm" />
         {onClose && (
-          <button type="button" className="pub-close" onClick={onClose}>
+          <button
+            type="button"
+            className="pub-close"
+            onClick={onClose}
+            aria-label="Close public profile"
+          >
             ✕
           </button>
         )}

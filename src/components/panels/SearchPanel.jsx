@@ -131,6 +131,7 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
             ref={inputRef}
             className="search-input"
             placeholder="Search lessons, topics, tags..."
+            aria-label="Search lessons"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleInputKeyDown}

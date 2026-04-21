@@ -5,7 +5,7 @@ test.describe('public auth shell', () => {
     await page.goto('/');
     await expect(page.locator('.auth-card')).toBeVisible({ timeout: 30000 });
 
-    await expect(page.getByRole('heading', { name: 'CodeHerWay' })).toBeVisible();
+    await expect(page.locator('.auth-brand')).toContainText('CodeHerWay');
     await expect(page.getByText(/Learn\.\s*Build\.\s*Ship\./i)).toBeVisible();
     await expect(page.getByRole('button', { name: 'Log In' }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Sign Up' })).toBeVisible();
