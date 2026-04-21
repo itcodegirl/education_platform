@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:4173';
+const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:4319';
 const useManagedDevServer = !process.env.PLAYWRIGHT_BASE_URL;
 
 export default defineConfig({
@@ -44,9 +44,12 @@ export default defineConfig({
   ],
   webServer: useManagedDevServer
     ? {
-      command: 'npm run dev -- --host 127.0.0.1 --port 4173',
+      command: 'npm run dev -- --host 127.0.0.1 --port 4319',
       url: baseURL,
-      reuseExistingServer: !process.env.CI,
+      // Always boot this repo's dev server for Playwright runs.
+      // Reusing an existing process can attach to unrelated local apps
+      // that happen to use the same port and cause false failures.
+      reuseExistingServer: false,
       timeout: 120000,
       env: {
         ...process.env,

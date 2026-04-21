@@ -30,7 +30,7 @@ test('capture authenticated storage state', async ({ page }) => {
 	if (await emailInput.isVisible().catch(() => false)) {
 		await emailInput.fill(process.env.E2E_EMAIL);
 		await page.getByLabel('Password').fill(process.env.E2E_PASSWORD);
-		await page.getByRole('button', { name: 'Log In' }).last().click();
+		await page.getByRole('button', { name: /log in/i }).last().click();
 	}
 
 	await page.waitForSelector('.topbar, .shell', { timeout: 30000 });

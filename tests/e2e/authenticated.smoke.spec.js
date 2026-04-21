@@ -48,7 +48,7 @@ test.describe.skip('authenticated smoke', () => {
     if (await page.getByLabel('Email').isVisible().catch(() => false)) {
       await page.getByLabel('Email').fill(process.env.E2E_EMAIL);
       await page.getByLabel('Password').fill(process.env.E2E_PASSWORD);
-      await page.getByRole('button', { name: 'Log In' }).last().click();
+      await page.getByRole('button', { name: /log in/i }).last().click();
     }
 
     await waitForAuthenticatedShell(page, diagnostics);

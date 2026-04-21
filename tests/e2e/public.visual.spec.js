@@ -2,8 +2,8 @@ import { expect, test } from '@playwright/test';
 
 async function openPreviewLesson(page) {
 	await page.goto('/');
-	await expect(page.getByRole('button', { name: /preview a lesson first/i })).toBeVisible({ timeout: 30000 });
-	await page.getByRole('button', { name: /preview a lesson first/i }).click();
+	await expect(page.getByRole('button', { name: /preview a lesson/i })).toBeVisible({ timeout: 30000 });
+	await page.getByRole('button', { name: /preview a lesson/i }).click();
 	await expect(page.getByText(/Preview Mode/i)).toBeVisible({ timeout: 15000 });
 }
 
