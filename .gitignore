@@ -6,6 +6,7 @@ dist
 .codex-backup-wrong-local
 playwright-report
 test-results
+playwright/.auth
 Downloads/
 # NOTE: package-lock.json IS committed so builds are reproducible
 # and `npm audit` runs against a pinned dependency tree.
