@@ -5,7 +5,7 @@ import { LandingHeroIntro, LandingHeroStory } from './LandingHero';
 
 export function AuthPage({ onPreview }) {
   const { signIn, signUp, signInWithGithub, signInWithGoogle } = useAuth();
-  const [mode, setMode] = useState('login'); // 'login' | 'signup'
+  const [mode, setMode] = useState('signup'); // 'login' | 'signup'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -91,7 +91,7 @@ export function AuthPage({ onPreview }) {
               }}
               aria-label="Return to login after confirming your account"
             >
-              Back to Login
+              Back to login
             </button>
           </div>
         </div>
@@ -125,7 +125,7 @@ export function AuthPage({ onPreview }) {
               onClick={() => setModeAndClearError('login')}
               disabled={loading}
             >
-              Log In
+              Login
             </button>
             <button
               type="button"
@@ -136,9 +136,14 @@ export function AuthPage({ onPreview }) {
               onClick={() => setModeAndClearError('signup')}
               disabled={loading}
             >
-              Sign Up
+              Create account
             </button>
           </div>
+          <p className="auth-mode-copy">
+            {mode === 'signup'
+              ? 'Create your account to unlock every course and start learning in one session.'
+              : 'Already using CodeHerWay? Sign in to resume where you left off.'}
+          </p>
 
           <form id="auth-form-panel" className="auth-form" onSubmit={handleSubmit} aria-busy={loading} noValidate>
             {mode === 'signup' && (
@@ -195,7 +200,7 @@ export function AuthPage({ onPreview }) {
             )}
 
             <button className="auth-submit" type="submit" disabled={loading} aria-busy={loading}>
-              {loading ? '...' : mode === 'login' ? 'Log In' : 'Create Account'}
+              {loading ? '...' : mode === 'login' ? 'Log in' : 'Create free account'}
             </button>
           </form>
 
@@ -240,7 +245,7 @@ export function AuthPage({ onPreview }) {
               onClick={onPreview}
               aria-label="Preview a lesson before signing in"
             >
-              👋 Preview a lesson first
+              👋 I want to preview first
             </button>
           )}
 

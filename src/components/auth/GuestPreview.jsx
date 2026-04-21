@@ -43,33 +43,17 @@ export function GuestPreview({ onBack }) {
           onClick={onBack}
           aria-label="Return to authentication page"
         >
-          ← Back to login
+          &larr; Back to login
         </button>
         <span className="gp-badge">Preview Mode</span>
-        <button
-          type="button"
-          className="gp-signup-btn"
-          onClick={onBack}
-          aria-label="Open registration form"
-        >
-          Sign up free →
-        </button>
       </div>
 
       <div className="gp-content">
         <div className="gp-banner">
-          <span className="gp-banner-icon" aria-hidden="true">🚀</span>
+          <span className="gp-banner-icon" aria-hidden="true">&#128640;</span>
           <p>
-            You&apos;re previewing the first lesson.{' '}
-            <button
-              type="button"
-              className="gp-inline-link"
-              onClick={onBack}
-              aria-label="Create a free account"
-            >
-              Create a free account
-            </button>{' '}
-            to track progress, earn badges, and unlock the AI tutor.
+            You&apos;re previewing the first lesson. Create a free account when you&apos;re
+            ready to track progress, earn badges, and unlock the AI tutor.
           </p>
         </div>
 
@@ -98,7 +82,7 @@ export function GuestPreview({ onBack }) {
           <div className="lv-body">
             {firstLesson.hook?.accomplishments && (
               <div className="box sl-hook">
-                <div className="box-label">🔧 In this lesson you will</div>
+                <div className="box-label">In this lesson you will</div>
                 <ul className="sl-hook-list">
                   {firstLesson.hook.accomplishments.map((item, i) => (
                     <li key={item + i}>{item}</li>
@@ -110,7 +94,7 @@ export function GuestPreview({ onBack }) {
             {firstLesson.do?.steps && (
               <>
                 {firstLesson.do.title && (
-                  <h3 className="sl-section-title">📝 {firstLesson.do.title}</h3>
+                  <h3 className="sl-section-title">🧭 {firstLesson.do.title}</h3>
                 )}
                 <ol className="sl-steps">
                   {firstLesson.do.steps.map((step, i) => (
@@ -132,14 +116,14 @@ export function GuestPreview({ onBack }) {
 
             {firstLesson.do?.result && (
               <div className="box output-box">
-                <div className="box-label">⬇ Result</div>
+                <div className="box-label">Result</div>
                 <p>{firstLesson.do.result}</p>
               </div>
             )}
 
             {firstLesson.understand?.concepts && (
               <>
-                <h3 className="sl-section-title">🧠 Understand</h3>
+                <h3 className="sl-section-title">Understand</h3>
                 <div className="sl-concepts">
                   {firstLesson.understand.concepts.map((concept, i) => (
                     <article key={concept.name + i} className="sl-concept-card">
@@ -147,7 +131,7 @@ export function GuestPreview({ onBack }) {
                       <p className="sl-concept-def">{concept.definition}</p>
                       {concept.analogy && (
                         <div className="sl-concept-analogy">
-                          <span className="sl-analogy-icon">💡</span>
+                          <span className="sl-analogy-icon">&#129300;</span>
                           <span><strong>Think of it like:</strong> {concept.analogy}</span>
                         </div>
                       )}
@@ -179,7 +163,7 @@ export function GuestPreview({ onBack }) {
             earn badges, and use the AI tutor.
           </p>
           <button type="button" className="gp-cta-btn" onClick={onBack} aria-label="Create free account">
-            Create free account →
+            Create free account
           </button>
         </section>
       </div>

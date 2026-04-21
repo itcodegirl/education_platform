@@ -168,13 +168,13 @@ export function LandingHeroIntro({ onStart, compact = false }) {
             type="button"
             className="lh-cta"
             onClick={onStart}
-            aria-label="Start learning free"
+            aria-label="Create a free account and start your first lesson"
           >
-            Start learning free
+            Create free account
           </button>
         )}
         <a className="lh-cta-ghost" href="/#styleguide" aria-label="Go to the design system">
-          Peek the design system
+          Browse design system
         </a>
       </div>
       {!compact && (
