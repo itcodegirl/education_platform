@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 
 const STEPS = [
@@ -42,6 +42,11 @@ export function Onboarding({ isOpen, onClose, displayName }) {
   const [show, setShow] = useState(false);
   const [, setOnboarded] = useLocalStorage('chw-onboarded', false);
 
+  const handleFinish = useCallback(() => {
+    setOnboarded(true);
+    onClose();
+  }, [onClose, setOnboarded]);
+
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => setShow(true), 100);
@@ -53,21 +58,35 @@ export function Onboarding({ isOpen, onClose, displayName }) {
     return undefined;
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        handleFinish();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isOpen, handleFinish]);
+
   if (!isOpen) return null;
 
   const current = STEPS[step];
   const isLast = step === STEPS.length - 1;
   const isFirst = step === 0;
 
-  const handleFinish = () => {
-    setOnboarded(true);
-    onClose();
-  };
-
   return (
     <div className="ob-overlay">
-      <div className={`ob-card ${show ? 'show' : ''}`}>
-        <div className="ob-dots" aria-label="Onboarding progress">
+      <div
+        className={`ob-card ${show ? 'show' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="onboarding-title"
+        aria-describedby="onboarding-subtitle onboarding-kicker"
+      >
+        <div className="ob-dots" aria-label="Onboarding progress" aria-live="polite">
           {STEPS.map((_, index) => (
             <span
               key={index}
@@ -79,11 +98,13 @@ export function Onboarding({ isOpen, onClose, displayName }) {
         <span className="ob-eyebrow">{current.eyebrow}</span>
         <div className="ob-icon">{current.icon}</div>
 
-        <h2 className="ob-title">
+        <h2 id="onboarding-title" className="ob-title">
           {step === 0 && displayName ? `Welcome, ${displayName}!` : current.title}
         </h2>
 
-        <p className="ob-subtitle">{current.subtitle}</p>
+        <p id="onboarding-subtitle" className="ob-subtitle">
+          {current.subtitle}
+        </p>
 
         <div className="ob-points">
           {current.points.map((point) => (
@@ -94,7 +115,7 @@ export function Onboarding({ isOpen, onClose, displayName }) {
           ))}
         </div>
 
-        <p className="ob-kicker">
+        <p id="onboarding-kicker" className="ob-kicker">
           {isLast
             ? 'You are ready to start learning with context, support, and a product that keeps momentum visible.'
             : 'A few more seconds now makes the first session feel much more intuitive.'}
@@ -102,23 +123,33 @@ export function Onboarding({ isOpen, onClose, displayName }) {
 
         <div className="ob-actions">
           {!isFirst && (
-            <button type="button" className="ob-back" onClick={() => setStep((value) => value - 1)}>
+            <button
+              type="button"
+              className="ob-back"
+              onClick={() => setStep((value) => value - 1)}
+              aria-label={`Go to step ${step}`}
+            >
               ← Back
             </button>
           )}
 
           {isFirst && (
-            <button type="button" className="ob-skip" onClick={handleFinish}>
+            <button type="button" className="ob-skip" onClick={handleFinish} aria-label="Skip onboarding tour">
               Skip tour
             </button>
           )}
 
           {isLast ? (
-            <button type="button" className="ob-start" onClick={handleFinish}>
+            <button type="button" className="ob-start" onClick={handleFinish} aria-label="Start learning">
               Start learning →
             </button>
           ) : (
-            <button type="button" className="ob-next" onClick={() => setStep((value) => value + 1)}>
+            <button
+              type="button"
+              className="ob-next"
+              onClick={() => setStep((value) => value + 1)}
+              aria-label={`Go to step ${step + 2}`}
+            >
               Next →
             </button>
           )}

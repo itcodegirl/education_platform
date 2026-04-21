@@ -58,7 +58,7 @@ export function AuthPage({ onPreview }) {
 
   if (confirmSent) {
     return (
-      <main className="auth-page">
+      <main className="auth-page" id="top">
         <div className="auth-card">
           <div className="auth-brand">
             <Logo size="lg" showTagline />
@@ -66,8 +66,17 @@ export function AuthPage({ onPreview }) {
           <div className="auth-confirm">
             <span className="auth-confirm-icon" aria-hidden="true">📧</span>
             <h1>Check your email</h1>
-            <p>We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.</p>
-            <button type="button" className="auth-btn" onClick={() => { setConfirmSent(false); setMode('login'); }}>
+            <p>
+              We sent a confirmation link to <strong>{email}</strong>. Open it to activate your account.
+            </p>
+            <button
+              type="button"
+              className="auth-submit"
+              onClick={() => {
+                setConfirmSent(false);
+                setMode('login');
+              }}
+            >
               Back to Login
             </button>
           </div>
@@ -77,7 +86,7 @@ export function AuthPage({ onPreview }) {
   }
 
   return (
-    <main className="auth-page auth-with-hero">
+    <main className="auth-page auth-with-hero" id="top">
       {/* Above the fold: intro on the left, auth card on the right.
           LandingHeroIntro provides the single <h1> for this page. The
           auth card's brand row used to be a second <h1>, which is a
@@ -118,6 +127,7 @@ export function AuthPage({ onPreview }) {
                 id="auth-display-name"
                 type="text"
                 placeholder="Your name"
+                autoComplete="name"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 required
@@ -131,6 +141,7 @@ export function AuthPage({ onPreview }) {
               id="auth-email"
               type="email"
               placeholder="you@example.com"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -143,6 +154,7 @@ export function AuthPage({ onPreview }) {
               id="auth-password"
               type="password"
               placeholder="••••••••"
+              autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -152,7 +164,7 @@ export function AuthPage({ onPreview }) {
 
           {error && <div className="auth-error">{error}</div>}
 
-          <button className="auth-btn auth-submit" type="submit" disabled={loading}>
+          <button className="auth-submit" type="submit" disabled={loading}>
             {loading ? '...' : mode === 'login' ? 'Log In' : 'Create Account'}
           </button>
         </form>

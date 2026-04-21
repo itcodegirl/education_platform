@@ -169,9 +169,10 @@ export function LandingHeroIntro({ onStart, compact = false }) {
   return (
     <section
       ref={introRef}
+      id="landing-hero-intro"
       className={`lh-intro ${compact ? 'lh-intro-compact' : ''} ${introInView ? 'in-view' : ''}`}
     >
-      <h1 className="lh-headline">
+      <h1 id="landing-hero-title" className="lh-headline">
         Learn to code by{' '}
         <span className="lh-headline-grad">building something real.</span>
       </h1>
@@ -186,7 +187,7 @@ export function LandingHeroIntro({ onStart, compact = false }) {
             Start learning free
           </button>
         )}
-        <a className="lh-cta-ghost" href="#styleguide">
+        <a className="lh-cta-ghost" href="/#styleguide">
           Peek the design system →
         </a>
       </div>
@@ -215,9 +216,9 @@ export function LandingHeroStory() {
           You&apos;ve seen what you&apos;ll build. The first lesson is free —
           no credit card, no scroll-jacking signup wall.
         </p>
-        <a className="lh-cta" href="#top">
-          Back to top ↑
-        </a>
+          <a className="lh-cta" href="#top">
+            Back to top ↑
+          </a>
       </section>
     </div>
   );
