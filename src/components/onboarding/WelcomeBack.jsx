@@ -77,6 +77,7 @@ export function WelcomeBack({
   const [show, setShow] = useState(false);
   const [motivation] = useState(() => getMotivation(streak, completedCount));
   const modalRef = useRef(null);
+  const headingRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -87,6 +88,12 @@ export function WelcomeBack({
     setShow(false);
     return undefined;
   }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen && show && headingRef.current) {
+      headingRef.current.focus();
+    }
+  }, [isOpen, show]);
 
   useFocusTrap(modalRef, {
     enabled: isOpen,
@@ -130,10 +137,15 @@ export function WelcomeBack({
       >
         <div className="wb-greeting">
           <span className="wb-overline">Back in the build studio</span>
-          <h2 id="welcome-back-title" className="wb-hello">
+          <h2
+            id="welcome-back-title"
+            className="wb-hello"
+            ref={headingRef}
+            tabIndex={-1}
+          >
             {greeting}, <span className="wb-name">{displayName || 'Learner'}</span>
           </h2>
-          <p className="wb-motivation" aria-live="polite">
+          <p className="wb-motivation" aria-live="polite" role="status">
             {motivation}
           </p>
           <p id="welcome-back-context" className="wb-context">
@@ -239,4 +251,3 @@ export function WelcomeBack({
     </div>
   );
 }
-
