@@ -1,10 +1,8 @@
 # CodeHerWay
 
-> A free, browser-based learning platform for women learning to code.
-> HTML -> CSS -> JavaScript -> React -> Python, with an AI tutor, live code sandbox, and gamified progress tracking.
+A production-minded, browser-based learning platform focused on helping women build practical coding skills through guided lessons, live coding, and progress-driven feedback.
 
-**Live:** https://mellow-sunflower-9c92cd.netlify.app/  
-**Threat model & security:** [`SECURITY.md`](./SECURITY.md)
+**Live demo:** https://mellow-sunflower-9c92cd.netlify.app/
 
 [![CI](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml/badge.svg)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
 [![Security](https://github.com/itcodegirl/education_platform/actions/workflows/security-audit.yml/badge.svg)](https://github.com/itcodegirl/education_platform/actions/workflows/security-audit.yml)
@@ -12,25 +10,11 @@
 [![Vite](https://img.shields.io/badge/Vite-6-646cff?logo=vite&logoColor=white)](https://vitejs.dev)
 [![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase&logoColor=white)](https://supabase.com)
 
-CodeHerWay is a **real product-oriented coding platform** built for self-paced learning with:
-
-- real project lessons that run code in-browser
-- immediate AI-assisted feedback
-- visible progress, gamification, and spaced repetition
-- production-minded security and accessibility baseline
-
 ---
 
-## What it is
+## Product overview
 
-CodeHerWay is a complete coding bootcamp-style web app that runs entirely in the browser and supports multiple tracks:
-
-- HTML / CSS
-- JavaScript
-- React
-- Python
-
-Every lesson follows a single, repeatable shape:
+CodeHerWay is a multi-track learning platform (HTML, CSS, JavaScript, React, Python) designed around a repeatable lesson model:
 
 - Hook
 - Do
@@ -39,257 +23,205 @@ Every lesson follows a single, repeatable shape:
 - Challenge
 - Summary
 
-Each lesson includes:
-
-- Monaco-based editor with live preview
-- in-app AI tutor aligned to the current lesson
-- auto-graded checks and challenge rails
-- review-card generation from mistakes
-
-The product is intentionally optimized for clear sequencing:
-
-- onboarding flow for first-time learners
-- predictable lesson navigation
-- quick access to bookmarks, glossary, review queue, and AI support
+Learners can read, code, test ideas, ask an AI tutor contextual questions, and track progress through XP, streaks, badges, and spaced repetition.
 
 ---
 
-## What this product demonstrates
+## Why this project matters
 
-This is portfolio-grade work focused on practical engineering tradeoffs:
+Most tutorial apps optimize for content volume. This project optimizes for **learning momentum** and **production behavior**:
 
-- **Secure, server-mediated AI usage**
-  - API keys stay in Netlify Function runtime
-  - per-user rate limits live in Postgres (`consume_ai_quota()`)
-  - server-side guardrails are injected before forwarding prompts
-  - request failures fail closed when quotas/routing are unavailable
+- clearer onboarding and "what to do next" guidance
+- real state persistence and progress continuity
+- secure AI integration behind server boundaries
+- consistent empty/loading/error states across core paths
+- accessibility and keyboard-first interaction patterns
 
-- **Data security by architecture**
-  - Supabase Row Level Security for every user table
-- **Admin hardening**
-  - admin escalation through server-side RPC (`set_user_admin()`)
-  - trigger-based guard preventing self-privilege escalation
-  - audit trail for admin changes
-
-- **Safe execution model**
-  - learner code runs inside a sandboxed iframe
-  - no `allow-same-origin`, no shared cookies/localStorage leakage
-
-- **Resilience and reliability**
-  - dynamic chunk recovery path with fallback + refresh throttling
-  - explicit loading, empty, and error states across critical paths
-
-- **Design coherence and usability**
-  - shared design tokens in CSS
-  - consistent patterns for loading/error/empty states
-  - focus management for modal workflows
-  - reduced-friction onboarding and lesson metadata signals
+For reviewers, this shows product thinking, not just component assembly.
 
 ---
 
-## Product polish focus (current release)
+## Key features
 
-### Onboarding
-- Clear first-run sequence (welcome flow and context-aware “welcome back” messaging)
-- Accessibility-safe modal focus trap with Escape-to-close
-- stronger progress labels and clearer next-step copy
-
-### Lesson flow
-- lesson header metadata now consistently describes duration, concepts, tasks, and scaffolding
-- clearer icon/text pairing for completion and bookmark actions
-- more robust summary text and button labels
-
-### Dashboard and learning panels
-- consistent quick-action styling and labels in shared tool surfaces
-- standard role/ARIA usage and loading/error behavior for admin and panel views
-- stronger handling for missing/empty panel states
-
-### Readiness and release quality
-- explicit checks for linting and type safety after each feature batch
-- polished case-study-oriented documentation to support portfolio review
+- Guided lessons with live coding and immediate feedback loops
+- Monaco-based editor and preview workflows
+- AI tutor and AI-generated practice cards (server mediated)
+- Course navigation, bookmarks, glossary, and search
+- Spaced repetition queue from missed concepts
+- Gamification: XP, streaks, badges, daily momentum
+- Public learner profile pages with privacy controls
+- Admin dashboard and lesson tooling
+- PWA support and offline-oriented behavior
 
 ---
 
-## Architecture at a glance
-
-```
-Browser (React 18, PWA)
- |
- +-- REST fetch --> Netlify Functions
- |     |
- |     +-- /ai: AI tutor proxy + quota checks + guardrail prompt
- |     +-- /streak-reminder: scheduled progress reminders
- |
- +-- Auth + DB --> Supabase (Postgres + Auth + RLS)
-       |
-       +-- Profiles / progress / lessons / quizzes / badges
-```
-
-The app intentionally keeps business rules at the database boundary first:
-RLS and stored functions authorize what can happen; UI reflects those guarantees.
-
----
-
-## Tech stack
-
-| Layer | Choice | Why |
-| --- | --- | --- |
-| UI | React 18 + Vite 6 | Fast development, modern bundling, and predictable performance |
-| State & auth | Supabase Auth | Realistic authentication and server-backed profile model |
-| Functions | Netlify Functions (Node 20 ESM) | Single deploy surface for backend tasks |
-| AI | OpenAI Responses API (through proxy) | Controlled costs, safety, and key protection |
-| Editor | Monaco | Familiar enterprise-grade code editing UX |
-| Styling | CSS variables + tokenized design system | predictable scale and palette consistency |
-| Types | TypeScript (service layer) | compile-time confidence with `tsc --noEmit` |
-| Testing | Vitest + RTL + Playwright | unit and E2E confidence |
-| CI | GitHub Actions | lint, typecheck, tests, and security checks |
-
----
-
-## Repo structure
+## Architecture summary
 
 ```text
-src/
-  ├── components/    learning, panels, admin, auth, gamification, layout, shared
-  ├── providers/     Auth, Theme, Progress, CourseContent, AI, SR
-  ├── services/      auth, progress, AI, learning, gamification
-  ├── hooks/         navigation, storage, focus, admin data
-  ├── routes/        auth/guarded app routes + route-level loading/error states
-  ├── data/          lesson content by domain
-  ├── styles/        token system + responsive behavior
-  ├── utils/         markdown/monaco helpers
-  └── netlify/functions ai.js + streak-reminder.js
+React SPA (Vite)
+  |
+  +-- Supabase Auth + Postgres (RLS)
+  |
+  +-- Netlify Functions
+        |- /ai
+        |- /practice-generate
+        |- /streak-reminder
+  |
+  +-- OpenAI Responses API (server-side only)
 ```
+
+Core principle: authorization and security rules are enforced at the backend boundary (RLS + server functions), not trusted to client state.
+
+For a deep technical walkthrough, see [docs/architecture.md](./docs/architecture.md).
 
 ---
 
-## Run locally
+## Security and accessibility highlights
+
+### Security
+
+- API keys never exposed to the browser
+- Supabase Row Level Security on user-scoped data
+- Authenticated AI proxy via Netlify Functions
+- Rate limiting and guardrail prompt handling in server flow
+- Security headers in `netlify.toml` (CSP, HSTS, COOP, CORP, frame protections)
+- CI security checks (`npm audit`, secret scanning)
+
+### Accessibility
+
+- semantic landmarks and structured heading hierarchy
+- keyboard-navigable dialogs and overlays with focus management
+- visible focus states across interactive controls
+- meaningful labels and ARIA wiring for high-traffic interactions
+- reduced-motion support
+
+---
+
+## Technical challenges and tradeoffs
+
+1. **Rich UX vs maintainability**
+   - Chose tokenized CSS + shared UI primitives for consistency without introducing a heavy design-system dependency.
+
+2. **AI usefulness vs safety/cost control**
+   - Kept AI calls server-mediated with strict payload controls and per-user limits.
+
+3. **Fast initial load vs large learning content**
+   - Used lazy loading and chunk strategy by domain/course to avoid overloading first paint.
+
+4. **Incremental improvement vs full rewrite temptation**
+   - Preserved architecture and made focused, auditable improvements in small batches.
+
+---
+
+## Demo path (3-5 minutes)
+
+For portfolio demos, use this flow:
+
+1. Open landing/auth and explain product purpose in one sentence.
+2. Enter the dashboard and show first-run guidance.
+3. Open a lesson, mark progress, and navigate to the next step.
+4. Trigger search/bookmarks/review panel and show continuity.
+5. Show AI tutor flow and explain server-side guardrails.
+6. Close with profile/progress and release-quality checks.
+
+---
+
+## Screenshots (placeholders)
+
+Add final screenshots to `docs/screenshots/` using these filenames:
+
+- `01-landing-auth.png` - landing and primary CTA hierarchy
+- `02-dashboard-first-run.png` - dashboard clarity and onboarding hints
+- `03-lesson-flow.png` - lesson page, progress, and next-step guidance
+- `04-tools-panels.png` - search/bookmarks/review side panels
+- `05-profile-progress.png` - profile and progress surface
+
+See placeholder guidance in [docs/screenshots/README.md](./docs/screenshots/README.md).
+
+---
+
+## Local setup
 
 ```bash
 git clone https://github.com/itcodegirl/education_platform.git
 cd education_platform
 npm ci
-cp .env.example .env       # add Supabase URL + anon key
-npm run dev               # http://localhost:5173
+cp .env.example .env
+npm run dev
 ```
 
-The AI tutor and some admin features require Netlify environment values for local production parity.
+### Required environment values
 
-### One-time database setup
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `OPENAI_API_KEY` (for function-backed AI features)
+- optional: `OPENAI_MODEL`
 
-1. Open your Supabase SQL editor.
-2. Apply [`supabase-schema.sql`](./supabase-schema.sql).
-3. Seed admin:
+### Database bootstrap
+
+1. Apply [supabase-schema.sql](./supabase-schema.sql).
+2. Optionally seed an admin user:
 
 ```sql
 update public.profiles set is_admin = true where id = '<your-uuid>';
 ```
 
-After this, admin role changes are managed by RPC and trigger controls.
+---
+
+## Deployment notes
+
+- Primary deploy target: Netlify
+- Build command: `npm run build`
+- Publish directory: `dist`
+- Functions directory: `netlify/functions`
+- Scheduled job: `streak-reminder` (cron in `netlify.toml`)
+
+Pre-release checklist is documented in [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md).
 
 ---
 
-## Scripts
+## Quality and release workflow
 
-| Script | What it does |
-| --- | --- |
-| `npm run dev` | Vite dev server |
-| `npm run build` | Production build to `dist/` |
-| `npm run preview` | Preview the production build |
-| `npm run lint` | ESLint across the app |
-| `npm run typecheck` | TypeScript `--noEmit` |
-| `npm test` / `npm run test:unit` | Vitest unit suite |
-| `npm run test:integration` | Playwright integration/E2E suite |
-| `npm run test:e2e` | Alias for `test:integration` |
-| `npm run check` | Fast local gate (`lint + typecheck + build + unit`) |
-| `npm run check:ci` | CI parity gate (`check + Playwright`) |
-| `npm run test:e2e:headed` | Playwright headed mode |
-| `npm run test:e2e:update-snapshots` | Rebaseline visual snapshots |
+- `npm run check` - lint + typecheck + build + unit tests
+- `npm run check:ci` - `check` + Playwright integration/E2E suite
 
-Public visual suites and auth flows are designed to skip cleanly when credentials are absent.
-
-### Release checks used by this portfolio
-
-1. `npm run check`
-2. `npm run check:ci` (when Playwright environment is available)
-
----
-
-## Accessibility notes
-
-- Semantic landmarks (`main`, `nav`, `header`, `footer`) and consistent page structure
-- explicit heading hierarchy and single `h1` intent per view
-- keyboard-safe modal behavior and focus return on close
-- visible focus-visible styling with pointer-keyboard distinction
-- reduced-motion support through global media query
-- decorative icons properly marked so screen readers stay focused on instructional content
-
----
-
-## Case study snapshot
-
-### Problem
-
-The platform needed to feel production-like for hiring review while retaining the existing architecture. The biggest risks were:
-
-- mixed UI clarity across onboarding, lesson metadata, and bottom tool actions
-- uneven empty/loading/error behavior in less visible paths
-- documentation that did not match portfolio-facing polish expectations
-
-### Approach
-
-- prioritize targeted, low-risk polish passes rather than refactors
-- preserve architecture and data contracts
-- make each change batch small and reviewable
-- keep accessibility and responsive behavior as part of every UI edit
-
-### Outcome
-
-- faster first-time learner orientation through clearer onboarding state
-- cleaner lesson and course metadata interpretation inside lesson headers
-- stronger portfolio positioning through consistent release checks and cleaner documentation
-- incremental commit trail with check-validated batches
-
----
-
-## Security highlights
-
-- API secrets remain server-side
-- authenticated AI proxy with session validation
-- per-user quota + fallback protection
-- CSP/HSTS/COOP/CORP/Referrer + permissions hardening in Netlify config
-- audit trail for elevated account operations
+Additional scripts are listed in [package.json](./package.json).
 
 ---
 
 ## Roadmap
 
-- [x] Animated, clear onboarding and lesson entry experience
-- [x] Public profile pages with RLS policy coverage
-- [x] AI-assisted personalized review prompts from missed items
-- [x] Server-side AI proxy and guarded usage
-- [x] Accessibility-first modal workflows
-- [x] Component-level test coverage
-- [ ] Server-rendered OG cards
-- [ ] TypeScript migration for remaining legacy components
-- [ ] Lighthouse CI score reporting and badge hardening
+- [x] Production-style onboarding and first-run clarity
+- [x] Shared component/state patterns for panel consistency
+- [x] Security-hardened AI gateway and release checks
+- [x] Accessibility semantics and focus-state improvements
+- [ ] Server-rendered OG metadata for richer sharing
+- [ ] Continue TypeScript migration through React component layer
+- [ ] Add Lighthouse CI reporting to release pipeline
 
 ---
 
-## Contributing
+## Lessons learned
 
-PRs are welcome, especially for lesson content, accessibility, and security.
-CI must pass (`ci-smoke`, `security-audit`).
-For security disclosures, see [`SECURITY.md`](./SECURITY.md).
+- UX polish is mostly consistency, not flashy effects.
+- Accessibility is easier to sustain when built into shared primitives.
+- Small, check-validated batches produce safer momentum than rewrites.
+- Recruiter-facing documentation should explain both product value and engineering tradeoffs.
 
 ---
 
-## Further reading
+## Portfolio case study
 
-- [SECURITY.md](./SECURITY.md) — Threat model and controls
-- [CHANGELOG.md](./CHANGELOG.md) — release history
-- [docs/architecture.md](./docs/architecture.md) — architecture narrative
+Read the narrative version here:
+
+- [docs/portfolio-case-study.md](./docs/portfolio-case-study.md)
+
+---
+
+## Additional docs
+
+- [SECURITY.md](./SECURITY.md)
+- [CHANGELOG.md](./CHANGELOG.md)
+- [docs/architecture.md](./docs/architecture.md)
 - [CONTRIBUTING.md](./CONTRIBUTING.md)
 - [LICENSE](./LICENSE)
-
-Built by [@itcodegirl](https://github.com/itcodegirl).
