@@ -1,61 +1,81 @@
-// ═══════════════════════════════════════════════
-// GUEST PREVIEW — Read-only first lesson preview
-// Lets potential users experience the content quality
-// before signing up. No auth required.
-// ═══════════════════════════════════════════════
-
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { COURSES } from '../../data';
 import { useCourseContent } from '../../providers';
 import { renderMarkdown } from '../../utils/markdown';
 import { CodePreview } from '../learning/CodePreview';
 
 export function GuestPreview({ onBack }) {
-  // HTML is lazy-loaded. CourseContentProvider auto-fetches the
-  // default active course on mount, so this is usually a no-op by
-  // the time a guest clicks "preview a lesson" — but we still show
-  // a skeleton for the split-second before the fetch resolves.
+  // HTML is lazy-loaded. CourseContentProvider auto-fetches the default active
+  // course on mount, so this is usually a no-op by the time a guest clicks
+  // "preview a lesson", but we still show a short state while it loads.
   const { ensureLoaded, isCourseLoaded } = useCourseContent();
-  useEffect(() => { ensureLoaded('html'); }, [ensureLoaded]);
+  useEffect(() => {
+    ensureLoaded('html');
+  }, [ensureLoaded]);
+
   const htmlReady = isCourseLoaded('html');
   const course = COURSES[0];
   const firstModule = htmlReady ? course.modules[0] : null;
   const firstLesson = firstModule?.lessons?.[0] || null;
+  const totalLessons = useMemo(
+    () =>
+      COURSES.reduce((sum, currentCourse) => sum + currentCourse.modules.reduce(
+        (moduleSum, module) => moduleSum + module.lessons.length,
+        0,
+      ), 0),
+    [],
+  );
+
   if (!htmlReady || !firstLesson) {
     return (
-      <div className="guest-preview guest-preview-loading" aria-busy="true">
-        <p>Loading preview…</p>
-      </div>
+      <main className="guest-preview guest-preview-loading" aria-live="polite" role="status">
+        <p>Loading lesson preview...</p>
+      </main>
     );
   }
 
   return (
-    <div className="guest-preview">
+    <main className="guest-preview">
       <div className="gp-topbar">
-        <button type="button" className="gp-back" onClick={onBack}>
+        <button
+          type="button"
+          className="gp-back"
+          onClick={onBack}
+          aria-label="Return to authentication page"
+        >
           ← Back to login
         </button>
         <span className="gp-badge">Preview Mode</span>
-        <button type="button" className="gp-signup-btn" onClick={onBack}>
+        <button
+          type="button"
+          className="gp-signup-btn"
+          onClick={onBack}
+          aria-label="Open registration form"
+        >
           Sign up free →
         </button>
       </div>
 
       <div className="gp-content">
         <div className="gp-banner">
-          <span className="gp-banner-icon" aria-hidden="true">👀</span>
+          <span className="gp-banner-icon" aria-hidden="true">🚀</span>
           <p>
             You&apos;re previewing the first lesson.{' '}
-            <button type="button" className="gp-inline-link" onClick={onBack}>
+            <button
+              type="button"
+              className="gp-inline-link"
+              onClick={onBack}
+              aria-label="Create a free account"
+            >
               Create a free account
             </button>{' '}
             to track progress, earn badges, and unlock the AI tutor.
           </p>
         </div>
 
-        <div className="lv">
+        <section className="lv">
           <div className="lv-head">
-            <span className="lv-emoji">{firstModule.emoji}</span>
+            <span className="lv-emoji" aria-hidden="true">{firstModule.emoji}</span>
             <div className="lv-head-text">
               <div className="lv-kicker">
                 <span className="lv-kicker-label">Module</span>
@@ -76,27 +96,25 @@ export function GuestPreview({ onBack }) {
           </div>
 
           <div className="lv-body">
-            {/* Structured hook */}
             {firstLesson.hook?.accomplishments && (
               <div className="box sl-hook">
-                <div className="box-label">🎯 In this lesson you will</div>
+                <div className="box-label">🔧 In this lesson you will</div>
                 <ul className="sl-hook-list">
                   {firstLesson.hook.accomplishments.map((item, i) => (
-                    <li key={i}>{item}</li>
+                    <li key={item + i}>{item}</li>
                   ))}
                 </ul>
               </div>
             )}
 
-            {/* Do steps */}
             {firstLesson.do?.steps && (
               <>
                 {firstLesson.do.title && (
-                  <h3 className="sl-section-title">🛠️ {firstLesson.do.title}</h3>
+                  <h3 className="sl-section-title">📝 {firstLesson.do.title}</h3>
                 )}
                 <ol className="sl-steps">
                   {firstLesson.do.steps.map((step, i) => (
-                    <li key={i} className="sl-step">
+                    <li key={step + i} className="sl-step">
                       <span className="sl-step-num">{i + 1}</span>
                       <span>{step}</span>
                     </li>
@@ -105,7 +123,6 @@ export function GuestPreview({ onBack }) {
               </>
             )}
 
-            {/* Code preview */}
             {(firstLesson.code || firstLesson.do?.code) && (
               <CodePreview
                 code={firstLesson.code || firstLesson.do?.code || ''}
@@ -113,59 +130,59 @@ export function GuestPreview({ onBack }) {
               />
             )}
 
-            {/* Result */}
             {firstLesson.do?.result && (
               <div className="box output-box">
-                <div className="box-label">▶ Result</div>
+                <div className="box-label">⬇ Result</div>
                 <p>{firstLesson.do.result}</p>
               </div>
             )}
 
-            {/* Concepts */}
             {firstLesson.understand?.concepts && (
               <>
-                <h3 className="sl-section-title">💡 Understand</h3>
+                <h3 className="sl-section-title">🧠 Understand</h3>
                 <div className="sl-concepts">
-                  {firstLesson.understand.concepts.map((c, i) => (
-                    <div key={i} className="sl-concept-card">
-                      <div className="sl-concept-name">{c.name}</div>
-                      <p className="sl-concept-def">{c.definition}</p>
-                      {c.analogy && (
+                  {firstLesson.understand.concepts.map((concept, i) => (
+                    <article key={concept.name + i} className="sl-concept-card">
+                      <div className="sl-concept-name">{concept.name}</div>
+                      <p className="sl-concept-def">{concept.definition}</p>
+                      {concept.analogy && (
                         <div className="sl-concept-analogy">
-                          <span className="sl-analogy-icon">🔗</span>
-                          <span><strong>Think of it like:</strong> {c.analogy}</span>
+                          <span className="sl-analogy-icon">💡</span>
+                          <span><strong>Think of it like:</strong> {concept.analogy}</span>
                         </div>
                       )}
-                    </div>
+                    </article>
                   ))}
                 </div>
               </>
             )}
 
-            {/* Legacy content fallback */}
             {firstLesson.content && renderMarkdown(firstLesson.content)}
+
             {firstLesson.concepts && !firstLesson.understand && (
               <div className="concept-list">
-                {firstLesson.concepts.map((c, i) => (
-                  <div key={i} className="concept-item">
+                {firstLesson.concepts.map((concept, i) => (
+                  <div key={concept + i} className="concept-item">
                     <span className="concept-bullet">→</span>
-                    <span>{c}</span>
+                    <span>{concept}</span>
                   </div>
                 ))}
               </div>
             )}
           </div>
-        </div>
+        </section>
 
-        {/* CTA at bottom */}
-        <div className="gp-cta">
+        <section className="gp-cta" aria-label="Preview call to action">
           <h3>Ready to keep going?</h3>
-          <p>Create a free account to unlock all {COURSES.reduce((sum, c) => sum + c.modules.reduce((s, m) => s + m.lessons.length, 0), 0)}+ lessons, track your progress, earn badges, and use the AI tutor.</p>
-          <button type="button" className="gp-cta-btn" onClick={onBack}>
+          <p>
+            Create a free account to unlock all {totalLessons}+ lessons, track your progress,
+            earn badges, and use the AI tutor.
+          </p>
+          <button type="button" className="gp-cta-btn" onClick={onBack} aria-label="Create free account">
             Create free account →
           </button>
-        </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }
