@@ -237,11 +237,14 @@ export const Sidebar = memo(function Sidebar({
             Click-outside, Escape, and window resize close the active popout. */}
         <div className="sb-tabs" ref={tabsRef} role="tablist" aria-label="Sidebar navigation">
           <button
+            id="sb-tab-courses"
             type="button"
             className={`sb-tab ${activePopout === 'courses' ? 'active' : ''}`}
             onClick={() => openPopout('courses')}
+            aria-haspopup="true"
             aria-expanded={activePopout === 'courses'}
             aria-controls="sb-tab-panel-courses"
+            aria-selected={activePopout === 'courses'}
             role="tab"
           >
             <span className="sb-tab-icon" aria-hidden="true">📚</span>
@@ -250,11 +253,14 @@ export const Sidebar = memo(function Sidebar({
           </button>
 
           <button
+            id="sb-tab-resources"
             type="button"
             className={`sb-tab ${activePopout === 'resources' ? 'active' : ''}`}
             onClick={() => openPopout('resources')}
+            aria-haspopup="true"
             aria-expanded={activePopout === 'resources'}
             aria-controls="sb-tab-panel-resources"
+            aria-selected={activePopout === 'resources'}
             role="tab"
           >
             <span className="sb-tab-icon" aria-hidden="true">📋</span>
@@ -286,6 +292,7 @@ export const Sidebar = memo(function Sidebar({
             id={`sb-tab-panel-${activePopout}`}
             className={`sb-tab-flyout sb-tab-flyout-${activePopout}`}
             role="tabpanel"
+            aria-labelledby={activePopout === 'courses' ? 'sb-tab-courses' : 'sb-tab-resources'}
             aria-label={activePopout === 'courses' ? 'Select course' : 'Open a learning tool'}
             style={{ top: popoutPos.top, left: popoutPos.left }}
           >

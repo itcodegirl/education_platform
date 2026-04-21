@@ -54,7 +54,8 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-label={`${course.label} course complete`}
+        aria-labelledby="cc-course-title"
+        aria-describedby="cc-course-desc cc-course-kicker"
         tabIndex={-1}
       >
         <div className="cc-badge-row">
@@ -63,11 +64,11 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
 
         <div className="cc-header">
           <span className="cc-overline">Milestone unlocked</span>
-          <h2 className="cc-title">Course complete</h2>
-          <p className="cc-sub">
+          <h2 id="cc-course-title" className="cc-title">Course complete</h2>
+          <p id="cc-course-desc" className="cc-sub">
             You finished <strong>{course.label}</strong> and shipped all {lessonCount} lessons.
           </p>
-          <p className="cc-kicker">
+          <p id="cc-course-kicker" className="cc-kicker">
             This is proof that you stayed with the work long enough to turn effort into
             visible progress.
           </p>

@@ -30,15 +30,6 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    const handler = (event) => {
-      if (event.key === 'Escape' && isOpen) onClose();
-    };
-
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [isOpen, onClose]);
-
   const normalizedQuery = query.toLowerCase();
   const results = normalizedQuery.length >= 2
     ? searchIndex
@@ -132,11 +123,12 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
             className="search-input"
             placeholder="Search lessons, modules, and concepts..."
             aria-label="Search lessons"
+            aria-describedby="search-shortcut-hint"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleInputKeyDown}
           />
-          <span className="search-hint">ESC close</span>
+          <span id="search-shortcut-hint" className="search-hint">Esc closes this panel</span>
         </div>
 
         <div className="search-results">
@@ -162,41 +154,43 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
               <p className="panel-meta search-support">
                 Tip: use arrow keys to highlight a result, then press Enter to jump there.
               </p>
-              {results.map((result, index) => (
-                <button
-                  key={`${result.course}-${result.module}-${result.title}-${index}`}
-                  type="button"
-                  className={`search-result ${activeIndex === index ? 'active' : ''}`}
-                  onClick={() => handleClick(result)}
-                  onMouseEnter={() => setActiveIndex(index)}
-                >
-                  <span className="sr-icon">{result.icon}</span>
-                  <div className="sr-body">
-                    <div
-                      className="sr-title"
-                      dangerouslySetInnerHTML={{
-                        __html: highlight(result.title),
-                      }}
-                    />
-                    <div className="sr-path">
-                      {result.course} {'>'}{' '}
-                      <span
-                        dangerouslySetInnerHTML={{
-                          __html: highlight(result.module),
-                        }}
-                      />
-                    </div>
-                    {result.keywords && (
+              <div role="list" aria-label="Search results">
+                {results.map((result, index) => (
+                  <button
+                    key={`${result.course}-${result.module}-${result.title}-${index}`}
+                    type="button"
+                    className={`search-result ${activeIndex === index ? 'active' : ''}`}
+                    onClick={() => handleClick(result)}
+                    onMouseEnter={() => setActiveIndex(index)}
+                  >
+                    <span className="sr-icon">{result.icon}</span>
+                    <div className="sr-body">
                       <div
-                        className="sr-snippet"
+                        className="sr-title"
                         dangerouslySetInnerHTML={{
-                          __html: highlight(result.keywords.slice(0, 80)),
+                          __html: highlight(result.title),
                         }}
                       />
-                    )}
-                  </div>
-                </button>
-              ))}
+                      <div className="sr-path">
+                        {result.course} {'>'}{' '}
+                        <span
+                          dangerouslySetInnerHTML={{
+                            __html: highlight(result.module),
+                          }}
+                        />
+                      </div>
+                      {result.keywords && (
+                        <div
+                          className="sr-snippet"
+                          dangerouslySetInnerHTML={{
+                            __html: highlight(result.keywords.slice(0, 80)),
+                          }}
+                        />
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
             </>
           )}
         </div>

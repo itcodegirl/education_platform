@@ -57,17 +57,18 @@ export const WhatsNew = memo(function WhatsNew() {
         className="search-modal wn-modal"
         role="dialog"
         aria-modal="true"
-        aria-label={`What's new in version ${latest.version}`}
+        aria-labelledby="whats-new-title"
+        aria-describedby="whats-new-date"
         tabIndex={-1}
       >
         <div className="wn-header">
           <span className="wn-icon" aria-hidden="true">🎉</span>
-          <span className="wn-title">What's New</span>
+          <span id="whats-new-title" className="wn-title">What's New</span>
           <span className="wn-version">v{latest.version}</span>
           <button type="button" className="cheatsheet-close" onClick={handleClose} aria-label="Close changelog">✕</button>
         </div>
         <div className="wn-body">
-          <p className="wn-date">{latest.date}</p>
+          <p id="whats-new-date" className="wn-date">{latest.date}</p>
           <ul className="wn-list">
             {latest.items.map((item, i) => (
               <li key={i} className="wn-item">

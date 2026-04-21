@@ -116,9 +116,10 @@ function BugQuestion({ q, answer, onAnswer, submitted }) {
 
 function FillQuestion({ q, answer, onAnswer, submitted }) {
   const isCorrect = isAnswerCorrect(q, answer);
+  const promptId = `qq-fill-prompt-${q.id}`;
   return (
     <>
-      <p className="qq-text">{q.question}</p>
+      <p id={promptId} className="qq-text">{q.question}</p>
       {q.code && <pre className="qq-code"><code>{q.code}</code></pre>}
       <div className="qq-fill-wrap">
         <input
@@ -130,6 +131,8 @@ function FillQuestion({ q, answer, onAnswer, submitted }) {
           placeholder="Type your answer..."
           autoComplete="off"
           spellCheck={false}
+          aria-label={`Answer for: ${q.question}`}
+          aria-describedby={promptId}
         />
         {submitted && !isCorrect && (
           <div className="qq-fill-answer">
@@ -174,8 +177,24 @@ function OrderQuestion({ q, answer, onAnswer, submitted }) {
               <span className="qq-order-text">{q.items[itemIdx]}</span>
               {!submitted && (
                 <span className="qq-order-btns">
-                  <button type="button" className="qq-order-btn" onClick={() => moveUp(pos)} disabled={pos === 0}>↑</button>
-                  <button type="button" className="qq-order-btn" onClick={() => moveDown(pos)} disabled={pos === items.length - 1}>↓</button>
+                  <button
+                    type="button"
+                    className="qq-order-btn"
+                    onClick={() => moveUp(pos)}
+                    disabled={pos === 0}
+                    aria-label={`Move item ${pos + 1} up`}
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    className="qq-order-btn"
+                    onClick={() => moveDown(pos)}
+                    disabled={pos === items.length - 1}
+                    aria-label={`Move item ${pos + 1} down`}
+                  >
+                    ↓
+                  </button>
                 </span>
               )}
             </div>
@@ -281,7 +300,12 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
           const typeBadge = TYPE_LABELS[q.type];
 
           return (
-            <div key={q.id} className={`qq ${submitted ? (correct ? 'correct' : 'wrong') : ''}`}>
+            <div
+              key={q.id}
+              className={`qq ${submitted ? (correct ? 'correct' : 'wrong') : ''}`}
+              role="group"
+              aria-label={`Question ${qi + 1} of ${total}`}
+            >
               <div className="qq-num">{qi + 1}</div>
               <div className="qq-body">
                 {typeBadge && <span className="qq-type-badge">{typeBadge}</span>}
@@ -320,7 +344,7 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
           {allAnswered ? 'Submit Answers' : `Answer all ${total} to submit`}
         </button>
       ) : (
-        <div className="quiz-results">
+        <div className="quiz-results" role="status" aria-live="polite">
           <div className="quiz-score" style={{ borderColor: accent }}>
             <div className="quiz-score-num" style={{ color: accent }}>{score}/{total}</div>
             <div className="quiz-score-pct">
