@@ -25,6 +25,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
+// Safety cap — prevents an unbounded full-table scan as the platform
+// grows. If any table returns exactly PAGE_SIZE rows we surface a
+// warning in the UI so the admin knows results may be incomplete.
+const PAGE_SIZE = 500;
+
 const INITIAL_DATA = {
   users: [],
   progress: [],
@@ -32,6 +37,7 @@ const INITIAL_DATA = {
   xp: [],
   streaks: [],
   badges: [],
+  truncated: [],   // list of table names that hit PAGE_SIZE
 };
 
 export function useAdminData(user) {
@@ -83,12 +89,12 @@ export function useAdminData(user) {
       setLoadError(null);
       try {
         const [users, progress, quizScores, xp, streaks, badges] = await Promise.all([
-          supabase.from('profiles').select('*').order('created_at', { ascending: false }),
-          supabase.from('progress').select('*'),
-          supabase.from('quiz_scores').select('*'),
-          supabase.from('xp').select('*'),
-          supabase.from('streaks').select('*'),
-          supabase.from('badges').select('*'),
+          supabase.from('profiles').select('*').order('created_at', { ascending: false }).limit(PAGE_SIZE),
+          supabase.from('progress').select('*').limit(PAGE_SIZE),
+          supabase.from('quiz_scores').select('*').limit(PAGE_SIZE),
+          supabase.from('xp').select('*').limit(PAGE_SIZE),
+          supabase.from('streaks').select('*').limit(PAGE_SIZE),
+          supabase.from('badges').select('*').limit(PAGE_SIZE),
         ]);
         const errors = [
           ['profiles', users.error],
@@ -106,6 +112,17 @@ export function useAdminData(user) {
           throw new Error(details);
         }
 
+        const truncated = [
+          ['users', users.data],
+          ['progress', progress.data],
+          ['quiz_scores', quizScores.data],
+          ['xp', xp.data],
+          ['streaks', streaks.data],
+          ['badges', badges.data],
+        ]
+          .filter(([, rows]) => rows?.length === PAGE_SIZE)
+          .map(([name]) => name);
+
         if (cancelled) return;
         setData({
           users: users.data || [],
@@ -114,6 +131,7 @@ export function useAdminData(user) {
           xp: xp.data || [],
           streaks: streaks.data || [],
           badges: badges.data || [],
+          truncated,
         });
       } catch (error) {
         if (!cancelled) {
