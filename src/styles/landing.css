@@ -116,7 +116,8 @@
   font-size: var(--text-lg);
   line-height: 1.6;
 }
-.lh-lede code {
+.lh-lede code,
+.lh-inline-code {
   font-family: 'Space Mono', ui-monospace, monospace;
   font-size: 0.9em;
   background: var(--bg-surface);
@@ -331,14 +332,19 @@
   margin-bottom: 12px;
   font-size: var(--text-sm);
 }
-.lh-preview-html button {
+.lh-preview-action {
   padding: 8px 18px;
   border: 1px solid var(--border-bright);
   background: var(--bg-surface);
   color: var(--text);
   border-radius: var(--radius-sm);
   font-family: inherit;
-  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  cursor: default;
+  pointer-events: none;
 }
 .lh-css-title {
   background: var(--grad-brand);
