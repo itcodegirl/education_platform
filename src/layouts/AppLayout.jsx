@@ -1,7 +1,7 @@
-// ═══════════════════════════════════════════════
-// APP LAYOUT — Main platform shell
+﻿// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// APP LAYOUT â€” Main platform shell
 // Sidebar + Topbar + Content + Toolbar + Panels
-// ═══════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 import { useCallback, useMemo, useEffect, useState } from "react";
 import { COURSES } from "../data";
@@ -60,7 +60,7 @@ export function AppLayout() {
 
   // Lazy-load the currently-selected course's lesson content. The
   // CourseContentProvider caches loads and auto-fetches the default
-  // ('html') on mount — this effect keeps it in sync as the user
+  // ('html') on mount â€” this effect keeps it in sync as the user
   // switches courses so we don't over-fetch.
   const {
     setActiveCourseId,
@@ -116,22 +116,22 @@ export function AppLayout() {
     }
   }, [isMobile, setSidebarCollapsed]);
 
-  // ─── Dynamic page title ───────────────────
+  // â”€â”€â”€ Dynamic page title â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     const title = showModQuiz
-      ? `${mod.title} Quiz — CodeHerWay`
-      : `${les.title} — CodeHerWay`;
+      ? `${mod.title} Quiz â€” CodeHerWay`
+      : `${les.title} â€” CodeHerWay`;
     document.title = title;
-    return () => { document.title = 'CodeHerWay — Learn. Build. Ship.'; };
+    return () => { document.title = 'CodeHerWay â€” Learn. Build. Ship.'; };
   }, [les.title, mod.title, showModQuiz]);
 
-  // ─── Save position on navigation ──────────
+  // â”€â”€â”€ Save position on navigation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     if (dataLoaded) {
       savePosition({
         course: `${course.icon} ${course.label}`,
         mod: `${mod.emoji} ${mod.title}`,
-        les: showModQuiz ? "📝 Module Quiz" : les.title,
+        les: showModQuiz ? "ðŸ“ Module Quiz" : les.title,
       });
       trackCourseVisit(course.id);
     }
@@ -148,7 +148,7 @@ export function AppLayout() {
     trackCourseVisit,
   ]);
 
-  // ─── Milestone + course completion ────────
+  // â”€â”€â”€ Milestone + course completion â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     panels.checkMilestone(completed.length);
   }, [completed.length, panels]);
@@ -187,7 +187,7 @@ export function AppLayout() {
     }
   }, [isCourseComplete, isDone, panels]);
 
-  // ─── Actions ──────────────────────────────
+  // â”€â”€â”€ Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleMarkDone = useCallback(async () => {
     if (marking) return;
     setMarking(true);
@@ -217,7 +217,7 @@ export function AppLayout() {
     [panels],
   );
 
-  // ─── Keyboard ─────────────────────────────
+  // â”€â”€â”€ Keyboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useKeyboardNav({
     onNext: nav.next,
     onPrev: nav.prev,
@@ -233,7 +233,7 @@ export function AppLayout() {
     },
   });
 
-  // ─── Render ───────────────────────────────
+  // â”€â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // If the active course's content hasn't finished lazy-loading,
   // show a minimal skeleton instead of the lesson UI. This is fast
   // (~100-300ms on a warm cache, once per course per session) and
@@ -247,10 +247,10 @@ export function AppLayout() {
         <main id="main-content" className="mn course-skeleton" aria-busy="true" aria-live="polite">
           <div className="course-skeleton-inner">
             <span className="course-skeleton-emoji" aria-hidden="true">
-              {activeCourseMeta?.icon || '⚡'}
+              {activeCourseMeta?.icon || '[]'}
             </span>
             <p className="course-skeleton-label">
-              Loading {activeCourseMeta?.label || 'course'}…
+              Loading {activeCourseMeta?.label || 'course'}...
             </p>
           </div>
         </main>
@@ -301,7 +301,7 @@ export function AppLayout() {
               aria-controls="course-sidebar"
               aria-expanded={isMobile ? panels.sidebar : !sidebarCollapsed}
             >
-              {isMobile ? "☰" : sidebarCollapsed ? "»" : "«"}
+              {isMobile ? "â˜°" : sidebarCollapsed ? "Â»" : "Â«"}
             </button>
             <Breadcrumb
               course={course}
@@ -314,7 +314,7 @@ export function AppLayout() {
               {!showModQuiz && <span className="topbar-pill">{readTime} read</span>}
               <span className="topbar-pill">Lv {level}</span>
               <span className="topbar-pill">{coursePct}% track</span>
-              {streak > 0 && <span className="topbar-pill streak">🔥 {streak} day streak</span>}
+              {streak > 0 && <span className="topbar-pill streak">ðŸ”¥ {streak} day streak</span>}
               {dailyCount > 0 && <span className="topbar-pill warm">{dailyCount} lesson{dailyCount === 1 ? '' : 's'} today</span>}
             </div>
             <div className="topbar-actions">
@@ -325,19 +325,20 @@ export function AppLayout() {
                 aria-label="Open lesson search"
                 aria-pressed={panels.panel === "search"}
               >
-                <span>🔍</span>
+                <span>ðŸ”</span>
                 <span>Search</span>
-                <kbd>⌘K</kbd>
+                <kbd>âŒ˜K</kbd>
               </button>
               {!showModQuiz && (
-                <button
-                  type="button"
-                  className={`mark-btn ${isDone ? "dn" : ""}`}
-                  onClick={handleMarkDone}
-                  disabled={marking}
-                >
-                  {marking ? "..." : isDone ? "✓ Done" : "Mark Done"}
-                </button>
+              <button
+                type="button"
+                className={`mark-btn ${isDone ? "dn" : ""}`}
+                onClick={handleMarkDone}
+                disabled={marking}
+                aria-label={marking ? "Saving lesson completion" : isDone ? "Mark lesson as not done" : "Mark lesson complete"}
+              >
+                {marking ? "..." : isDone ? "âœ“ Done" : "Mark Done"}
+              </button>
               )}
             </div>
           </div>
@@ -347,8 +348,8 @@ export function AppLayout() {
           {showModQuiz && moduleQuiz ? (
             <div className="lv">
               <div className="lv-head">
-                <span className="lv-emoji">📝</span>
-                <h1 className="lv-title">{mod.title} — Module Quiz</h1>
+                <span className="lv-emoji">ðŸ“</span>
+                <h1 className="lv-title">{mod.title} â€” Module Quiz</h1>
               </div>
               <p className="lp">
                 Test your knowledge of <strong>{mod.title}</strong>.
@@ -392,7 +393,7 @@ export function AppLayout() {
             disabled={isFirst}
             aria-label={prevTitle ? `Previous lesson: ${prevTitle}` : 'Previous lesson'}
           >
-            <span className="nav-btn-dir" aria-hidden="true">←</span>
+            <span className="nav-btn-dir" aria-hidden="true">â†</span>
             <span className="nav-btn-text">
               {prevTitle ? (
                 <>
@@ -423,7 +424,7 @@ export function AppLayout() {
                 </>
               ) : 'Next'}
             </span>
-            <span className="nav-btn-dir" aria-hidden="true">→</span>
+            <span className="nav-btn-dir" aria-hidden="true">â†’</span>
           </button>
         </nav>
       </main>

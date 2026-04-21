@@ -1,17 +1,4 @@
-// ═══════════════════════════════════════════════
-// OFFLINE INDICATOR — Connection + sync status banner
-//
-// Shows three states, in order of priority:
-//   1. OFFLINE            — no internet connection
-//   2. SYNC FAILED        — writes to Supabase have failed silently
-//                           (local state is intact, but the cloud
-//                           copy is stale). Surfaces the new
-//                           syncFailed counter from ProgressContext
-//                           so users notice before losing work.
-//   3. BACK ONLINE        — brief confirmation after reconnect
-// ═══════════════════════════════════════════════
-
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useProgressData } from '../../providers';
 
 const ONLINE_TOAST_DURATION = 3000;
@@ -23,10 +10,12 @@ export function OfflineIndicator() {
 
   useEffect(() => {
     let timer;
+
     const handleOffline = () => {
       setOffline(true);
       setShowOnlineToast(false);
     };
+
     const handleOnline = () => {
       setOffline(false);
       setShowOnlineToast(true);
@@ -47,9 +36,9 @@ export function OfflineIndicator() {
   if (offline) {
     return (
       <div className="offline-banner is-offline" role="status" aria-live="polite">
-        <span className="offline-icon" aria-hidden="true">📡</span>
+        <span className="offline-icon" aria-hidden="true">!</span>
         <span className="offline-text">
-          You&apos;re offline — lessons are available from cache. Progress will sync when you reconnect.
+          You are currently offline. Lessons are available from cache and progress will sync when you reconnect.
         </span>
       </div>
     );
@@ -59,12 +48,12 @@ export function OfflineIndicator() {
   if (syncFailed > 0) {
     return (
       <div className="offline-banner is-sync-failed" role="alert" aria-live="assertive">
-        <span className="offline-icon" aria-hidden="true">⚠️</span>
+        <span className="offline-icon" aria-hidden="true">!</span>
         <span className="offline-text">
           {syncFailed === 1
             ? 'A progress update could not sync to the cloud.'
             : `${syncFailed} progress updates could not sync to the cloud.`}
-          {' '}Your work is still saved locally.
+          Your work is still saved locally.
         </span>
         <button
           type="button"
@@ -80,7 +69,7 @@ export function OfflineIndicator() {
           onClick={clearSyncFailed}
           aria-label="Dismiss sync warning"
         >
-          ✕
+          Dismiss
         </button>
       </div>
     );
@@ -91,7 +80,7 @@ export function OfflineIndicator() {
     return (
       <div className="offline-banner is-online" role="status" aria-live="polite">
         <span className="offline-icon" aria-hidden="true">✓</span>
-        <span className="offline-text">Back online — syncing your progress.</span>
+        <span className="offline-text">Back online. Syncing your progress.</span>
       </div>
     );
   }

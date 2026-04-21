@@ -1,7 +1,5 @@
-// ═══════════════════════════════════════════════
-// SKELETON LOADERS — Animated placeholders
+﻿// SKELETON LOADERS â€” Animated placeholders
 // Shows while data loads from Supabase
-// ═══════════════════════════════════════════════
 
 export function SidebarSkeleton() {
   return (
@@ -23,7 +21,7 @@ export function SidebarSkeleton() {
         <div className="sk-bar"></div>
       </div>
       {/* Module list */}
-      {[1, 2, 3, 4, 5].map(i => (
+      {[1, 2, 3, 4, 5].map((i) => (
         <div key={i} className="sk-module">
           <div className="sk-line sk-w80 sk-h14"></div>
           <div className="sk-line sk-w50 sk-h10"></div>
@@ -88,14 +86,14 @@ export function LessonSkeleton() {
 
 export function ConnectionError({ onRetry }) {
   return (
-    <div className="conn-error">
-      <span className="conn-icon" aria-hidden="true">📡</span>
+    <div className="conn-error" role="alert" aria-live="assertive">
+      <span className="conn-icon" aria-hidden="true">!</span>
       <h3 className="conn-title">Connection Issue</h3>
       <p className="conn-msg">
         Could not connect to the database. Check your internet connection or try again.
       </p>
       <button type="button" className="conn-retry" onClick={onRetry}>
-        ↺ Retry Connection
+        Retry Connection
       </button>
     </div>
   );
