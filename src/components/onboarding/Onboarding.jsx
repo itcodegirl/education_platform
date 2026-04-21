@@ -1,37 +1,38 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 const STEPS = [
   {
-    icon: '⚡',
+    icon: '01',
     eyebrow: 'Start here',
     title: 'Welcome to CodeHerWay',
     subtitle: 'Learn by shipping something real, not by getting trapped in endless theory.',
     points: [
       'Four complete learning tracks: HTML, CSS, JavaScript, and React.',
       'Project-first lessons that show the code, the result, and the reasoning.',
-      'Built with the honesty of a self-taught developer who remembers the messy middle.',
+      'Built with the perspective of a self-taught developer who knows the messy middle.',
     ],
   },
   {
-    icon: '✏️',
+    icon: '02',
     eyebrow: 'Your toolkit',
     title: 'Every lesson comes with support',
     subtitle: 'You should never have to choose between guessing and giving up.',
     points: [
-      'Monaco editor and live previews so you can write and test real code inside the lesson.',
-      'AI Tutor support that stays grounded in the current lesson when you get stuck.',
-      'Tasks, challenges, and Dev_Fessions that normalize mistakes while still building skill.',
+      'Monaco editor and live previews so you can write and test real code inside each lesson.',
+      'AI tutor support that stays grounded in the current lesson when you get stuck.',
+      'Tasks, challenges, and check-ins that normalize mistakes and build skill.',
     ],
   },
   {
-    icon: '🏆',
+    icon: '03',
     eyebrow: 'Your momentum',
-    title: 'The product keeps you moving',
+    title: 'Your momentum stays visible',
     subtitle: 'The signed-in shell is designed to help you continue, review, and finish.',
     points: [
-      'Bookmarks, glossary, cheat sheets, and search make it easy to get back on track fast.',
-      'Review Queue and challenges turn gaps into deliberate practice instead of shame spirals.',
+      'Bookmarks, glossary, cheat sheets, and search make it easy to return quickly.',
+      'Review Queue and challenges turn gaps into deliberate practice instead of frustration.',
       'Progress, streaks, and badges celebrate consistency without pretending learning is linear.',
     ],
   },
@@ -41,11 +42,21 @@ export function Onboarding({ isOpen, onClose, displayName }) {
   const [step, setStep] = useState(0);
   const [show, setShow] = useState(false);
   const [, setOnboarded] = useLocalStorage('chw-onboarded', false);
+  const dialogRef = useRef(null);
+  const headingId = useId();
+  const subtitleId = useId();
+  const progressTextId = useId();
 
   const handleFinish = useCallback(() => {
     setOnboarded(true);
     onClose();
   }, [onClose, setOnboarded]);
+
+  useFocusTrap(dialogRef, {
+    enabled: isOpen,
+    onEscape: handleFinish,
+    initialFocus: 'first-tabbable',
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -58,19 +69,6 @@ export function Onboarding({ isOpen, onClose, displayName }) {
     return undefined;
   }, [isOpen]);
 
-  useEffect(() => {
-    if (!isOpen) return undefined;
-
-    const handleEscape = (event) => {
-      if (event.key === 'Escape') {
-        handleFinish();
-      }
-    };
-
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [isOpen, handleFinish]);
-
   if (!isOpen) return null;
 
   const current = STEPS[step];
@@ -80,17 +78,32 @@ export function Onboarding({ isOpen, onClose, displayName }) {
   return (
     <div className="ob-overlay">
       <div
+        ref={dialogRef}
         className={`ob-card ${show ? 'show' : ''}`}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="onboarding-title"
-        aria-describedby="onboarding-subtitle onboarding-kicker"
+        aria-labelledby={headingId}
+        aria-describedby={`${subtitleId} onboarding-kicker ${progressTextId}`}
+        tabIndex={-1}
       >
-        <div className="ob-dots" aria-label="Onboarding progress" aria-live="polite">
+        <p id={progressTextId} className="ob-a11y-status">
+          Step {step + 1} of {STEPS.length}
+        </p>
+
+        <div
+          className="ob-dots"
+          role="progressbar"
+          aria-label="Onboarding progress"
+          aria-valuemin={1}
+          aria-valuemax={STEPS.length}
+          aria-valuenow={step + 1}
+          aria-describedby={progressTextId}
+        >
           {STEPS.map((_, index) => (
             <span
               key={index}
               className={`ob-dot ${index === step ? 'active' : ''} ${index < step ? 'done' : ''}`}
+              aria-label={`Step ${index + 1}`}
             />
           ))}
         </div>
@@ -98,18 +111,18 @@ export function Onboarding({ isOpen, onClose, displayName }) {
         <span className="ob-eyebrow">{current.eyebrow}</span>
         <div className="ob-icon">{current.icon}</div>
 
-        <h2 id="onboarding-title" className="ob-title">
+        <h2 id={headingId} className="ob-title">
           {step === 0 && displayName ? `Welcome, ${displayName}!` : current.title}
         </h2>
 
-        <p id="onboarding-subtitle" className="ob-subtitle">
+        <p id={subtitleId} className="ob-subtitle">
           {current.subtitle}
         </p>
 
         <div className="ob-points">
           {current.points.map((point) => (
             <div key={point} className="ob-point">
-              <span className="ob-point-bullet">→</span>
+              <span className="ob-point-bullet">-</span>
               <span>{point}</span>
             </div>
           ))}
@@ -117,7 +130,7 @@ export function Onboarding({ isOpen, onClose, displayName }) {
 
         <p id="onboarding-kicker" className="ob-kicker">
           {isLast
-            ? 'You are ready to start learning with context, support, and a product that keeps momentum visible.'
+            ? 'You are ready to start learning with context, support, and a workflow that keeps momentum visible.'
             : 'A few more seconds now makes the first session feel much more intuitive.'}
         </p>
 
@@ -127,9 +140,9 @@ export function Onboarding({ isOpen, onClose, displayName }) {
               type="button"
               className="ob-back"
               onClick={() => setStep((value) => value - 1)}
-              aria-label={`Go to step ${step}`}
+              aria-label={`Back to step ${step}`}
             >
-              ← Back
+              Back
             </button>
           )}
 
@@ -141,7 +154,7 @@ export function Onboarding({ isOpen, onClose, displayName }) {
 
           {isLast ? (
             <button type="button" className="ob-start" onClick={handleFinish} aria-label="Start learning">
-              Start learning →
+              Start learning
             </button>
           ) : (
             <button
@@ -150,14 +163,12 @@ export function Onboarding({ isOpen, onClose, displayName }) {
               onClick={() => setStep((value) => value + 1)}
               aria-label={`Go to step ${step + 2}`}
             >
-              Next →
+              Next
             </button>
           )}
         </div>
 
-        <div className="ob-step-label">
-          Step {step + 1} of {STEPS.length}
-        </div>
+        <div className="ob-step-label">Step {step + 1} of {STEPS.length}</div>
       </div>
     </div>
   );

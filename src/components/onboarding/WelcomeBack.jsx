@@ -22,7 +22,7 @@ const MOTIVATIONS = {
   highStreak: [
     "You're unstoppable right now",
     "This streak is on fire - don't stop",
-    "You're rewriting your future, one lesson at a time",
+    'You are rewriting your future, one lesson at a time',
   ],
 };
 
@@ -88,7 +88,11 @@ export function WelcomeBack({
     return undefined;
   }, [isOpen]);
 
-  useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
+  useFocusTrap(modalRef, {
+    enabled: isOpen,
+    onEscape: onClose,
+    initialFocus: 'first-tabbable',
+  });
 
   if (!isOpen) return null;
 
@@ -111,80 +115,6 @@ export function WelcomeBack({
     xpIntoLevel > 0
       ? `${xpIntoLevel}/${XP_PER_LEVEL} XP into this level`
       : `Level ${level} starts with your next small win`;
-  const overlineStyle = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    minHeight: '28px',
-    padding: '0 12px',
-    marginBottom: '14px',
-    borderRadius: '999px',
-    border: '1px solid rgba(255,255,255,0.08)',
-    background: 'rgba(255,255,255,0.04)',
-    color: 'var(--text-muted)',
-    fontFamily: "'Poppins', monospace",
-    fontSize: '10px',
-    letterSpacing: '0.12em',
-    textTransform: 'uppercase',
-  };
-  const contextStyle = {
-    marginTop: '10px',
-    color: 'var(--text-muted)',
-    fontSize: '13px',
-    lineHeight: 1.6,
-  };
-  const heroMetaStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-    marginTop: '6px',
-  };
-  const heroKickerStyle = {
-    color: 'var(--text-dim)',
-    fontSize: '12px',
-    lineHeight: 1.5,
-  };
-  const snapshotStyle = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-    gap: '10px',
-    margin: '18px 0 16px',
-  };
-  const statCardStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-    minWidth: 0,
-    padding: '14px 14px 13px',
-    borderRadius: '14px',
-    border: '1px solid rgba(255,255,255,0.06)',
-    background: 'linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015))',
-    textAlign: 'left',
-  };
-  const statLabelStyle = {
-    color: 'var(--text-muted)',
-    fontFamily: "'Poppins', monospace",
-    fontSize: '10px',
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase',
-  };
-  const statValueStyle = {
-    color: 'var(--text)',
-    fontFamily: "'Poppins', monospace",
-    fontSize: '19px',
-    lineHeight: 1,
-  };
-  const statCopyStyle = {
-    color: 'var(--text-dim)',
-    fontSize: '12px',
-    lineHeight: 1.5,
-  };
-  const momentumNoteStyle = {
-    margin: '-4px 0 12px',
-    color: 'var(--text-dim)',
-    fontSize: '13px',
-    lineHeight: 1.55,
-    textAlign: 'center',
-  };
 
   return (
     <div className="welcome-overlay" onClick={onClose}>
@@ -195,38 +125,48 @@ export function WelcomeBack({
         role="dialog"
         aria-modal="true"
         aria-labelledby="welcome-back-title"
+        aria-describedby="welcome-back-context welcome-back-snapshot"
         tabIndex={-1}
       >
         <div className="wb-greeting">
-          <span style={overlineStyle}>Back in the build studio</span>
+          <span className="wb-overline">Back in the build studio</span>
           <h2 id="welcome-back-title" className="wb-hello">
             {greeting}, <span className="wb-name">{displayName || 'Learner'}</span>
           </h2>
-          <p className="wb-motivation">{motivation}</p>
-          <p style={contextStyle}>
+          <p className="wb-motivation" aria-live="polite">
+            {motivation}
+          </p>
+          <p id="welcome-back-context" className="wb-context">
             You are building through <strong>{courseLabel}</strong>
             {moduleTitle ? ` and currently moving through ${moduleTitle}.` : '.'}
           </p>
         </div>
 
         {lastPosition.les && (
-          <button type="button" className="wb-hero" onClick={onResume}>
+          <button type="button" className="wb-hero" onClick={onResume} aria-label={`Resume lesson: ${lastPosition.les}`}>
             <div className="wb-hero-glow" aria-hidden="true" />
             <div className="wb-hero-content">
               <span className="wb-hero-label">Resume your build</span>
               <div className="wb-hero-path">
-                {lastPosition.course} <span className="wb-sep">&rsaquo;</span> {lastPosition.mod}
+                {lastPosition.course} <span className="wb-sep">&gt;</span> {lastPosition.mod}
               </div>
               <div className="wb-hero-lesson">{lastPosition.les}</div>
-              <div style={heroMetaStyle}>
+              <div className="wb-hero-meta">
                 {timeAgo && <span className="wb-hero-time">Last active {timeAgo}</span>}
-                <span style={heroKickerStyle}>
+                <span className="wb-hero-kicker">
                   Pick up with the next honest step, not from scratch.
                 </span>
               </div>
 
               {moduleLessonsTotal > 0 && (
-                <div className="wb-hero-progress">
+                <div
+                  className="wb-hero-progress"
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={modulePct}
+                  aria-label="Current module progress"
+                >
                   <div className="wb-hero-track">
                     <div className="wb-hero-fill" style={{ width: `${modulePct}%` }} />
                   </div>
@@ -242,29 +182,29 @@ export function WelcomeBack({
           </button>
         )}
 
-        <div style={snapshotStyle} aria-label="Current learning snapshot">
-          <div style={statCardStyle}>
-            <span style={statLabelStyle}>Module progress</span>
-            <strong style={statValueStyle}>{modulePct}%</strong>
-            <span style={statCopyStyle}>
+        <section id="welcome-back-snapshot" className="wb-stat-grid">
+          <article className="wb-stat-card" aria-label="Module progress">
+            <span className="wb-stat-label">Module progress</span>
+            <strong className="wb-stat-value">{modulePct}%</strong>
+            <span className="wb-stat-copy">
               {moduleLessonsDone}/{moduleLessonsTotal || 0} lessons completed
             </span>
-          </div>
-          <div style={statCardStyle}>
-            <span style={statLabelStyle}>Track progress</span>
-            <strong style={statValueStyle}>{coursePct}%</strong>
-            <span style={statCopyStyle}>
+          </article>
+          <article className="wb-stat-card" aria-label="Course progress">
+            <span className="wb-stat-label">Track progress</span>
+            <strong className="wb-stat-value">{coursePct}%</strong>
+            <span className="wb-stat-copy">
               {courseLessonsDone}/{courseLessonsTotal || 0} lessons across this course
             </span>
-          </div>
-          <div style={statCardStyle}>
-            <span style={statLabelStyle}>Momentum</span>
-            <strong style={statValueStyle}>Lv {level}</strong>
-            <span style={statCopyStyle}>{levelLabel}</span>
-          </div>
-        </div>
+          </article>
+          <article className="wb-stat-card" aria-label="Learning momentum">
+            <span className="wb-stat-label">Momentum</span>
+            <strong className="wb-stat-value">Lv {level}</strong>
+            <span className="wb-stat-copy">{levelLabel}</span>
+          </article>
+        </section>
 
-        <div className="wb-pills">
+        <div className="wb-pills" aria-label="Current progress pills">
           {streak > 0 ? (
             <span className="wb-pill wb-pill-accent">
               {streak} day streak {streak >= 3 ? '🔥' : ''}
@@ -282,15 +222,15 @@ export function WelcomeBack({
           )}
 
           {dailyCount > 0 && dailyCount < DAILY_GOAL && (
-            <span className="wb-pill">{DAILY_GOAL - dailyCount} more for today&apos;s goal</span>
+            <span className="wb-pill">{DAILY_GOAL - dailyCount} more for today's goal</span>
           )}
 
           {dailyCount >= DAILY_GOAL && (
-            <span className="wb-pill wb-pill-accent">Daily goal crushed!</span>
+            <span className="wb-pill wb-pill-accent">Daily goal completed</span>
           )}
         </div>
 
-        <p style={momentumNoteStyle}>{momentumLabel}</p>
+        <p className="wb-momentum-note">{momentumLabel}</p>
 
         <button type="button" className="wb-fresh" onClick={onClose}>
           Start fresh
@@ -299,3 +239,4 @@ export function WelcomeBack({
     </div>
   );
 }
+
