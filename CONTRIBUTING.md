@@ -63,9 +63,10 @@ Quizzes live in `src/data/<course>/quizzes.js`, challenges in
   [`src/styles/tokens.css`](./src/styles/tokens.css). Never hard-code
   hex colors or magic pixel values in components.
 - Preview the token system at `#styleguide`.
-- Media queries live in `src/styles/App.css`. If you touch this file,
-  please scope new rules under an obvious section comment so the next
-  person can find them.
+- Global responsive breakpoints live in
+  [`src/styles/responsive.css`](./src/styles/responsive.css).
+  Keep component-specific responsive tweaks close to the component's
+  existing style section and preserve the current section comment style.
 
 ## Code style
 

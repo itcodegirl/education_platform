@@ -12,9 +12,7 @@
 [![Made with React](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=white)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-6-646cff?logo=vite&logoColor=white)](https://vitejs.dev)
 [![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase&logoColor=white)](https://supabase.com)
-[![a11y: WCAG AA](https://img.shields.io/badge/a11y-WCAG%20AA-22c55e)](./docs/accessibility.md)
-
-![CodeHerWay screenshot](./docs/screenshot.png)
+[![a11y: WCAG AA](https://img.shields.io/badge/a11y-WCAG%20AA-22c55e)](./SECURITY.md#accessibility-highlights)
 
 CodeHerWay teaches by getting learners to make something tangible, not by trapping them in passive reading.
 
@@ -167,6 +165,15 @@ After bootstrap, every subsequent admin change must go through the
 | `npm run typecheck` | `tsc --noEmit` across TS services |
 | `npm run test:e2e` | Run Playwright E2E suite |
 | `npm run test:e2e:ui` | Playwright in UI mode |
+
+### E2E note
+
+Authenticated E2E specs are intentionally skipped unless you provide:
+
+- `E2E_EMAIL`
+- `E2E_PASSWORD`
+
+Public auth smoke tests run without these credentials.
 
 ## Project layout
 
