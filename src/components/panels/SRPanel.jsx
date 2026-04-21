@@ -1,68 +1,69 @@
-import { useState, useRef } from 'react';
-import { useProgress } from '../../providers';
-import { generatePracticeCard } from '../../services/practiceService';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useRef, useState } from "react";
+import { useProgress } from "../../providers";
+import { generatePracticeCard } from "../../services/practiceService";
+import { useFocusTrap } from "../../hooks/useFocusTrap";
 
 const TOPICS = [
-  { id: 'html',   label: 'HTML'   },
-  { id: 'css',    label: 'CSS'    },
-  { id: 'js',     label: 'JS'     },
-  { id: 'react',  label: 'React'  },
-  { id: 'python', label: 'Python' },
+  { id: "html", label: "HTML" },
+  { id: "css", label: "CSS" },
+  { id: "js", label: "JS" },
+  { id: "react", label: "React" },
+  { id: "python", label: "Python" },
 ];
 
 export function SRPanel({ isOpen, onClose }) {
   const { getDueSRCards, updateSRCard, addToSRQueue, srCards = [] } = useProgress();
   const [currentIdx, setCurrentIdx] = useState(0);
-  const modalRef = useRef(null);
-  useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
   const [answered, setAnswered] = useState(null);
   const [sessionRight, setSessionRight] = useState(0);
   const [sessionWrong, setSessionWrong] = useState(0);
-  const [genTopic, setGenTopic] = useState('html');
-  const [genConcept, setGenConcept] = useState('');
+  const [genTopic, setGenTopic] = useState("html");
+  const [genConcept, setGenConcept] = useState("");
   const [genLoading, setGenLoading] = useState(false);
-  const [genError, setGenError] = useState('');
-  const [genSuccess, setGenSuccess] = useState('');
+  const [genError, setGenError] = useState("");
+  const [genSuccess, setGenSuccess] = useState("");
+  const modalRef = useRef(null);
+
+  useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
+
+  const queue = Array.isArray(srCards) ? srCards : [];
+  const due = typeof getDueSRCards === "function" ? getDueSRCards() || [] : [];
+  const currentCard = due[currentIdx] || null;
 
   const handleGenerate = async (event) => {
     event.preventDefault();
     if (genLoading) return;
+
     const concept = genConcept.trim();
     if (!concept) {
-      setGenError('Tell the AI which concept you want to practice.');
+      setGenError("Tell the AI which concept you want to practice.");
       return;
     }
+
     setGenLoading(true);
-    setGenError('');
-    setGenSuccess('');
+    setGenError("");
+    setGenSuccess("");
+
     try {
       const card = await generatePracticeCard({ topic: genTopic, concept });
-      // addToSRQueue takes an array and de-dupes by question text.
-      if (typeof addToSRQueue === 'function') {
+      if (typeof addToSRQueue === "function") {
         await addToSRQueue([card]);
       }
-      setGenSuccess('New practice card added to your review queue.');
-      setGenConcept('');
+      setGenSuccess("New practice card added to your review queue.");
+      setGenConcept("");
     } catch (err) {
-      setGenError(err.message || 'Could not generate a practice card.');
+      setGenError(err.message || "Could not generate a practice card.");
     } finally {
       setGenLoading(false);
     }
   };
 
-  if (!isOpen) return null;
-
-  const queue = Array.isArray(srCards) ? srCards : [];
-  const due = typeof getDueSRCards === 'function' ? (getDueSRCards() || []) : [];
-  const currentCard = due[currentIdx] || null;
-
-  const handleAnswer = (optIdx) => {
+  const handleAnswer = (optionIndex) => {
     if (answered !== null || !currentCard) return;
 
-    setAnswered(optIdx);
+    setAnswered(optionIndex);
 
-    const correct = optIdx === currentCard.correct;
+    const correct = optionIndex === currentCard.correct;
     updateSRCard(currentCard.question, correct);
 
     if (correct) setSessionRight((count) => count + 1);
@@ -81,8 +82,15 @@ export function SRPanel({ isOpen, onClose }) {
     setSessionWrong(0);
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="search-overlay" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    <div
+      className="search-overlay"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
       <div
         ref={modalRef}
         className="search-modal"
@@ -92,47 +100,60 @@ export function SRPanel({ isOpen, onClose }) {
         tabIndex={-1}
       >
         <div className="cheatsheet-head">
-          <h2>Review ({due.length} due)</h2>
-          <button type="button" className="cheatsheet-close" onClick={onClose}>x</button>
+          <div className="panel-title-group">
+            <p className="panel-kicker">Spaced repetition</p>
+            <h2>🔄 Review ({due.length} due)</h2>
+          </div>
+          <button
+            type="button"
+            className="cheatsheet-close"
+            onClick={onClose}
+            aria-label="Close review queue"
+          >
+            ×
+          </button>
         </div>
 
         <div className="cheatsheet-body">
-          {/* ─── AI practice card generator ─── */}
+          <p className="panel-meta">
+            Keep tough concepts warm with short review bursts and AI-generated
+            practice cards.
+          </p>
+
           <form className="sr-generate" onSubmit={handleGenerate}>
             <div className="sr-generate-head">
               <span className="sr-generate-title">🤖 Generate a practice card</span>
               <span className="sr-generate-sub">
-                Tell the AI which concept you want to drill — it builds a fresh card for your queue.
+                Tell the AI which concept you want to drill and it will add a
+                fresh card to your queue.
               </span>
             </div>
             <div className="sr-generate-row">
               <select
                 className="sr-generate-topic"
                 value={genTopic}
-                onChange={(e) => setGenTopic(e.target.value)}
+                onChange={(event) => setGenTopic(event.target.value)}
                 disabled={genLoading}
                 aria-label="Topic"
               >
-                {TOPICS.map((t) => (
-                  <option key={t.id} value={t.id}>{t.label}</option>
+                {TOPICS.map((topic) => (
+                  <option key={topic.id} value={topic.id}>
+                    {topic.label}
+                  </option>
                 ))}
               </select>
               <input
                 type="text"
                 className="sr-generate-concept"
-                placeholder="e.g. flexbox gap vs margin, async/await errors, useEffect deps…"
+                placeholder="e.g. flexbox gap vs margin, async/await errors, useEffect deps..."
                 value={genConcept}
-                onChange={(e) => setGenConcept(e.target.value)}
+                onChange={(event) => setGenConcept(event.target.value)}
                 disabled={genLoading}
                 maxLength={200}
                 aria-label="Concept to practice"
               />
-              <button
-                type="submit"
-                className="sr-generate-btn"
-                disabled={genLoading}
-              >
-                {genLoading ? 'Generating…' : 'Generate'}
+              <button type="submit" className="sr-generate-btn" disabled={genLoading}>
+                {genLoading ? "Generating..." : "Generate"}
               </button>
             </div>
             {genError && <div className="sr-generate-error">{genError}</div>}
@@ -141,19 +162,23 @@ export function SRPanel({ isOpen, onClose }) {
 
           {due.length === 0 ? (
             <div className="sr-empty">
-              <span className="sr-empty-icon">Done</span>
-              <p><strong>All caught up!</strong></p>
+              <span className="sr-empty-icon" aria-hidden="true">✓</span>
+              <p><strong>All caught up.</strong></p>
               <p className="empty-state-msg">
                 {queue.length > 0
-                  ? `${queue.length} card${queue.length > 1 ? 's' : ''} scheduled for later.`
-                  : 'Complete quizzes to add cards. Wrong answers get added automatically!'}
+                  ? `${queue.length} card${queue.length > 1 ? "s are" : " is"} scheduled for later.`
+                  : "Complete quizzes or generate a fresh card to start building your review habit."}
               </p>
             </div>
           ) : currentIdx >= due.length ? (
             <>
               <div className="sr-empty">
-                <span className="sr-empty-icon">Done</span>
-                <p><strong>Session complete!</strong></p>
+                <span className="sr-empty-icon" aria-hidden="true">✓</span>
+                <p><strong>Session complete.</strong></p>
+                <p className="empty-state-msg">
+                  Nice work. You cleared today&apos;s due cards and can jump back in
+                  for another round anytime.
+                </p>
               </div>
 
               <div className="sr-score-bar">
@@ -175,11 +200,11 @@ export function SRPanel({ isOpen, onClose }) {
 
                 <div className="sr-opts">
                   {(currentCard?.options || []).map((option, optionIndex) => {
-                    let className = 'sr-opt';
+                    let className = "sr-opt";
 
                     if (answered !== null) {
-                      if (optionIndex === currentCard?.correct) className += ' correct';
-                      if (optionIndex === answered && optionIndex !== currentCard?.correct) className += ' wrong';
+                      if (optionIndex === currentCard?.correct) className += " correct";
+                      if (optionIndex === answered && optionIndex !== currentCard?.correct) className += " wrong";
                     }
 
                     return (
@@ -198,8 +223,8 @@ export function SRPanel({ isOpen, onClose }) {
                 </div>
 
                 {answered !== null && (
-                  <div className={`sr-result ${answered === currentCard?.correct ? 'right' : 'wrong'}`}>
-                    {answered === currentCard?.correct ? 'Correct' : 'Incorrect'} {currentCard?.explanation}
+                  <div className={`sr-result ${answered === currentCard?.correct ? "right" : "wrong"}`}>
+                    {answered === currentCard?.correct ? "Correct" : "Incorrect"} {currentCard?.explanation}
                   </div>
                 )}
               </div>

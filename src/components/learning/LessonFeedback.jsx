@@ -19,7 +19,10 @@ export const LessonFeedback = memo(function LessonFeedback({ lessonKey }) {
 
   return (
     <div className="lesson-feedback">
-      <span className="lesson-feedback-label">Was this lesson helpful?</span>
+      <div className="lesson-feedback-copy">
+        <span className="lesson-feedback-label">Was this lesson helpful?</span>
+        <span className="lesson-feedback-sub">A quick signal helps us keep the strongest lessons feeling sharp.</span>
+      </div>
       <div className="lesson-feedback-btns">
         <button
           type="button"

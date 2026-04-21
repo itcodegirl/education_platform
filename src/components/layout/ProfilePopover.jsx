@@ -19,6 +19,12 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
   const level = getLevel(xpTotal);
   const inLevel = getXPInLevel(xpTotal);
   const xpPct = Math.round((inLevel / XP_PER_LEVEL) * 100);
+  const lessonsToGoal = Math.max(DAILY_GOAL - dailyCount, 0);
+  const momentumMessage = dailyCount >= DAILY_GOAL
+    ? 'Daily goal complete. Keep the streak alive while you have momentum.'
+    : lessonsToGoal === 1
+      ? 'One more lesson locks in today’s goal.'
+      : `${lessonsToGoal} more lessons to hit today’s goal.`;
 
   // Close on click-outside and Escape
   useEffect(() => {
@@ -61,6 +67,7 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
         <div className="pp-identity-text">
           <span className="pp-name">{displayName}</span>
           <span className="pp-email">{email}</span>
+          <span className="pp-momentum">{momentumMessage}</span>
         </div>
         <span className="pp-level-badge">Lv {level}</span>
       </div>
@@ -108,10 +115,10 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
           className="pp-profile-btn"
           onClick={() => { window.location.hash = '#profile'; window.location.reload(); }}
         >
-          View Profile
+          Open Profile
         </button>
         <button type="button" className="pp-signout" onClick={signOut}>
-          Sign Out
+          Sign out
         </button>
       </div>
     </div>

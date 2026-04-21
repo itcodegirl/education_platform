@@ -1,15 +1,3 @@
-// ═══════════════════════════════════════════════
-// STUDENT STATS — Personal analytics dashboard
-//
-// Sections:
-//   1. Overview cards (XP, level, streak, completion %)
-//   2. Course breakdown (per-course progress bars)
-//   3. Quiz accuracy (per-course scores + overall trend)
-//   4. Learning velocity (lessons per week)
-//   5. Strengths & weaknesses (best/worst quiz topics)
-//   6. Activity & badges
-// ═══════════════════════════════════════════════
-
 import { useEffect, useMemo, useRef } from 'react';
 import { useProgress, BADGE_DEFS, useCourseContent } from '../../providers';
 import { COURSES } from '../../data';
@@ -18,36 +6,45 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 export function StudentStats({ isOpen, onClose }) {
   const {
-    completed, quizScores, xpTotal, streak,
-    dailyCount, earnedBadges, srCards, bookmarks, notes,
+    completed,
+    quizScores,
+    xpTotal,
+    streak,
+    dailyCount,
+    earnedBadges,
+    srCards,
+    bookmarks,
+    notes,
   } = useProgress();
-  // Stats roll up across every course, so load them all on mount.
   const { ensureAllLoaded } = useCourseContent();
-  useEffect(() => { ensureAllLoaded(); }, [ensureAllLoaded]);
+  const modalRef = useRef(null);
 
-  // ─── Computed analytics ───────────────────────
+  useEffect(() => {
+    ensureAllLoaded();
+  }, [ensureAllLoaded]);
+
   const stats = useMemo(() => {
     const level = getLevel(xpTotal);
     const xpInLevel = getXPInLevel(xpTotal);
-    const xpPct = Math.round((xpInLevel / XP_PER_LEVEL) * 100);
+    const xpPercent = Math.round((xpInLevel / XP_PER_LEVEL) * 100);
 
-    // Per-course progress
-    const courseStats = COURSES.map(course => {
-      const totalLessons = course.modules.reduce((s, m) => s + m.lessons.length, 0);
-      const done = completed.filter(k => k.startsWith(course.label)).length;
-      const pct = totalLessons > 0 ? Math.round((done / totalLessons) * 100) : 0;
+    const courseStats = COURSES.map((course) => {
+      const totalLessons = course.modules.reduce((sum, module) => sum + module.lessons.length, 0);
+      const done = completed.filter((key) => key.startsWith(course.label)).length;
+      const percent = totalLessons > 0 ? Math.round((done / totalLessons) * 100) : 0;
 
-      // Quiz scores for this course
-      const courseQuizKeys = Object.keys(quizScores).filter(k => {
-        const lessonId = k.replace('l:', '').replace('m:', '');
+      const courseQuizKeys = Object.keys(quizScores).filter((key) => {
+        const lessonId = key.replace('l:', '').replace('m:', '');
         return lessonId.startsWith(course.id.charAt(0));
       });
-      const quizResults = courseQuizKeys.map(k => {
-        const [got, total] = quizScores[k].split('/').map(Number);
-        return { got, total, pct: total > 0 ? Math.round((got / total) * 100) : 0 };
+
+      const quizResults = courseQuizKeys.map((key) => {
+        const [got, total] = quizScores[key].split('/').map(Number);
+        return { got, total, percent: total > 0 ? Math.round((got / total) * 100) : 0 };
       });
-      const avgQuizPct = quizResults.length > 0
-        ? Math.round(quizResults.reduce((s, q) => s + q.pct, 0) / quizResults.length)
+
+      const averageQuizPercent = quizResults.length > 0
+        ? Math.round(quizResults.reduce((sum, result) => sum + result.percent, 0) / quizResults.length)
         : null;
 
       return {
@@ -57,70 +54,70 @@ export function StudentStats({ isOpen, onClose }) {
         accent: course.accent,
         totalLessons,
         done,
-        pct,
+        percent,
         quizzesTaken: quizResults.length,
-        avgQuizPct,
+        averageQuizPercent,
       };
     });
 
-    // Overall quiz accuracy
-    const allQuizKeys = Object.keys(quizScores);
-    const allResults = allQuizKeys.map(k => {
-      const [got, total] = quizScores[k].split('/').map(Number);
-      return { key: k, got, total, pct: total > 0 ? Math.round((got / total) * 100) : 0 };
+    const allResults = Object.keys(quizScores).map((key) => {
+      const [got, total] = quizScores[key].split('/').map(Number);
+      return { key, got, total, percent: total > 0 ? Math.round((got / total) * 100) : 0 };
     });
-    const overallQuizPct = allResults.length > 0
-      ? Math.round(allResults.reduce((s, q) => s + q.pct, 0) / allResults.length)
+
+    const overallQuizPercent = allResults.length > 0
+      ? Math.round(allResults.reduce((sum, result) => sum + result.percent, 0) / allResults.length)
       : null;
 
-    // Best and worst quiz topics
-    const sorted = [...allResults].sort((a, b) => a.pct - b.pct);
-    const weakest = sorted.slice(0, 3).filter(q => q.pct < 80);
-    const strongest = sorted.slice(-3).reverse().filter(q => q.pct >= 80);
+    const sorted = [...allResults].sort((left, right) => left.percent - right.percent);
+    const weakest = sorted.slice(0, 3).filter((result) => result.percent < 80);
+    const strongest = sorted.slice(-3).reverse().filter((result) => result.percent >= 80);
 
-    // Total progress
-    const totalLessons = courseStats.reduce((s, c) => s + c.totalLessons, 0);
+    const totalLessons = courseStats.reduce((sum, course) => sum + course.totalLessons, 0);
     const totalDone = completed.length;
-    const totalPct = totalLessons > 0 ? Math.round((totalDone / totalLessons) * 100) : 0;
-
-    // Badges
-    const badgeCount = Object.keys(earnedBadges).length;
-    const totalBadges = BADGE_DEFS.length;
+    const totalPercent = totalLessons > 0 ? Math.round((totalDone / totalLessons) * 100) : 0;
 
     return {
-      level, xpTotal, xpInLevel, xpPct,
-      totalDone, totalLessons, totalPct,
+      level,
+      xpTotal,
+      xpInLevel,
+      xpPercent,
+      totalDone,
+      totalLessons,
+      totalPercent,
       courseStats,
-      overallQuizPct, quizzesTaken: allResults.length,
-      strongest, weakest,
-      streak, dailyCount,
-      badgeCount, totalBadges,
-      srDue: srCards.filter(c => c.nextReview <= Date.now()).length,
+      overallQuizPercent,
+      quizzesTaken: allResults.length,
+      strongest,
+      weakest,
+      streak,
+      dailyCount,
+      badgeCount: Object.keys(earnedBadges).length,
+      totalBadges: BADGE_DEFS.length,
+      srDue: srCards.filter((card) => card.nextReview <= Date.now()).length,
       srTotal: srCards.length,
       bookmarkCount: bookmarks.length,
       noteCount: Object.keys(notes).length,
     };
-  }, [completed, quizScores, xpTotal, streak, dailyCount, earnedBadges, srCards, bookmarks, notes]);
+  }, [bookmarks, completed, earnedBadges, notes, quizScores, srCards, streak, dailyCount, xpTotal]);
 
-  const modalRef = useRef(null);
   useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
 
   if (!isOpen) return null;
 
-  // ─── Helpers ──────────────────────────────────
-  const quizColor = (pct) => {
-    if (pct >= 80) return '#10b981';
-    if (pct >= 50) return '#f59e0b';
+  const quizColor = (percent) => {
+    if (percent >= 80) return '#10b981';
+    if (percent >= 50) return '#f59e0b';
     return '#ef4444';
   };
 
   const findLessonTitle = (quizKey) => {
     const id = quizKey.replace('l:', '').replace('m:', '');
     for (const course of COURSES) {
-      for (const mod of course.modules) {
-        if (quizKey.startsWith('m:') && String(mod.id) === id) return `${mod.title} (Quiz)`;
-        for (const les of mod.lessons) {
-          if (les.id === id) return les.title;
+      for (const module of course.modules) {
+        if (quizKey.startsWith('m:') && String(module.id) === id) return `${module.title} (Quiz)`;
+        for (const lesson of module.lessons) {
+          if (lesson.id === id) return lesson.title;
         }
       }
     }
@@ -128,7 +125,7 @@ export function StudentStats({ isOpen, onClose }) {
   };
 
   return (
-    <div className="search-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="search-overlay" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <div
         ref={modalRef}
         className="search-modal ss-modal"
@@ -138,19 +135,26 @@ export function StudentStats({ isOpen, onClose }) {
         tabIndex={-1}
       >
         <div className="ss-head">
-          <h2 className="ss-title">📊 Your Progress</h2>
-          <button type="button" className="cheatsheet-close" onClick={onClose}>✕</button>
+          <div className="panel-title-group">
+            <p className="panel-kicker">Momentum snapshot</p>
+            <h2 className="ss-title">Your Progress</h2>
+          </div>
+          <button type="button" className="cheatsheet-close" onClick={onClose} aria-label="Close progress panel">
+            ×
+          </button>
         </div>
 
         <div className="ss-body">
+          <p className="panel-meta">
+            Track XP, quiz confidence, review load, and the parts of the curriculum that need the next rep.
+          </p>
 
-          {/* ─── Overview Cards ─────────────────── */}
           <div className="ss-cards">
             <div className="ss-card">
               <span className="ss-card-value">{stats.level}</span>
               <span className="ss-card-label">Level</span>
               <div className="ss-mini-bar">
-                <div className="ss-mini-fill" style={{ width: `${stats.xpPct}%` }} />
+                <div className="ss-mini-fill" style={{ width: `${stats.xpPercent}%` }} />
               </div>
               <span className="ss-card-sub">{stats.xpInLevel}/{XP_PER_LEVEL} XP to next</span>
             </div>
@@ -161,34 +165,35 @@ export function StudentStats({ isOpen, onClose }) {
             <div className="ss-card">
               <span className="ss-card-value">{stats.streak}</span>
               <span className="ss-card-label">Day Streak</span>
-              <span className="ss-card-sub">{stats.streak >= 7 ? '🔥 On fire!' : stats.streak >= 3 ? '💪 Building!' : '📅 Keep going!'}</span>
+              <span className="ss-card-sub">
+                {stats.streak >= 7 ? 'On fire this week.' : stats.streak >= 3 ? 'Momentum is building.' : 'Stack one more win today.'}
+              </span>
             </div>
             <div className="ss-card">
-              <span className="ss-card-value">{stats.totalPct}%</span>
+              <span className="ss-card-value">{stats.totalPercent}%</span>
               <span className="ss-card-label">Complete</span>
               <span className="ss-card-sub">{stats.totalDone}/{stats.totalLessons} lessons</span>
             </div>
           </div>
 
-          {/* ─── Course Breakdown ──────────────── */}
           <div className="ss-section">
             <h3 className="ss-section-title">Course Progress</h3>
             <div className="ss-course-list">
-              {stats.courseStats.map(c => (
-                <div key={c.id} className="ss-course-row">
+              {stats.courseStats.map((course) => (
+                <div key={course.id} className="ss-course-row">
                   <div className="ss-course-info">
-                    <span className="ss-course-icon">{c.icon}</span>
-                    <span className="ss-course-name">{c.label}</span>
-                    <span className="ss-course-count">{c.done}/{c.totalLessons}</span>
+                    <span className="ss-course-icon">{course.icon}</span>
+                    <span className="ss-course-name">{course.label}</span>
+                    <span className="ss-course-count">{course.done}/{course.totalLessons}</span>
                   </div>
                   <div className="ss-progress-bar">
-                    <div className="ss-progress-fill" style={{ width: `${c.pct}%`, background: c.accent }} />
+                    <div className="ss-progress-fill" style={{ width: `${course.percent}%`, background: course.accent }} />
                   </div>
                   <div className="ss-course-meta">
-                    <span className="ss-course-pct">{c.pct}%</span>
-                    {c.avgQuizPct !== null && (
-                      <span className="ss-quiz-badge" style={{ color: quizColor(c.avgQuizPct) }}>
-                        Quiz avg: {c.avgQuizPct}%
+                    <span className="ss-course-pct">{course.percent}%</span>
+                    {course.averageQuizPercent !== null && (
+                      <span className="ss-quiz-badge" style={{ color: quizColor(course.averageQuizPercent) }}>
+                        Quiz avg: {course.averageQuizPercent}%
                       </span>
                     )}
                   </div>
@@ -197,7 +202,6 @@ export function StudentStats({ isOpen, onClose }) {
             </div>
           </div>
 
-          {/* ─── Quiz Accuracy ─────────────────── */}
           {stats.quizzesTaken > 0 && (
             <div className="ss-section">
               <h3 className="ss-section-title">Quiz Accuracy</h3>
@@ -205,45 +209,47 @@ export function StudentStats({ isOpen, onClose }) {
                 <div className="ss-quiz-donut">
                   <svg viewBox="0 0 36 36" className="ss-donut-svg">
                     <path className="ss-donut-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    <path className="ss-donut-fill" strokeDasharray={`${stats.overallQuizPct}, 100`}
-                      style={{ stroke: quizColor(stats.overallQuizPct) }}
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <path
+                      className="ss-donut-fill"
+                      strokeDasharray={`${stats.overallQuizPercent}, 100`}
+                      style={{ stroke: quizColor(stats.overallQuizPercent) }}
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
                   </svg>
-                  <span className="ss-donut-label">{stats.overallQuizPct}%</span>
+                  <span className="ss-donut-label">{stats.overallQuizPercent}%</span>
                 </div>
                 <div className="ss-quiz-detail">
                   <p className="ss-quiz-total">{stats.quizzesTaken} quizzes completed</p>
                   {stats.srTotal > 0 && (
-                    <p className="ss-quiz-sr">🔄 {stats.srDue} cards due for review ({stats.srTotal} total)</p>
+                    <p className="ss-quiz-sr">Review queue: {stats.srDue} due now, {stats.srTotal} total cards.</p>
                   )}
                 </div>
               </div>
             </div>
           )}
 
-          {/* ─── Strengths & Weaknesses ────────── */}
           {(stats.strongest.length > 0 || stats.weakest.length > 0) && (
             <div className="ss-section">
               <h3 className="ss-section-title">Strengths & Areas to Review</h3>
               <div className="ss-strength-grid">
                 {stats.strongest.length > 0 && (
                   <div className="ss-strength-col">
-                    <span className="ss-col-label ss-strong">💪 Strongest</span>
-                    {stats.strongest.map(q => (
-                      <div key={q.key} className="ss-topic-item ss-topic-strong">
-                        <span className="ss-topic-score" style={{ color: quizColor(q.pct) }}>{q.pct}%</span>
-                        <span className="ss-topic-name">{findLessonTitle(q.key)}</span>
+                    <span className="ss-col-label ss-strong">Strongest</span>
+                    {stats.strongest.map((result) => (
+                      <div key={result.key} className="ss-topic-item ss-topic-strong">
+                        <span className="ss-topic-score" style={{ color: quizColor(result.percent) }}>{result.percent}%</span>
+                        <span className="ss-topic-name">{findLessonTitle(result.key)}</span>
                       </div>
                     ))}
                   </div>
                 )}
                 {stats.weakest.length > 0 && (
                   <div className="ss-strength-col">
-                    <span className="ss-col-label ss-weak">📚 Needs Review</span>
-                    {stats.weakest.map(q => (
-                      <div key={q.key} className="ss-topic-item ss-topic-weak">
-                        <span className="ss-topic-score" style={{ color: quizColor(q.pct) }}>{q.pct}%</span>
-                        <span className="ss-topic-name">{findLessonTitle(q.key)}</span>
+                    <span className="ss-col-label ss-weak">Needs Review</span>
+                    {stats.weakest.map((result) => (
+                      <div key={result.key} className="ss-topic-item ss-topic-weak">
+                        <span className="ss-topic-score" style={{ color: quizColor(result.percent) }}>{result.percent}%</span>
+                        <span className="ss-topic-name">{findLessonTitle(result.key)}</span>
                       </div>
                     ))}
                   </div>
@@ -252,7 +258,6 @@ export function StudentStats({ isOpen, onClose }) {
             </div>
           )}
 
-          {/* ─── Activity Summary ──────────────── */}
           <div className="ss-section">
             <h3 className="ss-section-title">Activity</h3>
             <div className="ss-activity-grid">
@@ -279,6 +284,9 @@ export function StudentStats({ isOpen, onClose }) {
             </div>
           </div>
 
+          <p className="panel-meta">
+            Daily pace: {stats.dailyCount} lesson{stats.dailyCount === 1 ? '' : 's'} today.
+          </p>
         </div>
       </div>
     </div>

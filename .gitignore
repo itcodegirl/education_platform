@@ -9,3 +9,6 @@ test-results
 Downloads/
 # NOTE: package-lock.json IS committed so builds are reproducible
 # and `npm audit` runs against a pinned dependency tree.
+
+# Local Netlify folder
+.netlify

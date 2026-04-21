@@ -46,6 +46,7 @@ export const Sidebar = memo(function Sidebar({
   onSelectLesson,
   onSelectModQuiz,
   onOpenTool,
+  activePanel,
 }) {
   const { completed = [] } = useProgress();
   const { user } = useAuth();
@@ -319,7 +320,8 @@ export const Sidebar = memo(function Sidebar({
                 <button
                   key={t.key}
                   type="button"
-                  className="sb-tab-opt"
+                  className={`sb-tab-opt ${activePanel === t.key ? 'active' : ''}`}
+                  aria-pressed={activePanel === t.key}
                   onClick={() => {
                     onOpenTool(t.key);
                     setActivePopout(null);
@@ -339,7 +341,7 @@ export const Sidebar = memo(function Sidebar({
             <span className="sb-map-title">Modules</span>
             <button
               type="button"
-              className="sb-roadmap-btn"
+              className={`sb-roadmap-btn ${activePanel === 'roadmap' ? 'active' : ''}`}
               onClick={() => onOpenTool('roadmap')}
               aria-label="Open full learning roadmap"
               title="Full roadmap"

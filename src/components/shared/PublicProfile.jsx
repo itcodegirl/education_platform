@@ -1,23 +1,7 @@
-// ═══════════════════════════════════════════════
-// PUBLIC PROFILE — /#u/:handle
-//
-// Read-only page shown to anyone (no auth required)
-// when a learner opts in to a public profile. Fetches
-// from the `public_profiles` VIEW in Supabase, which
-// projects only: display_name, avatar_url, handle,
-// xp_total, streak_days, lessons_completed,
-// badges_earned. No email, no progress detail.
-//
-// All private data stays behind RLS — this page uses
-// the same anon key the rest of the client uses, and
-// the policies added in supabase-schema.sql gate
-// read access on profiles.is_public = true.
-// ═══════════════════════════════════════════════
-
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { Logo } from './Logo';
-import { getLevel, getXPInLevel, XP_PER_LEVEL } from '../../utils/helpers';
+import { XP_PER_LEVEL, getLevel, getXPInLevel } from '../../utils/helpers';
 
 export function PublicProfile({ handle, onClose }) {
   const [state, setState] = useState({ loading: true, error: null, profile: null });
@@ -46,16 +30,18 @@ export function PublicProfile({ handle, onClose }) {
           setState({ loading: false, error: error.message, profile: null });
           return;
         }
+
         if (!data) {
           setState({ loading: false, error: 'Profile not found', profile: null });
           return;
         }
+
         setState({ loading: false, error: null, profile: data });
-      } catch (err) {
+      } catch (error) {
         if (!cancelled) {
           setState({
             loading: false,
-            error: err?.message || 'Failed to load profile',
+            error: error?.message || 'Failed to load profile',
             profile: null,
           });
         }
@@ -63,6 +49,7 @@ export function PublicProfile({ handle, onClose }) {
     }
 
     load();
+
     return () => {
       cancelled = true;
     };
@@ -73,7 +60,7 @@ export function PublicProfile({ handle, onClose }) {
       <div className="pub-profile">
         <div className="pub-card pub-card-center">
           <Logo size="sm" />
-          <p className="pub-loading">Loading profile…</p>
+          <p className="pub-loading">Loading profile...</p>
         </div>
       </div>
     );
@@ -91,19 +78,29 @@ export function PublicProfile({ handle, onClose }) {
               : 'Something went wrong loading this profile.'}
           </p>
           <a className="pub-cta" href="#">
-            Go to CodeHerWay →
+            Go to CodeHerWay &rarr;
           </a>
         </div>
       </div>
     );
   }
 
-  const { display_name, handle: dbHandle, xp_total, streak_days, lessons_completed, badges_earned } =
-    state.profile;
+  const {
+    display_name,
+    handle: profileHandle,
+    xp_total,
+    streak_days,
+    lessons_completed,
+    badges_earned,
+  } = state.profile;
   const level = getLevel(xp_total || 0);
   const xpInLevel = getXPInLevel(xp_total || 0);
   const xpPct = Math.round((xpInLevel / XP_PER_LEVEL) * 100);
-  const initial = (display_name || dbHandle || '?').trim().charAt(0).toUpperCase();
+  const initial = (display_name || profileHandle || '?').trim().charAt(0).toUpperCase();
+  const momentumCopy =
+    (streak_days || 0) > 0
+      ? `${streak_days} day streak and still shipping`
+      : 'Showing up and building from lesson one';
 
   return (
     <div className="pub-profile">
@@ -117,9 +114,20 @@ export function PublicProfile({ handle, onClose }) {
       </header>
 
       <div className="pub-card">
+        <span className="pub-overline">Public builder card</span>
         <div className="pub-avatar">{initial}</div>
-        <h1 className="pub-name">{display_name || dbHandle}</h1>
-        <p className="pub-handle">@{dbHandle}</p>
+        <h1 className="pub-name">{display_name || profileHandle}</h1>
+        <p className="pub-handle">@{profileHandle}</p>
+        <p className="pub-summary">
+          This learner is building with CodeHerWay and sharing the proof: progress,
+          momentum, and shipped lessons.
+        </p>
+
+        <div className="pub-pill-row" aria-label="Public progress summary">
+          <span className="pub-pill">Level {level}</span>
+          <span className="pub-pill warm">{lessons_completed || 0} lessons shipped</span>
+          <span className="pub-pill accent">{momentumCopy}</span>
+        </div>
 
         <div className="pub-level">
           <div className="pub-level-row">
@@ -156,11 +164,11 @@ export function PublicProfile({ handle, onClose }) {
         </div>
 
         <a className="pub-cta" href="#">
-          Start learning on CodeHerWay →
+          Start learning on CodeHerWay &rarr;
         </a>
 
         <p className="pub-footer">
-          Public profile · shared by {display_name || dbHandle} · built on CodeHerWay
+          Public profile · shared by {display_name || profileHandle} · built on CodeHerWay
         </p>
       </div>
     </div>

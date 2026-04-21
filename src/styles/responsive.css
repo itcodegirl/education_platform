@@ -21,6 +21,7 @@
   .topbar { padding: 10px 14px; }
   .topbar-inner { gap: 8px; flex-wrap: nowrap; }
   .topbar-actions { margin-left: auto; gap: 6px; }
+  .topbar-status { display: none; }
   .bc { flex: 1; min-width: 0; padding: 8px 10px; border-radius: 12px; }
   .lv-head { flex-wrap: wrap; gap: 12px; }
   .lv-actions { width: 100%; justify-content: flex-start; }
@@ -107,6 +108,8 @@
   .quiz-results { padding: 16px; flex-wrap: wrap; }
   .quiz-score-num { font-size: 22px; }
   .topbar-actions .read-time { display: none; }
+  .topbar-greeting { display: none; }
+  .topbar-pill:nth-child(n + 4) { display: none; }
   .search-trigger span:not(:first-child) { display: none; }
   .search-trigger kbd { display: none; }
   .bc-mod, .bc-sep:nth-of-type(1) { display: none; }

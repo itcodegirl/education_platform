@@ -1,44 +1,38 @@
-// ═══════════════════════════════════════════════
-// ONBOARDING — 3-step tour for first-time users
-// Shows once, saved to localStorage
-// ═══════════════════════════════════════════════
-
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 
 const STEPS = [
   {
     icon: '⚡',
+    eyebrow: 'Start here',
     title: 'Welcome to CodeHerWay',
-    subtitle: 'Where women code, lead, and rewrite the future of tech.',
+    subtitle: 'Learn by shipping something real, not by getting trapped in endless theory.',
     points: [
-      '4 complete courses: HTML, CSS, JavaScript, and React',
-      '134 lessons with interactive code examples',
-      'Built by a self-taught developer who gets it',
+      'Four complete learning tracks: HTML, CSS, JavaScript, and React.',
+      'Project-first lessons that show the code, the result, and the reasoning.',
+      'Built with the honesty of a self-taught developer who remembers the messy middle.',
     ],
   },
   {
     icon: '✏️',
-    title: 'Your Learning Toolkit',
-    subtitle: 'Every lesson comes loaded with features.',
+    eyebrow: 'Your toolkit',
+    title: 'Every lesson comes with support',
+    subtitle: 'You should never have to choose between guessing and giving up.',
     points: [
-      'Monaco Editor — write and run real code inside every lesson',
-      'AI Tutor — ask questions and get instant, context-aware help',
-      'Tasks & Challenges — practice with auto-graded exercises',
-      'Dev_Fessions — real developer mistakes that normalize failure',
+      'Monaco editor and live previews so you can write and test real code inside the lesson.',
+      'AI Tutor support that stays grounded in the current lesson when you get stuck.',
+      'Tasks, challenges, and Dev_Fessions that normalize mistakes while still building skill.',
     ],
   },
   {
     icon: '🏆',
-    title: 'Track Your Progress',
-    subtitle: 'The bottom toolbar is your command center.',
+    eyebrow: 'Your momentum',
+    title: 'The product keeps you moving',
+    subtitle: 'The signed-in shell is designed to help you continue, review, and finish.',
     points: [
-      '★ Bookmarks — save lessons to revisit later',
-      '🏋️ Challenges — auto-graded coding exercises',
-      '🔄 Review Queue — missed quiz questions come back',
-      '📋 Cheat Sheets & 📖 Glossary — quick reference',
-      '⌘K or 🔍 — search across all courses instantly',
-      '☀️/🌙 — toggle dark and light mode',
+      'Bookmarks, glossary, cheat sheets, and search make it easy to get back on track fast.',
+      'Review Queue and challenges turn gaps into deliberate practice instead of shame spirals.',
+      'Progress, streaks, and badges celebrate consistency without pretending learning is linear.',
     ],
   },
 ];
@@ -52,10 +46,11 @@ export function Onboarding({ isOpen, onClose, displayName }) {
     if (isOpen) {
       const timer = setTimeout(() => setShow(true), 100);
       return () => clearTimeout(timer);
-    } else {
-      setShow(false);
-      setStep(0);
     }
+
+    setShow(false);
+    setStep(0);
+    return undefined;
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -72,40 +67,42 @@ export function Onboarding({ isOpen, onClose, displayName }) {
   return (
     <div className="ob-overlay">
       <div className={`ob-card ${show ? 'show' : ''}`}>
-        {/* Progress dots */}
-        <div className="ob-dots">
-          {STEPS.map((_, i) => (
+        <div className="ob-dots" aria-label="Onboarding progress">
+          {STEPS.map((_, index) => (
             <span
-              key={i}
-              className={`ob-dot ${i === step ? 'active' : ''} ${i < step ? 'done' : ''}`}
+              key={index}
+              className={`ob-dot ${index === step ? 'active' : ''} ${index < step ? 'done' : ''}`}
             />
           ))}
         </div>
 
-        {/* Content */}
+        <span className="ob-eyebrow">{current.eyebrow}</span>
         <div className="ob-icon">{current.icon}</div>
 
         <h2 className="ob-title">
-          {step === 0 && displayName
-            ? `Welcome, ${displayName}!`
-            : current.title}
+          {step === 0 && displayName ? `Welcome, ${displayName}!` : current.title}
         </h2>
 
         <p className="ob-subtitle">{current.subtitle}</p>
 
         <div className="ob-points">
-          {current.points.map((point, i) => (
-            <div key={i} className="ob-point">
+          {current.points.map((point) => (
+            <div key={point} className="ob-point">
               <span className="ob-point-bullet">→</span>
               <span>{point}</span>
             </div>
           ))}
         </div>
 
-        {/* Actions */}
+        <p className="ob-kicker">
+          {isLast
+            ? 'You are ready to start learning with context, support, and a product that keeps momentum visible.'
+            : 'A few more seconds now makes the first session feel much more intuitive.'}
+        </p>
+
         <div className="ob-actions">
           {!isFirst && (
-            <button type="button" className="ob-back" onClick={() => setStep(s => s - 1)}>
+            <button type="button" className="ob-back" onClick={() => setStep((value) => value - 1)}>
               ← Back
             </button>
           )}
@@ -118,18 +115,17 @@ export function Onboarding({ isOpen, onClose, displayName }) {
 
           {isLast ? (
             <button type="button" className="ob-start" onClick={handleFinish}>
-              Start Learning →
+              Start learning →
             </button>
           ) : (
-            <button type="button" className="ob-next" onClick={() => setStep(s => s + 1)}>
+            <button type="button" className="ob-next" onClick={() => setStep((value) => value + 1)}>
               Next →
             </button>
           )}
         </div>
 
-        {/* Step counter */}
         <div className="ob-step-label">
-          {step + 1} of {STEPS.length}
+          Step {step + 1} of {STEPS.length}
         </div>
       </div>
     </div>

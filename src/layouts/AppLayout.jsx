@@ -12,7 +12,7 @@ import { useKeyboardNav } from "../hooks/useKeyboardNav";
 import { useLearning } from "../hooks/useLearning";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useLocalStorage } from "../hooks/useLocalStorage";
-import { estimateReadingTime } from "../utils/helpers";
+import { estimateReadingTime, getLevel } from "../utils/helpers";
 
 // Layout components
 import { Sidebar } from "../components/layout/Sidebar";
@@ -38,7 +38,7 @@ import { BreakPrompt } from "../components/shared/BreakPrompt";
 
 export function AppLayout() {
   const { theme } = useTheme();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const {
     completed = [],
     completedSet = new Set(),
@@ -46,6 +46,9 @@ export function AppLayout() {
     trackCourseVisit,
     dataLoaded,
     lastPosition,
+    xpTotal = 0,
+    streak = 0,
+    dailyCount = 0,
   } = useProgress();
 
   const nav = useNavigation();
@@ -101,6 +104,12 @@ export function AppLayout() {
     () => estimateReadingTime(les.content + les.code),
     [les.content, les.code],
   );
+  const level = useMemo(() => getLevel(xpTotal), [xpTotal]);
+  const learnerName =
+    profile?.display_name ||
+    user?.user_metadata?.display_name ||
+    user?.email?.split("@")[0] ||
+    "Builder";
   const [marking, setMarking] = useState(false);
   const isSidebarOpen = isMobile ? panels.sidebar : true;
 
@@ -137,6 +146,7 @@ export function AppLayout() {
   }, [completed.length]);
 
   const courseDone = completed.filter((k) => k.startsWith(course.label)).length;
+  const coursePct = courseTotal > 0 ? Math.round((courseDone / courseTotal) * 100) : 0;
   const isCourseComplete = courseDone === courseTotal && courseTotal > 0;
 
   useEffect(() => {
@@ -157,22 +167,22 @@ export function AppLayout() {
   }, [lessonKey, marking, learn]);
 
   const handleOpenTool = useCallback(
-    (tool) => panels.setPanel(tool),
-    [panels.setPanel],
+    (tool) => panels.togglePanel(tool),
+    [panels.togglePanel],
   );
 
   const toolbarHandlers = useMemo(
     () => ({
-      onCheatsheet: () => panels.setPanel("cheatsheet"),
-      onGlossary: () => panels.setPanel("glossary"),
-      onProjects: () => panels.setPanel("projects"),
-      onBadges: () => panels.setPanel("badges"),
-      onSR: () => panels.setPanel("sr"),
-      onBookmarks: () => panels.setPanel("bookmarks"),
-      onChallenges: () => panels.setPanel("challenges"),
-      onStats: () => panels.setPanel("stats"),
+      onCheatsheet: () => panels.togglePanel("cheatsheet"),
+      onGlossary: () => panels.togglePanel("glossary"),
+      onProjects: () => panels.togglePanel("projects"),
+      onBadges: () => panels.togglePanel("badges"),
+      onSR: () => panels.togglePanel("sr"),
+      onBookmarks: () => panels.togglePanel("bookmarks"),
+      onChallenges: () => panels.togglePanel("challenges"),
+      onStats: () => panels.togglePanel("stats"),
     }),
-    [panels.setPanel],
+    [panels.togglePanel],
   );
 
   // ─── Keyboard ─────────────────────────────
@@ -239,6 +249,7 @@ export function AppLayout() {
           panels.setSidebar(false);
         }}
         onOpenTool={handleOpenTool}
+        activePanel={panels.panel}
       />
 
       <main className="mn" ref={mainRef} id="main-content">
@@ -266,12 +277,21 @@ export function AppLayout() {
               lesTitle={les.title}
               showModQuiz={showModQuiz}
             />
+            <div className="topbar-status" aria-label="Current learning status">
+              <span className="topbar-greeting">Keep building, {learnerName}.</span>
+              {!showModQuiz && <span className="topbar-pill">{readTime} read</span>}
+              <span className="topbar-pill">Lv {level}</span>
+              <span className="topbar-pill">{coursePct}% track</span>
+              {streak > 0 && <span className="topbar-pill streak">🔥 {streak} day streak</span>}
+              {dailyCount > 0 && <span className="topbar-pill warm">{dailyCount} lesson{dailyCount === 1 ? '' : 's'} today</span>}
+            </div>
             <div className="topbar-actions">
               <button
                 type="button"
-                className="search-trigger"
-                onClick={() => panels.setPanel("search")}
+                className={`search-trigger ${panels.panel === "search" ? "active" : ""}`}
+                onClick={() => panels.togglePanel("search")}
                 aria-label="Open lesson search"
+                aria-pressed={panels.panel === "search"}
               >
                 <span>🔍</span>
                 <span>Search</span>
@@ -373,7 +393,7 @@ export function AppLayout() {
           accent={course.accent}
         />
       ) : (
-        <BottomToolbar {...toolbarHandlers} />
+        <BottomToolbar activePanel={panels.panel} {...toolbarHandlers} />
       )}
       <XPPopup />
       <BadgeUnlock />

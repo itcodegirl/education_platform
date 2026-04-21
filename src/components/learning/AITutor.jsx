@@ -155,9 +155,9 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
             {messages.length === 0 && (
               <div className="ai-welcome">
                 <p className="ai-welcome-text">
-                  👋 I know what you're studying. Ask me anything about{' '}
-                  <strong>{lesson.title}</strong> — I'll explain it, show
-                  examples, or help you debug.
+                  👋 I am grounded in this lesson already. Ask about{' '}
+                  <strong>{lesson.title}</strong> and I will explain it, show a different example,
+                  or help you get unstuck without making you feel lost.
                 </p>
                 <div className="ai-suggestions">
                   {suggestions.map((s, i) => (

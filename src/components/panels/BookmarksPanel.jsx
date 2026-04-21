@@ -49,16 +49,21 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
         tabIndex={-1}
       >
         <div className="cheatsheet-head">
-          <h2>Bookmarks ({bookmarks.length})</h2>
-          <button type="button" className="cheatsheet-close" onClick={onClose}>x</button>
+          <div className="panel-title-group">
+            <p className="panel-kicker">Saved lessons</p>
+            <h2>Bookmarks ({bookmarks.length})</h2>
+          </div>
+          <button type="button" className="cheatsheet-close" onClick={onClose} aria-label="Close bookmarks">
+            ×
+          </button>
         </div>
         <div className="cheatsheet-body">
           {bookmarks.length === 0 ? (
             <div className="sr-empty">
-              <span className="sr-empty-icon">+</span>
+              <span className="sr-empty-icon" aria-hidden="true">★</span>
               <p><strong>No bookmarks yet</strong></p>
               <p className="empty-state-msg">
-                Click the bookmark icon on any lesson to save it here.
+                Save standout lessons from any track and they will be ready here for a quick jump back in.
               </p>
             </div>
           ) : (

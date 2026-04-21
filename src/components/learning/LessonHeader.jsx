@@ -21,6 +21,11 @@ export function LessonHeader({
   onToggleBookmark,
   onToggleNotes,
 }) {
+  const summaryBits = [];
+  if (duration) summaryBits.push(duration);
+  if (conceptCount > 0) summaryBits.push(`${conceptCount} core concept${conceptCount === 1 ? '' : 's'}`);
+  if (taskCount > 0) summaryBits.push(`${taskCount} practice task${taskCount === 1 ? '' : 's'}`);
+
   return (
     <div className="lv-head">
       <span className="lv-emoji" aria-hidden="true">{emoji}</span>
@@ -32,6 +37,11 @@ export function LessonHeader({
           </div>
         )}
         <h1 className="lv-title">{lesson.title}</h1>
+        {summaryBits.length > 0 && (
+          <p className="lv-summaryline">
+            One honest build session. {summaryBits.join(' · ')}.
+          </p>
+        )}
         {difficulty && (
           <div className="lv-meta">
             <span className={`lv-diff lv-diff-${difficulty}`}>{difficulty}</span>

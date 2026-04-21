@@ -10,6 +10,7 @@ const AuthContext = createContext({
   user: null,
   profile: null,
   loading: true,
+  profileLoading: false,
   signUp: async () => ({ data: null, error: null }),
   signIn: async () => ({ data: null, error: null }),
   signInWithGithub: async () => ({ data: null, error: null }),
@@ -21,15 +22,23 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   // ─── Load profile ──────────────────────────
   const handleLoadProfile = async (userId) => {
-    if (!userId) { setProfile(null); return; }
+    if (!userId) {
+      setProfile(null);
+      setProfileLoading(false);
+      return;
+    }
+    setProfileLoading(true);
     try {
       const data = await authService.loadProfile(userId);
       setProfile(data);
     } catch {
       setProfile(null);
+    } finally {
+      setProfileLoading(false);
     }
   };
 
@@ -39,10 +48,12 @@ export function AuthProvider({ children }) {
       try {
         const u = await authService.getInitialSession();
         setUser(u);
-        if (u) handleLoadProfile(u.id);
+        if (u) await handleLoadProfile(u.id);
       } catch (err) {
         console.error('Auth session error:', err.message);
         setUser(null);
+        setProfile(null);
+        setProfileLoading(false);
       } finally {
         setLoading(false);
       }
@@ -54,8 +65,12 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const subscription = authService.onAuthStateChange((u) => {
       setUser(u);
-      if (u) handleLoadProfile(u.id);
-      else setProfile(null);
+      if (u) {
+        handleLoadProfile(u.id);
+      } else {
+        setProfile(null);
+        setProfileLoading(false);
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -99,6 +114,7 @@ export function AuthProvider({ children }) {
 
   const handleSignOut = async () => {
     setProfile(null);
+    setProfileLoading(false);
     try {
       const { error } = await authService.signOut();
       if (!error) setUser(null);
@@ -110,12 +126,12 @@ export function AuthProvider({ children }) {
 
   // ─── Memoized value ──────────────────────
   const value = useMemo(() => ({
-    user, profile, loading,
+    user, profile, loading, profileLoading,
     signUp, signIn,
     signInWithGithub: handleGithub,
     signInWithGoogle: handleGoogle,
     signOut: handleSignOut,
-  }), [user, profile, loading]);
+  }), [user, profile, loading, profileLoading]);
 
   return (
     <AuthContext.Provider value={value}>

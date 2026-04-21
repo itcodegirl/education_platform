@@ -31,7 +31,7 @@ Preview the design tokens at `http://localhost:5173/#styleguide`.
 Run these locally — the same checks run in CI:
 
 ```bash
-npm run build               # must pass with no warnings
+npm run build               # must pass with no errors
 npm run test:e2e            # Playwright E2E
 npm audit --audit-level=high
 ```

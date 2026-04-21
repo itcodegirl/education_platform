@@ -16,21 +16,7 @@
 
 ![CodeHerWay screenshot](./docs/screenshot.png)
 
-<!--
-📸 SCREENSHOT TODO — this line currently 404s until docs/screenshot.png
-exists. Take a still of the lesson view with the AI tutor open on
-the right and save it to docs/screenshot.png. Recommended: 1600x900,
-lossless PNG, under 500KB. A GIF/MP4 of the code editor + live
-preview interaction is even higher impact if you have the bandwidth.
--->
-<!--
-📊 LIGHTHOUSE TODO — once you've run a real Lighthouse audit on the
-production URL, add a badge like:
-  [![Lighthouse](https://img.shields.io/badge/Lighthouse-95%2F100-22c55e)](./docs/lighthouse.png)
-and drop the full report at docs/lighthouse.png. Target: 95+ for
-Performance, Accessibility, Best Practices, and SEO after the
-a11y sweep.
--->
+CodeHerWay teaches by getting learners to make something tangible, not by trapping them in passive reading.
 
 ---
 
@@ -48,6 +34,20 @@ lesson ships with:
 - **spaced-repetition** review cards generated from missed quizzes.
 
 It's built for women learning to code — past, present, and future.
+
+## Why it feels different
+
+- **Every lesson ends in output.** You read a little, write a little,
+  and immediately see the browser react.
+- **The support layer stays close.** Search, glossary, bookmarks,
+  review cards, challenges, notes, and the AI tutor all live one click
+  away from the lesson instead of being buried in separate pages.
+- **Progress feels earned.** XP, streaks, badges, checkpoints, and
+  review loops are there to reinforce momentum, not distract from the
+  work.
+- **Security and accessibility are part of the product, not cleanup.**
+  The app is built around RLS, strict headers, sandboxing, focus
+  traps, semantic landmarks, and WCAG AA contrast from the start.
 
 ## What I built (and what it taught me)
 
@@ -261,6 +261,16 @@ accessibility work are intentionally paired — both care about
 - [ ] Migrate components to TypeScript
 - [ ] Wire ErrorBoundary to Sentry / LogRocket for prod telemetry
 - [ ] Real Lighthouse CI with a committed score badge
+
+## Repo presentation checklist
+
+For the GitHub-side launch polish that lives outside this repo, the
+last manual checks are:
+
+- confirm the two workflow badges render correctly on the GitHub repo page,
+- set the repo description, homepage, and topics to match the product story,
+- pin the canonical repo prominently on your profile, and
+- confirm the Netlify production link is the one surfaced in the repo sidebar.
 
 ## Contributing
 
