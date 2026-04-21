@@ -67,6 +67,27 @@ export async function fetchAllUserData(uid: UUID) {
       .maybeSingle(),
   ]);
 
+  const errors = [
+    ['progress', progressRes.error],
+    ['quiz_scores', quizRes.error],
+    ['xp', xpRes.error],
+    ['streaks', streakRes.error],
+    ['daily_goals', dailyRes.error],
+    ['badges', badgesRes.error],
+    ['sr_cards', srRes.error],
+    ['bookmarks', bookmarksRes.error],
+    ['notes', notesRes.error],
+    ['courses_visited', visitedRes.error],
+    ['last_position', posRes.error],
+  ].filter(([, error]) => !!error);
+
+  if (errors.length > 0) {
+    const details = errors
+      .map(([source, error]) => `${source}: ${(error as { message?: string }).message || 'Unknown error'}`)
+      .join(' | ');
+    throw new Error(`Failed to load user data (${details})`);
+  }
+
   return {
     progress: progressRes,
     quiz: quizRes,

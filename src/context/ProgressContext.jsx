@@ -159,6 +159,8 @@ export function ProgressProvider({ children }) {
       return;
     }
 
+    let cancelled = false;
+
     const loadAll = async () => {
       const uid = user.id;
       setLoadError(null);
@@ -166,6 +168,7 @@ export function ProgressProvider({ children }) {
       try {
       // Parallel fetch all tables
       const results = await progressService.fetchAllUserData(uid);
+      if (cancelled) return;
       const { progress: progressRes, quiz: quizRes, xp: xpRes, streak: streakRes,
         daily: dailyRes, badges: badgesRes, sr: srRes, bookmarks: bookmarkRes,
         notes: notesRes, visited: visitedRes, position: posRes } = results;
@@ -230,6 +233,7 @@ export function ProgressProvider({ children }) {
 
       setDataLoaded(true);
       } catch (err) {
+        if (cancelled) return;
         console.error('Failed to load data:', err);
         setLoadError(err.message || 'Could not connect to database');
         setDataLoaded(true); // still mark loaded so UI isn't stuck
@@ -237,6 +241,9 @@ export function ProgressProvider({ children }) {
     };
 
     loadAll();
+    return () => {
+      cancelled = true;
+    };
   }, [user, loadVersion, resetUserState]);
 
   // ─── Streak check on load ─────────────────────
@@ -395,35 +402,36 @@ export function ProgressProvider({ children }) {
   const updateSRCard = useCallback(async (question, correct) => {
     if (!user) return;
 
+    const currentCard = srCards.find(c => c.question === question);
+    if (!currentCard) return;
+
+    const nextInterval = correct
+      ? Math.round(currentCard.interval * currentCard.ease)
+      : 1;
+    const nextEase = correct
+      ? Math.min(currentCard.ease + 0.1, 3.0)
+      : Math.max(currentCard.ease - 0.2, 1.3);
+    const nextReviewTs = Date.now() + (correct ? nextInterval : 1) * TIMING.dayMs;
+    const updatedCard = {
+      ...currentCard,
+      interval: nextInterval,
+      ease: nextEase,
+      nextReview: nextReviewTs,
+    };
+
     setSrCards(prev => prev.map(card => {
       if (card.question !== question) return card;
-      if (correct) {
-        const newInterval = Math.round(card.interval * card.ease);
-        return {
-          ...card,
-          interval: newInterval,
-          ease: Math.min(card.ease + 0.1, 3.0),
-          nextReview: Date.now() + newInterval * TIMING.dayMs,
-        };
-      } else {
-        return {
-          ...card,
-          interval: 1,
-          ease: Math.max(card.ease - 0.2, 1.3),
-          nextReview: Date.now() + TIMING.dayMs,
-        };
-      }
+      return updatedCard;
     }));
 
-    // Find the updated card to sync
-    const card = srCards.find(c => c.question === question);
-    if (!card) return;
-
-    const newInterval = correct ? Math.round(card.interval * card.ease) : 1;
-    const newEase = correct ? Math.min(card.ease + 0.1, 3.0) : Math.max(card.ease - 0.2, 1.3);
-    const nextReview = new Date(Date.now() + (correct ? newInterval : 1) * TIMING.dayMs);
-
-    dbWrite(progressService.updateSRCard(user.id, question, { next_review: nextReview.toISOString(), interval_days: newInterval, ease: newEase }), 'updateSRCard');
+    dbWrite(
+      progressService.updateSRCard(user.id, question, {
+        next_review: new Date(updatedCard.nextReview).toISOString(),
+        interval_days: updatedCard.interval,
+        ease: updatedCard.ease,
+      }),
+      'updateSRCard',
+    );
   }, [user, srCards, dbWrite]);
 
   const getDueSRCards = useCallback(() => {

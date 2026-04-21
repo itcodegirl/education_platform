@@ -90,6 +90,22 @@ export function useAdminData(user) {
           supabase.from('streaks').select('*'),
           supabase.from('badges').select('*'),
         ]);
+        const errors = [
+          ['profiles', users.error],
+          ['progress', progress.error],
+          ['quiz_scores', quizScores.error],
+          ['xp', xp.error],
+          ['streaks', streaks.error],
+          ['badges', badges.error],
+        ].filter(([, error]) => !!error);
+
+        if (errors.length > 0) {
+          const details = errors
+            .map(([source, error]) => `${source}: ${error.message || 'Unknown error'}`)
+            .join(' | ');
+          throw new Error(details);
+        }
+
         if (cancelled) return;
         setData({
           users: users.data || [],
@@ -99,8 +115,14 @@ export function useAdminData(user) {
           streaks: streaks.data || [],
           badges: badges.data || [],
         });
-      } catch {
-        if (!cancelled) setLoadError('Failed to load admin data. Check your connection.');
+      } catch (error) {
+        if (!cancelled) {
+          setLoadError(
+            error?.message
+              ? `Failed to load admin data: ${error.message}`
+              : 'Failed to load admin data. Check your connection.',
+          );
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
