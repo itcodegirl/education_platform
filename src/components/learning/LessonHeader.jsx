@@ -58,7 +58,7 @@ export function LessonHeader({
       <div className="lv-actions">
         <button
           type="button"
-          className={`lv-action-btn ${bookmarked ? 'active' : ''}`}
+          className={`lv-action-btn ui-btn ui-btn-secondary ${bookmarked ? 'active' : ''}`}
           onClick={onToggleBookmark}
           title={bookmarkLabel}
           aria-pressed={bookmarked}
@@ -69,7 +69,7 @@ export function LessonHeader({
         </button>
         <button
           type="button"
-          className={`lv-action-btn ${showNotes ? 'active' : ''}`}
+          className={`lv-action-btn ui-btn ui-btn-secondary ${showNotes ? 'active' : ''}`}
           onClick={onToggleNotes}
           title="Notes"
           aria-expanded={showNotes}

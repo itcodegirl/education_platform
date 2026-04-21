@@ -39,7 +39,7 @@ export function GuestPreview({ onBack }) {
       <div className="gp-topbar">
         <button
           type="button"
-          className="gp-back"
+          className="gp-back ui-btn ui-btn-secondary ui-btn-compact"
           onClick={onBack}
           aria-label="Return to authentication page"
         >
@@ -162,7 +162,7 @@ export function GuestPreview({ onBack }) {
             Create a free account to unlock all {totalLessons}+ lessons, track your progress,
             earn badges, and use the AI tutor.
           </p>
-          <button type="button" className="gp-cta-btn" onClick={onBack} aria-label="Create free account">
+          <button type="button" className="gp-cta-btn ui-btn ui-btn-primary ui-btn-pill" onClick={onBack} aria-label="Create free account">
             Create free account
           </button>
         </section>

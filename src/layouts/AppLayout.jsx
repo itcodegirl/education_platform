@@ -336,7 +336,7 @@ export function AppLayout() {
             <div className="topbar-actions">
               <button
                 type="button"
-                className={`search-trigger ${panels.panel === "search" ? "active" : ""}`}
+                className={`search-trigger ui-btn ui-btn-secondary ${panels.panel === "search" ? "active" : ""}`}
                 onClick={() => panels.togglePanel("search")}
                 aria-label="Open lesson search"
                 aria-pressed={panels.panel === "search"}
@@ -348,7 +348,7 @@ export function AppLayout() {
               {!showModQuiz && (
               <button
                 type="button"
-                className={`mark-btn ${isDone ? "dn" : ""}`}
+                className={`mark-btn ui-btn ui-btn-secondary ${isDone ? "dn" : ""}`}
                 onClick={handleMarkDone}
                 disabled={marking}
                 aria-label={marking ? "Saving lesson completion" : isDone ? "Mark lesson as not done" : "Mark lesson complete"}
@@ -439,7 +439,7 @@ export function AppLayout() {
         <nav className="nav-row" aria-label="Lesson pagination">
           <button
             type="button"
-            className="nav-btn"
+            className="nav-btn ui-btn ui-btn-secondary"
             onClick={nav.prev}
             disabled={isFirst}
             aria-label={prevTitle ? `Previous lesson: ${prevTitle}` : 'Previous lesson'}
@@ -456,7 +456,7 @@ export function AppLayout() {
           </button>
           <button
             type="button"
-            className="nav-btn nx"
+            className="nav-btn nx ui-btn ui-btn-primary"
             onClick={nav.next}
             disabled={isLast}
             style={{ background: course.accent }}

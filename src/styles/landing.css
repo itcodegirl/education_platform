@@ -137,25 +137,13 @@
 }
 
 .lh-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 14px 28px;
-  background: var(--grad-brand);
-  color: #fff;
-  font-family: inherit;
-  font-weight: 700;
+  min-height: 46px;
+  padding: 0 28px;
   font-size: var(--text-md);
-  border: none;
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  box-shadow: 0 12px 32px rgba(180, 74, 255, 0.35);
-  transition: transform var(--duration-fast) var(--ease-out),
-              box-shadow var(--duration-fast) var(--ease-out);
+  font-weight: 700;
 }
 .lh-cta:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 40px rgba(224, 64, 160, 0.45);
+  text-decoration: none;
 }
 .lh-cta:active {
   transform: translateY(0);
@@ -164,10 +152,11 @@
 .lh-cta-ghost {
   color: var(--text-dim);
   font-family: 'Space Mono', ui-monospace, monospace;
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
   text-decoration: none;
-  padding: 14px 8px;
-  transition: color var(--duration-fast);
+  min-height: 40px;
+  padding: 0 14px;
+  border-style: solid;
 }
 .lh-cta-ghost:hover {
   color: var(--cyan);

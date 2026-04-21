@@ -315,24 +315,16 @@
 }
 
 .mark-btn {
-  height: 42px;
+  min-height: 42px;
   padding: 0 16px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
-  color: var(--text-dim);
   font-size: 13px;
   font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
   white-space: nowrap;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
 }
 
 .mark-btn:hover {
-  border-color: var(--purple);
-  color: var(--purple);
-  transform: translateY(-1px);
   box-shadow: 0 4px 16px rgba(180, 74, 255, 0.15);
 }
 
@@ -352,30 +344,13 @@
   margin: 0 auto;
 }
 
-.nav-btn {
-  padding: 12px 28px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--bg-surface);
-  color: var(--text);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.25s;
-  font-family: 'Inter', sans-serif;
-}
-
 /* Layout for prev/next buttons that include a lesson title preview */
 .nav-btn {
+  min-height: 44px;
   padding: 10px 20px;
   border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--bg-surface);
-  color: var(--text);
   font-size: 14px;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.25s;
   font-family: 'Inter', sans-serif;
   display: flex;
   align-items: center;
@@ -422,9 +397,6 @@
 }
 
 .nav-btn:hover:not(:disabled) {
-  border-color: var(--purple);
-  color: var(--purple);
-  background: rgba(180, 74, 255, 0.08);
   transform: translateY(-1px);
 }
 
@@ -434,9 +406,7 @@
 }
 
 .nav-btn.nx {
-  background: var(--grad-brand);
   color: #fff;
-  border-color: transparent;
 }
 
 .nav-btn.nx:hover:not(:disabled) {
@@ -1133,6 +1103,27 @@
   background: var(--bg-deep);
 }
 
+.guest-preview-loading {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.guest-preview-loading p {
+  min-width: min(440px, 100%);
+  text-align: center;
+  padding: 28px 24px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-dim);
+  font-family: 'Poppins', monospace;
+  letter-spacing: 0.02em;
+}
+
 .gp-topbar {
   display: flex;
   align-items: center;
@@ -1146,16 +1137,15 @@
 }
 
 .gp-back {
-  background: none;
-  border: none;
   color: var(--text-dim);
-  cursor: pointer;
   font-size: 14px;
+  font-weight: 600;
   font-family: inherit;
 }
 
 .gp-back:hover {
   color: var(--text);
+  text-decoration: none;
 }
 
 .gp-badge {
@@ -1244,19 +1234,14 @@
 }
 
 .gp-cta-btn {
-  background: var(--grad-brand);
-  color: #fff;
-  border: none;
-  padding: 14px 32px;
-  border-radius: var(--radius-full);
+  min-height: 46px;
+  padding: 0 32px;
   font-weight: 700;
   font-size: 16px;
-  cursor: pointer;
   font-family: inherit;
 }
 
 .gp-cta-btn:hover {
-  opacity: 0.9;
   transform: translateY(-1px);
 }
 
@@ -1264,19 +1249,14 @@
   display: block;
   width: 100%;
   margin-top: 12px;
-  padding: 10px;
-  background: transparent;
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-md);
+  min-height: 40px;
+  padding: 0 12px;
   color: var(--text-dim);
   font-size: 14px;
-  cursor: pointer;
   font-family: inherit;
-  transition: all 0.2s;
 }
 
 .auth-preview-btn:hover {
-  border-color: var(--purple);
   color: var(--text);
 }
 
@@ -5243,10 +5223,13 @@ select {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 40px 24px;
+  padding: 32px 24px;
   color: var(--text-dim);
   font-size: 14px;
   text-align: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.012));
 }
 
 .panel-error-fallback span {
@@ -5258,14 +5241,7 @@ select {
 }
 
 .panel-error-fallback button {
-  padding: 8px 20px;
-  border-radius: 8px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 0.2s;
+  margin-top: 2px;
 }
 
 .panel-error-fallback button:hover {

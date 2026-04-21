@@ -84,7 +84,7 @@ export function AuthPage({ onPreview }) {
             </p>
             <button
               type="button"
-              className="auth-submit"
+              className="auth-submit ui-btn ui-btn-primary"
               onClick={() => {
                 setConfirmSent(false);
                 setMode('login');
@@ -151,6 +151,7 @@ export function AuthPage({ onPreview }) {
                 <label htmlFor="auth-display-name">Display Name</label>
                 <input
                   id="auth-display-name"
+                  className="ui-input"
                   type="text"
                   placeholder="Your name"
                   autoComplete="name"
@@ -167,6 +168,7 @@ export function AuthPage({ onPreview }) {
               <label htmlFor="auth-email">Email</label>
               <input
                 id="auth-email"
+                className="ui-input"
                 type="email"
                 placeholder="you@example.com"
                 autoComplete="email"
@@ -182,6 +184,7 @@ export function AuthPage({ onPreview }) {
               <label htmlFor="auth-password">Password</label>
               <input
                 id="auth-password"
+                className="ui-input"
                 type="password"
                 placeholder="••••••••"
                 autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
@@ -194,12 +197,12 @@ export function AuthPage({ onPreview }) {
             </div>
 
             {error && (
-              <div className="auth-error" role="alert" aria-live="assertive">
+              <div className="auth-error ui-status ui-status-error" role="alert" aria-live="assertive">
                 {error}
               </div>
             )}
 
-            <button className="auth-submit" type="submit" disabled={loading} aria-busy={loading}>
+            <button className="auth-submit ui-btn ui-btn-primary" type="submit" disabled={loading} aria-busy={loading}>
               {loading ? '...' : mode === 'login' ? 'Log in' : 'Create free account'}
             </button>
           </form>
@@ -211,7 +214,7 @@ export function AuthPage({ onPreview }) {
           <div className="auth-social">
             <button
               type="button"
-              className="auth-social-btn"
+              className="auth-social-btn ui-btn ui-btn-secondary"
               onClick={signInWithGithub}
               aria-label="Continue with GitHub"
               disabled={loading}
@@ -223,7 +226,7 @@ export function AuthPage({ onPreview }) {
             </button>
             <button
               type="button"
-              className="auth-social-btn"
+              className="auth-social-btn ui-btn ui-btn-secondary"
               onClick={signInWithGoogle}
               aria-label="Continue with Google"
               disabled={loading}
@@ -241,7 +244,7 @@ export function AuthPage({ onPreview }) {
           {onPreview && (
             <button
               type="button"
-              className="auth-preview-btn"
+              className="auth-preview-btn ui-btn ui-btn-ghost"
               onClick={onPreview}
               aria-label="Preview a lesson before signing in"
             >

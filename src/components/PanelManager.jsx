@@ -13,7 +13,7 @@ function PanelError({ retry }) {
     <div className="panel-error-fallback" role="alert">
       <span aria-hidden="true">⚠️</span>
       <p>This panel ran into a problem.</p>
-      <button type="button" onClick={retry}>Try again</button>
+      <button type="button" className="ui-btn ui-btn-secondary ui-btn-compact" onClick={retry}>Try again</button>
     </div>
   );
 }

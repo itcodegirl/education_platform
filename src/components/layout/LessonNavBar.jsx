@@ -31,7 +31,7 @@ export const LessonNavBar = memo(function LessonNavBar({
     <nav className="lesson-nav" aria-label="Lesson navigation">
       <button
         type="button"
-        className="lesson-nav-btn lesson-nav-prev"
+        className="lesson-nav-btn lesson-nav-prev ui-btn ui-btn-secondary"
         onClick={onPrev}
         disabled={isFirst}
         aria-label={isFirst ? 'No previous lesson' : 'Go to previous lesson'}
@@ -43,7 +43,7 @@ export const LessonNavBar = memo(function LessonNavBar({
       {!showModQuiz && (
         <button
           type="button"
-          className={`lesson-nav-btn lesson-nav-done ${isDone ? 'is-done' : ''}`}
+          className={`lesson-nav-btn lesson-nav-done ui-btn ui-btn-secondary ${isDone ? 'is-done' : ''}`}
           onClick={onMarkDone}
           disabled={marking}
           aria-label={doneAriaLabel}
@@ -56,7 +56,7 @@ export const LessonNavBar = memo(function LessonNavBar({
 
       <button
         type="button"
-        className="lesson-nav-btn lesson-nav-next"
+        className="lesson-nav-btn lesson-nav-next ui-btn ui-btn-primary"
         onClick={onNext}
         disabled={isLast}
         style={!isLast ? { background: accent } : undefined}

@@ -166,14 +166,14 @@ export function LandingHeroIntro({ onStart, compact = false }) {
         {onStart && (
           <button
             type="button"
-            className="lh-cta"
+            className="lh-cta ui-btn ui-btn-primary ui-btn-pill"
             onClick={onStart}
             aria-label="Create a free account and start your first lesson"
           >
             Create free account
           </button>
         )}
-        <a className="lh-cta-ghost" href="/#styleguide" aria-label="Go to the design system">
+        <a className="lh-cta-ghost ui-btn ui-btn-secondary" href="/#styleguide" aria-label="Go to the design system">
           Browse design system
         </a>
       </div>
@@ -200,7 +200,7 @@ export function LandingHeroStory() {
           You&apos;ve seen what you&apos;ll build. The first lesson is free -
           no credit card, no signup wall.
         </p>
-        <a className="lh-cta" href="#top" aria-label="Back to top">
+        <a className="lh-cta ui-btn ui-btn-primary ui-btn-pill" href="#top" aria-label="Back to top">
           Back to top
         </a>
       </section>
