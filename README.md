@@ -313,6 +313,20 @@ MIT — see [`LICENSE`](./LICENSE).
 
 ---
 
+## Case study snapshot
+
+- **Problem:** The platform worked, but it needed production-style polish so it reads as portfolio-ready.
+- **Approach:** Keep the architecture, then tighten onboarding flow, lesson navigation consistency, and loading/error states with better accessibility defaults.
+- **Outcome:** A cleaner handoff from discovery to learning with fewer edge-case ambiguity and clearer user guidance under load and failure states.
+
+### Release checks
+
+1. `npm run lint`
+2. `npm run typecheck`
+3. `npm test`
+4. `npm run build`
+5. `npm run test:e2e`
+
 ## Further reading
 
 - [`SECURITY.md`](./SECURITY.md) — full threat model, disclosure process
