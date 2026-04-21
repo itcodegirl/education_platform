@@ -54,14 +54,23 @@ export function getNewBadges(
 // ─── XP level calculations ─────────────────
 export const XP_PER_LEVEL = 150;
 
+/**
+ * Convert total XP into the user's 1-based level.
+ */
 export function getLevel(xp: number): number {
   return Math.floor(xp / XP_PER_LEVEL) + 1;
 }
 
+/**
+ * Return XP progress within the current level bucket.
+ */
 export function getXPInLevel(xp: number): number {
   return xp % XP_PER_LEVEL;
 }
 
+/**
+ * Return current level completion as an integer percentage.
+ */
 export function getXPProgress(xp: number): number {
   return Math.round((getXPInLevel(xp) / XP_PER_LEVEL) * 100);
 }

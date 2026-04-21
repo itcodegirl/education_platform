@@ -33,6 +33,9 @@ async function callAI(payload: AICallPayload): Promise<string> {
   return data.text || '';
 }
 
+/**
+ * Ask the lesson AI tutor using prior conversation history.
+ */
 export function askLessonTutor({
   system,
   history,
@@ -49,6 +52,9 @@ export function askLessonTutor({
   });
 }
 
+/**
+ * Request a concise beginner-friendly explanation of a code snippet.
+ */
 export function explainCode({ system, code }: { system: string; code: string }) {
   return callAI({
     system,
@@ -57,6 +63,9 @@ export function explainCode({ system, code }: { system: string; code: string }) 
   });
 }
 
+/**
+ * Ask the challenge tutor for guidance on the current coding challenge.
+ */
 export function askChallengeTutor({
   system,
   question,
