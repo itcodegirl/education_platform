@@ -12,6 +12,34 @@
 // ═══════════════════════════════════════════════
 
 import { json } from './_shared.js';
+import { createHmac, timingSafeEqual } from 'crypto';
+
+/**
+ * Verify a HMAC-SHA256 signature from the X-Webhook-Signature header.
+ * Uses timing-safe comparison to prevent timing attacks.
+ * Falls back to plain secret comparison if no signature header is present
+ * (backward-compatible with simple secret approach).
+ *
+ * @param {string} body    Raw request body string
+ * @param {string} secret  Shared secret from environment
+ * @param {string} sig     Value of X-Webhook-Signature header (may be empty)
+ * @param {string} plain   Value of x-webhook-secret header (legacy fallback)
+ * @returns {boolean}
+ */
+function verifyWebhookAuth(body, secret, sig, plain) {
+  if (!secret) return false;
+  // Prefer HMAC signature if provided
+  if (sig) {
+    const expected = createHmac('sha256', secret).update(body).digest('hex');
+    try {
+      return timingSafeEqual(Buffer.from(sig), Buffer.from(expected));
+    } catch {
+      return false; // Buffer lengths differ → invalid signature
+    }
+  }
+  // Legacy: plain secret header comparison
+  return plain === secret;
+}
 
 export async function handler(event) {
   // Only allow scheduled invocations or POST from admin
@@ -19,19 +47,16 @@ export async function handler(event) {
     return json(405, { error: 'Method not allowed' });
   }
 
-  // Require a shared secret for manual POST triggers.
-  // Netlify sets x-netlify-event: 'schedule' for scheduled invocations.
-  // We check for the exact value 'schedule' (not just any truthy string)
-  // to reduce the spoofing surface. Note: this header is not signed by
-  // Netlify, so a crafted POST with x-netlify-event: schedule would still
-  // bypass it. The function contains no write operations, so the worst
-  // case is an unauthenticated trigger of a read-only DB query.
+  // For scheduled invocations Netlify sets x-netlify-event: 'schedule'.
+  // For manual POST triggers require either:
+  //   - X-Webhook-Signature: HMAC-SHA256(body, STREAK_REMINDER_SECRET)  ← preferred
+  //   - x-webhook-secret: <plain secret>                                 ← legacy fallback
   const isScheduled = event.headers['x-netlify-event'] === 'schedule';
   if (!isScheduled) {
-    const expected = process.env.STREAK_REMINDER_SECRET;
-    const provided =
-      event.headers['x-webhook-secret'] || event.headers['X-Webhook-Secret'] || '';
-    if (!expected || provided !== expected) {
+    const secret = process.env.STREAK_REMINDER_SECRET;
+    const hmacSig = event.headers['x-webhook-signature'] || event.headers['X-Webhook-Signature'] || '';
+    const plainSecret = event.headers['x-webhook-secret'] || event.headers['X-Webhook-Secret'] || '';
+    if (!verifyWebhookAuth(event.body || '', secret, hmacSig, plainSecret)) {
       return json(401, { error: 'Unauthorized' });
     }
   }

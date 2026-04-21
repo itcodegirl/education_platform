@@ -157,6 +157,30 @@ export function AppLayout() {
   const coursePct = courseTotal > 0 ? Math.round((courseDone / courseTotal) * 100) : 0;
   const isCourseComplete = courseDone === courseTotal && courseTotal > 0;
 
+  // Prev/next lesson title previews for the nav buttons.
+  const prevTitle = (() => {
+    if (isFirst || showModQuiz) return null;
+    if (nav.lesIdx > 0) return nav.mod.lessons[nav.lesIdx - 1]?.title || null;
+    if (nav.modIdx > 0) {
+      const prevMod = nav.modules[nav.modIdx - 1];
+      const lastLesson = prevMod?.lessons?.[prevMod.lessons.length - 1];
+      return lastLesson?.title || null;
+    }
+    return null;
+  })();
+
+  const nextTitle = (() => {
+    if (nav.isLast) return null;
+    if (nav.isLastLesson && nav.moduleQuiz && !showModQuiz) return `${nav.mod.title} Quiz`;
+    if (showModQuiz) {
+      const nextMod = nav.modules[nav.modIdx + 1];
+      return nextMod?.lessons?.[0]?.title || null;
+    }
+    if (nav.lesIdx < nav.mod.lessons.length - 1) return nav.mod.lessons[nav.lesIdx + 1]?.title || null;
+    const nextMod = nav.modules[nav.modIdx + 1];
+    return nextMod?.lessons?.[0]?.title || null;
+  })();
+
   useEffect(() => {
     if (isCourseComplete && isDone) {
       panels.triggerCourseComplete();
@@ -366,8 +390,17 @@ export function AppLayout() {
             className="nav-btn"
             onClick={nav.prev}
             disabled={isFirst}
+            aria-label={prevTitle ? `Previous lesson: ${prevTitle}` : 'Previous lesson'}
           >
-            ← Previous
+            <span className="nav-btn-dir" aria-hidden="true">←</span>
+            <span className="nav-btn-text">
+              {prevTitle ? (
+                <>
+                  <span className="nav-btn-label">Previous</span>
+                  <span className="nav-btn-title">{prevTitle}</span>
+                </>
+              ) : 'Previous'}
+            </span>
           </button>
           <button
             type="button"
@@ -375,12 +408,22 @@ export function AppLayout() {
             onClick={nav.next}
             disabled={isLast}
             style={{ background: course.accent }}
+            aria-label={
+              isLast ? 'Course complete' :
+              nextTitle ? `Next: ${nextTitle}` : 'Next lesson'
+            }
           >
-            {isLast
-              ? "Course Complete! 🎉"
-              : isLastLesson && moduleQuiz && !showModQuiz
-                ? "Module Quiz →"
-                : "Next →"}
+            <span className="nav-btn-text">
+              {isLast ? (
+                'Course Complete!'
+              ) : nextTitle ? (
+                <>
+                  <span className="nav-btn-label">Next</span>
+                  <span className="nav-btn-title">{nextTitle}</span>
+                </>
+              ) : 'Next'}
+            </span>
+            <span className="nav-btn-dir" aria-hidden="true">→</span>
           </button>
         </nav>
       </main>
