@@ -317,6 +317,14 @@
   text-overflow: ellipsis;
 }
 
+.bc-progress {
+  margin-left: auto;
+  border-color: rgba(0, 229, 255, 0.28);
+  background: rgba(0, 229, 255, 0.1);
+  color: var(--cyan);
+  flex-shrink: 0;
+}
+
 .mark-btn {
   min-height: 42px;
   padding: 0 16px;
@@ -345,6 +353,15 @@
   padding: 0 clamp(14px, 2vw, 24px) 48px;
   max-width: var(--content-max);
   margin: 0 auto;
+}
+
+.nav-guidance {
+  max-width: var(--content-max);
+  margin: -36px auto 38px;
+  padding: 0 clamp(14px, 2vw, 24px);
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 /* Layout for prev/next buttons that include a lesson title preview */

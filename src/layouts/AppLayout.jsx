@@ -183,6 +183,17 @@ export function AppLayout() {
     return nextMod?.lessons?.[0]?.title || null;
   })();
 
+  const lessonPosition = showModQuiz
+    ? `Module quiz for ${mod.title}`
+    : `Lesson ${nav.lesIdx + 1} of ${mod.lessons.length}`;
+
+  const nextStepHint = (() => {
+    if (isLast) return "Track complete. Pick another course or review key lessons.";
+    if (showModQuiz) return "Finish this quiz to move into the next module.";
+    if (!isDone) return "Mark this lesson done, then continue to the next lesson.";
+    return "Nice progress. Continue when you are ready.";
+  })();
+
   useEffect(() => {
     if (isCourseComplete && isDone) {
       panels.triggerCourseComplete();
@@ -310,6 +321,7 @@ export function AppLayout() {
               mod={mod}
               lesTitle={les.title}
               showModQuiz={showModQuiz}
+              lessonPosition={lessonPosition}
             />
             <div className="topbar-status" aria-label="Current learning status">
               <span className="topbar-greeting">Keep building, {learnerName}.</span>
@@ -354,7 +366,7 @@ export function AppLayout() {
                 aria-label={marking ? "Saving lesson completion" : isDone ? "Mark lesson as not done" : "Mark lesson complete"}
                 aria-pressed={isDone}
               >
-                {marking ? "..." : isDone ? "âœ“ Done" : "Mark Done"}
+                {marking ? "Saving..." : isDone ? "Completed" : "Mark complete"}
               </button>
               )}
             </div>
@@ -448,10 +460,10 @@ export function AppLayout() {
             <span className="nav-btn-text">
               {prevTitle ? (
                 <>
-                  <span className="nav-btn-label">Previous</span>
+                  <span className="nav-btn-label">Previous lesson</span>
                   <span className="nav-btn-title">{prevTitle}</span>
                 </>
-              ) : 'Previous'}
+              ) : 'Previous lesson'}
             </span>
           </button>
           <button
@@ -467,17 +479,20 @@ export function AppLayout() {
           >
             <span className="nav-btn-text">
               {isLast ? (
-                'Course Complete!'
+                'Track complete'
               ) : nextTitle ? (
                 <>
-                  <span className="nav-btn-label">Next</span>
+                  <span className="nav-btn-label">Up next</span>
                   <span className="nav-btn-title">{nextTitle}</span>
                 </>
-              ) : 'Next'}
+              ) : 'Next lesson'}
             </span>
             <span className="nav-btn-dir" aria-hidden="true">â†’</span>
           </button>
         </nav>
+        <p className="nav-guidance" role="status" aria-live="polite">
+          {nextStepHint}
+        </p>
       </main>
 
       <ThemeToggle />
@@ -494,6 +509,7 @@ export function AppLayout() {
           showModQuiz={showModQuiz}
           hasModuleQuiz={!!moduleQuiz}
           accent={course.accent}
+          lessonPosition={lessonPosition}
         />
       ) : (
         <BottomToolbar activePanel={panels.panel} {...toolbarHandlers} />

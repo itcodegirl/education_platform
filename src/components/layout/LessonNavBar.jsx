@@ -12,12 +12,13 @@ export const LessonNavBar = memo(function LessonNavBar({
   showModQuiz,
   hasModuleQuiz,
   accent,
+  lessonPosition,
 }) {
   const nextLabel = isLast
-    ? 'Complete!'
+    ? 'Track complete'
     : isLastLesson && hasModuleQuiz && !showModQuiz
-      ? 'Quiz ->'
-      : 'Next ->';
+      ? 'Module quiz'
+      : 'Next lesson';
 
   const nextAriaLabel = isLast
     ? 'Finish this lesson flow'
@@ -29,6 +30,9 @@ export const LessonNavBar = memo(function LessonNavBar({
 
   return (
     <nav className="lesson-nav" aria-label="Lesson navigation">
+      <span className="lesson-nav-progress" aria-live="polite">
+        {lessonPosition}
+      </span>
       <button
         type="button"
         className="lesson-nav-btn lesson-nav-prev ui-btn ui-btn-secondary"
@@ -37,7 +41,7 @@ export const LessonNavBar = memo(function LessonNavBar({
         aria-label={isFirst ? 'No previous lesson' : 'Go to previous lesson'}
       >
         <span className="lesson-nav-icon">&lt;-</span>
-        <span className="lesson-nav-label">Prev</span>
+        <span className="lesson-nav-label">Previous</span>
       </button>
 
       {!showModQuiz && (
@@ -50,7 +54,7 @@ export const LessonNavBar = memo(function LessonNavBar({
           aria-pressed={isDone}
         >
           <span className="lesson-nav-icon">{marking ? '...' : isDone ? '✓' : '◌'}</span>
-          <span className="lesson-nav-label">{marking ? '...' : isDone ? 'Done' : 'Mark Done'}</span>
+          <span className="lesson-nav-label">{marking ? 'Saving' : isDone ? 'Completed' : 'Mark complete'}</span>
         </button>
       )}
 

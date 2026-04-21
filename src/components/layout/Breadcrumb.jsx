@@ -9,8 +9,9 @@ export const Breadcrumb = memo(function Breadcrumb({
   mod,
   lesTitle,
   showModQuiz,
+  lessonPosition,
 }) {
-  const currentLesson = showModQuiz ? "📝 Module Quiz" : lesTitle;
+  const currentLesson = showModQuiz ? "Module quiz" : lesTitle;
 
   return (
     <nav className="bc" aria-label="Lesson breadcrumb">
@@ -21,14 +22,19 @@ export const Breadcrumb = memo(function Breadcrumb({
       >
         {course.icon} {course.label}
       </span>
-      <span className="bc-sep">›</span>
+      <span className="bc-sep">&gt;</span>
       <span className="bc-mod" title={`${mod.emoji} ${mod.title}`}>
         {mod.emoji} {mod.title}
       </span>
-      <span className="bc-sep">›</span>
+      <span className="bc-sep">&gt;</span>
       <span className="bc-les" title={currentLesson} aria-current="page">
         {currentLesson}
       </span>
+      {lessonPosition && (
+        <span className="bc-progress ui-chip" aria-label={lessonPosition}>
+          {lessonPosition}
+        </span>
+      )}
     </nav>
   );
 });

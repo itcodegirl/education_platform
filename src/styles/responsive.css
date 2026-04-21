@@ -30,6 +30,7 @@
   /* Lesson nav bar replaces both bottom toolbar and inline nav-row */
   .lesson-nav { display: flex; }
   .nav-row { display: none; }
+  .nav-guidance { display: none; }
   .mark-btn { display: none; }
   .mn { padding-bottom: 80px; }
 
