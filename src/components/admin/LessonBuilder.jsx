@@ -4,7 +4,6 @@
 // ═══════════════════════════════════════════════
 
 import { useState, useCallback } from 'react';
-import { COURSES } from '../../data';
 
 const EMPTY_LESSON = {
   id: '',

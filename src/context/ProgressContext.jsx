@@ -101,7 +101,6 @@ export function ProgressProvider({ children }) {
       await operation;
     } catch (err) {
       if (import.meta.env.DEV) {
-        // eslint-disable-next-line no-console
         console.warn(
           `[ProgressContext] ${label} failed — optimistic state kept:`,
           err,

@@ -88,7 +88,7 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
       });
 
       setMessages(prev => [...prev, { role: 'assistant', text: aiText }]);
-    } catch (err) {
+    } catch {
       setMessages(prev => [...prev, {
         role: 'assistant',
         text: 'Connection issue — check your internet and try again.'

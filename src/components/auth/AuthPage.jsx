@@ -49,7 +49,7 @@ export function AuthPage({ onPreview }) {
           setError(err.message);
         }
       }
-    } catch (err) {
+    } catch {
       setError('Connection failed. Check your internet and try again.');
     } finally {
       setLoading(false);

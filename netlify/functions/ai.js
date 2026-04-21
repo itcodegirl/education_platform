@@ -270,7 +270,7 @@ export async function handler(event) {
     }
 
     return json(200, { text: data.output_text || '' });
-  } catch (error) {
+  } catch {
     return json(502, { error: 'Failed to reach AI service' });
   }
 }

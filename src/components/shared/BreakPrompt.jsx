@@ -10,7 +10,6 @@ import { useProgressData } from '../../providers';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 const BREAK_THRESHOLD = 5; // lessons in one session
-const SESSION_KEY = 'chw-session-lessons';
 
 export function BreakPrompt() {
   const { completed = [] } = useProgressData();

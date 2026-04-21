@@ -63,7 +63,7 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
       try {
         const result = test.check(code, iframeRef.current);
         return { label: test.label, passed: !!result };
-      } catch (e) {
+      } catch {
         return { label: test.label, passed: false };
       }
     });
@@ -74,15 +74,6 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
     if (allPassed && !passed) {
       setPassed(true);
       onComplete?.();
-    }
-  }
-
-  // Access iframe DOM for testing
-  function getIframeDoc() {
-    try {
-      return iframeRef.current?.contentDocument || iframeRef.current?.contentWindow?.document;
-    } catch {
-      return null;
     }
   }
 
@@ -121,7 +112,7 @@ Rules:
       });
 
       setAiHelp(aiText || 'Could not process that. Try rephrasing!');
-    } catch (err) {
+    } catch {
       setAiHelp('Connection issue — check your internet and try again.');
     } finally {
       setAiLoading(false);

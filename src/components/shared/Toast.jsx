@@ -4,7 +4,7 @@
 //        toast.show('Copied to clipboard!');
 // ═══════════════════════════════════════════════
 
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback } from 'react';
 
 const ToastContext = createContext({ show: () => {} });
 

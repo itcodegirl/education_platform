@@ -83,7 +83,6 @@ export function AppLayout() {
 
   const {
     course,
-    modules,
     mod,
     les,
     lessonKey,

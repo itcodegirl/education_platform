@@ -21,7 +21,6 @@ export class ErrorBoundary extends Component {
     // pollute the user's devtools (and a real deployment should wire
     // this to Sentry / LogRocket / similar — tracked in the roadmap).
     if (import.meta.env.DEV) {
-      // eslint-disable-next-line no-console
       console.error('CodeHerWay render error:', error, errorInfo);
     }
   }

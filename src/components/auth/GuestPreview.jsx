@@ -4,7 +4,7 @@
 // before signing up. No auth required.
 // ═══════════════════════════════════════════════
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { COURSES } from '../../data';
 import { useCourseContent } from '../../providers';
 import { renderMarkdown } from '../../utils/markdown';
@@ -21,8 +21,6 @@ export function GuestPreview({ onBack }) {
   const course = COURSES[0];
   const firstModule = htmlReady ? course.modules[0] : null;
   const firstLesson = firstModule?.lessons?.[0] || null;
-  const [showSignup, setShowSignup] = useState(false);
-
   if (!htmlReady || !firstLesson) {
     return (
       <div className="guest-preview guest-preview-loading" aria-busy="true">

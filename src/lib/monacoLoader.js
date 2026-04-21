@@ -48,7 +48,6 @@ import 'monaco-editor/esm/vs/basic-languages/xml/xml.contribution';
 import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
 
 if (typeof window !== 'undefined') {
-  // eslint-disable-next-line no-restricted-globals
   self.MonacoEnvironment = {
     getWorker: () => new EditorWorker(),
   };

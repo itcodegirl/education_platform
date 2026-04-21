@@ -18,7 +18,6 @@ export function AdminUsersTab({ data, currentUserId, setData }) {
 
   const handleToggleDisabled = async (u) => {
     const isDisabled = !!u.is_disabled;
-    // eslint-disable-next-line no-alert
     if (!confirm(`${isDisabled ? 'Enable' : 'Disable'} ${u.display_name || 'this user'}?`)) {
       return;
     }
@@ -36,7 +35,6 @@ export function AdminUsersTab({ data, currentUserId, setData }) {
       }));
     } catch (err) {
       if (import.meta.env.DEV) {
-        // eslint-disable-next-line no-console
         console.error('Failed to toggle user:', err);
       }
     } finally {
