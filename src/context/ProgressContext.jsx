@@ -3,7 +3,7 @@
 // All data syncs to Supabase (cloud)
 // ═══════════════════════════════════════════════
 
-import { createContext, useContext, useCallback, useEffect, useState, useMemo } from 'react';
+import { createContext, useContext, useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useAuth } from './AuthContext';
 import { DAILY_GOAL, TIMING, getLevel, getTodayString, getYesterdayString } from '../utils/helpers';
 import * as progressService from '../services/progressService';
@@ -111,6 +111,10 @@ export function ProgressProvider({ children }) {
   }, []);
 
   const clearSyncFailed = useCallback(() => setSyncFailed(0), []);
+
+  // Guard: prevent the streak effect from firing more than once per
+  // data-load, including in React StrictMode where effects run twice.
+  const streakSyncedRef = useRef(false);
 
   // ─── State ─────────────────────────────────────
   const [completed, setCompleted] = useState([]);
@@ -246,8 +250,19 @@ export function ProgressProvider({ children }) {
   }, [user, loadVersion, resetUserState]);
 
   // ─── Streak check on load ─────────────────────
+  // Reset the guard whenever the user session changes so a fresh login
+  // always runs the streak check once.
+  useEffect(() => {
+    streakSyncedRef.current = false;
+  }, [user]);
+
   useEffect(() => {
     if (!user || !dataLoaded) return;
+    // Only run once per data-load (guards against StrictMode double-invoke
+    // and against re-runs triggered by unrelated state changes).
+    if (streakSyncedRef.current) return;
+    streakSyncedRef.current = true;
+
     const today = getTodayString();
     const yesterday = getYesterdayString();
 

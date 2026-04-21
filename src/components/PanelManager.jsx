@@ -4,6 +4,19 @@
 // ═══════════════════════════════════════════════
 
 import { lazy, Suspense } from 'react';
+import { ErrorBoundary } from './shared/ErrorBoundary';
+
+// Compact inline fallback shown when a side panel crashes instead of
+// taking down the whole app with an unguarded lazy-component error.
+function PanelError({ retry }) {
+  return (
+    <div className="panel-error-fallback" role="alert">
+      <span aria-hidden="true">⚠️</span>
+      <p>This panel ran into a problem.</p>
+      <button type="button" onClick={retry}>Try again</button>
+    </div>
+  );
+}
 
 // ─── Lazy panels (download on demand) ───────
 const SearchPanel = lazy(() => import('./panels/SearchPanel').then(m => ({ default: m.SearchPanel })));
@@ -28,64 +41,105 @@ export function PanelManager({
   const moduleProgress = computeModuleProgress(course, lastPosition, completed);
 
   return (
-    <Suspense fallback={null}>
-      {panels.confetti && <Confetti />}
+    <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
+      <Suspense fallback={null}>
+        {panels.confetti && <Confetti />}
 
-      {/* Tool panels */}
-      {panels.panel === 'search' && <SearchPanel isOpen onClose={panels.closePanel} onNavigate={nav.goToSearch} />}
-      {panels.panel === 'cheatsheet' && <CheatsheetPanel isOpen onClose={panels.closePanel} currentCourse={course.id} />}
-      {panels.panel === 'glossary' && <GlossaryPanel isOpen onClose={panels.closePanel} />}
-      {panels.panel === 'projects' && <ProjectsPanel isOpen onClose={panels.closePanel} currentCourse={course.id} />}
-      {panels.panel === 'badges' && <BadgesPanel isOpen onClose={panels.closePanel} />}
-      {panels.panel === 'sr' && <SRPanel isOpen onClose={panels.closePanel} />}
-      {panels.panel === 'bookmarks' && <BookmarksPanel isOpen onClose={panels.closePanel} onNavigate={nav.goToSearch} />}
-      {panels.panel === 'challenges' && <ChallengesPanel courseId={course.id} lang={course.id} onClose={panels.closePanel} />}
-      {panels.panel === 'stats' && <StudentStats isOpen onClose={panels.closePanel} />}
-      {panels.panel === 'roadmap' && (
-        <RoadmapPanel
-          onClose={panels.closePanel}
-          onNavigate={(ci, mi) => { nav.switchCourse(ci); nav.go(mi, 0); }}
-          currentCourseIdx={nav.courseIdx}
-        />
-      )}
+        {/* Tool panels — each panel is wrapped with its own ErrorBoundary so a
+            single panel crash doesn't close all other panels or the main app. */}
+        {panels.panel === 'search' && (
+          <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
+            <SearchPanel isOpen onClose={panels.closePanel} onNavigate={nav.goToSearch} />
+          </ErrorBoundary>
+        )}
+        {panels.panel === 'cheatsheet' && (
+          <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
+            <CheatsheetPanel isOpen onClose={panels.closePanel} currentCourse={course.id} />
+          </ErrorBoundary>
+        )}
+        {panels.panel === 'glossary' && (
+          <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
+            <GlossaryPanel isOpen onClose={panels.closePanel} />
+          </ErrorBoundary>
+        )}
+        {panels.panel === 'projects' && (
+          <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
+            <ProjectsPanel isOpen onClose={panels.closePanel} currentCourse={course.id} />
+          </ErrorBoundary>
+        )}
+        {panels.panel === 'badges' && (
+          <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
+            <BadgesPanel isOpen onClose={panels.closePanel} />
+          </ErrorBoundary>
+        )}
+        {panels.panel === 'sr' && (
+          <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
+            <SRPanel isOpen onClose={panels.closePanel} />
+          </ErrorBoundary>
+        )}
+        {panels.panel === 'bookmarks' && (
+          <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
+            <BookmarksPanel isOpen onClose={panels.closePanel} onNavigate={nav.goToSearch} />
+          </ErrorBoundary>
+        )}
+        {panels.panel === 'challenges' && (
+          <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
+            <ChallengesPanel courseId={course.id} lang={course.id} onClose={panels.closePanel} />
+          </ErrorBoundary>
+        )}
+        {panels.panel === 'stats' && (
+          <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
+            <StudentStats isOpen onClose={panels.closePanel} />
+          </ErrorBoundary>
+        )}
+        {panels.panel === 'roadmap' && (
+          <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
+            <RoadmapPanel
+              onClose={panels.closePanel}
+              onNavigate={(ci, mi) => { nav.switchCourse(ci); nav.go(mi, 0); }}
+              currentCourseIdx={nav.courseIdx}
+            />
+          </ErrorBoundary>
+        )}
 
-      {/* Overlays */}
-      {panels.showWelcome && (
-        <WelcomeBack
-          isOpen
-          onClose={() => panels.setShowWelcome(false)}
-          onResume={() => {
-            nav.resumeFromPosition(lastPosition);
-            panels.setShowWelcome(false);
-          }}
-          displayName={profile?.display_name}
-          lastPosition={lastPosition}
-          completedCount={completed.length}
-          moduleTitle={moduleProgress.moduleTitle}
-          moduleLessonsDone={moduleProgress.moduleDone}
-          moduleLessonsTotal={moduleProgress.moduleTotal}
-          courseLabel={course.label}
-          courseLessonsDone={moduleProgress.courseDone}
-          courseLessonsTotal={courseTotal}
-        />
-      )}
-      {panels.showOnboarding && (
-        <Onboarding
-          isOpen
-          onClose={() => panels.setShowOnboarding(false)}
-          displayName={profile?.display_name}
-        />
-      )}
-      {panels.showCourseComplete && (
-        <CourseComplete
-          isOpen
-          onClose={() => panels.setShowCourseComplete(false)}
-          course={course}
-          displayName={profile?.display_name}
-          lessonCount={courseTotal}
-        />
-      )}
-    </Suspense>
+        {/* Overlays */}
+        {panels.showWelcome && (
+          <WelcomeBack
+            isOpen
+            onClose={() => panels.setShowWelcome(false)}
+            onResume={() => {
+              nav.resumeFromPosition(lastPosition);
+              panels.setShowWelcome(false);
+            }}
+            displayName={profile?.display_name}
+            lastPosition={lastPosition}
+            completedCount={completed.length}
+            moduleTitle={moduleProgress.moduleTitle}
+            moduleLessonsDone={moduleProgress.moduleDone}
+            moduleLessonsTotal={moduleProgress.moduleTotal}
+            courseLabel={course.label}
+            courseLessonsDone={moduleProgress.courseDone}
+            courseLessonsTotal={courseTotal}
+          />
+        )}
+        {panels.showOnboarding && (
+          <Onboarding
+            isOpen
+            onClose={() => panels.setShowOnboarding(false)}
+            displayName={profile?.display_name}
+          />
+        )}
+        {panels.showCourseComplete && (
+          <CourseComplete
+            isOpen
+            onClose={() => panels.setShowCourseComplete(false)}
+            course={course}
+            displayName={profile?.display_name}
+            lessonCount={courseTotal}
+          />
+        )}
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 

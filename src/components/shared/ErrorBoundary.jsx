@@ -35,10 +35,18 @@ export class ErrorBoundary extends Component {
 
   render() {
     if (this.state.hasError) {
+      // Allow callers to supply a compact inline fallback (e.g. panels)
+      // instead of the full-screen overlay.
+      if (this.props.fallback) {
+        return typeof this.props.fallback === 'function'
+          ? this.props.fallback({ error: this.state.error, retry: this.handleRetry })
+          : this.props.fallback;
+      }
+
       return (
         <div className="eb-screen">
           <div className="eb-card">
-            <span className="eb-icon">⚠️</span>
+            <span className="eb-icon" aria-hidden="true">⚠️</span>
             <h2 className="eb-title">Something went wrong</h2>
             <p className="eb-msg">
               The platform hit an unexpected error. This is usually temporary.
