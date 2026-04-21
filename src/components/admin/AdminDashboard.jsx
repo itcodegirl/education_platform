@@ -122,7 +122,7 @@ export function AdminDashboard({ onClose }) {
   if (checking) {
     return (
       <div className="admin-wrap">
-        <div className="admin-loading">Checking access...</div>
+        <div className="admin-loading" role="status" aria-live="polite">Checking admin access...</div>
       </div>
     );
   }
@@ -130,12 +130,17 @@ export function AdminDashboard({ onClose }) {
   if (!isAdmin) {
     return (
       <div className="admin-wrap">
-        <div className="admin-denied">
+        <div className="admin-denied" role="status" aria-live="polite">
           <span className="admin-denied-icon" aria-hidden="true">🔒</span>
           <h2>Access Denied</h2>
           <p>You don&apos;t have admin privileges.</p>
-          <button type="button" className="admin-back-btn" onClick={onClose}>
-            ← Back to Platform
+          <button
+            type="button"
+            className="admin-back-btn"
+            onClick={onClose}
+            aria-label="Return to the main platform"
+          >
+            ← Return to Platform
           </button>
         </div>
       </div>
@@ -145,7 +150,7 @@ export function AdminDashboard({ onClose }) {
   if (loadError) {
     return (
       <div className="admin-wrap">
-        <div className="admin-denied">
+        <div className="admin-denied" role="alert" aria-live="assertive">
           <span className="admin-denied-icon" aria-hidden="true">📡</span>
           <h2>Connection Error</h2>
           <p>{loadError}</p>
@@ -153,6 +158,7 @@ export function AdminDashboard({ onClose }) {
             type="button"
             className="admin-back-btn"
             onClick={() => window.location.reload()}
+            aria-label="Reload the admin dashboard"
           >
             ↺ Retry
           </button>
@@ -172,8 +178,13 @@ export function AdminDashboard({ onClose }) {
               <p className="admin-subtitle">CodeHerWay Platform Analytics</p>
             </div>
           </div>
-          <button type="button" className="admin-back-btn" onClick={onClose}>
-            ← Back to Platform
+          <button
+            type="button"
+            className="admin-back-btn"
+            onClick={onClose}
+            aria-label="Return to the main platform"
+          >
+            ← Return to Platform
           </button>
         </header>
 
@@ -194,7 +205,9 @@ export function AdminDashboard({ onClose }) {
         </nav>
 
         {loading || !stats || !allCoursesLoaded ? (
-          <div className="admin-loading">Loading data...</div>
+          <div className="admin-loading" role="status" aria-live="polite">
+            Loading dashboard data...
+          </div>
         ) : (
           <div className="admin-content">
             {tab === 'overview' && (
@@ -225,7 +238,13 @@ export function AdminDashboard({ onClose }) {
             )}
             {tab === 'builder' && (
               <div id="admin-tab-panel-builder" role="tabpanel">
-                <Suspense fallback={<div className="admin-loading">Loading builder...</div>}>
+                <Suspense
+                  fallback={
+                    <div className="admin-loading" role="status" aria-live="polite">
+                      Loading lesson builder...
+                    </div>
+                  }
+                >
                   <LessonBuilder />
                 </Suspense>
               </div>
@@ -236,3 +255,4 @@ export function AdminDashboard({ onClose }) {
     </div>
   );
 }
+
