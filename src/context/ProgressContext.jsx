@@ -36,26 +36,6 @@ const ProgressContext = createContext({
   toggleLesson: () => {},
   quizScores: {},
   saveQuizScore: () => {},
-  xpTotal: 0,
-  awardXP: () => {},
-  xpPopup: null,
-  clearXPPopup: () => {},
-  streak: 0,
-  dailyCount: 0,
-  recordDailyActivity: () => {},
-  earnedBadges: [],
-  newBadge: null,
-  clearNewBadge: () => {},
-  srCards: [],
-  addToSRQueue: () => {},
-  updateSRCard: () => {},
-  getDueSRCards: () => [],
-  bookmarks: [],
-  toggleBookmark: () => {},
-  isBookmarked: () => false,
-  notes: {},
-  saveNote: () => {},
-  getNote: () => '',
   lastPosition: null,
   savePosition: () => {},
   coursesVisited: [],
@@ -68,6 +48,32 @@ const ProgressContext = createContext({
   // state is still the source of truth for the current session.
   syncFailed: 0,
   clearSyncFailed: () => {},
+});
+
+const XPContext = createContext({
+  xpTotal: 0,
+  awardXP: () => {},
+  xpPopup: null,
+  clearXPPopup: () => {},
+  streak: 0,
+  dailyCount: 0,
+  recordDailyActivity: () => {},
+  earnedBadges: [],
+  newBadge: null,
+  clearNewBadge: () => {},
+});
+
+const SRContext = createContext({
+  srCards: [],
+  addToSRQueue: () => {},
+  updateSRCard: () => {},
+  getDueSRCards: () => [],
+  bookmarks: [],
+  toggleBookmark: () => {},
+  isBookmarked: () => false,
+  notes: {},
+  saveNote: () => {},
+  getNote: () => '',
 });
 
 export function ProgressProvider({ children }) {
@@ -478,46 +484,115 @@ export function ProgressProvider({ children }) {
     setLoadVersion((version) => version + 1);
   }, []);
 
-  const value = useMemo(() => ({
-    // Progress
-    completed, completedSet, toggleLesson, quizScores, saveQuizScore,
-    // XP
-    xpTotal, awardXP, xpPopup, clearXPPopup,
-    // Streak & Daily
-    streak, dailyCount, recordDailyActivity,
-    // Badges
-    earnedBadges, newBadge, clearNewBadge,
-    // SR
-    srCards, addToSRQueue, updateSRCard, getDueSRCards,
-    // Bookmarks & Notes
-    bookmarks, toggleBookmark, isBookmarked,
-    notes, saveNote, getNote,
-    // Position & Visits
-    lastPosition, savePosition, coursesVisited, trackCourseVisit,
-    // State
-    dataLoaded, loadError, retryLoad,
-    // Sync failure surface (formerly silent)
-    syncFailed, clearSyncFailed,
+  const progressValue = useMemo(() => ({
+    completed,
+    completedSet,
+    toggleLesson,
+    quizScores,
+    saveQuizScore,
+    lastPosition,
+    savePosition,
+    coursesVisited,
+    trackCourseVisit,
+    dataLoaded,
+    loadError,
+    retryLoad,
+    syncFailed,
+    clearSyncFailed,
   }), [
-    completed, completedSet, toggleLesson, quizScores, saveQuizScore,
-    xpTotal, awardXP, xpPopup, clearXPPopup,
-    streak, dailyCount, recordDailyActivity,
-    earnedBadges, newBadge, clearNewBadge,
-    srCards, addToSRQueue, updateSRCard, getDueSRCards,
-    bookmarks, toggleBookmark, isBookmarked,
-    notes, saveNote, getNote,
-    lastPosition, savePosition, coursesVisited, trackCourseVisit,
-    dataLoaded, loadError, retryLoad,
-    syncFailed, clearSyncFailed,
+    completed,
+    completedSet,
+    toggleLesson,
+    quizScores,
+    saveQuizScore,
+    lastPosition,
+    savePosition,
+    coursesVisited,
+    trackCourseVisit,
+    dataLoaded,
+    loadError,
+    retryLoad,
+    syncFailed,
+    clearSyncFailed,
+  ]);
+
+  const xpValue = useMemo(() => ({
+    xpTotal,
+    awardXP,
+    xpPopup,
+    clearXPPopup,
+    streak,
+    dailyCount,
+    recordDailyActivity,
+    earnedBadges,
+    newBadge,
+    clearNewBadge,
+  }), [
+    xpTotal,
+    awardXP,
+    xpPopup,
+    clearXPPopup,
+    streak,
+    dailyCount,
+    recordDailyActivity,
+    earnedBadges,
+    newBadge,
+    clearNewBadge,
+  ]);
+
+  const srValue = useMemo(() => ({
+    srCards,
+    addToSRQueue,
+    updateSRCard,
+    getDueSRCards,
+    bookmarks,
+    toggleBookmark,
+    isBookmarked,
+    notes,
+    saveNote,
+    getNote,
+  }), [
+    srCards,
+    addToSRQueue,
+    updateSRCard,
+    getDueSRCards,
+    bookmarks,
+    toggleBookmark,
+    isBookmarked,
+    notes,
+    saveNote,
+    getNote,
   ]);
 
   return (
-    <ProgressContext.Provider value={value}>
-      {children}
+    <ProgressContext.Provider value={progressValue}>
+      <XPContext.Provider value={xpValue}>
+        <SRContext.Provider value={srValue}>
+          {children}
+        </SRContext.Provider>
+      </XPContext.Provider>
     </ProgressContext.Provider>
   );
 }
 
-export function useProgress() {
+export function useProgressData() {
   return useContext(ProgressContext);
+}
+
+export function useXP() {
+  return useContext(XPContext);
+}
+
+export function useSR() {
+  return useContext(SRContext);
+}
+
+// Backward-compatible aggregate hook for older consumers.
+// Prefer useProgressData/useXP/useSR in new code to avoid
+// cross-domain re-renders.
+export function useProgress() {
+  const progress = useProgressData();
+  const xp = useXP();
+  const sr = useSR();
+  return useMemo(() => ({ ...progress, ...xp, ...sr }), [progress, xp, sr]);
 }
