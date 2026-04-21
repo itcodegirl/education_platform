@@ -102,6 +102,8 @@ export function AppLayout() {
     [les.content, les.code],
   );
   const level = useMemo(() => getLevel(xpTotal), [xpTotal]);
+  const hasProgress = completed.length > 0 || Number(lastPosition?.time) > 0;
+  const showStarterGuide = !hasProgress && !showModQuiz;
   const learnerName =
     profile?.display_name ||
     user?.user_metadata?.display_name ||
@@ -378,6 +380,40 @@ export function AppLayout() {
             </div>
           ) : (
             <>
+              {showStarterGuide && (
+                <section className="first-run-guide" aria-label="Getting started">
+                  <div className="frg-content">
+                    <p className="frg-kicker">First login</p>
+                    <h2 className="frg-title">
+                      Welcome to your learning path, {learnerName}.
+                    </h2>
+                    <p className="frg-copy">
+                      You are on the first lesson to set your pace. Read this lesson,
+                      complete it, then hit <strong>Mark Done</strong> to unlock the next one.
+                    </p>
+                    <p className="frg-sub">Pick a course track anytime in the lesson sidebar.</p>
+                  </div>
+                  <div className="frg-courses" aria-label="Course options">
+                    {COURSES.map((entry, index) => (
+                      <button
+                        key={entry.id}
+                        type="button"
+                        className={`frg-course ${index === nav.courseIdx ? 'frg-course-active' : ''}`}
+                        onClick={() => {
+                          if (index !== nav.courseIdx) {
+                            nav.switchCourse(index);
+                          }
+                        }}
+                        aria-pressed={index === nav.courseIdx}
+                        aria-label={`Go to ${entry.label} course`}
+                      >
+                        <span aria-hidden="true">{entry.icon}</span>
+                        <span>{entry.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
               <LessonView
                 lesson={les}
                 emoji={mod.emoji}
