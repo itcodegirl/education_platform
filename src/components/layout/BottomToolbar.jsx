@@ -1,5 +1,5 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
-import { useProgress } from "../../providers";
+import { useSR } from "../../providers";
 
 export const BottomToolbar = memo(function BottomToolbar({
   activePanel,
@@ -12,7 +12,7 @@ export const BottomToolbar = memo(function BottomToolbar({
   onChallenges,
   onStats,
 }) {
-  const { getDueSRCards, bookmarks } = useProgress();
+  const { getDueSRCards, bookmarks } = useSR();
   const dueCount = getDueSRCards().length;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);

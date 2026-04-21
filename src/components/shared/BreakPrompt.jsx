@@ -6,14 +6,14 @@
 // ═══════════════════════════════════════════════
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useProgress } from '../../providers';
+import { useProgressData } from '../../providers';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 const BREAK_THRESHOLD = 5; // lessons in one session
 const SESSION_KEY = 'chw-session-lessons';
 
 export function BreakPrompt() {
-  const { completed = [] } = useProgress();
+  const { completed = [] } = useProgressData();
   const [show, setShow] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const sessionStart = useRef(completed.length);

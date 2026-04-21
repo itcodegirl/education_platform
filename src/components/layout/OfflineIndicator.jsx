@@ -12,14 +12,14 @@
 // ═══════════════════════════════════════════════
 
 import { useState, useEffect } from 'react';
-import { useProgress } from '../../providers';
+import { useProgressData } from '../../providers';
 
 const ONLINE_TOAST_DURATION = 3000;
 
 export function OfflineIndicator() {
   const [offline, setOffline] = useState(!navigator.onLine);
   const [showOnlineToast, setShowOnlineToast] = useState(false);
-  const { syncFailed, clearSyncFailed, retryLoad } = useProgress();
+  const { syncFailed, clearSyncFailed, retryLoad } = useProgressData();
 
   useEffect(() => {
     let timer;

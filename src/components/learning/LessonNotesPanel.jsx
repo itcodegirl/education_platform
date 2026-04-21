@@ -6,12 +6,12 @@
 // ═══════════════════════════════════════════════
 
 import { useEffect, useRef, useState } from 'react';
-import { useProgress } from '../../providers';
+import { useSR } from '../../providers';
 
 const SAVE_DEBOUNCE_MS = 800;
 
 export function LessonNotesPanel({ lessonKey }) {
-  const { saveNote, getNote } = useProgress();
+  const { saveNote, getNote } = useSR();
   const [noteText, setNoteText] = useState(() => getNote(lessonKey));
   const saveTimer = useRef(null);
 

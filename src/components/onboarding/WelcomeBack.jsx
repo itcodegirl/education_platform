@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useProgress } from '../../providers';
+import { useXP } from '../../providers';
 import { DAILY_GOAL, XP_PER_LEVEL, getLevel, getXPInLevel } from '../../utils/helpers';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
@@ -73,7 +73,7 @@ export function WelcomeBack({
   courseLessonsDone,
   courseLessonsTotal,
 }) {
-  const { xpTotal = 0, streak = 0, dailyCount = 0 } = useProgress();
+  const { xpTotal = 0, streak = 0, dailyCount = 0 } = useXP();
   const [show, setShow] = useState(false);
   const [motivation] = useState(() => getMotivation(streak, completedCount));
   const modalRef = useRef(null);

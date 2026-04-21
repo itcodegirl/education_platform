@@ -1,21 +1,15 @@
 import { memo, useEffect, useState } from 'react';
-import { useAuth, useCourseContent, useProgress, useTheme } from '../../providers';
+import { useAuth, useCourseContent, useProgressData, useXP, useSR, useTheme, BADGE_DEFS } from '../../providers';
 import { COURSES } from '../../data';
-import { BADGE_DEFS } from '../../context/ProgressContext';
 import { XP_PER_LEVEL, getLevel, getXPInLevel } from '../../utils/helpers';
 import { supabase } from '../../lib/supabaseClient';
 
 export const ProfilePage = memo(function ProfilePage({ onClose }) {
   const { user, profile, signOut } = useAuth();
   const { theme } = useTheme();
-  const {
-    completed = [],
-    xpTotal = 0,
-    streak = 0,
-    earnedBadges = {},
-    bookmarks = [],
-    notes = {},
-  } = useProgress();
+  const { completed = [] } = useProgressData();
+  const { xpTotal = 0, streak = 0, earnedBadges = {} } = useXP();
+  const { bookmarks = [], notes = {} } = useSR();
   const { ensureAllLoaded } = useCourseContent();
 
   useEffect(() => {

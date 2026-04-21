@@ -3,13 +3,13 @@
 // ═══════════════════════════════════════════════
 
 import { useEffect, useState, useMemo, useRef } from 'react';
-import { useProgress } from '../../providers';
+import { useXP } from '../../providers';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 const BURST_COLORS = ['#ff6b9d', '#4ecdc4', '#ffa726', '#a78bfa', '#ff8fab', '#66d9e8', '#ffd93d'];
 
 export function BadgeUnlock() {
-  const { newBadge, clearNewBadge } = useProgress();
+  const { newBadge, clearNewBadge } = useXP();
   const [show, setShow] = useState(false);
   const modalRef = useRef(null);
 

@@ -1,21 +1,13 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { useProgress, BADGE_DEFS, useCourseContent } from '../../providers';
+import { useProgressData, useXP, useSR, BADGE_DEFS, useCourseContent } from '../../providers';
 import { COURSES } from '../../data';
 import { getLevel, getXPInLevel, XP_PER_LEVEL } from '../../utils/helpers';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 export function StudentStats({ isOpen, onClose }) {
-  const {
-    completed,
-    quizScores,
-    xpTotal,
-    streak,
-    dailyCount,
-    earnedBadges,
-    srCards,
-    bookmarks,
-    notes,
-  } = useProgress();
+  const { completed, quizScores } = useProgressData();
+  const { xpTotal, streak, dailyCount, earnedBadges } = useXP();
+  const { srCards, bookmarks, notes } = useSR();
   const { ensureAllLoaded } = useCourseContent();
   const modalRef = useRef(null);
 

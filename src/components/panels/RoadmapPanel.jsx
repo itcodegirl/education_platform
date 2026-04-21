@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { COURSES } from '../../data';
-import { useProgress, useCourseContent } from '../../providers';
+import { useProgressData, useCourseContent } from '../../providers';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx }) {
-  const { completed = [], completedSet = new Set() } = useProgress();
+  const { completed = [], completedSet = new Set() } = useProgressData();
   const { ensureAllLoaded, allCoursesLoaded } = useCourseContent();
   const modalRef = useRef(null);
 

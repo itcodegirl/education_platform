@@ -6,11 +6,12 @@
 // ═══════════════════════════════════════════════
 
 import { useEffect, useRef, memo } from 'react';
-import { useProgress, useAuth } from '../../providers';
+import { useProgressData, useXP, useAuth } from '../../providers';
 import { getLevel, getXPInLevel, XP_PER_LEVEL, DAILY_GOAL } from '../../utils/helpers';
 
 export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, isMobile }) {
-  const { completed = [], xpTotal = 0, streak = 0, dailyCount = 0 } = useProgress();
+  const { completed = [] } = useProgressData();
+  const { xpTotal = 0, streak = 0, dailyCount = 0 } = useXP();
   const { user, signOut } = useAuth();
   const popoverRef = useRef(null);
 

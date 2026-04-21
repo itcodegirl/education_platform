@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════
 
 import { useState, memo, useMemo, useEffect, useRef, useCallback } from 'react';
-import { useProgress, useAuth } from '../../providers';
+import { useProgressData, useAuth } from '../../providers';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { QUIZ_MAP } from '../../data';
@@ -48,7 +48,7 @@ export const Sidebar = memo(function Sidebar({
   onOpenTool,
   activePanel,
 }) {
-  const { completed = [] } = useProgress();
+  const { completed = [] } = useProgressData();
   const { user } = useAuth();
   const [lockMode, setLockMode] = useLocalStorage('chw-lock-mode', false);
   const [popoverOpen, setPopoverOpen] = useState(false);

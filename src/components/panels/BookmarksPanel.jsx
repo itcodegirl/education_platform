@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useProgress, useCourseContent } from '../../providers';
+import { useSR, useCourseContent } from '../../providers';
 import { COURSES } from '../../data';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
@@ -9,7 +9,7 @@ function parseLessonKey(lessonKey) {
 }
 
 export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
-  const { bookmarks, toggleBookmark } = useProgress();
+  const { bookmarks, toggleBookmark } = useSR();
   const modalRef = useRef(null);
   useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
   // Bookmarks can point to any course. Trigger a full load so that

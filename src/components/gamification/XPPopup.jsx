@@ -3,10 +3,10 @@
 // ═══════════════════════════════════════════════
 
 import { useEffect, useState } from 'react';
-import { useProgress } from '../../providers';
+import { useXP } from '../../providers';
 
 export function XPPopup() {
-  const { xpPopup, clearXPPopup } = useProgress();
+  const { xpPopup, clearXPPopup } = useXP();
   const [show, setShow] = useState(false);
 
   useEffect(() => {

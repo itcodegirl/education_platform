@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { useProgress } from "../../providers";
+import { useSR } from "../../providers";
 import { generatePracticeCard } from "../../services/practiceService";
 import { useFocusTrap } from "../../hooks/useFocusTrap";
 
@@ -12,7 +12,7 @@ const TOPICS = [
 ];
 
 export function SRPanel({ isOpen, onClose }) {
-  const { getDueSRCards, updateSRCard, addToSRQueue, srCards = [] } = useProgress();
+  const { getDueSRCards, updateSRCard, addToSRQueue, srCards = [] } = useSR();
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answered, setAnswered] = useState(null);
   const [sessionRight, setSessionRight] = useState(0);

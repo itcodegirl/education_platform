@@ -12,7 +12,7 @@
 // ═══════════════════════════════════════════════
 
 import { useState, useCallback, memo } from 'react';
-import { useProgress } from '../../providers';
+import { useProgressData, useXP, useSR } from '../../providers';
 import { XP_VALUES, TIMING } from '../../utils/helpers';
 
 // ─── Check if answer is correct per type ────
@@ -203,9 +203,9 @@ const TYPE_LABELS = {
 // ─── Main QuizView ──────────────────────────
 
 export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey }) {
-  const {
-    awardXP, recordDailyActivity, saveQuizScore, addToSRQueue,
-  } = useProgress();
+  const { saveQuizScore } = useProgressData();
+  const { awardXP, recordDailyActivity } = useXP();
+  const { addToSRQueue } = useSR();
 
   const [answers, setAnswers] = useState(new Map());
   const [submitted, setSubmitted] = useState(false);

@@ -16,7 +16,7 @@
 // ═══════════════════════════════════════════════
 
 import { useState, useEffect, memo } from 'react';
-import { useProgress } from '../../providers';
+import { useSR } from '../../providers';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { AITutor } from './AITutor';
 import { LessonFeedback } from './LessonFeedback';
@@ -33,7 +33,7 @@ export const LessonView = memo(function LessonView({
   courseId,
   moduleTitle,
 }) {
-  const { toggleBookmark, isBookmarked } = useProgress();
+  const { toggleBookmark, isBookmarked } = useSR();
   const [showNotes, setShowNotes] = useState(false);
   const [showDevFession, setShowDevFession] = useState(false);
 

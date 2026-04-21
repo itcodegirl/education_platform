@@ -1,9 +1,9 @@
 import { useRef } from 'react';
-import { useProgress, BADGE_DEFS } from '../../providers';
+import { useXP, BADGE_DEFS } from '../../providers';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 export function BadgesPanel({ isOpen, onClose }) {
-  const { earnedBadges } = useProgress();
+  const { earnedBadges } = useXP();
   const modalRef = useRef(null);
 
   useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
