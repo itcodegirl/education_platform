@@ -5,7 +5,7 @@
 
 import { useCallback, useMemo, useEffect, useState } from "react";
 import { COURSES } from "../data";
-import { useTheme, useAuth, useProgress, useCourseContent } from "../providers";
+import { useTheme, useAuth, useProgressData, useXP, useCourseContent } from "../providers";
 import { useNavigation } from "../hooks/useNavigation";
 import { usePanels } from "../hooks/usePanels";
 import { useKeyboardNav } from "../hooks/useKeyboardNav";
@@ -46,10 +46,8 @@ export function AppLayout() {
     trackCourseVisit,
     dataLoaded,
     lastPosition,
-    xpTotal = 0,
-    streak = 0,
-    dailyCount = 0,
-  } = useProgress();
+  } = useProgressData();
+  const { xpTotal = 0, streak = 0, dailyCount = 0 } = useXP();
 
   const nav = useNavigation();
   const panels = usePanels({ dataLoaded, user: true, lastPosition });

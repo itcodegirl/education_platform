@@ -5,13 +5,12 @@
 // ═══════════════════════════════════════════════
 
 import { useMemo } from 'react';
-import { useProgress } from '../providers';
+import { useProgressData, useXP } from '../providers';
 import { createLearningEngine } from '../services/learningEngine';
 
 export function useLearning() {
-  const {
-    toggleLesson, saveQuizScore, awardXP, recordDailyActivity, completedSet,
-  } = useProgress();
+  const { toggleLesson, saveQuizScore, completedSet } = useProgressData();
+  const { awardXP, recordDailyActivity } = useXP();
 
   const engine = useMemo(() => createLearningEngine({
     toggleLesson, saveQuizScore, awardXP, recordDailyActivity, completedSet,

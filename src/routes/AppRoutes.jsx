@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════
 
 import { lazy, Suspense } from 'react';
-import { useTheme, useAuth, useProgress } from '../providers';
+import { useTheme, useAuth, useProgressData } from '../providers';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { AppLayout } from '../layouts/AppLayout';
 import { LessonSkeleton, ConnectionError } from '../components/shared/SkeletonLoader';
@@ -43,7 +43,7 @@ function parsePublicProfileHash() {
 export default function AppRoutes() {
   const { theme } = useTheme();
   const { user, profile, loading: authLoading, signOut } = useAuth();
-  const { dataLoaded, loadError, retryLoad } = useProgress();
+  const { dataLoaded, loadError, retryLoad } = useProgressData();
 
   // ─── Styleguide route (public, no auth) ───
   // Deliberately checked before authLoading so anyone can preview the
