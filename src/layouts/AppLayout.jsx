@@ -135,12 +135,23 @@ export function AppLayout() {
       });
       trackCourseVisit(course.id);
     }
-  }, [nav.courseIdx, nav.modIdx, nav.lesIdx, showModQuiz, dataLoaded]);
+  }, [
+    course.icon,
+    course.id,
+    course.label,
+    dataLoaded,
+    les.title,
+    mod.emoji,
+    mod.title,
+    savePosition,
+    showModQuiz,
+    trackCourseVisit,
+  ]);
 
   // ─── Milestone + course completion ────────
   useEffect(() => {
     panels.checkMilestone(completed.length);
-  }, [completed.length]);
+  }, [completed.length, panels]);
 
   const courseDone = completed.filter((k) => k.startsWith(course.label)).length;
   const coursePct = courseTotal > 0 ? Math.round((courseDone / courseTotal) * 100) : 0;
@@ -150,7 +161,7 @@ export function AppLayout() {
     if (isCourseComplete && isDone) {
       panels.triggerCourseComplete();
     }
-  }, [isCourseComplete, isDone]);
+  }, [isCourseComplete, isDone, panels]);
 
   // ─── Actions ──────────────────────────────
   const handleMarkDone = useCallback(async () => {
@@ -165,7 +176,7 @@ export function AppLayout() {
 
   const handleOpenTool = useCallback(
     (tool) => panels.togglePanel(tool),
-    [panels.togglePanel],
+    [panels],
   );
 
   const toolbarHandlers = useMemo(
@@ -179,7 +190,7 @@ export function AppLayout() {
       onChallenges: () => panels.togglePanel("challenges"),
       onStats: () => panels.togglePanel("stats"),
     }),
-    [panels.togglePanel],
+    [panels],
   );
 
   // ─── Keyboard ─────────────────────────────

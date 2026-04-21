@@ -280,13 +280,13 @@ export function ProgressProvider({ children }) {
       setCompleted(prev => [...prev, lessonKey]);
       dbWrite(progressService.addLesson(user.id, lessonKey), 'addLesson');
     }
-  }, [user, completedSet]);
+  }, [user, completedSet, dbWrite]);
 
   const saveQuizScore = useCallback(async (quizKey, score) => {
     if (!user) return;
     setQuizScores(prev => ({ ...prev, [quizKey]: score }));
     dbWrite(progressService.saveQuizScore(user.id, quizKey, score), 'saveQuizScore');
-  }, [user]);
+  }, [user, dbWrite]);
 
   // ─── XP ───────────────────────────────────────
   const awardXP = useCallback(async (amount, reason) => {
@@ -303,7 +303,7 @@ export function ProgressProvider({ children }) {
     });
 
     dbWrite(progressService.updateXP(user.id, newTotal), 'updateXP');
-  }, [user, xpTotal]);
+  }, [user, xpTotal, dbWrite]);
 
   const clearXPPopup = useCallback(() => setXpPopup(null), []);
 
@@ -318,7 +318,7 @@ export function ProgressProvider({ children }) {
     setDailyDate(today);
 
     dbWrite(progressService.updateDailyGoal(user.id, today, newCount), 'updateDailyGoal');
-  }, [user, dailyCount, dailyDate]);
+  }, [user, dailyCount, dailyDate, dbWrite]);
 
   // ─── Badges ───────────────────────────────────
   const checkBadges = useCallback(async () => {
@@ -396,7 +396,7 @@ export function ProgressProvider({ children }) {
     for (const card of newCards) {
       dbWrite(progressService.addSRCard(user.id, card), 'addSRCard');
     }
-  }, [user, srCards]);
+  }, [user, srCards, dbWrite]);
 
   const updateSRCard = useCallback(async (question, correct) => {
     if (!user) return;
@@ -461,7 +461,7 @@ export function ProgressProvider({ children }) {
     if (!user) return;
     setNotes(prev => ({ ...prev, [lessonKey]: content }));
     dbWrite(progressService.saveNote(user.id, lessonKey, content), 'saveNote');
-  }, [user]);
+  }, [user, dbWrite]);
 
   const getNote = useCallback((lessonKey) => {
     return notes[lessonKey] || '';
