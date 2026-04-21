@@ -508,9 +508,9 @@
 .gl-term {
   margin-bottom: 12px;
   padding: 14px 16px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.012));
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.08);
+  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.012));
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255,255,255,0.09);
   border-left: 3px solid var(--purple);
   transition: transform 0.15s, border-color 0.15s;
 }
@@ -520,9 +520,9 @@
 .gl-badge { display:inline-block; font-size:10px; padding:2px 8px; border-radius:10px; background:var(--bg-card); color:var(--text-muted); margin-left:8px; font-family:'Poppins',monospace; }
 .project-card {
   padding: 20px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.012));
-  border: 1px solid rgba(255,255,255,0.09);
-  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015));
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-lg);
   margin-bottom: 12px;
   transition: all 0.2s;
 }
@@ -541,9 +541,9 @@
 .badge-card {
   text-align: center;
   padding: 16px 10px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.012));
-  border: 1px solid rgba(255,255,255,0.09);
-  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015));
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-lg);
   transition: all .25s;
 }
 .badge-card.earned { border-color:var(--purple); background:rgba(180,74,255,0.08); animation:glow 3s ease-in-out infinite; }
@@ -558,9 +558,9 @@
 
 /* Spaced Repetition */
 .sr-card {
-  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.012));
-  border: 1px solid rgba(255,255,255,0.09);
-  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015));
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-lg);
   padding: 20px 24px;
   margin-bottom: 12px;
 }
@@ -599,9 +599,9 @@
   align-items: center;
   gap: 12px;
   padding: 0;
-  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.012));
-  border: 1px solid rgba(255,255,255,0.09);
-  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015));
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-lg);
   margin-bottom: 8px;
   transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
 }

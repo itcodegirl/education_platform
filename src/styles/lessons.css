@@ -393,7 +393,7 @@
 .cpv-iframe { width: 100%; height: 320px; border: none; background: var(--bg-deep); }
 
 /* ─── 12. Tip & Challenge Boxes ─────────────────── */
-.box { border-radius: 16px; padding: 20px 22px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.07); border-left: 4px solid; animation: slideInLeft 0.3s ease-out; box-shadow: inset 0 1px 0 rgba(255,255,255,0.03); }
+.box { border-radius: var(--radius-lg); padding: 20px 22px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.09); border-left: 4px solid; animation: slideInLeft 0.3s ease-out; box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 12px 24px rgba(0,0,0,0.1); }
 .box-label { font-family: 'Poppins', monospace; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 8px; }
 .box p { font-size: 15px; line-height: 1.7; }
 .box.tip { background: linear-gradient(180deg, rgba(78,205,196,0.14), rgba(78,205,196,0.05)); border-color: var(--cyan); }
@@ -402,7 +402,7 @@
 .box.chal .box-label { color: var(--amber); }
 
 /* ─── 13. Quiz ───────────────────────────────────── */
-.quiz-container { margin:32px 0 20px; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--bg-card); animation: fadeInUp 0.3s ease-out; }
+.quiz-container { margin:32px 0 20px; border:1px solid rgba(255,255,255,0.1); border-radius:var(--radius-lg); overflow:hidden; background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015)); box-shadow: 0 20px 40px rgba(0,0,0,0.14); animation: fadeInUp 0.3s ease-out; }
 .quiz-header { display:flex; align-items:center; gap:14px; padding:20px 24px; border-bottom:1px solid var(--border); background:var(--bg-surface); }
 .quiz-icon { font-size:24px; }
 .quiz-title { font-family:'Poppins',monospace; font-size:16px; font-weight:700; }
