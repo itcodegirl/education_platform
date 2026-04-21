@@ -1,40 +1,35 @@
-﻿import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useTheme, useAuth, useProgressData } from '../providers';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { AppLayout } from '../layouts/AppLayout';
 import { LessonSkeleton, ConnectionError } from '../components/shared/SkeletonLoader';
 import { Logo } from '../components/shared/Logo';
 
-// Admin is lazy â€” most users never see it
 const AdminDashboard = lazy(() =>
   import('../components/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })),
 );
 const ProfilePage = lazy(() =>
   import('../components/shared/ProfilePage').then((m) => ({ default: m.ProfilePage })),
 );
-// Styleguide is public (no auth required) and lazy â€” design review only.
 const Styleguide = lazy(() =>
   import('../components/shared/Styleguide').then((m) => ({ default: m.Styleguide })),
 );
-// Public user profile page (/#u/:handle) â€” also public, also lazy.
 const PublicProfile = lazy(() =>
   import('../components/shared/PublicProfile').then((m) => ({ default: m.PublicProfile })),
 );
 
-// Parse "#u/jenna" out of window.location.hash. Returns null if it's
-// not a public-profile hash. We do this in-line (no react-router) so
-// the rest of the routing layer doesn't need to change.
-function parsePublicProfileHash() {
-  if (typeof window === 'undefined') return null;
-  const hash = window.location.hash || '';
+function parsePublicProfileHash(hash = '') {
   const match = hash.match(/^#u\/([^/?#]+)/);
-
   if (!match) return null;
 
-  // Only allow simple handles: letters, numbers, dash, underscore, 2-30 chars.
   const handle = decodeURIComponent(match[1]);
   if (!/^[A-Za-z0-9_-]{2,30}$/.test(handle)) return null;
   return handle;
+}
+
+function clearHash() {
+  if (typeof window === 'undefined') return;
+  window.location.hash = '';
 }
 
 function RouteLoadingScreen({ theme, size = 'sm', children }) {
@@ -52,9 +47,18 @@ export default function AppRoutes() {
   const { theme } = useTheme();
   const { user, profile, loading: authLoading, signOut } = useAuth();
   const { dataLoaded, loadError, retryLoad } = useProgressData();
+  const [hash, setHash] = useState(() =>
+    typeof window !== 'undefined' ? window.location.hash : '',
+  );
 
-  // Styleguide route (public, no auth)
-  if (typeof window !== 'undefined' && window.location.hash === '#styleguide') {
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const syncHash = () => setHash(window.location.hash || '');
+    window.addEventListener('hashchange', syncHash);
+    return () => window.removeEventListener('hashchange', syncHash);
+  }, []);
+
+  if (hash === '#styleguide') {
     return (
       <div className={theme}>
         <Suspense
@@ -64,14 +68,13 @@ export default function AppRoutes() {
             </RouteLoadingScreen>
           }
         >
-          <Styleguide onClose={() => { window.location.hash = ''; window.location.reload(); }} />
+          <Styleguide onClose={clearHash} />
         </Suspense>
       </div>
     );
   }
 
-  // Public profile route (public, no auth)
-  const publicHandle = parsePublicProfileHash();
+  const publicHandle = parsePublicProfileHash(hash);
   if (publicHandle) {
     return (
       <div className={theme}>
@@ -82,19 +85,12 @@ export default function AppRoutes() {
             </RouteLoadingScreen>
           }
         >
-          <PublicProfile
-            handle={publicHandle}
-            onClose={() => {
-              window.location.hash = '';
-              window.location.reload();
-            }}
-          />
+          <PublicProfile handle={publicHandle} onClose={clearHash} />
         </Suspense>
       </div>
     );
   }
 
-  // Auth session check in progress
   if (authLoading) {
     return (
       <RouteLoadingScreen theme={theme} size="lg">
@@ -103,10 +99,8 @@ export default function AppRoutes() {
     );
   }
 
-  // Not logged in
   if (!user) return <AuthLayout />;
 
-  // Account disabled
   if (profile?.is_disabled) {
     return (
       <div className={`loading-screen ${theme}`} role="status" aria-live="polite">
@@ -121,8 +115,7 @@ export default function AppRoutes() {
     );
   }
 
-  // Profile route (public route for signed-in users)
-  if (window.location.hash === '#profile') {
+  if (hash === '#profile') {
     return (
       <div className={theme}>
         <Suspense
@@ -132,19 +125,13 @@ export default function AppRoutes() {
             </RouteLoadingScreen>
           }
         >
-          <ProfilePage
-            onClose={() => {
-              window.location.hash = '';
-              window.location.reload();
-            }}
-          />
+          <ProfilePage onClose={clearHash} />
         </Suspense>
       </div>
     );
   }
 
-  // Admin route
-  if (window.location.hash === '#admin') {
+  if (hash === '#admin') {
     return (
       <div className={theme}>
         <Suspense
@@ -154,18 +141,12 @@ export default function AppRoutes() {
             </RouteLoadingScreen>
           }
         >
-          <AdminDashboard
-            onClose={() => {
-              window.location.hash = '';
-              window.location.reload();
-            }}
-          />
+          <AdminDashboard onClose={clearHash} />
         </Suspense>
       </div>
     );
   }
 
-  // Database/content error
   if (loadError) {
     return (
       <div className={`loading-screen ${theme}`}>
@@ -174,7 +155,6 @@ export default function AppRoutes() {
     );
   }
 
-  // Data loading (skeleton)
   if (!dataLoaded) {
     return (
       <div className={`shell ${theme}`} role="status" aria-live="polite">

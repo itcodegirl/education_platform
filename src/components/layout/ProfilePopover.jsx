@@ -1,10 +1,3 @@
-// ═══════════════════════════════════════════════
-// PROFILE POPOVER — Glassmorphism stats flyout
-// Opens from the sidebar avatar. Contains all the
-// gamification data (XP, streak, daily goal, progress)
-// that was removed from the sidebar.
-// ═══════════════════════════════════════════════
-
 import { useEffect, useRef, memo } from 'react';
 import { useProgressData, useXP, useAuth } from '../../providers';
 import { getLevel, getXPInLevel, XP_PER_LEVEL, DAILY_GOAL } from '../../utils/helpers';
@@ -24,23 +17,22 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
   const momentumMessage = dailyCount >= DAILY_GOAL
     ? 'Daily goal complete. Keep the streak alive while you have momentum.'
     : lessonsToGoal === 1
-      ? 'One more lesson locks in today’s goal.'
-      : `${lessonsToGoal} more lessons to hit today’s goal.`;
+      ? 'One more lesson locks in today\'s goal.'
+      : `${lessonsToGoal} more lessons to hit today\'s goal.`;
 
-  // Close on click-outside and Escape
   useEffect(() => {
     if (!isOpen) return undefined;
 
-    const handleClick = (e) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target)) {
+    const handleClick = (event) => {
+      if (popoverRef.current && !popoverRef.current.contains(event.target)) {
         onClose();
       }
     };
-    const handleKey = (e) => {
-      if (e.key === 'Escape') onClose();
+
+    const handleKey = (event) => {
+      if (event.key === 'Escape') onClose();
     };
 
-    // Delay listener to avoid catching the opening click
     const timer = setTimeout(() => {
       document.addEventListener('pointerdown', handleClick);
       document.addEventListener('keydown', handleKey);
@@ -62,7 +54,6 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
       role="dialog"
       aria-label="Your profile and stats"
     >
-      {/* Identity */}
       <div className="pp-identity">
         <div className="pp-avatar">{displayName.charAt(0).toUpperCase()}</div>
         <div className="pp-identity-text">
@@ -73,14 +64,13 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
         <span className="pp-level-badge">Lv {level}</span>
       </div>
 
-      {/* Stat grid */}
       <div className="pp-stats">
         <div className="pp-stat">
           <span className="pp-stat-value">{completed.length}</span>
           <span className="pp-stat-label">Lessons</span>
         </div>
         <div className="pp-stat">
-          <span className="pp-stat-value">{streak}{streak > 0 ? '🔥' : ''}</span>
+          <span className="pp-stat-value">{streak}{streak > 0 ? '??' : ''}</span>
           <span className="pp-stat-label">Streak</span>
         </div>
         <div className="pp-stat">
@@ -96,25 +86,26 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
         <div className="pp-stat">
           <span className="pp-stat-value">{dailyCount}/{DAILY_GOAL}</span>
           <div className="pp-goal-dots">
-            {Array.from({ length: DAILY_GOAL }, (_, i) => (
-              <span key={i} className={`pp-goal-dot ${i < dailyCount ? 'filled' : ''}`} />
+            {Array.from({ length: DAILY_GOAL }, (_, index) => (
+              <span key={index} className={`pp-goal-dot ${index < dailyCount ? 'filled' : ''}`} />
             ))}
           </div>
           <span className="pp-stat-label">Today</span>
         </div>
       </div>
 
-      {/* Time estimate */}
       <div className="pp-time">
-        <span>{Math.floor(completed.length * 3 / 60)}h total study time</span>
+        <span>{Math.floor((completed.length * 3) / 60)}h total study time</span>
       </div>
 
-      {/* Actions */}
       <div className="pp-actions">
         <button
           type="button"
           className="pp-profile-btn"
-          onClick={() => { window.location.hash = '#profile'; window.location.reload(); }}
+          onClick={() => {
+            window.location.hash = '#profile';
+            onClose();
+          }}
         >
           Open Profile
         </button>
