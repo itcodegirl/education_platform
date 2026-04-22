@@ -20,7 +20,7 @@
 @import './responsive.css';
 
 /* Legacy App.css split into maintainable domains (order-sensitive) */
-@import './app-shell.css';
-@import './app-experience.css';
-@import './app-components.css';
-@import './app-quality.css';
+@import './shell-layout.css';
+@import './learning-experience.css';
+@import './feature-surfaces.css';
+@import './platform-quality.css';

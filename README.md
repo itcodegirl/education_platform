@@ -229,5 +229,6 @@ Read the narrative version here:
 - [SECURITY.md](./SECURITY.md)
 - [CHANGELOG.md](./CHANGELOG.md)
 - [docs/architecture.md](./docs/architecture.md)
+- [docs/style-architecture.md](./docs/style-architecture.md)
 - [CONTRIBUTING.md](./CONTRIBUTING.md)
 - [LICENSE](./LICENSE)
