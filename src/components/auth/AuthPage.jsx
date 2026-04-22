@@ -4,13 +4,21 @@ import { Logo } from '../shared/Logo';
 import { LandingHeroIntro, LandingHeroStory } from './LandingHero';
 
 export function AuthPage({ onPreview }) {
-  const { signIn, signUp, signInWithGithub, signInWithGoogle } = useAuth();
+  const {
+    signIn,
+    signUp,
+    signInWithGithub,
+    signInWithGoogle,
+    forgotPassword,
+  } = useAuth();
   const [mode, setMode] = useState('signup'); // 'login' | 'signup'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sendingReset, setSendingReset] = useState(false);
   const [confirmSent, setConfirmSent] = useState(false);
   const authCardRef = useRef(null);
   const emailRef = useRef(null);
@@ -24,6 +32,7 @@ export function AuthPage({ onPreview }) {
   const setModeAndClearError = (nextMode) => {
     setMode(nextMode);
     setError('');
+    setInfo('');
     window.requestAnimationFrame(() => {
       focusPrimaryAuthField(nextMode);
     });
@@ -46,6 +55,7 @@ export function AuthPage({ onPreview }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setInfo('');
     setLoading(true);
 
     try {
@@ -66,6 +76,32 @@ export function AuthPage({ onPreview }) {
       setError('Connection failed. Check your internet and try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    const normalizedEmail = email.trim();
+    if (!normalizedEmail) {
+      setError('Enter your email first, then select Forgot password.');
+      setInfo('');
+      emailRef.current?.focus();
+      return;
+    }
+
+    setError('');
+    setInfo('');
+    setSendingReset(true);
+    try {
+      const { error: err } = await forgotPassword(normalizedEmail);
+      if (err) {
+        setError(err.message || 'Unable to send a reset link right now.');
+      } else {
+        setInfo(`Password reset link sent to ${normalizedEmail}. Check your inbox and spam folder.`);
+      }
+    } catch {
+      setError('Unable to send a reset link right now.');
+    } finally {
+      setSendingReset(false);
     }
   };
 
@@ -108,7 +144,7 @@ export function AuthPage({ onPreview }) {
       <div className="auth-top">
         <LandingHeroIntro compact onStart={() => scrollToAuth('signup')} />
 
-        <div className="auth-card" ref={authCardRef} aria-busy={loading ? 'true' : 'false'}>
+        <div className="auth-card" ref={authCardRef} aria-busy={loading || sendingReset ? 'true' : 'false'}>
           <div className="auth-brand">
             <span className="auth-bolt" aria-hidden="true">⚡</span>
             <p className="auth-title">CodeHerWay</p>
@@ -145,7 +181,13 @@ export function AuthPage({ onPreview }) {
               : 'Already using CodeHerWay? Sign in to resume where you left off.'}
           </p>
 
-          <form id="auth-form-panel" className="auth-form" onSubmit={handleSubmit} aria-busy={loading} noValidate>
+          <form
+            id="auth-form-panel"
+            className="auth-form"
+            onSubmit={handleSubmit}
+            aria-busy={loading || sendingReset}
+            noValidate
+          >
             {mode === 'signup' && (
               <div className="auth-field">
                 <label htmlFor="auth-display-name">Display Name</label>
@@ -193,12 +235,34 @@ export function AuthPage({ onPreview }) {
                 required
                 minLength={6}
                 disabled={loading}
+                aria-describedby="auth-password-help"
               />
+              <p id="auth-password-help" className="auth-field-help">
+                Use at least 6 characters.
+              </p>
             </div>
+
+            {mode === 'login' && (
+              <div className="auth-inline-actions">
+                <button
+                  type="button"
+                  className="auth-reset-link"
+                  onClick={handleForgotPassword}
+                  disabled={loading || sendingReset}
+                >
+                  {sendingReset ? 'Sending reset link...' : 'Forgot password?'}
+                </button>
+              </div>
+            )}
 
             {error && (
               <div className="auth-error ui-status ui-status-error" role="alert" aria-live="assertive">
                 {error}
+              </div>
+            )}
+            {info && (
+              <div className="auth-success ui-status ui-status-success" role="status" aria-live="polite">
+                {info}
               </div>
             )}
 

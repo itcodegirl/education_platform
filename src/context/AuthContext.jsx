@@ -15,6 +15,7 @@ const AuthContext = createContext({
   signIn: async () => ({ data: null, error: null }),
   signInWithGithub: async () => ({ data: null, error: null }),
   signInWithGoogle: async () => ({ data: null, error: null }),
+  forgotPassword: async () => ({ data: null, error: null }),
   signOut: async () => ({ error: null }),
 });
 
@@ -112,6 +113,15 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const forgotPassword = async (email) => {
+    try {
+      const { data, error } = await authService.requestPasswordReset(email);
+      return { data, error };
+    } catch (err) {
+      return { data: null, error: err };
+    }
+  };
+
   const handleSignOut = async () => {
     setProfile(null);
     setProfileLoading(false);
@@ -130,6 +140,7 @@ export function AuthProvider({ children }) {
     signUp, signIn,
     signInWithGithub: handleGithub,
     signInWithGoogle: handleGoogle,
+    forgotPassword,
     signOut: handleSignOut,
   }), [user, profile, loading, profileLoading]);
 

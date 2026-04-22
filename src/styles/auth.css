@@ -131,6 +131,41 @@
   background: rgba(255,255,255,0.045);
   font-size: 15px;
 }
+.auth-field-help {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.auth-inline-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -4px;
+}
+.auth-reset-link {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  padding: 2px 0;
+}
+.auth-reset-link:hover:not(:disabled) {
+  color: var(--text-main);
+}
+.auth-reset-link:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.auth-reset-link:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
 .auth-error {
   margin-top: 2px;
 }
