@@ -15,6 +15,11 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
   const [confetti, setConfetti] = useState(false);
   const welcomeShown = useRef(false);
   const prevCompleted = useRef(0);
+  const panelRef = useRef(null);
+
+  useEffect(() => {
+    panelRef.current = panel;
+  }, [panel]);
 
   // Welcome back OR onboarding (once per session)
   useEffect(() => {
@@ -39,6 +44,23 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
     setConfetti(false);
   }, [user]);
 
+  // Keep panel state aligned with browser navigation so Back closes
+  // overlays before leaving the current page.
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const syncPanelFromHistory = () => {
+      const nextPanel = window.history.state?.cinovaPanel || null;
+      if (panelRef.current !== nextPanel) {
+        setPanel(nextPanel);
+      }
+    };
+
+    syncPanelFromHistory();
+    window.addEventListener('popstate', syncPanelFromHistory);
+    return () => window.removeEventListener('popstate', syncPanelFromHistory);
+  }, []);
+
   // Confetti on milestones
   const checkMilestone = (completedCount) => {
     const prev = prevCompleted.current;
@@ -56,8 +78,32 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
     setTimeout(() => setConfetti(false), TIMING.courseConfettiDuration);
   };
 
-  const closePanel = () => setPanel(null);
-  const togglePanel = (name) => setPanel((p) => (p === name ? null : name));
+  const closePanel = () => {
+    if (typeof window !== 'undefined' && window.history.state?.cinovaPanel) {
+      window.history.back();
+      return;
+    }
+    setPanel(null);
+  };
+
+  const openPanel = (name) => {
+    if (typeof window === 'undefined') {
+      setPanel(name);
+      return;
+    }
+
+    const nextState = { ...(window.history.state || {}), cinovaPanel: name };
+    window.history.pushState(nextState, '', window.location.href);
+    setPanel(name);
+  };
+
+  const togglePanel = (name) => {
+    if (panel === name) {
+      closePanel();
+      return;
+    }
+    openPanel(name);
+  };
 
   return {
     panel, setPanel, closePanel, togglePanel,
