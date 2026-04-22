@@ -6,7 +6,7 @@ import { LessonSkeleton, ConnectionError } from '../components/shared/SkeletonLo
 import { Logo } from '../components/shared/Logo';
 import { AdminRoute } from './guards/AdminRoute';
 import { closeRouteOrGoHome, getCurrentPath, toPathFromLegacyHash } from './routeUtils';
-import { APP_ROUTES, parsePublicProfilePath } from './routePaths';
+import { APP_ROUTE_KIND, resolveAppRoute } from './resolveAppRoute';
 
 const AdminDashboard = lazy(() =>
   import('../components/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })),
@@ -37,6 +37,7 @@ export default function AppRoutes() {
   const { user, profile, loading: authLoading, signOut } = useAuth();
   const { dataLoaded, loadError, retryLoad } = useProgressData();
   const [path, setPath] = useState(() => getCurrentPath());
+  const route = resolveAppRoute(path);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -58,7 +59,7 @@ export default function AppRoutes() {
     };
   }, []);
 
-  if (path === APP_ROUTES.styleguide) {
+  if (route.kind === APP_ROUTE_KIND.styleguide) {
     return (
       <div className={theme}>
         <Suspense
@@ -74,7 +75,7 @@ export default function AppRoutes() {
     );
   }
 
-  const publicHandle = parsePublicProfilePath(path);
+  const publicHandle = route.kind === APP_ROUTE_KIND.publicProfile ? route.publicHandle : null;
   if (publicHandle) {
     return (
       <div className={theme}>
@@ -115,7 +116,7 @@ export default function AppRoutes() {
     );
   }
 
-  if (path === APP_ROUTES.profile) {
+  if (route.kind === APP_ROUTE_KIND.profile) {
     return (
       <div className={theme}>
         <Suspense
@@ -131,7 +132,7 @@ export default function AppRoutes() {
     );
   }
 
-  if (path === APP_ROUTES.admin) {
+  if (route.kind === APP_ROUTE_KIND.admin) {
     return (
       <AdminRoute
         fallback={<AppLayout />}
