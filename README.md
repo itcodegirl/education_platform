@@ -1,16 +1,16 @@
-# CodeHerWay
+# Cinova
 
-A production-minded, browser-based learning platform focused on helping women build practical coding skills through guided lessons, live coding, and progress-driven feedback.
+Cinova is a production-minded, browser-based learning platform focused on helping women build practical coding skills through guided lessons, live coding, and progress-driven feedback.
 
-**Live demo:** https://mellow-sunflower-9c92cd.netlify.app/
+**Live demo:** https://cinova.app/
 
 ## Build and CI status
 
 [![CI](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/ci-smoke.yml?branch=main&label=CI%20(check%3Aci)&logo=githubactions)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
-[![Typecheck](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/ci-smoke.yml?branch=main&label=Typecheck%20(tsc%20--noEmit)&logo=typescript)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
+[![Quality](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/ci-smoke.yml?branch=main&label=Quality%20(lint%2Bbuild%2Bunit)&logo=eslint)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
 [![E2E](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/ci-smoke.yml?branch=main&label=E2E%20(Playwright)&logo=playwright)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
-
 [![Security](https://github.com/itcodegirl/education_platform/actions/workflows/security-audit.yml/badge.svg)](https://github.com/itcodegirl/education_platform/actions/workflows/security-audit.yml)
+
 [![React 18](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=white)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-6-646cff?logo=vite&logoColor=white)](https://vitejs.dev)
 [![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase&logoColor=white)](https://supabase.com)
@@ -19,7 +19,7 @@ A production-minded, browser-based learning platform focused on helping women bu
 
 ## Product overview
 
-CodeHerWay is a multi-track learning platform (HTML, CSS, JavaScript, React, Python) designed around a repeatable lesson model:
+Cinova is a multi-track learning platform (HTML, CSS, JavaScript, React, Python) designed around a repeatable lesson model:
 
 - Hook
 - Do
@@ -34,7 +34,7 @@ Learners can read, code, test ideas, ask an AI tutor contextual questions, and t
 
 ## Why this project matters
 
-Most tutorial apps optimize for content volume. This project optimizes for **learning momentum** and **production behavior**:
+Most tutorial apps optimize for content volume. This project optimizes for learning momentum and production behavior:
 
 - clearer onboarding and "what to do next" guidance
 - real state persistence and progress continuity
@@ -77,7 +77,7 @@ React SPA (Vite)
 
 Core principle: authorization and security rules are enforced at the backend boundary (RLS + server functions), not trusted to client state.
 
-For a deep technical walkthrough, see [docs/architecture.md](./docs/architecture.md).
+For a deeper technical walkthrough, see [docs/architecture.md](./docs/architecture.md).
 
 ---
 
@@ -104,23 +104,23 @@ For a deep technical walkthrough, see [docs/architecture.md](./docs/architecture
 
 ## Technical challenges and tradeoffs
 
-1. **Rich UX vs maintainability**
+1. Rich UX vs maintainability
    - Chose tokenized CSS + shared UI primitives for consistency without introducing a heavy design-system dependency.
 
-2. **AI usefulness vs safety/cost control**
+2. AI usefulness vs safety and cost control
    - Kept AI calls server-mediated with strict payload controls and per-user limits.
 
-3. **Fast initial load vs large learning content**
+3. Fast initial load vs feature depth
    - Used lazy loading and chunk strategy by domain/course to avoid overloading first paint.
    - Monaco and admin surfaces are intentionally code-split into on-demand chunks so first-run learners do not pay editor/admin cost upfront.
    - Added a bundle budget gate (`npm run check:bundle`) to keep eager chunks lean while allowing controlled Monaco-specific budgets.
 
-4. **Incremental improvement vs full rewrite temptation**
+4. Incremental improvement vs full rewrite temptation
    - Preserved architecture and made focused, auditable improvements in small batches.
 
 ---
 
-## Demo path (3-5 minutes)
+## Demo path (3 to 5 minutes)
 
 For portfolio demos, use this flow:
 
@@ -189,7 +189,9 @@ Pre-release checklist is documented in [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIS
 
 ## Quality and release workflow
 
-- `npm run check` - lint + typecheck + build + unit tests
+- `npm run check:quality` - lint + build + bundle budget gate
+- `npm run test:unit` - unit tests (Vitest)
+- `npm run check` - quality checks + unit tests
 - `npm run check:ci` - `check` + Playwright integration/E2E suite
 - `npm run check:bundle` - verifies JS chunk budgets after build (stricter on eager chunks, explicit allowance for lazy Monaco chunks)
 
@@ -204,8 +206,8 @@ Additional scripts are listed in [package.json](./package.json).
 - [x] Security-hardened AI gateway and release checks
 - [x] Accessibility semantics and focus-state improvements
 - [ ] Server-rendered OG metadata for richer sharing
-- [ ] Continue TypeScript migration through React component layer
 - [ ] Add Lighthouse CI reporting to release pipeline
+- [ ] Expand product analytics for onboarding and completion friction
 
 ---
 

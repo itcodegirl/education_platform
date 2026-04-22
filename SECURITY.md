@@ -1,6 +1,6 @@
 # Security Policy
 
-CodeHerWay is a student-facing coding education platform. We take the
+Cinova is a student-facing coding education platform. We take the
 security of learner accounts, progress data, and the AI tutor seriously.
 This document describes the project's threat model, the controls in
 place, and how to report a vulnerability.
@@ -97,7 +97,7 @@ Configured in `netlify.toml`:
   ≤ 4000 chars per message, ≤ 12000 chars total, ≤ 1024 output tokens.
 - Mandatory server-side guardrail prefix prepended to every request so
   the endpoint cannot be repurposed as a general-purpose LLM under the
-  CodeHerWay brand.
+  Cinova brand.
 - Role whitelist (`user` | `assistant`) for messages.
 
 ### Practice card generator (`netlify/functions/practice-generate.js`)
@@ -112,7 +112,7 @@ Configured in `netlify.toml`:
   / `explanation`) before it leaves the function. Invalid shapes
   return 502 rather than forwarding a malformed card to the client.
 
-### Public profile pages (`#u/:handle`)
+### Public profile pages (`/u/:handle`)
 
 - Opt-in only. `profiles.is_public` defaults to `false`.
 - Public data is exposed through a `public_profiles` VIEW that
@@ -152,3 +152,4 @@ Configured in `netlify.toml`:
   this at the edge).
 - Missing headers that are already present in a different form (e.g.
   `X-XSS-Protection`, which is deprecated and replaced by CSP).
+

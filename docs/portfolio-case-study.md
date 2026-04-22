@@ -1,8 +1,8 @@
-# Portfolio Case Study: CodeHerWay
+# Portfolio Case Study: Cinova
 
 ## Executive summary
 
-CodeHerWay is a production-minded learning platform built to improve first-time coding confidence while preserving technical rigor. The project balances product clarity, secure architecture, and incremental delivery discipline.
+Cinova is a production-minded learning platform built to improve first-time coding confidence while preserving technical rigor. The project balances product clarity, secure architecture, and incremental delivery discipline.
 
 This case study highlights how the platform was hardened for portfolio review across UX, accessibility, release readiness, and developer workflow quality.
 
@@ -21,7 +21,7 @@ The goal was to keep the existing core vision and architecture intact while maki
 
 ## Product goals
 
-- Make the first 30-60 seconds clear and guided.
+- Make the first 30 to 60 seconds clear and guided.
 - Improve dashboard and lesson flow clarity.
 - Strengthen keyboard and accessibility behavior.
 - Standardize visual patterns without overdesign.
@@ -59,7 +59,7 @@ The goal was to keep the existing core vision and architecture intact while maki
 
 ### Quality workflow
 
-- ESLint, TypeScript checks, Vitest, Playwright
+- ESLint, Vitest, and Playwright
 - scripted quality gates for local and CI parity
 
 ---
@@ -81,7 +81,7 @@ The goal was to keep the existing core vision and architecture intact while maki
 ### 3. Accessibility hardening
 
 - keyboard and focus behavior tightened across overlays/modals
-- improved semantic/ARIA relationships in dialogs and quiz interactions
+- improved semantic and ARIA relationships in dialogs and quiz interactions
 - reduced fragile interaction patterns
 
 ### 4. Code-health and workflow quality
@@ -108,7 +108,7 @@ Why: prevented regressions while improving screen reader and keyboard behavior.
 
 ### Tradeoff: strict release confidence vs local iteration speed
 
-Decision: introduce simple command aliases (`check`, `check:ci`) to keep both fast feedback and CI parity.
+Decision: use simple command gates (`check`, `check:ci`) to keep both fast feedback and CI parity.
 
 Why: stronger release confidence without a complex pipeline redesign.
 
@@ -127,7 +127,7 @@ Why: stronger release confidence without a complex pipeline redesign.
 
 - stronger dialog semantics (`aria-labelledby` and `aria-describedby`)
 - improved keyboard navigation and focus states
-- cleaner interaction semantics in quiz/search/sidebar flows
+- cleaner interaction semantics in quiz, search, and sidebar flows
 
 ---
 
@@ -154,9 +154,9 @@ Why: stronger release confidence without a complex pipeline redesign.
 ## What I would do next
 
 - add final screenshot assets in `docs/screenshots/`
-- continue TypeScript migration through high-change React components
 - add Lighthouse CI scoring and budget reporting
 - add richer analytics for onboarding drop-off and lesson completion friction
+- continue incremental CSS modularization to reduce global stylesheet surface area
 
 ---
 
