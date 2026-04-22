@@ -1,3 +1,5 @@
+import { APP_ROUTES, toPathFromLegacyHash } from './routePaths';
+
 function isSameOriginReferrer() {
   if (typeof window === 'undefined') return false;
   if (!document.referrer) return false;
@@ -6,25 +8,6 @@ function isSameOriginReferrer() {
   } catch {
     return false;
   }
-}
-
-export function toPathFromLegacyHash(hash = '') {
-  if (!hash || hash === '#') return null;
-  if (hash === '#admin') return '/admin';
-  if (hash === '#profile') return '/profile';
-  if (hash === '#styleguide') return '/styleguide';
-
-  const publicMatch = hash.match(/^#u\/([^/?#]+)/);
-  if (publicMatch) {
-    return `/u/${encodeURIComponent(decodeURIComponent(publicMatch[1]))}`;
-  }
-
-  const learnMatch = hash.match(/^#learn\/([^/]+)\/([^/]+)\/([^/?#]+)/);
-  if (learnMatch) {
-    return `/learn/${encodeURIComponent(decodeURIComponent(learnMatch[1]))}/${encodeURIComponent(decodeURIComponent(learnMatch[2]))}/${encodeURIComponent(decodeURIComponent(learnMatch[3]))}`;
-  }
-
-  return null;
 }
 
 export function getCurrentPath() {
@@ -47,5 +30,7 @@ export function closeRouteOrGoHome() {
     window.history.back();
     return;
   }
-  navigateTo('/', { replace: true });
+  navigateTo(APP_ROUTES.home, { replace: true });
 }
+
+export { toPathFromLegacyHash };

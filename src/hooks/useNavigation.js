@@ -7,8 +7,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { COURSES, QUIZ_MAP } from '../data';
 import { useCourseContent } from '../providers';
 import { navigateTo, toPathFromLegacyHash } from '../routes/routeUtils';
-
-const LEARN_PATH_PREFIX = '/learn/';
+import { buildLearnPath, parseLearnPath } from '../routes/routePaths';
 
 // Safe empty shells used when a course's modules haven't loaded yet.
 // AppLayout gates the real UI behind isActiveCourseLoaded, so these
@@ -18,24 +17,6 @@ const LEARN_PATH_PREFIX = '/learn/';
 const EMPTY_LESSON = { id: '', title: '', content: '', code: '' };
 const EMPTY_MODULE = { id: '', title: '', emoji: '', lessons: [EMPTY_LESSON] };
 const EMPTY_COURSE = { id: '', label: '', icon: '', accent: '', modules: [EMPTY_MODULE] };
-
-function decodePathSegment(value) {
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return value;
-  }
-}
-
-function parseLearnPath(pathname = '') {
-  const match = pathname.match(/^\/learn\/([^/]+)\/([^/]+)\/([^/?#]+)/);
-  if (!match) return null;
-  return {
-    courseId: decodePathSegment(match[1]),
-    moduleId: decodePathSegment(match[2]),
-    lessonId: decodePathSegment(match[3]),
-  };
-}
 
 function findPathPosition(pathname) {
   const parsed = parseLearnPath(pathname);
@@ -69,13 +50,6 @@ function findPathPosition(pathname) {
   if (lessonIndex === -1) return null;
 
   return { courseIndex, moduleIndex, lessonIndex, isModuleQuiz: false };
-}
-
-function buildLearnPath(course, mod, les, showModQuiz) {
-  if (!course?.id || !mod?.id) return '';
-  const lessonSegment = showModQuiz ? 'quiz' : les?.id;
-  if (!lessonSegment) return '';
-  return `${LEARN_PATH_PREFIX}${encodeURIComponent(course.id)}/${encodeURIComponent(mod.id)}/${encodeURIComponent(lessonSegment)}`;
 }
 
 function findSavedPosition(lastPosition) {

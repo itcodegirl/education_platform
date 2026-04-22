@@ -6,6 +6,7 @@ import { LessonSkeleton, ConnectionError } from '../components/shared/SkeletonLo
 import { Logo } from '../components/shared/Logo';
 import { AdminRoute } from './guards/AdminRoute';
 import { closeRouteOrGoHome, getCurrentPath, toPathFromLegacyHash } from './routeUtils';
+import { APP_ROUTES, parsePublicProfilePath } from './routePaths';
 
 const AdminDashboard = lazy(() =>
   import('../components/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })),
@@ -19,15 +20,6 @@ const Styleguide = lazy(() =>
 const PublicProfile = lazy(() =>
   import('../components/shared/PublicProfile').then((m) => ({ default: m.PublicProfile })),
 );
-
-function parsePublicProfilePath(pathname = '') {
-  const match = pathname.match(/^\/u\/([^/?#]+)/);
-  if (!match) return null;
-
-  const handle = decodeURIComponent(match[1]);
-  if (!/^[A-Za-z0-9_-]{2,30}$/.test(handle)) return null;
-  return handle;
-}
 
 function RouteLoadingScreen({ theme, size = 'sm', children }) {
   return (
@@ -66,7 +58,7 @@ export default function AppRoutes() {
     };
   }, []);
 
-  if (path === '/styleguide') {
+  if (path === APP_ROUTES.styleguide) {
     return (
       <div className={theme}>
         <Suspense
@@ -123,7 +115,7 @@ export default function AppRoutes() {
     );
   }
 
-  if (path === '/profile') {
+  if (path === APP_ROUTES.profile) {
     return (
       <div className={theme}>
         <Suspense
@@ -139,7 +131,7 @@ export default function AppRoutes() {
     );
   }
 
-  if (path === '/admin') {
+  if (path === APP_ROUTES.admin) {
     return (
       <AdminRoute
         fallback={<AppLayout />}
