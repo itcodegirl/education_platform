@@ -149,6 +149,12 @@
   justify-content: flex-end;
   margin-top: -4px;
 }
+.auth-inline-note {
+  margin: -8px 0 2px;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
 .auth-reset-link {
   border: none;
   background: transparent;

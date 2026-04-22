@@ -121,6 +121,13 @@ export function AuthPage({ onPreview }) {
       emailRef.current?.focus();
       return;
     }
+    if (!EMAIL_PATTERN.test(normalizedEmail)) {
+      setTouched((prev) => ({ ...prev, email: true }));
+      setError('Enter a valid account email, then select Forgot password.');
+      setInfo('');
+      emailRef.current?.focus();
+      return;
+    }
 
     setError('');
     setInfo('');
@@ -130,7 +137,7 @@ export function AuthPage({ onPreview }) {
       if (err) {
         setError(err.message || 'Unable to send a reset link right now.');
       } else {
-        setInfo(`Password reset link sent to ${normalizedEmail}. Check your inbox and spam folder.`);
+        setInfo(`Password reset link sent to ${normalizedEmail}. Check your inbox and spam folder. The link expires for security.`);
       }
     } catch {
       setError('Unable to send a reset link right now.');
@@ -139,11 +146,12 @@ export function AuthPage({ onPreview }) {
     }
   };
 
-  const emailInlineError = touched.email && email.trim() && !EMAIL_PATTERN.test(email.trim())
+  const emailInlineError = (touched.email || email.trim().length >= 3) && email.trim() && !EMAIL_PATTERN.test(email.trim())
     ? 'Enter a valid email format (example: you@example.com).'
     : '';
-  const passwordInlineError = touched.password && password.length > 0 && password.length < PASSWORD_MIN_LENGTH
-    ? `Password must be at least ${PASSWORD_MIN_LENGTH} characters.`
+  const remainingPasswordChars = Math.max(PASSWORD_MIN_LENGTH - password.length, 0);
+  const passwordInlineError = password.length > 0 && password.length < PASSWORD_MIN_LENGTH
+    ? `${password.length}/${PASSWORD_MIN_LENGTH} characters. Add ${remainingPasswordChars} more to continue.`
     : '';
   const displayNameInlineError = mode === 'signup' && touched.displayName && !displayName.trim()
     ? 'Display name is required.'
@@ -222,7 +230,7 @@ export function AuthPage({ onPreview }) {
           <p className="auth-mode-copy">
             {mode === 'signup'
               ? 'Create your account to unlock every course and start learning in one session.'
-              : 'Already using CodeHerWay? Sign in to resume where you left off.'}
+              : 'Already using CodeHerWay? Sign in to resume where you left off, or reset your password if needed.'}
           </p>
 
           <form
@@ -314,16 +322,21 @@ export function AuthPage({ onPreview }) {
             </div>
 
             {mode === 'login' && (
-              <div className="auth-inline-actions">
-                <button
-                  type="button"
-                  className="auth-reset-link"
-                  onClick={handleForgotPassword}
-                  disabled={loading || sendingReset}
-                >
-                  {sendingReset ? 'Sending reset link...' : 'Forgot password?'}
-                </button>
-              </div>
+              <>
+                <div className="auth-inline-actions">
+                  <button
+                    type="button"
+                    className="auth-reset-link"
+                    onClick={handleForgotPassword}
+                    disabled={loading || sendingReset}
+                  >
+                    {sendingReset ? 'Sending reset link...' : 'Forgot password?'}
+                  </button>
+                </div>
+                <p className="auth-inline-note">
+                  Use your account email above. We&apos;ll send a secure reset link.
+                </p>
+              </>
             )}
 
             {error && (
@@ -377,14 +390,19 @@ export function AuthPage({ onPreview }) {
           </div>
 
           {onPreview && (
-            <button
-              type="button"
-              className="auth-preview-btn ui-btn ui-btn-ghost"
-              onClick={onPreview}
-              aria-label="Preview a lesson before signing in"
-            >
-              👋 I want to preview first
-            </button>
+            <div className="auth-preview-wrap">
+              <button
+                type="button"
+                className="auth-preview-btn ui-btn ui-btn-ghost"
+                onClick={onPreview}
+                aria-label="Preview a lesson before signing in"
+              >
+                Preview first lesson (no account required)
+              </button>
+              <p className="auth-preview-note">
+                Great for exploring the learning style before creating an account.
+              </p>
+            </div>
           )}
 
           <p className="auth-footer">

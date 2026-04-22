@@ -193,6 +193,16 @@
 .auth-preview-btn:hover {
   color: var(--text);
 }
+.auth-preview-wrap {
+  margin-top: 10px;
+}
+.auth-preview-note {
+  margin: 8px 2px 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-muted);
+  text-align: center;
+}
 
 /* ─── Roadmap Panel ─────────────────────────────── */
 .roadmap-panel {
