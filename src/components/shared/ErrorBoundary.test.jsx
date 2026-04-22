@@ -15,13 +15,23 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import React, { useState } from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
 
+let suppressExpectedBoundaryErrors;
+
 // Suppress React's console.error output for expected render errors.
 // React logs the error stack to stderr even when it's caught by an
 // error boundary, which pollutes the test output.
 beforeEach(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {});
+  suppressExpectedBoundaryErrors = (event) => {
+    const message = event?.error?.message || '';
+    if (/boom|custom error|node fallback test|retry test/i.test(message)) {
+      event.preventDefault();
+    }
+  };
+  window.addEventListener('error', suppressExpectedBoundaryErrors);
 });
 afterEach(() => {
+  window.removeEventListener('error', suppressExpectedBoundaryErrors);
   vi.restoreAllMocks();
 });
 
