@@ -9,6 +9,7 @@ Cinova is a production-minded, browser-based learning platform focused on helpin
 [![CI](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/ci-smoke.yml?branch=main&label=CI%20(check%3Aci)&logo=githubactions)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
 [![Quality](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/ci-smoke.yml?branch=main&label=Quality%20(lint%2Bbuild%2Bunit)&logo=eslint)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
 [![E2E](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/ci-smoke.yml?branch=main&label=E2E%20(Playwright)&logo=playwright)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
+[![Policy](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/ci-smoke.yml?branch=main&label=Policy%20(RLS%2Fadmin)&logo=supabase)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
 [![Security](https://github.com/itcodegirl/education_platform/actions/workflows/security-audit.yml/badge.svg)](https://github.com/itcodegirl/education_platform/actions/workflows/security-audit.yml)
 
 [![React 18](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=white)](https://react.dev)
@@ -194,6 +195,23 @@ Pre-release checklist is documented in [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIS
 - `npm run check` - quality checks + unit tests
 - `npm run check:ci` - `check` + Playwright integration/E2E suite
 - `npm run check:bundle` - verifies JS chunk budgets after build (stricter on eager chunks, explicit allowance for lazy Monaco chunks)
+- `npm run test:policy` - Supabase integration policy checks (RLS/admin escalation paths)
+
+### CI policy test secrets (dedicated Supabase test project)
+
+The CI workflow includes a separate policy integration job that runs `test:policy` against a dedicated Supabase project.
+
+Configure scoped repository secrets:
+
+- `POLICY_SUPABASE_URL`
+- `POLICY_SUPABASE_ANON_KEY`
+- `POLICY_SUPABASE_SERVICE_KEY`
+
+Notes:
+
+- Use a non-production Supabase project for policy tests.
+- Service key is used only in CI to seed/cleanup ephemeral test users and verify policy boundaries.
+- If secrets are absent (for example in forked PRs), the policy suite safely skips.
 
 Additional scripts are listed in [package.json](./package.json).
 
