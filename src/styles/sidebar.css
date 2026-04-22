@@ -7,6 +7,7 @@
    ═══════════════════════════════════════════════ */
 
 /* ─── 7. Sidebar — Brand Aligned Glassmorphism ─── */
+.sidebar,
 .sb {
   width: min(100vw, var(--sb-width));
   min-width: min(100vw, var(--sb-width));
@@ -24,6 +25,7 @@
   transition: width 0.22s var(--ease-out), min-width 0.22s var(--ease-out);
 }
 @supports not (backdrop-filter: blur(1px)) {
+  .sidebar,
   .sb { background: rgba(13, 13, 30, 0.98); }
 }
 
@@ -294,17 +296,20 @@
 .sb-nav { padding: 0; }
 
 /* ─── Module groups ─── */
+.module-group,
 .mg {
   margin-bottom: 4px;
   border-radius: 12px;
   overflow: hidden;
   transition: all 0.2s;
 }
+.module-group.expanded,
 .mg.expanded {
   background: rgba(180,74,255,0.04);
   border: 1px solid rgba(180,74,255,0.1);
   margin-bottom: 8px;
 }
+.module-group:not(.expanded),
 .mg:not(.expanded) { border: 1px solid transparent; }
 .mg-btn {
   width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px;
@@ -332,6 +337,7 @@
 .mg.locked { opacity: 0.35; }
 
 /* ─── Lesson list ─── */
+.lesson-list,
 .lg { padding: 4px 0 8px; animation: fadeIn 0.15s ease-out; }
 .lg-btn {
   width: 100%; display: flex; align-items: center; gap: 10px; padding: 7px 14px 7px 60px;

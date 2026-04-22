@@ -14,7 +14,7 @@ export const Breadcrumb = memo(function Breadcrumb({
   const currentLesson = showModQuiz ? "Module quiz" : lesTitle;
 
   return (
-    <nav className="bc" aria-label="Lesson breadcrumb">
+    <nav className="breadcrumb bc" aria-label="Lesson breadcrumb">
       <span
         className="bc-course"
         style={{ color: course.accent }}

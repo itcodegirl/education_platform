@@ -25,6 +25,7 @@
 }
 
 /* ─── 8. Main Content & Topbar ─────────────────── */
+.main-shell,
 .mn {
   flex: 1;
   overflow-y: auto;
@@ -241,6 +242,7 @@
   background: rgba(180, 74, 255, 0.16);
 }
 
+.breadcrumb,
 .bc {
   flex: 1;
   display: flex;
@@ -849,6 +851,7 @@
 }
 
 /* Sidebar */
+.shell.light .sidebar,
 .shell.light .sb {
   background: #ffffff;
   border-color: var(--border);

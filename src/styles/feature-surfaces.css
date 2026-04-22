@@ -2531,6 +2531,7 @@ select {
 .cc-ai-response,
 .search-results,
 .sb-scroll,
+.main-shell,
 .mn,
 .cpv-explanation-body,
 .cheatsheet-body,
@@ -2547,6 +2548,7 @@ select {
     padding-top: max(12px, env(safe-area-inset-top));
   }
 
+  .sidebar,
   .sb {
     padding-top: env(safe-area-inset-top);
   }

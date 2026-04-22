@@ -24,14 +24,17 @@
 }
 
 /* Content containment — isolate layout calculations */
+.lesson-surface,
 .lv {
   contain: content;
 }
 
+.code-preview,
 .cpv {
   contain: layout style;
 }
 
+.sidebar,
 .sb {
   contain: layout style;
 }
@@ -101,6 +104,7 @@ img {
 /* Print optimization */
 @media print {
 
+  .sidebar,
   .sb,
   .bottom-tools,
   .lesson-nav,
@@ -113,6 +117,7 @@ img {
     display: none !important;
   }
 
+  .main-shell,
   .mn {
     overflow: visible;
     height: auto;
@@ -123,6 +128,7 @@ img {
     height: auto;
   }
 
+  .lesson-container,
   .lv-wrap {
     padding: 0;
   }
@@ -2341,4 +2347,3 @@ img {
 .wn-cta:hover {
   filter: brightness(1.15);
 }
-

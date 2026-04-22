@@ -5,7 +5,9 @@
    ═══════════════════════════════════════════════ */
 
 /* ─── 9. Lesson View ───────────────────────────── */
+.lesson-container,
 .lv-wrap { max-width: var(--content-max); margin: 0 auto; padding: clamp(16px, 2vw, 32px) clamp(14px, 2vw, 24px) 24px; animation: fadeIn 0.3s ease-out; }
+.lesson-surface,
 .lv {
   position: relative;
   padding: clamp(18px, 2.5vw, 32px);
@@ -17,6 +19,7 @@
   box-shadow: 0 28px 60px rgba(0,0,0,0.24);
   overflow: hidden;
 }
+.lesson-surface::before,
 .lv::before {
   content: '';
   position: absolute;
@@ -368,7 +371,9 @@
 .notes-input::placeholder { color: var(--text-muted); }
 
 /* ─── 11. Code Preview ──────────────────────────── */
+.code-preview,
 .cpv { border: 1px solid rgba(255,255,255,0.06); border-radius: 18px; overflow: hidden; margin-bottom: 28px; background: rgba(11,11,20,0.74); transition: border-color 0.2s, box-shadow 0.2s; box-shadow: inset 0 1px 0 rgba(255,255,255,0.03); }
+.code-preview:hover,
 .cpv:hover { border-color: var(--border-bright); box-shadow: 0 20px 40px rgba(0,0,0,0.16); }
 .cpv-tabs { display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .cpv-tabs::-webkit-scrollbar { display: none; }
