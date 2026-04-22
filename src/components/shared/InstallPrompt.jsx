@@ -1,8 +1,8 @@
-// ═══════════════════════════════════════════════
-// PWA INSTALL PROMPT — Custom "Add to Home Screen" banner
+﻿// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// PWA INSTALL PROMPT â€” Custom "Add to Home Screen" banner
 // Only shows when the browser supports installation
 // Dismissable, remembers choice for 7 days
-// ═══════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 import { useState, useEffect, memo } from 'react';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
@@ -51,10 +51,11 @@ export const InstallPrompt = memo(function InstallPrompt() {
 
   return (
     <div className="install-prompt" role="alert">
-      <span className="install-icon" aria-hidden="true">⚡</span>
-      <span className="install-text">Install CodeHerWay for quick access</span>
+      <span className="install-icon" aria-hidden="true">âš¡</span>
+      <span className="install-text">Install Cinova for quick access</span>
       <button type="button" className="install-btn" onClick={handleInstall}>Install</button>
-      <button type="button" className="install-dismiss" onClick={handleDismiss} aria-label="Dismiss">✕</button>
+      <button type="button" className="install-dismiss" onClick={handleDismiss} aria-label="Dismiss">âœ•</button>
     </div>
   );
 });
+

@@ -127,10 +127,10 @@ export function AppLayout() {
   // â”€â”€â”€ Dynamic page title â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     const title = showModQuiz
-      ? `${mod.title} Quiz â€” CodeHerWay`
-      : `${les.title} â€” CodeHerWay`;
+      ? `${mod.title} Quiz â€” Cinova`
+      : `${les.title} â€” Cinova`;
     document.title = title;
-    return () => { document.title = 'CodeHerWay â€” Learn. Build. Ship.'; };
+    return () => { document.title = 'Cinova â€” Learn. Build. Ship.'; };
   }, [les.title, mod.title, showModQuiz]);
 
   // â”€â”€â”€ Save position on navigation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -542,3 +542,4 @@ export function AppLayout() {
     </div>
   );
 }
+

@@ -1,10 +1,10 @@
-// ═══════════════════════════════════════════════
-// CERTIFICATE GENERATOR — Downloadable PDF
-// Creates a branded CodeHerWay completion certificate
+﻿// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// CERTIFICATE GENERATOR â€” Downloadable PDF
+// Creates a branded Cinova completion certificate
 // Uses jsPDF (client-side, no server needed)
-// ═══════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-// jsPDF is lazy-imported on demand (391KB — only needed when downloading)
+// jsPDF is lazy-imported on demand (391KB â€” only needed when downloading)
 
 // Color palette
 const COLORS = {
@@ -40,7 +40,7 @@ export async function generateCertificate({ studentName, courseName, courseId, l
   const H = 210; // A4 landscape height
   const accent = COURSE_COLORS[courseId] || COLORS.pink;
 
-  // ─── Background ─────────────────────────────
+  // â”€â”€â”€ Background â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   doc.setFillColor(...COLORS.bgDeep);
   doc.rect(0, 0, W, H, 'F');
 
@@ -48,7 +48,7 @@ export async function generateCertificate({ studentName, courseName, courseId, l
   doc.setFillColor(...COLORS.bgDark);
   roundedRect(doc, 15, 15, W - 30, H - 30, 4);
 
-  // ─── Decorative border ──────────────────────
+  // â”€â”€â”€ Decorative border â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Outer glow border
   doc.setDrawColor(...accent);
   doc.setLineWidth(0.8);
@@ -59,7 +59,7 @@ export async function generateCertificate({ studentName, courseName, courseId, l
   doc.setLineWidth(0.3);
   roundedRectStroke(doc, 24, 24, W - 48, H - 48, 2);
 
-  // ─── Corner accents ─────────────────────────
+  // â”€â”€â”€ Corner accents â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   doc.setDrawColor(...accent);
   doc.setLineWidth(1.2);
   const cornerLen = 12;
@@ -76,16 +76,16 @@ export async function generateCertificate({ studentName, courseName, courseId, l
   doc.line(W - 20, H - 20, W - 20 - cornerLen, H - 20);
   doc.line(W - 20, H - 20, W - 20, H - 20 - cornerLen);
 
-  // ─── Top brand ──────────────────────────────
+  // â”€â”€â”€ Top brand â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   doc.setFontSize(10);
   doc.setTextColor(...COLORS.textMuted);
   doc.setFont('helvetica', 'normal');
-  doc.text('⚡', W / 2 - 12, 38, { align: 'center' });
+  doc.text('âš¡', W / 2 - 12, 38, { align: 'center' });
   doc.setTextColor(...accent);
   doc.setFont('courier', 'bold');
   doc.text('<Code>Her</Way>', W / 2 + 1, 38, { align: 'center' });
 
-  // ─── Certificate of Completion ──────────────
+  // â”€â”€â”€ Certificate of Completion â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   doc.setFontSize(11);
   doc.setTextColor(...COLORS.textMuted);
   doc.setFont('helvetica', 'normal');
@@ -96,19 +96,19 @@ export async function generateCertificate({ studentName, courseName, courseId, l
   doc.setLineWidth(0.5);
   doc.line(W / 2 - 40, 56, W / 2 + 40, 56);
 
-  // ─── Course Name ────────────────────────────
+  // â”€â”€â”€ Course Name â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   doc.setFontSize(28);
   doc.setTextColor(...accent);
   doc.setFont('courier', 'bold');
   doc.text(courseName, W / 2, 74, { align: 'center' });
 
-  // ─── "Awarded to" ───────────────────────────
+  // â”€â”€â”€ "Awarded to" â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   doc.setFontSize(10);
   doc.setTextColor(...COLORS.textDim);
   doc.setFont('helvetica', 'normal');
   doc.text('Awarded to', W / 2, 88, { align: 'center' });
 
-  // ─── Student Name ───────────────────────────
+  // â”€â”€â”€ Student Name â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   doc.setFontSize(24);
   doc.setTextColor(...COLORS.white);
   doc.setFont('helvetica', 'bold');
@@ -120,7 +120,7 @@ export async function generateCertificate({ studentName, courseName, courseId, l
   doc.setLineWidth(0.3);
   doc.line(W / 2 - nameWidth / 2 - 5, 105, W / 2 + nameWidth / 2 + 5, 105);
 
-  // ─── Description ────────────────────────────
+  // â”€â”€â”€ Description â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   doc.setFontSize(11);
   doc.setTextColor(...COLORS.textDim);
   doc.setFont('helvetica', 'normal');
@@ -129,17 +129,17 @@ export async function generateCertificate({ studentName, courseName, courseId, l
     W / 2, 118, { align: 'center' }
   );
   doc.text(
-    `in the ${courseName} course on CodeHerWay.`,
+    `in the ${courseName} course on Cinova.`,
     W / 2, 125, { align: 'center' }
   );
 
-  // ─── Skills summary line ────────────────────
+  // â”€â”€â”€ Skills summary line â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const skillsText = getSkillsSummary(courseId);
   doc.setFontSize(9);
   doc.setTextColor(...COLORS.textMuted);
   doc.text(skillsText, W / 2, 135, { align: 'center' });
 
-  // ─── Bottom section ─────────────────────────
+  // â”€â”€â”€ Bottom section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Date
   doc.setFontSize(10);
   doc.setTextColor(...COLORS.textDim);
@@ -159,28 +159,28 @@ export async function generateCertificate({ studentName, courseName, courseId, l
   doc.setFont('courier', 'bold');
   doc.text(verifyId, W / 2 + 55, 166, { align: 'center' });
 
-  // ─── Footer ─────────────────────────────────
+  // â”€â”€â”€ Footer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   doc.setFontSize(8);
   doc.setTextColor(...COLORS.textMuted);
   doc.setFont('helvetica', 'normal');
   doc.text(
-    'codeherway.com  •  Where women code, lead, and rewrite the future of tech',
+    'Cinova.com  â€¢  Where women code, lead, and rewrite the future of tech',
     W / 2, H - 28, { align: 'center' }
   );
 
-  // ─── Accent dots (decorative) ───────────────
+  // â”€â”€â”€ Accent dots (decorative) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   doc.setFillColor(...accent);
   doc.circle(W / 2 - 50, 56, 1, 'F');
   doc.circle(W / 2 + 50, 56, 1, 'F');
   doc.circle(W / 2 - 30, 148, 0.8, 'F');
   doc.circle(W / 2 + 30, 148, 0.8, 'F');
 
-  // ─── Save ───────────────────────────────────
-  const fileName = `CodeHerWay-${courseName.replace(/\s+/g, '-')}-Certificate.pdf`;
+  // â”€â”€â”€ Save â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const fileName = `Cinova-${courseName.replace(/\s+/g, '-')}-Certificate.pdf`;
   doc.save(fileName);
 }
 
-// ─── Helpers ─────────────────────────────────────
+// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function roundedRect(doc, x, y, w, h, r) {
   doc.roundedRect(x, y, w, h, r, r, 'F');
@@ -200,14 +200,15 @@ function generateVerifyId(name, courseId) {
 function getSkillsSummary(courseId) {
   switch (courseId) {
     case 'html':
-      return 'Skills: Document Structure • Semantic HTML • Forms • Accessibility • SEO';
+      return 'Skills: Document Structure â€¢ Semantic HTML â€¢ Forms â€¢ Accessibility â€¢ SEO';
     case 'css':
-      return 'Skills: Selectors • Box Model • Flexbox • Grid • Responsive Design • Animations';
+      return 'Skills: Selectors â€¢ Box Model â€¢ Flexbox â€¢ Grid â€¢ Responsive Design â€¢ Animations';
     case 'js':
-      return 'Skills: DOM Manipulation • Async/Await • Functions • Arrays • Objects • APIs';
+      return 'Skills: DOM Manipulation â€¢ Async/Await â€¢ Functions â€¢ Arrays â€¢ Objects â€¢ APIs';
     case 'react':
-      return 'Skills: Components • Hooks • State Management • Routing • Data Fetching • Deployment';
+      return 'Skills: Components â€¢ Hooks â€¢ State Management â€¢ Routing â€¢ Data Fetching â€¢ Deployment';
     default:
       return 'Skills: Web Development Fundamentals';
   }
 }
+

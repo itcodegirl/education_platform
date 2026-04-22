@@ -1,6 +1,6 @@
-{
-  "name": "CodeHerWay — Learn. Build. Ship.",
-  "short_name": "CodeHerWay",
+﻿{
+  "name": "Cinova â€” Learn. Build. Ship.",
+  "short_name": "Cinova",
   "description": "A coding education platform for women in tech. Learn HTML, CSS, JavaScript, and React.",
   "start_url": "/",
   "display": "standalone",
@@ -51,3 +51,4 @@
     }
   ]
 }
+

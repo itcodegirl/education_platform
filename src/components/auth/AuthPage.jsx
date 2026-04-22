@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+﻿import { useRef, useState } from 'react';
 import { useAuth } from '../../providers';
 import { Logo } from '../shared/Logo';
 import { LandingHeroIntro, LandingHeroStory } from './LandingHero';
@@ -52,7 +52,7 @@ export function AuthPage({ onPreview }) {
     if (nextMode) {
       setModeAndClearError(nextMode);
     }
-    // On desktop the card is already in the first viewport — scroll is a
+    // On desktop the card is already in the first viewport â€” scroll is a
     // no-op. On mobile it scrolls the form into view. Either way, focus
     // the primary field so keyboard users land in the right place.
     authCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -165,7 +165,7 @@ export function AuthPage({ onPreview }) {
             <Logo size="lg" showTagline />
           </div>
           <div className="auth-confirm" role="status" aria-live="polite">
-            <span className="auth-confirm-icon" aria-hidden="true">📧</span>
+            <span className="auth-confirm-icon" aria-hidden="true">ðŸ“§</span>
             <h1>Check your email</h1>
             <p>
               We sent a confirmation link to <strong>{email}</strong>. Open it to activate your account.
@@ -198,8 +198,8 @@ export function AuthPage({ onPreview }) {
 
         <div className="auth-card" ref={authCardRef} aria-busy={loading || sendingReset ? 'true' : 'false'}>
           <div className="auth-brand">
-            <span className="auth-bolt" aria-hidden="true">⚡</span>
-            <p className="auth-title">CodeHerWay</p>
+            <span className="auth-bolt" aria-hidden="true">âš¡</span>
+            <p className="auth-title">Cinova</p>
             <p className="auth-sub">Learn. Build. Ship.</p>
           </div>
 
@@ -230,7 +230,7 @@ export function AuthPage({ onPreview }) {
           <p className="auth-mode-copy">
             {mode === 'signup'
               ? 'Create your account to unlock every course and start learning in one session.'
-              : 'Already using CodeHerWay? Sign in to resume where you left off, or reset your password if needed.'}
+              : 'Already using Cinova? Sign in to resume where you left off, or reset your password if needed.'}
           </p>
 
           <form
@@ -301,7 +301,7 @@ export function AuthPage({ onPreview }) {
                 id="auth-password"
                 className="ui-input"
                 type="password"
-                placeholder="••••••••"
+                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                 autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -411,8 +411,9 @@ export function AuthPage({ onPreview }) {
         </div>
       </div>
 
-      {/* The scroll story lives below the fold — 4 code panels + outro. */}
+      {/* The scroll story lives below the fold â€” 4 code panels + outro. */}
       <LandingHeroStory />
     </main>
   );
 }
+

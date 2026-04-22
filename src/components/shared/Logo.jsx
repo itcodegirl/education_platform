@@ -1,23 +1,23 @@
-// ═══════════════════════════════════════════════
-// LOGO — <Code>Her</Way> brand wordmark
+﻿// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// LOGO â€” <Code>Her</Way> brand wordmark
 //
 // Brackets: South Carolina blue (#56a0d3)
-// "Her": gradient purple→pink (#7B61FF → #FF6FD8)
+// "Her": gradient purpleâ†’pink (#7B61FF â†’ #FF6FD8)
 // Tagline: console.log("you belong here");
 //
 // Variants:
-//   size="sm"  → sidebar/nav (default)
-//   size="lg"  → auth page, splash screens
-//   size="icon" → just <H/>
-//   showTagline → adds console.log line below
-// ═══════════════════════════════════════════════
+//   size="sm"  â†’ sidebar/nav (default)
+//   size="lg"  â†’ auth page, splash screens
+//   size="icon" â†’ just <H/>
+//   showTagline â†’ adds console.log line below
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 import { memo } from 'react';
 
 export const Logo = memo(function Logo({ size = 'sm', className = '', showTagline = false }) {
   if (size === 'icon') {
     return (
-      <span className={`logo logo-icon ${className}`} aria-label="CodeHerWay">
+      <span className={`logo logo-icon ${className}`} aria-label="Cinova">
         <span className="logo-bracket">&lt;</span>
         <span className="logo-her">H</span>
         <span className="logo-bracket">/&gt;</span>
@@ -27,7 +27,7 @@ export const Logo = memo(function Logo({ size = 'sm', className = '', showTaglin
 
   return (
     <div className={`logo-wrap logo-wrap-${size} ${className}`}>
-      <span className={`logo logo-${size}`} aria-label="CodeHerWay">
+      <span className={`logo logo-${size}`} aria-label="Cinova">
         <span className="logo-bracket">&lt;</span>
         <span className="logo-code">Code</span>
         <span className="logo-bracket">&gt;</span>
@@ -50,3 +50,4 @@ export const Logo = memo(function Logo({ size = 'sm', className = '', showTaglin
     </div>
   );
 });
+

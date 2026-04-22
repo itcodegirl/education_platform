@@ -1,7 +1,7 @@
-// ═══════════════════════════════════════════════
-// ERROR BOUNDARY — Catches React render crashes
+﻿// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ERROR BOUNDARY â€” Catches React render crashes
 // Shows friendly fallback with retry option
-// ═══════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 import { Component } from 'react';
 import { reportException } from '../../lib/sentry';
@@ -23,7 +23,7 @@ export class ErrorBoundary extends Component {
     // the stack trace immediately. In production, we don't want to
     // pollute the user's devtools.
     if (import.meta.env.DEV) {
-      console.error('CodeHerWay render error:', error, errorInfo);
+      console.error('Cinova render error:', error, errorInfo);
     }
   }
 
@@ -48,7 +48,7 @@ export class ErrorBoundary extends Component {
       return (
         <div className="eb-screen">
           <div className="eb-card">
-            <span className="eb-icon" aria-hidden="true">⚠️</span>
+            <span className="eb-icon" aria-hidden="true">!</span>
             <h2 className="eb-title">Something went wrong</h2>
             <p className="eb-msg">
               The platform hit an unexpected error. This is usually temporary.
@@ -68,7 +68,7 @@ export class ErrorBoundary extends Component {
             </div>
             <p className="eb-help">
               If this keeps happening, try clearing your browser cache or contact{' '}
-              <a href="mailto:hello@codeherway.com">support</a>.
+              <a href="mailto:hello@cinova.app">support</a>.
             </p>
           </div>
         </div>
@@ -78,3 +78,4 @@ export class ErrorBoundary extends Component {
     return this.props.children;
   }
 }
+

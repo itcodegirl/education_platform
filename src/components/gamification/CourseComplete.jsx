@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { generateCertificate } from '../../utils/certificate';
 import { useToast } from '../shared/Toast';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
@@ -59,7 +59,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
         tabIndex={-1}
       >
         <div className="cc-badge-row">
-          <span className="cc-trophy">🏆</span>
+          <span className="cc-trophy">ðŸ†</span>
         </div>
 
         <div className="cc-header">
@@ -116,9 +116,9 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
             type="button"
             className="cc-share-btn"
             onClick={() => {
-              const text = `I just completed the ${course.label} course on CodeHerWay! ${lessonCount} lessons done. #CodeHerWay #WomenInTech #LearnToCode`;
+              const text = `I just completed the ${course.label} course on Cinova! ${lessonCount} lessons done. #Cinova #WomenInTech #LearnToCode`;
               if (navigator.share) {
-                navigator.share({ title: 'CodeHerWay Certificate', text });
+                navigator.share({ title: 'Cinova Certificate', text });
               } else {
                 navigator.clipboard.writeText(text);
                 toast.show('Copied to clipboard!');
@@ -129,10 +129,11 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
           </button>
 
           <button type="button" className="cc-close-btn" onClick={onClose}>
-            Keep building →
+            Keep building â†’
           </button>
         </div>
       </div>
     </div>
   );
 }
+

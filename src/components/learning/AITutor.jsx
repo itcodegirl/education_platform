@@ -1,8 +1,8 @@
-// ═══════════════════════════════════════════════
-// AI TUTOR — Context-aware lesson assistant
+﻿// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// AI TUTOR â€” Context-aware lesson assistant
 // Uses the app's server-side AI endpoint
 // Knows the current lesson, module, and course
-// ═══════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 import { useState, useRef, useEffect } from 'react';
 import { askLessonTutor } from '../../services/aiService';
@@ -58,7 +58,7 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
   // Build lesson context for the AI system prompt
   function buildSystemPrompt() {
     const parts = [];
-    parts.push(`You are the CodeHerWay AI Tutor — a supportive, direct coding mentor for women learning web development.`);
+    parts.push(`You are the Cinova AI Tutor â€” a supportive, direct coding mentor for women learning web development.`);
     parts.push(`\nThe student is currently studying:`);
     parts.push(`Course: ${courseId?.toUpperCase() || 'Web Development'}`);
     if (moduleTitle) parts.push(`Module: ${moduleTitle}`);
@@ -66,7 +66,7 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
 
     if (lesson.concepts?.length) {
       parts.push(`\nKey concepts in this lesson:`);
-      lesson.concepts.forEach(c => parts.push(`• ${c}`));
+      lesson.concepts.forEach(c => parts.push(`â€¢ ${c}`));
     }
 
     if (lesson.code) {
@@ -139,7 +139,7 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
     }
   }
 
-  // Format AI response — handles code blocks and paragraphs
+  // Format AI response â€” handles code blocks and paragraphs
   function formatResponse(text) {
     const parts = text.split(/(```[\s\S]*?```)/g);
     return parts.map((part, i) => {
@@ -174,12 +174,12 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
         aria-expanded={isOpen}
         aria-controls="lesson-ai-tutor-panel"
       >
-        <span className="ai-tutor-icon robot-glow" aria-hidden="true">🤖</span>
+        <span className="ai-tutor-icon robot-glow" aria-hidden="true">ðŸ¤–</span>
         <span className="ai-tutor-label">AI Tutor</span>
         <span className="ai-tutor-hint">
           {isOpen ? 'Close' : 'Ask about this lesson'}
         </span>
-        <span className="ai-tutor-arrow">{isOpen ? '▾' : '▸'}</span>
+        <span className="ai-tutor-arrow">{isOpen ? 'â–¾' : 'â–¸'}</span>
       </button>
 
       {isOpen && (
@@ -189,7 +189,7 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
             {messages.length === 0 && (
               <div className="ai-welcome">
                 <p className="ai-welcome-text">
-                  👋 I am grounded in this lesson already. Ask about{' '}
+                  ðŸ‘‹ I am grounded in this lesson already. Ask about{' '}
                   <strong>{lesson.title}</strong> and I will explain it, show a different example,
                   or help you get unstuck without making you feel lost.
                 </p>
@@ -214,7 +214,7 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
             {messages.map((msg, i) => (
               <div key={i} className={`ai-msg ai-msg-${msg.role}`}>
                 <div className="ai-msg-avatar">
-                  {msg.role === 'user' ? '👤' : '🤖'}
+                  {msg.role === 'user' ? 'ðŸ‘¤' : 'ðŸ¤–'}
                 </div>
                 <div className="ai-msg-content">
                   {msg.role === 'assistant'
@@ -226,7 +226,7 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
 
             {loading && (
               <div className="ai-msg ai-msg-assistant">
-                <div className="ai-msg-avatar">🤖</div>
+                <div className="ai-msg-avatar">ðŸ¤–</div>
                 <div className="ai-msg-content">
                   <div className="ai-typing">
                     <span></span><span></span><span></span>
@@ -261,7 +261,7 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
               disabled={!input.trim() || loading || !isOnline}
               aria-label="Send message to AI tutor"
             >
-              ↑
+              â†‘
             </button>
           </form>
           <div id="ai-input-meta" className="ai-input-meta">
@@ -287,3 +287,4 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
     </div>
   );
 }
+

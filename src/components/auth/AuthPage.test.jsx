@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AuthPage } from './AuthPage';
 
@@ -27,7 +27,7 @@ vi.mock('../../providers', () => ({
 }));
 
 vi.mock('../shared/Logo', () => ({
-  Logo: () => <span>CodeHerWay</span>,
+  Logo: () => <span>Cinova</span>,
 }));
 
 vi.mock('./LandingHero', () => ({
@@ -101,3 +101,4 @@ describe('AuthPage', () => {
     ).toBeInTheDocument();
   });
 });
+

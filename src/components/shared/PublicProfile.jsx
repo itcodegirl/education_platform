@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { Logo } from './Logo';
 import { XP_PER_LEVEL, getLevel, getXPInLevel } from '../../utils/helpers';
@@ -70,7 +70,7 @@ export function PublicProfile({ handle, onClose }) {
     return (
       <div className="pub-profile">
         <div className="pub-card pub-card-center">
-          <div className="pub-notfound-icon">🌙</div>
+          <div className="pub-notfound-icon">ðŸŒ™</div>
           <h1 className="pub-notfound-title">Profile not found</h1>
           <p className="pub-notfound-msg">
             {state.error === 'Profile not found'
@@ -78,7 +78,7 @@ export function PublicProfile({ handle, onClose }) {
               : 'Something went wrong loading this profile.'}
           </p>
           <a className="pub-cta" href="#">
-            Go to CodeHerWay &rarr;
+            Go to Cinova &rarr;
           </a>
         </div>
       </div>
@@ -113,7 +113,7 @@ export function PublicProfile({ handle, onClose }) {
             onClick={onClose}
             aria-label="Close public profile"
           >
-            ✕
+            âœ•
           </button>
         )}
       </header>
@@ -124,7 +124,7 @@ export function PublicProfile({ handle, onClose }) {
         <h1 className="pub-name">{display_name || profileHandle}</h1>
         <p className="pub-handle">@{profileHandle}</p>
         <p className="pub-summary">
-          This learner is building with CodeHerWay and sharing the proof: progress,
+          This learner is building with Cinova and sharing the proof: progress,
           momentum, and shipped lessons.
         </p>
 
@@ -154,7 +154,7 @@ export function PublicProfile({ handle, onClose }) {
           <div className="pub-stat">
             <div className="pub-stat-value">
               {streak_days || 0}
-              <span className="pub-stat-unit"> 🔥</span>
+              <span className="pub-stat-unit"> ðŸ”¥</span>
             </div>
             <div className="pub-stat-label">Day streak</div>
           </div>
@@ -169,13 +169,14 @@ export function PublicProfile({ handle, onClose }) {
         </div>
 
         <a className="pub-cta" href="#">
-          Start learning on CodeHerWay &rarr;
+          Start learning on Cinova &rarr;
         </a>
 
         <p className="pub-footer">
-          Public profile · shared by {display_name || profileHandle} · built on CodeHerWay
+          Public profile Â· shared by {display_name || profileHandle} Â· built on Cinova
         </p>
       </div>
     </div>
   );
 }
+
