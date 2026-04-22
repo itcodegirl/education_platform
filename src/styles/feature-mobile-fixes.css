@@ -7,7 +7,7 @@
 
 
 /* Mobile textarea editor (replaces Monaco on phones) */
-.cpv-mobile-editor {
+.code-preview-mobile-editor {
   width: 100%;
   min-height: 280px;
   padding: 16px;
@@ -25,7 +25,7 @@
   overflow-x: auto;
 }
 
-.cpv-mobile-editor::placeholder {
+.code-preview-mobile-editor::placeholder {
   color: #5a5a7a;
 }
 
@@ -120,7 +120,7 @@
   }
 
   /* Code preview mobile */
-  .cpv-mobile-editor {
+  .code-preview-mobile-editor {
     min-height: 220px;
     font-size: 13px;
   }
@@ -184,27 +184,27 @@
 
 /* Extra small screens */
 @media (max-width: 400px) {
-  .cpv-tabs {
+  .code-preview-tabs {
     flex-wrap: wrap;
   }
 
-  .cpv-tab {
+  .code-preview-tab {
     font-size: 11px;
     padding: 6px 8px;
   }
 
-  .cpv-actions {
+  .code-preview-actions {
     gap: 4px;
   }
 
-  .cpv-copy,
-  .cpv-reset,
-  .cpv-explain {
+  .code-preview-copy,
+  .code-preview-reset,
+  .code-preview-explain {
     font-size: 10px;
     padding: 3px 6px;
   }
 
-  .cpv-mobile-editor {
+  .code-preview-mobile-editor {
     min-height: 180px;
     font-size: 12px;
     padding: 12px;
@@ -304,7 +304,7 @@
     min-height: 48px;
   }
 
-  .cpv-tab {
+  .code-preview-tab {
     min-height: 40px;
   }
 
@@ -377,7 +377,7 @@ select {
 }
 
 /* Android textarea — prevent auto-resize issues */
-.cpv-mobile-editor {
+.code-preview-mobile-editor {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
@@ -389,7 +389,7 @@ select {
 .sb-scroll,
 .main-shell,
 .main-shell,
-.cpv-explanation-body,
+.code-preview-explanation-body,
 .cheatsheet-body,
 .admin-table-wrap {
   -webkit-overflow-scrolling: touch;
@@ -425,7 +425,7 @@ select {
 }
 
 /* Fix Android text selection on code blocks */
-.cpv-code {
+.code-preview-code {
   -webkit-user-select: text;
   user-select: text;
 }
@@ -433,7 +433,7 @@ select {
 /* Fix Android hover states sticking after tap */
 @media (hover: none) and (pointer: coarse) {
 
-  .cpv-tab:hover,
+  .code-preview-tab:hover,
   .nav-btn:hover,
   .mark-btn:hover,
   .tool-btn:hover,
@@ -480,5 +480,6 @@ select {
     margin-bottom: 16px;
   }
 }
+
 
 

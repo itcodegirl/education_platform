@@ -257,23 +257,23 @@
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.15);
 }
 
-.bc-course {
+.breadcrumb-course {
   font-weight: 700;
   font-family: 'Poppins', monospace;
   font-size: 13px;
   white-space: nowrap;
 }
 
-.bc-mod {
+.breadcrumb-mod {
   color: var(--text-dim);
   white-space: nowrap;
 }
 
-.bc-sep {
+.breadcrumb-sep {
   color: var(--text-muted);
 }
 
-.bc-les {
+.breadcrumb-les {
   color: var(--text);
   font-weight: 600;
   white-space: nowrap;
@@ -281,7 +281,7 @@
   text-overflow: ellipsis;
 }
 
-.bc-progress {
+.breadcrumb-progress {
   margin-left: auto;
   border-color: rgba(0, 229, 255, 0.28);
   background: rgba(0, 229, 255, 0.1);
@@ -800,29 +800,29 @@
 }
 
 /* Code blocks stay dark in light mode (industry standard) */
-.shell.light .cpv-code,
-.shell.light .cpv-iframe {
+.shell.light .code-preview-code,
+.shell.light .code-preview-iframe {
   background: #1a1a2e;
   color: #e0e0ec;
 }
 
-.shell.light .cpv-tabs {
+.shell.light .code-preview-tabs {
   background: #2a2a3e;
   border-color: #3a3a5e;
 }
 
-.shell.light .cpv-tab {
+.shell.light .code-preview-tab {
   color: #8888a8;
 }
 
-.shell.light .cpv-tab.on {
+.shell.light .code-preview-tab.on {
   color: #ff6b9d;
   background: #1a1a2e;
 }
 
-.shell.light .cpv-copy,
-.shell.light .cpv-reset,
-.shell.light .cpv-explain {
+.shell.light .code-preview-copy,
+.shell.light .code-preview-reset,
+.shell.light .code-preview-explain {
   background: #1a1a2e;
   border-color: #3a3a5e;
   color: #8888a8;
@@ -999,7 +999,7 @@
   color: var(--pink);
 }
 
-[data-course="css"] .cpv-tab.on {
+[data-course="css"] .code-preview-tab.on {
   color: var(--cyan);
   border-bottom-color: var(--cyan);
 }
@@ -1022,7 +1022,7 @@
   color: var(--amber);
 }
 
-[data-course="js"] .cpv-tab.on {
+[data-course="js"] .code-preview-tab.on {
   color: var(--amber);
   border-bottom-color: var(--amber);
 }
@@ -1045,7 +1045,7 @@
   color: var(--purple);
 }
 
-[data-course="react"] .cpv-tab.on {
+[data-course="react"] .code-preview-tab.on {
   color: var(--purple);
   border-bottom-color: var(--purple);
 }
@@ -1054,5 +1054,6 @@
   border-color: var(--purple);
   color: var(--purple);
 }
+
 
 

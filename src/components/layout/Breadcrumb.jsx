@@ -16,25 +16,26 @@ export const Breadcrumb = memo(function Breadcrumb({
   return (
     <nav className="breadcrumb" aria-label="Lesson breadcrumb">
       <span
-        className="bc-course"
+        className="breadcrumb-course"
         style={{ color: course.accent }}
         title={`${course.icon} ${course.label}`}
       >
         {course.icon} {course.label}
       </span>
-      <span className="bc-sep">&gt;</span>
-      <span className="bc-mod" title={`${mod.emoji} ${mod.title}`}>
+      <span className="breadcrumb-sep">&gt;</span>
+      <span className="breadcrumb-mod" title={`${mod.emoji} ${mod.title}`}>
         {mod.emoji} {mod.title}
       </span>
-      <span className="bc-sep">&gt;</span>
-      <span className="bc-les" title={currentLesson} aria-current="page">
+      <span className="breadcrumb-sep">&gt;</span>
+      <span className="breadcrumb-les" title={currentLesson} aria-current="page">
         {currentLesson}
       </span>
       {lessonPosition && (
-        <span className="bc-progress ui-chip" aria-label={lessonPosition}>
+        <span className="breadcrumb-progress ui-chip" aria-label={lessonPosition}>
           {lessonPosition}
         </span>
       )}
     </nav>
   );
 });
+

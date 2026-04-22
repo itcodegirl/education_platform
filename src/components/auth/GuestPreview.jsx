@@ -58,28 +58,28 @@ export function GuestPreview({ onBack }) {
         </div>
 
         <section className="lesson-surface">
-          <div className="lv-head">
-            <span className="lv-emoji" aria-hidden="true">{firstModule.emoji}</span>
-            <div className="lv-head-text">
-              <div className="lv-kicker">
-                <span className="lv-kicker-label">Module</span>
-                <span className="lv-kicker-value">{firstModule.title}</span>
+          <div className="lesson-head">
+            <span className="lesson-emoji" aria-hidden="true">{firstModule.emoji}</span>
+            <div className="lesson-head-text">
+              <div className="lesson-kicker">
+                <span className="lesson-kicker-label">Module</span>
+                <span className="lesson-kicker-value">{firstModule.title}</span>
               </div>
-              <h2 className="lv-title">{firstLesson.title}</h2>
+              <h2 className="lesson-title">{firstLesson.title}</h2>
               {firstLesson.difficulty && (
-                <div className="lv-meta">
-                  <span className={`lv-diff lv-diff-${firstLesson.difficulty}`}>
+                <div className="lesson-meta">
+                  <span className={`lesson-diff lesson-diff-${firstLesson.difficulty}`}>
                     {firstLesson.difficulty}
                   </span>
                   {firstLesson.duration && (
-                    <span className="lv-dur">⏱ {firstLesson.duration}</span>
+                    <span className="lesson-dur">⏱ {firstLesson.duration}</span>
                   )}
                 </div>
               )}
             </div>
           </div>
 
-          <div className="lv-body">
+          <div className="lesson-body">
             {firstLesson.hook?.accomplishments && (
               <div className="box sl-hook">
                 <div className="box-label">In this lesson you will</div>
@@ -170,3 +170,4 @@ export function GuestPreview({ onBack }) {
     </main>
   );
 }
+

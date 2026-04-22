@@ -9,7 +9,7 @@
    ═══════════════════════════════════════════════ */
 
 /* GPU acceleration for animated elements */
-.cpv-tab,
+.code-preview-tab,
 .nav-btn,
 .mark-btn,
 .tool-btn,
@@ -112,7 +112,7 @@ img {
   .topbar,
   .nav-row,
   .ai-tutor,
-  .cpv-tabs,
+  .code-preview-tabs,
   .search-trigger {
     display: none !important;
   }
@@ -133,7 +133,7 @@ img {
     padding: 0;
   }
 
-  .cpv-code {
+  .code-preview-code {
     white-space: pre-wrap;
     word-break: break-all;
   }
@@ -260,7 +260,7 @@ img {
   margin-top: var(--space-3);
 }
 
-.lv-quiz-wrap {
+.lesson-quiz-wrap {
   max-width: var(--content-max);
   margin: 0 auto;
   padding: 0 clamp(14px, 2vw, var(--space-7));
@@ -2347,4 +2347,5 @@ img {
 .wn-cta:hover {
   filter: brightness(1.15);
 }
+
 

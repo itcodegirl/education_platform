@@ -455,12 +455,12 @@
   .nav-row,
   .theme-toggle,
   .quiz-container,
-  .cpv-tabs,
-  .cpv-iframe,
+  .code-preview-tabs,
+  .code-preview-iframe,
   .bottom-tools,
   .lesson-nav,
   .notes-panel,
-  .lv-actions {
+  .lesson-actions {
     display: none !important;
   }
 
@@ -489,7 +489,7 @@
   .lp,
   .lp strong,
   .lp em,
-  .lv-title {
+  .lesson-title {
     color: #000 !important;
   }
 
@@ -1442,7 +1442,7 @@
 }
 
 /* ─── Scaffolding Level Indicators ────────────── */
-.cpv-scaffolding {
+.code-preview-scaffolding {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1452,12 +1452,12 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.cpv-scaffolding-icon {
+.code-preview-scaffolding-icon {
   font-size: 16px;
   flex-shrink: 0;
 }
 
-.cpv-scaffolding-label {
+.code-preview-scaffolding-label {
   font-family: 'Poppins', monospace;
   font-weight: 700;
   text-transform: uppercase;
@@ -1465,36 +1465,36 @@
   white-space: nowrap;
 }
 
-.cpv-scaffolding-hint {
+.code-preview-scaffolding-hint {
   color: var(--text-dim);
   flex: 1;
 }
 
-.cpv-scaffolding-partial {
+.code-preview-scaffolding-partial {
   background: linear-gradient(90deg, rgba(255, 167, 38, 0.1), transparent 70%);
 }
 
-.cpv-scaffolding-partial .cpv-scaffolding-label {
+.code-preview-scaffolding-partial .code-preview-scaffolding-label {
   color: var(--amber);
 }
 
-.cpv-scaffolding-starter {
+.code-preview-scaffolding-starter {
   background: linear-gradient(90deg, rgba(78, 205, 196, 0.1), transparent 70%);
 }
 
-.cpv-scaffolding-starter .cpv-scaffolding-label {
+.code-preview-scaffolding-starter .code-preview-scaffolding-label {
   color: var(--cyan);
 }
 
-.cpv-scaffolding-requirements {
+.code-preview-scaffolding-requirements {
   background: linear-gradient(90deg, rgba(167, 139, 250, 0.1), transparent 70%);
 }
 
-.cpv-scaffolding-requirements .cpv-scaffolding-label {
+.code-preview-scaffolding-requirements .code-preview-scaffolding-label {
   color: var(--purple);
 }
 
-.lv-scaffolding {
+.lesson-scaffolding {
   display: inline-flex;
   align-items: center;
   padding: 3px 10px;
@@ -1504,39 +1504,39 @@
   font-family: 'Poppins', monospace;
 }
 
-.lv-scaffolding-partial {
+.lesson-scaffolding-partial {
   background: rgba(255, 167, 38, 0.12);
   color: var(--amber);
 }
 
-.lv-scaffolding-starter {
+.lesson-scaffolding-starter {
   background: rgba(78, 205, 196, 0.12);
   color: var(--cyan);
 }
 
-.lv-scaffolding-requirements {
+.lesson-scaffolding-requirements {
   background: rgba(167, 139, 250, 0.12);
   color: var(--purple);
 }
 
 @media (max-width: 600px) {
-  .cpv-scaffolding {
+  .code-preview-scaffolding {
     flex-wrap: wrap;
     padding: 8px 12px;
   }
 
-  .cpv-scaffolding-hint {
+  .code-preview-scaffolding-hint {
     width: 100%;
   }
 }
 
 /* ─── 30. Code Preview Line Numbers ───────────── */
-.cpv-code {
+.code-preview-code {
   counter-reset: line;
   position: relative;
 }
 
-.cpv-code code {
+.code-preview-code code {
   display: block;
 }
 
@@ -1555,11 +1555,11 @@
   animation: fadeIn 0.3s ease-out;
 }
 
-.lv-head {
+.lesson-head {
   animation: slideInLeft 0.3s ease-out;
 }
 
-.lv-body {
+.lesson-body {
   animation: fadeIn 0.4s ease-out 0.1s both;
 }
 
@@ -1618,5 +1618,6 @@
 .sb-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--border-bright);
 }
+
 
 

@@ -1,7 +1,7 @@
-﻿// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// APP LAYOUT â€” Main platform shell
+// ═══════════════════════════════════════════════
+// APP LAYOUT — Main platform shell
 // Sidebar + Topbar + Content + Toolbar + Panels
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══════════════════════════════════════════════
 
 import { useCallback, useMemo, useEffect, useState } from "react";
 import { COURSES } from "../data";
@@ -65,7 +65,7 @@ export function AppLayout() {
 
   // Lazy-load the currently-selected course's lesson content. The
   // CourseContentProvider caches loads and auto-fetches the default
-  // ('html') on mount â€” this effect keeps it in sync as the user
+  // ('html') on mount — this effect keeps it in sync as the user
   // switches courses so we don't over-fetch.
   const {
     setActiveCourseId,
@@ -124,22 +124,22 @@ export function AppLayout() {
     }
   }, [isMobile, setSidebarCollapsed]);
 
-  // â”€â”€â”€ Dynamic page title â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─── Dynamic page title ───────────────────
   useEffect(() => {
     const title = showModQuiz
-      ? `${mod.title} Quiz â€” Cinova`
-      : `${les.title} â€” Cinova`;
+      ? `${mod.title} Quiz — Cinova`
+      : `${les.title} — Cinova`;
     document.title = title;
-    return () => { document.title = 'Cinova â€” Learn. Build. Ship.'; };
+    return () => { document.title = 'Cinova — Learn. Build. Ship.'; };
   }, [les.title, mod.title, showModQuiz]);
 
-  // â”€â”€â”€ Save position on navigation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─── Save position on navigation ──────────
   useEffect(() => {
     if (dataLoaded) {
       savePosition({
         course: `${course.icon} ${course.label}`,
         mod: `${mod.emoji} ${mod.title}`,
-        les: showModQuiz ? "ðŸ“ Module Quiz" : les.title,
+        les: showModQuiz ? "📝 Module Quiz" : les.title,
       });
       trackCourseVisit(course.id);
     }
@@ -156,7 +156,7 @@ export function AppLayout() {
     trackCourseVisit,
   ]);
 
-  // â”€â”€â”€ Milestone + course completion â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─── Milestone + course completion ────────
   useEffect(() => {
     panels.checkMilestone(completed.length);
   }, [completed.length, panels]);
@@ -206,7 +206,7 @@ export function AppLayout() {
     }
   }, [isCourseComplete, isDone, panels]);
 
-  // â”€â”€â”€ Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─── Actions ──────────────────────────────
   const handleMarkDone = useCallback(async () => {
     if (marking) return;
     setMarking(true);
@@ -241,7 +241,7 @@ export function AppLayout() {
     [panels],
   );
 
-  // â”€â”€â”€ Keyboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─── Keyboard ─────────────────────────────
   useKeyboardNav({
     onNext: nav.next,
     onPrev: nav.prev,
@@ -257,7 +257,7 @@ export function AppLayout() {
     },
   });
 
-  // â”€â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─── Render ───────────────────────────────
   // If the active course's content hasn't finished lazy-loading,
   // show a minimal skeleton instead of the lesson UI. This is fast
   // (~100-300ms on a warm cache, once per course per session) and
@@ -325,7 +325,7 @@ export function AppLayout() {
               aria-controls="course-sidebar"
               aria-expanded={isMobile ? panels.sidebar : !sidebarCollapsed}
             >
-              {isMobile ? "â˜°" : sidebarCollapsed ? "Â»" : "Â«"}
+              {isMobile ? "☰" : sidebarCollapsed ? "»" : "«"}
             </button>
             <Breadcrumb
               course={course}
@@ -347,7 +347,7 @@ export function AppLayout() {
               </span>
               {streak > 0 && (
                 <span className="topbar-pill streak" aria-label={`${streak} day streak`}>
-                  ðŸ”¥ {streak} day streak
+                  🔥 {streak} day streak
                 </span>
               )}
               {dailyCount > 0 && (
@@ -364,10 +364,10 @@ export function AppLayout() {
                 aria-label="Open lesson search"
                 aria-pressed={panels.panel === "search"}
               >
-                <span>ðŸ”</span>
+                <span>🔍</span>
                 <span className="search-trigger-label">Search</span>
                 <span className="search-trigger-mobile-hint">Tap to search</span>
-                <kbd>âŒ˜K</kbd>
+                <kbd>⌘K</kbd>
               </button>
               {!showModQuiz && (
               <button
@@ -388,9 +388,9 @@ export function AppLayout() {
         <div className="lesson-container">
           {showModQuiz && moduleQuiz ? (
             <div className="lesson-surface">
-              <div className="lv-head">
-                <span className="lv-emoji">ðŸ“</span>
-                <h1 className="lv-title">{mod.title} â€” Module Quiz</h1>
+              <div className="lesson-head">
+                <span className="lesson-emoji">📝</span>
+                <h1 className="lesson-title">{mod.title} — Module Quiz</h1>
               </div>
               <p className="lp">
                 Test your knowledge of <strong>{mod.title}</strong>.
@@ -447,7 +447,7 @@ export function AppLayout() {
                 moduleTitle={mod.title}
               />
               {lessonQuiz && (
-                <div className="lv-quiz-wrap">
+                <div className="lesson-quiz-wrap">
                   <QuizView
                     quiz={lessonQuiz}
                     accent={course.accent}
@@ -468,7 +468,7 @@ export function AppLayout() {
             disabled={isFirst}
             aria-label={prevTitle ? `Previous lesson: ${prevTitle}` : 'Previous lesson'}
           >
-            <span className="nav-btn-dir" aria-hidden="true">â†</span>
+            <span className="nav-btn-dir" aria-hidden="true">←</span>
             <span className="nav-btn-text">
               {prevTitle ? (
                 <>
@@ -499,7 +499,7 @@ export function AppLayout() {
                 </>
               ) : 'Next lesson'}
             </span>
-            <span className="nav-btn-dir" aria-hidden="true">â†’</span>
+            <span className="nav-btn-dir" aria-hidden="true">→</span>
           </button>
         </nav>
         <p className="nav-guidance" role="status" aria-live="polite">
@@ -542,4 +542,5 @@ export function AppLayout() {
     </div>
   );
 }
+
 

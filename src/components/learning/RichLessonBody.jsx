@@ -29,7 +29,7 @@ export function RichLessonBody({
 
   return (
     <>
-      <div className="lv-body">
+      <div className="lesson-body">
         {lesson.content && renderMarkdown(lesson.content)}
         {isRichFormat && lesson.concepts && (
           <>
@@ -126,3 +126,4 @@ export function RichLessonBody({
     </>
   );
 }
+

@@ -23,9 +23,9 @@
   .topbar-actions { margin-left: auto; gap: 6px; }
   .topbar-status { display: none; }
   .breadcrumb { flex: 1; min-width: 0; padding: 8px 10px; border-radius: 12px; }
-  .lv-head { flex-wrap: wrap; gap: 12px; }
-  .lv-actions { width: 100%; justify-content: flex-start; }
-  .cpv-code { font-size: 12px; padding: 14px 16px; }
+  .lesson-head { flex-wrap: wrap; gap: 12px; }
+  .lesson-actions { width: 100%; justify-content: flex-start; }
+  .code-preview-code { font-size: 12px; padding: 14px 16px; }
 
   /* Lesson nav bar replaces both bottom toolbar and inline nav-row */
   .lesson-nav { display: flex; }
@@ -83,13 +83,13 @@
   .xp-amount,
   .dg-count,
   .prog-info { font-size: 11px; }
-  .bc-course { display: none; }
-  .lv-emoji { font-size: 28px; }
+  .breadcrumb-course { display: none; }
+  .lesson-emoji { font-size: 28px; }
   .lesson-nav-label { font-size: 12px; }
   .lesson-nav-btn { padding: 10px 6px; }
   .theme-toggle { width: 38px; height: 38px; font-size: 18px; }
-  .lv-action-btn { height: 36px; min-width: 36px; padding: 0 12px; }
-  .lv-action-btn::after { font-size: 11px; }
+  .lesson-action-btn { height: 36px; min-width: 36px; padding: 0 12px; }
+  .lesson-action-btn::after { font-size: 11px; }
   .auth-logo { font-size: 22px; }
   .auth-social { flex-direction: column; }
   .sb-tool-btn { padding: 10px 12px; font-size: 12px; }
@@ -97,10 +97,10 @@
 
 /* ─── 25b. Tablet Responsive (768px) ─────────── */
 @media (max-width: 768px) {
-  .lv-head { flex-direction: column; align-items: flex-start; }
-  .lv-actions { width: 100%; }
-  .lv-action-btn::after { display: none; }
-  .lv-emoji { font-size: 32px; }
+  .lesson-head { flex-direction: column; align-items: flex-start; }
+  .lesson-actions { width: 100%; }
+  .lesson-action-btn::after { display: none; }
+  .lesson-emoji { font-size: 32px; }
   .lp { font-size: 15px; line-height: 1.75; }
   .box { padding: 16px 18px; border-radius: 14px; }
   .quiz-header { padding: 14px 16px; }
@@ -115,7 +115,7 @@
   .search-trigger .search-trigger-label { display: none; }
   .search-trigger .search-trigger-mobile-hint { display: inline; }
   .search-trigger kbd { display: none; }
-  .bc-mod, .bc-sep:nth-of-type(1) { display: none; }
+  .breadcrumb-mod, .breadcrumb-sep:nth-of-type(1) { display: none; }
 }
 
 /* ─── 25c. Ultra-small devices (<=400px) ────── */
@@ -125,7 +125,7 @@
   .ham { width: 34px; height: 34px; }
   .topbar-pill { padding: 6px 8px; font-size: 11px; }
   .breadcrumb { padding: 6px 8px; border-radius: 10px; }
-  .bc-lesson { font-size: 11px; }
+  .breadcrumb-lesson { font-size: 11px; }
 
   .main-shell { padding-bottom: 88px; }
   .lesson-nav { padding: 8px 10px; gap: 6px; }
@@ -134,9 +134,9 @@
 
   .lp { font-size: 14px; line-height: 1.7; }
   .box { padding: 12px 14px; border-radius: 12px; }
-  .cpv-tabs { gap: 6px; padding: 10px 12px; }
-  .cpv-tab { padding: 8px 10px; font-size: 12px; }
-  .cpv-code { font-size: 11px; padding: 12px; }
+  .code-preview-tabs { gap: 6px; padding: 10px 12px; }
+  .code-preview-tab { padding: 8px 10px; font-size: 12px; }
+  .code-preview-code { font-size: 11px; padding: 12px; }
 
   .ss-modal,
   .search-modal,
@@ -162,5 +162,6 @@
   .admin-pager { flex-direction: column; align-items: flex-start; }
   .admin-pager-actions { width: 100%; justify-content: space-between; }
 }
+
 
 

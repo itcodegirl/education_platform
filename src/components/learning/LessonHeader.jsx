@@ -23,29 +23,29 @@ export function LessonHeader({
   const bookmarkLabel = bookmarked ? 'Remove bookmark' : 'Bookmark this lesson';
 
   return (
-    <div className="lv-head">
-      <span className="lv-emoji" aria-hidden="true">{emoji}</span>
-      <div className="lv-head-text">
+    <div className="lesson-head">
+      <span className="lesson-emoji" aria-hidden="true">{emoji}</span>
+      <div className="lesson-head-text">
         {moduleTitle && (
-          <div className="lv-kicker">
-            <span className="lv-kicker-label">Module</span>
-            <span className="lv-kicker-value">{moduleTitle}</span>
+          <div className="lesson-kicker">
+            <span className="lesson-kicker-label">Module</span>
+            <span className="lesson-kicker-value">{moduleTitle}</span>
           </div>
         )}
-        <h1 className="lv-title">{lesson.title}</h1>
+        <h1 className="lesson-title">{lesson.title}</h1>
         {summary && (
-          <p className="lv-summaryline">
+          <p className="lesson-summaryline">
             {summary}.
           </p>
         )}
         {difficulty && (
-          <div className="lv-meta">
-            <span className={`lv-diff lv-diff-${difficulty}`}>{difficulty}</span>
-            {duration && <span className="lv-dur">Duration: {duration}</span>}
-            {conceptCount > 0 && <span className="lv-chip">{conceptCount} concepts</span>}
-            {taskCount > 0 && <span className="lv-chip">{taskCount} tasks</span>}
+          <div className="lesson-meta">
+            <span className={`lesson-diff lesson-diff-${difficulty}`}>{difficulty}</span>
+            {duration && <span className="lesson-dur">Duration: {duration}</span>}
+            {conceptCount > 0 && <span className="lesson-chip">{conceptCount} concepts</span>}
+            {taskCount > 0 && <span className="lesson-chip">{taskCount} tasks</span>}
             {scaffolding && scaffolding !== 'full' && (
-              <span className={`lv-scaffolding lv-scaffolding-${scaffolding}`}>
+              <span className={`lesson-scaffolding lesson-scaffolding-${scaffolding}`}>
                 {scaffolding === 'partial' && 'Partial template'}
                 {scaffolding === 'starter' && 'Starter code'}
                 {scaffolding === 'requirements' && 'Write from scratch'}
@@ -55,10 +55,10 @@ export function LessonHeader({
         )}
       </div>
 
-      <div className="lv-actions">
+      <div className="lesson-actions">
         <button
           type="button"
-          className={`lv-action-btn ui-btn ui-btn-secondary ${bookmarked ? 'active' : ''}`}
+          className={`lesson-action-btn ui-btn ui-btn-secondary ${bookmarked ? 'active' : ''}`}
           onClick={onToggleBookmark}
           title={bookmarkLabel}
           aria-pressed={bookmarked}
@@ -69,7 +69,7 @@ export function LessonHeader({
         </button>
         <button
           type="button"
-          className={`lv-action-btn ui-btn ui-btn-secondary ${showNotes ? 'active' : ''}`}
+          className={`lesson-action-btn ui-btn ui-btn-secondary ${showNotes ? 'active' : ''}`}
           onClick={onToggleNotes}
           title="Notes"
           aria-expanded={showNotes}
@@ -82,3 +82,4 @@ export function LessonHeader({
     </div>
   );
 }
+

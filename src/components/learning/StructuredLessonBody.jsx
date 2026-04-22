@@ -25,7 +25,7 @@ export function StructuredLessonBody({
   onToggleTask,
 }) {
   return (
-    <div className="lv-body">
+    <div className="lesson-body">
       {/* Hook — what you'll accomplish */}
       {lesson.hook?.accomplishments && (
         <div className="box sl-hook">
@@ -217,3 +217,4 @@ export function StructuredLessonBody({
     </div>
   );
 }
+
