@@ -13,7 +13,7 @@ The goal of this plan is to migrate to a full router incrementally, without brea
 ## Migration phases
 
 1. Introduce router provider in compatibility mode
-- Add React Router and wrap the app shell with a browser router.
+- [x] Add React Router and wrap the app shell with `BrowserRouter`.
 - Keep current route helpers as the canonical path contract during transition.
 
 2. Move static routes first
@@ -39,4 +39,3 @@ The goal of this plan is to migrate to a full router incrementally, without brea
 - Admin route still fails closed for non-admin users.
 - Public profile links remain shareable.
 - Existing e2e auth + lesson-flow tests pass unchanged.
-

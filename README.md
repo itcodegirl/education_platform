@@ -77,6 +77,7 @@ React SPA (Vite)
 ```
 
 Core principle: authorization and security rules are enforced at the backend boundary (RLS + server functions), not trusted to client state.
+Routing currently runs in BrowserRouter compatibility mode with centralized path contracts in `src/routes/routePaths.js`.
 
 For a deeper technical walkthrough, see [docs/architecture.md](./docs/architecture.md).
 
