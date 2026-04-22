@@ -192,6 +192,7 @@ Pre-release checklist is documented in [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIS
 
 ## Quality and release workflow
 
+- `npm run typecheck` - JS-only guard (fails if `.ts`/`.tsx` files are introduced)
 - `npm run check:quality` - lint + build + bundle budget gate
 - `npm run test:unit` - unit tests (Vitest)
 - `npm run check` - quality checks + unit tests

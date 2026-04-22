@@ -5,8 +5,10 @@ Use this checklist for Netlify releases and hotfix deploys.
 ## Before deploy
 
 - Confirm the branch is correct and the working tree is clean.
+- Run `npm run typecheck` (JS-only policy guard).
 - Run `npm run check` (lint + build + bundle gate + unit tests).
 - Run `npm run check:ci` when Playwright environment variables are available.
+- Run `npm run test:policy` when Supabase policy test secrets are configured.
 - Confirm required Netlify env vars are present:
   - `VITE_SUPABASE_URL`
   - `VITE_SUPABASE_ANON_KEY`
@@ -35,6 +37,10 @@ Use this checklist for Netlify releases and hotfix deploys.
 - Saved state:
   - bookmark a lesson and reopen it from Bookmarks
   - open the Review / spaced repetition panel
+  - open a panel (search/bookmarks), press browser Back, confirm it closes the panel before leaving lesson context
+- Deep-linking:
+  - copy the current `/learn/{course}/{module}/{lesson}` URL and load it in a new tab
+  - confirm the same lesson opens (or module quiz opens for `/quiz` routes)
 - AI:
   - open AI Tutor and ask a simple question
   - open a coding challenge and test AI help
