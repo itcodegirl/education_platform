@@ -28,7 +28,7 @@ export const module = { id: 3, emoji: '📄', title: 'Document Structure', tagli
         '<link> connects external files like CSS stylesheets.',
         '<script> connects JavaScript files — use defer to load after HTML.',
       ],
-      code: `<head>\n    <meta charset="UTF-8">\n    <meta name="viewport"\n          content="width=device-width, initial-scale=1.0">\n    <meta name="description"\n          content="Learn HTML the right way.">\n    <title>CodeHerWay | HTML Course</title>\n    <link rel="stylesheet" href="styles.css">\n    <link rel="icon" href="favicon.ico">\n    <script src="app.js" defer></script>\n</head>`,
+      code: `<head>\n    <meta charset="UTF-8">\n    <meta name="viewport"\n          content="width=device-width, initial-scale=1.0">\n    <meta name="description"\n          content="Learn HTML the right way.">\n    <title>Cinova | HTML Course</title>\n    <link rel="stylesheet" href="styles.css">\n    <link rel="icon" href="favicon.ico">\n    <script src="app.js" defer></script>\n</head>`,
       output: 'A fully configured <head> with metadata, styles, and scripts.',
       tasks: [
         'Add a meta description to your page.',
@@ -38,3 +38,4 @@ export const module = { id: 3, emoji: '📄', title: 'Document Structure', tagli
       challenge: 'Create a <head> that includes charset, viewport, title, description, CSS link, JS link, and a favicon.',
       devFession: 'I put a <p> tag inside <head> and wondered why it showed up in a weird place.' },
   ]};
+

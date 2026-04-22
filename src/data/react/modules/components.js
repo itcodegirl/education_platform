@@ -13,7 +13,7 @@ export const module3 = {
             duration: '10 min',
             concepts: ['Components are functions that return JSX — they\'re reusable UI pieces.', 'Component names MUST start with a capital letter (PascalCase).', 'Composition: build complex UIs by nesting components inside each other.', 'Each component should do ONE thing well — single responsibility.'],
             code: `function Header() {
-    return <header><h1>CodeHerWay</h1></header>;
+    return <header><h1>Cinova</h1></header>;
 }
 
 function Card({ title, children }) {
@@ -45,3 +45,4 @@ function App() {
         }
     ]
 };
+

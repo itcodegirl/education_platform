@@ -45,7 +45,7 @@ export const module = { id: 5, emoji: '📝', title: 'Text & Content Elements', 
         '&nbsp; creates a non-breaking space.',
         '&copy; creates ©, &mdash; creates —.',
       ],
-      code: `<p>Use &lt;p&gt; for paragraphs.</p>\n<p>Tom &amp; Jerry</p>\n<p>&copy; 2025 CodeHerWay</p>\n<p>Price: &dollar;29.99</p>\n<p>She said &ldquo;hello&rdquo;</p>`,
+      code: `<p>Use &lt;p&gt; for paragraphs.</p>\n<p>Tom &amp; Jerry</p>\n<p>&copy; 2025 Cinova</p>\n<p>Price: &dollar;29.99</p>\n<p>She said &ldquo;hello&rdquo;</p>`,
       output: 'Special characters rendered correctly using HTML entities.',
       tasks: [
         'Display a < and > symbol in a paragraph without breaking the HTML.',
@@ -55,3 +55,4 @@ export const module = { id: 5, emoji: '📝', title: 'Text & Content Elements', 
       challenge: 'Write a paragraph that explains HTML tags using visible < and > symbols.',
       devFession: 'I typed <p> inside a paragraph to show code and it created an actual paragraph. Entities exist for a reason.' },
   ]};
+

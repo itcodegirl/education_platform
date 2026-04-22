@@ -10,7 +10,7 @@ export const module = { id: 14, emoji: '🔍', title: 'Meta Tags & SEO Basics', 
         'Twitter Card tags control how your page looks when shared on Twitter/X.',
         'canonical URL tells search engines which version of a page is the "real" one.',
       ],
-      code: `<head>\n    <title>Learn HTML Free | CodeHerWay</title>\n    <meta name="description"\n          content="Free HTML course for women in tech." />\n    <link rel="canonical"\n          href="https://codeherway.com/html" />\n\n    <!-- Open Graph -->\n    <meta property="og:title"\n          content="Learn HTML Free" />\n    <meta property="og:description"\n          content="Master HTML from zero." />\n    <meta property="og:image"\n          content="https://codeherway.com/og.jpg" />\n    <meta property="og:type" content="website" />\n\n    <!-- Twitter Card -->\n    <meta name="twitter:card"\n          content="summary_large_image" />\n\n    <link rel="icon" href="/favicon.ico" />\n</head>`,
+      code: `<head>\n    <title>Learn HTML Free | Cinova</title>\n    <meta name="description"\n          content="Free HTML course for women in tech." />\n    <link rel="canonical"\n          href="https://cinova.app/html" />\n\n    <!-- Open Graph -->\n    <meta property="og:title"\n          content="Learn HTML Free" />\n    <meta property="og:description"\n          content="Master HTML from zero." />\n    <meta property="og:image"\n          content="https://cinova.app/og.jpg" />\n    <meta property="og:type" content="website" />\n\n    <!-- Twitter Card -->\n    <meta name="twitter:card"\n          content="summary_large_image" />\n\n    <link rel="icon" href="/favicon.ico" />\n</head>`,
       output: 'A fully SEO-optimized <head> with title, description, Open Graph, Twitter Card, and favicon.',
       tasks: [
         'Write a <title> under 60 characters for your portfolio.',
@@ -20,3 +20,4 @@ export const module = { id: 14, emoji: '🔍', title: 'Meta Tags & SEO Basics', 
       challenge: 'Write a complete <head> section with title, description, canonical, OG tags, Twitter Card, and favicon.',
       devFession: 'I shared my portfolio on LinkedIn and it showed "localhost:3000" as the preview. Open Graph would have fixed that.' },
   ]};
+

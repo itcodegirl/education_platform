@@ -172,7 +172,7 @@
   font-size: var(--text-sm);
 }
 
-/* ─── Public profile page (/#u/:handle) ─── */
+/* ─── Public profile page (/u/:handle) ─── */
 .pub-profile {
   min-height: 100vh;
   min-height: 100dvh;
@@ -905,4 +905,5 @@
   .sb.collapsed .sb-tools,
   .sb.collapsed .sb-tools-title { display: none; }
 }
+
 

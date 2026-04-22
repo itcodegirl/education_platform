@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to CodeHerWay. Format loosely follows
+All notable changes to Cinova. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 semantic versioning.
 
@@ -19,11 +19,11 @@ Portfolio polish + security hardening sweep. Ready to merge to `main`.
   OpenAI call, Postgres-backed rate limit, strict JSON schema
   validation on model output, and a UI in `SRPanel.jsx` to drop the
   generated card straight into the spaced-repetition queue.
-- **Public `/#u/:handle` profile pages** — opt-in, RLS-gated,
+- **Public `/u/:handle` profile pages** — opt-in, RLS-gated,
   read-only. New `public_profiles` SQL view projecting only display
   name, avatar, handle, XP, streak, lesson + badge counts. Opt-in
   toggle + unique-handle input in the user's private profile page.
-- **Design system styleguide** at `/#styleguide` — public, lazy-
+- **Design system styleguide** at `/styleguide` — public, lazy-
   loaded page that renders every design token visually (colors,
   gradients, spacing, type, radii, sample components).
 - **`useLocalStorage` hook** — SSR-safe, cross-tab synced, used by all
@@ -46,7 +46,7 @@ Portfolio polish + security hardening sweep. Ready to merge to `main`.
 - **TypeScript services layer** — `src/services/*.ts` with
   hand-written Supabase row/DTO types in `supabaseTypes.ts`. React
   components stay JavaScript.
-- **`/#styleguide`** route (already covered above but worth repeating
+- **`/styleguide`** route (already covered above but worth repeating
   because it's a portfolio-first-impression artifact).
 
 ### Changed
@@ -125,3 +125,4 @@ CSS, JS, React), a Python course, Monaco-backed code editor, AI
 tutor, gamification (XP, streaks, badges, daily goals), spaced
 repetition, bookmarks, notes, an admin dashboard, and PWA support.
 See `git log main` for the full history of that work.
+

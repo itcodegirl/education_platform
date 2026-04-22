@@ -145,15 +145,15 @@ export async function handler(event) {
     //         'Content-Type': 'application/json',
     //       },
     //       body: JSON.stringify({
-    //         from: 'CodeHerWay <noreply@codeherway.com>',
+    //         from: 'Cinova <noreply@cinova.app>',
     //         to: r.email,
     //         subject: `Don't lose your ${r.streakDays}-day streak! 🔥`,
     //         html: `
     //           <h2>Hey ${r.name}!</h2>
-    //           <p>You've built a <strong>${r.streakDays}-day streak</strong> on CodeHerWay — don't let it slip!</p>
+    //           <p>You've built a <strong>${r.streakDays}-day streak</strong> on Cinova — don't let it slip!</p>
     //           <p>Just one lesson today keeps your streak alive.</p>
-    //           <a href="https://mellow-sunflower-9c92cd.netlify.app/" style="display:inline-block;padding:12px 24px;background:#ff6b9d;color:#fff;border-radius:8px;text-decoration:none;font-weight:bold;">Continue Learning →</a>
-    //           <p style="color:#888;font-size:12px;margin-top:24px;">You're receiving this because you have an active streak on CodeHerWay. Reply STOP to opt out.</p>
+    //           <a href="https://cinova.app/" style="display:inline-block;padding:12px 24px;background:#ff6b9d;color:#fff;border-radius:8px;text-decoration:none;font-weight:bold;">Continue Learning →</a>
+    //           <p style="color:#888;font-size:12px;margin-top:24px;">You're receiving this because you have an active streak on Cinova. Reply STOP to opt out.</p>
     //         `,
     //       }),
     //     });
@@ -171,3 +171,4 @@ export async function handler(event) {
     return json(500, { error: 'Internal error' });
   }
 }
+

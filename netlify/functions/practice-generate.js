@@ -41,7 +41,7 @@ const ALLOWED_TOPICS = new Set(['html', 'css', 'js', 'react', 'python']);
 
 // ─── System prompt (SERVER-SIDE, never client-controlled) ─
 const SYSTEM_PROMPT = [
-  'You are the CodeHerWay practice card generator.',
+  'You are the Cinova practice card generator.',
   'You only generate short, beginner-friendly multiple-choice questions about web development and Python, in the voice of a supportive mentor for women learning to code.',
   'You must respond with a SINGLE JSON object and nothing else — no prose, no markdown fences, no leading "Here is". Just the object.',
   'The object MUST have exactly these fields:',
@@ -202,3 +202,4 @@ export async function handler(event) {
     return json(502, { error: 'Failed to reach AI service' });
   }
 }
+

@@ -375,7 +375,7 @@ revoke all on function public.consume_ai_quota() from public;
 grant execute on function public.consume_ai_quota() to authenticated;
 
 -- ═══════════════════════════════════════════════
--- PUBLIC PROFILE PAGES  (/#u/:handle)
+-- PUBLIC PROFILE PAGES  (/u/:handle)
 -- ═══════════════════════════════════════════════
 --
 -- Lets a learner opt in to a read-only public page
@@ -397,7 +397,7 @@ alter table public.profiles
     check (public_handle ~ '^[a-z0-9_-]{3,30}$');
 -- ^ Enforce URL-safe lowercase handles: 3-30 chars, alphanumeric/dash/underscore only.
 
--- Case-insensitive handle lookup (so /#u/Jenna and /#u/jenna both work).
+-- Case-insensitive handle lookup (so /u/Jenna and /u/jenna both work).
 create index if not exists idx_profiles_public_handle_lower
   on public.profiles (lower(public_handle))
   where is_public = true;
@@ -500,3 +500,4 @@ create policy "Public badges count readable"
 -- Users can still only UPDATE their own is_public / public_handle
 -- columns through the existing "Users manage own profiles" policy —
 -- it uses `auth.uid() = id`, which prevents cross-user toggling.
+

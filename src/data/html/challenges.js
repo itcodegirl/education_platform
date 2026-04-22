@@ -39,7 +39,7 @@ export const HTML_CHALLENGES = [
       { label:'No divs', check:c=>count(c,'<div')=== 0 },
     ],
     hint:'Think zones: header (top), main (center), aside (sidebar), footer (bottom).',
-    solution:'<header>\n  <nav><a href="/">Home</a> <a href="/about">About</a></nav>\n</header>\n<main>\n  <section>\n    <h2>Posts</h2>\n    <article><h3>First Post</h3><p>Content.</p></article>\n  </section>\n  <aside><h3>About</h3><p>Sidebar.</p></aside>\n</main>\n<footer><p>&copy; 2025 CodeHerWay</p></footer>' },
+    solution:'<header>\n  <nav><a href="/">Home</a> <a href="/about">About</a></nav>\n</header>\n<main>\n  <section>\n    <h2>Posts</h2>\n    <article><h3>First Post</h3><p>Content.</p></article>\n  </section>\n  <aside><h3>About</h3><p>Sidebar.</p></aside>\n</main>\n<footer><p>&copy; 2025 Cinova</p></footer>' },
 
   { id:'html-ch-4', title:'Data Table', description:'Build a structured table with thead, tbody, and 3+ rows.', difficulty:'beginner', courseId:'html',
     starter:'<table>\n  <!-- thead, tbody, th, td -->\n</table>',
@@ -131,3 +131,4 @@ export const HTML_CHALLENGES = [
     hint:'Use relative paths: <a href="about.html">About</a>',
     solution:'<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8" />\n  <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n  <title>My Site</title>\n</head>\n<body>\n  <header>\n    <nav>\n      <a href="index.html">Home</a>\n      <a href="about.html">About</a>\n      <a href="projects.html">Projects</a>\n      <a href="contact.html">Contact</a>\n    </nav>\n  </header>\n  <main>\n    <h1>Welcome to My Site</h1>\n    <p>Frontend developer portfolio.</p>\n  </main>\n  <footer>\n    <p>&copy; 2025 My Name</p>\n  </footer>\n</body>\n</html>' },
 ];
+

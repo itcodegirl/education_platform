@@ -38,7 +38,7 @@
           "Name it hello.py (the .py tells your computer it's Python code)",
           "Save it to your Desktop"
         ],
-        "code": "print(\"Hello, CodeHerWay! I just ran my first Python code\")",
+        "code": "print(\"Hello, Cinova! I just ran my first Python code\")",
         "result": "Your computer just read your Python code and displayed your message!",
         "proofRequired": "your code AND the output message in the terminal"
       },
@@ -65,7 +65,7 @@
       "build": {
         "goal": "Personalize the message with your actual name and something you're excited to learn",
         "codeComparison": {
-          "old": "print(\"Hello, CodeHerWay! I just ran my first Python code\")",
+          "old": "print(\"Hello, Cinova! I just ran my first Python code\")",
           "new": "print(\"Hello! My name is YOUR_NAME and I'm learning Python to build AI apps!\")"
         },
         "hint": "Try adding more lines! Each print() creates a new line:\nprint(\"Hello! My name is Jenna\")\nprint(\"I'm learning Python\")\nprint(\"This is my first lesson and I'm already running code!\")"
@@ -388,9 +388,9 @@
           "Create a new file: loops.py",
           "Copy the code below",
           "Save and run it",
-          "Watch 'Hello, CodeHerWay!' appear 5 times!"
+          "Watch 'Hello, Cinova!' appear 5 times!"
         ],
-        "code": "for i in range(5):\n    print(\"Hello, CodeHerWay!\")\n\n# Now try range(100) — watch Python print 100 times instantly!",
+        "code": "for i in range(5):\n    print(\"Hello, Cinova!\")\n\n# Now try range(100) — watch Python print 100 times instantly!",
         "result": "You just told Python: 'Do this thing 5 times.' And it did. Instantly. Try range(100) and watch it go!",
         "proofRequired": "your code with range(100) and the terminal full of repeated messages"
       },
@@ -407,7 +407,7 @@
       "build": {
         "goal": "Build a countdown timer and a number accumulator",
         "codeComparison": {
-          "old": "for i in range(5):\n    print(\"Hello, CodeHerWay!\")",
+          "old": "for i in range(5):\n    print(\"Hello, Cinova!\")",
           "new": "# Countdown\nfor i in range(10, 0, -1):\n    print(i)\nprint(\"Blastoff!\")\n\n# Accumulator: add 1 through 10\ntotal = 0\nfor i in range(1, 11):\n    total += i\n    print(\"Added\", i, \"- Total:\", total)"
         },
         "hint": "range(10, 0, -1) means: start at 10, stop before 0, count by -1 (backwards)."
@@ -514,7 +514,7 @@
           "Run it — the greeting appears!",
           "Now call greet() three more times"
         ],
-        "code": "def greet():\n    print(\"Hello, CodeHerWay!\")\n    print(\"Welcome to functions!\")\n\n# Call it!\ngreet()\ngreet()\ngreet()",
+        "code": "def greet():\n    print(\"Hello, Cinova!\")\n    print(\"Welcome to functions!\")\n\n# Call it!\ngreet()\ngreet()\ngreet()",
         "result": "You wrote the code ONCE inside the function, then ran it 3 times by calling its name. Write once, use forever!",
         "proofRequired": "your function being called at least 3 times with output"
       },
@@ -531,7 +531,7 @@
       "build": {
         "goal": "Build a calculator with multiple functions that work together",
         "codeComparison": {
-          "old": "def greet():\n    print(\"Hello, CodeHerWay!\")\n\ngreet()",
+          "old": "def greet():\n    print(\"Hello, Cinova!\")\n\ngreet()",
           "new": "def add(a, b):\n    return a + b\n\ndef subtract(a, b):\n    return a - b\n\ndef multiply(a, b):\n    return a * b\n\ndef divide(a, b):\n    if b == 0:\n        return \"Cannot divide by zero!\"\n    return a / b\n\nprint(\"10 + 5 =\", add(10, 5))\nprint(\"10 - 5 =\", subtract(10, 5))\nprint(\"10 * 5 =\", multiply(10, 5))\nprint(\"10 / 0 =\", divide(10, 0))"
         },
         "hint": "Always check for edge cases! Like dividing by zero."
@@ -556,3 +556,4 @@
     }
   ]
 }
+
