@@ -1,31 +1,18 @@
-// ═══════════════════════════════════════════════
-// Unit tests for useNavigation hook
-//
-// We mock the data layer so the tests run with a
-// small, controlled course structure rather than
-// the full production course content.  All
-// navigation logic — go/next/prev/switchCourse/
-// resumeFromPosition — is exercised here.
-// ═══════════════════════════════════════════════
-
-import { describe, it, expect, vi, beforeAll } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
-// ─── Mock the data layer ─────────────────────────
-// vi.mock is hoisted above variable declarations, so
-// mock data must be defined inside vi.hoisted().
 const { MOCK_COURSES, MOCK_QUIZ_MAP } = vi.hoisted(() => {
   const courses = [
     {
       id: 'html',
       label: 'HTML',
-      icon: '🌐',
+      icon: 'globe',
       accent: '#f97316',
       modules: [
         {
           id: 'basics',
           title: 'Basics',
-          emoji: '📖',
+          emoji: 'book',
           lessons: [
             { id: 'l-what', title: 'What is HTML?', content: '', code: '' },
             { id: 'l-tags', title: 'Tags', content: '', code: '' },
@@ -34,7 +21,7 @@ const { MOCK_COURSES, MOCK_QUIZ_MAP } = vi.hoisted(() => {
         {
           id: 'advanced',
           title: 'Advanced',
-          emoji: '🚀',
+          emoji: 'rocket',
           lessons: [
             { id: 'l-forms', title: 'Forms', content: '', code: '' },
           ],
@@ -44,13 +31,13 @@ const { MOCK_COURSES, MOCK_QUIZ_MAP } = vi.hoisted(() => {
     {
       id: 'css',
       label: 'CSS',
-      icon: '🎨',
+      icon: 'palette',
       accent: '#0ea5e9',
       modules: [
         {
           id: 'selectors',
           title: 'Selectors',
-          emoji: '🎯',
+          emoji: 'target',
           lessons: [
             { id: 'l-class', title: 'Class Selectors', content: '', code: '' },
           ],
@@ -58,10 +45,11 @@ const { MOCK_COURSES, MOCK_QUIZ_MAP } = vi.hoisted(() => {
       ],
     },
   ];
-  // Module quiz exists for the 'basics' module (id = 'basics')
+
   const quizMap = new Map([
     ['m:basics', { id: 'q-basics', questions: [] }],
   ]);
+
   return { MOCK_COURSES: courses, MOCK_QUIZ_MAP: quizMap };
 });
 
@@ -72,7 +60,6 @@ vi.mock('../data', () => ({
 
 import { useNavigation } from './useNavigation';
 
-// jsdom doesn't implement matchMedia — provide a minimal stub
 beforeAll(() => {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
@@ -80,8 +67,12 @@ beforeAll(() => {
   });
 });
 
-describe('useNavigation — initial state', () => {
-  it('starts at course 0, mod 0, lesson 0', () => {
+beforeEach(() => {
+  window.location.hash = '';
+});
+
+describe('useNavigation initial state', () => {
+  it('starts at course 0, module 0, lesson 0', () => {
     const { result } = renderHook(() => useNavigation());
     expect(result.current.courseIdx).toBe(0);
     expect(result.current.modIdx).toBe(0);
@@ -89,24 +80,32 @@ describe('useNavigation — initial state', () => {
     expect(result.current.showModQuiz).toBe(false);
   });
 
-  it('isFirst is true at position 0-0-0', () => {
+  it('isFirst is true at 0-0-0', () => {
     const { result } = renderHook(() => useNavigation());
     expect(result.current.isFirst).toBe(true);
   });
 
-  it('formats lessonKey as "course|mod|lesson"', () => {
+  it('formats lessonKey as "course|module|lesson"', () => {
     const { result } = renderHook(() => useNavigation());
     expect(result.current.lessonKey).toBe('HTML|Basics|What is HTML?');
   });
 
-  it('exposes moduleQuiz when one exists for the current module', () => {
+  it('exposes moduleQuiz when available on current module', () => {
     const { result } = renderHook(() => useNavigation());
-    // Basics module has a quiz in MOCK_QUIZ_MAP
     expect(result.current.moduleQuiz).toBeDefined();
+  });
+
+  it('hydrates from a valid deep-link hash', () => {
+    window.location.hash = '#learn/html/basics/l-tags';
+    const { result } = renderHook(() => useNavigation());
+    expect(result.current.courseIdx).toBe(0);
+    expect(result.current.modIdx).toBe(0);
+    expect(result.current.lesIdx).toBe(1);
+    expect(result.current.showModQuiz).toBe(false);
   });
 });
 
-describe('useNavigation — go()', () => {
+describe('useNavigation go()', () => {
   it('jumps to specified module and lesson', () => {
     const { result } = renderHook(() => useNavigation());
     act(() => result.current.go(1, 0));
@@ -114,76 +113,78 @@ describe('useNavigation — go()', () => {
     expect(result.current.lesIdx).toBe(0);
     expect(result.current.showModQuiz).toBe(false);
   });
+
+  it('updates hash so browser navigation can restore lesson state', () => {
+    const { result } = renderHook(() => useNavigation());
+    act(() => result.current.go(0, 1));
+    expect(window.location.hash).toBe('#learn/html/basics/l-tags');
+  });
 });
 
-describe('useNavigation — next()', () => {
-  it('advances to the next lesson within the same module', () => {
+describe('useNavigation next()', () => {
+  it('moves to the next lesson in the current module', () => {
     const { result } = renderHook(() => useNavigation());
-    // Start at Basics lesson 0 → advance to lesson 1
     act(() => result.current.next());
     expect(result.current.modIdx).toBe(0);
     expect(result.current.lesIdx).toBe(1);
   });
 
-  it('shows module quiz when reaching last lesson of a module that has one', () => {
+  it('opens module quiz on the last lesson when a module quiz exists', () => {
     const { result } = renderHook(() => useNavigation());
-    // Jump to last lesson of Basics (index 1)
     act(() => result.current.go(0, 1));
     expect(result.current.isLastLesson).toBe(true);
-    // next() should trigger the quiz, not advance the module
     act(() => result.current.next());
     expect(result.current.showModQuiz).toBe(true);
     expect(result.current.modIdx).toBe(0);
   });
 
-  it('advances to next module after completing the quiz', () => {
+  it('moves to next module after completing quiz', () => {
     const { result } = renderHook(() => useNavigation());
-    act(() => result.current.go(0, 1));     // last lesson of Basics
-    act(() => result.current.next());        // → quiz
-    act(() => result.current.next());        // → Advanced mod 1
+    act(() => result.current.go(0, 1));
+    act(() => result.current.next());
+    act(() => result.current.next());
     expect(result.current.showModQuiz).toBe(false);
     expect(result.current.modIdx).toBe(1);
     expect(result.current.lesIdx).toBe(0);
   });
 });
 
-describe('useNavigation — prev()', () => {
-  it('does nothing at the very first lesson (isFirst)', () => {
+describe('useNavigation prev()', () => {
+  it('does nothing on very first lesson', () => {
     const { result } = renderHook(() => useNavigation());
     act(() => result.current.prev());
     expect(result.current.modIdx).toBe(0);
     expect(result.current.lesIdx).toBe(0);
   });
 
-  it('goes back one lesson within the same module', () => {
+  it('moves back one lesson within module', () => {
     const { result } = renderHook(() => useNavigation());
-    act(() => result.current.go(0, 1));  // lesson 1
+    act(() => result.current.go(0, 1));
     act(() => result.current.prev());
     expect(result.current.lesIdx).toBe(0);
   });
 
-  it('closes the module quiz without moving module', () => {
+  it('closes module quiz without moving modules', () => {
     const { result } = renderHook(() => useNavigation());
     act(() => result.current.go(0, 1));
-    act(() => result.current.next()); // open quiz
+    act(() => result.current.next());
     expect(result.current.showModQuiz).toBe(true);
-    act(() => result.current.prev()); // close quiz
+    act(() => result.current.prev());
     expect(result.current.showModQuiz).toBe(false);
     expect(result.current.modIdx).toBe(0);
   });
 
-  it('goes to the last lesson of the previous module', () => {
+  it('moves to final lesson of previous module', () => {
     const { result } = renderHook(() => useNavigation());
-    act(() => result.current.go(1, 0));  // Advanced mod, lesson 0
+    act(() => result.current.go(1, 0));
     act(() => result.current.prev());
-    // Should land on last lesson of Basics (index 1)
     expect(result.current.modIdx).toBe(0);
     expect(result.current.lesIdx).toBe(1);
   });
 });
 
-describe('useNavigation — switchCourse()', () => {
-  it('resets to the start of another course', () => {
+describe('useNavigation switchCourse()', () => {
+  it('resets to start of selected course', () => {
     const { result } = renderHook(() => useNavigation());
     act(() => result.current.go(1, 0));
     act(() => result.current.switchCourse(1));
@@ -192,7 +193,7 @@ describe('useNavigation — switchCourse()', () => {
     expect(result.current.lesIdx).toBe(0);
   });
 
-  it('ignores an out-of-bounds course index', () => {
+  it('ignores out-of-bounds course index', () => {
     const { result } = renderHook(() => useNavigation());
     act(() => result.current.switchCourse(-1));
     expect(result.current.courseIdx).toBe(0);
@@ -201,8 +202,8 @@ describe('useNavigation — switchCourse()', () => {
   });
 });
 
-describe('useNavigation — resumeFromPosition()', () => {
-  it('restores a valid saved position and returns true', () => {
+describe('useNavigation resumeFromPosition()', () => {
+  it('restores valid saved position and returns true', () => {
     const { result } = renderHook(() => useNavigation());
     let resumed;
     act(() => {
@@ -215,10 +216,10 @@ describe('useNavigation — resumeFromPosition()', () => {
     expect(resumed).toBe(true);
     expect(result.current.courseIdx).toBe(0);
     expect(result.current.modIdx).toBe(0);
-    expect(result.current.lesIdx).toBe(1); // 'Tags' is index 1
+    expect(result.current.lesIdx).toBe(1);
   });
 
-  it('restores a module-quiz position', () => {
+  it('restores module quiz position', () => {
     const { result } = renderHook(() => useNavigation());
     let resumed;
     act(() => {
@@ -232,7 +233,7 @@ describe('useNavigation — resumeFromPosition()', () => {
     expect(result.current.showModQuiz).toBe(true);
   });
 
-  it('returns false for a null position', () => {
+  it('returns false for null position', () => {
     const { result } = renderHook(() => useNavigation());
     let resumed;
     act(() => {
@@ -241,7 +242,7 @@ describe('useNavigation — resumeFromPosition()', () => {
     expect(resumed).toBe(false);
   });
 
-  it('returns false when the course label is not found', () => {
+  it('returns false when course label is unknown', () => {
     const { result } = renderHook(() => useNavigation());
     let resumed;
     act(() => {

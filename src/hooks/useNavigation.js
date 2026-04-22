@@ -1,19 +1,80 @@
-// ═══════════════════════════════════════════════
-// useNavigation — Course/module/lesson navigation
+// ===============================================================
+// useNavigation - Course/module/lesson navigation
 // Extracted from App.jsx for clarity
-// ═══════════════════════════════════════════════
+// ===============================================================
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { COURSES, QUIZ_MAP } from '../data';
+
+const LEARN_HASH_PREFIX = '#learn/';
 
 // Safe empty shells used when a course's modules haven't loaded yet.
 // AppLayout gates the real UI behind isActiveCourseLoaded, so these
-// defaults should never actually render — they exist so that
-// useNavigation can run to completion without crashing on the very
-// first frame, before the active course has been fetched.
+// defaults should never actually render. They exist so that
+// useNavigation can run to completion without crashing on the first
+// frame, before the active course has been fetched.
 const EMPTY_LESSON = { id: '', title: '', content: '', code: '' };
 const EMPTY_MODULE = { id: '', title: '', emoji: '', lessons: [EMPTY_LESSON] };
 const EMPTY_COURSE = { id: '', label: '', icon: '', accent: '', modules: [EMPTY_MODULE] };
+
+function decodeHashSegment(value) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+function parseLearnHash(hash = '') {
+  const match = hash.match(/^#learn\/([^/]+)\/([^/]+)\/([^/?#]+)/);
+  if (!match) return null;
+  return {
+    courseId: decodeHashSegment(match[1]),
+    moduleId: decodeHashSegment(match[2]),
+    lessonId: decodeHashSegment(match[3]),
+  };
+}
+
+function findHashPosition(hash) {
+  const parsed = parseLearnHash(hash);
+  if (!parsed) return null;
+
+  const courseIndex = COURSES.findIndex((course) => course.id === parsed.courseId);
+  if (courseIndex === -1) return null;
+
+  const course = COURSES[courseIndex];
+  if (!course.modules.length) return null;
+
+  const moduleIndex = course.modules.findIndex((module) => module.id === parsed.moduleId);
+  if (moduleIndex === -1) return null;
+
+  const moduleData = course.modules[moduleIndex];
+  if (!moduleData.lessons.length) return null;
+
+  if (parsed.lessonId === 'quiz') {
+    const hasModuleQuiz = Boolean(QUIZ_MAP.get(`m:${moduleData.id}`));
+    if (!hasModuleQuiz) return null;
+
+    return {
+      courseIndex,
+      moduleIndex,
+      lessonIndex: moduleData.lessons.length - 1,
+      isModuleQuiz: true,
+    };
+  }
+
+  const lessonIndex = moduleData.lessons.findIndex((lesson) => lesson.id === parsed.lessonId);
+  if (lessonIndex === -1) return null;
+
+  return { courseIndex, moduleIndex, lessonIndex, isModuleQuiz: false };
+}
+
+function buildLearnHash(course, mod, les, showModQuiz) {
+  if (!course?.id || !mod?.id) return '';
+  const lessonSegment = showModQuiz ? 'quiz' : les?.id;
+  if (!lessonSegment) return '';
+  return `${LEARN_HASH_PREFIX}${encodeURIComponent(course.id)}/${encodeURIComponent(mod.id)}/${encodeURIComponent(lessonSegment)}`;
+}
 
 function findSavedPosition(lastPosition) {
   if (!lastPosition?.course || !lastPosition?.mod || !lastPosition?.les) {
@@ -44,11 +105,12 @@ export function useNavigation() {
   const [lesIdx, setLesIdx] = useState(0);
   const [showModQuiz, setShowModQuiz] = useState(false);
   const mainRef = useRef(null);
+  const didWriteInitialHash = useRef(false);
 
-  // Defensive reads — COURSES is mutable and may temporarily have
-  // empty modules while CourseContentProvider is still fetching the
-  // active course. AppLayout's loading gate prevents these fallbacks
-  // from actually rendering, but they let this hook compute safely.
+  // Defensive reads - COURSES is mutable and may temporarily have
+  // empty modules while CourseContentProvider is fetching the active
+  // course. AppLayout's loading gate prevents these fallbacks from
+  // rendering, but they let this hook compute safely.
   const course = COURSES[courseIdx] || EMPTY_COURSE;
   const modules = course.modules?.length ? course.modules : EMPTY_COURSE.modules;
   const mod = modules[modIdx] || EMPTY_MODULE;
@@ -60,14 +122,57 @@ export function useNavigation() {
     ? `${course.label}|${mod.title}|${les.title}`
     : '';
 
-  const courseTotal = modules.reduce((s, m) => s + (m.lessons?.length || 0), 0);
+  const courseTotal = modules.reduce((sum, moduleData) => sum + (moduleData.lessons?.length || 0), 0);
   const isFirst = modIdx === 0 && lesIdx === 0 && !showModQuiz;
-  const isLast = modIdx === modules.length - 1 && lesIdx === (mod.lessons?.length || 1) - 1 && (showModQuiz || !moduleQuiz);
+  const isLast = modIdx === modules.length - 1
+    && lesIdx === (mod.lessons?.length || 1) - 1
+    && (showModQuiz || !moduleQuiz);
 
   const scrollTop = () => {
     const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
     mainRef.current?.scrollTo({ top: 0, behavior });
   };
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const syncFromHash = () => {
+      const parsed = findHashPosition(window.location.hash);
+      if (!parsed) return;
+      setCourseIdx(parsed.courseIndex);
+      setModIdx(parsed.moduleIndex);
+      setLesIdx(parsed.lessonIndex);
+      setShowModQuiz(parsed.isModuleQuiz);
+    };
+
+    syncFromHash();
+    window.addEventListener('hashchange', syncFromHash);
+    return () => window.removeEventListener('hashchange', syncFromHash);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const nextHash = buildLearnHash(course, mod, les, showModQuiz);
+    if (!nextHash) return;
+
+    if (window.location.hash === nextHash) {
+      didWriteInitialHash.current = true;
+      return;
+    }
+
+    if (!didWriteInitialHash.current) {
+      window.history.replaceState(
+        null,
+        '',
+        `${window.location.pathname}${window.location.search}${nextHash}`,
+      );
+      didWriteInitialHash.current = true;
+      return;
+    }
+
+    window.location.hash = nextHash;
+  }, [course, mod, les, showModQuiz]);
 
   const go = useCallback((mi, li) => {
     setModIdx(mi);
@@ -101,7 +206,11 @@ export function useNavigation() {
   }, [modIdx, lesIdx, showModQuiz, isLastLesson, moduleQuiz, mod.lessons.length, modules.length, go]);
 
   const prev = useCallback(() => {
-    if (showModQuiz) { setShowModQuiz(false); scrollTop(); return; }
+    if (showModQuiz) {
+      setShowModQuiz(false);
+      scrollTop();
+      return;
+    }
     if (lesIdx > 0) go(modIdx, lesIdx - 1);
     else if (modIdx > 0) go(modIdx - 1, modules[modIdx - 1].lessons.length - 1);
   }, [modIdx, lesIdx, showModQuiz, modules, go]);
