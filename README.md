@@ -115,6 +115,7 @@ For a deeper technical walkthrough, see [docs/architecture.md](./docs/architectu
 3. Fast initial load vs feature depth
    - Used lazy loading and chunk strategy by domain/course to avoid overloading first paint.
    - Monaco and admin surfaces are intentionally code-split into on-demand chunks so first-run learners do not pay editor/admin cost upfront.
+   - Poppins and Space Mono are bundled as Latin-only subsets to reduce first-load font payload while keeping branding intact for the primary audience.
    - Added a bundle budget gate (`npm run check:bundle`) to keep eager chunks lean while allowing controlled Monaco-specific budgets.
 
 4. Incremental improvement vs full rewrite temptation

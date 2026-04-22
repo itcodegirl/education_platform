@@ -10,15 +10,16 @@ import { BrowserRouter } from 'react-router-dom';
 // Bundled via @fontsource(-variable) packages so we can drop
 // fonts.googleapis.com / fonts.gstatic.com from the CSP entirely.
 // Inter ships as a variable font (single file, 100-900), Poppins +
-// Space Mono as discrete weights.
+// Space Mono as discrete weights. Display fonts are scoped to Latin
+// subsets as a deliberate first-load bundle optimization.
 import '@fontsource-variable/inter';
-import '@fontsource/poppins/400.css';
-import '@fontsource/poppins/500.css';
-import '@fontsource/poppins/600.css';
-import '@fontsource/poppins/700.css';
-import '@fontsource/poppins/800.css';
-import '@fontsource/space-mono/400.css';
-import '@fontsource/space-mono/700.css';
+import '@fontsource/poppins/latin-400.css';
+import '@fontsource/poppins/latin-500.css';
+import '@fontsource/poppins/latin-600.css';
+import '@fontsource/poppins/latin-700.css';
+import '@fontsource/poppins/latin-800.css';
+import '@fontsource/space-mono/latin-400.css';
+import '@fontsource/space-mono/latin-700.css';
 
 // ─── Service worker registration ───────────────
 // Moved out of an inline <script> in index.html because the strict
