@@ -111,7 +111,8 @@
   .topbar-actions .read-time { display: none; }
   .topbar-greeting { display: none; }
   .topbar-pill:nth-child(n + 4) { display: none; }
-  .search-trigger span:not(:first-child) { display: none; }
+  .search-trigger .search-trigger-label { display: none; }
+  .search-trigger .search-trigger-mobile-hint { display: inline; }
   .search-trigger kbd { display: none; }
   .bc-mod, .bc-sep:nth-of-type(1) { display: none; }
 }

@@ -266,6 +266,39 @@
   border-radius: 0 0 12px 12px;
 }
 
+.ai-input-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 16px 0;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.ai-input-limit {
+  line-height: 1.4;
+}
+
+.ai-input-count {
+  font-family: 'Space Mono', ui-monospace, monospace;
+  color: var(--text-dim);
+}
+
+.ai-input-count.near-limit {
+  color: var(--amber);
+}
+
+.ai-input-error {
+  margin: 8px 16px 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 107, 107, 0.35);
+  background: rgba(255, 107, 107, 0.12);
+  color: #ffc9c9;
+  font-size: 12px;
+}
+
 .ai-input {
   flex: 1;
   padding: 10px 14px;
@@ -1202,6 +1235,55 @@
 .cc-solution-btn:hover {
   border-color: var(--purple);
   color: var(--purple);
+}
+
+.cc-solution-warning {
+  margin: 0 20px 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 167, 38, 0.34);
+  border-radius: 10px;
+  background: rgba(255, 167, 38, 0.12);
+}
+
+.cc-solution-warning-text {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.cc-solution-warning-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.cc-solution-warning-btn {
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 167, 38, 0.42);
+  background: rgba(255, 167, 38, 0.2);
+  color: #ffd69a;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--duration-fast), color var(--duration-fast), border-color var(--duration-fast);
+}
+
+.cc-solution-warning-btn:hover {
+  background: rgba(255, 167, 38, 0.28);
+}
+
+.cc-solution-warning-btn.secondary {
+  border-color: var(--border);
+  background: var(--bg-card);
+  color: var(--text-dim);
+}
+
+.cc-solution-warning-btn.secondary:hover {
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Results */
@@ -2198,6 +2280,17 @@
 
   .ai-input-row {
     padding: 8px 12px;
+  }
+
+  .ai-input-meta {
+    padding: 6px 12px 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .ai-input-error {
+    margin: 8px 12px 12px;
   }
 
   .ai-suggestions {

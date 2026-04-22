@@ -469,6 +469,15 @@
   flex-direction: column;
   gap: 2px;
 }
+
+.sb-tab-flyout.docked {
+  position: static;
+  width: 100%;
+  max-height: none;
+  margin-top: 8px;
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+}
 @keyframes sbTabSlideIn {
   from { opacity: 0; transform: translateX(-8px); }
   to   { opacity: 1; transform: translateX(0); }

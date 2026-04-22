@@ -55,9 +55,9 @@ export const Sidebar = memo(function Sidebar({
   // state for the Courses + Resources tab bar. Only one popout can be
   // open at a time; clicking a tab while the other is open switches.
   const [activePopout, setActivePopout] = useState(null); // 'courses' | 'resources' | null
-  // The popout is `position: fixed` and flies out to the right of the
-  // sidebar. We compute its viewport coordinates from the tab bar's
-  // bounding rect when it opens, then close it on window resize.
+  // Desktop: popout is `position: fixed` and flies out to the right of
+  // the sidebar. Mobile: we dock it inline under the tabs to avoid iOS
+  // fixed-position jumps during drawer transforms.
   const [popoutPos, setPopoutPos] = useState(null);
   const [expandedMod, setExpandedMod] = useState(modIdx);
   const tabsRef = useRef(null);
@@ -82,6 +82,9 @@ export const Sidebar = memo(function Sidebar({
   // tab bar instead, clamped to the viewport on both sides so it
   // stays fully visible.
   const computePopoutPos = useCallback(() => {
+    if (isMobile) {
+      return { mode: 'docked' };
+    }
     if (!tabsRef.current) return null;
     const rect = tabsRef.current.getBoundingClientRect();
     const POPOUT_WIDTH = 240;
@@ -96,9 +99,9 @@ export const Sidebar = memo(function Sidebar({
       Math.min(rect.left, vw - POPOUT_WIDTH - PADDING),
     );
     return fitsRight
-      ? { top: rect.top, left: wantLeft }
-      : { top: rect.bottom + PADDING, left: belowLeft };
-  }, []);
+      ? { mode: 'fixed', top: rect.top, left: wantLeft }
+      : { mode: 'fixed', top: rect.bottom + PADDING, left: belowLeft };
+  }, [isMobile]);
 
   const openPopout = useCallback(
     (which) => {
@@ -290,11 +293,11 @@ export const Sidebar = memo(function Sidebar({
           <div
             ref={popoutRef}
             id={`sb-tab-panel-${activePopout}`}
-            className={`sb-tab-flyout sb-tab-flyout-${activePopout}`}
+            className={`sb-tab-flyout sb-tab-flyout-${activePopout} ${popoutPos.mode === 'docked' ? 'docked' : ''}`}
             role="tabpanel"
             aria-labelledby={activePopout === 'courses' ? 'sb-tab-courses' : 'sb-tab-resources'}
             aria-label={activePopout === 'courses' ? 'Select course' : 'Open a learning tool'}
-            style={{ top: popoutPos.top, left: popoutPos.left }}
+            style={popoutPos.mode === 'fixed' ? { top: popoutPos.top, left: popoutPos.left } : undefined}
           >
             {activePopout === 'courses' &&
               courses.map((c, ci) => (

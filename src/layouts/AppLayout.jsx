@@ -365,7 +365,8 @@ export function AppLayout() {
                 aria-pressed={panels.panel === "search"}
               >
                 <span>ðŸ”</span>
-                <span>Search</span>
+                <span className="search-trigger-label">Search</span>
+                <span className="search-trigger-mobile-hint">Tap to search</span>
                 <kbd>âŒ˜K</kbd>
               </button>
               {!showModQuiz && (

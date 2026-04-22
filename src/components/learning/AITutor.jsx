@@ -7,11 +7,18 @@
 import { useState, useRef, useEffect } from 'react';
 import { askLessonTutor } from '../../services/aiService';
 
+const MAX_TUTOR_CHARS = 4000;
+const HISTORY_WINDOW = 8;
+
 export function AITutor({ lesson, moduleTitle, courseId }) {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [isOnline, setIsOnline] = useState(
+    typeof navigator === 'undefined' ? true : navigator.onLine,
+  );
   const messagesEnd = useRef(null);
   const inputRef = useRef(null);
 
@@ -20,6 +27,7 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
     setMessages([]);
     setInput('');
     setIsOpen(false);
+    setSubmitError('');
   }, [lesson?.id]);
 
   // Scroll to latest message
@@ -34,6 +42,18 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
     const timer = setTimeout(() => inputRef.current?.focus(), 100);
     return () => clearTimeout(timer);
   }, [isOpen]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const markOnline = () => setIsOnline(true);
+    const markOffline = () => setIsOnline(false);
+    window.addEventListener('online', markOnline);
+    window.addEventListener('offline', markOffline);
+    return () => {
+      window.removeEventListener('online', markOnline);
+      window.removeEventListener('offline', markOffline);
+    };
+  }, []);
 
   // Build lesson context for the AI system prompt
   function buildSystemPrompt() {
@@ -69,14 +89,19 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
     e?.preventDefault();
     const question = input.trim();
     if (!question || loading) return;
+    if (!isOnline) {
+      setSubmitError('You are offline. Reconnect, then send your message.');
+      return;
+    }
 
     const userMsg = { role: 'user', text: question };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
+    setSubmitError('');
     setLoading(true);
 
     try {
-      const history = messages.map((m) => ({
+      const history = messages.slice(-HISTORY_WINDOW).map((m) => ({
         role: m.role === 'user' ? 'user' : 'assistant',
         content: m.text,
       }));
@@ -88,10 +113,19 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
       });
 
       setMessages(prev => [...prev, { role: 'assistant', text: aiText }]);
-    } catch {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      const payloadTooLarge = /413|too large|payload|request entity/i.test(message);
+      const networkIssue = !isOnline || /network|failed to fetch|offline|internet/i.test(message);
+      const fallback = payloadTooLarge
+        ? 'That request was too long for the tutor context. Shorten it and try again.'
+        : networkIssue
+          ? 'You appear offline right now. Reconnect and try again.'
+          : 'AI tutor is temporarily unavailable. Please try again in a moment.';
+      setSubmitError(fallback);
       setMessages(prev => [...prev, {
         role: 'assistant',
-        text: 'Connection issue — check your internet and try again.'
+        text: fallback,
       }]);
     } finally {
       setLoading(false);
@@ -210,21 +244,44 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
               ref={inputRef}
               className="ai-input"
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                setInput(e.target.value);
+                if (submitError) setSubmitError('');
+              }}
               onKeyDown={handleKeyDown}
               placeholder="Ask about this lesson..."
+              maxLength={MAX_TUTOR_CHARS}
               rows={1}
-              disabled={loading}
+              disabled={loading || !isOnline}
+              aria-describedby="ai-input-meta"
             />
             <button
               type="submit"
               className="ai-send"
-              disabled={!input.trim() || loading}
+              disabled={!input.trim() || loading || !isOnline}
               aria-label="Send message to AI tutor"
             >
               ↑
             </button>
           </form>
+          <div id="ai-input-meta" className="ai-input-meta">
+            <span className="ai-input-limit">
+              {isOnline
+                ? `Messages can be up to ${MAX_TUTOR_CHARS.toLocaleString()} characters.`
+                : 'Offline: reconnect to send a question.'}
+            </span>
+            <span
+              className={`ai-input-count ${input.length >= MAX_TUTOR_CHARS * 0.9 ? 'near-limit' : ''}`}
+              aria-live="polite"
+            >
+              {input.length.toLocaleString()} / {MAX_TUTOR_CHARS.toLocaleString()}
+            </span>
+          </div>
+          {submitError && (
+            <p className="ai-input-error" role="status" aria-live="polite">
+              {submitError}
+            </p>
+          )}
         </div>
       )}
     </div>

@@ -27,7 +27,8 @@ async function callAI(payload: AICallPayload): Promise<string> {
     error?: string;
   };
   if (!response.ok) {
-    throw new Error(data.error || 'AI request failed');
+    const serverMessage = data.error || 'AI request failed';
+    throw new Error(`[${response.status}] ${serverMessage}`);
   }
 
   return data.text || '';

@@ -23,6 +23,7 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
   const [results, setResults] = useState(null);
   const [showHint, setShowHint] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
+  const [confirmRevealSolution, setConfirmRevealSolution] = useState(false);
   const [passed, setPassed] = useState(false);
   const [aiHelp, setAiHelp] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
@@ -80,6 +81,22 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
       setPassed(true);
       onComplete?.();
     }
+    if (confirmRevealSolution) {
+      setConfirmRevealSolution(false);
+    }
+  }
+
+  function handleSolutionToggle() {
+    if (showSolution) {
+      setShowSolution(false);
+      return;
+    }
+    const hasTriedChallenge = Array.isArray(results);
+    if (!hasTriedChallenge) {
+      setConfirmRevealSolution(true);
+      return;
+    }
+    setShowSolution(true);
   }
 
   // AI Help for challenges
@@ -240,11 +257,38 @@ Rules:
         )}
 
         {challenge.solution && (
-          <button type="button" className="cc-solution-btn" onClick={() => setShowSolution(!showSolution)} aria-expanded={showSolution}>
+          <button type="button" className="cc-solution-btn" onClick={handleSolutionToggle} aria-expanded={showSolution}>
             👁 {showSolution ? 'Hide Solution' : 'Show Solution'}
           </button>
         )}
       </div>
+
+      {confirmRevealSolution && challenge.solution && (
+        <div className="cc-solution-warning" role="alert">
+          <p className="cc-solution-warning-text">
+            You have not run the tests yet. Try first so the solution is more useful.
+          </p>
+          <div className="cc-solution-warning-actions">
+            <button
+              type="button"
+              className="cc-solution-warning-btn secondary"
+              onClick={() => setConfirmRevealSolution(false)}
+            >
+              Keep trying
+            </button>
+            <button
+              type="button"
+              className="cc-solution-warning-btn"
+              onClick={() => {
+                setShowSolution(true);
+                setConfirmRevealSolution(false);
+              }}
+            >
+              Reveal anyway
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* AI Help panel */}
       {showAiHelp && (

@@ -354,6 +354,7 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
           <div className="quiz-meta">
             {pct === 100 && <span className="quiz-xp-badge perfect">+{XP_VALUES.perfectQuiz} XP</span>}
             {pct < 100 && <span className="quiz-xp-badge">+{XP_VALUES.quiz} XP</span>}
+            {quizKey && <span className="quiz-save-badge">✓ Score saved to your progress</span>}
             {wrongCount > 0 && (
               <span className="quiz-sr-badge">🔄 {wrongCount} added to review</span>
             )}
