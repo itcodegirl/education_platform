@@ -1,5 +1,6 @@
 ﻿import { useRef, useState } from 'react';
 import { useAuth } from '../../providers';
+import { ThemeToggle } from '../layout/ThemeToggle';
 import { Logo } from '../shared/Logo';
 import { LandingHeroIntro, LandingHeroStory } from './LandingHero';
 
@@ -180,6 +181,9 @@ export function AuthPage({ onPreview }) {
   if (confirmSent) {
     return (
       <main className="auth-page" id="top">
+        <div className="auth-theme-toggle-wrap">
+          <ThemeToggle />
+        </div>
         <div className="auth-card">
           <div className="auth-brand">
             <Logo size="lg" showTagline />
@@ -209,6 +213,9 @@ export function AuthPage({ onPreview }) {
 
   return (
     <main className="auth-page auth-with-hero" id="top">
+      <div className="auth-theme-toggle-wrap">
+        <ThemeToggle />
+      </div>
       {/* Above the fold: intro on the left, auth card on the right.
           LandingHeroIntro provides the single <h1> for this page. The
           auth card's brand row is intentionally not an extra <h1> so the

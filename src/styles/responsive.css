@@ -107,6 +107,7 @@
   .qq { padding: 14px 16px; gap: 12px; }
   .quiz-submit { width: calc(100% - 32px); margin: 12px 16px 16px; }
   .quiz-results { padding: 16px; flex-wrap: wrap; }
+  .quiz-next-step { width: 100%; }
   .quiz-score-num { font-size: 22px; }
   .topbar-actions .read-time { display: none; }
   .topbar-greeting { display: none; }

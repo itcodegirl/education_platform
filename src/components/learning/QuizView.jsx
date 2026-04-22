@@ -359,9 +359,13 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
               <span className="quiz-sr-badge">🔄 {wrongCount} added to review</span>
             )}
           </div>
-          <button type="button" className="quiz-retry" onClick={reset}>↻ Retry</button>
+          <p className="quiz-next-step" role="status" aria-live="polite">
+            Next step: review the explanations below, then retry or continue to the next lesson.
+          </p>
+          <button type="button" className="quiz-retry" onClick={reset}>? Retry</button>
         </div>
       )}
     </div>
   );
 });
+

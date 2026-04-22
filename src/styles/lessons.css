@@ -440,6 +440,7 @@
 .quiz-score-num { font-family:'Poppins',monospace; font-size:28px; font-weight:700; line-height:1; }
 .quiz-score-pct { font-size:13px; color:var(--text-dim); margin-top:4px; }
 .quiz-save-badge { display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px; font-size:11px; font-family:'Poppins',monospace; background:rgba(78,205,196,0.14); color:var(--cyan); border:1px solid rgba(78,205,196,0.26); }
+.quiz-next-step { margin: 2px 0 0; color: var(--text-dim); font-size: 12px; line-height: 1.5; }
 .quiz-retry { padding:12px 20px; border:1px solid var(--border); border-radius:8px; background:var(--bg-surface); color:var(--text); font-size:14px; font-weight:600; cursor:pointer; transition:all .2s; white-space:nowrap; }
 .quiz-retry:hover { border-color:var(--border-bright); transform:translateY(-1px); }
 

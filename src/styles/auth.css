@@ -19,6 +19,15 @@
   overflow: hidden;
   padding: 20px;
 }
+.auth-theme-toggle-wrap {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 4;
+}
+.auth-theme-toggle-wrap .theme-toggle {
+  position: static;
+}
 .auth-bg { position: absolute; inset: 0; overflow: hidden; }
 .auth-grid {
   position: absolute; inset: 0;

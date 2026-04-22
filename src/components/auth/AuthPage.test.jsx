@@ -17,6 +17,10 @@ const {
 }));
 
 vi.mock('../../providers', () => ({
+  useTheme: () => ({
+    theme: 'dark',
+    toggle: vi.fn(),
+  }),
   useAuth: () => ({
     signIn: signInMock,
     signUp: signUpMock,
