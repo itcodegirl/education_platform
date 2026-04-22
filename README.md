@@ -4,7 +4,12 @@ A production-minded, browser-based learning platform focused on helping women bu
 
 **Live demo:** https://mellow-sunflower-9c92cd.netlify.app/
 
-[![CI](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml/badge.svg)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
+## Build and CI status
+
+[![CI](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/ci-smoke.yml?branch=main&label=CI%20(check%3Aci)&logo=githubactions)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
+[![Typecheck](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/ci-smoke.yml?branch=main&label=Typecheck%20(tsc%20--noEmit)&logo=typescript)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
+[![E2E](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/ci-smoke.yml?branch=main&label=E2E%20(Playwright)&logo=playwright)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
+
 [![Security](https://github.com/itcodegirl/education_platform/actions/workflows/security-audit.yml/badge.svg)](https://github.com/itcodegirl/education_platform/actions/workflows/security-audit.yml)
 [![React 18](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=white)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-6-646cff?logo=vite&logoColor=white)](https://vitejs.dev)
@@ -107,6 +112,7 @@ For a deep technical walkthrough, see [docs/architecture.md](./docs/architecture
 
 3. **Fast initial load vs large learning content**
    - Used lazy loading and chunk strategy by domain/course to avoid overloading first paint.
+   - Monaco and admin surfaces are intentionally code-split into on-demand chunks so first-run learners do not pay editor/admin cost upfront.
 
 4. **Incremental improvement vs full rewrite temptation**
    - Preserved architecture and made focused, auditable improvements in small batches.

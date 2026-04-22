@@ -10,11 +10,11 @@ export default defineConfig({
     },
   },
   build: {
-    // Bump the warning threshold — the course data chunks legitimately
-    // cross 500KB uncompressed and we're already splitting them per
-    // course. Lowering this would just fire spurious warnings on every
-    // build.
-    chunkSizeWarningLimit: 700,
+    // Keep the warning meaningful while avoiding false-positive noise from
+    // intentionally lazy Monaco sub-chunks. The editor/admin surfaces are
+    // route- or interaction-gated, so this threshold tracks genuinely
+    // problematic eagerly loaded chunks.
+    chunkSizeWarningLimit: 1100,
     rollupOptions: {
       output: {
         // Function form gives us precise control over which chunks
@@ -49,12 +49,25 @@ export default defineConfig({
           // if (id.includes('node_modules/jspdf')) return 'vendor-jspdf';
           // if (id.includes('node_modules/html2canvas')) return 'vendor-html2canvas';
 
-          // Monaco editor — large (~250 kB gzipped). Keeping it in its
-          // own named chunk gives it a stable cache key independent of
-          // app code changes. It only loads when a lesson with a code
-          // editor is first rendered (via the lazy import chain in
-          // CodePreview / CodeChallenge).
-          if (id.includes('node_modules/monaco-editor/')) return 'vendor-monaco';
+          // Monaco editor is intentionally lazy (loaded only from the
+          // CodePreview / CodeChallenge import chain), but the module
+          // graph is still large enough to trigger chunk-size warnings
+          // if bundled into a single vendor chunk.
+          //
+          // Split Monaco into stable sub-chunks so initial app bundles
+          // stay lean while editor code remains cacheable between deploys.
+          if (id.includes('node_modules/monaco-editor/')) {
+            if (id.includes('/basic-languages/')) return 'vendor-monaco-languages';
+            if (id.includes('/editor/contrib/')) return 'vendor-monaco-editor-contrib';
+            if (id.includes('/editor/browser/')) return 'vendor-monaco-editor-browser';
+            if (id.includes('/editor/common/')) return 'vendor-monaco-editor-common';
+            if (id.includes('/editor/standalone/')) return 'vendor-monaco-editor-standalone';
+            if (id.includes('/editor/')) return 'vendor-monaco-editor';
+            if (id.includes('/base/')) return 'vendor-monaco-base';
+            if (id.includes('/platform/')) return 'vendor-monaco-platform';
+            if (id.includes('/language/')) return 'vendor-monaco-language-core';
+            return 'vendor-monaco-core';
+          }
 
           // Per-course content. src/data/loaders.js dynamically
           // imports each course's course.js + quizzes.js + challenges.js,
