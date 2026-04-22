@@ -268,7 +268,7 @@ export function AppLayout() {
         <a className="skip-link" href="#main-content">Skip to main content</a>
         <EmailVerifyBanner />
         <OfflineIndicator />
-        <main id="main-content" className="main-shell mn course-skeleton" aria-busy="true" aria-live="polite">
+        <main id="main-content" className="main-shell course-skeleton" aria-busy="true" aria-live="polite">
           <div className="course-skeleton-inner">
             <span className="course-skeleton-emoji" aria-hidden="true">
               {activeCourseMeta?.icon || '[]'}
@@ -308,7 +308,7 @@ export function AppLayout() {
         activePanel={panels.panel}
       />
 
-      <main className="main-shell mn" ref={mainRef} id="main-content">
+      <main className="main-shell" ref={mainRef} id="main-content">
         <header className="topbar">
           <div className="topbar-inner">
             <button
@@ -385,9 +385,9 @@ export function AppLayout() {
           </div>
         </header>
 
-        <div className="lesson-container lv-wrap">
+        <div className="lesson-container">
           {showModQuiz && moduleQuiz ? (
-            <div className="lesson-surface lv">
+            <div className="lesson-surface">
               <div className="lv-head">
                 <span className="lv-emoji">ðŸ“</span>
                 <h1 className="lv-title">{mod.title} â€” Module Quiz</h1>

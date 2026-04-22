@@ -88,7 +88,7 @@ export const LessonView = memo(function LessonView({
   };
 
   return (
-    <div className="lv">
+    <div className="lesson-surface">
       <LessonHeader
         lesson={lesson}
         emoji={emoji}

@@ -50,7 +50,7 @@
   margin-left: auto;
   animation: robotGlow 3s ease-in-out infinite;
 }
-.sb.collapsed .brand-robot { display: none; }
+.sidebar.collapsed .brand-robot { display: none; }
 
 /* Active lesson robot indicator */
 .lg-robot {
@@ -77,3 +77,4 @@
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
+

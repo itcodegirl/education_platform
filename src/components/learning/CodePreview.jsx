@@ -102,7 +102,7 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
   const previewSource = tab === 'code' ? code : editorCode;
 
   return (
-    <div className="code-preview cpv">
+    <div className="code-preview">
       {/* Scaffolding badge */}
       {scaffolding !== 'full' && (
         <div className={`cpv-scaffolding cpv-scaffolding-${scaffolding}`}>

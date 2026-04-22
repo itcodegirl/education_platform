@@ -25,17 +25,17 @@
 
 /* Content containment — isolate layout calculations */
 .lesson-surface,
-.lv {
+.lesson-surface {
   contain: content;
 }
 
 .code-preview,
-.cpv {
+.code-preview {
   contain: layout style;
 }
 
 .sidebar,
-.sb {
+.sidebar {
   contain: layout style;
 }
 
@@ -105,7 +105,7 @@ img {
 @media print {
 
   .sidebar,
-  .sb,
+  .sidebar,
   .bottom-tools,
   .lesson-nav,
   .theme-toggle,
@@ -118,7 +118,7 @@ img {
   }
 
   .main-shell,
-  .mn {
+  .main-shell {
     overflow: visible;
     height: auto;
   }
@@ -129,7 +129,7 @@ img {
   }
 
   .lesson-container,
-  .lv-wrap {
+  .lesson-container {
     padding: 0;
   }
 
@@ -1569,12 +1569,12 @@ img {
    ═══════════════════════════════════════════════ */
 
 /* Locked modules */
-.mg.locked .mg-btn {
+.module-group.locked .mg-btn {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-.mg.locked .mg-name {
+.module-group.locked .mg-name {
   color: var(--text-muted);
 }
 
@@ -2347,3 +2347,4 @@ img {
 .wn-cta:hover {
   filter: brightness(1.15);
 }
+

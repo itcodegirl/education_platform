@@ -11,7 +11,7 @@
     --shell-max: 1280px;
   }
 
-  .lv {
+  .lesson-surface {
     padding: 40px;
   }
 
@@ -450,7 +450,7 @@
 /* ─── 24. Print Styles ─────────────────────────── */
 @media print {
 
-  .sb,
+  .sidebar,
   .topbar,
   .nav-row,
   .theme-toggle,
@@ -464,11 +464,11 @@
     display: none !important;
   }
 
-  .mn {
+  .main-shell {
     overflow: visible !important;
   }
 
-  .lv-wrap {
+  .lesson-container {
     max-width: 100%;
     padding: 0;
   }
@@ -1541,17 +1541,17 @@
 }
 
 /* ─── 31. Improved Code Preview Hover ─────────── */
-.cpv {
+.code-preview {
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.cpv:hover {
+.code-preview:hover {
   border-color: var(--border-bright);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
 }
 
 /* ─── 32. Lesson transition ───────────────────── */
-.lv {
+.lesson-surface {
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -1598,24 +1598,25 @@
 }
 
 /* ─── Scrollbar ────────────────────────────────── */
-.mn::-webkit-scrollbar,
+.main-shell::-webkit-scrollbar,
 .sb-scroll::-webkit-scrollbar {
   width: 6px;
 }
 
-.mn::-webkit-scrollbar-track,
+.main-shell::-webkit-scrollbar-track,
 .sb-scroll::-webkit-scrollbar-track {
   background: var(--bg-deep);
 }
 
-.mn::-webkit-scrollbar-thumb,
+.main-shell::-webkit-scrollbar-thumb,
 .sb-scroll::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 3px;
 }
 
-.mn::-webkit-scrollbar-thumb:hover,
+.main-shell::-webkit-scrollbar-thumb:hover,
 .sb-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--border-bright);
 }
+
 

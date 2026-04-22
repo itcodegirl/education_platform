@@ -167,7 +167,7 @@ export default function AppRoutes() {
   if (!dataLoaded) {
     return (
       <div className={`shell ${theme}`} role="status" aria-live="polite">
-        <div className="sidebar sb sk-sidebar-wrap">
+        <div className="sidebar sk-sidebar-wrap">
           <div className="sk-brand-area"><div className="sk-line sk-w60 sk-h16"></div></div>
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className="sk-module">
@@ -176,9 +176,9 @@ export default function AppRoutes() {
             </div>
           ))}
         </div>
-        <div className="main-shell mn">
+        <div className="main-shell">
           <div className="topbar"><div className="sk-line sk-w40 sk-h14"></div></div>
-          <div className="lesson-container lv-wrap"><LessonSkeleton /></div>
+          <div className="lesson-container"><LessonSkeleton /></div>
         </div>
       </div>
     );

@@ -188,7 +188,7 @@ export const Sidebar = memo(function Sidebar({
       <nav
         ref={asideRef}
         id="course-sidebar"
-        className={`sidebar sb ${isOpen ? 'open' : ''} ${!isMobile && isCollapsed ? 'collapsed' : ''}`}
+        className={`sidebar ${isOpen ? 'open' : ''} ${!isMobile && isCollapsed ? 'collapsed' : ''}`}
         aria-label="Course navigation"
         aria-hidden={isMobile ? !isOpen : false}
         aria-modal={isMobile && isOpen ? 'true' : undefined}
@@ -374,7 +374,7 @@ export const Sidebar = memo(function Sidebar({
               const isExpanded = expandedMod === mi;
 
               return (
-                <div key={module.id} className={`module-group mg ${mi === modIdx ? 'act' : ''} ${isExpanded ? 'expanded' : ''} ${!isModUnlocked ? 'locked' : ''}`}>
+                <div key={module.id} className={`module-group ${mi === modIdx ? 'act' : ''} ${isExpanded ? 'expanded' : ''} ${!isModUnlocked ? 'locked' : ''}`}>
                   <button
                     type="button"
                     className="mg-btn"
@@ -395,7 +395,7 @@ export const Sidebar = memo(function Sidebar({
                   </button>
 
                   {isExpanded && (
-                    <div className="lesson-list lg">
+                    <div className="lesson-list">
                       {module.lessons.map((lesson, li) => {
                         const isDone = hasLessonCompletion(completedSet, course, module, lesson);
                         const unlocked = !lockMode || isLessonUnlocked(course, modules, mi, li, completedSet);

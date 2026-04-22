@@ -8,7 +8,7 @@
 
 /* ─── 7. Sidebar — Brand Aligned Glassmorphism ─── */
 .sidebar,
-.sb {
+.sidebar {
   width: min(100vw, var(--sb-width));
   min-width: min(100vw, var(--sb-width));
   max-width: 100vw;
@@ -26,7 +26,7 @@
 }
 @supports not (backdrop-filter: blur(1px)) {
   .sidebar,
-  .sb { background: rgba(13, 13, 30, 0.98); }
+  .sidebar { background: rgba(13, 13, 30, 0.98); }
 }
 
 /* ─── Brand + Avatar header ─── */
@@ -90,7 +90,7 @@
 
 /* Hide icon variant by default, show in collapsed sidebar */
 .brand-icon-only { display: none; }
-.sb.collapsed .brand-icon-only { display: inline-flex; }
+.sidebar.collapsed .brand-icon-only { display: inline-flex; }
 .sb-head-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 
 /* Avatar button */
@@ -297,27 +297,27 @@
 
 /* ─── Module groups ─── */
 .module-group,
-.mg {
+.module-group {
   margin-bottom: 4px;
   border-radius: 12px;
   overflow: hidden;
   transition: all 0.2s;
 }
 .module-group.expanded,
-.mg.expanded {
+.module-group.expanded {
   background: rgba(180,74,255,0.04);
   border: 1px solid rgba(180,74,255,0.1);
   margin-bottom: 8px;
 }
 .module-group:not(.expanded),
-.mg:not(.expanded) { border: 1px solid transparent; }
+.module-group:not(.expanded) { border: 1px solid transparent; }
 .mg-btn {
   width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px;
   background: none; border: none; color: var(--text); cursor: pointer; text-align: left; transition: all 0.15s;
   border-radius: 12px;
 }
 .mg-btn:hover { background: rgba(255,255,255,0.04); }
-.mg.act > .mg-btn { color: var(--text); }
+.module-group.act > .mg-btn { color: var(--text); }
 .mg-emoji {
   font-size: 18px;
   width: 36px; height: 36px;
@@ -327,18 +327,18 @@
   border: 1px solid rgba(180,74,255,0.08);
   flex-shrink: 0;
 }
-.mg.act .mg-emoji {
+.module-group.act .mg-emoji {
   background: rgba(180,74,255,0.2);
   border-color: rgba(180,74,255,0.2);
 }
 .mg-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
 .mg-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mg-sub { font-size: 10px; color: var(--text-muted); font-family: 'Poppins', sans-serif; }
-.mg.locked { opacity: 0.35; }
+.module-group.locked { opacity: 0.35; }
 
 /* ─── Lesson list ─── */
 .lesson-list,
-.lg { padding: 4px 0 8px; animation: fadeIn 0.15s ease-out; }
+.lesson-list { padding: 4px 0 8px; animation: fadeIn 0.15s ease-out; }
 .lg-btn {
   width: 100%; display: flex; align-items: center; gap: 10px; padding: 7px 14px 7px 60px;
   background: none; border: none;
@@ -527,15 +527,15 @@
 }
 
 /* ─── Collapsed sidebar: icons only ─── */
-.sb.collapsed .sb-tabs {
+.sidebar.collapsed .sb-tabs {
   grid-template-columns: 1fr;
   gap: 4px;
   padding: 4px 8px 10px;
 }
-.sb.collapsed .sb-tab-label,
-.sb.collapsed .sb-tab-arrow { display: none; }
-.sb.collapsed .sb-tab { padding: 10px 0; }
-.sb.collapsed .sb-tabs-context { display: none; }
+.sidebar.collapsed .sb-tab-label,
+.sidebar.collapsed .sb-tab-arrow { display: none; }
+.sidebar.collapsed .sb-tab { padding: 10px 0; }
+.sidebar.collapsed .sb-tabs-context { display: none; }
 
 /* ─── Lock toggle (inside scroll area) ─── */
 .sb-lock-row {
@@ -554,19 +554,20 @@
 
 /* ─── Collapsed sidebar ─── */
 @media (min-width: 901px) {
-  .sb.collapsed { width: var(--sb-width-collapsed); min-width: var(--sb-width-collapsed); }
-  .sb.collapsed .sb-head { padding: 14px 10px; justify-content: center; flex-direction: column; gap: 8px; }
-  .sb.collapsed .brand { justify-content: center; }
-  .sb.collapsed .logo-sm,
-  .sb.collapsed .sb-head-actions .sb-collapse,
-  .sb.collapsed .cs-trigger-label,
-  .sb.collapsed .cs-trigger-meta,
-  .sb.collapsed .cs-trigger-arrow,
-  .sb.collapsed .cs-progress,
-  .sb.collapsed .sb-scroll,
-  .sb.collapsed .pp { display: none; }
-  .sb.collapsed .sb-head-actions { flex-direction: column; }
-  .sb.collapsed .cs-trigger { justify-content: center; padding: 10px; }
-  .sb.collapsed .cs-trigger-icon { font-size: 20px; }
+  .sidebar.collapsed { width: var(--sb-width-collapsed); min-width: var(--sb-width-collapsed); }
+  .sidebar.collapsed .sb-head { padding: 14px 10px; justify-content: center; flex-direction: column; gap: 8px; }
+  .sidebar.collapsed .brand { justify-content: center; }
+  .sidebar.collapsed .logo-sm,
+  .sidebar.collapsed .sb-head-actions .sb-collapse,
+  .sidebar.collapsed .cs-trigger-label,
+  .sidebar.collapsed .cs-trigger-meta,
+  .sidebar.collapsed .cs-trigger-arrow,
+  .sidebar.collapsed .cs-progress,
+  .sidebar.collapsed .sb-scroll,
+  .sidebar.collapsed .pp { display: none; }
+  .sidebar.collapsed .sb-head-actions { flex-direction: column; }
+  .sidebar.collapsed .cs-trigger { justify-content: center; padding: 10px; }
+  .sidebar.collapsed .cs-trigger-icon { font-size: 20px; }
 }
+
 

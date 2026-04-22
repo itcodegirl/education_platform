@@ -902,8 +902,9 @@
 
 /* Hide tools section when sidebar is collapsed on desktop */
 @media (min-width: 901px) {
-  .sb.collapsed .sb-tools,
-  .sb.collapsed .sb-tools-title { display: none; }
+  .sidebar.collapsed .sb-tools,
+  .sidebar.collapsed .sb-tools-title { display: none; }
 }
+
 
 

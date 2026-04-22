@@ -57,7 +57,7 @@ export function GuestPreview({ onBack }) {
           </p>
         </div>
 
-        <section className="lv">
+        <section className="lesson-surface">
           <div className="lv-head">
             <span className="lv-emoji" aria-hidden="true">{firstModule.emoji}</span>
             <div className="lv-head-text">
