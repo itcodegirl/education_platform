@@ -53,7 +53,7 @@
 .sidebar.collapsed .brand-robot { display: none; }
 
 /* Active lesson robot indicator */
-.lg-robot {
+.lesson-list-robot {
   font-size: 14px;
   margin-left: auto;
   flex-shrink: 0;
@@ -77,4 +77,5 @@
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
+
 

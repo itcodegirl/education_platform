@@ -167,17 +167,17 @@ export default function AppRoutes() {
   if (!dataLoaded) {
     return (
       <div className={`shell ${theme}`} role="status" aria-live="polite">
-        <div className="sidebar sk-sidebar-wrap">
-          <div className="sk-brand-area"><div className="sk-line sk-w60 sk-h16"></div></div>
+        <div className="sidebar skeleton-sidebar-wrap">
+          <div className="skeleton-brand-area"><div className="skeleton-line skeleton-w60 skeleton-h16"></div></div>
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="sk-module">
-              <div className="sk-line sk-w80 sk-h14"></div>
-              <div className="sk-line sk-w50 sk-h10"></div>
+            <div key={i} className="skeleton-module">
+              <div className="skeleton-line skeleton-w80 skeleton-h14"></div>
+              <div className="skeleton-line skeleton-w50 skeleton-h10"></div>
             </div>
           ))}
         </div>
         <div className="main-shell">
-          <div className="topbar"><div className="sk-line sk-w40 sk-h14"></div></div>
+          <div className="topbar"><div className="skeleton-line skeleton-w40 skeleton-h14"></div></div>
           <div className="lesson-container"><LessonSkeleton /></div>
         </div>
       </div>
@@ -186,3 +186,4 @@ export default function AppRoutes() {
 
   return <AppLayout />;
 }
+

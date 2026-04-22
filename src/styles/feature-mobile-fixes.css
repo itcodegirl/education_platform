@@ -296,11 +296,11 @@
     min-height: 44px;
   }
 
-  .lg-btn {
+  .lesson-list-btn {
     min-height: 44px;
   }
 
-  .mg-btn {
+  .module-group-btn {
     min-height: 48px;
   }
 
@@ -386,7 +386,7 @@ select {
 .ai-messages,
 .cc-ai-response,
 .search-results,
-.sb-scroll,
+.sidebar-scroll,
 .main-shell,
 .main-shell,
 .code-preview-explanation-body,
@@ -438,8 +438,8 @@ select {
   .mark-btn:hover,
   .tool-btn:hover,
   .theme-toggle:hover,
-  .lg-btn:hover,
-  .mg-btn:hover,
+  .lesson-list-btn:hover,
+  .module-group-btn:hover,
   .ai-suggestion:hover,
   .cc-ai-suggestion:hover,
   .challenge-card:hover,
@@ -480,6 +480,7 @@ select {
     margin-bottom: 16px;
   }
 }
+
 
 
 

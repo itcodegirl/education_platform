@@ -74,7 +74,7 @@ export const Sidebar = memo(function Sidebar({
   // and on every window resize. Returns null if the tab bar ref isn't
   // mounted yet (shouldn't happen once the sidebar is rendered).
   //
-  // Popout width matches .sb-tab-flyout in CSS (~240px). We try to
+  // Popout width matches .sidebar-tab-flyout in CSS (~240px). We try to
   // place it to the RIGHT of the tab bar so it flies out of the
   // sidebar. If that would overflow the viewport (narrow windows,
   // mobile drawer) OR if the tab bar itself is still animating in
@@ -196,16 +196,16 @@ export const Sidebar = memo(function Sidebar({
         tabIndex={isMobile ? -1 : undefined}
       >
         {/* ─── Brand + Avatar row ─── */}
-        <header className="sb-head">
+        <header className="sidebar-head">
           <div className="brand">
             <Logo size="sm" />
             <span className="brand-robot" aria-hidden="true">🤖</span>
             <Logo size="icon" className="brand-icon-only" />
           </div>
-          <div className="sb-head-actions">
+          <div className="sidebar-head-actions">
             <button
               type="button"
-              className={`sb-avatar ${popoverOpen ? 'active' : ''}`}
+              className={`sidebar-avatar ${popoverOpen ? 'active' : ''}`}
               onClick={togglePopover}
               aria-label="Open profile and stats"
               aria-expanded={popoverOpen}
@@ -216,14 +216,14 @@ export const Sidebar = memo(function Sidebar({
             {!isMobile && (
               <button
                 type="button"
-                className="sb-collapse"
+                className="sidebar-collapse"
                 onClick={onToggleCollapse}
                 aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               >
                 {isCollapsed ? '»' : '«'}
               </button>
             )}
-            <button type="button" className="sb-close" onClick={onClose} aria-label="Close sidebar">✕</button>
+            <button type="button" className="sidebar-close" onClick={onClose} aria-label="Close sidebar">✕</button>
           </div>
         </header>
 
@@ -238,64 +238,64 @@ export const Sidebar = memo(function Sidebar({
             Resources: opens a quick-launcher for the learning tools
             (cheat sheets, glossary, bookmarks, review queue, challenges, badges).
             Click-outside, Escape, and window resize close the active popout. */}
-        <div className="sb-tabs" ref={tabsRef} role="tablist" aria-label="Sidebar navigation">
+        <div className="sidebar-tabs" ref={tabsRef} role="tablist" aria-label="Sidebar navigation">
           <button
-            id="sb-tab-courses"
+            id="sidebar-tab-courses"
             type="button"
-            className={`sb-tab ${activePopout === 'courses' ? 'active' : ''}`}
+            className={`sidebar-tab ${activePopout === 'courses' ? 'active' : ''}`}
             onClick={() => openPopout('courses')}
             aria-haspopup="true"
             aria-expanded={activePopout === 'courses'}
-            aria-controls="sb-tab-panel-courses"
+            aria-controls="sidebar-tab-panel-courses"
             aria-selected={activePopout === 'courses'}
             role="tab"
           >
-            <span className="sb-tab-icon" aria-hidden="true">📚</span>
-            <span className="sb-tab-label">Courses</span>
-            <span className="sb-tab-arrow" aria-hidden="true">▸</span>
+            <span className="sidebar-tab-icon" aria-hidden="true">📚</span>
+            <span className="sidebar-tab-label">Courses</span>
+            <span className="sidebar-tab-arrow" aria-hidden="true">▸</span>
           </button>
 
           <button
-            id="sb-tab-resources"
+            id="sidebar-tab-resources"
             type="button"
-            className={`sb-tab ${activePopout === 'resources' ? 'active' : ''}`}
+            className={`sidebar-tab ${activePopout === 'resources' ? 'active' : ''}`}
             onClick={() => openPopout('resources')}
             aria-haspopup="true"
             aria-expanded={activePopout === 'resources'}
-            aria-controls="sb-tab-panel-resources"
+            aria-controls="sidebar-tab-panel-resources"
             aria-selected={activePopout === 'resources'}
             role="tab"
           >
-            <span className="sb-tab-icon" aria-hidden="true">📋</span>
-            <span className="sb-tab-label">Resources</span>
-            <span className="sb-tab-arrow" aria-hidden="true">▸</span>
+            <span className="sidebar-tab-icon" aria-hidden="true">📋</span>
+            <span className="sidebar-tab-label">Resources</span>
+            <span className="sidebar-tab-arrow" aria-hidden="true">▸</span>
           </button>
 
           {/* Active-course context strip — shows which course you're in
               and its progress, now that the course name isn't the trigger label. */}
-          <div className="sb-tabs-context" style={{ '--cs-accent': course.accent }}>
-            <span className="sb-tabs-context-icon">{course.icon}</span>
-            <span className="sb-tabs-context-label">{course.label}</span>
-            <span className="sb-tabs-context-meta">{courseDone}/{total}</span>
-            <div className="sb-tabs-context-progress">
+          <div className="sidebar-tabs-context" style={{ '--cs-accent': course.accent }}>
+            <span className="sidebar-tabs-context-icon">{course.icon}</span>
+            <span className="sidebar-tabs-context-label">{course.label}</span>
+            <span className="sidebar-tabs-context-meta">{courseDone}/{total}</span>
+            <div className="sidebar-tabs-context-progress">
               <div
-                className="sb-tabs-context-fill"
+                className="sidebar-tabs-context-fill"
                 style={{ width: `${pct}%`, background: course.accent }}
               />
             </div>
           </div>
         </div>
 
-        {/* Popout card — rendered OUTSIDE .sb-tabs so it can escape the
+        {/* Popout card — rendered OUTSIDE .sidebar-tabs so it can escape the
             sidebar's overflow:hidden via position:fixed. Position is
             computed from the tab bar's bounding rect in openPopout(). */}
         {activePopout && popoutPos && (
           <div
             ref={popoutRef}
-            id={`sb-tab-panel-${activePopout}`}
-            className={`sb-tab-flyout sb-tab-flyout-${activePopout} ${popoutPos.mode === 'docked' ? 'docked' : ''}`}
+            id={`sidebar-tab-panel-${activePopout}`}
+            className={`sidebar-tab-flyout sidebar-tab-flyout-${activePopout} ${popoutPos.mode === 'docked' ? 'docked' : ''}`}
             role="tabpanel"
-            aria-labelledby={activePopout === 'courses' ? 'sb-tab-courses' : 'sb-tab-resources'}
+            aria-labelledby={activePopout === 'courses' ? 'sidebar-tab-courses' : 'sidebar-tab-resources'}
             aria-label={activePopout === 'courses' ? 'Select course' : 'Open a learning tool'}
             style={popoutPos.mode === 'fixed' ? { top: popoutPos.top, left: popoutPos.left } : undefined}
           >
@@ -331,7 +331,7 @@ export const Sidebar = memo(function Sidebar({
                 <button
                   key={t.key}
                   type="button"
-                  className={`sb-tab-opt ${activePanel === t.key ? 'active' : ''}`}
+                  className={`sidebar-tab-opt ${activePanel === t.key ? 'active' : ''}`}
                   aria-pressed={activePanel === t.key}
                   onClick={() => {
                     onOpenTool(t.key);
@@ -340,20 +340,20 @@ export const Sidebar = memo(function Sidebar({
                   }}
                   aria-label={`Open ${t.label} panel`}
                 >
-                  <span className="sb-tab-opt-icon" aria-hidden="true">{t.icon}</span>
-                  <span className="sb-tab-opt-label">{t.label}</span>
+                  <span className="sidebar-tab-opt-icon" aria-hidden="true">{t.icon}</span>
+                  <span className="sidebar-tab-opt-label">{t.label}</span>
                 </button>
               ))}
           </div>
         )}
 
         {/* ─── Module/Lesson Tree ─── */}
-        <div className="sb-scroll">
-          <div className="sb-map-header">
-            <span className="sb-map-title">Modules</span>
+        <div className="sidebar-scroll">
+          <div className="sidebar-map-header">
+            <span className="sidebar-map-title">Modules</span>
             <button
               type="button"
-              className={`sb-roadmap-btn ${activePanel === 'roadmap' ? 'active' : ''}`}
+              className={`sidebar-roadmap-btn ${activePanel === 'roadmap' ? 'active' : ''}`}
               onClick={() => onOpenTool('roadmap')}
               aria-label="Open full learning roadmap"
               title="Full roadmap"
@@ -364,7 +364,7 @@ export const Sidebar = memo(function Sidebar({
           {/* The outer <nav aria-label="Course navigation"> already exposes
               this region as a landmark — this inner list doesn't need its
               own nested <nav> (would be noisy for screen readers). */}
-          <div className="sb-nav">
+          <div className="sidebar-nav">
             {modules.map((module, mi) => {
               const modDone = module.lessons.filter((lesson) =>
                 hasLessonCompletion(completedSet, course, module, lesson),
@@ -377,7 +377,7 @@ export const Sidebar = memo(function Sidebar({
                 <div key={module.id} className={`module-group ${mi === modIdx ? 'act' : ''} ${isExpanded ? 'expanded' : ''} ${!isModUnlocked ? 'locked' : ''}`}>
                   <button
                     type="button"
-                    className="mg-btn"
+                    className="module-group-btn"
                     onClick={() => {
                       if (!isModUnlocked) return;
                       // Toggle expand/collapse; if collapsing the current, just collapse
@@ -387,10 +387,10 @@ export const Sidebar = memo(function Sidebar({
                     aria-expanded={isExpanded}
                     aria-label={`${module.title} module${isModUnlocked ? `, ${modDone}/${module.lessons.length} lessons completed` : ', locked by sequence mode'}`}
                   >
-                    <span className="mg-emoji">{isModUnlocked ? module.emoji : '🔒'}</span>
-                    <div className="mg-info">
-                      <span className="mg-name">{module.title}</span>
-                      <span className="mg-sub">{modDone}/{module.lessons.length}</span>
+                    <span className="module-group-emoji">{isModUnlocked ? module.emoji : '🔒'}</span>
+                    <div className="module-group-info">
+                      <span className="module-group-name">{module.title}</span>
+                      <span className="module-group-sub">{modDone}/{module.lessons.length}</span>
                     </div>
                   </button>
 
@@ -403,26 +403,26 @@ export const Sidebar = memo(function Sidebar({
                           <button
                             key={lesson.id}
                             type="button"
-                            className={`lg-btn ${mi === modIdx && li === lesIdx && !showModQuiz ? 'act' : ''} ${isDone ? 'dn' : ''} ${!unlocked ? 'locked' : ''}`}
+                            className={`lesson-list-btn ${mi === modIdx && li === lesIdx && !showModQuiz ? 'act' : ''} ${isDone ? 'dn' : ''} ${!unlocked ? 'locked' : ''}`}
                             onClick={() => unlocked && onSelectLesson(mi, li)}
                             disabled={!unlocked}
                             aria-label={`${lesson.title} lesson${isDone ? ', completed' : ''}${!unlocked ? ', locked' : ''}`}
                             aria-current={mi === modIdx && li === lesIdx && !showModQuiz ? 'page' : undefined}
                           >
-                            <span className="lg-chk">{isDone ? '✓' : unlocked ? '○' : '🔒'}</span>
+                            <span className="lesson-list-chk">{isDone ? '✓' : unlocked ? '○' : '🔒'}</span>
                             <span>{lesson.title}</span>
-                            {mi === modIdx && li === lesIdx && !showModQuiz && <span className="lg-robot" aria-hidden="true">🤖</span>}
+                            {mi === modIdx && li === lesIdx && !showModQuiz && <span className="lesson-list-robot" aria-hidden="true">🤖</span>}
                           </button>
                         );
                       })}
                       {QUIZ_MAP.has(`m:${module.id}`) && (
                         <button
                           type="button"
-                          className={`lg-btn lg-quiz ${showModQuiz && mi === modIdx ? 'act' : ''}`}
+                          className={`lesson-list-btn lesson-list-quiz ${showModQuiz && mi === modIdx ? 'act' : ''}`}
                           onClick={() => onSelectModQuiz(mi)}
                           aria-label={`Open module quiz for ${module.title}`}
                         >
-                          <span className="lg-chk">📝</span>
+                          <span className="lesson-list-chk">📝</span>
                           <span>Module Quiz</span>
                         </button>
                       )}
@@ -434,10 +434,10 @@ export const Sidebar = memo(function Sidebar({
           </div>
 
           {/* The Tools grid was moved into the Resources popout at the
-              top of the sidebar (see .sb-tabs above). */}
+              top of the sidebar (see .sidebar-tabs above). */}
 
           {/* ─── Lock toggle ─── */}
-          <div className="sb-lock-row">
+          <div className="sidebar-lock-row">
             <label className="lock-label">
             <input
               type="checkbox"
@@ -453,3 +453,4 @@ export const Sidebar = memo(function Sidebar({
     </>
   );
 });
+

@@ -878,12 +878,12 @@
 .shell.light .lesson-nav-btn { background: var(--bg-surface); border-color: var(--border); }
 
 /* ─── 15c. Sidebar Tools Section ───────────────── */
-.sb-tools-title { margin-top: 4px; }
-.sb-tools {
+.sidebar-tools-title { margin-top: 4px; }
+.sidebar-tools {
   display: flex; flex-direction: column; gap: 2px;
   padding: 0 14px 8px;
 }
-.sb-tool-btn {
+.sidebar-tool-btn {
   display: flex; align-items: center; gap: 10px;
   width: 100%; padding: 10px 14px;
   border-radius: 10px; border: none;
@@ -893,18 +893,19 @@
   transition: all 0.15s;
   font-family: 'Inter', sans-serif;
 }
-.sb-tool-btn:hover {
+.sidebar-tool-btn:hover {
   background: rgba(255,255,255,0.04);
   color: var(--text);
 }
-.sb-tool-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
-.sb-tool-label { flex: 1; }
+.sidebar-tool-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
+.sidebar-tool-label { flex: 1; }
 
 /* Hide tools section when sidebar is collapsed on desktop */
 @media (min-width: 901px) {
-  .sidebar.collapsed .sb-tools,
-  .sidebar.collapsed .sb-tools-title { display: none; }
+  .sidebar.collapsed .sidebar-tools,
+  .sidebar.collapsed .sidebar-tools-title { display: none; }
 }
+
 
 
 

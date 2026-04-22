@@ -204,7 +204,7 @@
   }
 }
 
-.sk-line {
+.skeleton-line {
   border-radius: 6px;
   background: var(--border);
   animation: skPulse 1.5s ease-in-out infinite;
@@ -212,73 +212,73 @@
 }
 
 /* Width variants */
-.sk-w15 {
+.skeleton-w15 {
   width: 15%;
 }
 
-.sk-w20 {
+.skeleton-w20 {
   width: 20%;
 }
 
-.sk-w30 {
+.skeleton-w30 {
   width: 30%;
 }
 
-.sk-w40 {
+.skeleton-w40 {
   width: 40%;
 }
 
-.sk-w50 {
+.skeleton-w50 {
   width: 50%;
 }
 
-.sk-w60 {
+.skeleton-w60 {
   width: 60%;
 }
 
-.sk-w70 {
+.skeleton-w70 {
   width: 70%;
 }
 
-.sk-w75 {
+.skeleton-w75 {
   width: 75%;
 }
 
-.sk-w80 {
+.skeleton-w80 {
   width: 80%;
 }
 
-.sk-w85 {
+.skeleton-w85 {
   width: 85%;
 }
 
-.sk-w90 {
+.skeleton-w90 {
   width: 90%;
 }
 
 /* Height variants */
-.sk-h10 {
+.skeleton-h10 {
   height: 10px;
 }
 
-.sk-h12 {
+.skeleton-h12 {
   height: 12px;
 }
 
-.sk-h14 {
+.skeleton-h14 {
   height: 14px;
 }
 
-.sk-h16 {
+.skeleton-h16 {
   height: 16px;
 }
 
-.sk-h20 {
+.skeleton-h20 {
   height: 20px;
 }
 
 /* Skeleton shapes */
-.sk-circle {
+.skeleton-circle {
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -287,7 +287,7 @@
   flex-shrink: 0;
 }
 
-.sk-pill {
+.skeleton-pill {
   width: 60px;
   height: 28px;
   border-radius: 14px;
@@ -295,13 +295,13 @@
   animation: skPulse 1.5s ease-in-out infinite;
 }
 
-.sk-pill.sk-small {
+.skeleton-pill.skeleton-small {
   width: 50px;
   height: 24px;
   border-radius: 12px;
 }
 
-.sk-check {
+.skeleton-check {
   width: 20px;
   height: 20px;
   border-radius: 4px;
@@ -310,7 +310,7 @@
   flex-shrink: 0;
 }
 
-.sk-bar {
+.skeleton-bar {
   width: 100%;
   height: 4px;
   border-radius: 2px;
@@ -320,7 +320,7 @@
 }
 
 /* Sidebar skeleton */
-.sk-sidebar-wrap {
+.skeleton-sidebar-wrap {
   width: 280px;
   min-width: 280px;
   background: var(--bg-dark);
@@ -328,66 +328,66 @@
   padding: 20px;
 }
 
-.sk-brand-area {
+.skeleton-brand-area {
   padding: 10px 0 20px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 16px;
 }
 
-.sk-tabs {
+.skeleton-tabs {
   display: flex;
   gap: 6px;
   margin-bottom: 16px;
 }
 
-.sk-stats {
+.skeleton-stats {
   padding: 12px 0;
   border-bottom: 1px solid var(--border);
   margin-bottom: 16px;
 }
 
-.sk-module {
+.skeleton-module {
   padding: 12px 0;
   border-bottom: 1px solid var(--border);
 }
 
 /* Lesson skeleton */
-.sk-lesson {
+.skeleton-lesson {
   padding: 40px 32px;
   max-width: 840px;
   margin: 0 auto;
 }
 
-.sk-lesson-head {
+.skeleton-lesson-head {
   display: flex;
   gap: 16px;
   align-items: center;
   margin-bottom: 28px;
 }
 
-.sk-lesson-title {
+.skeleton-lesson-title {
   flex: 1;
 }
 
-.sk-section {
+.skeleton-section {
   margin-bottom: 28px;
 }
 
-.sk-task {
+.skeleton-task {
   display: flex;
   gap: 10px;
   align-items: center;
   margin-bottom: 8px;
 }
 
-.sk-code {
+.skeleton-code {
   border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
   margin-bottom: 28px;
 }
 
-.sk-code-header {
+.skeleton-code-header {
   display: flex;
   gap: 8px;
   padding: 10px 16px;
@@ -395,47 +395,47 @@
   border-bottom: 1px solid var(--border);
 }
 
-.sk-code-body {
+.skeleton-code-body {
   padding: 16px 20px;
   background: var(--bg-card);
 }
 
 /* Stagger animation delays for natural feel */
-.sk-module:nth-child(2) .sk-line {
+.skeleton-module:nth-child(2) .skeleton-line {
   animation-delay: 0.1s;
 }
 
-.sk-module:nth-child(3) .sk-line {
+.skeleton-module:nth-child(3) .skeleton-line {
   animation-delay: 0.2s;
 }
 
-.sk-module:nth-child(4) .sk-line {
+.skeleton-module:nth-child(4) .skeleton-line {
   animation-delay: 0.3s;
 }
 
-.sk-module:nth-child(5) .sk-line {
+.skeleton-module:nth-child(5) .skeleton-line {
   animation-delay: 0.4s;
 }
 
-.sk-module:nth-child(6) .sk-line {
+.skeleton-module:nth-child(6) .skeleton-line {
   animation-delay: 0.5s;
 }
 
-.sk-section:nth-child(2) .sk-line {
+.skeleton-section:nth-child(2) .skeleton-line {
   animation-delay: 0.15s;
 }
 
-.sk-section:nth-child(3) .sk-line {
+.skeleton-section:nth-child(3) .skeleton-line {
   animation-delay: 0.3s;
 }
 
 /* Mobile skeleton */
 @media (max-width: 900px) {
-  .sk-sidebar-wrap {
+  .skeleton-sidebar-wrap {
     display: none;
   }
 
-  .sk-lesson {
+  .skeleton-lesson {
     padding: 24px 16px;
   }
 }
@@ -443,3 +443,4 @@
 /* ═══════════════════════════════════════════════
    PERFORMANCE OPTIMIZATIONS
    ═══════════════════════════════════════════════ */
+

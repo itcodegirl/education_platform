@@ -857,11 +857,11 @@
   border-color: var(--border);
 }
 
-.shell.light .module-group.act>.mg-btn {
+.shell.light .module-group.act>.module-group-btn {
   background: var(--pink-glow);
 }
 
-.shell.light .lg-btn:hover {
+.shell.light .lesson-list-btn:hover {
   background: var(--bg-surface);
 }
 
@@ -908,12 +908,12 @@
 
 /* Scrollbars in light mode */
 .shell.light .main-shell::-webkit-scrollbar-track,
-.shell.light .sb-scroll::-webkit-scrollbar-track {
+.shell.light .sidebar-scroll::-webkit-scrollbar-track {
   background: #f5f5f8;
 }
 
 .shell.light .main-shell::-webkit-scrollbar-thumb,
-.shell.light .sb-scroll::-webkit-scrollbar-thumb {
+.shell.light .sidebar-scroll::-webkit-scrollbar-thumb {
   background: #d0d0dd;
 }
 
@@ -982,12 +982,12 @@
 }
 
 /* ─── 23. Course Accent Overrides ──────────────── */
-[data-course="css"] .module-group.act>.mg-btn {
+[data-course="css"] .module-group.act>.module-group-btn {
   background: rgba(78, 205, 196, 0.08);
   border-left-color: var(--cyan);
 }
 
-[data-course="css"] .lg-btn.act {
+[data-course="css"] .lesson-list-btn.act {
   color: var(--cyan);
 }
 
@@ -1009,12 +1009,12 @@
   color: var(--cyan);
 }
 
-[data-course="js"] .module-group.act>.mg-btn {
+[data-course="js"] .module-group.act>.module-group-btn {
   background: rgba(255, 167, 38, 0.08);
   border-left-color: var(--amber);
 }
 
-[data-course="js"] .lg-btn.act {
+[data-course="js"] .lesson-list-btn.act {
   color: var(--amber);
 }
 
@@ -1032,12 +1032,12 @@
   color: var(--amber);
 }
 
-[data-course="react"] .module-group.act>.mg-btn {
+[data-course="react"] .module-group.act>.module-group-btn {
   background: rgba(167, 139, 250, 0.08);
   border-left-color: var(--purple);
 }
 
-[data-course="react"] .lg-btn.act {
+[data-course="react"] .lesson-list-btn.act {
   color: var(--purple);
 }
 
@@ -1054,6 +1054,7 @@
   border-color: var(--purple);
   color: var(--purple);
 }
+
 
 
 

@@ -72,7 +72,7 @@
     animation: none;
   }
 
-  .sk-line {
+  .skeleton-line {
     animation: none;
     opacity: 0.2;
   }
@@ -1569,28 +1569,28 @@ img {
    ═══════════════════════════════════════════════ */
 
 /* Locked modules */
-.module-group.locked .mg-btn {
+.module-group.locked .module-group-btn {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-.module-group.locked .mg-name {
+.module-group.locked .module-group-name {
   color: var(--text-muted);
 }
 
 /* Locked lessons */
-.lg-btn.locked {
+.lesson-list-btn.locked {
   opacity: 0.35;
   cursor: not-allowed;
   pointer-events: none;
 }
 
-.lg-btn.locked .lg-chk {
+.lesson-list-btn.locked .lesson-list-chk {
   font-size: 10px;
 }
 
 /* Lock mode toggle at bottom of sidebar */
-.sb-lock-toggle {
+.sidebar-lock-toggle {
   margin: 12px 20px 20px;
   padding: var(--space-3) var(--space-4);
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -1627,7 +1627,7 @@ img {
     justify-content: center;
   }
 
-  .sb-collapse {
+  .sidebar-collapse {
     display: inline-flex;
   }
 
@@ -1894,7 +1894,7 @@ img {
 /* ═══════════════════════════════════════════════
    MODULE DIFFICULTY BADGES
    ═══════════════════════════════════════════════ */
-.mg-diff {
+.module-group-diff {
   display: inline-block;
   margin-left: 6px;
   font-size: 9px;
@@ -1907,17 +1907,17 @@ img {
   vertical-align: middle;
 }
 
-.mg-diff-beginner {
+.module-group-diff-beginner {
   background: rgba(78, 205, 196, 0.15);
   color: #4ecdc4;
 }
 
-.mg-diff-intermediate {
+.module-group-diff-intermediate {
   background: rgba(255, 167, 38, 0.15);
   color: #ffa726;
 }
 
-.mg-diff-advanced {
+.module-group-diff-advanced {
   background: rgba(255, 107, 157, 0.15);
   color: #ff6b9d;
 }
@@ -2347,5 +2347,6 @@ img {
 .wn-cta:hover {
   filter: brightness(1.15);
 }
+
 
 

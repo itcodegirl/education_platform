@@ -14,8 +14,8 @@
     box-shadow: 4px 0 24px rgba(0,0,0,0.5);
   }
   .sidebar.open { transform: translateX(0); }
-  .sb-collapse { display: none; }
-  .sb-close { display: block; }
+  .sidebar-collapse { display: none; }
+  .sidebar-close { display: block; }
   .overlay { display: block; }
   .ham { display: block; }
   .topbar { padding: 10px 14px; }
@@ -45,15 +45,15 @@
     -webkit-overflow-scrolling: touch;
     touch-action: pan-y;
   }
-  .sb-scroll {
+  .sidebar-scroll {
     flex: 0 0 auto;
     min-height: auto;
     overflow: visible;
   }
-  .sb-head { padding: 16px 16px 12px; }
+  .sidebar-head { padding: 16px 16px 12px; }
   .user-info { margin: 10px 16px 0; padding: 10px 12px; }
   .prog, .stats-panel, .xp-bar-wrap, .daily-goal { padding: 10px 12px; }
-  .sb-section-title { margin: 8px 16px 6px; }
+  .sidebar-section-title { margin: 8px 16px 6px; }
 }
 
 @media (max-width: 500px) {
@@ -64,14 +64,14 @@
   .user-info { gap: 10px; margin-left: 16px; margin-right: 16px; }
   .user-avatar { width: 36px; height: 36px; }
   .user-name { font-size: 14px; }
-  .sb-section-title { margin-left: 16px; margin-right: 16px; }
+  .sidebar-section-title { margin-left: 16px; margin-right: 16px; }
   .course-switcher { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .course-switcher,
   .prog,
   .stats-panel,
   .xp-bar-wrap,
   .daily-goal,
-  .sb-lock-toggle { margin-left: 16px; margin-right: 16px; }
+  .sidebar-lock-toggle { margin-left: 16px; margin-right: 16px; }
   .cs-btn { padding: 10px; font-size: 12px; }
   .stats-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .stat-card { padding: 8px 6px; }
@@ -92,7 +92,7 @@
   .lesson-action-btn::after { font-size: 11px; }
   .auth-logo { font-size: 22px; }
   .auth-social { flex-direction: column; }
-  .sb-tool-btn { padding: 10px 12px; font-size: 12px; }
+  .sidebar-tool-btn { padding: 10px 12px; font-size: 12px; }
 }
 
 /* ─── 25b. Tablet Responsive (768px) ─────────── */
@@ -162,6 +162,7 @@
   .admin-pager { flex-direction: column; align-items: flex-start; }
   .admin-pager-actions { width: 100%; justify-content: space-between; }
 }
+
 
 
 
