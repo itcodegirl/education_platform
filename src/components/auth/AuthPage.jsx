@@ -3,6 +3,10 @@ import { useAuth } from '../../providers';
 import { Logo } from '../shared/Logo';
 import { LandingHeroIntro, LandingHeroStory } from './LandingHero';
 
+const PASSWORD_MIN_LENGTH = 6;
+const DISPLAY_NAME_MAX_LENGTH = 60;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export function AuthPage({ onPreview }) {
   const {
     signIn,
@@ -17,6 +21,11 @@ export function AuthPage({ onPreview }) {
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
+  const [touched, setTouched] = useState({
+    email: false,
+    password: false,
+    displayName: false,
+  });
   const [loading, setLoading] = useState(false);
   const [sendingReset, setSendingReset] = useState(false);
   const [confirmSent, setConfirmSent] = useState(false);
@@ -33,6 +42,7 @@ export function AuthPage({ onPreview }) {
     setMode(nextMode);
     setError('');
     setInfo('');
+    setTouched({ email: false, password: false, displayName: false });
     window.requestAnimationFrame(() => {
       focusPrimaryAuthField(nextMode);
     });
@@ -56,18 +66,42 @@ export function AuthPage({ onPreview }) {
     e.preventDefault();
     setError('');
     setInfo('');
+
+    const normalizedEmail = email.trim();
+    const normalizedDisplayName = displayName.trim();
+
+    if (!EMAIL_PATTERN.test(normalizedEmail)) {
+      setTouched((prev) => ({ ...prev, email: true }));
+      setError('Enter a valid email address to continue.');
+      emailRef.current?.focus();
+      return;
+    }
+
+    if (password.length < PASSWORD_MIN_LENGTH) {
+      setTouched((prev) => ({ ...prev, password: true }));
+      setError(`Password must be at least ${PASSWORD_MIN_LENGTH} characters.`);
+      return;
+    }
+
+    if (mode === 'signup' && !normalizedDisplayName) {
+      setTouched((prev) => ({ ...prev, displayName: true }));
+      setError('Display name is required.');
+      displayNameRef.current?.focus();
+      return;
+    }
+
     setLoading(true);
 
     try {
       if (mode === 'signup') {
-        const { error: err } = await signUp(email, password, displayName);
+        const { error: err } = await signUp(normalizedEmail, password, normalizedDisplayName);
         if (err) {
           setError(err.message);
         } else {
           setConfirmSent(true);
         }
       } else {
-        const { error: err } = await signIn(email, password);
+        const { error: err } = await signIn(normalizedEmail, password);
         if (err) {
           setError(err.message);
         }
@@ -104,6 +138,16 @@ export function AuthPage({ onPreview }) {
       setSendingReset(false);
     }
   };
+
+  const emailInlineError = touched.email && email.trim() && !EMAIL_PATTERN.test(email.trim())
+    ? 'Enter a valid email format (example: you@example.com).'
+    : '';
+  const passwordInlineError = touched.password && password.length > 0 && password.length < PASSWORD_MIN_LENGTH
+    ? `Password must be at least ${PASSWORD_MIN_LENGTH} characters.`
+    : '';
+  const displayNameInlineError = mode === 'signup' && touched.displayName && !displayName.trim()
+    ? 'Display name is required.'
+    : '';
 
   if (confirmSent) {
     return (
@@ -200,9 +244,20 @@ export function AuthPage({ onPreview }) {
                   ref={displayNameRef}
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
+                  onBlur={() => setTouched((prev) => ({ ...prev, displayName: true }))}
                   required
+                  maxLength={DISPLAY_NAME_MAX_LENGTH}
                   disabled={loading}
+                  aria-describedby="auth-display-name-help"
+                  aria-invalid={Boolean(displayNameInlineError)}
                 />
+                <p
+                  id="auth-display-name-help"
+                  className={`auth-field-help ${displayNameInlineError ? 'auth-field-help-error' : ''}`}
+                  role={displayNameInlineError ? 'alert' : undefined}
+                >
+                  {displayNameInlineError || `${displayName.length}/${DISPLAY_NAME_MAX_LENGTH} characters`}
+                </p>
               </div>
             )}
 
@@ -217,9 +272,19 @@ export function AuthPage({ onPreview }) {
                 ref={emailRef}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
                 required
                 disabled={loading}
+                aria-describedby="auth-email-help"
+                aria-invalid={Boolean(emailInlineError)}
               />
+              <p
+                id="auth-email-help"
+                className={`auth-field-help ${emailInlineError ? 'auth-field-help-error' : ''}`}
+                role={emailInlineError ? 'alert' : undefined}
+              >
+                {emailInlineError || 'Use your account email address.'}
+              </p>
             </div>
 
             <div className="auth-field">
@@ -232,13 +297,19 @@ export function AuthPage({ onPreview }) {
                 autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
                 required
-                minLength={6}
+                minLength={PASSWORD_MIN_LENGTH}
                 disabled={loading}
                 aria-describedby="auth-password-help"
+                aria-invalid={Boolean(passwordInlineError)}
               />
-              <p id="auth-password-help" className="auth-field-help">
-                Use at least 6 characters.
+              <p
+                id="auth-password-help"
+                className={`auth-field-help ${passwordInlineError ? 'auth-field-help-error' : ''}`}
+                role={passwordInlineError ? 'alert' : undefined}
+              >
+                {passwordInlineError || `Use at least ${PASSWORD_MIN_LENGTH} characters.`}
               </p>
             </div>
 

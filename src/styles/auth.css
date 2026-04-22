@@ -137,6 +137,13 @@
   color: var(--text-muted);
   line-height: 1.4;
 }
+.auth-field-help-error {
+  color: #ff9aac;
+}
+.auth-field .ui-input[aria-invalid='true'] {
+  border-color: rgba(255, 111, 145, 0.65);
+  box-shadow: 0 0 0 1px rgba(255, 111, 145, 0.3);
+}
 .auth-inline-actions {
   display: flex;
   justify-content: flex-end;
