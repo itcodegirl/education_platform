@@ -5,6 +5,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { COURSES, QUIZ_MAP } from '../data';
+import { useCourseContent } from '../providers';
 
 const LEARN_HASH_PREFIX = '#learn/';
 
@@ -100,12 +101,15 @@ function findSavedPosition(lastPosition) {
 }
 
 export function useNavigation() {
+  const { ensureLoaded } = useCourseContent();
   const [courseIdx, setCourseIdx] = useState(0);
   const [modIdx, setModIdx] = useState(0);
   const [lesIdx, setLesIdx] = useState(0);
   const [showModQuiz, setShowModQuiz] = useState(false);
   const mainRef = useRef(null);
   const didWriteInitialHash = useRef(false);
+  const syncingFromHashRef = useRef(false);
+  const hashSyncTokenRef = useRef(0);
 
   // Defensive reads - COURSES is mutable and may temporarily have
   // empty modules while CourseContentProvider is fetching the active
@@ -136,22 +140,62 @@ export function useNavigation() {
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
 
-    const syncFromHash = () => {
-      const parsed = findHashPosition(window.location.hash);
-      if (!parsed) return;
-      setCourseIdx(parsed.courseIndex);
-      setModIdx(parsed.moduleIndex);
-      setLesIdx(parsed.lessonIndex);
-      setShowModQuiz(parsed.isModuleQuiz);
+    let isUnmounted = false;
+
+    const syncFromHash = async () => {
+      const parsedHash = parseLearnHash(window.location.hash);
+      if (!parsedHash) return;
+
+      const routeCourseIdx = COURSES.findIndex((entry) => entry.id === parsedHash.courseId);
+      if (routeCourseIdx === -1) return;
+
+      const token = ++hashSyncTokenRef.current;
+      syncingFromHashRef.current = true;
+
+      try {
+        if (!COURSES[routeCourseIdx]?.modules?.length) {
+          await ensureLoaded(parsedHash.courseId);
+        }
+
+        if (isUnmounted || token !== hashSyncTokenRef.current) return;
+
+        const resolved = findHashPosition(window.location.hash);
+        if (resolved) {
+          setCourseIdx(resolved.courseIndex);
+          setModIdx(resolved.moduleIndex);
+          setLesIdx(resolved.lessonIndex);
+          setShowModQuiz(resolved.isModuleQuiz);
+          return;
+        }
+
+        const fallbackCourse = COURSES[routeCourseIdx];
+        const fallbackModule = fallbackCourse?.modules?.[0];
+        const hasFallbackLesson = Boolean(fallbackModule?.lessons?.length);
+        if (!hasFallbackLesson) return;
+
+        setCourseIdx(routeCourseIdx);
+        setModIdx(0);
+        setLesIdx(0);
+        setShowModQuiz(false);
+      } finally {
+        if (!isUnmounted && token === hashSyncTokenRef.current) {
+          syncingFromHashRef.current = false;
+        }
+      }
     };
 
     syncFromHash();
     window.addEventListener('hashchange', syncFromHash);
-    return () => window.removeEventListener('hashchange', syncFromHash);
-  }, []);
+    return () => {
+      isUnmounted = true;
+      hashSyncTokenRef.current += 1;
+      window.removeEventListener('hashchange', syncFromHash);
+    };
+  }, [ensureLoaded]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (syncingFromHashRef.current) return;
 
     const nextHash = buildLearnHash(course, mod, les, showModQuiz);
     if (!nextHash) return;

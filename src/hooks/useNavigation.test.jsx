@@ -103,6 +103,24 @@ describe('useNavigation initial state', () => {
     expect(result.current.lesIdx).toBe(1);
     expect(result.current.showModQuiz).toBe(false);
   });
+
+  it('hydrates module quiz deep-links from hash', () => {
+    window.location.hash = '#learn/html/basics/quiz';
+    const { result } = renderHook(() => useNavigation());
+    expect(result.current.courseIdx).toBe(0);
+    expect(result.current.modIdx).toBe(0);
+    expect(result.current.lesIdx).toBe(1);
+    expect(result.current.showModQuiz).toBe(true);
+  });
+
+  it('falls back to first lesson in the same course for stale lesson ids', () => {
+    window.location.hash = '#learn/css/selectors/missing-lesson-id';
+    const { result } = renderHook(() => useNavigation());
+    expect(result.current.courseIdx).toBe(1);
+    expect(result.current.modIdx).toBe(0);
+    expect(result.current.lesIdx).toBe(0);
+    expect(result.current.showModQuiz).toBe(false);
+  });
 });
 
 describe('useNavigation go()', () => {
