@@ -1,6 +1,7 @@
 import { useEffect, useRef, memo } from 'react';
 import { useProgressData, useXP, useAuth } from '../../providers';
 import { getLevel, getXPInLevel, XP_PER_LEVEL, DAILY_GOAL } from '../../utils/helpers';
+import { navigateTo } from '../../routes/routeUtils';
 
 export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, isMobile }) {
   const { completed = [] } = useProgressData();
@@ -103,7 +104,7 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
           type="button"
           className="pp-profile-btn"
           onClick={() => {
-            window.location.hash = '#profile';
+            navigateTo('/profile');
             onClose();
           }}
         >

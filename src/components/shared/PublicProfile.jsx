@@ -77,7 +77,7 @@ export function PublicProfile({ handle, onClose }) {
               ? `We couldn't find a public profile for "${handle}".`
               : 'Something went wrong loading this profile.'}
           </p>
-          <a className="pub-cta" href="#">
+          <a className="pub-cta" href="/">
             Go to Cinova &rarr;
           </a>
         </div>
@@ -168,7 +168,7 @@ export function PublicProfile({ handle, onClose }) {
           </div>
         </div>
 
-        <a className="pub-cta" href="#">
+        <a className="pub-cta" href="/">
           Start learning on Cinova &rarr;
         </a>
 

@@ -173,7 +173,7 @@ export function LandingHeroIntro({ onStart, compact = false }) {
             Create free account
           </button>
         )}
-        <a className="lh-cta-ghost ui-btn ui-btn-secondary" href="/#styleguide" aria-label="Go to the design system">
+        <a className="lh-cta-ghost ui-btn ui-btn-secondary" href="/styleguide" aria-label="Go to the design system">
           Browse design system
         </a>
       </div>

@@ -1,10 +1,11 @@
-﻿import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useTheme, useAuth, useProgressData } from '../providers';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { AppLayout } from '../layouts/AppLayout';
 import { LessonSkeleton, ConnectionError } from '../components/shared/SkeletonLoader';
 import { Logo } from '../components/shared/Logo';
 import { AdminRoute } from './guards/AdminRoute';
+import { closeRouteOrGoHome, getCurrentPath, toPathFromLegacyHash } from './routeUtils';
 
 const AdminDashboard = lazy(() =>
   import('../components/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })),
@@ -19,18 +20,13 @@ const PublicProfile = lazy(() =>
   import('../components/shared/PublicProfile').then((m) => ({ default: m.PublicProfile })),
 );
 
-function parsePublicProfileHash(hash = '') {
-  const match = hash.match(/^#u\/([^/?#]+)/);
+function parsePublicProfilePath(pathname = '') {
+  const match = pathname.match(/^\/u\/([^/?#]+)/);
   if (!match) return null;
 
   const handle = decodeURIComponent(match[1]);
   if (!/^[A-Za-z0-9_-]{2,30}$/.test(handle)) return null;
   return handle;
-}
-
-function clearHash() {
-  if (typeof window === 'undefined') return;
-  window.location.hash = '';
 }
 
 function RouteLoadingScreen({ theme, size = 'sm', children }) {
@@ -48,18 +44,29 @@ export default function AppRoutes() {
   const { theme } = useTheme();
   const { user, profile, loading: authLoading, signOut } = useAuth();
   const { dataLoaded, loadError, retryLoad } = useProgressData();
-  const [hash, setHash] = useState(() =>
-    typeof window !== 'undefined' ? window.location.hash : '',
-  );
+  const [path, setPath] = useState(() => getCurrentPath());
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
-    const syncHash = () => setHash(window.location.hash || '');
-    window.addEventListener('hashchange', syncHash);
-    return () => window.removeEventListener('hashchange', syncHash);
+
+    const syncPath = () => {
+      const legacyPath = toPathFromLegacyHash(window.location.hash || '');
+      if (legacyPath) {
+        window.history.replaceState(null, '', `${legacyPath}${window.location.search}`);
+      }
+      setPath(getCurrentPath());
+    };
+
+    syncPath();
+    window.addEventListener('popstate', syncPath);
+    window.addEventListener('hashchange', syncPath);
+    return () => {
+      window.removeEventListener('popstate', syncPath);
+      window.removeEventListener('hashchange', syncPath);
+    };
   }, []);
 
-  if (hash === '#styleguide') {
+  if (path === '/styleguide') {
     return (
       <div className={theme}>
         <Suspense
@@ -69,13 +76,13 @@ export default function AppRoutes() {
             </RouteLoadingScreen>
           }
         >
-          <Styleguide onClose={clearHash} />
+          <Styleguide onClose={closeRouteOrGoHome} />
         </Suspense>
       </div>
     );
   }
 
-  const publicHandle = parsePublicProfileHash(hash);
+  const publicHandle = parsePublicProfilePath(path);
   if (publicHandle) {
     return (
       <div className={theme}>
@@ -86,7 +93,7 @@ export default function AppRoutes() {
             </RouteLoadingScreen>
           }
         >
-          <PublicProfile handle={publicHandle} onClose={clearHash} />
+          <PublicProfile handle={publicHandle} onClose={closeRouteOrGoHome} />
         </Suspense>
       </div>
     );
@@ -109,14 +116,14 @@ export default function AppRoutes() {
           <span className="disabled-icon" aria-hidden="true">[ ]</span>
           <h2 className="disabled-title">Account Disabled</h2>
           <p className="disabled-msg">Your account has been disabled. Contact support if this is a mistake.</p>
-          <a href="mailto:hello@Cinova.com" className="disabled-link">Contact Support</a>
+          <a href="mailto:hello@cinova.app" className="disabled-link">Contact Support</a>
           <button type="button" className="disabled-logout" onClick={() => signOut()}>Log Out</button>
         </div>
       </div>
     );
   }
 
-  if (hash === '#profile') {
+  if (path === '/profile') {
     return (
       <div className={theme}>
         <Suspense
@@ -126,13 +133,13 @@ export default function AppRoutes() {
             </RouteLoadingScreen>
           }
         >
-          <ProfilePage onClose={clearHash} />
+          <ProfilePage onClose={closeRouteOrGoHome} />
         </Suspense>
       </div>
     );
   }
 
-  if (hash === '#admin') {
+  if (path === '/admin') {
     return (
       <AdminRoute
         fallback={<AppLayout />}
@@ -150,7 +157,7 @@ export default function AppRoutes() {
               </RouteLoadingScreen>
             }
           >
-            <AdminDashboard onClose={clearHash} />
+            <AdminDashboard onClose={closeRouteOrGoHome} />
           </Suspense>
         </div>
       </AdminRoute>
@@ -187,4 +194,3 @@ export default function AppRoutes() {
 
   return <AppLayout />;
 }
-

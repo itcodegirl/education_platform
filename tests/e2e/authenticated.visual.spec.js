@@ -80,7 +80,7 @@ test.describe('authenticated visual regression', () => {
 
 	test('admin users pagination at 390 width', async ({ page }) => {
 		await page.setViewportSize({ width: 390, height: 844 });
-		await page.goto('/#admin');
+		await page.goto('/admin');
 
 		if (await page.getByRole('heading', { name: /access denied/i }).isVisible().catch(() => false)) {
 			test.skip(true, 'Authenticated user is not an admin in this environment.');

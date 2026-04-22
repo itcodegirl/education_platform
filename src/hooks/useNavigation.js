@@ -6,8 +6,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { COURSES, QUIZ_MAP } from '../data';
 import { useCourseContent } from '../providers';
+import { navigateTo, toPathFromLegacyHash } from '../routes/routeUtils';
 
-const LEARN_HASH_PREFIX = '#learn/';
+const LEARN_PATH_PREFIX = '/learn/';
 
 // Safe empty shells used when a course's modules haven't loaded yet.
 // AppLayout gates the real UI behind isActiveCourseLoaded, so these
@@ -18,7 +19,7 @@ const EMPTY_LESSON = { id: '', title: '', content: '', code: '' };
 const EMPTY_MODULE = { id: '', title: '', emoji: '', lessons: [EMPTY_LESSON] };
 const EMPTY_COURSE = { id: '', label: '', icon: '', accent: '', modules: [EMPTY_MODULE] };
 
-function decodeHashSegment(value) {
+function decodePathSegment(value) {
   try {
     return decodeURIComponent(value);
   } catch {
@@ -26,18 +27,18 @@ function decodeHashSegment(value) {
   }
 }
 
-function parseLearnHash(hash = '') {
-  const match = hash.match(/^#learn\/([^/]+)\/([^/]+)\/([^/?#]+)/);
+function parseLearnPath(pathname = '') {
+  const match = pathname.match(/^\/learn\/([^/]+)\/([^/]+)\/([^/?#]+)/);
   if (!match) return null;
   return {
-    courseId: decodeHashSegment(match[1]),
-    moduleId: decodeHashSegment(match[2]),
-    lessonId: decodeHashSegment(match[3]),
+    courseId: decodePathSegment(match[1]),
+    moduleId: decodePathSegment(match[2]),
+    lessonId: decodePathSegment(match[3]),
   };
 }
 
-function findHashPosition(hash) {
-  const parsed = parseLearnHash(hash);
+function findPathPosition(pathname) {
+  const parsed = parseLearnPath(pathname);
   if (!parsed) return null;
 
   const courseIndex = COURSES.findIndex((course) => course.id === parsed.courseId);
@@ -70,11 +71,11 @@ function findHashPosition(hash) {
   return { courseIndex, moduleIndex, lessonIndex, isModuleQuiz: false };
 }
 
-function buildLearnHash(course, mod, les, showModQuiz) {
+function buildLearnPath(course, mod, les, showModQuiz) {
   if (!course?.id || !mod?.id) return '';
   const lessonSegment = showModQuiz ? 'quiz' : les?.id;
   if (!lessonSegment) return '';
-  return `${LEARN_HASH_PREFIX}${encodeURIComponent(course.id)}/${encodeURIComponent(mod.id)}/${encodeURIComponent(lessonSegment)}`;
+  return `${LEARN_PATH_PREFIX}${encodeURIComponent(course.id)}/${encodeURIComponent(mod.id)}/${encodeURIComponent(lessonSegment)}`;
 }
 
 function findSavedPosition(lastPosition) {
@@ -86,7 +87,7 @@ function findSavedPosition(lastPosition) {
   if (courseIndex === -1) return null;
 
   const course = COURSES[courseIndex];
-  if (!course.modules.length) return null; // course not loaded yet
+  if (!course.modules.length) return null;
   const moduleIndex = course.modules.findIndex((module) => lastPosition.mod.includes(module.title));
   if (moduleIndex === -1) return null;
 
@@ -100,16 +101,79 @@ function findSavedPosition(lastPosition) {
   return { courseIndex, moduleIndex, lessonIndex, isModuleQuiz };
 }
 
+function getInitialNavigationState() {
+  if (typeof window === 'undefined') {
+    return {
+      courseIndex: 0,
+      moduleIndex: 0,
+      lessonIndex: 0,
+      isModuleQuiz: false,
+    };
+  }
+
+  const legacyPath = toPathFromLegacyHash(window.location.hash || '');
+  const pathname = legacyPath || window.location.pathname;
+  const parsedPath = parseLearnPath(pathname);
+  if (!parsedPath) {
+    return {
+      courseIndex: 0,
+      moduleIndex: 0,
+      lessonIndex: 0,
+      isModuleQuiz: false,
+    };
+  }
+
+  const routeCourseIdx = COURSES.findIndex((entry) => entry.id === parsedPath.courseId);
+  if (routeCourseIdx === -1) {
+    return {
+      courseIndex: 0,
+      moduleIndex: 0,
+      lessonIndex: 0,
+      isModuleQuiz: false,
+    };
+  }
+
+  const resolved = findPathPosition(pathname);
+  if (resolved) {
+    return {
+      courseIndex: resolved.courseIndex,
+      moduleIndex: resolved.moduleIndex,
+      lessonIndex: resolved.lessonIndex,
+      isModuleQuiz: resolved.isModuleQuiz,
+    };
+  }
+
+  const fallbackCourse = COURSES[routeCourseIdx];
+  const fallbackModule = fallbackCourse?.modules?.[0];
+  const hasFallbackLesson = Boolean(fallbackModule?.lessons?.length);
+  if (!hasFallbackLesson) {
+    return {
+      courseIndex: 0,
+      moduleIndex: 0,
+      lessonIndex: 0,
+      isModuleQuiz: false,
+    };
+  }
+
+  return {
+    courseIndex: routeCourseIdx,
+    moduleIndex: 0,
+    lessonIndex: 0,
+    isModuleQuiz: false,
+  };
+}
+
 export function useNavigation() {
   const { ensureLoaded } = useCourseContent();
-  const [courseIdx, setCourseIdx] = useState(0);
-  const [modIdx, setModIdx] = useState(0);
-  const [lesIdx, setLesIdx] = useState(0);
-  const [showModQuiz, setShowModQuiz] = useState(false);
+  const initialNavState = getInitialNavigationState();
+  const [courseIdx, setCourseIdx] = useState(initialNavState.courseIndex);
+  const [modIdx, setModIdx] = useState(initialNavState.moduleIndex);
+  const [lesIdx, setLesIdx] = useState(initialNavState.lessonIndex);
+  const [showModQuiz, setShowModQuiz] = useState(initialNavState.isModuleQuiz);
   const mainRef = useRef(null);
-  const didWriteInitialHash = useRef(false);
-  const syncingFromHashRef = useRef(false);
-  const hashSyncTokenRef = useRef(0);
+  const didWriteInitialPath = useRef(false);
+  const syncingFromPathRef = useRef(false);
+  const pathSyncTokenRef = useRef(0);
 
   // Defensive reads - COURSES is mutable and may temporarily have
   // empty modules while CourseContentProvider is fetching the active
@@ -142,24 +206,29 @@ export function useNavigation() {
 
     let isUnmounted = false;
 
-    const syncFromHash = async () => {
-      const parsedHash = parseLearnHash(window.location.hash);
-      if (!parsedHash) return;
+    const syncFromPath = async () => {
+      const legacyPath = toPathFromLegacyHash(window.location.hash || '');
+      if (legacyPath) {
+        window.history.replaceState(null, '', `${legacyPath}${window.location.search}`);
+      }
 
-      const routeCourseIdx = COURSES.findIndex((entry) => entry.id === parsedHash.courseId);
+      const parsedPath = parseLearnPath(window.location.pathname);
+      if (!parsedPath) return;
+
+      const routeCourseIdx = COURSES.findIndex((entry) => entry.id === parsedPath.courseId);
       if (routeCourseIdx === -1) return;
 
-      const token = ++hashSyncTokenRef.current;
-      syncingFromHashRef.current = true;
+      const token = ++pathSyncTokenRef.current;
+      syncingFromPathRef.current = true;
 
       try {
         if (!COURSES[routeCourseIdx]?.modules?.length) {
-          await ensureLoaded(parsedHash.courseId);
+          await ensureLoaded(parsedPath.courseId);
         }
 
-        if (isUnmounted || token !== hashSyncTokenRef.current) return;
+        if (isUnmounted || token !== pathSyncTokenRef.current) return;
 
-        const resolved = findHashPosition(window.location.hash);
+        const resolved = findPathPosition(window.location.pathname);
         if (resolved) {
           setCourseIdx(resolved.courseIndex);
           setModIdx(resolved.moduleIndex);
@@ -178,44 +247,42 @@ export function useNavigation() {
         setLesIdx(0);
         setShowModQuiz(false);
       } finally {
-        if (!isUnmounted && token === hashSyncTokenRef.current) {
-          syncingFromHashRef.current = false;
+        if (!isUnmounted && token === pathSyncTokenRef.current) {
+          syncingFromPathRef.current = false;
         }
       }
     };
 
-    syncFromHash();
-    window.addEventListener('hashchange', syncFromHash);
+    syncFromPath();
+    window.addEventListener('popstate', syncFromPath);
+    window.addEventListener('hashchange', syncFromPath);
     return () => {
       isUnmounted = true;
-      hashSyncTokenRef.current += 1;
-      window.removeEventListener('hashchange', syncFromHash);
+      pathSyncTokenRef.current += 1;
+      window.removeEventListener('popstate', syncFromPath);
+      window.removeEventListener('hashchange', syncFromPath);
     };
   }, [ensureLoaded]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (syncingFromHashRef.current) return;
+    if (syncingFromPathRef.current) return;
 
-    const nextHash = buildLearnHash(course, mod, les, showModQuiz);
-    if (!nextHash) return;
+    const nextPath = buildLearnPath(course, mod, les, showModQuiz);
+    if (!nextPath) return;
 
-    if (window.location.hash === nextHash) {
-      didWriteInitialHash.current = true;
+    if (window.location.pathname === nextPath) {
+      didWriteInitialPath.current = true;
       return;
     }
 
-    if (!didWriteInitialHash.current) {
-      window.history.replaceState(
-        null,
-        '',
-        `${window.location.pathname}${window.location.search}${nextHash}`,
-      );
-      didWriteInitialHash.current = true;
+    if (!didWriteInitialPath.current) {
+      navigateTo(nextPath, { replace: true });
+      didWriteInitialPath.current = true;
       return;
     }
 
-    window.location.hash = nextHash;
+    navigateTo(nextPath);
   }, [course, mod, les, showModQuiz]);
 
   const go = useCallback((mi, li) => {

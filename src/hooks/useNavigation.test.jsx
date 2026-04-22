@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 
 const { MOCK_COURSES, MOCK_QUIZ_MAP } = vi.hoisted(() => {
   const courses = [
@@ -68,7 +68,7 @@ beforeAll(() => {
 });
 
 beforeEach(() => {
-  window.location.hash = '';
+  window.history.replaceState(null, '', '/');
 });
 
 describe('useNavigation initial state', () => {
@@ -95,31 +95,37 @@ describe('useNavigation initial state', () => {
     expect(result.current.moduleQuiz).toBeDefined();
   });
 
-  it('hydrates from a valid deep-link hash', () => {
-    window.location.hash = '#learn/html/basics/l-tags';
+  it('hydrates from a valid deep-link hash', async () => {
+    window.history.replaceState(null, '', '/learn/html/basics/l-tags');
     const { result } = renderHook(() => useNavigation());
-    expect(result.current.courseIdx).toBe(0);
-    expect(result.current.modIdx).toBe(0);
-    expect(result.current.lesIdx).toBe(1);
-    expect(result.current.showModQuiz).toBe(false);
+    await waitFor(() => {
+      expect(result.current.courseIdx).toBe(0);
+      expect(result.current.modIdx).toBe(0);
+      expect(result.current.lesIdx).toBe(1);
+      expect(result.current.showModQuiz).toBe(false);
+    });
   });
 
-  it('hydrates module quiz deep-links from hash', () => {
-    window.location.hash = '#learn/html/basics/quiz';
+  it('hydrates module quiz deep-links from hash', async () => {
+    window.history.replaceState(null, '', '/learn/html/basics/quiz');
     const { result } = renderHook(() => useNavigation());
-    expect(result.current.courseIdx).toBe(0);
-    expect(result.current.modIdx).toBe(0);
-    expect(result.current.lesIdx).toBe(1);
-    expect(result.current.showModQuiz).toBe(true);
+    await waitFor(() => {
+      expect(result.current.courseIdx).toBe(0);
+      expect(result.current.modIdx).toBe(0);
+      expect(result.current.lesIdx).toBe(1);
+      expect(result.current.showModQuiz).toBe(true);
+    });
   });
 
-  it('falls back to first lesson in the same course for stale lesson ids', () => {
-    window.location.hash = '#learn/css/selectors/missing-lesson-id';
+  it('falls back to first lesson in the same course for stale lesson ids', async () => {
+    window.history.replaceState(null, '', '/learn/css/selectors/missing-lesson-id');
     const { result } = renderHook(() => useNavigation());
-    expect(result.current.courseIdx).toBe(1);
-    expect(result.current.modIdx).toBe(0);
-    expect(result.current.lesIdx).toBe(0);
-    expect(result.current.showModQuiz).toBe(false);
+    await waitFor(() => {
+      expect(result.current.courseIdx).toBe(1);
+      expect(result.current.modIdx).toBe(0);
+      expect(result.current.lesIdx).toBe(0);
+      expect(result.current.showModQuiz).toBe(false);
+    });
   });
 });
 
@@ -132,10 +138,10 @@ describe('useNavigation go()', () => {
     expect(result.current.showModQuiz).toBe(false);
   });
 
-  it('updates hash so browser navigation can restore lesson state', () => {
+  it('updates path so browser navigation can restore lesson state', () => {
     const { result } = renderHook(() => useNavigation());
     act(() => result.current.go(0, 1));
-    expect(window.location.hash).toBe('#learn/html/basics/l-tags');
+    expect(window.location.pathname).toBe('/learn/html/basics/l-tags');
   });
 });
 

@@ -224,7 +224,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
             <div>
               <div className="pp-public-title">Let your progress speak for itself</div>
               <div className="pp-public-sub">
-                Create a read-only page at <code>/#u/your-handle</code> that shows your
+                Create a read-only page at <code>/u/your-handle</code> that shows your
                 level, XP, streak, lessons shipped, and badge count. No email, notes, or
                 private progress details are exposed.
               </div>
@@ -255,7 +255,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
                 Handle
               </label>
               <div className="pp-public-row">
-                <span className="pp-public-prefix">/#u/</span>
+                <span className="pp-public-prefix">/u/</span>
                 <input
                   id="pp-handle"
                   className="pp-public-input"
@@ -278,7 +278,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
               {publicHandle && !publicError && publicSaved && (
                 <a
                   className="pp-public-link"
-                  href={`#u/${publicHandle}`}
+                  href={`/u/${publicHandle}`}
                   target="_blank"
                   rel="noreferrer"
                 >
