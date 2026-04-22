@@ -2,9 +2,10 @@ import { useEffect, useRef } from 'react';
 import { COURSES } from '../../data';
 import { useProgressData, useCourseContent } from '../../providers';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { getCourseCompletedLessonCount, hasLessonCompletion } from '../../utils/lessonKeys';
 
 export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx }) {
-  const { completed = [], completedSet = new Set() } = useProgressData();
+  const { completedSet = new Set() } = useProgressData();
   const { ensureAllLoaded, allCoursesLoaded } = useCourseContent();
   const modalRef = useRef(null);
 
@@ -48,7 +49,7 @@ export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx }) {
 
           {COURSES.map((course, courseIndex) => {
             const totalLessons = course.modules.reduce((sum, module) => sum + module.lessons.length, 0);
-            const doneLessons = completed.filter((key) => key.startsWith(course.label)).length;
+            const doneLessons = getCourseCompletedLessonCount(completedSet, course);
             const percent = totalLessons > 0 ? Math.round((doneLessons / totalLessons) * 100) : 0;
             const isCurrent = courseIndex === currentCourseIdx;
             const isComplete = doneLessons === totalLessons && totalLessons > 0;
@@ -85,7 +86,7 @@ export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx }) {
                 <div className="rm-modules">
                   {course.modules.map((module, moduleIndex) => {
                     const moduleDone = module.lessons.filter((lesson) =>
-                      completedSet.has(`${course.label}|${module.title}|${lesson.title}`),
+                      hasLessonCompletion(completedSet, course, module, lesson),
                     ).length;
                     const moduleComplete = moduleDone === module.lessons.length;
                     const moduleStarted = moduleDone > 0 && !moduleComplete;

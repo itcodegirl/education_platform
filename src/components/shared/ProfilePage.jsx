@@ -1,7 +1,8 @@
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { useAuth, useCourseContent, useProgressData, useXP, useSR, useTheme, BADGE_DEFS } from '../../providers';
 import { COURSES } from '../../data';
 import { XP_PER_LEVEL, getLevel, getXPInLevel } from '../../utils/helpers';
+import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
 import { supabase } from '../../lib/supabaseClient';
 
 export const ProfilePage = memo(function ProfilePage({ onClose }) {
@@ -97,10 +98,11 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
         month: 'long',
       })
     : '';
+  const completedSet = useMemo(() => new Set(completed), [completed]);
 
   const courseStats = COURSES.map((course) => {
     const total = course.modules.reduce((sum, mod) => sum + mod.lessons.length, 0);
-    const done = completed.filter((key) => key.startsWith(course.label)).length;
+    const done = getCourseCompletedLessonCount(completedSet, course);
 
     return {
       ...course,
@@ -110,6 +112,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
     };
   });
 
+  const completedLessons = courseStats.reduce((sum, course) => sum + course.done, 0);
   const totalLessons = courseStats.reduce((sum, course) => sum + course.total, 0);
   const badgeCount = Object.keys(earnedBadges).length;
 
@@ -138,7 +141,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
           <div className="pp-status-row" aria-label="Current learning status">
             <span className="pp-status-pill">Level {level}</span>
             <span className="pp-status-pill warm">
-              {completed.length}/{totalLessons} lessons shipped
+              {completedLessons}/{totalLessons} lessons shipped
             </span>
             {streak > 0 && (
               <span className="pp-status-pill accent">{streak} day streak</span>
@@ -151,7 +154,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
             { value: level, label: 'Level' },
             { value: xpTotal.toLocaleString(), label: 'XP' },
             { value: streak, label: 'Streak' },
-            { value: completed.length, label: 'Lessons' },
+            { value: completedLessons, label: 'Lessons' },
           ].map((stat) => (
             <div key={stat.label} className="pp-stat-card">
               <div className="pp-stat-value">{stat.value}</div>
@@ -298,7 +301,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
             { icon: '✏️', value: Object.keys(notes).length, label: 'Notes' },
             {
               icon: '📚',
-              value: `${Math.round((completed.length / totalLessons) * 100) || 0}%`,
+              value: `${Math.round((completedLessons / totalLessons) * 100) || 0}%`,
               label: 'Overall',
             },
           ].map((stat) => (

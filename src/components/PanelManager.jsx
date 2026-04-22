@@ -5,6 +5,7 @@
 
 import { lazy, Suspense } from 'react';
 import { ErrorBoundary } from './shared/ErrorBoundary';
+import { getCourseCompletedLessonCount, hasLessonCompletion } from '../utils/lessonKeys';
 
 // Compact inline fallback shown when a side panel crashes instead of
 // taking down the whole app with an unguarded lazy-component error.
@@ -147,8 +148,9 @@ export function PanelManager({
 function computeModuleProgress(course, lastPosition, completed) {
   const result = { moduleTitle: '', moduleDone: 0, moduleTotal: 0, courseDone: 0 };
   if (!course || !lastPosition?.mod) return result;
+  const completedSet = new Set(completed);
 
-  result.courseDone = completed.filter((k) => k.startsWith(course.label)).length;
+  result.courseDone = getCourseCompletedLessonCount(completedSet, course);
 
   // lastPosition.mod is like "⚡ What HTML Actually Is" — strip emoji prefix
   const modLabel = lastPosition.mod.replace(/^\S+\s/, '');
@@ -158,7 +160,7 @@ function computeModuleProgress(course, lastPosition, completed) {
       result.moduleTitle = mod.title;
       result.moduleTotal = mod.lessons.length;
       result.moduleDone = mod.lessons.filter((l) =>
-        completed.includes(`${course.label}|${mod.title}|${l.title}`),
+        hasLessonCompletion(completedSet, course, mod, l),
       ).length;
       break;
     }

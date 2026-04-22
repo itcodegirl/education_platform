@@ -10,21 +10,20 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { QUIZ_MAP } from '../../data';
 import { ProfilePopover } from './ProfilePopover';
 import { Logo } from '../shared/Logo';
+import { getCourseCompletedLessonCount, hasLessonCompletion } from '../../utils/lessonKeys';
 
-function isLessonUnlocked(course, modules, mi, li, completed) {
+function isLessonUnlocked(course, modules, mi, li, completedSet) {
   if (mi === 0 && li === 0) return true;
 
   if (li > 0) {
     const prevLesson = modules[mi].lessons[li - 1];
-    const prevKey = `${course.label}|${modules[mi].title}|${prevLesson.title}`;
-    return completed.includes(prevKey);
+    return hasLessonCompletion(completedSet, course, modules[mi], prevLesson);
   }
 
   if (mi > 0) {
     const prevMod = modules[mi - 1];
     const lastLesson = prevMod.lessons[prevMod.lessons.length - 1];
-    const lastKey = `${course.label}|${prevMod.title}|${lastLesson.title}`;
-    return completed.includes(lastKey);
+    return hasLessonCompletion(completedSet, course, prevMod, lastLesson);
   }
 
   return true;
@@ -66,6 +65,7 @@ export const Sidebar = memo(function Sidebar({
   const asideRef = useRef(null);
   const course = courses[courseIdx];
   const modules = course.modules;
+  const completedSet = useMemo(() => new Set(completed), [completed]);
 
   // Sync expanded module when active module changes
   useEffect(() => { setExpandedMod(modIdx); }, [modIdx]);
@@ -156,10 +156,10 @@ export const Sidebar = memo(function Sidebar({
 
   const { total, courseDone, pct } = useMemo(() => {
     const totalLessons = modules.reduce((sum, m) => sum + m.lessons.length, 0);
-    const completedLessons = completed.filter((k) => k.startsWith(course.label)).length;
+    const completedLessons = getCourseCompletedLessonCount(completedSet, course);
     const progressPct = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
     return { total: totalLessons, courseDone: completedLessons, pct: progressPct };
-  }, [modules, completed, course.label]);
+  }, [modules, completedSet, course]);
 
   const togglePopover = useCallback(() => setPopoverOpen((v) => !v), []);
   const closePopover = useCallback(() => setPopoverOpen(false), []);
@@ -363,10 +363,10 @@ export const Sidebar = memo(function Sidebar({
               own nested <nav> (would be noisy for screen readers). */}
           <div className="sb-nav">
             {modules.map((module, mi) => {
-              const modDone = module.lessons.filter((l) =>
-                completed.includes(`${course.label}|${module.title}|${l.title}`),
+              const modDone = module.lessons.filter((lesson) =>
+                hasLessonCompletion(completedSet, course, module, lesson),
               ).length;
-              const isModUnlocked = !lockMode || isLessonUnlocked(course, modules, mi, 0, completed);
+              const isModUnlocked = !lockMode || isLessonUnlocked(course, modules, mi, 0, completedSet);
 
               const isExpanded = expandedMod === mi;
 
@@ -394,9 +394,8 @@ export const Sidebar = memo(function Sidebar({
                   {isExpanded && (
                     <div className="lg">
                       {module.lessons.map((lesson, li) => {
-                        const key = `${course.label}|${module.title}|${lesson.title}`;
-                        const isDone = completed.includes(key);
-                        const unlocked = !lockMode || isLessonUnlocked(course, modules, mi, li, completed);
+                        const isDone = hasLessonCompletion(completedSet, course, module, lesson);
+                        const unlocked = !lockMode || isLessonUnlocked(course, modules, mi, li, completedSet);
                         return (
                           <button
                             key={lesson.id}

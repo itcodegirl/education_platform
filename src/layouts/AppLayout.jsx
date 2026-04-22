@@ -13,6 +13,11 @@ import { useLearning } from "../hooks/useLearning";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { estimateReadingTime, getLevel } from "../utils/helpers";
+import {
+  getCourseCompletedLessonCount,
+  getLessonKeyVariants,
+  hasLessonCompletion,
+} from "../utils/lessonKeys";
 
 // Layout components
 import { Sidebar } from "../components/layout/Sidebar";
@@ -96,7 +101,8 @@ export function AppLayout() {
     showModQuiz,
   } = nav;
 
-  const isDone = completedSet.has(lessonKey);
+  const { stable: stableLessonKey, legacy: legacyLessonKey } = getLessonKeyVariants(course, mod, les);
+  const isDone = hasLessonCompletion(completedSet, course, mod, les);
   const readTime = useMemo(
     () => estimateReadingTime(les.content + les.code),
     [les.content, les.code],
@@ -155,7 +161,7 @@ export function AppLayout() {
     panels.checkMilestone(completed.length);
   }, [completed.length, panels]);
 
-  const courseDone = completed.filter((k) => k.startsWith(course.label)).length;
+  const courseDone = getCourseCompletedLessonCount(completedSet, course);
   const coursePct = courseTotal > 0 ? Math.round((courseDone / courseTotal) * 100) : 0;
   const isCourseComplete = courseDone === courseTotal && courseTotal > 0;
 
@@ -205,11 +211,16 @@ export function AppLayout() {
     if (marking) return;
     setMarking(true);
     try {
-      learn.toggleLessonDone(lessonKey);
+      const keyToToggle = completedSet.has(stableLessonKey)
+        ? stableLessonKey
+        : completedSet.has(legacyLessonKey)
+          ? legacyLessonKey
+          : stableLessonKey;
+      learn.toggleLessonDone(keyToToggle);
     } finally {
       setMarking(false);
     }
-  }, [lessonKey, marking, learn]);
+  }, [completedSet, legacyLessonKey, marking, stableLessonKey, learn]);
 
   const handleOpenTool = useCallback(
     (tool) => panels.togglePanel(tool),

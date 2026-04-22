@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useProgressData, useXP, useSR, BADGE_DEFS, useCourseContent } from '../../providers';
 import { COURSES } from '../../data';
 import { getLevel, getXPInLevel, XP_PER_LEVEL } from '../../utils/helpers';
+import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 export function StudentStats({ isOpen, onClose }) {
@@ -19,10 +20,11 @@ export function StudentStats({ isOpen, onClose }) {
     const level = getLevel(xpTotal);
     const xpInLevel = getXPInLevel(xpTotal);
     const xpPercent = Math.round((xpInLevel / XP_PER_LEVEL) * 100);
+    const completedSet = new Set(completed);
 
     const courseStats = COURSES.map((course) => {
       const totalLessons = course.modules.reduce((sum, module) => sum + module.lessons.length, 0);
-      const done = completed.filter((key) => key.startsWith(course.label)).length;
+      const done = getCourseCompletedLessonCount(completedSet, course);
       const percent = totalLessons > 0 ? Math.round((done / totalLessons) * 100) : 0;
 
       const courseQuizKeys = Object.keys(quizScores).filter((key) => {
@@ -66,7 +68,7 @@ export function StudentStats({ isOpen, onClose }) {
     const strongest = sorted.slice(-3).reverse().filter((result) => result.percent >= 80);
 
     const totalLessons = courseStats.reduce((sum, course) => sum + course.totalLessons, 0);
-    const totalDone = completed.length;
+    const totalDone = courseStats.reduce((sum, course) => sum + course.done, 0);
     const totalPercent = totalLessons > 0 ? Math.round((totalDone / totalLessons) * 100) : 0;
 
     return {

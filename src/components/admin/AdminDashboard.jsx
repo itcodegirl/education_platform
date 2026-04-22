@@ -18,6 +18,7 @@ import { useEffect, useMemo, useState, lazy, Suspense } from 'react';
 import { useAuth, useCourseContent } from '../../providers';
 import { useAdminData } from '../../hooks/useAdminData';
 import { COURSES } from '../../data';
+import { lessonKeyBelongsToCourse, resolveStableLessonKey } from '../../utils/lessonKeys';
 import { AdminOverviewTab } from './AdminOverviewTab';
 import { AdminUsersTab } from './AdminUsersTab';
 import { AdminCoursesTab } from './AdminCoursesTab';
@@ -38,29 +39,47 @@ const TABS = [
 function computeCourseStats(courses, progress) {
   return courses.map((course) => {
     const totalLessons = course.modules.reduce((s, m) => s + m.lessons.length, 0);
-    const courseProgress = progress.filter((p) => p.lesson_key.startsWith(course.label));
-    const uniqueUsers = new Set(courseProgress.map((p) => p.user_id)).size;
+    const courseProgress = progress.filter((row) => lessonKeyBelongsToCourse(row.lesson_key, course));
+    const userLessonSets = new Map();
+    const lessonUsers = new Map();
 
-    const userLessonCounts = {};
-    courseProgress.forEach((p) => {
-      userLessonCounts[p.user_id] = (userLessonCounts[p.user_id] || 0) + 1;
+    courseProgress.forEach((row) => {
+      const stableLessonKey = resolveStableLessonKey(course, row.lesson_key);
+      if (!stableLessonKey) return;
+
+      if (!userLessonSets.has(row.user_id)) {
+        userLessonSets.set(row.user_id, new Set());
+      }
+      userLessonSets.get(row.user_id).add(stableLessonKey);
+
+      if (!lessonUsers.has(stableLessonKey)) {
+        lessonUsers.set(stableLessonKey, new Set());
+      }
+      lessonUsers.get(stableLessonKey).add(row.user_id);
     });
-    const completedUsers = Object.values(userLessonCounts).filter((c) => c >= totalLessons).length;
+
+    const uniqueUsers = userLessonSets.size;
+    const completedUsers = Array.from(userLessonSets.values())
+      .filter((lessonSet) => lessonSet.size >= totalLessons)
+      .length;
 
     const lessonCounts = {};
-    courseProgress.forEach((p) => {
-      lessonCounts[p.lesson_key] = (lessonCounts[p.lesson_key] || 0) + 1;
+    lessonUsers.forEach((usersForLesson, key) => {
+      lessonCounts[key] = usersForLesson.size;
     });
+
+    const totalCompletions = Array.from(userLessonSets.values())
+      .reduce((sum, lessonSet) => sum + lessonSet.size, 0);
 
     return {
       ...course,
       totalLessons,
       uniqueUsers,
       completedUsers,
-      totalCompletions: courseProgress.length,
+      totalCompletions,
       avgProgress:
         uniqueUsers > 0
-          ? Math.round((courseProgress.length / uniqueUsers / totalLessons) * 100)
+          ? Math.round((totalCompletions / uniqueUsers / totalLessons) * 100)
           : 0,
       lessonCounts,
     };

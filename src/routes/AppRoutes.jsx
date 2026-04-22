@@ -4,6 +4,7 @@ import { AuthLayout } from '../layouts/AuthLayout';
 import { AppLayout } from '../layouts/AppLayout';
 import { LessonSkeleton, ConnectionError } from '../components/shared/SkeletonLoader';
 import { Logo } from '../components/shared/Logo';
+import { AdminRoute } from './guards/AdminRoute';
 
 const AdminDashboard = lazy(() =>
   import('../components/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })),
@@ -133,17 +134,26 @@ export default function AppRoutes() {
 
   if (hash === '#admin') {
     return (
-      <div className={theme}>
-        <Suspense
-          fallback={
-            <RouteLoadingScreen theme={theme}>
-              <p>Loading admin dashboard...</p>
-            </RouteLoadingScreen>
-          }
-        >
-          <AdminDashboard onClose={clearHash} />
-        </Suspense>
-      </div>
+      <AdminRoute
+        fallback={<AppLayout />}
+        loadingFallback={
+          <RouteLoadingScreen theme={theme}>
+            <p>Checking admin access...</p>
+          </RouteLoadingScreen>
+        }
+      >
+        <div className={theme}>
+          <Suspense
+            fallback={
+              <RouteLoadingScreen theme={theme}>
+                <p>Loading admin dashboard...</p>
+              </RouteLoadingScreen>
+            }
+          >
+            <AdminDashboard onClose={clearHash} />
+          </Suspense>
+        </div>
+      </AdminRoute>
     );
   }
 
