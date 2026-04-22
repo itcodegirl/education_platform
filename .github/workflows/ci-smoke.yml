@@ -34,14 +34,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Build app
-        run: npm run build
-
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      - name: Run Playwright smoke tests
-        run: npm run test:e2e
+      - name: Run check:ci (lint, typecheck, build, bundle budget, unit, e2e)
+        run: npm run check:ci

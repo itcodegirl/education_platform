@@ -113,6 +113,7 @@ For a deep technical walkthrough, see [docs/architecture.md](./docs/architecture
 3. **Fast initial load vs large learning content**
    - Used lazy loading and chunk strategy by domain/course to avoid overloading first paint.
    - Monaco and admin surfaces are intentionally code-split into on-demand chunks so first-run learners do not pay editor/admin cost upfront.
+   - Added a bundle budget gate (`npm run check:bundle`) to keep eager chunks lean while allowing controlled Monaco-specific budgets.
 
 4. **Incremental improvement vs full rewrite temptation**
    - Preserved architecture and made focused, auditable improvements in small batches.
@@ -190,6 +191,7 @@ Pre-release checklist is documented in [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIS
 
 - `npm run check` - lint + typecheck + build + unit tests
 - `npm run check:ci` - `check` + Playwright integration/E2E suite
+- `npm run check:bundle` - verifies JS chunk budgets after build (stricter on eager chunks, explicit allowance for lazy Monaco chunks)
 
 Additional scripts are listed in [package.json](./package.json).
 
