@@ -32,9 +32,8 @@ import {
   getXPProgress,
   XP_PER_LEVEL,
 } from './gamificationService';
-import type { BadgeEligibilityContext } from './supabaseTypes';
 
-const emptyCtx: BadgeEligibilityContext = {
+const emptyCtx = {
   completedCount: 0,
   quizCount: 0,
   streak: 0,

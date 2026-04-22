@@ -4,31 +4,9 @@
 // ═══════════════════════════════════════════════
 
 import { supabase } from '../lib/supabaseClient';
-import type { UUID } from './supabaseTypes';
-
-export interface SRCardInput {
-  question: string;
-  code?: string | null;
-  options: unknown;
-  correct: number;
-  explanation: string;
-  source: string;
-}
-
-export interface BookmarkInput {
-  lessonKey: string;
-  courseId: string;
-  lessonTitle: string;
-}
-
-export interface PositionInput {
-  course: string;
-  mod: string;
-  les: string;
-}
 
 // ─── Fetch all user data on login ───────────
-export async function fetchAllUserData(uid: UUID) {
+export async function fetchAllUserData(uid) {
   const [
     progressRes,
     quizRes,
@@ -79,11 +57,11 @@ export async function fetchAllUserData(uid: UUID) {
     ['notes', notesRes.error],
     ['courses_visited', visitedRes.error],
     ['last_position', posRes.error],
-  ].filter(([, error]) => !!error);
+        ].filter(([, error]) => !!error);
 
   if (errors.length > 0) {
     const details = errors
-      .map(([source, error]) => `${source}: ${(error as { message?: string }).message || 'Unknown error'}`)
+      .map(([source, error]) => `${source}: ${error?.message || 'Unknown error'}`)
       .join(' | ');
     throw new Error(`Failed to load user data (${details})`);
   }
@@ -104,13 +82,13 @@ export async function fetchAllUserData(uid: UUID) {
 }
 
 // ─── Progress (lessons) ─────────────────────
-export function addLesson(uid: UUID, lessonKey: string) {
+export function addLesson(uid, lessonKey) {
   return supabase
     .from('progress')
     .upsert({ user_id: uid, lesson_key: lessonKey });
 }
 
-export function removeLesson(uid: UUID, lessonKey: string) {
+export function removeLesson(uid, lessonKey) {
   return supabase
     .from('progress')
     .delete()
@@ -119,7 +97,7 @@ export function removeLesson(uid: UUID, lessonKey: string) {
 }
 
 // ─── Quiz Scores ────────────────────────────
-export function saveQuizScore(uid: UUID, quizKey: string, score: string) {
+export function saveQuizScore(uid, quizKey, score) {
   return supabase.from('quiz_scores').upsert({
     user_id: uid,
     quiz_key: quizKey,
@@ -129,7 +107,7 @@ export function saveQuizScore(uid: UUID, quizKey: string, score: string) {
 }
 
 // ─── XP ─────────────────────────────────────
-export function updateXP(uid: UUID, total: number) {
+export function updateXP(uid, total) {
   return supabase.from('xp').upsert({
     user_id: uid,
     total,
@@ -138,7 +116,7 @@ export function updateXP(uid: UUID, total: number) {
 }
 
 // ─── Streaks ────────────────────────────────
-export function updateStreak(uid: UUID, days: number, lastDate: string) {
+export function updateStreak(uid, days, lastDate) {
   return supabase.from('streaks').upsert({
     user_id: uid,
     days,
@@ -148,7 +126,7 @@ export function updateStreak(uid: UUID, days: number, lastDate: string) {
 }
 
 // ─── Daily Goals ────────────────────────────
-export function updateDailyGoal(uid: UUID, goalDate: string, count: number) {
+export function updateDailyGoal(uid, goalDate, count) {
   return supabase.from('daily_goals').upsert({
     user_id: uid,
     goal_date: goalDate,
@@ -158,7 +136,7 @@ export function updateDailyGoal(uid: UUID, goalDate: string, count: number) {
 }
 
 // ─── Badges ─────────────────────────────────
-export function awardBadge(uid: UUID, badgeId: string) {
+export function awardBadge(uid, badgeId) {
   return supabase.from('badges').upsert({
     user_id: uid,
     badge_id: badgeId,
@@ -167,7 +145,7 @@ export function awardBadge(uid: UUID, badgeId: string) {
 }
 
 // ─── Spaced Repetition ──────────────────────
-export function addSRCard(uid: UUID, card: SRCardInput) {
+export function addSRCard(uid, card) {
   return supabase.from('sr_cards').upsert({
     user_id: uid,
     question: card.question,
@@ -180,9 +158,9 @@ export function addSRCard(uid: UUID, card: SRCardInput) {
 }
 
 export function updateSRCard(
-  uid: UUID,
-  question: string,
-  updates: Record<string, unknown>,
+  uid,
+  question,
+  updates,
 ) {
   return supabase
     .from('sr_cards')
@@ -192,7 +170,7 @@ export function updateSRCard(
 }
 
 // ─── Bookmarks ──────────────────────────────
-export function addBookmark(uid: UUID, bookmark: BookmarkInput) {
+export function addBookmark(uid, bookmark) {
   return supabase.from('bookmarks').upsert({
     user_id: uid,
     lesson_key: bookmark.lessonKey,
@@ -201,7 +179,7 @@ export function addBookmark(uid: UUID, bookmark: BookmarkInput) {
   });
 }
 
-export function removeBookmark(uid: UUID, lessonKey: string) {
+export function removeBookmark(uid, lessonKey) {
   return supabase
     .from('bookmarks')
     .delete()
@@ -210,7 +188,7 @@ export function removeBookmark(uid: UUID, lessonKey: string) {
 }
 
 // ─── Notes ──────────────────────────────────
-export function saveNote(uid: UUID, lessonKey: string, content: string) {
+export function saveNote(uid, lessonKey, content) {
   return supabase.from('notes').upsert({
     user_id: uid,
     lesson_key: lessonKey,
@@ -220,7 +198,7 @@ export function saveNote(uid: UUID, lessonKey: string, content: string) {
 }
 
 // ─── Position ───────────────────────────────
-export function savePosition(uid: UUID, position: PositionInput) {
+export function savePosition(uid, position) {
   return supabase.from('last_position').upsert({
     user_id: uid,
     course: position.course,
@@ -231,7 +209,7 @@ export function savePosition(uid: UUID, position: PositionInput) {
 }
 
 // ─── Course Visits ──────────────────────────
-export function trackCourseVisit(uid: UUID, courseId: string) {
+export function trackCourseVisit(uid, courseId) {
   return supabase.from('courses_visited').upsert({
     user_id: uid,
     course_id: courseId,

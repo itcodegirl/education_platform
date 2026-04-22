@@ -5,11 +5,6 @@
 // ═══════════════════════════════════════════════
 
 import { XP_VALUES } from '../utils/helpers';
-import type {
-  ChallengeResult,
-  LearningEngineDeps,
-  QuizSubmitResult,
-} from './supabaseTypes';
 
 export function createLearningEngine({
   toggleLesson,
@@ -17,9 +12,9 @@ export function createLearningEngine({
   awardXP,
   recordDailyActivity,
   completedSet,
-}: LearningEngineDeps) {
+}) {
   // ─── Lesson completion ────────────────────
-  function completeLesson(lessonKey: string): void {
+  function completeLesson(lessonKey) {
     const alreadyDone = completedSet.has(lessonKey);
     toggleLesson(lessonKey);
 
@@ -30,14 +25,14 @@ export function createLearningEngine({
   }
 
   // ─── Undo lesson completion ───────────────
-  function uncompleteLesson(lessonKey: string): void {
+  function uncompleteLesson(lessonKey) {
     if (completedSet.has(lessonKey)) {
       toggleLesson(lessonKey);
     }
   }
 
   // ─── Toggle (mark/unmark) ─────────────────
-  function toggleLessonDone(lessonKey: string): void {
+  function toggleLessonDone(lessonKey) {
     if (completedSet.has(lessonKey)) {
       uncompleteLesson(lessonKey);
     } else {
@@ -47,10 +42,10 @@ export function createLearningEngine({
 
   // ─── Quiz submission ──────────────────────
   function submitQuiz(
-    quizKey: string,
-    score: number,
-    total: number,
-  ): QuizSubmitResult {
+    quizKey,
+    score,
+    total,
+  ) {
     const pct = Math.round((score / total) * 100);
     saveQuizScore(quizKey, `${score}/${total}`);
     awardXP(XP_VALUES.quiz, 'Quiz completed');
@@ -59,7 +54,7 @@ export function createLearningEngine({
   }
 
   // ─── Challenge completion ─────────────────
-  function completeChallenge(challengeId: string): ChallengeResult {
+  function completeChallenge(challengeId) {
     awardXP(XP_VALUES.challenge || 25, 'Challenge completed');
     recordDailyActivity();
     return { challengeId, completed: true };
@@ -73,5 +68,3 @@ export function createLearningEngine({
     completeChallenge,
   };
 }
-
-export type LearningEngine = ReturnType<typeof createLearningEngine>;

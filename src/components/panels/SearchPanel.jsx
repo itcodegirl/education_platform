@@ -83,9 +83,10 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
       return;
     }
 
-    if (event.key === 'Enter' && activeIndex >= 0) {
+    if (event.key === 'Enter') {
       event.preventDefault();
-      handleClick(results[activeIndex]);
+      const selected = activeIndex >= 0 ? results[activeIndex] : results[0];
+      if (selected) handleClick(selected);
     }
   };
 
@@ -128,7 +129,9 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleInputKeyDown}
           />
-          <span id="search-shortcut-hint" className="search-hint">Esc closes this panel</span>
+          <span id="search-shortcut-hint" className="search-hint">
+            Enter opens the top result, Esc closes this panel
+          </span>
         </div>
 
         <div className="search-results">

@@ -37,5 +37,5 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      - name: Run check:ci (lint, typecheck, build, bundle budget, unit, e2e)
+      - name: Run check:ci (lint, build, bundle budget, unit, e2e)
         run: npm run check:ci

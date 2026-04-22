@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════
-// Unit tests for progressService.ts
+// Unit tests for progressService.js
 //
 // progressService wraps Supabase operations. We stub
 // the Supabase client so no real network calls are
@@ -32,18 +32,9 @@ import {
 //   • is awaitable directly (for .eq() terminal calls)
 //   • exposes .maybeSingle() for single-row queries
 //   • exposes .delete() / .upsert() for write paths
-function makeChain(data: unknown, error: unknown = null) {
+function makeChain(data, error = null) {
   const result = Promise.resolve({ data, error });
-  type Chain = {
-    select: (v?: string) => Chain;
-    eq: (col?: string, val?: unknown) => Chain;
-    delete: () => Chain;
-    upsert: (payload?: unknown) => Promise<{ data: unknown; error: unknown }>;
-    maybeSingle: () => Promise<{ data: unknown; error: unknown }>;
-    then: typeof result.then;
-    catch: typeof result.catch;
-  };
-  const chain: Chain = {
+  const chain = {
     select: vi.fn(() => chain),
     eq: vi.fn(() => chain),
     delete: vi.fn(() => chain),
@@ -55,7 +46,7 @@ function makeChain(data: unknown, error: unknown = null) {
   return chain;
 }
 
-const UID = '00000000-0000-0000-0000-000000000001' as const;
+const UID = '00000000-0000-0000-0000-000000000001';
 
 beforeEach(() => {
   // Default: every table returns empty data, no error
@@ -84,7 +75,7 @@ describe('fetchAllUserData', () => {
   });
 
   it('throws a combined error when one table fails', async () => {
-    mockFrom.mockImplementation((table: string) => {
+    mockFrom.mockImplementation((table) => {
       if (table === 'progress') return makeChain(null, { message: 'connection refused' });
       return makeChain([], null);
     });
@@ -93,7 +84,7 @@ describe('fetchAllUserData', () => {
   });
 
   it('lists every failed table in the error message', async () => {
-    mockFrom.mockImplementation((table: string) => {
+    mockFrom.mockImplementation((table) => {
       if (table === 'xp' || table === 'badges') {
         return makeChain(null, { message: `${table} timeout` });
       }
@@ -104,7 +95,7 @@ describe('fetchAllUserData', () => {
   });
 
   it('includes the source table name in the error details', async () => {
-    mockFrom.mockImplementation((table: string) => {
+    mockFrom.mockImplementation((table) => {
       if (table === 'quiz_scores') return makeChain(null, { message: 'bad request' });
       return makeChain([], null);
     });

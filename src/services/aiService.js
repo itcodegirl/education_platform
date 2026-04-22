@@ -4,9 +4,24 @@
 // ═══════════════════════════════════════════════
 
 import { supabase } from '../lib/supabaseClient';
-import type { AICallPayload, AIMessage } from './supabaseTypes';
 
-async function callAI(payload: AICallPayload): Promise<string> {
+function getAIErrorMessage(status, serverMessage) {
+  if (status === 401 || status === 403) {
+    return 'Your session expired. Sign in again and retry your message.';
+  }
+  if (status === 413) {
+    return 'That message is too long. Shorten it and try again.';
+  }
+  if (status === 429) {
+    return 'You are sending requests too quickly. Wait a moment and try again.';
+  }
+  if (status >= 500) {
+    return 'Cinova AI tutor is temporarily unavailable. Please try again soon.';
+  }
+  return serverMessage || 'AI request failed';
+}
+
+async function callAI(payload) {
   // Get the current session token to authenticate the request
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.access_token) {
@@ -22,12 +37,9 @@ async function callAI(payload: AICallPayload): Promise<string> {
     body: JSON.stringify(payload),
   });
 
-  const data = (await response.json().catch(() => ({}))) as {
-    text?: string;
-    error?: string;
-  };
+  const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const serverMessage = data.error || 'AI request failed';
+    const serverMessage = getAIErrorMessage(response.status, data?.error);
     throw new Error(`[${response.status}] ${serverMessage}`);
   }
 
@@ -41,10 +53,6 @@ export function askLessonTutor({
   system,
   history,
   question,
-}: {
-  system: string;
-  history: AIMessage[];
-  question: string;
 }) {
   return callAI({
     system,
@@ -56,7 +64,7 @@ export function askLessonTutor({
 /**
  * Request a concise beginner-friendly explanation of a code snippet.
  */
-export function explainCode({ system, code }: { system: string; code: string }) {
+export function explainCode({ system, code }) {
   return callAI({
     system,
     messages: [{ role: 'user', content: code }],
@@ -70,9 +78,6 @@ export function explainCode({ system, code }: { system: string; code: string }) 
 export function askChallengeTutor({
   system,
   question,
-}: {
-  system: string;
-  question: string;
 }) {
   return callAI({
     system,

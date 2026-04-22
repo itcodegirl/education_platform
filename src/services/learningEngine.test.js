@@ -9,22 +9,16 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createLearningEngine } from './learningEngine';
-import type { LearningEngineDeps } from './supabaseTypes';
 
-function buildDeps(overrides: Partial<LearningEngineDeps> = {}): LearningEngineDeps & {
-  toggleLesson: ReturnType<typeof vi.fn>;
-  saveQuizScore: ReturnType<typeof vi.fn>;
-  awardXP: ReturnType<typeof vi.fn>;
-  recordDailyActivity: ReturnType<typeof vi.fn>;
-} {
+function buildDeps(overrides = {}) {
   return {
     toggleLesson: vi.fn(),
     saveQuizScore: vi.fn(),
     awardXP: vi.fn(),
     recordDailyActivity: vi.fn(),
-    completedSet: new Set<string>(),
+    completedSet: new Set(),
     ...overrides,
-  } as any;
+  };
 }
 
 describe('createLearningEngine → completeLesson', () => {
@@ -43,7 +37,7 @@ describe('createLearningEngine → completeLesson', () => {
 
   it('toggles a completed lesson OFF without awarding XP again', () => {
     const deps = buildDeps({
-      completedSet: new Set<string>(['html|intro|first']),
+      completedSet: new Set(['html|intro|first']),
     });
     const engine = createLearningEngine(deps);
 
@@ -57,7 +51,7 @@ describe('createLearningEngine → completeLesson', () => {
 
 describe('createLearningEngine → uncompleteLesson', () => {
   it('toggles off a lesson that was previously done', () => {
-    const deps = buildDeps({ completedSet: new Set<string>(['a|b|c']) });
+    const deps = buildDeps({ completedSet: new Set(['a|b|c']) });
     const engine = createLearningEngine(deps);
 
     engine.uncompleteLesson('a|b|c');
@@ -88,7 +82,7 @@ describe('createLearningEngine → toggleLessonDone', () => {
   });
 
   it('routes to uncompleteLesson when already done (no XP awarded again)', () => {
-    const deps = buildDeps({ completedSet: new Set<string>(['x|y|z']) });
+    const deps = buildDeps({ completedSet: new Set(['x|y|z']) });
     const engine = createLearningEngine(deps);
 
     engine.toggleLessonDone('x|y|z');
@@ -99,7 +93,7 @@ describe('createLearningEngine → toggleLessonDone', () => {
 });
 
 describe('createLearningEngine → submitQuiz', () => {
-  let deps: ReturnType<typeof buildDeps>;
+  let deps;
 
   beforeEach(() => {
     deps = buildDeps();

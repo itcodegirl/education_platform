@@ -7,6 +7,26 @@ const PASSWORD_MIN_LENGTH = 6;
 const DISPLAY_NAME_MAX_LENGTH = 60;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+function getFriendlyAuthError(message, fallback) {
+  const normalized = (message || '').toLowerCase();
+  if (normalized.includes('invalid login credentials')) {
+    return 'Email or password is incorrect. Double-check both and try again.';
+  }
+  if (normalized.includes('email not confirmed')) {
+    return 'Confirm your email first, then sign in.';
+  }
+  if (normalized.includes('already registered') || normalized.includes('already been registered')) {
+    return 'An account already exists for this email. Try logging in instead.';
+  }
+  if (normalized.includes('rate limit') || normalized.includes('too many requests')) {
+    return 'Too many attempts right now. Wait a minute, then try again.';
+  }
+  if (normalized.includes('network') || normalized.includes('failed to fetch')) {
+    return 'Connection failed. Check your internet and try again.';
+  }
+  return message || fallback;
+}
+
 export function AuthPage({ onPreview }) {
   const {
     signIn,
@@ -96,14 +116,14 @@ export function AuthPage({ onPreview }) {
       if (mode === 'signup') {
         const { error: err } = await signUp(normalizedEmail, password, normalizedDisplayName);
         if (err) {
-          setError(err.message);
+          setError(getFriendlyAuthError(err.message, 'Unable to create your account right now.'));
         } else {
           setConfirmSent(true);
         }
       } else {
         const { error: err } = await signIn(normalizedEmail, password);
         if (err) {
-          setError(err.message);
+          setError(getFriendlyAuthError(err.message, 'Unable to sign in right now.'));
         }
       }
     } catch {
@@ -135,7 +155,7 @@ export function AuthPage({ onPreview }) {
     try {
       const { error: err } = await forgotPassword(normalizedEmail);
       if (err) {
-        setError(err.message || 'Unable to send a reset link right now.');
+        setError(getFriendlyAuthError(err.message, 'Unable to send a reset link right now.'));
       } else {
         setInfo(`Password reset link sent to ${normalizedEmail}. Check your inbox and spam folder. The link expires for security.`);
       }

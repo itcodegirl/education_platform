@@ -4,45 +4,38 @@
 // ═══════════════════════════════════════════════
 
 import { supabase } from '../lib/supabaseClient';
-import type { Profile, UUID } from './supabaseTypes';
 
-type SupabaseAuthUser = Awaited<
-  ReturnType<typeof supabase.auth.getUser>
->['data']['user'];
-
-export async function getInitialSession(): Promise<SupabaseAuthUser | null> {
+export async function getInitialSession() {
   const { data: { session }, error } = await supabase.auth.getSession();
   if (error) throw error;
   return session?.user ?? null;
 }
 
-type AuthChangeCallback = (user: SupabaseAuthUser | null) => void;
-
-export function onAuthStateChange(callback: AuthChangeCallback) {
+export function onAuthStateChange(callback) {
   const { data: { subscription } } = supabase.auth.onAuthStateChange(
     (_event, session) => callback(session?.user ?? null),
   );
   return subscription;
 }
 
-export async function loadProfile(userId: UUID): Promise<Profile | null> {
+export async function loadProfile(userId) {
   const { data } = await supabase
     .from('profiles')
     .select('display_name, avatar_url, is_admin, is_disabled')
     .eq('id', userId)
     .maybeSingle();
-  return (data as Profile | null) || null;
+  return data || null;
 }
 
-export async function signInWithEmail(email: string, password: string) {
+export async function signInWithEmail(email, password) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   return { data, error };
 }
 
 export async function signUpWithEmail(
-  email: string,
-  password: string,
-  displayName: string,
+  email,
+  password,
+  displayName,
 ) {
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -68,7 +61,7 @@ export async function signInWithGoogle() {
   return { data, error };
 }
 
-export async function requestPasswordReset(email: string) {
+export async function requestPasswordReset(email) {
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: window.location.origin,
   });
