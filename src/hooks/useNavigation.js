@@ -8,6 +8,7 @@ import { COURSES, QUIZ_MAP } from '../data';
 import { useCourseContent } from '../providers';
 import { navigateTo, toPathFromLegacyHash } from '../routes/routeUtils';
 import { buildLearnPath, parseLearnPath } from '../routes/routePaths';
+import { getLessonKeyVariants } from '../utils/lessonKeys';
 
 // Safe empty shells used when a course's modules haven't loaded yet.
 // AppLayout gates the real UI behind isActiveCourseLoaded, so these
@@ -160,9 +161,8 @@ export function useNavigation() {
   const isLastLesson = lesIdx === (mod.lessons?.length || 1) - 1;
   const lessonQuiz = les.id ? QUIZ_MAP.get(`l:${les.id}`) : undefined;
   const moduleQuiz = mod.id ? QUIZ_MAP.get(`m:${mod.id}`) : undefined;
-  const lessonKey = course.label && mod.title && les.title
-    ? `${course.label}|${mod.title}|${les.title}`
-    : '';
+  const { stable: stableLessonKey, legacy: legacyLessonKey } = getLessonKeyVariants(course, mod, les);
+  const lessonKey = stableLessonKey || legacyLessonKey;
 
   const courseTotal = modules.reduce((sum, moduleData) => sum + (moduleData.lessons?.length || 0), 0);
   const isFirst = modIdx === 0 && lesIdx === 0 && !showModQuiz;

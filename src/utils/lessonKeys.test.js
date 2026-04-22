@@ -5,6 +5,9 @@ import {
   getCourseCompletedLessonCount,
   lessonKeyBelongsToCourse,
   resolveStableLessonKey,
+  resolveStableLessonKeyAcrossCourses,
+  lessonKeysEquivalent,
+  findLessonByKey,
 } from './lessonKeys';
 
 const COURSE = {
@@ -61,5 +64,29 @@ describe('lessonKeys utilities', () => {
     expect(lessonKeyBelongsToCourse('c:html|m:m-basics|l:l-intro', COURSE)).toBe(true);
     expect(lessonKeyBelongsToCourse('HTML|Basics|Intro', COURSE)).toBe(true);
     expect(lessonKeyBelongsToCourse('c:css|m:m-selectors|l:l-class', COURSE)).toBe(false);
+  });
+
+  it('resolves stable key across mixed course collections', () => {
+    const stable = resolveStableLessonKeyAcrossCourses('HTML|Basics|Intro', [COURSE]);
+    expect(stable).toBe('c:html|m:m-basics|l:l-intro');
+  });
+
+  it('matches equivalent keys across legacy and stable formats', () => {
+    expect(
+      lessonKeysEquivalent('HTML|Basics|Tags', 'c:html|m:m-basics|l:l-tags', [COURSE]),
+    ).toBe(true);
+    expect(
+      lessonKeysEquivalent('HTML|Basics|Tags', 'c:html|m:m-semantic|l:l-aria', [COURSE]),
+    ).toBe(false);
+  });
+
+  it('finds lesson location from either legacy or stable key', () => {
+    const byStable = findLessonByKey('c:html|m:m-basics|l:l-tags', [COURSE]);
+    const byLegacy = findLessonByKey('HTML|Basics|Tags', [COURSE]);
+
+    expect(byStable?.moduleIndex).toBe(0);
+    expect(byStable?.lessonIndex).toBe(1);
+    expect(byLegacy?.moduleIndex).toBe(0);
+    expect(byLegacy?.lessonIndex).toBe(1);
   });
 });

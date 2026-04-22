@@ -85,9 +85,9 @@ describe('useNavigation initial state', () => {
     expect(result.current.isFirst).toBe(true);
   });
 
-  it('formats lessonKey as "course|module|lesson"', () => {
+  it('formats lessonKey as stable ids', () => {
     const { result } = renderHook(() => useNavigation());
-    expect(result.current.lessonKey).toBe('HTML|Basics|What is HTML?');
+    expect(result.current.lessonKey).toBe('c:html|m:basics|l:l-what');
   });
 
   it('exposes moduleQuiz when available on current module', () => {

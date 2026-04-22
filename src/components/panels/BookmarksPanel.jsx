@@ -2,10 +2,33 @@ import { useEffect, useRef } from 'react';
 import { useSR, useCourseContent } from '../../providers';
 import { COURSES } from '../../data';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { findLessonByKey } from '../../utils/lessonKeys';
 
-function parseLessonKey(lessonKey) {
-  const [courseLabel = '', moduleTitle = '', lessonTitle = ''] = (lessonKey || '').split('|');
-  return { courseLabel, moduleTitle, lessonTitle };
+function findBookmarkTarget(bookmark, courses) {
+  const byKey = findLessonByKey(bookmark.lesson_key, courses);
+  if (byKey) return byKey;
+
+  const courseIndex = courses.findIndex((course) => course.id === bookmark.course_id);
+  if (courseIndex === -1) return null;
+  const course = courses[courseIndex];
+  if (!bookmark.lesson_title) return null;
+
+  for (let moduleIndex = 0; moduleIndex < course.modules.length; moduleIndex += 1) {
+    const moduleData = course.modules[moduleIndex];
+    const lessonIndex = moduleData.lessons.findIndex((lesson) => lesson.title === bookmark.lesson_title);
+    if (lessonIndex === -1) continue;
+
+    return {
+      course,
+      moduleData,
+      lesson: moduleData.lessons[lessonIndex],
+      courseIndex,
+      moduleIndex,
+      lessonIndex,
+    };
+  }
+
+  return null;
 }
 
 export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
@@ -15,26 +38,17 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
   // Bookmarks can point to any course. Trigger a full load so that
   // when the user clicks one, handleClick below can resolve the
   // moduleIndex + lessonIndex synchronously.
-  const { ensureAllLoaded } = useCourseContent();
+  const { ensureAllLoaded, courses = [] } = useCourseContent();
+  const sourceCourses = courses.length > 0 ? courses : COURSES;
   useEffect(() => {
     if (isOpen) ensureAllLoaded();
   }, [isOpen, ensureAllLoaded]);
   if (!isOpen) return null;
 
   const handleClick = (bookmark) => {
-    const courseIndex = COURSES.findIndex((course) => course.id === bookmark.course_id);
-    if (courseIndex === -1) return;
-
-    const course = COURSES[courseIndex];
-    const { moduleTitle, lessonTitle } = parseLessonKey(bookmark.lesson_key);
-    const moduleIndex = course.modules.findIndex((module) => module.title === moduleTitle);
-    if (moduleIndex === -1) return;
-
-    const targetLessonTitle = bookmark.lesson_title || lessonTitle;
-    const lessonIndex = course.modules[moduleIndex].lessons.findIndex((lesson) => lesson.title === targetLessonTitle);
-    if (lessonIndex === -1) return;
-
-    onNavigate(courseIndex, moduleIndex, lessonIndex);
+    const target = findBookmarkTarget(bookmark, sourceCourses);
+    if (!target) return;
+    onNavigate(target.courseIndex, target.moduleIndex, target.lessonIndex);
     onClose();
   };
 
@@ -71,8 +85,11 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
             </div>
           ) : (
             bookmarks.map((bookmark) => {
-              const { moduleTitle } = parseLessonKey(bookmark.lesson_key);
-              const coursePath = `${bookmark.course_id.toUpperCase()} > ${moduleTitle || 'Saved lesson'}`;
+              const target = findBookmarkTarget(bookmark, sourceCourses);
+              const moduleTitle = target?.moduleData?.title || 'Saved lesson';
+              const courseLabel = target?.course?.label || bookmark.course_id.toUpperCase();
+              const coursePath = `${courseLabel} > ${moduleTitle}`;
+              const isUnavailable = !target;
 
               // Two sibling buttons inside a pure-layout div: the
               // primary "open bookmark" action and the secondary
@@ -87,7 +104,10 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
                     type="button"
                     className="bk-main"
                     onClick={() => handleClick(bookmark)}
-                    aria-label={`Open ${bookmark.lesson_title} (${coursePath})`}
+                    aria-label={isUnavailable
+                      ? `${bookmark.lesson_title} is unavailable in the current course catalog`
+                      : `Open ${bookmark.lesson_title} (${coursePath})`}
+                    disabled={isUnavailable}
                   >
                     <span className="bk-info">
                       <span className="bk-title">{bookmark.lesson_title}</span>

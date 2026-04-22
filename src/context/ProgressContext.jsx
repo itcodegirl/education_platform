@@ -6,7 +6,9 @@
 import { createContext, useContext, useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useAuth } from './AuthContext';
 import { DAILY_GOAL, TIMING, getLevel, getTodayString, getYesterdayString } from '../utils/helpers';
+import { COURSES } from '../data';
 import * as progressService from '../services/progressService';
+import { lessonKeysEquivalent, resolveStableLessonKeyAcrossCourses } from '../utils/lessonKeys';
 
 // ─── Badge Definitions ──────────────────────────
 export const BADGE_DEFS = [
@@ -75,6 +77,10 @@ const SRContext = createContext({
   saveNote: () => {},
   getNote: () => '',
 });
+
+function normalizeLessonKey(lessonKey) {
+  return resolveStableLessonKeyAcrossCourses(lessonKey, COURSES);
+}
 
 export function ProgressProvider({ children }) {
   const { user } = useAuth();
@@ -455,31 +461,59 @@ export function ProgressProvider({ children }) {
   // ─── Bookmarks (NEW) ─────────────────────────
   const toggleBookmark = useCallback(async (lessonKey, courseId, lessonTitle) => {
     if (!user) return;
-    const existing = bookmarks.find(b => b.lesson_key === lessonKey);
+    const normalizedLessonKey = normalizeLessonKey(lessonKey);
+    const existing = bookmarks.find((bookmark) =>
+      lessonKeysEquivalent(bookmark.lesson_key, normalizedLessonKey, COURSES),
+    );
 
     if (existing) {
-      setBookmarks(prev => prev.filter(b => b.lesson_key !== lessonKey));
-      dbWrite(progressService.removeBookmark(user.id, lessonKey), 'removeBookmark');
+      setBookmarks((prev) => prev.filter((bookmark) =>
+        !lessonKeysEquivalent(bookmark.lesson_key, normalizedLessonKey, COURSES),
+      ));
+      const removalKeys = new Set([existing.lesson_key, normalizedLessonKey]);
+      removalKeys.forEach((key) => {
+        dbWrite(progressService.removeBookmark(user.id, key), 'removeBookmark');
+      });
     } else {
-      const newBookmark = { lesson_key: lessonKey, course_id: courseId, lesson_title: lessonTitle, created_at: new Date().toISOString() };
+      const newBookmark = {
+        lesson_key: normalizedLessonKey,
+        course_id: courseId,
+        lesson_title: lessonTitle,
+        created_at: new Date().toISOString(),
+      };
       setBookmarks(prev => [...prev, newBookmark]);
-      dbWrite(progressService.addBookmark(user.id, { lessonKey, courseId, lessonTitle }), 'addBookmark');
+      dbWrite(progressService.addBookmark(user.id, {
+        lessonKey: normalizedLessonKey,
+        courseId,
+        lessonTitle,
+      }), 'addBookmark');
     }
   }, [user, bookmarks, dbWrite]);
 
   const isBookmarked = useCallback((lessonKey) => {
-    return bookmarks.some(b => b.lesson_key === lessonKey);
+    const normalizedLessonKey = normalizeLessonKey(lessonKey);
+    return bookmarks.some((bookmark) =>
+      lessonKeysEquivalent(bookmark.lesson_key, normalizedLessonKey, COURSES),
+    );
   }, [bookmarks]);
 
   // ─── Notes (NEW) ─────────────────────────────
   const saveNote = useCallback(async (lessonKey, content) => {
     if (!user) return;
-    setNotes(prev => ({ ...prev, [lessonKey]: content }));
-    dbWrite(progressService.saveNote(user.id, lessonKey, content), 'saveNote');
+    const normalizedLessonKey = normalizeLessonKey(lessonKey);
+    setNotes(prev => ({ ...prev, [normalizedLessonKey]: content }));
+    dbWrite(progressService.saveNote(user.id, normalizedLessonKey, content), 'saveNote');
   }, [user, dbWrite]);
 
   const getNote = useCallback((lessonKey) => {
-    return notes[lessonKey] || '';
+    const normalizedLessonKey = normalizeLessonKey(lessonKey);
+    if (notes[normalizedLessonKey]) return notes[normalizedLessonKey];
+    if (notes[lessonKey]) return notes[lessonKey];
+
+    const equivalentKey = Object.keys(notes).find((storedKey) =>
+      lessonKeysEquivalent(storedKey, normalizedLessonKey, COURSES),
+    );
+    return equivalentKey ? notes[equivalentKey] : '';
   }, [notes]);
 
   // ─── Position ─────────────────────────────────
