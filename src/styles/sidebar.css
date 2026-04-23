@@ -7,7 +7,6 @@
    ═══════════════════════════════════════════════ */
 
 /* ─── 7. Sidebar — Brand Aligned Glassmorphism ─── */
-.sidebar,
 .sidebar {
   width: min(100vw, var(--sidebar-width));
   min-width: min(100vw, var(--sidebar-width));
@@ -25,7 +24,6 @@
   transition: width 0.22s var(--ease-out), min-width 0.22s var(--ease-out);
 }
 @supports not (backdrop-filter: blur(1px)) {
-  .sidebar,
   .sidebar { background: rgba(13, 13, 30, 0.98); }
 }
 
@@ -296,20 +294,17 @@
 .sidebar-nav { padding: 0; }
 
 /* ─── Module groups ─── */
-.module-group,
 .module-group {
   margin-bottom: 4px;
   border-radius: 12px;
   overflow: hidden;
   transition: all 0.2s;
 }
-.module-group.expanded,
 .module-group.expanded {
   background: rgba(180,74,255,0.04);
   border: 1px solid rgba(180,74,255,0.1);
   margin-bottom: 8px;
 }
-.module-group:not(.expanded),
 .module-group:not(.expanded) { border: 1px solid transparent; }
 .module-group-btn {
   width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px;
@@ -337,7 +332,6 @@
 .module-group.locked { opacity: 0.35; }
 
 /* ─── Lesson list ─── */
-.lesson-list,
 .lesson-list { padding: 4px 0 8px; animation: fadeIn 0.15s ease-out; }
 .lesson-list-btn {
   width: 100%; display: flex; align-items: center; gap: 10px; padding: 7px 14px 7px 60px;
@@ -569,6 +563,7 @@
   .sidebar.collapsed .cs-trigger { justify-content: center; padding: 10px; }
   .sidebar.collapsed .cs-trigger-icon { font-size: 20px; }
 }
+
 
 
 

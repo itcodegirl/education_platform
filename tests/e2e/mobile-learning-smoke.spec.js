@@ -92,8 +92,8 @@ test.describe('mobile learning smoke', () => {
   });
 
   test('navigates lessons, toggles completion, and submits a quiz', async ({ page }) => {
-    await expect(page.locator('.lv-title')).toBeVisible();
-    const initialTitle = await page.locator('.lv-title').textContent();
+    await expect(page.locator('.lesson-title')).toBeVisible();
+    const initialTitle = await page.locator('.lesson-title').textContent();
 
     const getDoneState = async () =>
       page.locator('.mark-btn').evaluate((node) => node.classList.contains('dn'));
@@ -103,16 +103,16 @@ test.describe('mobile learning smoke', () => {
     await expect.poll(getDoneState).toBe(!previousDoneState);
 
     await page.locator('.nav-btn.nx').click();
-    await expect(page.locator('.lv-title')).not.toHaveText(initialTitle || '', { timeout: 10000 });
+    await expect(page.locator('.lesson-title')).not.toHaveText(initialTitle || '', { timeout: 10000 });
 
     await page.getByLabel('Open course navigation').click();
     await expect(page.locator('#course-sidebar.open')).toBeVisible();
 
-    let moduleQuizButton = page.locator('.lg-quiz').first();
+    let moduleQuizButton = page.locator('.lesson-list-quiz').first();
     if (!(await moduleQuizButton.isVisible().catch(() => false))) {
-      await page.locator('.mg-btn').first().click();
+      await page.locator('.module-group-btn').first().click();
     }
-    moduleQuizButton = page.locator('.lg-quiz').first();
+    moduleQuizButton = page.locator('.lesson-list-quiz').first();
     await expect(moduleQuizButton).toBeVisible();
     await moduleQuizButton.click();
 

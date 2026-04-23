@@ -72,7 +72,6 @@
   .xp-bar-wrap,
   .daily-goal,
   .sidebar-lock-toggle { margin-left: 16px; margin-right: 16px; }
-  .cs-btn { padding: 10px; font-size: 12px; }
   .stats-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .stat-card { padding: 8px 6px; }
   .stat-num { font-size: 16px; }

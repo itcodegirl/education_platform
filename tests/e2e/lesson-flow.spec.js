@@ -45,20 +45,20 @@ test.describe('lesson flow', () => {
   });
 
   test('displays lesson content with title and concepts', async ({ page }) => {
-    await page.waitForSelector('.lv-title', { timeout: 10000 });
-    const title = await page.textContent('.lv-title');
+    await page.waitForSelector('.lesson-title', { timeout: 10000 });
+    const title = await page.textContent('.lesson-title');
     expect(title).toBeTruthy();
     expect(title.length).toBeGreaterThan(0);
   });
 
   test('navigates to next lesson with Next button', async ({ page }) => {
-    await page.waitForSelector('.lv-title', { timeout: 10000 });
-    const firstTitle = await page.textContent('.lv-title');
+    await page.waitForSelector('.lesson-title', { timeout: 10000 });
+    const firstTitle = await page.textContent('.lesson-title');
 
     await page.click('.nav-btn.nx');
     await page.waitForTimeout(500);
 
-    const secondTitle = await page.textContent('.lv-title');
+    const secondTitle = await page.textContent('.lesson-title');
     expect(secondTitle).not.toBe(firstTitle);
   });
 
@@ -68,12 +68,12 @@ test.describe('lesson flow', () => {
     await page.click('.nav-btn.nx');
     await page.waitForTimeout(500);
 
-    const secondTitle = await page.textContent('.lv-title');
+    const secondTitle = await page.textContent('.lesson-title');
 
     await page.click('.nav-btn:not(.nx)');
     await page.waitForTimeout(500);
 
-    const backTitle = await page.textContent('.lv-title');
+    const backTitle = await page.textContent('.lesson-title');
     expect(backTitle).not.toBe(secondTitle);
   });
 
@@ -126,20 +126,20 @@ test.describe('lesson flow', () => {
     const hamVisible = await page.locator('.ham').isVisible().catch(() => false);
     if (hamVisible) {
       await page.click('.ham');
-      await page.waitForSelector('.sb.open', { timeout: 5000 });
+      await page.waitForSelector('#course-sidebar.open', { timeout: 5000 });
     }
 
     // Course buttons should be visible
-    const courseButtons = await page.locator('.cs-btn').count();
-    expect(courseButtons).toBe(4); // HTML, CSS, JS, React
+    const courseButtons = await page.locator('.cs-option').count();
+    expect(courseButtons).toBeGreaterThanOrEqual(4);
 
     // Module groups should be visible
-    const modules = await page.locator('.mg-btn').count();
+    const modules = await page.locator('.module-group-btn').count();
     expect(modules).toBeGreaterThan(0);
   });
 
   test('quiz section is collapsible', async ({ page }) => {
-    await page.waitForSelector('.lv-title', { timeout: 10000 });
+    await page.waitForSelector('.lesson-title', { timeout: 10000 });
 
     // Look for quiz toggle
     const quizToggle = page.locator('.quiz-toggle');

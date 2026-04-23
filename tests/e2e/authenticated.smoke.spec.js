@@ -85,7 +85,7 @@ test.describe.skip('authenticated smoke', () => {
 });
 
 async function waitForAuthenticatedShell(page, diagnostics) {
-  const shellSelectors = ['.topbar', '#course-sidebar', '.mn', '.bottom-tools'];
+  const shellSelectors = ['.topbar', '#course-sidebar', '.main-shell', '.bottom-tools'];
   const terminalSelectors = ['.auth-error', '.conn-error', '.disabled-screen', '.eb-screen'];
 
   try {
@@ -126,7 +126,7 @@ async function waitForAuthenticatedShell(page, diagnostics) {
 
   await expect(page.locator('.topbar')).toBeVisible({ timeout: 30000 });
   await expect(page.locator('#course-sidebar')).toBeVisible({ timeout: 30000 });
-  await expect(page.locator('.mn')).toBeVisible({ timeout: 30000 });
+  await expect(page.locator('.main-shell')).toBeVisible({ timeout: 30000 });
   await expect(page.locator('.bottom-tools')).toBeVisible({ timeout: 30000 });
   await expect(page.getByRole('button', { name: 'Open bookmarks' })).toBeVisible({ timeout: 30000 });
 }
