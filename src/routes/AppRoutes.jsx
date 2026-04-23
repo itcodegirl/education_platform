@@ -1,12 +1,14 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
-import { useTheme, useAuth, useProgressData } from '../providers';
+import { lazy, Suspense, useEffect } from 'react';
+import { Navigate, useLocation, useNavigate, useParams, useRoutes } from 'react-router-dom';
+import { useTheme, useAuth, useCourseContent, useProgressData } from '../providers';
+import { COURSES } from '../data';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { AppLayout } from '../layouts/AppLayout';
 import { LessonSkeleton, ConnectionError } from '../components/shared/SkeletonLoader';
 import { Logo } from '../components/shared/Logo';
 import { AdminRoute } from './guards/AdminRoute';
-import { closeRouteOrGoHome, getCurrentPath, toPathFromLegacyHash } from './routeUtils';
-import { APP_ROUTE_KIND, resolveAppRoute } from './resolveAppRoute';
+import { APP_ROUTES, parsePublicProfilePath } from './routePaths';
+import { closeRouteOrGoHome, toPathFromLegacyHash } from './routeUtils';
 
 const AdminDashboard = lazy(() =>
   import('../components/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })),
@@ -32,131 +34,21 @@ function RouteLoadingScreen({ theme, size = 'sm', children }) {
   );
 }
 
-export default function AppRoutes() {
-  const { theme } = useTheme();
-  const { user, profile, loading: authLoading, signOut } = useAuth();
-  const { dataLoaded, loadError, retryLoad } = useProgressData();
-  const [path, setPath] = useState(() => getCurrentPath());
-  const route = resolveAppRoute(path);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return undefined;
-
-    const syncPath = () => {
-      const legacyPath = toPathFromLegacyHash(window.location.hash || '');
-      if (legacyPath) {
-        window.history.replaceState(null, '', `${legacyPath}${window.location.search}`);
-      }
-      setPath(getCurrentPath());
-    };
-
-    syncPath();
-    window.addEventListener('popstate', syncPath);
-    window.addEventListener('hashchange', syncPath);
-    return () => {
-      window.removeEventListener('popstate', syncPath);
-      window.removeEventListener('hashchange', syncPath);
-    };
-  }, []);
-
-  if (route.kind === APP_ROUTE_KIND.styleguide) {
-    return (
-      <div className={theme}>
-        <Suspense
-          fallback={
-            <RouteLoadingScreen theme={theme}>
-              <p>Loading styleguide...</p>
-            </RouteLoadingScreen>
-          }
-        >
-          <Styleguide onClose={closeRouteOrGoHome} />
-        </Suspense>
+function DisabledAccountScreen({ theme, onSignOut }) {
+  return (
+    <div className={`loading-screen ${theme}`} role="status" aria-live="polite">
+      <div className="disabled-screen">
+        <span className="disabled-icon" aria-hidden="true">[ ]</span>
+        <h2 className="disabled-title">Account Disabled</h2>
+        <p className="disabled-msg">Your account has been disabled. Contact support if this is a mistake.</p>
+        <a href="mailto:hello@cinova.app" className="disabled-link">Contact Support</a>
+        <button type="button" className="disabled-logout" onClick={onSignOut}>Log Out</button>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
-  const publicHandle = route.kind === APP_ROUTE_KIND.publicProfile ? route.publicHandle : null;
-  if (publicHandle) {
-    return (
-      <div className={theme}>
-        <Suspense
-          fallback={
-            <RouteLoadingScreen theme={theme}>
-              <p>Loading public profile...</p>
-            </RouteLoadingScreen>
-          }
-        >
-          <PublicProfile handle={publicHandle} onClose={closeRouteOrGoHome} />
-        </Suspense>
-      </div>
-    );
-  }
-
-  if (authLoading) {
-    return (
-      <RouteLoadingScreen theme={theme} size="lg">
-        <p style={{ marginTop: '16px', opacity: 0.5 }}>Checking your account session...</p>
-      </RouteLoadingScreen>
-    );
-  }
-
-  if (!user) return <AuthLayout />;
-
-  if (profile?.is_disabled) {
-    return (
-      <div className={`loading-screen ${theme}`} role="status" aria-live="polite">
-        <div className="disabled-screen">
-          <span className="disabled-icon" aria-hidden="true">[ ]</span>
-          <h2 className="disabled-title">Account Disabled</h2>
-          <p className="disabled-msg">Your account has been disabled. Contact support if this is a mistake.</p>
-          <a href="mailto:hello@cinova.app" className="disabled-link">Contact Support</a>
-          <button type="button" className="disabled-logout" onClick={() => signOut()}>Log Out</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (route.kind === APP_ROUTE_KIND.profile) {
-    return (
-      <div className={theme}>
-        <Suspense
-          fallback={
-            <RouteLoadingScreen theme={theme}>
-              <p>Loading profile...</p>
-            </RouteLoadingScreen>
-          }
-        >
-          <ProfilePage onClose={closeRouteOrGoHome} />
-        </Suspense>
-      </div>
-    );
-  }
-
-  if (route.kind === APP_ROUTE_KIND.admin) {
-    return (
-      <AdminRoute
-        fallback={<AppLayout />}
-        loadingFallback={
-          <RouteLoadingScreen theme={theme}>
-            <p>Checking admin access...</p>
-          </RouteLoadingScreen>
-        }
-      >
-        <div className={theme}>
-          <Suspense
-            fallback={
-              <RouteLoadingScreen theme={theme}>
-                <p>Loading admin dashboard...</p>
-              </RouteLoadingScreen>
-            }
-          >
-            <AdminDashboard onClose={closeRouteOrGoHome} />
-          </Suspense>
-        </div>
-      </AdminRoute>
-    );
-  }
-
+function AppDataGate({ theme, dataLoaded, loadError, retryLoad }) {
   if (loadError) {
     return (
       <div className={`loading-screen ${theme}`}>
@@ -186,5 +78,161 @@ export default function AppRoutes() {
   }
 
   return <AppLayout />;
+}
+
+function PublicProfileRoute({ theme }) {
+  const { handle = '' } = useParams();
+  const validatedHandle = parsePublicProfilePath(`${APP_ROUTES.publicProfileBase}/${handle}`);
+
+  if (!validatedHandle) {
+    return <Navigate to={APP_ROUTES.home} replace />;
+  }
+
+  return (
+    <div className={theme}>
+      <Suspense
+        fallback={
+          <RouteLoadingScreen theme={theme}>
+            <p>Loading public profile...</p>
+          </RouteLoadingScreen>
+        }
+      >
+        <PublicProfile handle={validatedHandle} onClose={closeRouteOrGoHome} />
+      </Suspense>
+    </div>
+  );
+}
+
+function LearnRouteLoader({ children }) {
+  const { courseId = '' } = useParams();
+  const { ensureLoaded } = useCourseContent();
+  const isKnownCourse = COURSES.some((course) => course.id === courseId);
+
+  useEffect(() => {
+    if (!isKnownCourse) return;
+    ensureLoaded(courseId);
+  }, [courseId, ensureLoaded, isKnownCourse]);
+
+  if (!isKnownCourse) {
+    return <Navigate to={APP_ROUTES.home} replace />;
+  }
+
+  return children;
+}
+
+export default function AppRoutes() {
+  const { theme } = useTheme();
+  const { user, profile, loading: authLoading, signOut } = useAuth();
+  const { dataLoaded, loadError, retryLoad } = useProgressData();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const legacyPath = toPathFromLegacyHash(location.hash || '');
+    if (!legacyPath) return;
+    navigate(`${legacyPath}${location.search || ''}`, { replace: true });
+  }, [location.hash, location.search, navigate]);
+
+  const renderProtected = (element) => {
+    if (authLoading) {
+      return (
+        <RouteLoadingScreen theme={theme} size="lg">
+          <p style={{ marginTop: '16px', opacity: 0.5 }}>Checking your account session...</p>
+        </RouteLoadingScreen>
+      );
+    }
+
+    if (!user) return <AuthLayout />;
+
+    if (profile?.is_disabled) {
+      return <DisabledAccountScreen theme={theme} onSignOut={signOut} />;
+    }
+
+    return element;
+  };
+
+  const routes = useRoutes([
+    {
+      path: APP_ROUTES.styleguide,
+      element: (
+        <div className={theme}>
+          <Suspense
+            fallback={
+              <RouteLoadingScreen theme={theme}>
+                <p>Loading styleguide...</p>
+              </RouteLoadingScreen>
+            }
+          >
+            <Styleguide onClose={closeRouteOrGoHome} />
+          </Suspense>
+        </div>
+      ),
+    },
+    {
+      path: `${APP_ROUTES.publicProfileBase}/:handle`,
+      element: <PublicProfileRoute theme={theme} />,
+    },
+    {
+      path: APP_ROUTES.profile,
+      element: renderProtected(
+        <div className={theme}>
+          <Suspense
+            fallback={
+              <RouteLoadingScreen theme={theme}>
+                <p>Loading profile...</p>
+              </RouteLoadingScreen>
+            }
+          >
+            <ProfilePage onClose={closeRouteOrGoHome} />
+          </Suspense>
+        </div>,
+      ),
+    },
+    {
+      path: APP_ROUTES.admin,
+      element: renderProtected(
+        <AdminRoute
+          fallback={<AppDataGate theme={theme} dataLoaded={dataLoaded} loadError={loadError} retryLoad={retryLoad} />}
+          loadingFallback={
+            <RouteLoadingScreen theme={theme}>
+              <p>Checking admin access...</p>
+            </RouteLoadingScreen>
+          }
+        >
+          <div className={theme}>
+            <Suspense
+              fallback={
+                <RouteLoadingScreen theme={theme}>
+                  <p>Loading admin dashboard...</p>
+                </RouteLoadingScreen>
+              }
+            >
+              <AdminDashboard onClose={closeRouteOrGoHome} />
+            </Suspense>
+          </div>
+        </AdminRoute>,
+      ),
+    },
+    {
+      path: `${APP_ROUTES.learnBase}/:courseId/:moduleId/:lessonId`,
+      element: renderProtected(
+        <LearnRouteLoader>
+          <AppDataGate theme={theme} dataLoaded={dataLoaded} loadError={loadError} retryLoad={retryLoad} />
+        </LearnRouteLoader>,
+      ),
+    },
+    {
+      path: APP_ROUTES.home,
+      element: renderProtected(
+        <AppDataGate theme={theme} dataLoaded={dataLoaded} loadError={loadError} retryLoad={retryLoad} />,
+      ),
+    },
+    {
+      path: '*',
+      element: <Navigate to={APP_ROUTES.home} replace />,
+    },
+  ]);
+
+  return routes;
 }
 

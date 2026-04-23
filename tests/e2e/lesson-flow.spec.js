@@ -108,6 +108,19 @@ test.describe('lesson flow', () => {
     await page.keyboard.press('Escape');
   });
 
+  test('browser back closes search panel before leaving the lesson route', async ({ page }) => {
+    await page.waitForSelector('.search-trigger', { timeout: 10000 });
+    await page.click('.search-trigger');
+    await page.waitForSelector('.search-modal', { timeout: 5000 });
+
+    const urlWithPanelOpen = page.url();
+    await page.goBack();
+
+    await expect(page.locator('.search-modal')).not.toBeVisible();
+    await expect(page).toHaveURL(/\/learn\/[^/]+\/[^/]+\/[^/]+/);
+    expect(page.url()).not.toBe(urlWithPanelOpen);
+  });
+
   test('sidebar shows course switcher and modules', async ({ page }) => {
     // Open sidebar on mobile or verify it's visible on desktop
     const hamVisible = await page.locator('.ham').isVisible().catch(() => false);
