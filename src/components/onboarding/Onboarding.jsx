@@ -1,6 +1,7 @@
-﻿import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { trackEvent } from '../../lib/analytics';
 
 const STEPS = [
   {
@@ -48,10 +49,15 @@ export function Onboarding({ isOpen, onClose, displayName }) {
   const subtitleId = useId();
   const progressTextId = useId();
 
-  const handleFinish = useCallback(() => {
+  const handleFinish = useCallback((reason = 'dismissed') => {
+    trackEvent('onboarding_closed', {
+      reason,
+      step: step + 1,
+      totalSteps: STEPS.length,
+    });
     setOnboarded(true);
     onClose();
-  }, [onClose, setOnboarded]);
+  }, [onClose, setOnboarded, step]);
 
   useFocusTrap(dialogRef, {
     enabled: isOpen,
@@ -75,6 +81,14 @@ export function Onboarding({ isOpen, onClose, displayName }) {
       headingRef.current.focus();
     }
   }, [isOpen, show, step]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    trackEvent('onboarding_opened', {
+      step: step + 1,
+      totalSteps: STEPS.length,
+    });
+  }, [isOpen, step]);
 
   if (!isOpen) return null;
 
@@ -156,7 +170,10 @@ export function Onboarding({ isOpen, onClose, displayName }) {
             <button
               type="button"
               className="ob-back"
-              onClick={() => setStep((value) => value - 1)}
+              onClick={() => {
+                trackEvent('onboarding_step_back', { fromStep: step + 1, toStep: step });
+                setStep((value) => value - 1);
+              }}
               aria-label={`Back to step ${step}`}
             >
               Back
@@ -164,20 +181,33 @@ export function Onboarding({ isOpen, onClose, displayName }) {
           )}
 
           {!isLast && (
-            <button type="button" className="ob-skip" onClick={handleFinish} aria-label="Skip onboarding tour">
+            <button
+              type="button"
+              className="ob-skip"
+              onClick={() => handleFinish('skipped')}
+              aria-label="Skip onboarding tour"
+            >
               Skip tour
             </button>
           )}
 
           {isLast ? (
-            <button type="button" className="ob-start" onClick={handleFinish} aria-label="Start learning">
+            <button
+              type="button"
+              className="ob-start"
+              onClick={() => handleFinish('completed')}
+              aria-label="Start learning"
+            >
               Start learning
             </button>
           ) : (
             <button
               type="button"
               className="ob-next"
-              onClick={() => setStep((value) => value + 1)}
+              onClick={() => {
+                trackEvent('onboarding_step_next', { fromStep: step + 1, toStep: step + 2 });
+                setStep((value) => value + 1);
+              }}
               aria-label={`Go to step ${step + 2}`}
             >
               Next
@@ -190,4 +220,3 @@ export function Onboarding({ isOpen, onClose, displayName }) {
     </div>
   );
 }
-

@@ -3,7 +3,7 @@
 // Sidebar + Topbar + Content + Toolbar + Panels
 // ═══════════════════════════════════════════════
 
-import { useCallback, useMemo, useEffect, useState } from "react";
+import { useCallback, useMemo, useEffect, useRef, useState } from "react";
 import { COURSES } from "../data";
 import { useTheme, useAuth, useProgressData, useXP, useCourseContent } from "../providers";
 import { useNavigation } from "../hooks/useNavigation";
@@ -13,6 +13,7 @@ import { useLearning } from "../hooks/useLearning";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { estimateReadingTime, getLevel } from "../utils/helpers";
+import { trackEvent } from "../lib/analytics";
 import {
   getCourseCompletedLessonCount,
   getLessonKeyVariants,
@@ -100,6 +101,7 @@ export function AppLayout() {
     mainRef,
     showModQuiz,
   } = nav;
+  const goNextLesson = nav.next;
 
   const { stable: stableLessonKey, legacy: legacyLessonKey } = getLessonKeyVariants(course, mod, les);
   const isDone = hasLessonCompletion(completedSet, course, mod, les);
@@ -116,6 +118,8 @@ export function AppLayout() {
     user?.email?.split("@")[0] ||
     "Builder";
   const [marking, setMarking] = useState(false);
+  const lessonViewStartRef = useRef(Date.now());
+  const trackedLessonRef = useRef('');
   const isSidebarOpen = isMobile ? panels.sidebar : true;
 
   useEffect(() => {
@@ -201,6 +205,31 @@ export function AppLayout() {
   })();
 
   useEffect(() => {
+    if (showModQuiz || !course.id || !mod.id || !les.id) return;
+    const lessonIdentity = `${course.id}|${mod.id}|${les.id}`;
+    if (trackedLessonRef.current === lessonIdentity) return;
+
+    trackedLessonRef.current = lessonIdentity;
+    lessonViewStartRef.current = Date.now();
+    trackEvent('lesson_viewed', {
+      courseId: course.id,
+      moduleId: mod.id,
+      lessonId: les.id,
+      courseIndex: nav.courseIdx,
+      moduleIndex: nav.modIdx,
+      lessonIndex: nav.lesIdx,
+    });
+  }, [
+    course.id,
+    les.id,
+    mod.id,
+    nav.courseIdx,
+    nav.lesIdx,
+    nav.modIdx,
+    showModQuiz,
+  ]);
+
+  useEffect(() => {
     if (isCourseComplete && isDone) {
       panels.triggerCourseComplete();
     }
@@ -211,16 +240,45 @@ export function AppLayout() {
     if (marking) return;
     setMarking(true);
     try {
+      const wasDone = completedSet.has(stableLessonKey) || completedSet.has(legacyLessonKey);
       const keyToToggle = completedSet.has(stableLessonKey)
         ? stableLessonKey
         : completedSet.has(legacyLessonKey)
           ? legacyLessonKey
           : stableLessonKey;
       learn.toggleLessonDone(keyToToggle);
+      trackEvent('lesson_completion_toggled', {
+        courseId: course.id,
+        moduleId: mod.id,
+        lessonId: les.id,
+        completionState: wasDone ? 'unmarked' : 'marked_complete',
+        secondsOnLesson: Math.round((Date.now() - lessonViewStartRef.current) / 1000),
+      });
     } finally {
       setMarking(false);
     }
-  }, [completedSet, legacyLessonKey, marking, stableLessonKey, learn]);
+  }, [
+    completedSet,
+    course.id,
+    legacyLessonKey,
+    les.id,
+    marking,
+    mod.id,
+    stableLessonKey,
+    learn,
+  ]);
+
+  const handleNextLesson = useCallback(() => {
+    trackEvent('lesson_next_clicked', {
+      courseId: course.id,
+      moduleId: mod.id,
+      lessonId: les.id,
+      isModuleQuiz: showModQuiz,
+      isLastLesson,
+      hasModuleQuiz: Boolean(moduleQuiz),
+    });
+    goNextLesson();
+  }, [course.id, goNextLesson, isLastLesson, les.id, mod.id, moduleQuiz, showModQuiz]);
 
   const handleOpenTool = useCallback(
     (tool) => panels.togglePanel(tool),
@@ -481,7 +539,7 @@ export function AppLayout() {
           <button
             type="button"
             className="nav-btn nx ui-btn ui-btn-primary"
-            onClick={nav.next}
+            onClick={handleNextLesson}
             disabled={isLast}
             style={{ background: course.accent }}
             aria-label={
@@ -511,7 +569,7 @@ export function AppLayout() {
       {isMobile ? (
         <LessonNavBar
           onPrev={nav.prev}
-          onNext={nav.next}
+          onNext={handleNextLesson}
           onMarkDone={handleMarkDone}
           isFirst={isFirst}
           isLast={isLast}

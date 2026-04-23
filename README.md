@@ -114,10 +114,10 @@ For a deeper technical walkthrough, see [docs/architecture.md](./docs/architectu
    - Kept AI calls server-mediated with strict payload controls and per-user limits.
 
 3. Fast initial load vs feature depth
-   - Used lazy loading and chunk strategy by domain/course to avoid overloading first paint.
-   - Monaco and admin surfaces are intentionally code-split into on-demand chunks so first-run learners do not pay editor/admin cost upfront.
-   - Poppins and Space Mono are bundled as Latin-only subsets to reduce first-load font payload while keeping branding intact for the primary audience.
-   - Added a bundle budget gate (`npm run check:bundle`) to keep eager chunks lean while allowing controlled Monaco-specific budgets.
+- Used lazy loading and chunk strategy by domain/course to avoid overloading first paint.
+- Monaco and admin surfaces are intentionally code-split into on-demand chunks so first-run learners do not pay editor/admin cost upfront.
+- Inter is self-hosted with latin + latin-ext subset declarations, and Poppins/Space Mono remain Latin-scoped, reducing first-load font payload while keeping brand hierarchy intact.
+- Added a bundle budget gate (`npm run check:bundle`) to keep eager chunks lean while allowing controlled Monaco-specific budgets.
 
 4. Incremental improvement vs full rewrite temptation
    - Preserved architecture and made focused, auditable improvements in small batches.
@@ -229,9 +229,10 @@ Additional scripts are listed in [package.json](./package.json).
 - [x] Shared component/state patterns for panel consistency
 - [x] Security-hardened AI gateway and release checks
 - [x] Accessibility semantics and focus-state improvements
+- [x] Lightweight frontend analytics for onboarding and lesson-flow bottlenecks
 - [ ] Server-rendered OG metadata for richer sharing
 - [x] Add Lighthouse CI reporting to release pipeline
-- [ ] Expand product analytics for onboarding and completion friction
+- [ ] Expand analytics pipeline to persistent dashboards
 
 ---
 
