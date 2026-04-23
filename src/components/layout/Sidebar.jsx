@@ -47,6 +47,7 @@ export const Sidebar = memo(function Sidebar({
   onOpenTool,
   activePanel,
 }) {
+  const isDesktopCollapsed = !isMobile && isCollapsed;
   const { completed = [] } = useProgressData();
   const { user } = useAuth();
   const [lockMode, setLockMode] = useLocalStorage('chw-lock-mode', false);
@@ -195,6 +196,8 @@ export const Sidebar = memo(function Sidebar({
         id="course-sidebar"
         className={`sidebar ${isOpen ? 'open' : ''} ${!isMobile && isCollapsed ? 'collapsed' : ''}`}
         aria-label="Course navigation"
+        aria-hidden={isDesktopCollapsed ? 'true' : undefined}
+        inert={isDesktopCollapsed ? '' : undefined}
       >
         {/* ─── Brand + Avatar row ─── */}
         <header className="sidebar-head">
@@ -245,8 +248,9 @@ export const Sidebar = memo(function Sidebar({
             type="button"
             className={`sidebar-tab ${activePopout === 'courses' ? 'active' : ''}`}
             onClick={() => openPopout('courses')}
-            aria-haspopup="true"
+            aria-haspopup="menu"
             aria-expanded={activePopout === 'courses'}
+            aria-controls="sidebar-tab-panel-courses"
           >
             <span className="sidebar-tab-icon" aria-hidden="true">📚</span>
             <span className="sidebar-tab-label">Courses</span>
@@ -258,8 +262,9 @@ export const Sidebar = memo(function Sidebar({
             type="button"
             className={`sidebar-tab ${activePopout === 'resources' ? 'active' : ''}`}
             onClick={() => openPopout('resources')}
-            aria-haspopup="true"
+            aria-haspopup="menu"
             aria-expanded={activePopout === 'resources'}
+            aria-controls="sidebar-tab-panel-resources"
           >
             <span className="sidebar-tab-icon" aria-hidden="true">📋</span>
             <span className="sidebar-tab-label">Resources</span>
@@ -289,6 +294,8 @@ export const Sidebar = memo(function Sidebar({
             ref={popoutRef}
             id={`sidebar-tab-panel-${activePopout}`}
             className={`sidebar-tab-flyout sidebar-tab-flyout-${activePopout} ${popoutPos.mode === 'docked' ? 'docked' : ''}`}
+            role="menu"
+            aria-labelledby={activePopout === 'courses' ? 'sidebar-tab-courses' : 'sidebar-tab-resources'}
             aria-label={activePopout === 'courses' ? 'Select course' : 'Open a learning tool'}
             style={popoutPos.mode === 'fixed' ? { top: popoutPos.top, left: popoutPos.left } : undefined}
           >
@@ -297,6 +304,7 @@ export const Sidebar = memo(function Sidebar({
                 <button
                   key={c.id}
                   type="button"
+                  role="menuitem"
                   className={`cs-option ${ci === courseIdx ? 'active' : ''}`}
                   onClick={() => {
                     onSelectCourse(ci);
@@ -324,6 +332,7 @@ export const Sidebar = memo(function Sidebar({
                 <button
                   key={t.key}
                   type="button"
+                  role="menuitem"
                   className={`sidebar-tab-opt ${activePanel === t.key ? 'active' : ''}`}
                   aria-pressed={activePanel === t.key}
                   onClick={() => {

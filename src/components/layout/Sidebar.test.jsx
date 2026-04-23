@@ -95,8 +95,17 @@ describe('Sidebar', () => {
     renderSidebar({ onOpenTool });
 
     fireEvent.click(screen.getByRole('button', { name: /resources/i }));
-    fireEvent.click(screen.getByRole('button', { name: /cheat sheets/i }));
+    fireEvent.click(screen.getByRole('menuitem', { name: /cheat sheets/i }));
 
     expect(onOpenTool).toHaveBeenCalledWith('cheatsheet');
+  });
+
+  it('marks desktop-collapsed sidebar as hidden and inert', () => {
+    renderSidebar({ isCollapsed: true, isMobile: false });
+
+    const nav = document.getElementById('course-sidebar');
+    expect(nav).not.toBeNull();
+    expect(nav).toHaveAttribute('aria-hidden', 'true');
+    expect(nav).toHaveAttribute('inert');
   });
 });

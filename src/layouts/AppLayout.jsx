@@ -345,7 +345,7 @@ export function AppLayout() {
         <a className="skip-link" href="#main-content">Skip to main content</a>
         <EmailVerifyBanner />
         <OfflineIndicator />
-        <main id="main-content" className="main-shell course-skeleton" aria-busy="true" aria-live="polite">
+        <main id="main-content" className="main-shell course-skeleton" tabIndex={-1} aria-busy="true" aria-live="polite">
           <div className="course-skeleton-inner">
             <span className="course-skeleton-emoji" aria-hidden="true">
               {activeCourseMeta?.icon || '[]'}
@@ -385,7 +385,7 @@ export function AppLayout() {
         activePanel={panels.panel}
       />
 
-      <main className="main-shell" ref={mainRef} id="main-content">
+      <main className="main-shell" ref={mainRef} id="main-content" tabIndex={-1}>
         <header className="topbar">
           <div className="topbar-inner">
             <button
