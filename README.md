@@ -7,8 +7,9 @@ Cinova is a production-minded, browser-based learning platform focused on helpin
 ## Build and CI status
 
 [![CI](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/ci-smoke.yml?branch=main&label=CI%20(check%3Aci)&logo=githubactions)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
-[![Quality](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/ci-smoke.yml?branch=main&label=Quality%20(lint%2Bbuild%2Bunit)&logo=eslint)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
-[![E2E](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/ci-smoke.yml?branch=main&label=E2E%20(Playwright)&logo=playwright)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
+[![Typecheck](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/typecheck.yml?branch=main&label=Typecheck%20(JS-only)&logo=javascript)](https://github.com/itcodegirl/education_platform/actions/workflows/typecheck.yml)
+[![E2E](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/e2e-smoke.yml?branch=main&label=E2E%20(Playwright)&logo=playwright)](https://github.com/itcodegirl/education_platform/actions/workflows/e2e-smoke.yml)
+[![Lighthouse](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/lighthouse-ci.yml?branch=main&label=Lighthouse%20budgets&logo=lighthouse)](https://github.com/itcodegirl/education_platform/actions/workflows/lighthouse-ci.yml)
 [![Policy](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/ci-smoke.yml?branch=main&label=Policy%20(RLS%2Fadmin)&logo=supabase)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
 [![Security](https://github.com/itcodegirl/education_platform/actions/workflows/security-audit.yml/badge.svg)](https://github.com/itcodegirl/education_platform/actions/workflows/security-audit.yml)
 
@@ -199,6 +200,7 @@ Pre-release checklist is documented in [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIS
 - `npm run check:ci` - `check` + Playwright integration/E2E suite
 - `npm run check:bundle` - verifies JS chunk budgets after build (stricter on eager chunks, explicit allowance for lazy Monaco chunks)
 - `npm run test:policy` - Supabase integration policy checks (RLS/admin escalation paths)
+- `npm run test:lighthouse` - Lighthouse CI assertions with score thresholds and budget gates
 
 ### CI policy test secrets (dedicated Supabase test project)
 
@@ -215,6 +217,7 @@ Notes:
 - Use a non-production Supabase project for policy tests.
 - Service key is used only in CI to seed/cleanup ephemeral test users and verify policy boundaries.
 - If secrets are absent (for example in forked PRs), the policy suite safely skips.
+- Recommended branch protection checks: `check:ci`, `deploy-preview-smoke`, `Supabase policy integration`, `typecheck`, `e2e-smoke`, `lighthouse`.
 
 Additional scripts are listed in [package.json](./package.json).
 
@@ -227,7 +230,7 @@ Additional scripts are listed in [package.json](./package.json).
 - [x] Security-hardened AI gateway and release checks
 - [x] Accessibility semantics and focus-state improvements
 - [ ] Server-rendered OG metadata for richer sharing
-- [ ] Add Lighthouse CI reporting to release pipeline
+- [x] Add Lighthouse CI reporting to release pipeline
 - [ ] Expand product analytics for onboarding and completion friction
 
 ---
