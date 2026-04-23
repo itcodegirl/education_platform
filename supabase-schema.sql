@@ -373,6 +373,91 @@ $$;
 revoke all on function public.admin_dashboard_metrics() from public;
 grant execute on function public.admin_dashboard_metrics() to authenticated;
 
+-- Pre-aggregated analytics snapshots for lightweight reporting.
+drop materialized view if exists public.analytics_daily_funnel;
+create materialized view public.analytics_daily_funnel as
+select
+  date_trunc('day', occurred_at)::date as day,
+  count(*) filter (where event_name = 'onboarding_opened')::int as onboarding_opened,
+  count(*) filter (where event_name = 'onboarding_step_next')::int as onboarding_advanced,
+  count(*) filter (where event_name = 'onboarding_closed')::int as onboarding_closed,
+  count(*) filter (where event_name = 'lesson_viewed')::int as lesson_viewed,
+  count(*) filter (
+    where event_name = 'lesson_completion_toggled'
+      and coalesce(payload->>'completionState', '') = 'marked_complete'
+  )::int as lesson_completed,
+  count(*) filter (where event_name = 'lesson_next_clicked')::int as lesson_next_clicked
+from public.analytics_events
+group by 1
+with no data;
+
+create unique index if not exists idx_analytics_daily_funnel_day
+  on public.analytics_daily_funnel(day);
+
+create or replace function public.refresh_analytics_daily_funnel(
+  p_days_back integer default 180
+) returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'Admin privileges required';
+  end if;
+
+  -- Full refresh keeps logic simple and deterministic. p_days_back is
+  -- retained so we can later move to incremental refresh without
+  -- changing the function contract used by API clients.
+  perform p_days_back;
+  refresh materialized view public.analytics_daily_funnel;
+end;
+$$;
+
+create or replace function public.get_analytics_daily_funnel(
+  p_days integer default 30
+) returns table (
+  day date,
+  onboarding_opened integer,
+  onboarding_advanced integer,
+  onboarding_closed integer,
+  lesson_viewed integer,
+  lesson_completed integer,
+  lesson_next_clicked integer
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'Admin privileges required';
+  end if;
+
+  return query
+  select
+    f.day,
+    f.onboarding_opened,
+    f.onboarding_advanced,
+    f.onboarding_closed,
+    f.lesson_viewed,
+    f.lesson_completed,
+    f.lesson_next_clicked
+  from public.analytics_daily_funnel f
+  where f.day >= current_date - (greatest(p_days, 1) - 1)
+  order by f.day desc;
+end;
+$$;
+
+revoke all on function public.refresh_analytics_daily_funnel(integer) from public;
+grant execute on function public.refresh_analytics_daily_funnel(integer) to authenticated;
+
+revoke all on function public.get_analytics_daily_funnel(integer) from public;
+grant execute on function public.get_analytics_daily_funnel(integer) to authenticated;
+
+-- Suggested production strategy: use pg_cron or a Netlify scheduled
+-- function to call refresh_analytics_daily_funnel() on a fixed cadence.
+
 -- To bootstrap the FIRST admin, run in Supabase SQL Editor (uses the
 -- postgres role, which bypasses the trigger added below):
 --   UPDATE public.profiles SET is_admin = true WHERE id = 'YOUR-USER-UUID-HERE';

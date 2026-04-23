@@ -187,4 +187,31 @@ describePolicy('supabase rls and admin escalation policies', () => {
     expect(typeof data.totalCompletions).toBe('number');
     expect(Array.isArray(data.topUsers)).toBe(true);
   });
+
+  it('blocks non-admin callers from analytics snapshot rpcs', async () => {
+    const refreshResult = await userClient.rpc('refresh_analytics_daily_funnel', {
+      p_days_back: 30,
+    });
+    expect(refreshResult.error).toBeTruthy();
+    expect(refreshResult.error.message).toMatch(/Admin privileges required/i);
+
+    const queryResult = await userClient.rpc('get_analytics_daily_funnel', {
+      p_days: 30,
+    });
+    expect(queryResult.error).toBeTruthy();
+    expect(queryResult.error.message).toMatch(/Admin privileges required/i);
+  });
+
+  it('allows admins to refresh and read analytics daily snapshots', async () => {
+    const { error: refreshError } = await adminClient.rpc('refresh_analytics_daily_funnel', {
+      p_days_back: 30,
+    });
+    expect(refreshError).toBeNull();
+
+    const { data, error } = await adminClient.rpc('get_analytics_daily_funnel', {
+      p_days: 30,
+    });
+    expect(error).toBeNull();
+    expect(Array.isArray(data)).toBe(true);
+  });
 });
