@@ -6,9 +6,17 @@ const { mockUseSR, mockUseLocalStorage } = vi.hoisted(() => ({
   mockUseSR: vi.fn(),
   mockUseLocalStorage: vi.fn(),
 }));
+const { mockBookmarkSubmit } = vi.hoisted(() => ({
+  mockBookmarkSubmit: vi.fn(),
+}));
 
 vi.mock('../../providers', () => ({
   useSR: () => mockUseSR(),
+}));
+
+vi.mock('react-router-dom', () => ({
+  useFetcher: () => ({ submit: mockBookmarkSubmit }),
+  useLocation: () => ({ pathname: '/learn/html/basics/l-what' }),
 }));
 
 vi.mock('../../hooks/useLocalStorage', () => ({
@@ -54,6 +62,7 @@ const baseProps = {
 
 describe('LessonView', () => {
   beforeEach(() => {
+    mockBookmarkSubmit.mockReset();
     mockUseSR.mockReturnValue({
       toggleBookmark: vi.fn(),
       isBookmarked: () => false,
@@ -103,6 +112,21 @@ describe('LessonView', () => {
     expect(screen.getByTestId('notes')).toHaveTextContent('notes:HTML|Foundations|Lesson One');
 
     fireEvent.click(screen.getByRole('button', { name: /toggle bookmark/i }));
-    expect(toggleBookmark).toHaveBeenCalledWith('HTML|Foundations|Lesson One', 'html', 'Lesson One');
+    expect(toggleBookmark).toHaveBeenCalledWith(
+      'HTML|Foundations|Lesson One',
+      'html',
+      'Lesson One',
+      { skipRemote: true },
+    );
+    expect(mockBookmarkSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        intent: 'toggle-bookmark',
+        mode: 'save',
+      }),
+      expect.objectContaining({
+        method: 'post',
+        action: '/learn/html/basics/l-what',
+      }),
+    );
   });
 });

@@ -4,6 +4,7 @@
 // ═══════════════════════════════════════════════
 
 import { useCallback, useMemo, useEffect, useRef, useState } from "react";
+import { useFetcher } from "react-router-dom";
 import { COURSES } from "../data";
 import { useTheme, useAuth, useProgressData, useXP, useCourseContent } from "../providers";
 import { useNavigation } from "../hooks/useNavigation";
@@ -56,6 +57,7 @@ export function AppLayout() {
   const { xpTotal = 0, streak = 0, dailyCount = 0 } = useXP();
 
   const nav = useNavigation();
+  const progressMutation = useFetcher();
   const panels = usePanels({ dataLoaded, user: true, lastPosition });
   const learn = useLearning();
   const isMobile = useIsMobile(901);
@@ -196,6 +198,9 @@ export function AppLayout() {
   const lessonPosition = showModQuiz
     ? `Module quiz for ${mod.title}`
     : `Lesson ${nav.lesIdx + 1} of ${mod.lessons.length}`;
+  const mutationActionPath = `/learn/${encodeURIComponent(course.id)}/${encodeURIComponent(
+    mod.id,
+  )}/${encodeURIComponent(showModQuiz ? 'quiz' : les.id)}`;
 
   const nextStepHint = (() => {
     if (isLast) return "Track complete. Pick another course or review key lessons.";
@@ -246,7 +251,19 @@ export function AppLayout() {
         : completedSet.has(legacyLessonKey)
           ? legacyLessonKey
           : stableLessonKey;
-      learn.toggleLessonDone(keyToToggle);
+      const nextMode = wasDone ? 'uncomplete' : 'complete';
+      learn.toggleLessonDone(keyToToggle, { skipRemote: true });
+      progressMutation.submit(
+        {
+          intent: 'toggle-progress',
+          mode: nextMode,
+          lessonKey: keyToToggle,
+        },
+        {
+          method: 'post',
+          action: mutationActionPath,
+        },
+      );
       trackEvent('lesson_completion_toggled', {
         courseId: course.id,
         moduleId: mod.id,
@@ -264,6 +281,8 @@ export function AppLayout() {
     les.id,
     marking,
     mod.id,
+    mutationActionPath,
+    progressMutation,
     stableLessonKey,
     learn,
   ]);

@@ -6,10 +6,18 @@ const { mockUseSR, mockUseCourseContent } = vi.hoisted(() => ({
   mockUseSR: vi.fn(),
   mockUseCourseContent: vi.fn(),
 }));
+const { mockBookmarkSubmit } = vi.hoisted(() => ({
+  mockBookmarkSubmit: vi.fn(),
+}));
 
 vi.mock('../../providers', () => ({
   useSR: () => mockUseSR(),
   useCourseContent: () => mockUseCourseContent(),
+}));
+
+vi.mock('react-router-dom', () => ({
+  useFetcher: () => ({ submit: mockBookmarkSubmit }),
+  useLocation: () => ({ pathname: '/learn/html/basics/l-what' }),
 }));
 
 vi.mock('../../hooks/useFocusTrap', () => ({
@@ -28,6 +36,7 @@ describe('BookmarksPanel', () => {
   }];
 
   beforeEach(() => {
+    mockBookmarkSubmit.mockReset();
     mockUseSR.mockReturnValue({
       bookmarks: [],
       toggleBookmark: vi.fn(),
@@ -77,5 +86,43 @@ describe('BookmarksPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: /open what is html/i }));
     expect(onNavigate).toHaveBeenCalledWith(0, 0, 0);
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('removes bookmark through route action mutation', () => {
+    const toggleBookmark = vi.fn();
+    mockUseSR.mockReturnValue({
+      bookmarks: [{
+        lesson_key: 'c:html|m:basics|l:l-what',
+        course_id: 'html',
+        lesson_title: 'What is HTML?',
+      }],
+      toggleBookmark,
+    });
+
+    render(
+      <BookmarksPanel
+        isOpen
+        onClose={vi.fn()}
+        onNavigate={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /remove bookmark for what is html/i }));
+    expect(toggleBookmark).toHaveBeenCalledWith(
+      'c:html|m:basics|l:l-what',
+      'html',
+      'What is HTML?',
+      { skipRemote: true },
+    );
+    expect(mockBookmarkSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        intent: 'toggle-bookmark',
+        mode: 'remove',
+      }),
+      expect.objectContaining({
+        method: 'post',
+        action: '/learn/html/basics/l-what',
+      }),
+    );
   });
 });

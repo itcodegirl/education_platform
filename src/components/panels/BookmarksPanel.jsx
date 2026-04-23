@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useFetcher, useLocation } from 'react-router-dom';
 import { useSR, useCourseContent } from '../../providers';
 import { COURSES } from '../../data';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
@@ -33,6 +34,8 @@ function findBookmarkTarget(bookmark, courses) {
 
 export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
   const { bookmarks, toggleBookmark } = useSR();
+  const bookmarkMutation = useFetcher();
+  const location = useLocation();
   const modalRef = useRef(null);
   useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
   // Bookmarks can point to any course. Trigger a full load so that
@@ -50,6 +53,23 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
     if (!target) return;
     onNavigate(target.courseIndex, target.moduleIndex, target.lessonIndex);
     onClose();
+  };
+
+  const handleRemoveBookmark = (bookmark) => {
+    toggleBookmark(bookmark.lesson_key, bookmark.course_id, bookmark.lesson_title, { skipRemote: true });
+    bookmarkMutation.submit(
+      {
+        intent: 'toggle-bookmark',
+        mode: 'remove',
+        lessonKey: bookmark.lesson_key,
+        courseId: bookmark.course_id,
+        lessonTitle: bookmark.lesson_title,
+      },
+      {
+        method: 'post',
+        action: location.pathname,
+      },
+    );
   };
 
   return (
@@ -117,7 +137,7 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
                   <button
                     type="button"
                     className="bk-remove"
-                    onClick={() => toggleBookmark(bookmark.lesson_key, bookmark.course_id, bookmark.lesson_title)}
+                    onClick={() => handleRemoveBookmark(bookmark)}
                     title="Remove bookmark"
                     aria-label={`Remove bookmark for ${bookmark.lesson_title}`}
                   >

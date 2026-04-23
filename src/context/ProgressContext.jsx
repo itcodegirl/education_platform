@@ -290,16 +290,21 @@ export function ProgressProvider({ children }) {
   // ─── Progress ─────────────────────────────────
   const completedSet = useMemo(() => new Set(completed), [completed]);
 
-  const toggleLesson = useCallback(async (lessonKey) => {
+  const toggleLesson = useCallback(async (lessonKey, options = {}) => {
     if (!user) return;
+    const skipRemote = Boolean(options?.skipRemote);
     const has = completedSet.has(lessonKey);
 
     if (has) {
       setCompleted(prev => prev.filter(k => k !== lessonKey));
-      dbWrite(progressService.removeLesson(user.id, lessonKey), 'removeLesson');
+      if (!skipRemote) {
+        dbWrite(progressService.removeLesson(user.id, lessonKey), 'removeLesson');
+      }
     } else {
       setCompleted(prev => [...prev, lessonKey]);
-      dbWrite(progressService.addLesson(user.id, lessonKey), 'addLesson');
+      if (!skipRemote) {
+        dbWrite(progressService.addLesson(user.id, lessonKey), 'addLesson');
+      }
     }
   }, [user, completedSet, dbWrite]);
 
@@ -459,8 +464,9 @@ export function ProgressProvider({ children }) {
   }, [srCards]);
 
   // ─── Bookmarks (NEW) ─────────────────────────
-  const toggleBookmark = useCallback(async (lessonKey, courseId, lessonTitle) => {
+  const toggleBookmark = useCallback(async (lessonKey, courseId, lessonTitle, options = {}) => {
     if (!user) return;
+    const skipRemote = Boolean(options?.skipRemote);
     const normalizedLessonKey = normalizeLessonKey(lessonKey);
     const existing = bookmarks.find((bookmark) =>
       lessonKeysEquivalent(bookmark.lesson_key, normalizedLessonKey, COURSES),
@@ -470,10 +476,12 @@ export function ProgressProvider({ children }) {
       setBookmarks((prev) => prev.filter((bookmark) =>
         !lessonKeysEquivalent(bookmark.lesson_key, normalizedLessonKey, COURSES),
       ));
-      const removalKeys = new Set([existing.lesson_key, normalizedLessonKey]);
-      removalKeys.forEach((key) => {
-        dbWrite(progressService.removeBookmark(user.id, key), 'removeBookmark');
-      });
+      if (!skipRemote) {
+        const removalKeys = new Set([existing.lesson_key, normalizedLessonKey]);
+        removalKeys.forEach((key) => {
+          dbWrite(progressService.removeBookmark(user.id, key), 'removeBookmark');
+        });
+      }
     } else {
       const newBookmark = {
         lesson_key: normalizedLessonKey,
@@ -482,11 +490,13 @@ export function ProgressProvider({ children }) {
         created_at: new Date().toISOString(),
       };
       setBookmarks(prev => [...prev, newBookmark]);
-      dbWrite(progressService.addBookmark(user.id, {
-        lessonKey: normalizedLessonKey,
-        courseId,
-        lessonTitle,
-      }), 'addBookmark');
+      if (!skipRemote) {
+        dbWrite(progressService.addBookmark(user.id, {
+          lessonKey: normalizedLessonKey,
+          courseId,
+          lessonTitle,
+        }), 'addBookmark');
+      }
     }
   }, [user, bookmarks, dbWrite]);
 

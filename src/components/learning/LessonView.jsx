@@ -16,6 +16,7 @@
 // ═══════════════════════════════════════════════
 
 import { useState, useEffect, memo } from 'react';
+import { useFetcher, useLocation } from 'react-router-dom';
 import { useSR } from '../../providers';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { AITutor } from './AITutor';
@@ -34,6 +35,8 @@ export const LessonView = memo(function LessonView({
   moduleTitle,
 }) {
   const { toggleBookmark, isBookmarked } = useSR();
+  const bookmarkMutation = useFetcher();
+  const location = useLocation();
   const [showNotes, setShowNotes] = useState(false);
   const [showDevFession, setShowDevFession] = useState(false);
 
@@ -87,6 +90,24 @@ export const LessonView = memo(function LessonView({
     });
   };
 
+  const handleToggleBookmark = () => {
+    const nextMode = bookmarked ? 'remove' : 'save';
+    toggleBookmark(lessonKey, courseId, lesson.title, { skipRemote: true });
+    bookmarkMutation.submit(
+      {
+        intent: 'toggle-bookmark',
+        mode: nextMode,
+        lessonKey,
+        courseId,
+        lessonTitle: lesson.title,
+      },
+      {
+        method: 'post',
+        action: location.pathname,
+      },
+    );
+  };
+
   return (
     <div className="lesson-surface">
       <LessonHeader
@@ -100,7 +121,7 @@ export const LessonView = memo(function LessonView({
         scaffolding={scaffolding}
         bookmarked={bookmarked}
         showNotes={showNotes}
-        onToggleBookmark={() => toggleBookmark(lessonKey, courseId, lesson.title)}
+        onToggleBookmark={handleToggleBookmark}
         onToggleNotes={() => setShowNotes((value) => !value)}
       />
 

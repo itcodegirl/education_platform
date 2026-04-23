@@ -29,7 +29,7 @@ describe('createLearningEngine → completeLesson', () => {
     engine.completeLesson('html|intro|first');
 
     expect(deps.toggleLesson).toHaveBeenCalledTimes(1);
-    expect(deps.toggleLesson).toHaveBeenCalledWith('html|intro|first');
+    expect(deps.toggleLesson).toHaveBeenCalledWith('html|intro|first', {});
     expect(deps.awardXP).toHaveBeenCalledTimes(1);
     expect(deps.awardXP).toHaveBeenCalledWith(25, 'Lesson completed'); // XP_VALUES.lesson
     expect(deps.recordDailyActivity).toHaveBeenCalledTimes(1);
@@ -57,7 +57,7 @@ describe('createLearningEngine → uncompleteLesson', () => {
     engine.uncompleteLesson('a|b|c');
 
     expect(deps.toggleLesson).toHaveBeenCalledTimes(1);
-    expect(deps.toggleLesson).toHaveBeenCalledWith('a|b|c');
+    expect(deps.toggleLesson).toHaveBeenCalledWith('a|b|c', {});
   });
 
   it('is a no-op when the lesson was never done', () => {
@@ -89,6 +89,15 @@ describe('createLearningEngine → toggleLessonDone', () => {
 
     expect(deps.toggleLesson).toHaveBeenCalled();
     expect(deps.awardXP).not.toHaveBeenCalled();
+  });
+
+  it('forwards mutation options to lesson toggles', () => {
+    const deps = buildDeps();
+    const engine = createLearningEngine(deps);
+
+    engine.toggleLessonDone('x|y|z', { skipRemote: true });
+
+    expect(deps.toggleLesson).toHaveBeenCalledWith('x|y|z', { skipRemote: true });
   });
 });
 

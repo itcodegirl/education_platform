@@ -14,9 +14,9 @@ export function createLearningEngine({
   completedSet,
 }) {
   // ─── Lesson completion ────────────────────
-  function completeLesson(lessonKey) {
+  function completeLesson(lessonKey, options = {}) {
     const alreadyDone = completedSet.has(lessonKey);
-    toggleLesson(lessonKey);
+    toggleLesson(lessonKey, options);
 
     if (!alreadyDone) {
       awardXP(XP_VALUES.lesson, 'Lesson completed');
@@ -25,18 +25,18 @@ export function createLearningEngine({
   }
 
   // ─── Undo lesson completion ───────────────
-  function uncompleteLesson(lessonKey) {
+  function uncompleteLesson(lessonKey, options = {}) {
     if (completedSet.has(lessonKey)) {
-      toggleLesson(lessonKey);
+      toggleLesson(lessonKey, options);
     }
   }
 
   // ─── Toggle (mark/unmark) ─────────────────
-  function toggleLessonDone(lessonKey) {
+  function toggleLessonDone(lessonKey, options = {}) {
     if (completedSet.has(lessonKey)) {
-      uncompleteLesson(lessonKey);
+      uncompleteLesson(lessonKey, options);
     } else {
-      completeLesson(lessonKey);
+      completeLesson(lessonKey, options);
     }
   }
 
