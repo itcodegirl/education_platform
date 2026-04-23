@@ -99,10 +99,6 @@ export function AdminUsersTab({ data, currentUserId, setData, usersPagination, u
           </thead>
           <tbody>
             {data.users.map((u) => {
-              const userProgress = data.progress.filter((p) => p.user_id === u.id).length;
-              const userXP = data.xp.find((x) => x.user_id === u.id)?.total || 0;
-              const userStreak = data.streaks.find((s) => s.user_id === u.id)?.days || 0;
-              const userBadges = data.badges.filter((b) => b.user_id === u.id).length;
               const isDisabled = !!u.is_disabled;
               const isSelf = u.id === currentUserId;
 
@@ -120,10 +116,10 @@ export function AdminUsersTab({ data, currentUserId, setData, usersPagination, u
                   <td className="admin-date">
                     {new Date(u.created_at).toLocaleDateString()}
                   </td>
-                  <td>{userProgress}</td>
-                  <td className="admin-xp">{userXP.toLocaleString()}</td>
-                  <td>{userStreak} days</td>
-                  <td>{userBadges}</td>
+                  <td>{u.lessons_done || 0}</td>
+                  <td className="admin-xp">{(u.xp_total || 0).toLocaleString()}</td>
+                  <td>{u.streak_days || 0} days</td>
+                  <td>{u.badges_earned || 0}</td>
                   <td>
                     {isSelf ? (
                       <span className="admin-action-disabled">You</span>
@@ -131,7 +127,7 @@ export function AdminUsersTab({ data, currentUserId, setData, usersPagination, u
                       <button
                         type="button"
                         className={`admin-toggle-btn ${isDisabled ? 'enable' : 'disable'}`}
-                        aria-label={`${isDisabled ? 'Enable' : 'Disable'} user ${u.display_name || u.email || 'this user'}`}
+                        aria-label={`${isDisabled ? 'Enable' : 'Disable'} user ${u.display_name || 'this user'}`}
                         disabled={actionLoading === u.id}
                         onClick={() => handleToggleDisabled(u)}
                       >

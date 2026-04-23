@@ -86,16 +86,6 @@ function computeCourseStats(courses, progress) {
   });
 }
 
-function computeTopUsers(xp, users) {
-  return [...xp]
-    .sort((a, b) => (b.total || 0) - (a.total || 0))
-    .slice(0, 10)
-    .map((x) => {
-      const profile = users.find((u) => u.id === x.user_id);
-      return { ...x, name: profile?.display_name || 'Anonymous' };
-    });
-}
-
 export function AdminDashboard({ onClose }) {
   const { user } = useAuth();
   const {
@@ -103,6 +93,7 @@ export function AdminDashboard({ onClose }) {
     checking,
     data,
     setData,
+    dashboardMetrics,
     loading,
     loadError,
     usersCounts,
@@ -118,25 +109,21 @@ export function AdminDashboard({ onClose }) {
   // â”€â”€â”€ Derived stats â”€â”€â”€ memoized so tab switches don't recompute
   const stats = useMemo(() => {
     if (loading || !isAdmin) return null;
-    const now = new Date();
-    const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
     return {
       totalUsers: usersCounts.total,
       newUsersWeek: usersCounts.newWeek,
       newUsersMonth: usersCounts.newMonth,
-      totalCompletions: analyticsMeta.progressTotalRows || data.progress.length,
-      activeUsers: new Set(
-        data.progress
-          .filter((p) => new Date(p.completed_at) > weekAgo)
-          .map((p) => p.user_id),
-      ).size,
-      totalQuizAttempts: analyticsMeta.quizTotalRows || data.quizScores.length,
-      totalBadges: data.badges.length,
-      totalXP: data.xp.reduce((s, x) => s + (x.total || 0), 0),
+      totalCompletions: dashboardMetrics.totalCompletions || data.progress.length,
+      activeUsers: dashboardMetrics.activeUsersWeek,
+      totalQuizAttempts: dashboardMetrics.totalQuizAttempts || data.quizScores.length,
+      totalBadges: dashboardMetrics.totalBadges,
+      totalXP: dashboardMetrics.totalXP,
       courseStats: computeCourseStats(COURSES, data.progress),
-      topUsers: computeTopUsers(data.xp, data.users),
+      topUsers: dashboardMetrics.topUsers,
+      funnel7d: dashboardMetrics.funnel7d,
+      funnel30d: dashboardMetrics.funnel30d,
     };
-  }, [analyticsMeta.progressTotalRows, analyticsMeta.quizTotalRows, data, loading, isAdmin, usersCounts]);
+  }, [dashboardMetrics, data, loading, isAdmin, usersCounts]);
 
   // â”€â”€â”€ Early-return states â”€â”€â”€
   if (checking) {

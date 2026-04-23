@@ -169,5 +169,22 @@ describePolicy('supabase rls and admin escalation policies', () => {
     expect(auditError).toBeNull();
     expect(auditRow).toBeTruthy();
   });
-});
 
+  it('blocks non-admin callers from admin_dashboard_metrics rpc', async () => {
+    const { data, error } = await userClient.rpc('admin_dashboard_metrics');
+
+    expect(data).toBeNull();
+    expect(error).toBeTruthy();
+    expect(error.message).toMatch(/Admin privileges required/i);
+  });
+
+  it('allows admins to read dashboard metrics through rpc', async () => {
+    const { data, error } = await adminClient.rpc('admin_dashboard_metrics');
+
+    expect(error).toBeNull();
+    expect(data).toBeTruthy();
+    expect(typeof data.totalUsers).toBe('number');
+    expect(typeof data.totalCompletions).toBe('number');
+    expect(Array.isArray(data.topUsers)).toBe(true);
+  });
+});

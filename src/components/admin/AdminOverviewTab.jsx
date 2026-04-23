@@ -6,6 +6,15 @@
 
 import { AdminStatCard } from './AdminStatCard';
 
+const FUNNEL_ROWS = [
+  { id: 'onboardingOpened', label: 'Onboarding opened' },
+  { id: 'onboardingAdvanced', label: 'Onboarding advanced' },
+  { id: 'onboardingClosed', label: 'Onboarding closed' },
+  { id: 'lessonViewed', label: 'Lessons viewed' },
+  { id: 'lessonCompleted', label: 'Lessons completed' },
+  { id: 'lessonNextClicked', label: 'Next lesson clicks' },
+];
+
 export function AdminOverviewTab({
   totalUsers,
   newUsersWeek,
@@ -17,6 +26,8 @@ export function AdminOverviewTab({
   totalXP,
   courseStats,
   topUsers,
+  funnel7d,
+  funnel30d,
 }) {
   return (
     <>
@@ -64,6 +75,30 @@ export function AdminOverviewTab({
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      <div className="admin-section">
+        <h3 className="admin-section-title">🔎 Product Funnel (7d vs 30d)</h3>
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Stage</th>
+                <th>Last 7 days</th>
+                <th>Last 30 days</th>
+              </tr>
+            </thead>
+            <tbody>
+              {FUNNEL_ROWS.map((row) => (
+                <tr key={row.id}>
+                  <td>{row.label}</td>
+                  <td className="admin-stat-val">{(funnel7d?.[row.id] || 0).toLocaleString()}</td>
+                  <td className="admin-stat-val">{(funnel30d?.[row.id] || 0).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 

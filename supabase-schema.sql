@@ -227,6 +227,152 @@ create policy "Admins read all xp" on public.xp for select using (is_admin());
 create policy "Admins read all streaks" on public.streaks for select using (is_admin());
 create policy "Admins read all badges" on public.badges for select using (is_admin());
 
+-- Admin user table with pre-aggregated user stats.
+create or replace view public.admin_user_rollups as
+select
+  p.id,
+  p.display_name,
+  p.is_admin,
+  p.is_disabled,
+  p.created_at,
+  coalesce(progress_counts.lessons_done, 0)::int as lessons_done,
+  coalesce(x.total, 0)::int as xp_total,
+  coalesce(s.days, 0)::int as streak_days,
+  coalesce(badge_counts.badges_earned, 0)::int as badges_earned
+from public.profiles p
+left join (
+  select user_id, count(*)::int as lessons_done
+  from public.progress
+  group by user_id
+) progress_counts on progress_counts.user_id = p.id
+left join public.xp x on x.user_id = p.id
+left join public.streaks s on s.user_id = p.id
+left join (
+  select user_id, count(*)::int as badges_earned
+  from public.badges
+  group by user_id
+) badge_counts on badge_counts.user_id = p.id;
+
+grant select on public.admin_user_rollups to authenticated;
+
+create or replace function public.admin_dashboard_metrics()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_payload jsonb;
+begin
+  if not public.is_admin() then
+    raise exception 'Admin privileges required';
+  end if;
+
+  with
+  users_total as (
+    select count(*)::int as value from public.profiles
+  ),
+  users_week as (
+    select count(*)::int as value
+    from public.profiles
+    where created_at >= now() - interval '7 days'
+  ),
+  users_month as (
+    select count(*)::int as value
+    from public.profiles
+    where created_at >= now() - interval '30 days'
+  ),
+  active_week as (
+    select count(distinct user_id)::int as value
+    from public.progress
+    where completed_at >= now() - interval '7 days'
+  ),
+  completions as (
+    select count(*)::int as value from public.progress
+  ),
+  quiz_attempts as (
+    select count(*)::int as value from public.quiz_scores
+  ),
+  badges_total as (
+    select count(*)::int as value from public.badges
+  ),
+  xp_total as (
+    select coalesce(sum(total), 0)::bigint as value from public.xp
+  ),
+  top_users as (
+    select coalesce(
+      jsonb_agg(
+        jsonb_build_object(
+          'user_id', top.user_id,
+          'total', top.total,
+          'name', coalesce(p.display_name, 'Anonymous')
+        )
+        order by top.total desc
+      ),
+      '[]'::jsonb
+    ) as value
+    from (
+      select user_id, total
+      from public.xp
+      order by total desc
+      limit 10
+    ) top
+    left join public.profiles p on p.id = top.user_id
+  ),
+  funnel_7d as (
+    select jsonb_build_object(
+      'onboardingOpened', count(*) filter (where event_name = 'onboarding_opened'),
+      'onboardingAdvanced', count(*) filter (where event_name = 'onboarding_step_next'),
+      'onboardingClosed', count(*) filter (where event_name = 'onboarding_closed'),
+      'lessonViewed', count(*) filter (where event_name = 'lesson_viewed'),
+      'lessonCompleted', count(*) filter (
+        where event_name = 'lesson_completion_toggled'
+          and coalesce(payload->>'completionState', '') = 'marked_complete'
+      ),
+      'lessonNextClicked', count(*) filter (where event_name = 'lesson_next_clicked')
+    ) as value
+    from public.analytics_events
+    where occurred_at >= now() - interval '7 days'
+  ),
+  funnel_30d as (
+    select jsonb_build_object(
+      'onboardingOpened', count(*) filter (where event_name = 'onboarding_opened'),
+      'onboardingAdvanced', count(*) filter (where event_name = 'onboarding_step_next'),
+      'onboardingClosed', count(*) filter (where event_name = 'onboarding_closed'),
+      'lessonViewed', count(*) filter (where event_name = 'lesson_viewed'),
+      'lessonCompleted', count(*) filter (
+        where event_name = 'lesson_completion_toggled'
+          and coalesce(payload->>'completionState', '') = 'marked_complete'
+      ),
+      'lessonNextClicked', count(*) filter (where event_name = 'lesson_next_clicked')
+    ) as value
+    from public.analytics_events
+    where occurred_at >= now() - interval '30 days'
+  )
+  select jsonb_build_object(
+    'totalUsers', users_total.value,
+    'newUsersWeek', users_week.value,
+    'newUsersMonth', users_month.value,
+    'activeUsersWeek', active_week.value,
+    'totalCompletions', completions.value,
+    'totalQuizAttempts', quiz_attempts.value,
+    'totalBadges', badges_total.value,
+    'totalXP', xp_total.value,
+    'topUsers', top_users.value,
+    'funnel7d', funnel_7d.value,
+    'funnel30d', funnel_30d.value
+  )
+  into v_payload
+  from users_total, users_week, users_month, active_week, completions,
+       quiz_attempts, badges_total, xp_total, top_users, funnel_7d, funnel_30d;
+
+  return v_payload;
+end;
+$$;
+
+revoke all on function public.admin_dashboard_metrics() from public;
+grant execute on function public.admin_dashboard_metrics() to authenticated;
+
 -- To bootstrap the FIRST admin, run in Supabase SQL Editor (uses the
 -- postgres role, which bypasses the trigger added below):
 --   UPDATE public.profiles SET is_admin = true WHERE id = 'YOUR-USER-UUID-HERE';
