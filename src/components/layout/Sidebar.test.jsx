@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Sidebar } from './Sidebar';
 
 const { mockUseProgressData, mockUseAuth, mockUseLocalStorage } = vi.hoisted(() => ({
@@ -107,5 +107,29 @@ describe('Sidebar', () => {
     expect(nav).not.toBeNull();
     expect(nav).toHaveAttribute('aria-hidden', 'true');
     expect(nav).toHaveAttribute('inert');
+  });
+
+  it('supports keyboard navigation for menu-style resources popout', async () => {
+    renderSidebar();
+    const resourcesTab = screen.getByRole('button', { name: /resources/i });
+
+    resourcesTab.focus();
+    fireEvent.keyDown(resourcesTab, { key: 'ArrowDown' });
+
+    const menu = await screen.findByRole('menu');
+    const firstItem = await screen.findByRole('menuitem', { name: /open cheat sheets panel/i });
+    const lastItem = await screen.findByRole('menuitem', { name: /open badges panel/i });
+
+    await waitFor(() => expect(firstItem).toHaveFocus());
+
+    fireEvent.keyDown(menu, { key: 'End' });
+    await waitFor(() => expect(lastItem).toHaveFocus());
+
+    fireEvent.keyDown(menu, { key: 'Home' });
+    await waitFor(() => expect(firstItem).toHaveFocus());
+
+    fireEvent.keyDown(menu, { key: 'Escape' });
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    await waitFor(() => expect(resourcesTab).toHaveFocus());
   });
 });

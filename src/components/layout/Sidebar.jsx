@@ -12,6 +12,8 @@ import { ProfilePopover } from './ProfilePopover';
 import { Logo } from '../shared/Logo';
 import { getCourseCompletedLessonCount, hasLessonCompletion } from '../../utils/lessonKeys';
 
+const POPUP_MENU_ITEM_SELECTOR = '[role="menuitem"]';
+
 function isLessonUnlocked(course, modules, mi, li, completedSet) {
   if (mi === 0 && li === 0) return true;
 
@@ -64,6 +66,8 @@ export const Sidebar = memo(function Sidebar({
   const tabsRef = useRef(null);
   const popoutRef = useRef(null);
   const asideRef = useRef(null);
+  const coursesTabRef = useRef(null);
+  const resourcesTabRef = useRef(null);
   const course = courses[courseIdx];
   const modules = course.modules;
   const completedSet = useMemo(() => new Set(completed), [completed]);
@@ -104,16 +108,170 @@ export const Sidebar = memo(function Sidebar({
       : { mode: 'fixed', top: rect.bottom + PADDING, left: belowLeft };
   }, [isMobile]);
 
+  const getPopoutItems = useCallback(() => {
+    if (!popoutRef.current) return [];
+    return Array.from(popoutRef.current.querySelectorAll(POPUP_MENU_ITEM_SELECTOR));
+  }, []);
+
+  const focusPopoutItem = useCallback((target = 'first') => {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const items = getPopoutItems();
+        if (!items.length) return;
+        const nextIndex = target === 'last' ? items.length - 1 : 0;
+        items[nextIndex].focus();
+      });
+    });
+  }, [getPopoutItems]);
+
+  const closePopout = useCallback((restoreFocus = false, source = activePopout) => {
+    setActivePopout(null);
+    setPopoutPos(null);
+
+    if (!restoreFocus || !source) return;
+
+    window.requestAnimationFrame(() => {
+      if (source === 'courses') {
+        coursesTabRef.current?.focus();
+        return;
+      }
+      resourcesTabRef.current?.focus();
+    });
+  }, [activePopout]);
+
   const openPopout = useCallback(
-    (which) => {
+    (which, focusTarget = null) => {
       setActivePopout((prev) => {
         const next = prev === which ? null : which;
         setPopoutPos(next ? computePopoutPos() : null);
+        if (next && focusTarget) {
+          focusPopoutItem(focusTarget);
+        }
         return next;
       });
     },
-    [computePopoutPos],
+    [computePopoutPos, focusPopoutItem],
   );
+
+  const focusPopoutByOffset = useCallback((offset) => {
+    const items = getPopoutItems();
+    if (!items.length) return;
+    const activeElementIndex = items.findIndex((item) => item === document.activeElement);
+    const startIndex = activeElementIndex < 0 ? 0 : activeElementIndex;
+    const nextIndex = (startIndex + offset + items.length) % items.length;
+    items[nextIndex].focus();
+  }, [getPopoutItems]);
+
+  const handleTabKeyDown = useCallback((which) => (event) => {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (activePopout === which) {
+        focusPopoutByOffset(1);
+      } else {
+        openPopout(which, 'first');
+      }
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (activePopout === which) {
+        focusPopoutByOffset(-1);
+      } else {
+        openPopout(which, 'last');
+      }
+      return;
+    }
+
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      if (activePopout === which) {
+        closePopout(true, which);
+      } else {
+        openPopout(which, 'first');
+      }
+      return;
+    }
+
+    if (event.key === 'Escape' && activePopout === which) {
+      event.preventDefault();
+      closePopout(true, which);
+    }
+  }, [activePopout, closePopout, focusPopoutByOffset, openPopout]);
+
+  const handlePopoutKeyDown = useCallback((event) => {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      focusPopoutByOffset(1);
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      focusPopoutByOffset(-1);
+      return;
+    }
+
+    if (event.key === 'Home') {
+      event.preventDefault();
+      focusPopoutItem('first');
+      return;
+    }
+
+    if (event.key === 'End') {
+      event.preventDefault();
+      focusPopoutItem('last');
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closePopout(true);
+      return;
+    }
+
+    if (event.key === 'Tab') {
+      closePopout(false);
+    }
+  }, [closePopout, focusPopoutByOffset, focusPopoutItem]);
+
+  useEffect(() => {
+    if (!isDesktopCollapsed || !activePopout) return;
+    closePopout(false);
+  }, [activePopout, closePopout, isDesktopCollapsed]);
+
+  useEffect(() => {
+    const navElement = document.getElementById('course-sidebar');
+    if (!navElement) return undefined;
+
+    const focusableElements = Array.from(
+      navElement.querySelectorAll('a[href], button, input, select, textarea, [tabindex]'),
+    );
+
+    if (isDesktopCollapsed) {
+      focusableElements.forEach((element) => {
+        if (!element.hasAttribute('data-prev-tabindex')) {
+          const previousTabIndex = element.getAttribute('tabindex');
+          element.setAttribute('data-prev-tabindex', previousTabIndex ?? '__none__');
+        }
+        element.setAttribute('tabindex', '-1');
+      });
+      return undefined;
+    }
+
+    focusableElements.forEach((element) => {
+      const previousTabIndex = element.getAttribute('data-prev-tabindex');
+      if (previousTabIndex === null) return;
+      if (previousTabIndex === '__none__') {
+        element.removeAttribute('tabindex');
+      } else {
+        element.setAttribute('tabindex', previousTabIndex);
+      }
+      element.removeAttribute('data-prev-tabindex');
+    });
+
+    return undefined;
+  }, [isDesktopCollapsed]);
 
   // While a popout is active, close it on click-outside or Escape,
   // and REPOSITION (not close) it on window resize so users who
@@ -245,9 +403,11 @@ export const Sidebar = memo(function Sidebar({
         <div className="sidebar-tabs" ref={tabsRef} aria-label="Sidebar navigation">
           <button
             id="sidebar-tab-courses"
+            ref={coursesTabRef}
             type="button"
             className={`sidebar-tab ${activePopout === 'courses' ? 'active' : ''}`}
             onClick={() => openPopout('courses')}
+            onKeyDown={handleTabKeyDown('courses')}
             aria-haspopup="menu"
             aria-expanded={activePopout === 'courses'}
             aria-controls="sidebar-tab-panel-courses"
@@ -259,9 +419,11 @@ export const Sidebar = memo(function Sidebar({
 
           <button
             id="sidebar-tab-resources"
+            ref={resourcesTabRef}
             type="button"
             className={`sidebar-tab ${activePopout === 'resources' ? 'active' : ''}`}
             onClick={() => openPopout('resources')}
+            onKeyDown={handleTabKeyDown('resources')}
             aria-haspopup="menu"
             aria-expanded={activePopout === 'resources'}
             aria-controls="sidebar-tab-panel-resources"
@@ -295,8 +457,10 @@ export const Sidebar = memo(function Sidebar({
             id={`sidebar-tab-panel-${activePopout}`}
             className={`sidebar-tab-flyout sidebar-tab-flyout-${activePopout} ${popoutPos.mode === 'docked' ? 'docked' : ''}`}
             role="menu"
+            aria-orientation="vertical"
             aria-labelledby={activePopout === 'courses' ? 'sidebar-tab-courses' : 'sidebar-tab-resources'}
             aria-label={activePopout === 'courses' ? 'Select course' : 'Open a learning tool'}
+            onKeyDown={handlePopoutKeyDown}
             style={popoutPos.mode === 'fixed' ? { top: popoutPos.top, left: popoutPos.left } : undefined}
           >
             {activePopout === 'courses' &&

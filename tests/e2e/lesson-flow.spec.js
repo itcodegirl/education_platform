@@ -160,6 +160,9 @@ test.describe('lesson flow', () => {
       await page.waitForSelector('#course-sidebar.open', { timeout: 5000 });
     }
 
+    await page.getByRole('button', { name: 'Courses' }).click();
+    await page.waitForSelector('.sidebar-tab-flyout-courses', { timeout: 5000 });
+
     // Course buttons should be visible
     const courseButtons = await page.locator('.cs-option').count();
     expect(courseButtons).toBeGreaterThanOrEqual(4);
@@ -167,6 +170,58 @@ test.describe('lesson flow', () => {
     // Module groups should be visible
     const modules = await page.locator('.module-group-btn').count();
     expect(modules).toBeGreaterThan(0);
+  });
+
+  test('skip link lands keyboard focus on the main lesson container', async ({ page }) => {
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', { name: /skip to main content/i })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#main-content')).toBeFocused();
+  });
+
+  test('resources flyout supports menu keyboard controls', async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name === 'mobile-chrome',
+      'Desktop keyboard menu behavior is verified in Chromium desktop.'
+    );
+
+    const resourcesTrigger = page.getByRole('button', { name: 'Resources' });
+    await resourcesTrigger.focus();
+    await page.keyboard.press('ArrowDown');
+
+    const menu = page.getByRole('menu');
+    const firstItem = page.getByRole('menuitem', { name: 'Open Cheat Sheets panel' });
+    const lastItem = page.getByRole('menuitem', { name: 'Open Badges panel' });
+
+    await expect(menu).toBeVisible();
+    await expect(firstItem).toBeFocused();
+
+    await page.keyboard.press('End');
+    await expect(lastItem).toBeFocused();
+
+    await page.keyboard.press('Home');
+    await expect(firstItem).toBeFocused();
+
+    await page.keyboard.press('Escape');
+    await expect(menu).toHaveCount(0);
+    await expect(resourcesTrigger).toBeFocused();
+  });
+
+  test('desktop collapse toggle sets sidebar to inert until expanded', async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name === 'mobile-chrome',
+      'Desktop-only collapse/inert behavior.'
+    );
+
+    const collapseToggle = page.getByRole('button', { name: /collapse course navigation/i });
+    await collapseToggle.click();
+
+    const sidebar = page.locator('#course-sidebar');
+    await expect(sidebar).toHaveAttribute('aria-hidden', 'true');
+    await expect(sidebar).toHaveAttribute('inert', '');
+
+    await page.getByRole('button', { name: /expand course navigation/i }).click();
+    await expect(sidebar).not.toHaveAttribute('aria-hidden', 'true');
   });
 
   test('quiz section is collapsible', async ({ page }) => {
