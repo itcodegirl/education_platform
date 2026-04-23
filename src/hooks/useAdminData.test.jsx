@@ -18,6 +18,7 @@ function makeChain({ data = null, error = null, count = null } = {}) {
     eq: vi.fn(() => chain),
     maybeSingle: vi.fn(() => result),
     order: vi.fn(() => chain),
+    limit: vi.fn(() => chain),
     range: vi.fn(() => chain),
     gte: vi.fn(() => chain),
     then: result.then.bind(result),

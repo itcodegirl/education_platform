@@ -107,6 +107,7 @@ export function AdminDashboard({ onClose }) {
     loadError,
     usersCounts,
     usersPagination,
+    analyticsMeta,
   } = useAdminData(user);
   const [tab, setTab] = useState('overview');
   // Admin stats span every course, so load them all on mount.
@@ -123,19 +124,19 @@ export function AdminDashboard({ onClose }) {
       totalUsers: usersCounts.total,
       newUsersWeek: usersCounts.newWeek,
       newUsersMonth: usersCounts.newMonth,
-      totalCompletions: data.progress.length,
+      totalCompletions: analyticsMeta.progressTotalRows || data.progress.length,
       activeUsers: new Set(
         data.progress
           .filter((p) => new Date(p.completed_at) > weekAgo)
           .map((p) => p.user_id),
       ).size,
-      totalQuizAttempts: data.quizScores.length,
+      totalQuizAttempts: analyticsMeta.quizTotalRows || data.quizScores.length,
       totalBadges: data.badges.length,
       totalXP: data.xp.reduce((s, x) => s + (x.total || 0), 0),
       courseStats: computeCourseStats(COURSES, data.progress),
       topUsers: computeTopUsers(data.xp, data.users),
     };
-  }, [data, loading, isAdmin, usersCounts]);
+  }, [analyticsMeta.progressTotalRows, analyticsMeta.quizTotalRows, data, loading, isAdmin, usersCounts]);
 
   // â”€â”€â”€ Early-return states â”€â”€â”€
   if (checking) {
@@ -229,6 +230,12 @@ export function AdminDashboard({ onClose }) {
           </div>
         ) : (
           <div className="admin-content">
+            {(analyticsMeta.progressIsSampled || analyticsMeta.quizIsSampled) && (
+              <p className="admin-data-scope" role="note">
+                Large dataset mode: course and activity analytics are computed from the latest
+                {' '}{analyticsMeta.rowLimit.toLocaleString()} records per table for faster admin loads.
+              </p>
+            )}
             {tab === 'overview' && (
               <div id="admin-tab-panel-overview" role="tabpanel">
                 <AdminOverviewTab {...stats} />

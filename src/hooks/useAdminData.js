@@ -26,6 +26,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 const USERS_PAGE_SIZE = 25;
+const ADMIN_ANALYTICS_LIMIT = 5000;
 
 const INITIAL_DATA = {
   users: [],
@@ -47,6 +48,8 @@ export function useAdminData(user) {
   const [usersTotal, setUsersTotal] = useState(0);
   const [newUsersWeek, setNewUsersWeek] = useState(0);
   const [newUsersMonth, setNewUsersMonth] = useState(0);
+  const [progressTotalRows, setProgressTotalRows] = useState(0);
+  const [quizTotalRows, setQuizTotalRows] = useState(0);
 
   // Admin check — runs once per authenticated user. A failure here
   // defaults to NOT admin (closed rather than open).
@@ -94,19 +97,29 @@ export function useAdminData(user) {
         const from = (usersPage - 1) * USERS_PAGE_SIZE;
         const to = from + USERS_PAGE_SIZE - 1;
 
-        const [users, progress, quizScores, xp, streaks, badges, usersWeekCount, usersMonthCount] = await Promise.all([
+        const [users, progress, quizScores, xp, streaks, badges, usersWeekCount, usersMonthCount, progressCount, quizCount] = await Promise.all([
           supabase
             .from('profiles')
-            .select('*', { count: 'exact' })
+            .select('id, display_name, email, is_admin, is_disabled, created_at', { count: 'exact' })
             .order('created_at', { ascending: false })
             .range(from, to),
-          supabase.from('progress').select('*'),
-          supabase.from('quiz_scores').select('*'),
-          supabase.from('xp').select('*'),
-          supabase.from('streaks').select('*'),
-          supabase.from('badges').select('*'),
+          supabase
+            .from('progress')
+            .select('user_id, lesson_key, completed_at')
+            .order('completed_at', { ascending: false })
+            .limit(ADMIN_ANALYTICS_LIMIT),
+          supabase
+            .from('quiz_scores')
+            .select('quiz_key, score, created_at')
+            .order('created_at', { ascending: false })
+            .limit(ADMIN_ANALYTICS_LIMIT),
+          supabase.from('xp').select('user_id, total'),
+          supabase.from('streaks').select('user_id, days'),
+          supabase.from('badges').select('user_id, badge_id'),
           supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', weekAgoISO),
           supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', monthAgoISO),
+          supabase.from('progress').select('*', { count: 'exact', head: true }),
+          supabase.from('quiz_scores').select('*', { count: 'exact', head: true }),
         ]);
         const errors = [
           ['profiles', users.error],
@@ -117,6 +130,8 @@ export function useAdminData(user) {
           ['badges', badges.error],
           ['profiles_week_count', usersWeekCount.error],
           ['profiles_month_count', usersMonthCount.error],
+          ['progress_count', progressCount.error],
+          ['quiz_count', quizCount.error],
         ].filter(([, error]) => !!error);
 
         if (errors.length > 0) {
@@ -130,6 +145,8 @@ export function useAdminData(user) {
         setUsersTotal(users.count || 0);
         setNewUsersWeek(usersWeekCount.count || 0);
         setNewUsersMonth(usersMonthCount.count || 0);
+        setProgressTotalRows(progressCount.count || 0);
+        setQuizTotalRows(quizCount.count || 0);
         setData({
           users: users.data || [],
           progress: progress.data || [],
@@ -201,6 +218,15 @@ export function useAdminData(user) {
       goToPage: goToUsersPage,
       nextPage: nextUsersPage,
       prevPage: prevUsersPage,
+    },
+    analyticsMeta: {
+      rowLimit: ADMIN_ANALYTICS_LIMIT,
+      progressTotalRows,
+      quizTotalRows,
+      progressSampledRows: data.progress.length,
+      quizSampledRows: data.quizScores.length,
+      progressIsSampled: progressTotalRows > data.progress.length,
+      quizIsSampled: quizTotalRows > data.quizScores.length,
     },
   };
 }
