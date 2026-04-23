@@ -18,7 +18,7 @@
 /.github/workflows/             @itcodegirl
 /.github/dependabot.yml         @itcodegirl
 /src/lib/supabaseClient.js      @itcodegirl
-/src/services/authService.ts    @itcodegirl
-/src/services/aiService.ts      @itcodegirl
+/src/services/authService.js    @itcodegirl
+/src/services/aiService.js      @itcodegirl
 /src/services/practiceService.js @itcodegirl
 /src/utils/markdown.jsx         @itcodegirl

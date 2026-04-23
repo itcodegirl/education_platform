@@ -7,7 +7,7 @@ Cinova is a production-minded, browser-based learning platform focused on helpin
 ## Build and CI status
 
 [![CI](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/ci-smoke.yml?branch=main&label=CI%20(check%3Aci)&logo=githubactions)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
-[![Typecheck](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/typecheck.yml?branch=main&label=Typecheck%20(JS-only)&logo=javascript)](https://github.com/itcodegirl/education_platform/actions/workflows/typecheck.yml)
+[![JS Policy](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/typecheck.yml?branch=main&label=JS%20Policy&logo=javascript)](https://github.com/itcodegirl/education_platform/actions/workflows/typecheck.yml)
 [![E2E](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/e2e-smoke.yml?branch=main&label=E2E%20(Playwright)&logo=playwright)](https://github.com/itcodegirl/education_platform/actions/workflows/e2e-smoke.yml)
 [![Lighthouse](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/lighthouse-ci.yml?branch=main&label=Lighthouse%20budgets&logo=lighthouse)](https://github.com/itcodegirl/education_platform/actions/workflows/lighthouse-ci.yml)
 [![Policy](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/ci-smoke.yml?branch=main&label=Policy%20(RLS%2Fadmin)&logo=supabase)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
@@ -193,7 +193,7 @@ Pre-release checklist is documented in [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIS
 
 ## Quality and release workflow
 
-- `npm run typecheck` - JS-only guard (fails if `.ts`/`.tsx` files are introduced)
+- `npm run typecheck` - JS-only source policy (fails if `.ts`/`.tsx` files are introduced)
 - `npm run check:quality` - lint + build + bundle budget gate
 - `npm run test:unit` - unit tests (Vitest)
 - `npm run check` - quality checks + unit tests
@@ -217,7 +217,7 @@ Notes:
 - Use a non-production Supabase project for policy tests.
 - Service key is used only in CI to seed/cleanup ephemeral test users and verify policy boundaries.
 - If secrets are absent (for example in forked PRs), the policy suite safely skips.
-- Recommended branch protection checks: `check:ci`, `deploy-preview-smoke`, `Supabase policy integration`, `typecheck`, `e2e-smoke`, `lighthouse`.
+- Recommended branch protection checks: `check:ci`, `deploy-preview-smoke`, `Supabase policy integration`, `JS Policy`, `e2e-smoke`, `lighthouse`.
 
 Additional scripts are listed in [package.json](./package.json).
 

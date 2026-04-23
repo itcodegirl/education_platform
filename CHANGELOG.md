@@ -43,9 +43,9 @@ Portfolio polish + security hardening sweep. Ready to merge to `main`.
 - **Self-hosted fonts** via `@fontsource-variable/inter`,
   `@fontsource/poppins`, `@fontsource/space-mono` (28 woff2 subsets
   bundled by Vite).
-- **TypeScript services layer** — `src/services/*.ts` with
-  hand-written Supabase row/DTO types in `supabaseTypes.ts`. React
-  components stay JavaScript.
+- **JavaScript services layer** — `src/services/*.js` with
+  hand-written Supabase row/DTO contracts documented in service
+  modules. React components stay JavaScript.
 - **`/styleguide`** route (already covered above but worth repeating
   because it's a portfolio-first-impression artifact).
 

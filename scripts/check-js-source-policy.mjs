@@ -41,7 +41,7 @@ function walk(currentPath) {
 walk(ROOT);
 
 if (offenders.length > 0) {
-  globalThis.console.error('TypeScript files are not allowed in this JS-first repository.');
+  globalThis.console.error('Non-JS source files are not allowed in this JS-first repository.');
   for (const file of offenders) {
     globalThis.console.error(` - ${file}`);
   }

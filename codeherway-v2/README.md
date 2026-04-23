@@ -9,7 +9,7 @@ An interactive coding education platform for women in tech — now with Supabase
 ## 🆕 What's New in v2
 
 ### Architecture
-- **Plain JSX** — no TypeScript, you own every line
+- **Plain JSX** — no extra type layer, you own every line
 - **Supabase backend** — all user data syncs to the cloud
 - **Auth system** — email/password + Google + GitHub login
 - **No localStorage dependency** — progress follows the user across devices
@@ -196,7 +196,7 @@ All tables have Row Level Security — users can only access their own data.
 
 ## 🛠️ Tech Stack
 
-- **UI:** React 18 (JSX, no TypeScript)
+- **UI:** React 18 (JSX-first)
 - **Build:** Vite
 - **Backend:** Supabase (Postgres + Auth + RLS)
 - **Styling:** Custom CSS with CSS Variables

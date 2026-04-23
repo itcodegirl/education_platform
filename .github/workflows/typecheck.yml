@@ -1,4 +1,4 @@
-name: Typecheck
+name: JS Policy
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: typecheck-${{ github.ref }}
+  group: js-policy-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -29,5 +29,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run JS-only typecheck policy
+      - name: Run JS-only source policy
         run: npm run typecheck

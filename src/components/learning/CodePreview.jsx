@@ -3,6 +3,7 @@ import { IFRAME_STYLES } from '../../utils/iframeStyles';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { defineMonacoTheme, MONACO_THEME_NAME, MONACO_OPTIONS } from '../../utils/monacoTheme';
 import { explainCode as explainCodeRequest } from '../../services/aiService';
+import { buildCodePreviewConsoleScript } from './codePreviewConsoleScript';
 
 // Chain monacoLoader so it runs its side-effects (loader.config,
 // MonacoEnvironment) before @monaco-editor/react is evaluated. Both
@@ -66,7 +67,7 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
 
   function buildPreview(sourceCode) {
     if (isJS) {
-      const consoleScript = `const _out=document.getElementById("out");const _log=(p,c,...a)=>{const d=document.createElement("div");d.className="console-line";d.innerHTML='<span class="prefix" style="color:'+c+'">'+p+'</span>'+a.map(x=>{try{if(typeof x==="object")return JSON.stringify(x,null,2);return String(x)}catch(e){return String(x)}}).join(" ");_out.appendChild(d)};const console={log:(...a)=>_log("->","#4ecdc4",...a),error:(...a)=>_log("x","#ff6b6b",...a),warn:(...a)=>_log("!","#ffa726",...a),table:(a)=>_log("[]","#4ecdc4",a),group:()=>{},groupEnd:()=>{},time:()=>{},timeEnd:(l)=>_log("t","#8888a8",l+": ~1ms")};try{${sourceCode.replace(/<\/script>/g, '<\\/script>')}}catch(e){console.error(e.message)}`;
+      const consoleScript = buildCodePreviewConsoleScript(sourceCode);
       return `<!DOCTYPE html><html><head><style>${IFRAME_STYLES} .console-line{font-family:monospace;font-size:13px;padding:3px 0;border-bottom:1px solid #1a1a2e;color:#e0e0e0}.prefix{color:#5a5a7a;margin-right:8px}pre.output{background:#0a0a14;padding:16px;border-radius:8px;margin:0;overflow:auto}</style></head><body><pre class="output" id="out"></pre><script>${consoleScript}<\/script></body></html>`;
     }
 

@@ -7,7 +7,7 @@
 // imports `editor.main`, which registers every one of
 // Monaco's ~70 language modes (abap, clojure, julia,
 // perl, powerquery, razor, solidity, …) and pulls in
-// the rich TypeScript language service (~1 MB gzipped
+// the rich language service bundle (~1 MB gzipped
 // on its own). This platform only teaches HTML / CSS /
 // JavaScript and students only write short snippets,
 // so we cut the bundle down to:
@@ -43,7 +43,7 @@ import 'monaco-editor/esm/vs/basic-languages/xml/xml.contribution';
 
 // Only the base editor worker is wired up. With no rich
 // language services registered, Monaco never asks for
-// html/css/typescript workers, so none of those modules
+// html/css/extra-language workers, so none of those modules
 // end up in the bundle.
 import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
 
