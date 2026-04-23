@@ -3,11 +3,12 @@
 // ═══════════════════════════════════════════════
 
 import { useEffect } from 'react';
+import { RouterProvider } from 'react-router-dom';
 import { AuthProvider, ThemeProvider, ProgressProvider, CourseContentProvider } from './providers';
 import { ToastProvider } from './components/shared/Toast';
 import { InstallPrompt } from './components/shared/InstallPrompt';
 import { initializeAnalytics } from './lib/analytics';
-import AppRoutes from './routes/AppRoutes';
+import { appRouter } from './routes/appRouter';
 import './styles/App.css';
 
 export default function App() {
@@ -22,7 +23,7 @@ export default function App() {
           <CourseContentProvider>
             <ToastProvider>
               <InstallPrompt />
-              <AppRoutes />
+              <RouterProvider router={appRouter} />
             </ToastProvider>
           </CourseContentProvider>
         </ProgressProvider>
