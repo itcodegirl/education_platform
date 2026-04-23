@@ -78,4 +78,22 @@ describe('BookmarksPanel', () => {
     expect(onNavigate).toHaveBeenCalledWith(0, 0, 0);
     expect(onClose).toHaveBeenCalled();
   });
+
+  it('opens search from the empty-state call to action', () => {
+    const onClose = vi.fn();
+    const onOpenSearch = vi.fn();
+
+    render(
+      <BookmarksPanel
+        isOpen
+        onClose={onClose}
+        onNavigate={vi.fn()}
+        onOpenSearch={onOpenSearch}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /open lesson search/i }));
+    expect(onClose).toHaveBeenCalled();
+    expect(onOpenSearch).toHaveBeenCalled();
+  });
 });

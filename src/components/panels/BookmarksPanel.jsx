@@ -31,7 +31,12 @@ function findBookmarkTarget(bookmark, courses) {
   return null;
 }
 
-export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
+export function BookmarksPanel({
+  isOpen,
+  onClose,
+  onNavigate,
+  onOpenSearch,
+}) {
   const { bookmarks, toggleBookmark } = useSR();
   const modalRef = useRef(null);
   useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
@@ -50,6 +55,11 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
     if (!target) return;
     onNavigate(target.courseIndex, target.moduleIndex, target.lessonIndex);
     onClose();
+  };
+
+  const handleOpenSearch = () => {
+    onClose();
+    onOpenSearch?.();
   };
 
   return (
@@ -82,6 +92,13 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
               <p className="empty-state-msg">
                 Mark a lesson as saved from the header star, and it will appear here for one-click return.
               </p>
+              <button
+                type="button"
+                className="ui-btn ui-btn-secondary ui-btn-compact"
+                onClick={handleOpenSearch}
+              >
+                Open lesson search
+              </button>
             </div>
           ) : (
             bookmarks.map((bookmark) => {

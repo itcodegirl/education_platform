@@ -80,7 +80,12 @@ export function PanelManager({
         )}
         {panels.panel === 'bookmarks' && (
           <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
-            <BookmarksPanel isOpen onClose={panels.closePanel} onNavigate={nav.goToSearch} />
+            <BookmarksPanel
+              isOpen
+              onClose={panels.closePanel}
+              onNavigate={nav.goToSearch}
+              onOpenSearch={() => panels.togglePanel('search')}
+            />
           </ErrorBoundary>
         )}
         {panels.panel === 'challenges' && (
