@@ -1,12 +1,12 @@
-/* ================================================
+﻿/* ================================================
    APP QUALITY, PERFORMANCE, AND EXPERIENCE EXTENSIONS
    Extracted from the legacy App.css for maintainability.
    Keep import order stable via styles/App.css.
    ================================================ */
 
-/* ═══════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    PERFORMANCE OPTIMIZATIONS + UX QUALITY STATES
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 /* GPU acceleration for animated elements */
 .code-preview-tab,
@@ -23,7 +23,7 @@
   will-change: transform;
 }
 
-/* Content containment — isolate layout calculations */
+/* Content containment â€” isolate layout calculations */
 .lesson-surface,
 .lesson-surface {
   contain: content;
@@ -51,7 +51,7 @@
   contain: layout;
 }
 
-/* Font display swap — prevent invisible text during load */
+/* Font display swap â€” prevent invisible text during load */
 @font-face {
   font-display: swap;
 }
@@ -139,9 +139,9 @@ img {
   }
 }
 
-/* ═══════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    OFFLINE INDICATOR
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 .offline-banner {
   position: fixed;
@@ -171,8 +171,8 @@ img {
   animation: slideDown 0.3s var(--ease-out), fadeOut 0.5s 2.5s forwards;
 }
 
-/* Sync-failed state — writes to Supabase silently failed. Amber
-   warning, not red (user's local state is still correct — it's a
+/* Sync-failed state â€” writes to Supabase silently failed. Amber
+   warning, not red (user's local state is still correct â€” it's a
    "heads up" not a "disaster"). Two action buttons: Retry (does a
    full retryLoad) and Dismiss (clears the counter). */
 .offline-banner.is-sync-failed {
@@ -241,9 +241,9 @@ img {
   }
 }
 
-/* ═══════════════════════════════════════════════
-   POLISH — Replace inline styles with classes
-   ═══════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   POLISH â€” Replace inline styles with classes
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 .empty-state-msg {
   margin-top: var(--space-2);
@@ -273,9 +273,9 @@ img {
   margin-top: var(--space-3);
 }
 
-/* ═══════════════════════════════════════════════
-   NEW QUIZ TYPES — Bug, Fill, Order, Code Output
-   ═══════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   NEW QUIZ TYPES â€” Bug, Fill, Order, Code Output
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 /* Type badge */
 .qq-type-badge {
@@ -293,12 +293,12 @@ img {
 
 /* Code output option styling */
 .qq-opt-code {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 13px;
   color: var(--cyan);
 }
 
-/* Bug question — clickable code lines */
+/* Bug question â€” clickable code lines */
 .qq-bug-lines {
   display: flex;
   flex-direction: column;
@@ -347,14 +347,14 @@ img {
 }
 
 .qq-bug-line code {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 13px;
   flex: 1;
   white-space: pre;
 }
 
 .qq-line-num {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
   min-width: 20px;
@@ -374,7 +374,7 @@ img {
   border: 2px solid var(--border);
   border-radius: var(--radius-md);
   color: var(--text);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 15px;
   transition: border-color var(--duration-fast);
 }
@@ -406,7 +406,7 @@ img {
 
 .qq-fill-answer code {
   color: #10b981;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   background: #10b98110;
   padding: 2px 8px;
   border-radius: 4px;
@@ -448,7 +448,7 @@ img {
 }
 
 .qq-order-num {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
   min-width: 20px;
@@ -521,9 +521,9 @@ img {
   }
 }
 
-/* ═══════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    STUDENT STATS DASHBOARD
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 .ss-modal {
   max-width: 720px;
@@ -539,7 +539,7 @@ img {
 }
 
 .ss-title {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: var(--text-xl);
   font-weight: 700;
   color: var(--text);
@@ -625,7 +625,7 @@ img {
 }
 
 .ss-card-value {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: var(--text-2xl);
   font-weight: 700;
   color: var(--text);
@@ -664,7 +664,7 @@ img {
 }
 
 .ss-section-title {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: var(--text-base);
   font-weight: 700;
   color: var(--text);
@@ -701,7 +701,7 @@ img {
 }
 
 .ss-course-count {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: var(--text-xs);
   color: var(--text-muted);
 }
@@ -729,14 +729,14 @@ img {
 }
 
 .ss-course-pct {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: var(--text-xs);
   font-weight: 700;
   color: var(--text-dim);
 }
 
 .ss-quiz-badge {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: var(--text-xs);
   font-weight: 600;
 }
@@ -780,7 +780,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: var(--text-xl);
   font-weight: 700;
   color: var(--text);
@@ -852,7 +852,7 @@ img {
 }
 
 .ss-topic-score {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: var(--text-sm);
   min-width: 36px;
@@ -890,7 +890,7 @@ img {
 }
 
 .ss-activity-value {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: var(--text-lg);
   font-weight: 700;
   color: var(--text);
@@ -934,9 +934,9 @@ img {
   }
 }
 
-/* ═══════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    LESSON BUILDER (Admin Tool)
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 .lb-wrap {
   animation: fadeIn 0.2s ease-out;
@@ -1045,7 +1045,7 @@ img {
 }
 
 .lb-section-title {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 14px;
   font-weight: 700;
   color: var(--text);
@@ -1077,7 +1077,7 @@ img {
   color: var(--text-dim);
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
 }
 
 .lb-hint {
@@ -1115,7 +1115,7 @@ img {
 }
 
 .lb-code-input {
-  font-family: 'Poppins', monospace !important;
+  font-family: 'Poppins', sans-serif !important;
   font-size: 13px !important;
   tab-size: 2;
   white-space: pre;
@@ -1138,7 +1138,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
   flex-shrink: 0;
@@ -1183,7 +1183,7 @@ img {
   color: var(--cyan);
 }
 
-/* ─── Preview View ─── */
+/* â”€â”€â”€ Preview View â”€â”€â”€ */
 .lb-preview {
   padding: 4px;
 }
@@ -1217,12 +1217,12 @@ img {
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   margin-bottom: 4px;
 }
 
 .lb-pv-title {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.5px;
@@ -1239,7 +1239,7 @@ img {
   font-size: 11px;
   padding: 2px 10px;
   border-radius: 10px;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   text-transform: capitalize;
 }
@@ -1262,7 +1262,7 @@ img {
 .lb-pv-dur {
   font-size: 11px;
   color: var(--text-muted);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
 }
 
 .lb-pv-concepts {
@@ -1287,7 +1287,7 @@ img {
 .lb-pv-bullet {
   color: var(--pink);
   font-weight: 700;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
 }
 
 .lb-pv-code-block {
@@ -1299,7 +1299,7 @@ img {
 
 .lb-pv-code-header {
   padding: 8px 16px;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-dim);
@@ -1309,7 +1309,7 @@ img {
 
 .lb-pv-code {
   padding: 16px 20px;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 13px;
   line-height: 1.7;
   color: var(--text);
@@ -1328,7 +1328,7 @@ img {
 }
 
 .lb-pv-box-label {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -1404,7 +1404,7 @@ img {
   line-height: 1.6;
 }
 
-/* ─── Code View ─── */
+/* â”€â”€â”€ Code View â”€â”€â”€ */
 .lb-code-view {
   display: flex;
   flex-direction: column;
@@ -1416,7 +1416,7 @@ img {
   border-radius: 12px;
   background: rgba(4, 4, 10, 0.8);
   border: 1px solid var(--border);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   line-height: 1.6;
   color: var(--text);
@@ -1492,7 +1492,7 @@ img {
 }
 
 .lb-instructions h4 {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 14px;
   margin-bottom: 12px;
   color: var(--text);
@@ -1508,7 +1508,7 @@ img {
 }
 
 .lb-instructions code {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   background: var(--bg-surface);
   border: 1px solid var(--border);
@@ -1524,7 +1524,7 @@ img {
   background: rgba(4, 4, 10, 0.7);
   border: 1px solid var(--border);
   border-radius: 8px;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   line-height: 1.6;
   color: var(--text);
@@ -1564,9 +1564,9 @@ img {
   }
 }
 
-/* ═══════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    SEQUENTIAL LOCK MODE
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 /* Locked modules */
 .module-group.locked .module-group-btn {
@@ -1652,9 +1652,9 @@ img {
   }
 }
 
-/* ═══════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    TOAST NOTIFICATIONS
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .toast {
   position: fixed;
   bottom: 80px;
@@ -1705,9 +1705,9 @@ img {
   }
 }
 
-/* ═══════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    PWA INSTALL PROMPT
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .install-prompt {
   position: fixed;
   top: 0;
@@ -1776,9 +1776,9 @@ img {
   }
 }
 
-/* ═══════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    EMAIL VERIFICATION BANNER
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .verify-banner {
   display: flex;
   align-items: center;
@@ -1816,9 +1816,9 @@ img {
   color: var(--text);
 }
 
-/* ═══════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    LESSON FEEDBACK
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .lesson-feedback {
   display: flex;
   align-items: center;
@@ -1841,7 +1841,7 @@ img {
 }
 
 .lesson-feedback-label {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
 }
 
@@ -1891,16 +1891,16 @@ img {
   animation: fadeIn 0.2s ease-out;
 }
 
-/* ═══════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    MODULE DIFFICULTY BADGES
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .module-group-diff {
   display: inline-block;
   margin-left: 6px;
   font-size: 9px;
   padding: 1px 6px;
   border-radius: 8px;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1922,9 +1922,9 @@ img {
   color: #ff6b9d;
 }
 
-/* ═══════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    PROFILE PAGE
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .pp-scroll {
   overflow: auto;
 }
@@ -1995,7 +1995,7 @@ img {
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-muted);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -2016,7 +2016,7 @@ img {
 }
 
 .pp-name {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 24px;
   font-weight: 700;
   margin-bottom: 4px;
@@ -2058,7 +2058,7 @@ img {
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-dim);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 11px;
 }
 
@@ -2096,7 +2096,7 @@ img {
 }
 
 .pp-stat-value {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 20px;
   font-weight: 700;
 }
@@ -2141,7 +2141,7 @@ img {
 }
 
 .pp-section-title {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 14px;
   font-weight: 700;
   margin-bottom: 16px;
@@ -2178,7 +2178,7 @@ img {
 }
 
 .pp-course-count {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
 }
@@ -2215,7 +2215,7 @@ img {
 .pp-badge-name {
   font-size: 11px;
   font-weight: 700;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   color: var(--text-dim);
 }
 
@@ -2263,9 +2263,9 @@ img {
   }
 }
 
-/* ═══════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    WHAT'S NEW MODAL
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .wn-modal {
   max-width: 480px;
 }
@@ -2286,13 +2286,13 @@ img {
   flex: 1;
   font-size: 16px;
   font-weight: 700;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
 }
 
 .wn-version {
   font-size: 12px;
   color: var(--text-muted);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
 }
 
 .wn-body {
@@ -2303,7 +2303,7 @@ img {
   font-size: 12px;
   color: var(--text-muted);
   margin-bottom: 16px;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
 }
 
 .wn-list {
@@ -2347,6 +2347,7 @@ img {
 .wn-cta:hover {
   filter: brightness(1.15);
 }
+
 
 
 

@@ -108,7 +108,7 @@ function HeroPanel({ panel, index }) {
   return (
     <section
       ref={ref}
-      className={`lh-panel lh-panel-${panel.id} ${inView ? 'in-view' : ''}`}
+      className={`lh-panel lh-panel-${panel.id} ${index % 2 === 1 ? 'lh-panel-reverse' : ''} ${inView ? 'in-view' : ''}`}
       style={{ '--lh-delay': `${index * 80}ms` }}
       aria-label={panel.title}
     >

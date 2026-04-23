@@ -42,7 +42,7 @@
 }
 
 .admin-title {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 24px;
   font-weight: 700;
   color: var(--pink);
@@ -114,7 +114,7 @@
   padding: 80px 20px;
   color: var(--text-muted);
   font-size: 16px;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
 }
 
 .admin-denied {
@@ -129,7 +129,7 @@
 }
 
 .admin-denied h2 {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 24px;
   color: var(--pink);
   margin-bottom: 8px;
@@ -164,7 +164,7 @@
 }
 
 .admin-page-indicator {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
 }
@@ -213,7 +213,7 @@
 }
 
 .admin-stat-value {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 24px;
   font-weight: 700;
   color: var(--text);
@@ -232,7 +232,7 @@
 }
 
 .admin-section-title {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 16px;
   font-weight: 700;
   color: var(--text);
@@ -284,7 +284,7 @@
 .admin-stat-val {
   color: var(--text);
   font-weight: 600;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
 }
 
 .admin-progress-bar {
@@ -315,7 +315,7 @@
 .admin-table th {
   text-align: left;
   padding: 10px 14px;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -335,14 +335,14 @@
 }
 
 .admin-rank {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   color: var(--text-muted);
   font-weight: 700;
   width: 30px;
 }
 
 .admin-xp {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   color: var(--amber);
   font-weight: 600;
 }
@@ -376,7 +376,7 @@
 }
 
 .admin-score {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 6px;
@@ -408,7 +408,7 @@
 }
 
 .admin-lesson-count {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   text-align: center;
   width: 60px;
@@ -481,7 +481,7 @@
 }
 
 .disabled-title {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 28px;
   color: #ff6b6b;
   margin-bottom: 12px;
@@ -534,7 +534,7 @@
 .admin-status {
   font-size: 12px;
   font-weight: 600;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
 }
 
 .admin-status.active {
@@ -552,7 +552,7 @@
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   transition: all 0.15s;
   border: 1px solid;
 }
@@ -587,14 +587,14 @@
 .admin-action-disabled {
   font-size: 11px;
   color: var(--text-muted);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
 }
 
 .admin-action-error {
   font-size: 12px;
   color: #ff6b6b;
   margin: 0 0 12px;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* Disabled row styling */
@@ -605,4 +605,5 @@
 .admin-row-disabled td:last-child {
   opacity: 1;
 }
+
 

@@ -1,10 +1,10 @@
-/* ================================================
+﻿/* ================================================
    APP SHELL + CORE LAYOUT
    Extracted from the legacy App.css for maintainability.
    Keep import order stable via styles/App.css.
    ================================================ */
 
-/* ─── 6. Shell Layout ──────────────────────────── */
+/* â”€â”€â”€ 6. Shell Layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .shell {
   display: flex;
   height: 100vh;
@@ -24,7 +24,7 @@
   backdrop-filter: blur(4px);
 }
 
-/* ─── 8. Main Content & Topbar ─────────────────── */
+/* â”€â”€â”€ 8. Main Content & Topbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .main-shell {
   flex: 1;
   overflow-y: auto;
@@ -35,7 +35,7 @@
   padding-bottom: 120px;
 }
 
-/* Course skeleton — shown while a lazy-loaded course is still
+/* Course skeleton â€” shown while a lazy-loaded course is still
    in flight. Intentionally lightweight (no animation frames,
    no keyframes) so the skeleton itself can't add to TBT. */
 .course-skeleton {
@@ -111,7 +111,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-dim);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 11px;
   letter-spacing: 0.04em;
   white-space: nowrap;
@@ -137,13 +137,13 @@
 }
 
 .ham {
-  /* No `display` here on purpose — the two breakpoint media queries
+  /* No `display` here on purpose â€” the two breakpoint media queries
      (responsive.css `@media (max-width: 900px)` sets `display: block`,
      and App.css EOF `@media (min-width: 901px)` sets `display: inline-flex`)
      together cover every viewport. A default `display: none` used to
      live here, but because App.css is loaded AFTER responsive.css, the
      unconditional `none` won the cascade on mobile and made the
-     hamburger invisible on narrow screens — so the drawer couldn't
+     hamburger invisible on narrow screens â€” so the drawer couldn't
      be opened at all. */
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -257,7 +257,7 @@
 
 .breadcrumb-course {
   font-weight: 700;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 13px;
   white-space: nowrap;
 }
@@ -307,7 +307,7 @@
   color: var(--cyan);
 }
 
-/* ─── 16. Navigation Row ───────────────────────── */
+/* â”€â”€â”€ 16. Navigation Row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .nav-row {
   display: flex;
   justify-content: space-between;
@@ -396,7 +396,7 @@
   transform: translateY(-2px);
 }
 
-/* ─── 17. XP Bar & Daily Goal ──────────────────── */
+/* â”€â”€â”€ 17. XP Bar & Daily Goal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .xp-bar-wrap {
   margin-top: 12px;
 }
@@ -409,7 +409,7 @@
 }
 
 .xp-level {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 13px;
   font-weight: 700;
 }
@@ -419,7 +419,7 @@
 }
 
 .xp-amount {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
 }
@@ -463,11 +463,11 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
 }
 
 .dg-count {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   color: var(--text-dim);
 }
@@ -492,7 +492,7 @@
   box-shadow: 0 0 8px rgba(78, 205, 196, 0.3);
 }
 
-/* ─── 18. Stats Panel ──────────────────────────── */
+/* â”€â”€â”€ 18. Stats Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .stats-panel {
   margin-top: 12px;
 }
@@ -519,7 +519,7 @@
 }
 
 .stat-num {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 18px;
   font-weight: 700;
 }
@@ -531,7 +531,7 @@
   letter-spacing: 0.5px;
 }
 
-/* ─── 19. XP Popup & Badge Unlock ──────────────── */
+/* â”€â”€â”€ 19. XP Popup & Badge Unlock â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .xp-popup {
   position: fixed;
   top: 50%;
@@ -552,7 +552,7 @@
 }
 
 .xp-gain {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 36px;
   font-weight: 700;
   background: linear-gradient(90deg, #ff6b9d, #a78bfa);
@@ -612,7 +612,7 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 3px;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   animation: fadeIn 0.4s ease 0.5s both;
 }
 
@@ -726,7 +726,7 @@
   }
 }
 
-/* ─── 20. Theme Toggle & Toolbar ───────────────── */
+/* â”€â”€â”€ 20. Theme Toggle & Toolbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .theme-toggle {
   position: fixed;
   bottom: 20px;
@@ -753,14 +753,14 @@
   border-color: rgba(255, 255, 255, 0.18);
 }
 
-/* ─── 21. Reading Time ─────────────────────────── */
+/* â”€â”€â”€ 21. Reading Time â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .read-time {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   font-size: 11px;
   color: var(--text-muted);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   background: rgba(255, 255, 255, 0.03);
   padding: 0 12px;
   border-radius: 999px;
@@ -773,7 +773,7 @@
   font-size: 13px;
 }
 
-/* ─── 22. Light Theme ──────────────────────────── */
+/* â”€â”€â”€ 22. Light Theme â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .shell.light,
 .loading-screen.light,
 .light {
@@ -979,7 +979,7 @@
   background: #fff;
 }
 
-/* ─── 23. Course Accent Overrides ──────────────── */
+/* â”€â”€â”€ 23. Course Accent Overrides â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 [data-course="css"] .module-group.act>.module-group-btn {
   background: rgba(78, 205, 196, 0.08);
   border-left-color: var(--cyan);
@@ -1052,6 +1052,7 @@
   border-color: var(--purple);
   color: var(--purple);
 }
+
 
 
 

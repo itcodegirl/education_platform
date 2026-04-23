@@ -35,7 +35,7 @@
 }
 
 .cc-title {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 16px;
   font-weight: 700;
   color: var(--text);
@@ -55,7 +55,7 @@
   font-weight: 600;
   text-transform: uppercase;
   white-space: nowrap;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
 }
 
 .cc-diff-beginner {
@@ -80,7 +80,7 @@
 }
 
 .cc-req-label {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   font-weight: 700;
   color: var(--text-muted);
@@ -114,7 +114,7 @@
 .cc-req-check {
   width: 20px;
   text-align: center;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
 }
 
@@ -143,7 +143,7 @@
   padding: 8px 16px;
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-dim);
@@ -179,7 +179,7 @@
   justify-content: center;
   height: 280px;
   color: var(--text-muted);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 13px;
 }
 
@@ -202,7 +202,7 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
 }
 
 .cc-run-btn:hover:not(:disabled) {
@@ -309,7 +309,7 @@
 }
 
 .cc-results-text {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 14px;
   font-weight: 700;
   color: var(--text);
@@ -340,7 +340,7 @@
 .cc-result-check {
   width: 18px;
   text-align: center;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
 }
 
@@ -357,7 +357,7 @@
 }
 
 .cc-hint-label {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   font-weight: 700;
   color: var(--amber);
@@ -375,7 +375,7 @@
 }
 
 .cc-solution-label {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   font-weight: 700;
   color: var(--purple);
@@ -387,7 +387,7 @@
   border-radius: 8px;
   background: #0a0a14;
   border: 1px solid var(--border);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 13px;
   line-height: 1.6;
   color: var(--text);
@@ -455,7 +455,7 @@
 }
 
 .panel-title {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 17px;
   letter-spacing: 0.01em;
 }
@@ -599,7 +599,7 @@
 }
 
 .challenge-card-title {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 14px;
   font-weight: 700;
   color: var(--text);
@@ -617,7 +617,7 @@
   align-items: center;
   font-size: 11px;
   color: var(--text-muted);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   margin-top: auto;
 }
 
@@ -636,7 +636,7 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
 }
 
 .cc-ai-btn:hover,
@@ -655,7 +655,7 @@
   padding: 10px 20px;
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--cyan);
@@ -685,7 +685,7 @@
   background: #0a0a14;
   border-radius: 6px;
   border: 1px solid var(--border);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   color: var(--cyan);
 }
@@ -769,4 +769,5 @@
   opacity: 0.3;
   cursor: not-allowed;
 }
+
 

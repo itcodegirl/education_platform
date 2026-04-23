@@ -1,4 +1,4 @@
-/* ================================================
+﻿/* ================================================
    RESILIENCE STATES
    Error boundary, connection errors, and skeleton loading UI
    extracted from platform-quality.css to keep domain styles focused.
@@ -64,7 +64,7 @@
 }
 
 .eb-title {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 24px;
   font-weight: 700;
   color: var(--text);
@@ -88,7 +88,7 @@
 }
 
 .eb-detail code {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   color: #ff6b6b;
   word-break: break-all;
@@ -160,7 +160,7 @@
 }
 
 .conn-title {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 22px;
   font-weight: 700;
   color: var(--text);
@@ -440,7 +440,8 @@
   }
 }
 
-/* ═══════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    PERFORMANCE OPTIMIZATIONS
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+
 

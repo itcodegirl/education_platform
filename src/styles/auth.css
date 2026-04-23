@@ -1,11 +1,11 @@
-/* ═══════════════════════════════════════════════
-   AUTH — Auth page shell, brand layout, and the
+﻿/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   AUTH â€” Auth page shell, brand layout, and the
    shared loading screen that fronts it while the
    session check is in flight.
    Depends on tokens.css + animations.css.
-   ═══════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
-/* ─── 4. Auth Page — Brand Aligned ────────────── */
+/* â”€â”€â”€ 4. Auth Page â€” Brand Aligned â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .auth-page {
   min-height: 100vh;
   display: flex;
@@ -224,7 +224,7 @@
   font-family: 'Inter', sans-serif;
 }
 
-/* ─── 5. Loading Screen ───────────────────────── */
+/* â”€â”€â”€ 5. Loading Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .loading-screen {
   min-height: 100vh;
   display: flex;
@@ -244,7 +244,8 @@
 }
 .loading-screen p {
   color: var(--text-muted);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 14px;
 }
+
 

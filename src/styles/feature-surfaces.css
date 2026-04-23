@@ -75,7 +75,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-muted);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -89,7 +89,7 @@
 }
 
 .ob-title {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 24px;
   font-weight: 700;
   color: var(--text);
@@ -206,7 +206,7 @@
 }
 
 .ob-step-label {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 11px;
   color: var(--text-muted);
   letter-spacing: 1px;
@@ -237,4 +237,5 @@
     width: 100%;
   }
 }
+
 

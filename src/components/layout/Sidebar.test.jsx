@@ -94,7 +94,7 @@ describe('Sidebar', () => {
     const onOpenTool = vi.fn();
     renderSidebar({ onOpenTool });
 
-    fireEvent.click(screen.getByRole('tab', { name: /resources/i }));
+    fireEvent.click(screen.getByRole('button', { name: /resources/i }));
     fireEvent.click(screen.getByRole('button', { name: /cheat sheets/i }));
 
     expect(onOpenTool).toHaveBeenCalledWith('cheatsheet');

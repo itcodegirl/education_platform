@@ -180,20 +180,21 @@ export const Sidebar = memo(function Sidebar({
   return (
     <>
       {isMobile && isOpen && <div className="overlay" onClick={onClose} aria-hidden="true" />}
-      {/* Semantic <nav> landmark for the course navigation tree.
-          On mobile the same element flips into an off-canvas dialog
-          (role="dialog" + aria-modal), which is why the role attribute
-          is conditional — a <nav> inside a <dialog> role is fine and
-          still exposes both landmarks to assistive tech. */}
-      <nav
+      {/* Mobile drawer wrapper carries the dialog semantics; the inner
+          navigation remains a semantic <nav> landmark in every mode. */}
+      <div
         ref={asideRef}
+        className="sidebar-shell"
+        role={isMobile && isOpen ? 'dialog' : undefined}
+        aria-modal={isMobile && isOpen ? 'true' : undefined}
+        aria-label={isMobile && isOpen ? 'Course navigation' : undefined}
+        aria-hidden={isMobile ? !isOpen : undefined}
+        tabIndex={isMobile ? -1 : undefined}
+      >
+      <nav
         id="course-sidebar"
         className={`sidebar ${isOpen ? 'open' : ''} ${!isMobile && isCollapsed ? 'collapsed' : ''}`}
         aria-label="Course navigation"
-        aria-hidden={isMobile ? !isOpen : false}
-        aria-modal={isMobile && isOpen ? 'true' : undefined}
-        role={isMobile ? 'dialog' : undefined}
-        tabIndex={isMobile ? -1 : undefined}
       >
         {/* ─── Brand + Avatar row ─── */}
         <header className="sidebar-head">
@@ -238,7 +239,7 @@ export const Sidebar = memo(function Sidebar({
             Resources: opens a quick-launcher for the learning tools
             (cheat sheets, glossary, bookmarks, review queue, challenges, badges).
             Click-outside, Escape, and window resize close the active popout. */}
-        <div className="sidebar-tabs" ref={tabsRef} role="tablist" aria-label="Sidebar navigation">
+        <div className="sidebar-tabs" ref={tabsRef} aria-label="Sidebar navigation">
           <button
             id="sidebar-tab-courses"
             type="button"
@@ -246,9 +247,6 @@ export const Sidebar = memo(function Sidebar({
             onClick={() => openPopout('courses')}
             aria-haspopup="true"
             aria-expanded={activePopout === 'courses'}
-            aria-controls="sidebar-tab-panel-courses"
-            aria-selected={activePopout === 'courses'}
-            role="tab"
           >
             <span className="sidebar-tab-icon" aria-hidden="true">📚</span>
             <span className="sidebar-tab-label">Courses</span>
@@ -262,9 +260,6 @@ export const Sidebar = memo(function Sidebar({
             onClick={() => openPopout('resources')}
             aria-haspopup="true"
             aria-expanded={activePopout === 'resources'}
-            aria-controls="sidebar-tab-panel-resources"
-            aria-selected={activePopout === 'resources'}
-            role="tab"
           >
             <span className="sidebar-tab-icon" aria-hidden="true">📋</span>
             <span className="sidebar-tab-label">Resources</span>
@@ -274,7 +269,7 @@ export const Sidebar = memo(function Sidebar({
           {/* Active-course context strip — shows which course you're in
               and its progress, now that the course name isn't the trigger label. */}
           <div className="sidebar-tabs-context" style={{ '--cs-accent': course.accent }}>
-            <span className="sidebar-tabs-context-icon">{course.icon}</span>
+            <span className="sidebar-tabs-context-icon" aria-hidden="true">{course.icon}</span>
             <span className="sidebar-tabs-context-label">{course.label}</span>
             <span className="sidebar-tabs-context-meta">{courseDone}/{total}</span>
             <div className="sidebar-tabs-context-progress">
@@ -294,8 +289,6 @@ export const Sidebar = memo(function Sidebar({
             ref={popoutRef}
             id={`sidebar-tab-panel-${activePopout}`}
             className={`sidebar-tab-flyout sidebar-tab-flyout-${activePopout} ${popoutPos.mode === 'docked' ? 'docked' : ''}`}
-            role="tabpanel"
-            aria-labelledby={activePopout === 'courses' ? 'sidebar-tab-courses' : 'sidebar-tab-resources'}
             aria-label={activePopout === 'courses' ? 'Select course' : 'Open a learning tool'}
             style={popoutPos.mode === 'fixed' ? { top: popoutPos.top, left: popoutPos.left } : undefined}
           >
@@ -313,9 +306,9 @@ export const Sidebar = memo(function Sidebar({
                   style={{ '--cs-accent': c.accent }}
                   aria-label={`Switch to ${c.label} course`}
                 >
-                  <span className="cs-option-icon">{c.icon}</span>
+                  <span className="cs-option-icon" aria-hidden="true">{c.icon}</span>
                   <span className="cs-option-label">{c.label}</span>
-                  {ci === courseIdx && <span className="cs-option-check">✓</span>}
+                  {ci === courseIdx && <span className="cs-option-check" aria-hidden="true">✓</span>}
                 </button>
               ))}
 
@@ -385,9 +378,9 @@ export const Sidebar = memo(function Sidebar({
                     }}
                     disabled={!isModUnlocked}
                     aria-expanded={isExpanded}
-                    aria-label={`${module.title} module${isModUnlocked ? `, ${modDone}/${module.lessons.length} lessons completed` : ', locked by sequence mode'}`}
+                  aria-label={`${module.title} module${isModUnlocked ? `, ${modDone}/${module.lessons.length} lessons completed` : ', locked by sequence mode'}`}
                   >
-                    <span className="module-group-emoji">{isModUnlocked ? module.emoji : '🔒'}</span>
+                    <span className="module-group-emoji" aria-hidden="true">{isModUnlocked ? module.emoji : '🔒'}</span>
                     <div className="module-group-info">
                       <span className="module-group-name">{module.title}</span>
                       <span className="module-group-sub">{modDone}/{module.lessons.length}</span>
@@ -409,7 +402,7 @@ export const Sidebar = memo(function Sidebar({
                             aria-label={`${lesson.title} lesson${isDone ? ', completed' : ''}${!unlocked ? ', locked' : ''}`}
                             aria-current={mi === modIdx && li === lesIdx && !showModQuiz ? 'page' : undefined}
                           >
-                            <span className="lesson-list-chk">{isDone ? '✓' : unlocked ? '○' : '🔒'}</span>
+                            <span className="lesson-list-chk" aria-hidden="true">{isDone ? '✓' : unlocked ? '○' : '🔒'}</span>
                             <span>{lesson.title}</span>
                             {mi === modIdx && li === lesIdx && !showModQuiz && <span className="lesson-list-robot" aria-hidden="true">🤖</span>}
                           </button>
@@ -422,7 +415,7 @@ export const Sidebar = memo(function Sidebar({
                           onClick={() => onSelectModQuiz(mi)}
                           aria-label={`Open module quiz for ${module.title}`}
                         >
-                          <span className="lesson-list-chk">📝</span>
+                          <span className="lesson-list-chk" aria-hidden="true">📝</span>
                           <span>Module Quiz</span>
                         </button>
                       )}
@@ -450,6 +443,7 @@ export const Sidebar = memo(function Sidebar({
           </div>
         </div>
       </nav>
+      </div>
     </>
   );
 });

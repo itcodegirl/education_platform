@@ -35,3 +35,18 @@ All style imports flow through [`src/styles/App.css`](../src/styles/App.css). Ke
 - If a new section needs many related styles, add them to the right domain file and include a section comment header.
 - Run `npm run check:quality` after style changes to ensure build integrity.
 
+## Legacy shorthand class map (for maintainability)
+
+Some legacy selectors still use compact class names. When touching these
+areas, prefer semantic aliases first and only then remove shorthand usage.
+
+- `lp` -> `lesson-paragraph`
+- `qq` -> `quiz-question`
+- `qq-opt` -> `quiz-option`
+- `module-group` (`mg` in older notes) -> `module-group`
+- `lesson-list` / `lesson-list-btn` (`lg` in older notes) -> `lesson-list` / `lesson-list-button`
+- `code-preview` (`cpv` in older notes) -> `code-preview`
+- `sidebar` (`sb` in older notes) -> `sidebar`
+
+Rule of thumb: new selectors must be readable at first glance, and any
+remaining shorthand should be documented here before further expansion.

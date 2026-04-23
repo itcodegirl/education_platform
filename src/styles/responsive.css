@@ -96,16 +96,17 @@
 
 /* ─── 25b. Tablet Responsive (768px) ─────────── */
 @media (max-width: 768px) {
+  .quiz-container { --quiz-inline-pad: 16px; }
   .lesson-head { flex-direction: column; align-items: flex-start; }
   .lesson-actions { width: 100%; }
   .lesson-action-btn::after { display: none; }
   .lesson-emoji { font-size: 32px; }
   .lp { font-size: 15px; line-height: 1.75; }
   .box { padding: 16px 18px; border-radius: 14px; }
-  .quiz-header { padding: 14px 16px; }
-  .qq { padding: 14px 16px; gap: 12px; }
-  .quiz-submit { width: calc(100% - 32px); margin: 12px 16px 16px; }
-  .quiz-results { padding: 16px; flex-wrap: wrap; }
+  .quiz-header { padding: 14px var(--quiz-inline-pad); }
+  .qq { padding: 14px var(--quiz-inline-pad); gap: 12px; }
+  .quiz-submit { width: auto; margin: 12px var(--quiz-inline-pad) 16px; }
+  .quiz-results { padding: 16px var(--quiz-inline-pad); flex-wrap: wrap; }
   .quiz-next-step { width: 100%; }
   .quiz-score-num { font-size: 22px; }
   .topbar-actions .read-time { display: none; }

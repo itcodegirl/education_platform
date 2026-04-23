@@ -1,10 +1,10 @@
-/* ================================================
+﻿/* ================================================
    APP EXPERIENCE + PROGRESSION SURFACES
    Extracted from the legacy App.css for maintainability.
    Keep import order stable via styles/App.css.
    ================================================ */
 
-/* ─── 23b. Desktop Widescreen ─────────────────── */
+/* â”€â”€â”€ 23b. Desktop Widescreen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (min-width: 1400px) {
   :root {
     --content-max: 1000px;
@@ -31,7 +31,7 @@
   }
 }
 
-/* ─── Guest Preview ─────────────────────────────── */
+/* â”€â”€â”€ Guest Preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .guest-preview {
   min-height: 100vh;
   background: var(--bg-deep);
@@ -54,7 +54,7 @@
   border: 1px solid var(--border);
   background: var(--bg-card);
   color: var(--text-dim);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   letter-spacing: 0.02em;
 }
 
@@ -83,7 +83,7 @@
 }
 
 .gp-badge {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 11px;
   color: var(--amber);
   background: var(--amber-dim);
@@ -204,7 +204,7 @@
   text-align: center;
 }
 
-/* ─── Roadmap Panel ─────────────────────────────── */
+/* â”€â”€â”€ Roadmap Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .roadmap-panel {
   max-width: 720px;
   width: 95vw;
@@ -275,11 +275,11 @@
 .rm-course-count {
   font-size: 12px;
   color: var(--text-muted);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
 }
 
 .rm-course-pct {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 18px;
 }
@@ -347,7 +347,7 @@
 }
 
 .rm-mod-count {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 10px;
   opacity: 0.6;
 }
@@ -360,7 +360,7 @@
   opacity: 0.4;
 }
 
-/* ─── Break Prompt ──────────────────────────────── */
+/* â”€â”€â”€ Break Prompt â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .break-overlay {
   position: fixed;
   inset: 0;
@@ -447,7 +447,7 @@
   color: var(--text);
 }
 
-/* ─── 24. Print Styles ─────────────────────────── */
+/* â”€â”€â”€ 24. Print Styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media print {
 
   .sidebar,
@@ -504,7 +504,7 @@
   }
 }
 
-/* ─── 26. Quiz Meta Badges ─────────────────────── */
+/* â”€â”€â”€ 26. Quiz Meta Badges â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .quiz-meta {
   display: flex;
   gap: 8px;
@@ -520,7 +520,7 @@
   border-radius: 20px;
   font-size: 12px;
   font-weight: 700;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   background: linear-gradient(135deg, var(--pink-glow), rgba(167, 139, 250, 0.15));
   color: var(--pink);
   border: 1px solid var(--pink-dim);
@@ -541,13 +541,13 @@
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 11px;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   background: var(--bg-surface);
   color: var(--text-dim);
   border: 1px solid var(--border);
 }
 
-/* ─── 27. Welcome Back ────────────────────────── */
+/* â”€â”€â”€ 27. Welcome Back â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .welcome-overlay {
   position: fixed;
   inset: 0;
@@ -585,7 +585,7 @@
   opacity: 1;
 }
 
-/* ─── Greeting ─── */
+/* â”€â”€â”€ Greeting â”€â”€â”€ */
 .wb-greeting {
   margin-bottom: 24px;
   animation: fadeIn 0.4s ease 0.15s both;
@@ -601,7 +601,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-muted);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -633,7 +633,7 @@
   line-height: 1.6;
 }
 
-/* ─── Resume Hero Card ─── */
+/* â”€â”€â”€ Resume Hero Card â”€â”€â”€ */
 .wb-hero {
   display: flex;
   align-items: center;
@@ -680,7 +680,7 @@
   text-transform: uppercase;
   letter-spacing: 1.5px;
   color: var(--text-muted);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   margin-bottom: 6px;
   display: block;
 }
@@ -706,7 +706,7 @@
 .wb-hero-time {
   font-size: 10px;
   color: var(--text-muted);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   display: block;
   margin-top: 4px;
 }
@@ -747,7 +747,7 @@
 }
 
 .wb-hero-pct {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 10px;
   color: var(--text-muted);
   white-space: nowrap;
@@ -764,7 +764,7 @@
   transform: translateX(4px);
 }
 
-/* ─── Stat Pills ─── */
+/* â”€â”€â”€ Stat Pills â”€â”€â”€ */
 .wb-pills {
   display: flex;
   flex-wrap: wrap;
@@ -785,7 +785,7 @@
   font-size: 11px;
   font-weight: 600;
   color: var(--text-dim);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   white-space: nowrap;
 }
 
@@ -822,7 +822,7 @@
 
 .wb-stat-label {
   color: var(--text-muted);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -830,7 +830,7 @@
 
 .wb-stat-value {
   color: var(--text);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 19px;
   line-height: 1;
 }
@@ -849,7 +849,7 @@
   text-align: center;
 }
 
-/* ─── Secondary action ─── */
+/* â”€â”€â”€ Secondary action â”€â”€â”€ */
 .wb-fresh {
   background: none;
   border: none;
@@ -889,7 +889,7 @@
   }
 }
 
-/* ─── 28. Course Complete ─────────────────────── */
+/* â”€â”€â”€ 28. Course Complete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .cc-overlay {
   position: fixed;
   inset: 0;
@@ -946,14 +946,14 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-muted);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .cc-title {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 28px;
   font-weight: 700;
   background: linear-gradient(90deg, var(--pink), var(--amber));
@@ -1011,12 +1011,12 @@
   text-transform: uppercase;
   letter-spacing: 3px;
   color: var(--text-muted);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   margin-bottom: 4px;
 }
 
 .cc-cert-course {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 24px;
   font-weight: 700;
   margin-bottom: 12px;
@@ -1037,12 +1037,12 @@
 .cc-cert-date {
   font-size: 11px;
   color: var(--text-muted);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   margin-top: 12px;
 }
 
 .cc-cert-brand {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   color: var(--pink);
   margin-top: 16px;
@@ -1065,7 +1065,7 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
 }
 
 .cc-download-btn:hover:not(:disabled) {
@@ -1117,7 +1117,7 @@
   transform: translateY(-1px);
 }
 
-/* ─── 29. Confetti ────────────────────────────── */
+/* â”€â”€â”€ 29. Confetti â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @keyframes confettiFall {
   0% {
     transform: translateY(-10vh) translateX(0) rotate(0deg);
@@ -1158,9 +1158,9 @@
   height: calc(var(--size) * 1.4);
 }
 
-/* ─── Structured Lesson Format ────────────────── */
+/* â”€â”€â”€ Structured Lesson Format â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .sl-section-title {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: clamp(16px, 1rem + 0.3vw, 18px);
   font-weight: 700;
   color: var(--text);
@@ -1169,7 +1169,7 @@
   border-bottom: 1px solid var(--border);
 }
 
-/* Hook — accomplishments list */
+/* Hook â€” accomplishments list */
 .sl-hook {
   background: linear-gradient(180deg, rgba(78, 205, 196, 0.12), rgba(78, 205, 196, 0.04));
   border-color: var(--cyan);
@@ -1198,7 +1198,7 @@
 }
 
 .sl-hook-list li::before {
-  content: '✓';
+  content: 'âœ“';
   color: var(--cyan);
   font-weight: 700;
   flex-shrink: 0;
@@ -1238,7 +1238,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 13px;
   font-weight: 700;
   color: var(--pink);
@@ -1281,7 +1281,7 @@
 }
 
 .sl-concept-name {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 14px;
   font-weight: 700;
   color: var(--pink);
@@ -1334,7 +1334,7 @@
 
 .sl-comparison-label {
   padding: 6px 14px;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -1351,7 +1351,7 @@
 .sl-comparison-code {
   padding: 12px 14px;
   margin: 0;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 12px;
   line-height: 1.6;
   color: var(--text);
@@ -1370,7 +1370,7 @@
 }
 
 .sl-summary-title {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 14px;
   font-weight: 700;
   color: var(--cyan);
@@ -1402,7 +1402,7 @@
   flex-shrink: 0;
 }
 
-/* Bridge — next lesson teaser */
+/* Bridge â€” next lesson teaser */
 .sl-bridge {
   padding: 16px 18px;
   border-radius: 12px;
@@ -1412,7 +1412,7 @@
 }
 
 .sl-bridge-label {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 11px;
   font-weight: 700;
   color: var(--text-muted);
@@ -1441,7 +1441,7 @@
   }
 }
 
-/* ─── Scaffolding Level Indicators ────────────── */
+/* â”€â”€â”€ Scaffolding Level Indicators â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .code-preview-scaffolding {
   display: flex;
   align-items: center;
@@ -1458,7 +1458,7 @@
 }
 
 .code-preview-scaffolding-label {
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -1501,7 +1501,7 @@
   border-radius: 10px;
   font-size: 11px;
   font-weight: 600;
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
 }
 
 .lesson-scaffolding-partial {
@@ -1530,7 +1530,7 @@
   }
 }
 
-/* ─── 30. Code Preview Line Numbers ───────────── */
+/* â”€â”€â”€ 30. Code Preview Line Numbers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .code-preview-code {
   counter-reset: line;
   position: relative;
@@ -1540,7 +1540,7 @@
   display: block;
 }
 
-/* ─── 31. Improved Code Preview Hover ─────────── */
+/* â”€â”€â”€ 31. Improved Code Preview Hover â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .code-preview {
   transition: border-color 0.2s, box-shadow 0.2s;
 }
@@ -1550,7 +1550,7 @@
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
 }
 
-/* ─── 32. Lesson transition ───────────────────── */
+/* â”€â”€â”€ 32. Lesson transition â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .lesson-surface {
   animation: fadeIn 0.3s ease-out;
 }
@@ -1567,7 +1567,7 @@
   animation: slideInLeft 0.35s ease-out 0.2s both;
 }
 
-/* ─── Modal mobile additions ─────────────────── */
+/* â”€â”€â”€ Modal mobile additions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (max-width: 600px) {
   .cc-overlay {
     padding: 12px;
@@ -1597,7 +1597,7 @@
   }
 }
 
-/* ─── Scrollbar ────────────────────────────────── */
+/* â”€â”€â”€ Scrollbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .main-shell::-webkit-scrollbar,
 .sidebar-scroll::-webkit-scrollbar {
   width: 6px;
@@ -1618,6 +1618,7 @@
 .sidebar-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--border-bright);
 }
+
 
 
 
