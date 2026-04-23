@@ -77,6 +77,37 @@ test.describe('lesson flow', () => {
     expect(backTitle).not.toBe(secondTitle);
   });
 
+  test('browser back returns to the previous lesson URL and title', async ({ page }) => {
+    await page.waitForSelector('.lesson-title', { timeout: 10000 });
+    const firstUrl = page.url();
+    const firstTitle = (await page.textContent('.lesson-title'))?.trim();
+
+    await page.click('.nav-btn.nx');
+    await page.waitForTimeout(500);
+
+    const secondUrl = page.url();
+    expect(secondUrl).not.toBe(firstUrl);
+
+    await page.goBack();
+
+    await expect(page).toHaveURL(firstUrl);
+    await expect(page.locator('.lesson-title')).toHaveText(firstTitle || '');
+  });
+
+  test('deep-linked lesson URL restores the same lesson after reload', async ({ page }) => {
+    await page.waitForSelector('.lesson-title', { timeout: 10000 });
+    await page.click('.nav-btn.nx');
+    await page.waitForTimeout(500);
+
+    const deepLinkUrl = page.url();
+    const deepLinkTitle = (await page.textContent('.lesson-title'))?.trim() || '';
+
+    await page.goto(deepLinkUrl, { waitUntil: 'domcontentloaded' });
+
+    await expect(page).toHaveURL(deepLinkUrl);
+    await expect(page.locator('.lesson-title')).toHaveText(deepLinkTitle);
+  });
+
   test('mark done button toggles lesson completion', async ({ page }) => {
     await page.waitForSelector('.mark-btn', { timeout: 10000 });
 
