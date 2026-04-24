@@ -1,263 +1,186 @@
-# Cinova
+# CodeHerWay Learning Platform
 
-Cinova is a production-minded, browser-based learning platform focused on helping women build practical coding skills through guided lessons, live coding, and progress-driven feedback.
+Interactive coding education platform with course content, quizzes, code challenges, Supabase-backed progress sync, and AI tutoring through a Netlify Function.
 
-**Live demo:** https://cinova.app/
+## Canonical App Path
 
-## Build and CI status
+- The active, canonical app is this repository root.
+- Run setup, development, build, and deploy commands from this root.
+- `codeherway-v2/` is retained as archived reference material only and is not part of the active app path.
 
-[![CI](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/ci-smoke.yml?branch=main&label=CI%20(check%3Aci)&logo=githubactions)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
-[![JS Policy](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/typecheck.yml?branch=main&label=JS%20Policy&logo=javascript)](https://github.com/itcodegirl/education_platform/actions/workflows/typecheck.yml)
-[![E2E](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/e2e-smoke.yml?branch=main&label=E2E%20(Playwright)&logo=playwright)](https://github.com/itcodegirl/education_platform/actions/workflows/e2e-smoke.yml)
-[![Lighthouse](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/lighthouse-ci.yml?branch=main&label=Lighthouse%20budgets&logo=lighthouse)](https://github.com/itcodegirl/education_platform/actions/workflows/lighthouse-ci.yml)
-[![Policy](https://img.shields.io/github/actions/workflow/status/itcodegirl/education_platform/ci-smoke.yml?branch=main&label=Policy%20(RLS%2Fadmin)&logo=supabase)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
-[![Security](https://github.com/itcodegirl/education_platform/actions/workflows/security-audit.yml/badge.svg)](https://github.com/itcodegirl/education_platform/actions/workflows/security-audit.yml)
+## Stack
 
-[![React 18](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=white)](https://react.dev)
-[![Vite](https://img.shields.io/badge/Vite-6-646cff?logo=vite&logoColor=white)](https://vitejs.dev)
-[![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase&logoColor=white)](https://supabase.com)
+- React 18 + Vite
+- Supabase Auth + Postgres
+- Netlify static hosting + Netlify Functions
+- OpenAI Responses API for server-side AI features
 
----
+## Features
 
-## Product overview
+- Four course tracks: HTML, CSS, JavaScript, and React
+- Lesson progress, bookmarks, notes, badges, streaks, and spaced repetition
+- Search, glossary, cheatsheets, and project ideas
+- Monaco-powered code preview and coding challenges
+- AI tutor and code help routed through a server-side function
 
-Cinova is a multi-track learning platform (HTML, CSS, JavaScript, React, Python) designed around a repeatable lesson model:
+## Local Setup
 
-- Hook
-- Do
-- Understand
-- Build
-- Challenge
-- Summary
-
-Learners can read, code, test ideas, ask an AI tutor contextual questions, and track progress through XP, streaks, badges, and spaced repetition.
-
----
-
-## Why this project matters
-
-Most tutorial apps optimize for content volume. This project optimizes for learning momentum and production behavior:
-
-- clearer onboarding and "what to do next" guidance
-- real state persistence and progress continuity
-- secure AI integration behind server boundaries
-- consistent empty/loading/error states across core paths
-- accessibility and keyboard-first interaction patterns
-
-For reviewers, this shows product thinking, not just component assembly.
-
----
-
-## Key features
-
-- Guided lessons with live coding and immediate feedback loops
-- Monaco-based editor and preview workflows
-- AI tutor and AI-generated practice cards (server mediated)
-- Course navigation, bookmarks, glossary, and search
-- Spaced repetition queue from missed concepts
-- Gamification: XP, streaks, badges, daily momentum
-- Public learner profile pages with privacy controls
-- Admin dashboard and lesson tooling
-- PWA support and offline-oriented behavior
-
----
-
-## Architecture summary
-
-```text
-React SPA (Vite)
-  |
-  +-- Supabase Auth + Postgres (RLS)
-  |
-  +-- Netlify Functions
-        |- /ai
-        |- /practice-generate
-        |- /streak-reminder
-  |
-  +-- OpenAI Responses API (server-side only)
-```
-
-Core principle: authorization and security rules are enforced at the backend boundary (RLS + server functions), not trusted to client state.
-Routing currently runs in BrowserRouter compatibility mode with centralized path contracts in `src/routes/routePaths.js`.
-
-For a deeper technical walkthrough, see [docs/architecture.md](./docs/architecture.md).
-
----
-
-## Security and accessibility highlights
-
-### Security
-
-- API keys never exposed to the browser
-- Supabase Row Level Security on user-scoped data
-- Authenticated AI proxy via Netlify Functions
-- Rate limiting and guardrail prompt handling in server flow
-- Security headers in `netlify.toml` (CSP, HSTS, COOP, CORP, frame protections)
-- CI security checks (`npm audit`, secret scanning)
-
-### Accessibility
-
-- semantic landmarks and structured heading hierarchy
-- keyboard-navigable dialogs and overlays with focus management
-- visible focus states across interactive controls
-- meaningful labels and ARIA wiring for high-traffic interactions
-- reduced-motion support
-
----
-
-## Technical challenges and tradeoffs
-
-1. Rich UX vs maintainability
-   - Chose tokenized CSS + shared UI primitives for consistency without introducing a heavy design-system dependency.
-
-2. AI usefulness vs safety and cost control
-   - Kept AI calls server-mediated with strict payload controls and per-user limits.
-
-3. Fast initial load vs feature depth
-- Used lazy loading and chunk strategy by domain/course to avoid overloading first paint.
-- Monaco and admin surfaces are intentionally code-split into on-demand chunks so first-run learners do not pay editor/admin cost upfront.
-- Inter is self-hosted with latin + latin-ext subset declarations, and Poppins/Space Mono remain Latin-scoped, reducing first-load font payload while keeping brand hierarchy intact.
-- Added a bundle budget gate (`npm run check:bundle`) to keep eager chunks lean while allowing controlled Monaco-specific budgets.
-
-4. Incremental improvement vs full rewrite temptation
-   - Preserved architecture and made focused, auditable improvements in small batches.
-
----
-
-## Demo path (3 to 5 minutes)
-
-For portfolio demos, use this flow:
-
-1. Open landing/auth and explain product purpose in one sentence.
-2. Enter the dashboard and show first-run guidance.
-3. Open a lesson, mark progress, and navigate to the next step.
-4. Trigger search/bookmarks/review panel and show continuity.
-5. Show AI tutor flow and explain server-side guardrails.
-6. Close with profile/progress and release-quality checks.
-
----
-
-## Screenshots (placeholders)
-
-Add final screenshots to `docs/screenshots/` using these filenames:
-
-- `01-landing-auth.png` - landing and primary CTA hierarchy
-- `02-dashboard-first-run.png` - dashboard clarity and onboarding hints
-- `03-lesson-flow.png` - lesson page, progress, and next-step guidance
-- `04-tools-panels.png` - search/bookmarks/review side panels
-- `05-profile-progress.png` - profile and progress surface
-
-See placeholder guidance in [docs/screenshots/README.md](./docs/screenshots/README.md).
-
----
-
-## Local setup
+### 1. Install dependencies
 
 ```bash
-git clone https://github.com/itcodegirl/education_platform.git
-cd education_platform
-npm ci
+npm install
+```
+
+### 2. Create environment variables
+
+Copy [`.env.example`](./.env.example) to `.env` and fill in your Supabase values:
+
+```bash
 cp .env.example .env
+```
+
+Required in `.env` for the frontend:
+
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+### 3. Configure Supabase
+
+1. Create a Supabase project.
+2. Run [`supabase-schema.sql`](./supabase-schema.sql) in the SQL editor.
+3. Enable Email auth.
+4. Optionally enable Google and GitHub OAuth providers.
+5. Copy the project URL and anon key into `.env`.
+
+### 4. Run the app
+
+```bash
 npm run dev
 ```
 
-### Required environment values
+## Playwright Smoke Tests
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-- `OPENAI_API_KEY` (for function-backed AI features)
-- optional: `OPENAI_MODEL`
+The repo includes a lightweight Playwright smoke suite for the auth shell and a small set of authenticated app checks.
 
-### Database bootstrap
+Install the Chromium browser once:
 
-1. Apply [supabase-schema.sql](./supabase-schema.sql).
-2. Optionally seed an admin user:
-
-```sql
-update public.profiles set is_admin = true where id = '<your-uuid>';
+```bash
+npm run test:e2e:install
 ```
 
----
+Run the smoke suite locally:
 
-## Deployment notes
+```bash
+npm run test:e2e
+```
 
-- Primary deploy target: Netlify
-- Build command: `npm run build`
-- Publish directory: `dist`
-- Functions directory: `netlify/functions`
-- Scheduled job: `streak-reminder` (cron in `netlify.toml`)
+Optional authenticated coverage is unlocked when these environment variables are available:
 
-Pre-release checklist is documented in [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md).
-
----
-
-## Quality and release workflow
-
-- `npm run typecheck` - JS-only source policy (fails if `.ts`/`.tsx` files are introduced)
-- `npm run check:quality` - lint + build + bundle budget gate
-- `npm run test:unit` - unit tests (Vitest)
-- `npm run check` - quality checks + unit tests
-- `npm run check:ci` - `check` + Playwright integration/E2E suite
-- `npm run check:bundle` - verifies JS chunk budgets after build (stricter on eager chunks, explicit allowance for lazy Monaco chunks)
-- `npm run test:policy` - Supabase integration policy checks (RLS/admin escalation paths)
-- `npm run test:lighthouse` - Lighthouse CI assertions with score thresholds and budget gates
-
-### CI policy test secrets (dedicated Supabase test project)
-
-The CI workflow includes a separate policy integration job that runs `test:policy` against a dedicated Supabase project.
-
-Configure scoped repository secrets:
-
-- `POLICY_SUPABASE_URL`
-- `POLICY_SUPABASE_ANON_KEY`
-- `POLICY_SUPABASE_SERVICE_KEY`
+```env
+E2E_EMAIL=learner@example.com
+E2E_PASSWORD=your-test-password
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
 
 Notes:
 
-- Use a non-production Supabase project for policy tests.
-- Service key is used only in CI to seed/cleanup ephemeral test users and verify policy boundaries.
-- If secrets are absent (for example in forked PRs), the policy suite safely skips.
-- Recommended branch protection checks: `check:ci`, `deploy-preview-smoke`, `Supabase policy integration`, `JS Policy`, `e2e-smoke`, `lighthouse`.
+- Without the `E2E_*` credentials, the authenticated tests auto-skip and the public auth smoke test still runs.
+- Use `PLAYWRIGHT_BASE_URL` if you want to point the suite at a deployed preview instead of starting the local Vite dev server.
+- In GitHub Actions, add repository variables `E2E_SUPABASE_URL` and `E2E_SUPABASE_ANON_KEY`, plus repository secrets `E2E_EMAIL` and `E2E_PASSWORD`, to turn on the authenticated smoke path in CI.
 
-Additional scripts are listed in [package.json](./package.json).
+## AI Setup
 
----
+The frontend does not call model providers directly. AI requests go through [`netlify/functions/ai.js`](./netlify/functions/ai.js), which keeps the provider key off the client.
 
-## Roadmap
+Set these server-side environment variables where your Netlify Functions run:
 
-- [x] Production-style onboarding and first-run clarity
-- [x] Shared component/state patterns for panel consistency
-- [x] Security-hardened AI gateway and release checks
-- [x] Accessibility semantics and focus-state improvements
-- [x] Lightweight frontend analytics for onboarding and lesson-flow bottlenecks
-- [ ] Server-rendered OG metadata for richer sharing
-- [x] Add Lighthouse CI reporting to release pipeline
-- [ ] Expand analytics pipeline to persistent dashboards
+```env
+OPENAI_API_KEY=your-openai-api-key
+OPENAI_MODEL=gpt-5.4-mini
+```
 
----
+Notes:
 
-## Lessons learned
+- `OPENAI_API_KEY` is required for AI features.
+- `OPENAI_MODEL` is optional. The function defaults to `gpt-5.4-mini`.
+- Do not put `OPENAI_API_KEY` in client-side `VITE_` variables.
 
-- UX polish is mostly consistency, not flashy effects.
-- Accessibility is easier to sustain when built into shared primitives.
-- Small, check-validated batches produce safer momentum than rewrites.
-- Recruiter-facing documentation should explain both product value and engineering tradeoffs.
+## Netlify Deploy
 
----
+This repo is already configured for Netlify in [`netlify.toml`](./netlify.toml):
 
-## Portfolio case study
+- Build command: `npm run build`
+- Publish directory: `dist`
+- Functions directory: `netlify/functions`
 
-Read the narrative version here:
+In Netlify, add these environment variables:
 
-- [docs/portfolio-case-study.md](./docs/portfolio-case-study.md)
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `OPENAI_API_KEY`
+- Optional: `OPENAI_MODEL`
 
----
+For repeatable release QA, use [`RELEASE_CHECKLIST.md`](./RELEASE_CHECKLIST.md).
 
-## Additional docs
+After deploy, test:
 
-- [SECURITY.md](./SECURITY.md)
-- [CHANGELOG.md](./CHANGELOG.md)
-- [docs/architecture.md](./docs/architecture.md)
-- [docs/style-architecture.md](./docs/style-architecture.md)
-- [CONTRIBUTING.md](./CONTRIBUTING.md)
-- [LICENSE](./LICENSE)
+1. Sign up or sign in.
+2. Complete a lesson and confirm progress syncs.
+3. Open the AI tutor or challenge help and confirm the function responds.
+
+## GitHub Automation
+
+This repo includes lightweight GitHub automation:
+
+- [`.github/workflows/ci-smoke.yml`](./.github/workflows/ci-smoke.yml): build check plus public Playwright smoke tests for PRs and pushes to `main`
+- [`.github/workflows/ops-checks.yml`](./.github/workflows/ops-checks.yml): weekly dependency audit and optional live-site health check
+
+To enable live-site health checks, add a GitHub repository variable:
+
+- `PRODUCTION_URL`
+
+Example:
+
+```text
+https://mellow-sunflower-9c92cd.netlify.app
+```
+
+The health check pings the homepage and the Netlify AI function without requiring production secrets.
+
+## Project Structure
+
+```text
+src/
+  components/
+  context/
+  data/
+  hooks/
+  layouts/
+  lib/
+  providers/
+  routes/
+  services/
+  styles/
+  utils/
+netlify/
+  functions/
+public/
+supabase-schema.sql
+netlify.toml
+vite.config.js
+```
+
+## Key Files
+
+- [`src/lib/supabaseClient.js`](./src/lib/supabaseClient.js): Supabase client bootstrap
+- [`src/context/ProgressContext.jsx`](./src/context/ProgressContext.jsx): synced learning progress and gamification state
+- [`src/services/authService.js`](./src/services/authService.js): auth operations
+- [`src/services/aiService.js`](./src/services/aiService.js): frontend AI requests
+- [`netlify/functions/ai.js`](./netlify/functions/ai.js): server-side OpenAI proxy
+
+## Future AI Direction
+
+If you later want an orchestrated AI engine, this setup is a good base. The recommended path is to keep orchestration behind server routes or functions and let the frontend call your own app-level AI endpoints for tutor flows, memory, moderation, and tool use.

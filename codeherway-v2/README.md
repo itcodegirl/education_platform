@@ -1,5 +1,10 @@
 # ⚡ CodeHerWay Learning Platform v2
 
+> Archived reference only.
+>
+> This folder is legacy project material and is not the active application.
+> The canonical app lives at the repository root.
+
 An interactive coding education platform for women in tech — now with Supabase cloud sync, user authentication, bookmarks, notes, and a full visual glow-up.
 
 **Live:** [codeherway1.netlify.app](https://codeherway1.netlify.app)
