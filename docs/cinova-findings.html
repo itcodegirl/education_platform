@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cinova — Project Findings</title>
+  <style>
+    /* ── Tokens ── */
+    :root {
+      --color-bg: #ffffff;
+      --color-surface: #f8f9fb;
+      --color-border: #e2e6ea;
+      --color-accent: #6c5ce7;
+      --color-accent-light: #ede9fe;
+      --color-text: #1a1d23;
+      --color-muted: #5a6270;
+      --color-code-bg: #f3f4f6;
+      --font-body: Georgia, "Times New Roman", serif;
+      --font-heading: system-ui, -apple-system, "Segoe UI", sans-serif;
+      --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      --radius: 6px;
+      --max-width: 860px;
+    }
+
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    /* ── Page shell ── */
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-body);
+      line-height: 1.75;
+      padding: 3rem 1.5rem;
+    }
+
+    .document {
+      max-width: var(--max-width);
+      margin: 0 auto;
+    }
+
+    /* ── Cover ── */
+    .cover {
+      text-align: center;
+      padding: 4rem 0 3rem;
+      border-bottom: 2px solid var(--color-accent);
+      margin-bottom: 3rem;
+    }
+
+    .cover .label {
+      font-family: var(--font-heading);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: 1rem;
+    }
+
+    .cover h1 {
+      font-family: var(--font-heading);
+      font-size: 2.6rem;
+      font-weight: 700;
+      color: var(--color-text);
+      line-height: 1.2;
+      margin-bottom: 0.75rem;
+    }
+
+    .cover .subtitle {
+      font-size: 1.1rem;
+      color: var(--color-muted);
+      margin-bottom: 2rem;
+    }
+
+    .cover .meta {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      font-family: var(--font-heading);
+      font-size: 0.85rem;
+      color: var(--color-muted);
+    }
+
+    .cover .meta span { white-space: nowrap; }
+
+    /* ── Table of contents ── */
+    .toc {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 1.5rem 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .toc h2 {
+      font-family: var(--font-heading);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 1rem;
+    }
+
+    .toc ol {
+      list-style: none;
+      counter-reset: toc;
+      padding: 0;
+    }
+
+    .toc ol li {
+      counter-increment: toc;
+      font-family: var(--font-heading);
+      font-size: 0.95rem;
+      line-height: 2;
+    }
+
+    .toc ol li::before {
+      content: counter(toc) ". ";
+      color: var(--color-accent);
+      font-weight: 600;
+      min-width: 1.8rem;
+      display: inline-block;
+    }
+
+    .toc a { color: var(--color-text); text-decoration: none; }
+    .toc a:hover { color: var(--color-accent); }
+
+    /* ── Sections ── */
+    section { margin-bottom: 3.5rem; }
+
+    section + section { border-top: 1px solid var(--color-border); padding-top: 3rem; }
+
+    .section-label {
+      font-family: var(--font-heading);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: 0.4rem;
+    }
+
+    h2 {
+      font-family: var(--font-heading);
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--color-text);
+      margin-bottom: 1.25rem;
+      line-height: 1.25;
+    }
+
+    h3 {
+      font-family: var(--font-heading);
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-top: 1.75rem;
+      margin-bottom: 0.6rem;
+    }
+
+    h4 {
+      font-family: var(--font-heading);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--color-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-top: 1.25rem;
+      margin-bottom: 0.4rem;
+    }
+
+    p { margin-bottom: 1rem; }
+
+    ul, ol {
+      padding-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    li { margin-bottom: 0.3rem; }
+
+    /* ── Cards / callouts ── */
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .highlight-card {
+      background: var(--color-accent-light);
+      border-left: 4px solid var(--color-accent);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .highlight-card p { margin-bottom: 0; }
+
+    /* ── Inline code & code blocks ── */
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      background: var(--color-code-bg);
+      padding: 0.15em 0.4em;
+      border-radius: 3px;
+      border: 1px solid var(--color-border);
+    }
+
+    pre {
+      background: #1e1e2e;
+      color: #cdd6f4;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.6;
+      padding: 1.25rem 1.5rem;
+      border-radius: var(--radius);
+      overflow-x: auto;
+      margin-bottom: 1rem;
+    }
+
+    pre code {
+      background: transparent;
+      border: none;
+      padding: 0;
+      font-size: inherit;
+      color: inherit;
+    }
+
+    /* ── Tables ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-heading);
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+
+    th {
+      background: var(--color-surface);
+      text-align: left;
+      padding: 0.6rem 1rem;
+      border: 1px solid var(--color-border);
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-muted);
+    }
+
+    td {
+      padding: 0.6rem 1rem;
+      border: 1px solid var(--color-border);
+      vertical-align: top;
+    }
+
+    tr:nth-child(even) td { background: var(--color-surface); }
+
+    /* ── Badge pills ── */
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .badge {
+      font-family: var(--font-heading);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.2rem 0.7rem;
+      border-radius: 999px;
+      background: var(--color-accent-light);
+      color: var(--color-accent);
+      border: 1px solid #c4b5fd;
+    }
+
+    /* ── Architecture diagram ── */
+    .arch-diagram {
+      background: #1e1e2e;
+      color: #cdd6f4;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.7;
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      margin-bottom: 1rem;
+    }
+
+    /* ── Print styles ── */
+    @media print {
+      body { padding: 0; font-size: 11pt; }
+      .cover { padding-top: 2.5in; page-break-after: always; }
+      .toc { page-break-after: always; }
+      section { page-break-inside: avoid; }
+      h2, h3 { page-break-after: avoid; }
+      pre, .arch-diagram { page-break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+      .cover .meta { color: #666; }
+    }
+
+    @page {
+      margin: 0.9in 0.8in;
+      @bottom-center {
+        content: "Cinova — Project Findings  |  Page " counter(page);
+        font-family: system-ui, sans-serif;
+        font-size: 9pt;
+        color: #888;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="document">
+
+  <!-- ═══════════════════════════════ COVER ════════════════════════════════ -->
+  <div class="cover">
+    <p class="label">Project Findings Report</p>
+    <h1>Cinova</h1>
+    <p class="subtitle">A production-minded, browser-based coding education platform<br>
+    built for women learning to ship.</p>
+    <div class="meta">
+      <span>Repository: itcodegirl/education_platform</span>
+      <span>Live demo: cinova.app</span>
+      <span>Stack: React 18 · Vite · Supabase · Netlify Functions</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ TOC ══════════════════════════════════ -->
+  <nav class="toc" aria-label="Table of contents">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#executive-summary">Executive Summary</a></li>
+      <li><a href="#product-overview">Product Overview</a></li>
+      <li><a href="#architecture">Architecture &amp; Technical Design</a></li>
+      <li><a href="#improvements">What Was Improved</a></li>
+      <li><a href="#security">Security Findings</a></li>
+      <li><a href="#accessibility">Accessibility Hardening</a></li>
+      <li><a href="#tradeoffs">Key Technical Tradeoffs</a></li>
+      <li><a href="#quality">Quality &amp; Release Workflow</a></li>
+      <li><a href="#performance">Performance Strategy</a></li>
+      <li><a href="#outcomes">Outcomes</a></li>
+      <li><a href="#roadmap">Roadmap &amp; Next Steps</a></li>
+      <li><a href="#lessons">Lessons Learned</a></li>
+    </ol>
+  </nav>
+
+  <!-- ════════════════════════ 1. EXECUTIVE SUMMARY ═════════════════════════ -->
+  <section id="executive-summary">
+    <p class="section-label">Section 1</p>
+    <h2>Executive Summary</h2>
+
+    <div class="highlight-card">
+      <p>Cinova is a production-grade learning platform designed to improve first-time coding confidence
+      while preserving technical rigor. This document consolidates the project's architecture, security
+      posture, accessibility work, engineering decisions, and measurable outcomes for both technical
+      reviewers and non-technical stakeholders.</p>
+    </div>
+
+    <p>The work described here focused on hardening an existing education platform for portfolio-grade
+    quality: cleaner onboarding, stronger security controls, accessibility improvements, and a
+    repeatable release workflow — all delivered through small, check-validated batches without a
+    full architectural rewrite.</p>
+
+    <div class="badges">
+      <span class="badge">React 18</span>
+      <span class="badge">Vite 6</span>
+      <span class="badge">Supabase (Postgres + RLS)</span>
+      <span class="badge">Netlify Functions</span>
+      <span class="badge">OpenAI Responses API</span>
+      <span class="badge">Vitest</span>
+      <span class="badge">Playwright</span>
+      <span class="badge">ESLint</span>
+    </div>
+  </section>
+
+  <!-- ════════════════════════ 2. PRODUCT OVERVIEW ══════════════════════════ -->
+  <section id="product-overview">
+    <p class="section-label">Section 2</p>
+    <h2>Product Overview</h2>
+
+    <p>Cinova is a multi-track learning platform covering HTML, CSS, JavaScript, React, and Python.
+    Each lesson follows a repeatable six-step model:</p>
+
+    <div class="card-grid">
+      <div class="card"><strong>Hook</strong> — engage with a real problem</div>
+      <div class="card"><strong>Do</strong> — hands-on activity first</div>
+      <div class="card"><strong>Understand</strong> — concept explanation after practice</div>
+      <div class="card"><strong>Build</strong> — apply the concept in code</div>
+      <div class="card"><strong>Challenge</strong> — extend without scaffolding</div>
+      <div class="card"><strong>Summary</strong> — consolidate and reflect</div>
+    </div>
+
+    <h3>Key Features</h3>
+    <ul>
+      <li>Guided lessons with live coding and immediate feedback loops</li>
+      <li>Monaco-based code editor and preview workflows</li>
+      <li>AI tutor and AI-generated practice cards (server-mediated)</li>
+      <li>Course navigation, bookmarks, glossary, and search</li>
+      <li>Spaced repetition queue built from missed concepts</li>
+      <li>Gamification: XP, streaks, badges, and daily momentum goals</li>
+      <li>Public learner profile pages with opt-in privacy controls</li>
+      <li>Admin dashboard and lesson content tooling</li>
+      <li>PWA support and offline-oriented behavior</li>
+    </ul>
+
+    <h3>Design Philosophy</h3>
+    <p>Most tutorial apps optimize for content volume. Cinova optimizes for <em>learning momentum</em>
+    and <em>production behavior</em>. This means clearer "what to do next" guidance, real state
+    persistence, secure AI integration, and consistent empty/loading/error states across all paths.</p>
+  </section>
+
+  <!-- ════════════════════════ 3. ARCHITECTURE ══════════════════════════════ -->
+  <section id="architecture">
+    <p class="section-label">Section 3</p>
+    <h2>Architecture &amp; Technical Design</h2>
+
+    <div class="arch-diagram" role="img" aria-label="System architecture diagram">
+Browser (React 18 + Vite)
+  │
+  ├── Route shell and feature panels
+  │
+  ├── Supabase JS client
+  │    ├── Auth session management
+  │    └── Postgres reads/writes (RLS enforced)
+  │
+  ├── Netlify Functions
+  │    ├── /.netlify/functions/ai
+  │    ├── /.netlify/functions/practice-generate
+  │    └── /.netlify/functions/streak-reminder
+  │
+  └── OpenAI Responses API (server-side only)
+    </div>
+
+    <h3>Design Invariants</h3>
+    <ol>
+      <li><strong>No secrets in the browser bundle.</strong> API keys never reach the client.</li>
+      <li><strong>RLS is the true authorization boundary.</strong> The UI is a convenience layer, not a security layer.</li>
+      <li><strong>Paid AI calls are server-mediated and rate-limited.</strong> All OpenAI traffic goes through authenticated Netlify Functions.</li>
+      <li><strong>Security-critical dependencies fail closed.</strong> If the rate limiter is unreachable, the request is rejected rather than forwarded.</li>
+    </ol>
+
+    <h3>Route Model</h3>
+    <table>
+      <thead>
+        <tr><th>Path</th><th>Behavior</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>/</code></td><td>Auth layout when signed out, app shell when signed in</td></tr>
+        <tr><td><code>/learn/:course/:module/:lesson</code></td><td>Deep-linked lesson state</td></tr>
+        <tr><td><code>/profile</code></td><td>Signed-in profile page</td></tr>
+        <tr><td><code>/admin</code></td><td>Admin dashboard (gated by admin route + backend auth)</td></tr>
+        <tr><td><code>/u/:handle</code></td><td>Public profile page (opt-in)</td></tr>
+        <tr><td><code>/styleguide</code></td><td>Design token and style reference page</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Repository Map</h3>
+    <pre><code>src/
+  App.jsx · main.jsx
+  routes/       AppRoutes.jsx · routeUtils.js
+  layouts/      AppLayout.jsx · AuthLayout.jsx
+  providers/ · context/
+  services/     aiService.js · authService.js · gamificationService.js
+                learningEngine.js · practiceService.js · progressService.js
+  components/   auth/ · learning/ · panels/ · layout/ · shared/ · admin/ · gamification/
+  hooks/ · utils/ · lib/supabaseClient.js · data/ · styles/
+
+netlify/functions/
+  ai.js · practice-generate.js · streak-reminder.js
+
+supabase-schema.sql</code></pre>
+
+    <h3>Styling Architecture</h3>
+    <p>The UI uses tokenized CSS variables and shared component patterns. Style imports flow in a
+    strict order through <code>src/styles/App.css</code>:</p>
+    <ol>
+      <li><code>tokens.css</code> — design tokens (colors, spacing, radii, typography)</li>
+      <li><code>base.css</code> — resets and base element styles</li>
+      <li><code>animations.css</code> — shared motion primitives</li>
+      <li>Feature modules: <code>auth.css</code>, <code>sidebar.css</code>, <code>lessons.css</code>, <code>panels.css</code>, <code>landing.css</code>, <code>responsive.css</code></li>
+      <li>Domain modules: <code>shell-layout.css</code>, <code>learning-experience.css</code>, <code>feature-surfaces.css</code>, <code>platform-quality.css</code></li>
+    </ol>
+  </section>
+
+  <!-- ════════════════════════ 4. IMPROVEMENTS ══════════════════════════════ -->
+  <section id="improvements">
+    <p class="section-label">Section 4</p>
+    <h2>What Was Improved</h2>
+
+    <h3>1 · First-Run &amp; UX Clarity</h3>
+    <ul>
+      <li>Sharper CTA hierarchy in the entry flow with scroll-driven landing hero</li>
+      <li>Clearer onboarding and "next step" language throughout lesson flow</li>
+      <li>Improved empty states and helper copy where users previously hit dead ends</li>
+    </ul>
+
+    <h3>2 · Visual Consistency</h3>
+    <ul>
+      <li>Standardized controls and state surfaces (buttons, inputs, status blocks)</li>
+      <li>Harmonized card/panel spacing, radii, and border rhythm</li>
+      <li>Improved consistency across lesson, panel, and dashboard surfaces</li>
+      <li><code>App.css</code> carved from 5,039 lines into 9 domain-scoped files</li>
+    </ul>
+
+    <h3>3 · New Features Added</h3>
+    <ul>
+      <li>AI-generated practice quiz cards via <code>netlify/functions/practice-generate.js</code> with Postgres-backed rate limiting and strict JSON schema validation</li>
+      <li>Public <code>/u/:handle</code> profile pages — opt-in, RLS-gated, read-only</li>
+      <li>Design system styleguide at <code>/styleguide</code> rendering all design tokens visually</li>
+      <li><code>useLocalStorage</code> hook — SSR-safe, cross-tab synced</li>
+      <li>Vitest unit tests for <code>gamificationService</code> and <code>learningEngine</code> (22 tests)</li>
+      <li>Self-hosted fonts via <code>@fontsource-variable/inter</code> and related packages — eliminates Google Fonts dependency</li>
+    </ul>
+
+    <h3>4 · Code-Health &amp; Workflow Quality</h3>
+    <ul>
+      <li>Improved root scripts for clear unit/integration/release gates</li>
+      <li>Aligned README, CONTRIBUTING, and release checklist with actual commands</li>
+      <li>Committed <code>package-lock.json</code> for supply-chain integrity</li>
+      <li>Added <code>.github/workflows/security-audit.yml</code> (npm audit + gitleaks + typecheck)</li>
+      <li>Bundle budget gate (<code>npm run check:bundle</code>) to keep eager chunks lean</li>
+      <li>Domain-aware chunking isolates Monaco editor and admin views into on-demand chunks</li>
+    </ul>
+  </section>
+
+  <!-- ════════════════════════ 5. SECURITY ══════════════════════════════════ -->
+  <section id="security">
+    <p class="section-label">Section 5</p>
+    <h2>Security Findings</h2>
+
+    <h3>Threat Model Summary</h3>
+    <table>
+      <thead>
+        <tr><th>Asset</th><th>Threats</th><th>Mitigations</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Learner accounts</td>
+          <td>Account takeover via XSS, session theft, OAuth redirect hijack</td>
+          <td>HTML-escaping in all <code>dangerouslySetInnerHTML</code> sinks, strict CSP, Supabase URL allowlist for OAuth</td>
+        </tr>
+        <tr>
+          <td>Learner data (progress, notes)</td>
+          <td>Cross-tenant read/write</td>
+          <td>Row-Level Security on every Supabase table (<code>auth.uid() = user_id</code>)</td>
+        </tr>
+        <tr>
+          <td>OpenAI API key</td>
+          <td>Exfiltration, free LLM abuse</td>
+          <td>Key is server-only; Netlify Function gateway requires a valid session, applies per-user rate limiting, caps payload size, prepends server-side guardrail prompt</td>
+        </tr>
+        <tr>
+          <td>Admin surface</td>
+          <td>Privilege escalation</td>
+          <td>Direct <code>UPDATE</code> to <code>is_admin</code> blocked by Postgres trigger; promotions must go through <code>set_user_admin()</code> RPC, which refuses self-edits and writes to <code>admin_audit_log</code></td>
+        </tr>
+        <tr>
+          <td>Code playground</td>
+          <td>Sandbox escape to parent origin</td>
+          <td><code>&lt;iframe sandbox="allow-scripts"&gt;</code> without <code>allow-same-origin</code></td>
+        </tr>
+        <tr>
+          <td>Build pipeline</td>
+          <td>Malicious dependencies, supply-chain compromise</td>
+          <td>Committed lockfile, <code>npm audit</code> in CI, <code>gitleaks</code> secret scanning, Dependabot</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Security Headers (netlify.toml)</h3>
+    <ul>
+      <li><strong>Content-Security-Policy</strong> — <code>default-src 'self'</code> with explicit allowlist; <code>frame-ancestors 'none'</code></li>
+      <li><strong>Strict-Transport-Security</strong> — 2-year HSTS with <code>includeSubDomains</code> and <code>preload</code></li>
+      <li><code>X-Frame-Options: DENY</code>, <code>X-Content-Type-Options: nosniff</code>, <code>Referrer-Policy: strict-origin-when-cross-origin</code></li>
+      <li><code>Permissions-Policy</code> disables camera, microphone, and geolocation</li>
+      <li><code>Cross-Origin-Opener-Policy: same-origin</code> and <code>Cross-Origin-Resource-Policy: same-origin</code></li>
+    </ul>
+
+    <h3>XSS Fixes Applied</h3>
+    <ul>
+      <li><code>renderMarkdown</code> (<code>src/utils/markdown.jsx</code>) now HTML-escapes before applying markdown substitution</li>
+      <li><code>SearchPanel.highlight()</code> escapes both source text and query before regex replacement</li>
+      <li>DOMPurify pinned via <code>package.json</code> overrides</li>
+    </ul>
+
+    <h3>AI Proxy Controls</h3>
+    <ul>
+      <li>Requires a valid Supabase bearer token verified against <code>/auth/v1/user</code></li>
+      <li>Persistent per-user rate limit in Postgres via <code>public.consume_ai_quota()</code> SECURITY DEFINER RPC (10 requests / 60 seconds)</li>
+      <li>Strict payload caps: system prompt ≤ 2000 chars, ≤ 20 messages, ≤ 4000 chars/message, ≤ 12000 chars total, ≤ 1024 output tokens</li>
+      <li>Mandatory server-side guardrail prefix prevents repurposing as a general-purpose LLM</li>
+      <li>Fails closed — if the rate-limit RPC is unreachable, the request is rejected (503) rather than forwarded</li>
+    </ul>
+  </section>
+
+  <!-- ════════════════════════ 6. ACCESSIBILITY ═════════════════════════════ -->
+  <section id="accessibility">
+    <p class="section-label">Section 6</p>
+    <h2>Accessibility Hardening</h2>
+
+    <p>Accessibility improvements were built into shared primitives so they apply consistently
+    across all surfaces rather than as one-off patches.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <h4>Semantics</h4>
+        <p>Semantic landmarks and structured heading hierarchy throughout. Stronger dialog semantics
+        with <code>aria-labelledby</code> and <code>aria-describedby</code>.</p>
+      </div>
+      <div class="card">
+        <h4>Keyboard Navigation</h4>
+        <p>Keyboard-navigable dialogs and overlays with proper focus management. Visible focus
+        states across all interactive controls.</p>
+      </div>
+      <div class="card">
+        <h4>ARIA</h4>
+        <p>Meaningful labels and ARIA wiring for high-traffic interactions. Cleaner interaction
+        semantics in quiz, search, and sidebar flows.</p>
+      </div>
+      <div class="card">
+        <h4>Motion</h4>
+        <p>Reduced-motion support across all animations. The scroll-driven landing hero respects
+        <code>prefers-reduced-motion</code> with no additional dependencies.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════ 7. TRADEOFFS ═════════════════════════════════ -->
+  <section id="tradeoffs">
+    <p class="section-label">Section 7</p>
+    <h2>Key Technical Tradeoffs</h2>
+
+    <h3>Tradeoff 1 · Polish Speed vs Architectural Churn</h3>
+    <div class="card">
+      <p><strong>Decision:</strong> Optimize within current architecture instead of introducing a new state or design framework.</p>
+      <p><strong>Why:</strong> Reduced risk, preserved momentum, and kept changes reviewable in small batches. Tokenized CSS and shared UI primitives provided consistency without a heavy design-system dependency.</p>
+    </div>
+
+    <h3>Tradeoff 2 · Richer UX Semantics vs Test Stability</h3>
+    <div class="card">
+      <p><strong>Decision:</strong> Align ARIA semantics with test expectations and accessibility best practices instead of forcing custom patterns.</p>
+      <p><strong>Why:</strong> Prevented regressions while improving screen reader and keyboard behavior simultaneously.</p>
+    </div>
+
+    <h3>Tradeoff 3 · Strict Release Confidence vs Local Iteration Speed</h3>
+    <div class="card">
+      <p><strong>Decision:</strong> Use simple command gates (<code>check</code>, <code>check:ci</code>) to keep both fast feedback and CI parity.</p>
+      <p><strong>Why:</strong> Stronger release confidence without a complex pipeline redesign.</p>
+    </div>
+
+    <h3>Tradeoff 4 · AI Usefulness vs Safety and Cost Control</h3>
+    <div class="card">
+      <p><strong>Decision:</strong> Keep all AI calls server-mediated with strict payload controls and per-user limits enforced in the database, not in the function.</p>
+      <p><strong>Why:</strong> A function-level-only limit could be bypassed by concurrent requests. Moving the limit to a Postgres SECURITY DEFINER RPC that reads <code>auth.uid()</code> server-side closes that window.</p>
+    </div>
+
+    <h3>Tradeoff 5 · Fast Initial Load vs Feature Depth</h3>
+    <div class="card">
+      <p><strong>Decision:</strong> Lazy-load Monaco editor, admin views, and styleguide. Self-host fonts with Latin subset declarations. Add a bundle budget gate to CI.</p>
+      <p><strong>Why:</strong> First-run learners should not pay the editor or admin cost upfront. The budget gate prevents silent regressions as features are added.</p>
+    </div>
+  </section>
+
+  <!-- ════════════════════════ 8. QUALITY ═══════════════════════════════════ -->
+  <section id="quality">
+    <p class="section-label">Section 8</p>
+    <h2>Quality &amp; Release Workflow</h2>
+
+    <table>
+      <thead>
+        <tr><th>Stage</th><th>Tooling</th><th>Command</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Local dev</td><td>Vite</td><td><code>npm run dev</code></td></tr>
+        <tr><td>Production build</td><td>Vite + Rollup</td><td><code>npm run build</code></td></tr>
+        <tr><td>Lint</td><td>ESLint</td><td><code>npm run lint</code></td></tr>
+        <tr><td>Unit tests</td><td>Vitest</td><td><code>npm run test:unit</code></td></tr>
+        <tr><td>Integration / E2E</td><td>Playwright</td><td><code>npm run test:integration</code></td></tr>
+        <tr><td>Bundle budgets</td><td>Custom script</td><td><code>npm run check:bundle</code></td></tr>
+        <tr><td>Quality gate</td><td>lint + build + bundle + unit</td><td><code>npm run check</code></td></tr>
+        <tr><td>CI gate</td><td>quality gate + integration/E2E</td><td><code>npm run check:ci</code></td></tr>
+        <tr><td>Security audit</td><td>npm audit + gitleaks</td><td>GitHub Actions on every PR</td></tr>
+        <tr><td>JS policy check</td><td>Custom script (no .ts/.tsx)</td><td><code>npm run typecheck</code></td></tr>
+        <tr><td>Lighthouse CI</td><td>Lighthouse CI</td><td><code>npm run test:lighthouse</code></td></tr>
+        <tr><td>Policy / RLS tests</td><td>Supabase test project</td><td><code>npm run test:policy</code></td></tr>
+      </tbody>
+    </table>
+
+    <p>The project deliberately stays in JavaScript (not TypeScript) while enforcing a CI policy check
+    that fails the build if any <code>.ts</code> or <code>.tsx</code> files are introduced. This keeps
+    the toolchain simple while maintaining a clear, enforceable rule.</p>
+  </section>
+
+  <!-- ════════════════════════ 9. PERFORMANCE ══════════════════════════════ -->
+  <section id="performance">
+    <p class="section-label">Section 9</p>
+    <h2>Performance Strategy</h2>
+
+    <ul>
+      <li><strong>Domain-aware chunking</strong> in <code>vite.config.js</code> keeps first paint focused on the learning shell.</li>
+      <li><strong>Monaco editor</strong> is lazy-loaded so first-run users do not pay the ~1 MB editor cost upfront.</li>
+      <li><strong>Admin views</strong> are lazy-loaded and route-gated, adding no cost to the learner path.</li>
+      <li><strong>Bundle budget checks</strong> (<code>npm run check:bundle</code>) are enforced in CI to prevent silent regressions — stricter on eager chunks, with explicit allowances for Monaco-specific budgets.</li>
+      <li><strong>Self-hosted fonts</strong>: Inter (variable, Latin + Latin-ext subset), Poppins and Space Mono (Latin-scoped) — eliminates runtime Google Fonts requests and reduces first-load font payload.</li>
+      <li><strong>Lighthouse CI</strong> runs score thresholds and budget gates in CI to prevent performance regressions from reaching production.</li>
+    </ul>
+  </section>
+
+  <!-- ════════════════════════ 10. OUTCOMES ════════════════════════════════ -->
+  <section id="outcomes">
+    <p class="section-label">Section 10</p>
+    <h2>Outcomes</h2>
+
+    <div class="card-grid">
+      <div class="card">
+        <h4>User Experience</h4>
+        <p>Clearer user path from landing to lesson completion. First 30–60 seconds of the product
+        are guided and intentional.</p>
+      </div>
+      <div class="card">
+        <h4>Visual Quality</h4>
+        <p>More consistent, premium-feeling UI without sacrificing readability. Design tokens and
+        shared primitives provide a sustainable system.</p>
+      </div>
+      <div class="card">
+        <h4>Release Confidence</h4>
+        <p>Explicit quality gates at every level — unit, integration, E2E, bundle, security, and
+        Lighthouse — all runnable locally with parity to CI.</p>
+      </div>
+      <div class="card">
+        <h4>Portfolio Narrative</h4>
+        <p>Clearer story for both non-technical and technical reviewers: product thinking, security
+        depth, and engineering discipline all demonstrable.</p>
+      </div>
+    </div>
+
+    <h3>Resume-Friendly Summary</h3>
+    <div class="highlight-card">
+      <p>Built and hardened a multi-track SaaS-style coding education platform with secure AI
+      integration, accessible interaction design, and release-grade quality workflow. Improved
+      onboarding clarity, consistency, and maintainability through targeted, check-validated
+      iterations without a full architectural rewrite.</p>
+    </div>
+  </section>
+
+  <!-- ════════════════════════ 11. ROADMAP ════════════════════════════════ -->
+  <section id="roadmap">
+    <p class="section-label">Section 11</p>
+    <h2>Roadmap &amp; Next Steps</h2>
+
+    <h3>Completed</h3>
+    <ul>
+      <li>Production-style onboarding and first-run clarity</li>
+      <li>Shared component and state patterns for panel consistency</li>
+      <li>Security-hardened AI gateway and release checks</li>
+      <li>Accessibility semantics and focus-state improvements</li>
+      <li>Lightweight frontend analytics for onboarding and lesson-flow bottlenecks</li>
+      <li>Lighthouse CI reporting added to release pipeline</li>
+    </ul>
+
+    <h3>Pending</h3>
+    <ul>
+      <li>Add final screenshot assets in <code>docs/screenshots/</code></li>
+      <li>Server-rendered OG metadata for richer social sharing</li>
+      <li>Expand analytics pipeline to persistent dashboards</li>
+      <li>Continue incremental CSS modularization to reduce global stylesheet surface area</li>
+      <li>Add richer analytics for onboarding drop-off and lesson completion friction</li>
+    </ul>
+  </section>
+
+  <!-- ════════════════════════ 12. LESSONS LEARNED ══════════════════════════ -->
+  <section id="lessons">
+    <p class="section-label">Section 12</p>
+    <h2>Lessons Learned</h2>
+
+    <ul>
+      <li><strong>UX polish is mostly consistency, not flashy effects.</strong> Standardizing spacing, radii, and border rhythm produced a premium feel far more efficiently than adding new visual effects.</li>
+      <li><strong>Accessibility is easier to sustain when built into shared primitives.</strong> Once focus management and ARIA patterns lived in shared components, every new surface inherited them for free.</li>
+      <li><strong>Small, check-validated batches produce safer momentum than rewrites.</strong> Each batch could be reviewed, reverted, and understood independently.</li>
+      <li><strong>Security controls belong at the backend boundary.</strong> Rate limits, authorization, and payload validation in the Netlify Function and Postgres layer — not in client state — meant the client could be fully untrusted without sacrificing safety.</li>
+      <li><strong>Recruiter-facing documentation should explain both product value and engineering tradeoffs.</strong> Showing <em>what</em> was built and <em>why</em> specific tradeoffs were made is more compelling than a feature list alone.</li>
+    </ul>
+  </section>
+
+</div><!-- /.document -->
+</body>
+</html>
