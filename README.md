@@ -1,6 +1,6 @@
 # CodeHerWay Learning Platform
 
-Interactive coding education platform with course content, quizzes, code challenges, Supabase-backed progress sync, and AI tutoring through a Netlify Function.
+Interactive coding education platform with course content, quizzes, coding challenges, progress tracking, and AI-assisted help through a Netlify Function.
 
 ## Canonical App Path
 
@@ -128,7 +128,7 @@ For repeatable release QA, use [`RELEASE_CHECKLIST.md`](./RELEASE_CHECKLIST.md).
 After deploy, test:
 
 1. Sign up or sign in.
-2. Complete a lesson and confirm progress syncs.
+2. Complete a lesson and confirm progress saves and reloads.
 3. Open the AI tutor or challenge help and confirm the function responds.
 
 ## GitHub Automation
@@ -176,7 +176,7 @@ vite.config.js
 ## Key Files
 
 - [`src/lib/supabaseClient.js`](./src/lib/supabaseClient.js): Supabase client bootstrap
-- [`src/context/ProgressContext.jsx`](./src/context/ProgressContext.jsx): synced learning progress and gamification state
+- [`src/context/ProgressContext.jsx`](./src/context/ProgressContext.jsx): learning progress and gamification state
 - [`src/services/authService.js`](./src/services/authService.js): auth operations
 - [`src/services/aiService.js`](./src/services/aiService.js): frontend AI requests
 - [`netlify/functions/ai.js`](./netlify/functions/ai.js): server-side OpenAI proxy
