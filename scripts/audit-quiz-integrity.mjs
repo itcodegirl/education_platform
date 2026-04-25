@@ -2,6 +2,10 @@
 import process from 'node:process';
 import { createServer } from 'vite';
 import { resolveQuizLessonId } from '../src/data/quizLessonIdResolver.js';
+import {
+  COURSE_ORPHAN_CLASSIFICATION_POLICIES,
+  LESSON_QUIZ_ORPHAN_CLASSIFICATIONS,
+} from './quiz-orphan-registry.mjs';
 import { INTENTIONAL_LESSON_QUIZ_VARIANTS } from './quiz-variant-registry.mjs';
 
 const args = new Set(process.argv.slice(2));
@@ -92,6 +96,10 @@ function keyForModule(courseId, moduleId) {
   return `m:${courseId}:${moduleId}`;
 }
 
+function keyForOrphanLessonQuiz(courseId, rawLessonId) {
+  return `o:${courseId}:${rawLessonId}`;
+}
+
 function rawLessonIdsForEntries(entries) {
   return entries.map((entry) => entry.rawLessonId).filter(Boolean);
 }
@@ -127,6 +135,47 @@ function reviewLessonVariantGroup(scopedLessonKey, primary, bonus) {
     status: lockedVariant.status,
     reason: lockedVariant.reason,
   };
+}
+
+function reviewOrphanLessonQuiz(courseId, entry) {
+  const classification = LESSON_QUIZ_ORPHAN_CLASSIFICATIONS[
+    keyForOrphanLessonQuiz(courseId, entry.rawLessonId)
+  ];
+
+  if (!classification) {
+    return {
+      classification: 'unclassified',
+      reason: 'No orphan quiz classification metadata registered.',
+    };
+  }
+
+  return classification;
+}
+
+function countByClassification(entries, reviewField) {
+  return entries.reduce((counts, entry) => {
+    const classification = entry[reviewField]?.classification || 'unclassified';
+    counts[classification] = (counts[classification] || 0) + 1;
+    return counts;
+  }, {});
+}
+
+function mergeClassificationCounts(target, source) {
+  Object.entries(source).forEach(([classification, count]) => {
+    target[classification] = (target[classification] || 0) + count;
+  });
+}
+
+function formatClassificationCounts(counts) {
+  const entries = Object.entries(counts).sort(([left], [right]) => left.localeCompare(right));
+
+  if (!entries.length) {
+    return 'none';
+  }
+
+  return entries
+    .map(([classification, count]) => `${classification}=${count}`)
+    .join(', ');
 }
 
 function formatQuizEntry(entry) {
@@ -168,6 +217,7 @@ function analyzeCourse(courseMeta, loadedCourse) {
   const quizzes = loadedCourse.quizzes || [];
   const index = buildCourseEntityIndex(courseId, modules);
   const lessonQuizCoveragePolicy = getLessonQuizCoveragePolicy(courseId);
+  const orphanClassificationPolicy = COURSE_ORPHAN_CLASSIFICATION_POLICIES[courseId] || null;
 
   const activeLessonIdMap = new Map();
   const rawQuizIdMap = new Map();
@@ -195,6 +245,7 @@ function analyzeCourse(courseMeta, loadedCourse) {
       pushList(scopedLessonKeyMap, scopedLessonKey, entry);
       pushList(validLessonKeyMap, scopedLessonKey, entry);
     } else if (entry.rawLessonId) {
+      entry.orphanReview = reviewOrphanLessonQuiz(courseId, entry);
       orphanLessonQuizzes.push(entry);
     }
 
@@ -244,11 +295,13 @@ function analyzeCourse(courseMeta, loadedCourse) {
     lessonCount: index.lessons.length,
     quizCount: quizzes.length,
     lessonQuizCoveragePolicy,
+    orphanClassificationPolicy,
     duplicateActiveLessonIds,
     duplicateRawQuizIds,
     duplicateScopedLessonKeys,
     duplicateScopedModuleKeys,
     orphanLessonQuizzes,
+    orphanLessonQuizClassificationCounts: countByClassification(orphanLessonQuizzes, 'orphanReview'),
     orphanModuleQuizzes,
     lessonsWithNoQuiz,
     moduleQuizExpectationEnabled,
@@ -269,6 +322,13 @@ function formatLessonVariantGroup({ scopedLessonKey, primary, bonus, review }) {
   );
 }
 
+function formatOrphanLessonQuiz(entry) {
+  return (
+    `${formatQuizEntry(entry)} ${formatLessonResolution(entry)} `
+    + `[${entry.orphanReview.classification}] reason=${entry.orphanReview.reason}`
+  );
+}
+
 function printCourseReport(report) {
   console.log(`\n[${report.courseId}] ${report.courseLabel}`);
   console.log(`  modules=${report.moduleCount} lessons=${report.lessonCount} quizzes=${report.quizCount}`);
@@ -277,6 +337,12 @@ function printCourseReport(report) {
   );
   if (report.lessonQuizCoveragePolicy.checkpointPolicy) {
     console.log(`  future checkpoint policy: ${report.lessonQuizCoveragePolicy.checkpointPolicy}`);
+  }
+  if (report.orphanClassificationPolicy) {
+    console.log(
+      `  orphan quiz inventory policy: ${report.orphanClassificationPolicy.classification} - `
+      + report.orphanClassificationPolicy.reason,
+    );
   }
 
   printIssueGroup(
@@ -306,8 +372,15 @@ function printCourseReport(report) {
   printIssueGroup(
     'Orphan lesson quizzes',
     report.orphanLessonQuizzes,
-    (entry) => `${formatQuizEntry(entry)} ${formatLessonResolution(entry)}`,
+    formatOrphanLessonQuiz,
   );
+  if (report.orphanLessonQuizzes.length) {
+    console.log(
+      `  - Orphan lesson quiz classifications: ${
+        formatClassificationCounts(report.orphanLessonQuizClassificationCounts)
+      }`,
+    );
+  }
 
   printIssueGroup(
     'Orphan module quizzes',
@@ -360,6 +433,9 @@ function summarizeReports(reports) {
     duplicateScopedLessonKeys: 0,
     duplicateScopedModuleKeys: 0,
     orphanLessonQuizzes: 0,
+    orphanLessonQuizClassificationCounts: {},
+    classifiedOrphanLessonQuizzes: 0,
+    unclassifiedOrphanLessonQuizzes: 0,
     orphanModuleQuizzes: 0,
     lessonsWithNoQuiz: 0,
     activeExpectedLessonsWithNoQuiz: 0,
@@ -376,6 +452,16 @@ function summarizeReports(reports) {
     total.duplicateScopedLessonKeys += report.duplicateScopedLessonKeys.length;
     total.duplicateScopedModuleKeys += report.duplicateScopedModuleKeys.length;
     total.orphanLessonQuizzes += report.orphanLessonQuizzes.length;
+    mergeClassificationCounts(
+      total.orphanLessonQuizClassificationCounts,
+      report.orphanLessonQuizClassificationCounts,
+    );
+    total.classifiedOrphanLessonQuizzes += report.orphanLessonQuizzes
+      .filter((entry) => entry.orphanReview?.classification !== 'unclassified')
+      .length;
+    total.unclassifiedOrphanLessonQuizzes += report.orphanLessonQuizzes
+      .filter((entry) => entry.orphanReview?.classification === 'unclassified')
+      .length;
     total.orphanModuleQuizzes += report.orphanModuleQuizzes.length;
     total.lessonsWithNoQuiz += report.lessonsWithNoQuiz.length;
     if (report.lessonQuizCoveragePolicy.status === 'deferred') {
@@ -451,6 +537,13 @@ async function main() {
   console.log(`  duplicate scoped lesson quiz keys: ${totals.duplicateScopedLessonKeys}`);
   console.log(`  duplicate scoped module quiz keys: ${totals.duplicateScopedModuleKeys}`);
   console.log(`  orphan lesson quizzes: ${totals.orphanLessonQuizzes}`);
+  console.log(`  classified orphan lesson quizzes: ${totals.classifiedOrphanLessonQuizzes}`);
+  console.log(`  unclassified orphan lesson quizzes: ${totals.unclassifiedOrphanLessonQuizzes}`);
+  console.log(
+    `  orphan lesson quiz classifications: ${
+      formatClassificationCounts(totals.orphanLessonQuizClassificationCounts)
+    }`,
+  );
   console.log(`  orphan module quizzes: ${totals.orphanModuleQuizzes}`);
   console.log(`  lessons with no matching lesson quiz: ${totals.lessonsWithNoQuiz}`);
   console.log(`  active-coverage lessons with no matching lesson quiz: ${totals.activeExpectedLessonsWithNoQuiz}`);
