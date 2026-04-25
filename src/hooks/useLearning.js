@@ -16,6 +16,8 @@ export function useLearning() {
     completedSet,
     hasRewardBeenAwarded,
     markRewardAwarded,
+    isChallengeCompleted,
+    markChallengeCompleted,
   } = useProgressData();
   const { awardXP, recordDailyActivity } = useXP();
 
@@ -28,6 +30,8 @@ export function useLearning() {
     completedSet,
     hasRewardBeenAwarded,
     markRewardAwarded,
+    isChallengeCompleted,
+    markChallengeCompleted,
   }), [
     toggleLesson,
     saveQuizScore,
@@ -37,6 +41,8 @@ export function useLearning() {
     completedSet,
     hasRewardBeenAwarded,
     markRewardAwarded,
+    isChallengeCompleted,
+    markChallengeCompleted,
   ]);
 
   return engine;

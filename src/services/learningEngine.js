@@ -4,7 +4,6 @@
 // Components call this; it orchestrates everything.
 // ═══════════════════════════════════════════════
 
-import { XP_VALUES } from '../utils/helpers';
 import {
   REWARD_XP,
   formatQuizScore,
@@ -21,6 +20,8 @@ export function createLearningEngine({
   completedSet,
   hasRewardBeenAwarded = () => false,
   markRewardAwarded = () => false,
+  isChallengeCompleted = () => false,
+  markChallengeCompleted = () => true,
 }) {
   // ─── Lesson completion ────────────────────
   function completeLesson(lessonKey, options = {}) {
@@ -81,9 +82,20 @@ export function createLearningEngine({
 
   // ─── Challenge completion ─────────────────
   function completeChallenge(challengeId) {
-    awardXP(XP_VALUES.challenge || 25, 'Challenge completed');
+    const alreadyCompleted = isChallengeCompleted(challengeId);
+    const newlyCompleted = !alreadyCompleted && markChallengeCompleted(challengeId);
+
+    if (!newlyCompleted) {
+      return { challengeId, completed: true, alreadyCompleted: true };
+    }
+
+    const rewardKey = rewardKeys.challengeComplete(challengeId);
+    if (!hasRewardBeenAwarded(rewardKey) && markRewardAwarded(rewardKey)) {
+      awardXP(REWARD_XP.challengeComplete, 'Challenge completed');
+    }
+
     recordDailyActivity();
-    return { challengeId, completed: true };
+    return { challengeId, completed: true, alreadyCompleted: false };
   }
 
   return {

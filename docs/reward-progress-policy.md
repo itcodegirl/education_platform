@@ -20,6 +20,7 @@ These keys should be treated as idempotency keys. A learner may repeat a learnin
 - Quiz perfect-score bonus XP is awarded once per stable quiz key.
 - Challenge completion XP is awarded once per stable challenge ID.
 - Uncompleting and recompleting a lesson should not create another lesson-completion XP event.
+- Challenge completion is a learner-motivation signal, not secure certification. Client-side challenge tests can guide practice, but should not be treated as tamper-proof proof of skill.
 
 ## Quiz Retry Rules
 
@@ -50,4 +51,4 @@ The current implementation uses the existing UTC date helpers (`YYYY-MM-DD` from
 
 ## Current Status
 
-The policy constants live in `src/services/rewardPolicy.js`. Runtime XP, streak, quiz retry, and challenge persistence behavior still need follow-up implementation batches.
+The policy constants live in `src/services/rewardPolicy.js`. Lesson, quiz, streak, and same-device challenge completion dedupe have runtime hardening. A future schema-backed reward-event table is still needed for cross-device reward idempotency.

@@ -49,6 +49,9 @@ const ProgressContext = createContext({
   rewardHistory: [],
   hasRewardBeenAwarded: () => false,
   markRewardAwarded: () => false,
+  challengeCompletions: [],
+  isChallengeCompleted: () => false,
+  markChallengeCompleted: () => false,
   // Count of DB writes that failed since the last successful read.
   // Used by the UI to show a "sync failed" banner; the optimistic
   // state is still the source of truth for the current session.
@@ -90,6 +93,10 @@ function getRewardHistoryStorageKey(userId) {
   return `chw-reward-history:${userId}`;
 }
 
+function getChallengeCompletionStorageKey(userId) {
+  return `chw-challenge-completions:${userId}`;
+}
+
 function normalizeRewardHistory(keys) {
   if (!Array.isArray(keys)) return [];
   return Array.from(new Set(
@@ -116,6 +123,35 @@ function writeRewardHistory(userId, keys) {
   window.localStorage.setItem(
     getRewardHistoryStorageKey(userId),
     JSON.stringify(normalizeRewardHistory(keys)),
+  );
+}
+
+function normalizeStringSet(values) {
+  if (!Array.isArray(values)) return [];
+  return Array.from(new Set(
+    values
+      .filter((value) => typeof value === 'string' && value.trim())
+      .map((value) => value.trim()),
+  ));
+}
+
+function readChallengeCompletions(userId) {
+  if (typeof window === 'undefined' || !userId) return [];
+
+  try {
+    const raw = window.localStorage.getItem(getChallengeCompletionStorageKey(userId));
+    return normalizeStringSet(raw ? JSON.parse(raw) : []);
+  } catch {
+    return [];
+  }
+}
+
+function writeChallengeCompletions(userId, challengeIds) {
+  if (typeof window === 'undefined' || !userId) return;
+
+  window.localStorage.setItem(
+    getChallengeCompletionStorageKey(userId),
+    JSON.stringify(normalizeStringSet(challengeIds)),
   );
 }
 
@@ -171,6 +207,8 @@ export function ProgressProvider({ children }) {
   const [lastPosition, setLastPosition] = useState({ course: '', mod: '', les: '', time: 0 });
   const [rewardHistory, setRewardHistory] = useState([]);
   const rewardHistoryRef = useRef(new Set());
+  const [challengeCompletions, setChallengeCompletions] = useState([]);
+  const challengeCompletionsRef = useRef(new Set());
   const streakStateRef = useRef({ days: 0, lastDate: '' });
   const [xpPopup, setXpPopup] = useState(null);
   const [newBadge, setNewBadge] = useState(null);
@@ -194,6 +232,23 @@ export function ProgressProvider({ children }) {
     }
   }, []);
 
+  const replaceChallengeCompletions = useCallback((userId, challengeIds, { persist = false } = {}) => {
+    const normalizedChallengeIds = normalizeStringSet(challengeIds);
+    challengeCompletionsRef.current = new Set(normalizedChallengeIds);
+    setChallengeCompletions(normalizedChallengeIds);
+
+    if (persist) {
+      try {
+        writeChallengeCompletions(userId, normalizedChallengeIds);
+      } catch (err) {
+        if (import.meta.env.DEV) {
+          console.warn('[ProgressContext] challenge completion write failed:', err);
+        }
+        setSyncFailed((count) => count + 1);
+      }
+    }
+  }, []);
+
   const resetUserState = useCallback(() => {
     setCompleted([]);
     setQuizScores({});
@@ -211,6 +266,8 @@ export function ProgressProvider({ children }) {
     setLastPosition({ course: '', mod: '', les: '', time: 0 });
     rewardHistoryRef.current = new Set();
     setRewardHistory([]);
+    challengeCompletionsRef.current = new Set();
+    setChallengeCompletions([]);
     setXpPopup(null);
     setNewBadge(null);
   }, []);
@@ -257,10 +314,25 @@ export function ProgressProvider({ children }) {
         }
         return keys;
       });
+      const storedChallengeCompletions = readChallengeCompletions(uid);
+      replaceChallengeCompletions(uid, storedChallengeCompletions);
+      const completedChallengeRewardKeys = storedChallengeCompletions.map((challengeId) =>
+        rewardKeys.challengeComplete(challengeId),
+      );
       replaceRewardHistory(
         uid,
-        [...storedRewardHistory, ...completedLessonRewardKeys, ...completedQuizRewardKeys],
-        { persist: completedLessonRewardKeys.length > 0 || completedQuizRewardKeys.length > 0 },
+        [
+          ...storedRewardHistory,
+          ...completedLessonRewardKeys,
+          ...completedQuizRewardKeys,
+          ...completedChallengeRewardKeys,
+        ],
+        {
+          persist:
+            completedLessonRewardKeys.length > 0 ||
+            completedQuizRewardKeys.length > 0 ||
+            completedChallengeRewardKeys.length > 0,
+        },
       );
 
       setXpTotal(xpRes.data?.total || 0);
@@ -333,7 +405,7 @@ export function ProgressProvider({ children }) {
     return () => {
       cancelled = true;
     };
-  }, [user, loadVersion, resetUserState, replaceRewardHistory]);
+  }, [user, loadVersion, resetUserState, replaceRewardHistory, replaceChallengeCompletions]);
 
   // ─── Progress ─────────────────────────────────
   const completedSet = useMemo(() => new Set(completed), [completed]);
@@ -400,6 +472,33 @@ export function ProgressProvider({ children }) {
     } catch (err) {
       if (import.meta.env.DEV) {
         console.warn('[ProgressContext] reward history write failed:', err);
+      }
+      setSyncFailed((count) => count + 1);
+    }
+
+    return true;
+  }, [user]);
+
+  const isChallengeCompleted = useCallback((challengeId) => {
+    if (typeof challengeId !== 'string' || !challengeId.trim()) return false;
+    return challengeCompletionsRef.current.has(challengeId.trim());
+  }, []);
+
+  const markChallengeCompleted = useCallback((challengeId) => {
+    if (!user || typeof challengeId !== 'string' || !challengeId.trim()) return false;
+    const normalizedChallengeId = challengeId.trim();
+
+    if (challengeCompletionsRef.current.has(normalizedChallengeId)) return false;
+
+    const nextChallengeIds = [...challengeCompletionsRef.current, normalizedChallengeId];
+    challengeCompletionsRef.current = new Set(nextChallengeIds);
+    setChallengeCompletions(nextChallengeIds);
+
+    try {
+      writeChallengeCompletions(user.id, nextChallengeIds);
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.warn('[ProgressContext] challenge completion write failed:', err);
       }
       setSyncFailed((count) => count + 1);
     }
@@ -650,6 +749,9 @@ export function ProgressProvider({ children }) {
     rewardHistory,
     hasRewardBeenAwarded,
     markRewardAwarded,
+    challengeCompletions,
+    isChallengeCompleted,
+    markChallengeCompleted,
     syncFailed,
     clearSyncFailed,
   }), [
@@ -668,6 +770,9 @@ export function ProgressProvider({ children }) {
     rewardHistory,
     hasRewardBeenAwarded,
     markRewardAwarded,
+    challengeCompletions,
+    isChallengeCompleted,
+    markChallengeCompleted,
     syncFailed,
     clearSyncFailed,
   ]);

@@ -21,6 +21,8 @@ function buildDeps(overrides = {}) {
     completedSet: new Set(),
     hasRewardBeenAwarded: vi.fn(() => false),
     markRewardAwarded: vi.fn(() => true),
+    isChallengeCompleted: vi.fn(() => false),
+    markChallengeCompleted: vi.fn(() => true),
     ...overrides,
   };
 }
@@ -201,8 +203,27 @@ describe('createLearningEngine → completeChallenge', () => {
 
     const result = engine.completeChallenge('challenge-42');
 
-    expect(result).toEqual({ challengeId: 'challenge-42', completed: true });
+    expect(result).toEqual({ challengeId: 'challenge-42', completed: true, alreadyCompleted: false });
+    expect(deps.markChallengeCompleted).toHaveBeenCalledWith('challenge-42');
+    expect(deps.markRewardAwarded).toHaveBeenCalledWith(
+      rewardKeys.challengeComplete('challenge-42'),
+    );
     expect(deps.awardXP).toHaveBeenCalledWith(25, 'Challenge completed');
     expect(deps.recordDailyActivity).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not duplicate challenge completion, XP, or activity', () => {
+    const deps = buildDeps({
+      isChallengeCompleted: vi.fn(() => true),
+    });
+    const engine = createLearningEngine(deps);
+
+    const result = engine.completeChallenge('challenge-42');
+
+    expect(result).toEqual({ challengeId: 'challenge-42', completed: true, alreadyCompleted: true });
+    expect(deps.markChallengeCompleted).not.toHaveBeenCalled();
+    expect(deps.markRewardAwarded).not.toHaveBeenCalled();
+    expect(deps.awardXP).not.toHaveBeenCalled();
+    expect(deps.recordDailyActivity).not.toHaveBeenCalled();
   });
 });

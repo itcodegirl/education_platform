@@ -1,12 +1,16 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { getChallengesForCourse } from '../../data/challenges';
 import { CodeChallenge } from '../learning/CodeChallenge';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useProgressData } from '../../providers';
+import { useLearning } from '../../hooks/useLearning';
 
 export function ChallengesPanel({ courseId, lang, onClose }) {
   const challenges = getChallengesForCourse(courseId);
   const [activeChallenge, setActiveChallenge] = useState(null);
-  const [completed, setCompleted] = useState(new Set());
+  const { challengeCompletions = [] } = useProgressData();
+  const learn = useLearning();
+  const completed = useMemo(() => new Set(challengeCompletions), [challengeCompletions]);
   const modalRef = useRef(null);
 
   useFocusTrap(modalRef, { enabled: true, onEscape: onClose });
@@ -50,7 +54,7 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
               challenge={activeChallenge}
               lang={lang}
               onComplete={() => {
-                setCompleted((previous) => new Set([...previous, activeChallenge.id]));
+                learn.completeChallenge(activeChallenge.id);
               }}
             />
           </div>
