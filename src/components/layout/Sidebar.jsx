@@ -581,7 +581,7 @@ export const Sidebar = memo(function Sidebar({
                           </button>
                         );
                       })}
-                      {QUIZ_MAP.has(`m:${module.id}`) && (
+                      {QUIZ_MAP.has(`m:${course.id}:${module.id}`) && (
                         <button
                           type="button"
                           className={`lesson-list-btn lesson-list-quiz ${showModQuiz && mi === modIdx ? 'act' : ''}`}

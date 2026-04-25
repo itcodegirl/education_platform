@@ -47,7 +47,10 @@ const { MOCK_COURSES, MOCK_QUIZ_MAP } = vi.hoisted(() => {
   ];
 
   const quizMap = new Map([
-    ['m:basics', { id: 'q-basics', questions: [] }],
+    ['m:html:basics', { id: 'q-html-basics', questions: [] }],
+    ['m:css:selectors', { id: 'q-css-selectors', questions: [] }],
+    ['l:html:l-what', { id: 'q-html-what', questions: [] }],
+    ['l:css:l-class', { id: 'q-css-class', questions: [] }],
   ]);
 
   return { MOCK_COURSES: courses, MOCK_QUIZ_MAP: quizMap };
@@ -93,6 +96,13 @@ describe('useNavigation initial state', () => {
   it('exposes moduleQuiz when available on current module', () => {
     const { result } = renderHook(() => useNavigation());
     expect(result.current.moduleQuiz).toBeDefined();
+    expect(result.current.moduleQuiz?.id).toBe('q-html-basics');
+  });
+
+  it('exposes lessonQuiz using scoped course + lesson identity', () => {
+    const { result } = renderHook(() => useNavigation());
+    expect(result.current.lessonQuiz).toBeDefined();
+    expect(result.current.lessonQuiz?.id).toBe('q-html-what');
   });
 
   it('hydrates from a valid deep-link hash', async () => {

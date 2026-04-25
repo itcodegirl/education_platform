@@ -19,6 +19,11 @@ const EMPTY_LESSON = { id: '', title: '', content: '', code: '' };
 const EMPTY_MODULE = { id: '', title: '', emoji: '', lessons: [EMPTY_LESSON] };
 const EMPTY_COURSE = { id: '', label: '', icon: '', accent: '', modules: [EMPTY_MODULE] };
 
+function getScopedQuiz(type, courseId, entityId) {
+  if (!courseId || !entityId) return undefined;
+  return QUIZ_MAP.get(`${type}:${courseId}:${entityId}`);
+}
+
 function findPathPosition(pathname) {
   const parsed = parseLearnPath(pathname);
   if (!parsed) return null;
@@ -36,7 +41,7 @@ function findPathPosition(pathname) {
   if (!moduleData.lessons.length) return null;
 
   if (parsed.lessonId === 'quiz') {
-    const hasModuleQuiz = Boolean(QUIZ_MAP.get(`m:${moduleData.id}`));
+    const hasModuleQuiz = Boolean(getScopedQuiz('m', course.id, moduleData.id));
     if (!hasModuleQuiz) return null;
 
     return {
@@ -159,8 +164,8 @@ export function useNavigation() {
   const mod = modules[modIdx] || EMPTY_MODULE;
   const les = (mod.lessons && mod.lessons[lesIdx]) || EMPTY_LESSON;
   const isLastLesson = lesIdx === (mod.lessons?.length || 1) - 1;
-  const lessonQuiz = les.id ? QUIZ_MAP.get(`l:${les.id}`) : undefined;
-  const moduleQuiz = mod.id ? QUIZ_MAP.get(`m:${mod.id}`) : undefined;
+  const lessonQuiz = getScopedQuiz('l', course.id, les.id);
+  const moduleQuiz = getScopedQuiz('m', course.id, mod.id);
   const { stable: stableLessonKey, legacy: legacyLessonKey } = getLessonKeyVariants(course, mod, les);
   const lessonKey = stableLessonKey || legacyLessonKey;
 

@@ -32,7 +32,15 @@ export const COURSES = COURSE_METADATA.map((m) => ({
   modules: [],
 }));
 
-// Mutable map of lessonId/moduleId -> quiz. Starts empty, filled by
-// the provider as courses load. Safe to read in a render because the
-// provider triggers re-renders when it mutates.
+// Mutable map of scoped quiz keys -> canonical quiz.
+// Keys are course-scoped to avoid cross-course collisions:
+//   l:<courseId>:<lessonId>
+//   m:<courseId>:<moduleId>
+// Starts empty and is filled by CourseContentProvider as courses load.
 export const QUIZ_MAP = new Map();
+
+// Optional index of scoped quiz relationships:
+// key -> { primary: quiz, bonus: quiz[] }.
+// Policy: the first valid quiz for a scoped key is canonical `primary`;
+// later duplicates for the same key are tracked as `bonus`.
+export const QUIZ_VARIANTS = new Map();
