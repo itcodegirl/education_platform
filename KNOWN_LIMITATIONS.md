@@ -15,6 +15,8 @@ This project is actively stabilized and is not yet production-grade. The followi
 
 - Learning identity/data model hardening is still pending.
 - Quiz identity and lesson/module mapping consistency still needs follow-up repair.
+- Quiz inventory still has known data gaps (orphan lesson quizzes, lessons without mapped lesson quizzes, and duplicate lesson quiz variants in some tracks).
+- Run `npm run audit:quizzes` for the current inventory report (`npm run audit:quizzes -- --strict` to fail on known integrity gaps).
 - XP/streak/challenge trust rules still need hardening against edge cases and abuse paths.
 
 ## Search / Content
@@ -25,4 +27,3 @@ This project is actively stabilized and is not yet production-grade. The followi
 ## Security / Production Hardening
 
 - Production-grade AI/security hardening is outside this documentation batch and remains planned work.
-

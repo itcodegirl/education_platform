@@ -13,6 +13,7 @@
     "check:ci": "npm run check && npm run test:integration",
     "check:quality": "npm run lint && npm run build && npm run check:bundle",
     "check:bundle": "node scripts/check-bundle-size.mjs",
+    "audit:quizzes": "node scripts/audit-quiz-integrity.mjs",
     "typecheck": "node scripts/check-js-source-policy.mjs",
     "test": "npm run test:unit",
     "test:unit": "vitest run",
