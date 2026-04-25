@@ -57,6 +57,43 @@ export function isStreakQualifyingAction(type) {
   return STREAK_QUALIFYING_ACTIONS.includes(type);
 }
 
+export function formatQuizScore(score, total) {
+  return `${score}/${total}`;
+}
+
+export function parseQuizScore(scoreValue) {
+  if (typeof scoreValue !== 'string') return null;
+  const [scoreRaw, totalRaw] = scoreValue.split('/');
+  const score = Number(scoreRaw);
+  const total = Number(totalRaw);
+
+  if (!Number.isFinite(score) || !Number.isFinite(total) || total <= 0) {
+    return null;
+  }
+
+  return {
+    score,
+    total,
+    pct: Math.round((score / total) * 100),
+  };
+}
+
+export function isPerfectQuizScore(scoreValue) {
+  const parsed = parseQuizScore(scoreValue);
+  return Boolean(parsed && parsed.score === parsed.total && parsed.total > 0);
+}
+
+export function isQuizScoreImprovement(currentScoreValue, nextScore, nextTotal) {
+  const current = parseQuizScore(currentScoreValue);
+  const next = parseQuizScore(formatQuizScore(nextScore, nextTotal));
+
+  if (!next) return false;
+  if (!current) return true;
+  if (next.pct !== current.pct) return next.pct > current.pct;
+
+  return next.score > current.score;
+}
+
 export const REWARD_POLICY = Object.freeze({
   xpAwardRules: Object.freeze({
     lessonCompletion: 'Award lesson XP once per stable lesson key.',

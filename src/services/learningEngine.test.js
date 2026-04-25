@@ -15,6 +15,7 @@ function buildDeps(overrides = {}) {
   return {
     toggleLesson: vi.fn(),
     saveQuizScore: vi.fn(),
+    quizScores: {},
     awardXP: vi.fn(),
     recordDailyActivity: vi.fn(),
     completedSet: new Set(),
@@ -139,6 +140,48 @@ describe('createLearningEngine → submitQuiz', () => {
     expect(deps.saveQuizScore).toHaveBeenCalledWith('html|quiz|1', '7/10');
     expect(deps.awardXP).toHaveBeenCalledWith(40, 'Quiz completed'); // XP_VALUES.quiz
     expect(deps.recordDailyActivity).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not award base quiz XP again when the quiz completion reward already exists', () => {
+    const completionKey = rewardKeys.quizComplete('html|quiz|1');
+    deps.hasRewardBeenAwarded = vi.fn((rewardKey) => rewardKey === completionKey);
+    const engine = createLearningEngine(deps);
+
+    engine.submitQuiz('html|quiz|1', 7, 10);
+
+    expect(deps.saveQuizScore).toHaveBeenCalledWith('html|quiz|1', '7/10');
+    expect(deps.markRewardAwarded).not.toHaveBeenCalledWith(completionKey);
+    expect(deps.awardXP).not.toHaveBeenCalledWith(40, 'Quiz completed');
+    expect(deps.recordDailyActivity).toHaveBeenCalledTimes(1);
+  });
+
+  it('awards the perfect quiz bonus only when that reward key has not been earned', () => {
+    const earned = new Set([rewardKeys.quizComplete('html|quiz|1')]);
+    deps.hasRewardBeenAwarded = vi.fn((rewardKey) => earned.has(rewardKey));
+    deps.markRewardAwarded = vi.fn((rewardKey) => {
+      if (earned.has(rewardKey)) return false;
+      earned.add(rewardKey);
+      return true;
+    });
+    const engine = createLearningEngine(deps);
+
+    engine.submitQuiz('html|quiz|1', 10, 10);
+    engine.submitQuiz('html|quiz|1', 10, 10);
+
+    expect(deps.awardXP).toHaveBeenCalledTimes(1);
+    expect(deps.awardXP).toHaveBeenCalledWith(60, 'Perfect quiz score!');
+  });
+
+  it('preserves an existing better quiz score on a lower-scoring retry', () => {
+    const localDeps = buildDeps({
+      quizScores: { q: '8/10' },
+    });
+    const engine = createLearningEngine(localDeps);
+
+    const result = engine.submitQuiz('q', 6, 10);
+
+    expect(result.pct).toBe(60);
+    expect(localDeps.saveQuizScore).not.toHaveBeenCalled();
   });
 
   it('rounds percent to the nearest whole number', () => {

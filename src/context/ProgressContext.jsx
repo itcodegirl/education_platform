@@ -8,7 +8,7 @@ import { useAuth } from './AuthContext';
 import { DAILY_GOAL, TIMING, getLevel, getTodayString, getYesterdayString } from '../utils/helpers';
 import { COURSES } from '../data';
 import * as progressService from '../services/progressService';
-import { rewardKeys } from '../services/rewardPolicy';
+import { isPerfectQuizScore, rewardKeys } from '../services/rewardPolicy';
 import { lessonKeysEquivalent, resolveStableLessonKeyAcrossCourses } from '../utils/lessonKeys';
 
 // ─── Badge Definitions ──────────────────────────
@@ -243,19 +243,27 @@ export function ProgressProvider({ children }) {
       const completedLessonKeys = progressRes.data?.map(r => r.lesson_key) || [];
       setCompleted(completedLessonKeys);
 
+      const scores = {};
+      quizRes.data?.forEach(r => { scores[r.quiz_key] = r.score; });
+      setQuizScores(scores);
+
       const storedRewardHistory = readRewardHistory(uid);
       const completedLessonRewardKeys = completedLessonKeys
         .filter((lessonKey) => typeof lessonKey === 'string' && lessonKey.trim())
         .map((lessonKey) => rewardKeys.lessonComplete(lessonKey));
+      const completedQuizRewardKeys = Object.entries(scores).flatMap(([quizKey, score]) => {
+        if (typeof quizKey !== 'string' || !quizKey.trim()) return [];
+        const keys = [rewardKeys.quizComplete(quizKey)];
+        if (isPerfectQuizScore(score)) {
+          keys.push(rewardKeys.quizPerfect(quizKey));
+        }
+        return keys;
+      });
       replaceRewardHistory(
         uid,
-        [...storedRewardHistory, ...completedLessonRewardKeys],
-        { persist: completedLessonRewardKeys.length > 0 },
+        [...storedRewardHistory, ...completedLessonRewardKeys, ...completedQuizRewardKeys],
+        { persist: completedLessonRewardKeys.length > 0 || completedQuizRewardKeys.length > 0 },
       );
-
-      const scores = {};
-      quizRes.data?.forEach(r => { scores[r.quiz_key] = r.score; });
-      setQuizScores(scores);
 
       setXpTotal(xpRes.data?.total || 0);
 

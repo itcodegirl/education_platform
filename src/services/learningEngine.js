@@ -5,11 +5,17 @@
 // ═══════════════════════════════════════════════
 
 import { XP_VALUES } from '../utils/helpers';
-import { REWARD_XP, rewardKeys } from './rewardPolicy';
+import {
+  REWARD_XP,
+  formatQuizScore,
+  isQuizScoreImprovement,
+  rewardKeys,
+} from './rewardPolicy';
 
 export function createLearningEngine({
   toggleLesson,
   saveQuizScore,
+  quizScores = {},
   awardXP,
   recordDailyActivity,
   completedSet,
@@ -53,8 +59,22 @@ export function createLearningEngine({
     total,
   ) {
     const pct = Math.round((score / total) * 100);
-    saveQuizScore(quizKey, `${score}/${total}`);
-    awardXP(XP_VALUES.quiz, 'Quiz completed');
+    if (isQuizScoreImprovement(quizScores[quizKey], score, total)) {
+      saveQuizScore(quizKey, formatQuizScore(score, total));
+    }
+
+    const completionRewardKey = rewardKeys.quizComplete(quizKey);
+    if (!hasRewardBeenAwarded(completionRewardKey) && markRewardAwarded(completionRewardKey)) {
+      awardXP(REWARD_XP.quizComplete, 'Quiz completed');
+    }
+
+    if (pct === 100) {
+      const perfectRewardKey = rewardKeys.quizPerfect(quizKey);
+      if (!hasRewardBeenAwarded(perfectRewardKey) && markRewardAwarded(perfectRewardKey)) {
+        awardXP(REWARD_XP.quizPerfect, 'Perfect quiz score!');
+      }
+    }
+
     recordDailyActivity();
     return { score, total, pct };
   }

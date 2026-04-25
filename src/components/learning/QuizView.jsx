@@ -13,7 +13,13 @@
 
 import { useState, useCallback, memo } from 'react';
 import { useProgressData, useXP, useSR } from '../../providers';
-import { XP_VALUES, TIMING } from '../../utils/helpers';
+import { TIMING } from '../../utils/helpers';
+import {
+  REWARD_XP,
+  formatQuizScore,
+  isQuizScoreImprovement,
+  rewardKeys,
+} from '../../services/rewardPolicy';
 
 // ─── Check if answer is correct per type ────
 function isAnswerCorrect(q, answer) {
@@ -222,12 +228,18 @@ const TYPE_LABELS = {
 // ─── Main QuizView ──────────────────────────
 
 export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey }) {
-  const { saveQuizScore } = useProgressData();
+  const {
+    saveQuizScore,
+    quizScores = {},
+    hasRewardBeenAwarded = () => false,
+    markRewardAwarded = () => false,
+  } = useProgressData();
   const { awardXP, recordDailyActivity } = useXP();
   const { addToSRQueue } = useSR();
 
   const [answers, setAnswers] = useState(new Map());
   const [submitted, setSubmitted] = useState(false);
+  const [lastEarnedXp, setLastEarnedXp] = useState(0);
 
   const setAnswer = (qId, value) => {
     if (submitted) return;
@@ -243,15 +255,33 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
     const total = quiz.questions.length;
     const pct = Math.round((score / total) * 100);
 
-    if (quizKey) {
-      saveQuizScore(quizKey, `${score}/${total}`);
+    if (quizKey && isQuizScoreImprovement(quizScores[quizKey], score, total)) {
+      saveQuizScore(quizKey, formatQuizScore(score, total));
     }
 
-    if (pct === 100) {
-      awardXP(XP_VALUES.perfectQuiz, 'Perfect quiz score!');
+    let earnedXp = 0;
+
+    if (quizKey) {
+      const completionRewardKey = rewardKeys.quizComplete(quizKey);
+      if (!hasRewardBeenAwarded(completionRewardKey) && markRewardAwarded(completionRewardKey)) {
+        awardXP(REWARD_XP.quizComplete, 'Quiz completed');
+        earnedXp += REWARD_XP.quizComplete;
+      }
+
+      if (pct === 100) {
+        const perfectRewardKey = rewardKeys.quizPerfect(quizKey);
+        if (!hasRewardBeenAwarded(perfectRewardKey) && markRewardAwarded(perfectRewardKey)) {
+          awardXP(REWARD_XP.quizPerfect, 'Perfect quiz score!');
+          earnedXp += REWARD_XP.quizPerfect;
+        }
+      }
     } else {
-      awardXP(XP_VALUES.quiz, 'Quiz completed');
+      const xpAmount = pct === 100 ? REWARD_XP.quizPerfect : REWARD_XP.quizComplete;
+      awardXP(xpAmount, pct === 100 ? 'Perfect quiz score!' : 'Quiz completed');
+      earnedXp = xpAmount;
     }
+
+    setLastEarnedXp(earnedXp);
     recordDailyActivity();
 
     // Add wrong answers to spaced repetition (MC/code/bug only — fill/order don't translate well to SR)
@@ -273,9 +303,21 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
     if (wrongCards.length > 0) {
       addToSRQueue(wrongCards);
     }
-  }, [quiz, answers, quizKey, label, awardXP, recordDailyActivity, saveQuizScore, addToSRQueue]);
+  }, [
+    quiz,
+    answers,
+    quizKey,
+    label,
+    quizScores,
+    hasRewardBeenAwarded,
+    markRewardAwarded,
+    awardXP,
+    recordDailyActivity,
+    saveQuizScore,
+    addToSRQueue,
+  ]);
 
-  const reset = () => { setAnswers(new Map()); setSubmitted(false); };
+  const reset = () => { setAnswers(new Map()); setSubmitted(false); setLastEarnedXp(0); };
 
   const score = quiz.questions.reduce((s, q) => s + (isAnswerCorrect(q, answers.get(q.id)) ? 1 : 0), 0);
   const total = quiz.questions.length;
@@ -352,9 +394,13 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
             </div>
           </div>
           <div className="quiz-meta">
-            {pct === 100 && <span className="quiz-xp-badge perfect">+{XP_VALUES.perfectQuiz} XP</span>}
-            {pct < 100 && <span className="quiz-xp-badge">+{XP_VALUES.quiz} XP</span>}
-            {quizKey && <span className="quiz-save-badge">✓ Score saved to your progress</span>}
+            {lastEarnedXp > 0 && (
+              <span className={`quiz-xp-badge ${pct === 100 ? 'perfect' : ''}`}>+{lastEarnedXp} XP</span>
+            )}
+            {lastEarnedXp === 0 && quizKey && (
+              <span className="quiz-xp-badge">XP already earned</span>
+            )}
+            {quizKey && <span className="quiz-save-badge">✓ Best score saved to your progress</span>}
             {wrongCount > 0 && (
               <span className="quiz-sr-badge">🔄 {wrongCount} added to review</span>
             )}

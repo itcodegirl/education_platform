@@ -6,7 +6,11 @@ import {
   REWARD_XP,
   STREAK_QUALIFYING_ACTIONS,
   createRewardKey,
+  formatQuizScore,
+  isPerfectQuizScore,
+  isQuizScoreImprovement,
   isStreakQualifyingAction,
+  parseQuizScore,
   rewardKeys,
 } from './rewardPolicy';
 
@@ -59,5 +63,16 @@ describe('rewardPolicy', () => {
       rewardCriticalActionsMustBeIdempotent: true,
       failedWritesMustBeVisibleOrRetryable: true,
     });
+  });
+
+  it('normalizes quiz score text for best-score and perfect-score decisions', () => {
+    expect(formatQuizScore(3, 4)).toBe('3/4');
+    expect(parseQuizScore('3/4')).toEqual({ score: 3, total: 4, pct: 75 });
+    expect(parseQuizScore('not-a-score')).toBeNull();
+    expect(isPerfectQuizScore('4/4')).toBe(true);
+    expect(isPerfectQuizScore('3/4')).toBe(false);
+    expect(isQuizScoreImprovement(undefined, 3, 4)).toBe(true);
+    expect(isQuizScoreImprovement('2/4', 3, 4)).toBe(true);
+    expect(isQuizScoreImprovement('3/4', 2, 4)).toBe(false);
   });
 });

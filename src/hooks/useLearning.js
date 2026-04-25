@@ -12,6 +12,7 @@ export function useLearning() {
   const {
     toggleLesson,
     saveQuizScore,
+    quizScores,
     completedSet,
     hasRewardBeenAwarded,
     markRewardAwarded,
@@ -21,6 +22,7 @@ export function useLearning() {
   const engine = useMemo(() => createLearningEngine({
     toggleLesson,
     saveQuizScore,
+    quizScores,
     awardXP,
     recordDailyActivity,
     completedSet,
@@ -29,6 +31,7 @@ export function useLearning() {
   }), [
     toggleLesson,
     saveQuizScore,
+    quizScores,
     awardXP,
     recordDailyActivity,
     completedSet,
