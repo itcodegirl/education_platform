@@ -16,9 +16,6 @@ const HTML_LEGACY_LESSON_ALIASES = Object.freeze({
   'h12-2': 'lesson-05',
   'h12-3': 'lesson-05',
   'h13-1': 'lesson-03',
-  'h14-1': 'lesson-12',
-  'h15-1': 'lesson-12',
-  'h18-1': 'lesson-12',
   'h20-2': 'lesson-12',
 });
 

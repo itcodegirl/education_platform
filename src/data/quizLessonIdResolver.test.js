@@ -48,6 +48,22 @@ describe('quizLessonIdResolver', () => {
     });
   });
 
+  it('uses the portfolio-readiness quiz as the only HTML portfolio capstone alias', () => {
+    ['h14-1', 'h15-1', 'h18-1'].forEach((rawLessonId) => {
+      expect(resolveQuizLessonId('html', rawLessonId, new Set(['lesson-12']))).toEqual({
+        rawLessonId,
+        resolvedLessonId: null,
+        resolution: 'unresolved',
+      });
+    });
+
+    expect(resolveQuizLessonId('html', 'h20-2', new Set(['lesson-12']))).toEqual({
+      rawLessonId: 'h20-2',
+      resolvedLessonId: 'lesson-12',
+      resolution: 'alias',
+    });
+  });
+
   it('maps explicit high-confidence CSS and JS aliases when targets exist', () => {
     const cssAliases = [
       ['c5-1', 'css-1-4'],
