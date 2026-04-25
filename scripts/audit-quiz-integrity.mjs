@@ -1,6 +1,7 @@
 /* global console */
 import process from 'node:process';
 import { createServer } from 'vite';
+import { resolveQuizLessonId } from '../src/data/quizLessonIdResolver.js';
 
 const args = new Set(process.argv.slice(2));
 const strictMode = args.has('--strict');
@@ -50,11 +51,13 @@ function buildCourseEntityIndex(courseId, modules) {
   };
 }
 
-function makeQuizEntry(quiz, index) {
+function makeQuizEntry(quiz, index, lessonResolution) {
   return {
     index,
     quizId: quiz?.id || null,
-    lessonId: quiz?.lessonId || null,
+    rawLessonId: quiz?.lessonId || null,
+    resolvedLessonId: lessonResolution?.resolvedLessonId || null,
+    lessonResolution: lessonResolution?.resolution || 'missing',
     moduleId: quiz?.moduleId || null,
     questionCount: Array.isArray(quiz?.questions) ? quiz.questions.length : 0,
   };
@@ -71,6 +74,20 @@ function keyForModule(courseId, moduleId) {
 function formatQuizEntry(entry) {
   const idText = entry.quizId ? entry.quizId : '<none>';
   return `#${entry.index + 1} id=${idText} questions=${entry.questionCount}`;
+}
+
+function formatLessonResolution(entry) {
+  if (!entry.rawLessonId) return 'lessonId=<none>';
+
+  if (!entry.resolvedLessonId) {
+    return `lessonId=${entry.rawLessonId} (unresolved)`;
+  }
+
+  if (entry.resolvedLessonId === entry.rawLessonId) {
+    return `lessonId=${entry.resolvedLessonId} (${entry.lessonResolution})`;
+  }
+
+  return `lessonId=${entry.rawLessonId} -> ${entry.resolvedLessonId} (${entry.lessonResolution})`;
 }
 
 function printIssueGroup(title, entries, formatter, limit = 25) {
@@ -102,21 +119,19 @@ function analyzeCourse(courseMeta, loadedCourse) {
   const orphanModuleQuizzes = [];
 
   quizzes.forEach((quiz, indexInArray) => {
-    const entry = makeQuizEntry(quiz, indexInArray);
+    const lessonResolution = resolveQuizLessonId(courseId, quiz?.lessonId, index.lessonIdSet);
+    const entry = makeQuizEntry(quiz, indexInArray, lessonResolution);
 
     if (entry.quizId) {
       pushList(rawQuizIdMap, entry.quizId, entry);
     }
 
-    if (entry.lessonId) {
-      const scopedLessonKey = keyForLesson(courseId, entry.lessonId);
+    if (entry.resolvedLessonId) {
+      const scopedLessonKey = keyForLesson(courseId, entry.resolvedLessonId);
       pushList(scopedLessonKeyMap, scopedLessonKey, entry);
-
-      if (index.lessonIdSet.has(entry.lessonId)) {
-        pushList(validLessonKeyMap, scopedLessonKey, entry);
-      } else {
-        orphanLessonQuizzes.push(entry);
-      }
+      pushList(validLessonKeyMap, scopedLessonKey, entry);
+    } else if (entry.rawLessonId) {
+      orphanLessonQuizzes.push(entry);
     }
 
     if (entry.moduleId) {
@@ -187,7 +202,7 @@ function printCourseReport(report) {
   printIssueGroup(
     'Duplicate scoped lesson quiz keys',
     report.duplicateScopedLessonKeys,
-    ({ key, entries }) => `${key} -> ${entries.map(formatQuizEntry).join(' | ')}`,
+    ({ key, entries }) => `${key} -> ${entries.map((entry) => `${formatQuizEntry(entry)} ${formatLessonResolution(entry)}`).join(' | ')}`,
   );
 
   printIssueGroup(
@@ -199,7 +214,7 @@ function printCourseReport(report) {
   printIssueGroup(
     'Orphan lesson quizzes',
     report.orphanLessonQuizzes,
-    (entry) => `${formatQuizEntry(entry)} lessonId=${entry.lessonId}`,
+    (entry) => `${formatQuizEntry(entry)} ${formatLessonResolution(entry)}`,
   );
 
   printIssueGroup(
@@ -229,7 +244,7 @@ function printCourseReport(report) {
     'Lesson quiz variants (primary + bonus)',
     report.lessonVariantGroups,
     ({ scopedLessonKey, primary, bonus }) => (
-      `${scopedLessonKey} primary=[${formatQuizEntry(primary)}] bonus=[${bonus.map(formatQuizEntry).join(' | ')}]`
+      `${scopedLessonKey} primary=[${formatQuizEntry(primary)} ${formatLessonResolution(primary)}] bonus=[${bonus.map((entry) => `${formatQuizEntry(entry)} ${formatLessonResolution(entry)}`).join(' | ')}]`
     ),
   );
 }

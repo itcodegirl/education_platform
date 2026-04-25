@@ -36,6 +36,7 @@ import {
   useState,
 } from 'react';
 import { COURSES, QUIZ_MAP, QUIZ_VARIANTS, loadCourse, COURSE_LOADER_IDS } from '../data';
+import { resolveQuizLessonId } from '../data/quizLessonIdResolver';
 
 const CourseContentContext = createContext({
   loadedCourseIds: new Set(),
@@ -105,9 +106,11 @@ function hydrateCourse(id, { modules, quizzes }) {
   const nextScopedKeys = new Set();
 
   (quizzes || []).forEach((quiz) => {
-    if (quiz.lessonId && lessonIds.has(quiz.lessonId)) {
+    const lessonResolution = resolveQuizLessonId(id, quiz.lessonId, lessonIds);
+
+    if (lessonResolution.resolvedLessonId) {
       registerScopedQuiz({
-        scopedKey: buildScopedQuizKey('l', id, quiz.lessonId),
+        scopedKey: buildScopedQuizKey('l', id, lessonResolution.resolvedLessonId),
         quiz,
         nextScopedKeys,
       });
