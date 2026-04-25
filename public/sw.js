@@ -9,7 +9,6 @@ const FONT_CACHE = `${CACHE_PREFIX}fonts-${CACHE_VERSION}`;
 
 const SHELL_FILES = [
   '/index.html',
-  '/manifest.json',
   '/icon.svg',
   '/icon-192.png',
   '/icon-512.png',
@@ -52,6 +51,12 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
   if (!url.protocol.startsWith('http')) return;
   if (request.cache === 'only-if-cached' && request.mode !== 'same-origin') return;
+
+  // Always fetch latest manifest so install metadata cannot get stuck on stale branding.
+  if (url.pathname === '/manifest.json') {
+    event.respondWith(fetch(request, { cache: 'no-store' }));
+    return;
+  }
 
   if (request.mode === 'navigate' || request.destination === 'document') {
     event.respondWith(networkFirstNavigation(request));
