@@ -22,7 +22,8 @@ This project is actively stabilized and is not yet production-grade. The followi
 - Cross-course mixed-type quiz entries previously embedded in React quiz data are intentionally archived as inactive exports and excluded from active React lookup.
 - Renamed HTML Module 102 lesson IDs resolved duplicate identity risk, but existing progress/bookmark keys for those old lesson IDs may need a later targeted compatibility decision.
 - Core same-device reward trust rules are hardened for lesson completion XP, quiz retry rewards, activity-based streaks, and challenge completion dedupe.
-- Reward idempotency currently relies on client/local reward history plus existing progress data; a server-side reward-event ledger or atomic XP award operation is still future work.
+- Lesson, quiz, and challenge XP now use a local reward-event ledger/processor with legacy reward history as a compatibility guard, but this is still client-side storage.
+- Cross-device reward idempotency still needs a server-side reward-event table, equivalent stable tracking table, or atomic XP award operation.
 - Challenge completion persistence is same-device/localStorage-backed and should not be treated as secure certification.
 - Supabase/localStorage write failures now mark sync-failed state in core flows, but there is no durable retry queue or reconciliation workflow yet.
 

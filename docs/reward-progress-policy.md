@@ -13,6 +13,15 @@ Reward-critical actions should use stable event keys before XP is awarded:
 
 These keys should be treated as idempotency keys. A learner may repeat a learning action for practice, but the same reward key should not grant XP more than once.
 
+The local reward-event ledger also records learner-scoped event keys that are shaped for a future backend reward-event table:
+
+- `lesson-complete:{lessonId}:{learnerKey}`
+- `quiz-base:{quizKey}:{learnerKey}`
+- `quiz-perfect:{quizKey}:{learnerKey}`
+- `challenge-complete:{challengeId}:{learnerKey}`
+
+The legacy reward keys remain as a compatibility guard so existing same-device progress data still prevents duplicate XP while the newer ledger records traceable events going forward.
+
 ## XP Award Rules
 
 - Lesson completion XP is awarded once per stable lesson key.
@@ -59,6 +68,8 @@ The policy constants live in `src/services/rewardPolicy.js`. Runtime hardening n
 - Activity-based streak updates from explicit learning actions rather than app load.
 - Same-device challenge completion persistence and dedupe.
 - Sync-failed state marking for core localStorage and route-action write failures.
+- A local reward-event foundation in `src/engine/rewards/` with event types, stable learner-scoped event keys, local ledger storage, dedupe behavior, and a shared processor/runtime helper.
+- Lesson, quiz base, quiz perfect, and challenge XP paths now flow through the local reward-event processor while keeping legacy reward history as the first compatibility guard.
 
 Remaining future work:
 
@@ -66,3 +77,4 @@ Remaining future work:
 - Move challenge completion history from same-device localStorage toward backend-backed persistence.
 - Add durable retry/reconciliation for failed writes.
 - Decide whether learner-local streak dates should replace the current UTC date semantics.
+- Reconcile or backfill local reward-event ledger records with backend events if/when a server-side reward ledger is introduced.

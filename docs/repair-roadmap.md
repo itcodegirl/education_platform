@@ -28,11 +28,12 @@ Current quiz checkpoint:
 
 Current progress/reward checkpoint:
 
-- Lesson completion XP uses stable reward keys to prevent same-device uncomplete/recomplete farming.
-- Quiz retries remain available for learning, while base quiz XP and perfect-score bonus XP are awarded once per stable quiz key.
+- Lesson completion XP uses stable reward keys and a local reward-event processor to prevent same-device uncomplete/recomplete farming.
+- Quiz retries remain available for learning, while base quiz XP and perfect-score bonus XP are awarded once per stable quiz key and recorded through learner-scoped local reward events.
 - Streaks now advance from explicit learning actions instead of app load, while preserving existing UTC date semantics.
-- Challenge completion is persisted and deduped for same-device learning motivation, but is not secure certification.
+- Challenge completion is persisted, deduped, and reward-event processed for same-device learning motivation, but is not secure certification.
 - Core localStorage and route-action write failures mark sync-failed state instead of failing completely silently.
+- `src/engine/rewards/` now contains the local reward-event foundation, local ledger, processor, and shared runtime bridge used by lesson, quiz, and challenge rewards.
 
 Remaining hardening:
 
@@ -41,6 +42,7 @@ Remaining hardening:
 - Continue legacy alias review and monitor classified orphan/variant drift through `npm run audit:quizzes`
 - Use the reward/progress trust policy in `docs/reward-progress-policy.md` as the source of truth for future schema-backed reward hardening
 - Add server-side reward-event tracking or an equivalent atomic XP award operation for cross-device idempotency
+- Decide how to reconcile local reward-event ledger entries with future backend reward-event records
 - Move challenge completion history toward backend-backed persistence when the data model is ready
 - Add durable retry/reconciliation for failed progress writes
 - Decide whether learner-local streak dates should replace the current UTC date semantics
