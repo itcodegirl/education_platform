@@ -2,6 +2,7 @@
 import process from 'node:process';
 import { createServer } from 'vite';
 import { resolveQuizLessonId } from '../src/data/quizLessonIdResolver.js';
+import { INTENTIONAL_LESSON_QUIZ_VARIANTS } from './quiz-variant-registry.mjs';
 
 const args = new Set(process.argv.slice(2));
 const strictMode = args.has('--strict');
@@ -69,6 +70,43 @@ function keyForLesson(courseId, lessonId) {
 
 function keyForModule(courseId, moduleId) {
   return `m:${courseId}:${moduleId}`;
+}
+
+function rawLessonIdsForEntries(entries) {
+  return entries.map((entry) => entry.rawLessonId).filter(Boolean);
+}
+
+function arraysMatch(left, right) {
+  if (left.length !== right.length) return false;
+  return left.every((value, index) => value === right[index]);
+}
+
+function reviewLessonVariantGroup(scopedLessonKey, primary, bonus) {
+  const lockedVariant = INTENTIONAL_LESSON_QUIZ_VARIANTS[scopedLessonKey];
+
+  if (!lockedVariant) {
+    return {
+      status: 'unreviewed',
+      reason: 'No intentional variant metadata registered.',
+    };
+  }
+
+  const expectedPrimary = lockedVariant.primaryRawLessonIds || [];
+  const expectedBonus = lockedVariant.bonusRawLessonIds || [];
+  const actualPrimary = rawLessonIdsForEntries([primary]);
+  const actualBonus = rawLessonIdsForEntries(bonus);
+
+  if (!arraysMatch(actualPrimary, expectedPrimary) || !arraysMatch(actualBonus, expectedBonus)) {
+    return {
+      status: 'metadata-mismatch',
+      reason: 'Intentional variant metadata no longer matches the reported primary/bonus quiz IDs.',
+    };
+  }
+
+  return {
+    status: lockedVariant.status,
+    reason: lockedVariant.reason,
+  };
 }
 
 function formatQuizEntry(entry) {
@@ -169,6 +207,7 @@ function analyzeCourse(courseMeta, loadedCourse) {
       scopedLessonKey,
       primary: entries[0],
       bonus: entries.slice(1),
+      review: reviewLessonVariantGroup(scopedLessonKey, entries[0], entries.slice(1)),
     }));
 
   return {
@@ -187,6 +226,18 @@ function analyzeCourse(courseMeta, loadedCourse) {
     modulesWithNoQuiz,
     lessonVariantGroups,
   };
+}
+
+function formatLessonVariantGroup({ scopedLessonKey, primary, bonus, review }) {
+  const bonusText = bonus
+    .map((entry) => `${formatQuizEntry(entry)} ${formatLessonResolution(entry)}`)
+    .join(' | ');
+
+  return (
+    `[${review.status}] ${scopedLessonKey} `
+    + `primary=[${formatQuizEntry(primary)} ${formatLessonResolution(primary)}] `
+    + `bonus=[${bonusText}] reason=${review.reason}`
+  );
 }
 
 function printCourseReport(report) {
@@ -243,9 +294,19 @@ function printCourseReport(report) {
   printIssueGroup(
     'Lesson quiz variants (primary + bonus)',
     report.lessonVariantGroups,
-    ({ scopedLessonKey, primary, bonus }) => (
-      `${scopedLessonKey} primary=[${formatQuizEntry(primary)} ${formatLessonResolution(primary)}] bonus=[${bonus.map((entry) => `${formatQuizEntry(entry)} ${formatLessonResolution(entry)}`).join(' | ')}]`
-    ),
+    formatLessonVariantGroup,
+  );
+
+  printIssueGroup(
+    'Intentional locked lesson quiz variants',
+    report.lessonVariantGroups.filter((group) => group.review.status === 'intentional'),
+    formatLessonVariantGroup,
+  );
+
+  printIssueGroup(
+    'Suspicious/unreviewed lesson quiz variants',
+    report.lessonVariantGroups.filter((group) => group.review.status !== 'intentional'),
+    formatLessonVariantGroup,
   );
 }
 
@@ -259,6 +320,8 @@ function summarizeReports(reports) {
     lessonsWithNoQuiz: 0,
     modulesWithNoQuiz: 0,
     lessonVariantGroups: 0,
+    intentionalLessonVariantGroups: 0,
+    suspiciousLessonVariantGroups: 0,
   };
 
   reports.forEach((report) => {
@@ -270,6 +333,12 @@ function summarizeReports(reports) {
     total.lessonsWithNoQuiz += report.lessonsWithNoQuiz.length;
     total.modulesWithNoQuiz += report.moduleQuizExpectationEnabled ? report.modulesWithNoQuiz.length : 0;
     total.lessonVariantGroups += report.lessonVariantGroups.length;
+    total.intentionalLessonVariantGroups += report.lessonVariantGroups
+      .filter((group) => group.review.status === 'intentional')
+      .length;
+    total.suspiciousLessonVariantGroups += report.lessonVariantGroups
+      .filter((group) => group.review.status !== 'intentional')
+      .length;
   });
 
   return total;
@@ -332,6 +401,8 @@ async function main() {
   console.log(`  lessons with no matching lesson quiz: ${totals.lessonsWithNoQuiz}`);
   console.log(`  modules with no matching module quiz (expected courses only): ${totals.modulesWithNoQuiz}`);
   console.log(`  lesson variant groups (primary + bonus): ${totals.lessonVariantGroups}`);
+  console.log(`  intentional locked lesson variant groups: ${totals.intentionalLessonVariantGroups}`);
+  console.log(`  suspicious/unreviewed lesson variant groups: ${totals.suspiciousLessonVariantGroups}`);
 
   const blockingIssues = strictIssueCount(totals);
   if (strictMode && blockingIssues > 0) {
