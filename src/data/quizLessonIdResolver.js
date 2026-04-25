@@ -77,6 +77,10 @@ const REACT_HIGH_CONFIDENCE_LEGACY_LESSON_ALIASES = Object.freeze({
   'r18-1': 'r16-2',
 });
 
+const REACT_DIRECT_LESSON_ID_DENYLIST = Object.freeze({
+  'r2-1': true,
+});
+
 function resolveCssLegacyLessonId(rawLessonId) {
   if (CSS_FALLBACK_DENYLIST[rawLessonId]) return null;
   const match = /^c(\d+)-(\d+)$/.exec(rawLessonId);
@@ -124,6 +128,14 @@ function normalizeLessonIdSet(lessonIdSet) {
   return new Set();
 }
 
+function isDirectLessonIdBlocked(courseId, rawLessonId) {
+  if (courseId === 'react') {
+    return REACT_DIRECT_LESSON_ID_DENYLIST[rawLessonId] === true;
+  }
+
+  return false;
+}
+
 export function resolveQuizLessonId(courseId, rawLessonId, lessonIdSet) {
   if (!rawLessonId) {
     return {
@@ -134,7 +146,7 @@ export function resolveQuizLessonId(courseId, rawLessonId, lessonIdSet) {
   }
 
   const lessonIds = normalizeLessonIdSet(lessonIdSet);
-  if (lessonIds.has(rawLessonId)) {
+  if (lessonIds.has(rawLessonId) && !isDirectLessonIdBlocked(courseId, rawLessonId)) {
     return {
       rawLessonId,
       resolvedLessonId: rawLessonId,

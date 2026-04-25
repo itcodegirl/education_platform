@@ -126,6 +126,26 @@ describe('quizLessonIdResolver', () => {
       resolvedLessonId: 'r1-3',
       resolution: 'alias',
     });
+
+    expect(resolveQuizLessonId('react', 'r5-1', new Set(['r2-1']))).toEqual({
+      rawLessonId: 'r5-1',
+      resolvedLessonId: 'r2-1',
+      resolution: 'alias',
+    });
+  });
+
+  it('blocks misaligned direct React quiz IDs for event handling while keeping alias coverage', () => {
+    expect(resolveQuizLessonId('react', 'r2-1', new Set(['r2-1']))).toEqual({
+      rawLessonId: 'r2-1',
+      resolvedLessonId: null,
+      resolution: 'unresolved',
+    });
+
+    expect(resolveQuizLessonId('react', 'r5-1', new Set(['r2-1']))).toEqual({
+      rawLessonId: 'r5-1',
+      resolvedLessonId: 'r2-1',
+      resolution: 'alias',
+    });
   });
 
   it('does not resolve when alias target is missing from active lessons', () => {
@@ -147,10 +167,10 @@ describe('quizLessonIdResolver', () => {
   });
 
   it('does not cross-map unsupported courses', () => {
-    const reactResult = resolveQuizLessonId('react', 'r2-1', new Set(['r2-1']));
+    const reactResult = resolveQuizLessonId('react', 'r2-2', new Set(['r2-2']));
     expect(reactResult).toEqual({
-      rawLessonId: 'r2-1',
-      resolvedLessonId: 'r2-1',
+      rawLessonId: 'r2-2',
+      resolvedLessonId: 'r2-2',
       resolution: 'direct',
     });
 
