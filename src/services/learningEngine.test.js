@@ -8,8 +8,18 @@
 // ═══════════════════════════════════════════════
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { readRewardLedger } from '../engine/rewards/rewardLedger';
 import { createLearningEngine } from './learningEngine';
 import { rewardKeys } from './rewardPolicy';
+
+function createMemoryStorage(initialEntries = {}) {
+  const entries = new Map(Object.entries(initialEntries));
+
+  return {
+    getItem: (key) => (entries.has(key) ? entries.get(key) : null),
+    setItem: (key, value) => entries.set(key, String(value)),
+  };
+}
 
 function buildDeps(overrides = {}) {
   return {
@@ -23,16 +33,17 @@ function buildDeps(overrides = {}) {
     markRewardAwarded: vi.fn(() => true),
     isChallengeCompleted: vi.fn(() => false),
     markChallengeCompleted: vi.fn(() => true),
+    markSyncFailed: vi.fn(),
     ...overrides,
   };
 }
 
 describe('createLearningEngine → completeLesson', () => {
-  it('marks a new lesson done, awards XP, and records daily activity', () => {
+  it('marks a new lesson done, awards XP, and records daily activity', async () => {
     const deps = buildDeps();
     const engine = createLearningEngine(deps);
 
-    engine.completeLesson('html|intro|first');
+    await engine.completeLesson('html|intro|first');
 
     expect(deps.toggleLesson).toHaveBeenCalledTimes(1);
     expect(deps.toggleLesson).toHaveBeenCalledWith('html|intro|first', {});
@@ -44,33 +55,58 @@ describe('createLearningEngine → completeLesson', () => {
     expect(deps.recordDailyActivity).toHaveBeenCalledTimes(1);
   });
 
-  it('toggles a completed lesson OFF without awarding XP again', () => {
+  it('toggles a completed lesson OFF without awarding XP again', async () => {
     const deps = buildDeps({
       completedSet: new Set(['html|intro|first']),
     });
     const engine = createLearningEngine(deps);
 
-    engine.completeLesson('html|intro|first');
+    await engine.completeLesson('html|intro|first');
 
     expect(deps.toggleLesson).toHaveBeenCalledTimes(1);
     expect(deps.awardXP).not.toHaveBeenCalled();
     expect(deps.recordDailyActivity).not.toHaveBeenCalled();
   });
 
-  it('does not award XP again when a previously rewarded lesson is recompleted', () => {
+  it('does not award XP again when a previously rewarded lesson is recompleted', async () => {
     const deps = buildDeps({
       completedSet: new Set(),
       hasRewardBeenAwarded: vi.fn(() => true),
     });
     const engine = createLearningEngine(deps);
 
-    engine.completeLesson('html|intro|first');
+    await engine.completeLesson('html|intro|first');
 
     expect(deps.toggleLesson).toHaveBeenCalledTimes(1);
     expect(deps.toggleLesson).toHaveBeenCalledWith('html|intro|first', {});
     expect(deps.markRewardAwarded).not.toHaveBeenCalled();
     expect(deps.awardXP).not.toHaveBeenCalled();
     expect(deps.recordDailyActivity).not.toHaveBeenCalled();
+  });
+
+  it('records a learner-scoped reward event when completing a new lesson', async () => {
+    const rewardEventStorage = createMemoryStorage();
+    const deps = buildDeps({
+      learnerKey: 'learner-123',
+      rewardEventStorage,
+    });
+    const engine = createLearningEngine(deps);
+
+    await engine.completeLesson('html|intro|first');
+
+    const result = readRewardLedger('learner-123', { storage: rewardEventStorage });
+    expect(result.ledger.processedKeys).toEqual([
+      'lesson-complete:html|intro|first:learner-123',
+    ]);
+    expect(result.ledger.events[0]).toMatchObject({
+      key: 'lesson-complete:html|intro|first:learner-123',
+      type: 'LESSON_COMPLETE',
+      targetId: 'html|intro|first',
+      learnerKey: 'learner-123',
+      metadata: {
+        rewardKey: rewardKeys.lessonComplete('html|intro|first'),
+      },
+    });
   });
 });
 
@@ -96,11 +132,11 @@ describe('createLearningEngine → uncompleteLesson', () => {
 });
 
 describe('createLearningEngine → toggleLessonDone', () => {
-  it('routes to completeLesson when not yet done', () => {
+  it('routes to completeLesson when not yet done', async () => {
     const deps = buildDeps();
     const engine = createLearningEngine(deps);
 
-    engine.toggleLessonDone('x|y|z');
+    await engine.toggleLessonDone('x|y|z');
 
     expect(deps.toggleLesson).toHaveBeenCalled();
     expect(deps.awardXP).toHaveBeenCalledWith(25, 'Lesson completed');
@@ -116,11 +152,11 @@ describe('createLearningEngine → toggleLessonDone', () => {
     expect(deps.awardXP).not.toHaveBeenCalled();
   });
 
-  it('forwards mutation options to lesson toggles', () => {
+  it('forwards mutation options to lesson toggles', async () => {
     const deps = buildDeps();
     const engine = createLearningEngine(deps);
 
-    engine.toggleLessonDone('x|y|z', { skipRemote: true });
+    await engine.toggleLessonDone('x|y|z', { skipRemote: true });
 
     expect(deps.toggleLesson).toHaveBeenCalledWith('x|y|z', { skipRemote: true });
   });

@@ -5,10 +5,11 @@
 // ═══════════════════════════════════════════════
 
 import { useMemo } from 'react';
-import { useProgressData, useXP } from '../providers';
+import { useAuth, useProgressData, useXP } from '../providers';
 import { createLearningEngine } from '../services/learningEngine';
 
 export function useLearning() {
+  const { user } = useAuth();
   const {
     toggleLesson,
     saveQuizScore,
@@ -18,6 +19,7 @@ export function useLearning() {
     markRewardAwarded,
     isChallengeCompleted,
     markChallengeCompleted,
+    markSyncFailed,
   } = useProgressData();
   const { awardXP, recordDailyActivity } = useXP();
 
@@ -32,7 +34,10 @@ export function useLearning() {
     markRewardAwarded,
     isChallengeCompleted,
     markChallengeCompleted,
+    learnerKey: user?.id || '',
+    markSyncFailed,
   }), [
+    user?.id,
     toggleLesson,
     saveQuizScore,
     quizScores,
@@ -43,6 +48,7 @@ export function useLearning() {
     markRewardAwarded,
     isChallengeCompleted,
     markChallengeCompleted,
+    markSyncFailed,
   ]);
 
   return engine;
