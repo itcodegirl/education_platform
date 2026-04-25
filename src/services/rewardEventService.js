@@ -68,6 +68,10 @@ export function isSupabaseRewardBackendConfigured(env = getImportMetaEnv()) {
   return Boolean(env.VITE_SUPABASE_URL && env.VITE_SUPABASE_ANON_KEY);
 }
 
+export function isBackendRewardSyncEnabled(env = getImportMetaEnv()) {
+  return env.VITE_REWARD_BACKEND_SYNC_ENABLED === 'true';
+}
+
 async function resolveSupabaseClient(options = {}) {
   if (options.client) return { client: options.client };
 

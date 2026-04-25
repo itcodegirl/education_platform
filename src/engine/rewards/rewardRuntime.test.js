@@ -4,6 +4,7 @@ import { createRewardEvent } from './rewardEvents';
 import { getRewardLedgerStorageKey, readRewardLedger } from './rewardLedger';
 import { REWARD_PROCESSOR_STATUSES } from './rewardProcessor';
 import { awardRewardOnce } from './rewardRuntime';
+import { BACKEND_REWARD_STATUSES } from '../../services/rewardEventService';
 
 const learnerKey = 'learner-123';
 const legacyRewardKey = 'lesson_complete:lesson-01';
@@ -56,6 +57,108 @@ describe('awardRewardOnce', () => {
     expect(readRewardLedger(learnerKey, { storage: deps.storage }).ledger.processedKeys).toEqual([
       'lesson-complete:lesson-01:learner-123',
     ]);
+  });
+
+  it('uses local rewards when backend sync is disabled', async () => {
+    const backendRewardAward = vi.fn();
+    const deps = createRewardDeps({
+      backendRewardSyncEnabled: false,
+      backendRewardAward,
+    });
+
+    const result = await awardRewardOnce(deps);
+
+    expect(result.status).toBe(REWARD_PROCESSOR_STATUSES.APPLIED);
+    expect(result.source).not.toBe('backend-reward-event');
+    expect(backendRewardAward).not.toHaveBeenCalled();
+    expect(deps.awardXP).toHaveBeenCalledWith(25, 'Lesson completed');
+  });
+
+  it('uses local rewards when no authenticated learner key exists', async () => {
+    const backendRewardAward = vi.fn();
+    const deps = createRewardDeps({
+      learnerKey: '',
+      backendRewardSyncEnabled: true,
+      backendRewardAward,
+    });
+
+    const result = await awardRewardOnce(deps);
+
+    expect(result.status).toBe(REWARD_PROCESSOR_STATUSES.APPLIED);
+    expect(result.source).toBe('legacy-reward-history');
+    expect(backendRewardAward).not.toHaveBeenCalled();
+    expect(deps.awardXP).toHaveBeenCalledWith(25, 'Lesson completed');
+  });
+
+  it('uses backend awarded results without writing XP through the legacy remote path', async () => {
+    const backendRewardAward = vi.fn(async () => ({
+      status: BACKEND_REWARD_STATUSES.AWARDED,
+      totalXp: 125,
+      xpAwarded: 25,
+    }));
+    const deps = createRewardDeps({
+      backendRewardSyncEnabled: true,
+      backendRewardAward,
+    });
+
+    const result = await awardRewardOnce(deps);
+
+    expect(result.status).toBe(REWARD_PROCESSOR_STATUSES.APPLIED);
+    expect(result.source).toBe('backend-reward-event');
+    expect(backendRewardAward).toHaveBeenCalledWith({
+      event: deps.event,
+      xpAmount: 25,
+      source: 'client',
+    });
+    expect(deps.markRewardAwarded).toHaveBeenCalledWith(legacyRewardKey);
+    expect(deps.awardXP).toHaveBeenCalledWith(25, 'Lesson completed', { skipRemote: true });
+    expect(deps.onRewardApplied).toHaveBeenCalledTimes(1);
+    expect(readRewardLedger(learnerKey, { storage: deps.storage }).ledger.processedKeys).toEqual([
+      'lesson-complete:lesson-01:learner-123',
+    ]);
+  });
+
+  it('treats backend duplicate rewards as skipped and records local dedupe state', async () => {
+    const backendRewardAward = vi.fn(async () => ({
+      status: BACKEND_REWARD_STATUSES.SKIPPED,
+      totalXp: 125,
+      xpAwarded: 0,
+    }));
+    const deps = createRewardDeps({
+      backendRewardSyncEnabled: true,
+      backendRewardAward,
+    });
+
+    const result = await awardRewardOnce(deps);
+
+    expect(result.status).toBe(REWARD_PROCESSOR_STATUSES.SKIPPED);
+    expect(result.source).toBe('backend-reward-event');
+    expect(deps.markRewardAwarded).toHaveBeenCalledWith(legacyRewardKey);
+    expect(deps.awardXP).not.toHaveBeenCalled();
+    expect(deps.onRewardApplied).not.toHaveBeenCalled();
+    expect(readRewardLedger(learnerKey, { storage: deps.storage }).ledger.processedKeys).toEqual([
+      'lesson-complete:lesson-01:learner-123',
+    ]);
+  });
+
+  it('falls back to local rewards when backend sync fails', async () => {
+    const backendRewardAward = vi.fn(async () => ({
+      status: BACKEND_REWARD_STATUSES.FAILED,
+      error: new Error('network unavailable'),
+    }));
+    const deps = createRewardDeps({
+      backendRewardSyncEnabled: true,
+      backendRewardAward,
+    });
+
+    const result = await awardRewardOnce(deps);
+
+    expect(result.status).toBe(REWARD_PROCESSOR_STATUSES.APPLIED);
+    expect(result.source).not.toBe('backend-reward-event');
+    expect(deps.markSyncFailed).toHaveBeenCalledWith(
+      'backend reward failed:lesson-complete:lesson-01:learner-123',
+    );
+    expect(deps.awardXP).toHaveBeenCalledWith(25, 'Lesson completed');
   });
 
   it('uses legacy reward history as the first dedupe guard', async () => {

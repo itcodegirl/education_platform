@@ -4,6 +4,7 @@ import { createRewardEvent } from '../engine/rewards/rewardEvents';
 import {
   BACKEND_REWARD_STATUSES,
   awardBackendRewardEvent,
+  isBackendRewardSyncEnabled,
   isSupabaseRewardBackendConfigured,
   normalizeBackendRewardPayload,
 } from './rewardEventService';
@@ -29,6 +30,12 @@ describe('rewardEventService', () => {
       VITE_SUPABASE_URL: 'https://example.supabase.co',
       VITE_SUPABASE_ANON_KEY: 'anon',
     })).toBe(true);
+  });
+
+  it('keeps backend reward sync disabled unless explicitly enabled', () => {
+    expect(isBackendRewardSyncEnabled({})).toBe(false);
+    expect(isBackendRewardSyncEnabled({ VITE_REWARD_BACKEND_SYNC_ENABLED: 'false' })).toBe(false);
+    expect(isBackendRewardSyncEnabled({ VITE_REWARD_BACKEND_SYNC_ENABLED: 'true' })).toBe(true);
   });
 
   it('normalizes event-shaped backend reward payloads', () => {
