@@ -76,6 +76,7 @@ The policy constants live in `src/services/rewardPolicy.js`. Runtime hardening n
 Remaining future work:
 
 - Add a schema-backed reward-event table, equivalent stable tracking table, or server-side atomic award operation for cross-device reward idempotency.
+- The proposed backend reward-event schema is documented in `docs/backend-reward-events.md` with a draft SQL artifact in `docs/sql/reward-events-schema-draft.sql`; it is not deployed or called by runtime code yet.
 - Move challenge completion history from same-device localStorage toward backend-backed persistence.
 - Add backend-backed durable retry/reconciliation and optional background queue processing.
 - Decide whether learner-local streak dates should replace the current UTC date semantics.
