@@ -158,7 +158,7 @@ export function LandingHeroIntro({ onStart, compact = false }) {
         <span className="lh-headline-grad">building something real.</span>
       </h1>
       <p className="lh-lede">
-        Cinova takes you from <span className="lh-inline-code">&lt;h1&gt;Hi&lt;/h1&gt;</span> to a
+        CodeHerWay takes you from <span className="lh-inline-code">&lt;h1&gt;Hi&lt;/h1&gt;</span> to a
         shipped React app in one clear, opinionated lesson at a time. Write
         the code, see it run, ask the tutor when you&apos;re stuck.
       </p>
@@ -216,4 +216,5 @@ export function LandingHero({ onStart }) {
     </div>
   );
 }
+
 

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+﻿import { describe, it, expect } from 'vitest';
 import {
   APP_ROUTES,
   buildLearnPath,
@@ -27,7 +27,7 @@ describe('routePaths', () => {
   });
 
   it('accepts valid public profile handles and rejects invalid ones', () => {
-    expect(parsePublicProfilePath('/u/cinova_dev')).toBe('cinova_dev');
+    expect(parsePublicProfilePath('/u/codeherway_dev')).toBe('codeherway_dev');
     expect(parsePublicProfilePath('/u/!bad-handle')).toBe(null);
   });
 
@@ -40,3 +40,4 @@ describe('routePaths', () => {
     expect(buildLearnPath(course, moduleData, lesson, true)).toBe('/learn/react/hooks/quiz');
   });
 });
+

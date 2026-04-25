@@ -1,7 +1,7 @@
-// ═══════════════════════════════════════════════
-// AI SERVICE — Client-side wrapper around the
+﻿// ===============================================
+// AI SERVICE - Client-side wrapper around the
 // authenticated Netlify Function AI proxy.
-// ═══════════════════════════════════════════════
+// ===============================================
 
 import { supabase } from '../lib/supabaseClient';
 
@@ -16,7 +16,7 @@ function getAIErrorMessage(status, serverMessage) {
     return 'You are sending requests too quickly. Wait a moment and try again.';
   }
   if (status >= 500) {
-    return 'Cinova AI tutor is temporarily unavailable. Please try again soon.';
+    return 'CodeHerWay AI tutor is temporarily unavailable. Please try again soon.';
   }
   return serverMessage || 'AI request failed';
 }
@@ -85,3 +85,5 @@ export function askChallengeTutor({
     maxTokens: 600,
   });
 }
+
+

@@ -1,11 +1,11 @@
-﻿/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   PANELS â€” Cheatsheet, glossary, projects, badges,
+﻿/* ═══════════════════════════════════════════════
+   PANELS — Cheatsheet, glossary, projects, badges,
    SR queue, bookmarks, plus the mobile lesson nav
    bar and the sidebar tools section.
    Depends on tokens.css + animations.css.
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════ */
 
-/* â”€â”€â”€ Public profile toggle (ProfilePage) â”€â”€â”€ */
+/* ─── Public profile toggle (ProfilePage) ─── */
 .panel-loading-inline {
   position: fixed;
   right: 20px;
@@ -172,7 +172,7 @@
   font-size: var(--text-sm);
 }
 
-/* â”€â”€â”€ Public profile page (/u/:handle) â”€â”€â”€ */
+/* ─── Public profile page (/u/:handle) ─── */
 .pub-profile {
   min-height: 100vh;
   min-height: 100dvh;
@@ -383,7 +383,7 @@
   font-size: var(--text-xs);
 }
 
-/* â”€â”€â”€ AI practice card generator (SRPanel) â”€â”€â”€ */
+/* ─── AI practice card generator (SRPanel) ─── */
 .sr-generate {
   background: linear-gradient(135deg, rgba(180, 74, 255, 0.08), rgba(224, 64, 160, 0.05));
   border: 1px solid var(--border);
@@ -475,7 +475,7 @@
   font-size: var(--text-sm);
 }
 
-/* â”€â”€â”€ 15. Panels â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 15. Panels ─────────────────────────────── */
 .cheatsheet-head {
   display: flex;
   justify-content: space-between;
@@ -625,7 +625,7 @@
 .sr-wrong-count { color:#ff6b6b!important; font-weight:700; }
 
 /* Bookmarks */
-/* Pure layout row â€” the interactive bits are the two child buttons
+/* Pure layout row — the interactive bits are the two child buttons
    (.bk-main for open, .bk-remove for delete). Previously this whole
    row was a <div onClick>, which was keyboard-inaccessible. */
 .bookmark-item {
@@ -641,7 +641,7 @@
 }
 .bookmark-item:hover,
 .bookmark-item:focus-within { border-color: var(--border-bright); transform: translateX(4px); box-shadow: 0 12px 22px rgba(0,0,0,0.18); }
-/* Primary action â€” opens the lesson. Takes all available row space. */
+/* Primary action — opens the lesson. Takes all available row space. */
 .bk-main {
   flex: 1;
   min-width: 0;
@@ -808,7 +808,7 @@
 .badge-notif { position:absolute; top:-4px; right:-4px; min-width:16px; height:16px; background:#ff6b6b; border-radius:50%; font-size:9px; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; border:2px solid var(--bg-surface); }
 .bk-notif { background:var(--purple); }
 
-/* â”€â”€â”€ 15b. Lesson Nav Bar (mobile bottom nav) â”€â”€â”€â”€ */
+/* ─── 15b. Lesson Nav Bar (mobile bottom nav) ──── */
 .lesson-nav {
   display: none; /* shown via media query on mobile */
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
@@ -877,7 +877,7 @@
 }
 .shell.light .lesson-nav-btn { background: var(--bg-surface); border-color: var(--border); }
 
-/* â”€â”€â”€ 15c. Sidebar Tools Section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 15c. Sidebar Tools Section ───────────────── */
 .sidebar-tools-title { margin-top: 4px; }
 .sidebar-tools {
   display: flex; flex-direction: column; gap: 2px;
@@ -905,6 +905,7 @@
   .sidebar.collapsed .sidebar-tools,
   .sidebar.collapsed .sidebar-tools-title { display: none; }
 }
+
 
 
 

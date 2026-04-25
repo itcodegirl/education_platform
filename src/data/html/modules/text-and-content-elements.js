@@ -1,12 +1,12 @@
-export const module = { id: 5, emoji: '📝', title: 'Text & Content Elements', tagline: 'Words are power. Structure them.', difficulty: 'beginner', lessons: [
+﻿export const module = { id: 5, emoji: '📝', title: 'Text & Content Elements', tagline: 'Words are power. Structure them.', difficulty: 'beginner', lessons: [
     { id: 'h5-1', scaffolding: 'partial', title: 'Headings & Paragraphs',
       prereqs: ['h4-2'],
       difficulty: 'beginner', duration: '8 min',
       concepts: [
         'Headings go from <h1> (most important) to <h6> (least important).',
-        'Use only ONE <h1> per page — it\'s the main title.',
-        'Never skip heading levels (h1 → h3 skipping h2 is wrong).',
-        '<p> is for paragraphs — the most common text element.',
+        'Use only ONE <h1> per page - it\'s the main title.',
+        'Never skip heading levels (h1 -> h3 skipping h2 is wrong).',
+        '<p> is for paragraphs - the most common text element.',
       ],
       code: `<h1>Main Page Title (only one!)</h1>\n<h2>Section Title</h2>\n<p>Body text goes in paragraphs.</p>\n<h3>Subsection</h3>\n<p>More detailed content here.</p>\n<h2>Another Section</h2>\n<p>Back to h2 for a new section.</p>`,
       output: 'A properly structured heading hierarchy with paragraphs.',
@@ -15,7 +15,7 @@ export const module = { id: 5, emoji: '📝', title: 'Text & Content Elements', 
         'Add paragraphs under each heading.',
         'Intentionally skip a heading level and notice how it feels wrong.',
       ],
-      challenge: 'Structure an "About Me" page with proper heading hierarchy — no skipping levels.',
+      challenge: 'Structure an "About Me" page with proper heading hierarchy - no skipping levels.',
       devFession: 'I used <h1> for everything that should be "big." That is not how headings work.' },
     { id: 'h5-2', scaffolding: 'partial', title: 'Text Formatting & Inline Elements',
       prereqs: ['h5-1'],
@@ -40,12 +40,12 @@ export const module = { id: 5, emoji: '📝', title: 'Text & Content Elements', 
       prereqs: ['h5-2'],
       difficulty: 'beginner', duration: '6 min',
       concepts: [
-        'Some characters are reserved in HTML — <, >, &, " need entity codes.',
+        'Some characters are reserved in HTML - <, >, &, " need entity codes.',
         '&lt; displays <, &gt; displays >, &amp; displays &.',
         '&nbsp; creates a non-breaking space.',
-        '&copy; creates ©, &mdash; creates —.',
+        '&copy; creates (c), &mdash; creates -.',
       ],
-      code: `<p>Use &lt;p&gt; for paragraphs.</p>\n<p>Tom &amp; Jerry</p>\n<p>&copy; 2025 Cinova</p>\n<p>Price: &dollar;29.99</p>\n<p>She said &ldquo;hello&rdquo;</p>`,
+      code: `<p>Use &lt;p&gt; for paragraphs.</p>\n<p>Tom &amp; Jerry</p>\n<p>&copy; 2025 CodeHerWay</p>\n<p>Price: &dollar;29.99</p>\n<p>She said &ldquo;hello&rdquo;</p>`,
       output: 'Special characters rendered correctly using HTML entities.',
       tasks: [
         'Display a < and > symbol in a paragraph without breaking the HTML.',
@@ -55,4 +55,7 @@ export const module = { id: 5, emoji: '📝', title: 'Text & Content Elements', 
       challenge: 'Write a paragraph that explains HTML tags using visible < and > symbols.',
       devFession: 'I typed <p> inside a paragraph to show code and it created an actual paragraph. Entities exist for a reason.' },
   ]};
+
+
+
 

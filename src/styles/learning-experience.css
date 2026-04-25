@@ -4,7 +4,7 @@
    Keep import order stable via styles/App.css.
    ================================================ */
 
-/* â”€â”€â”€ 23b. Desktop Widescreen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 23b. Desktop Widescreen ─────────────────── */
 @media (min-width: 1400px) {
   :root {
     --content-max: 1000px;
@@ -31,7 +31,7 @@
   }
 }
 
-/* â”€â”€â”€ Guest Preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Guest Preview ─────────────────────────────── */
 .guest-preview {
   min-height: 100vh;
   background: var(--bg-deep);
@@ -204,7 +204,7 @@
   text-align: center;
 }
 
-/* â”€â”€â”€ Roadmap Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Roadmap Panel ─────────────────────────────── */
 .roadmap-panel {
   max-width: 720px;
   width: 95vw;
@@ -360,7 +360,7 @@
   opacity: 0.4;
 }
 
-/* â”€â”€â”€ Break Prompt â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Break Prompt ──────────────────────────────── */
 .break-overlay {
   position: fixed;
   inset: 0;
@@ -447,7 +447,7 @@
   color: var(--text);
 }
 
-/* â”€â”€â”€ 24. Print Styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 24. Print Styles ─────────────────────────── */
 @media print {
 
   .sidebar,
@@ -504,7 +504,7 @@
   }
 }
 
-/* â”€â”€â”€ 26. Quiz Meta Badges â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 26. Quiz Meta Badges ─────────────────────── */
 .quiz-meta {
   display: flex;
   gap: 8px;
@@ -547,7 +547,7 @@
   border: 1px solid var(--border);
 }
 
-/* â”€â”€â”€ 27. Welcome Back â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 27. Welcome Back ────────────────────────── */
 .welcome-overlay {
   position: fixed;
   inset: 0;
@@ -585,7 +585,7 @@
   opacity: 1;
 }
 
-/* â”€â”€â”€ Greeting â”€â”€â”€ */
+/* ─── Greeting ─── */
 .wb-greeting {
   margin-bottom: 24px;
   animation: fadeIn 0.4s ease 0.15s both;
@@ -633,7 +633,7 @@
   line-height: 1.6;
 }
 
-/* â”€â”€â”€ Resume Hero Card â”€â”€â”€ */
+/* ─── Resume Hero Card ─── */
 .wb-hero {
   display: flex;
   align-items: center;
@@ -764,7 +764,7 @@
   transform: translateX(4px);
 }
 
-/* â”€â”€â”€ Stat Pills â”€â”€â”€ */
+/* ─── Stat Pills ─── */
 .wb-pills {
   display: flex;
   flex-wrap: wrap;
@@ -849,7 +849,7 @@
   text-align: center;
 }
 
-/* â”€â”€â”€ Secondary action â”€â”€â”€ */
+/* ─── Secondary action ─── */
 .wb-fresh {
   background: none;
   border: none;
@@ -889,7 +889,7 @@
   }
 }
 
-/* â”€â”€â”€ 28. Course Complete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 28. Course Complete ─────────────────────── */
 .cc-overlay {
   position: fixed;
   inset: 0;
@@ -1117,7 +1117,7 @@
   transform: translateY(-1px);
 }
 
-/* â”€â”€â”€ 29. Confetti â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 29. Confetti ────────────────────────────── */
 @keyframes confettiFall {
   0% {
     transform: translateY(-10vh) translateX(0) rotate(0deg);
@@ -1158,7 +1158,7 @@
   height: calc(var(--size) * 1.4);
 }
 
-/* â”€â”€â”€ Structured Lesson Format â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Structured Lesson Format ────────────────── */
 .sl-section-title {
   font-family: 'Poppins', sans-serif;
   font-size: clamp(16px, 1rem + 0.3vw, 18px);
@@ -1169,7 +1169,7 @@
   border-bottom: 1px solid var(--border);
 }
 
-/* Hook â€” accomplishments list */
+/* Hook — accomplishments list */
 .sl-hook {
   background: linear-gradient(180deg, rgba(78, 205, 196, 0.12), rgba(78, 205, 196, 0.04));
   border-color: var(--cyan);
@@ -1198,7 +1198,7 @@
 }
 
 .sl-hook-list li::before {
-  content: 'âœ“';
+  content: '✓';
   color: var(--cyan);
   font-weight: 700;
   flex-shrink: 0;
@@ -1402,7 +1402,7 @@
   flex-shrink: 0;
 }
 
-/* Bridge â€” next lesson teaser */
+/* Bridge — next lesson teaser */
 .sl-bridge {
   padding: 16px 18px;
   border-radius: 12px;
@@ -1441,7 +1441,7 @@
   }
 }
 
-/* â”€â”€â”€ Scaffolding Level Indicators â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Scaffolding Level Indicators ────────────── */
 .code-preview-scaffolding {
   display: flex;
   align-items: center;
@@ -1530,7 +1530,7 @@
   }
 }
 
-/* â”€â”€â”€ 30. Code Preview Line Numbers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 30. Code Preview Line Numbers ───────────── */
 .code-preview-code {
   counter-reset: line;
   position: relative;
@@ -1540,7 +1540,7 @@
   display: block;
 }
 
-/* â”€â”€â”€ 31. Improved Code Preview Hover â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 31. Improved Code Preview Hover ─────────── */
 .code-preview {
   transition: border-color 0.2s, box-shadow 0.2s;
 }
@@ -1550,7 +1550,7 @@
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
 }
 
-/* â”€â”€â”€ 32. Lesson transition â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 32. Lesson transition ───────────────────── */
 .lesson-surface {
   animation: fadeIn 0.3s ease-out;
 }
@@ -1567,7 +1567,7 @@
   animation: slideInLeft 0.35s ease-out 0.2s both;
 }
 
-/* â”€â”€â”€ Modal mobile additions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Modal mobile additions ─────────────────── */
 @media (max-width: 600px) {
   .cc-overlay {
     padding: 12px;
@@ -1597,7 +1597,7 @@
   }
 }
 
-/* â”€â”€â”€ Scrollbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Scrollbar ────────────────────────────────── */
 .main-shell::-webkit-scrollbar,
 .sidebar-scroll::-webkit-scrollbar {
   width: 6px;
@@ -1618,6 +1618,7 @@
 .sidebar-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--border-bright);
 }
+
 
 
 

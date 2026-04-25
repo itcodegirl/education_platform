@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+﻿import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createClient } from '@supabase/supabase-js';
 
 const requiredEnv = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_KEY'];
@@ -8,7 +8,7 @@ const describePolicy = missingEnv.length === 0 ? describe.sequential : describe.
 const runId = `policy-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 const adminEmail = `${runId}-admin@example.test`;
 const userEmail = `${runId}-user@example.test`;
-const password = `Cinova!${Math.random().toString(36).slice(2, 10)}A1`;
+const password = `CodeHerWay!${Math.random().toString(36).slice(2, 10)}A1`;
 
 function makeClient(key) {
   return createClient(process.env.SUPABASE_URL, key, {
@@ -215,3 +215,4 @@ describePolicy('supabase rls and admin escalation policies', () => {
     expect(Array.isArray(data)).toBe(true);
   });
 });
+

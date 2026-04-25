@@ -1,4 +1,4 @@
-# Post-deploy setup checklist
+﻿# Post-deploy setup checklist
 
 Everything in the repo builds and tests green, but a handful of
 operational steps require a human with the right credentials. This
@@ -273,9 +273,9 @@ Upload `public/og-image.svg` (or a 1280×640 PNG render of it) under
 
 **Supabase Dashboard → Authentication → URL Configuration:**
 
-- **Site URL:** your production Netlify URL (e.g., `https://cinova.app`)
+- **Site URL:** your production Netlify URL (e.g., `https://codeherway.com`)
 - **Redirect URLs:**
-  - `https://cinova.app/**` (production)
+  - `https://codeherway.com/**` (production)
   - `http://localhost:5173/**` (local dev)
 
 Why: the OAuth flow uses `window.location.origin` as the redirect
@@ -330,31 +330,32 @@ npm test
 npm audit --audit-level=high
 
 # 2. Try the live site
-open https://cinova.app/
+open https://codeherway.com/
 # expected: landing hero loads, auth card scrolls into view
 
 # 3. Try the design system
-open https://cinova.app/styleguide
+open https://codeherway.com/styleguide
 # expected: full token preview, no login required
 
 # 4. Try an invalid public profile
-open https://cinova.app/u/nobody
+open https://codeherway.com/u/nobody
 # expected: "Profile not found" card
 
 # 5. Sign up, opt in to public profile, share the link
 # expected: visiting /u/your-handle in an incognito window works
 
 # 6. Check the AI function returns 401 with no auth
-curl -i -X POST https://cinova.app/.netlify/functions/ai \
+curl -i -X POST https://codeherway.com/.netlify/functions/ai \
   -H "Content-Type: application/json" -d '{}'
 # expected: HTTP/1.1 401 Unauthorized + {"error":"Authentication required"}
 
 # 7. Verify CSP is live
-curl -sI https://cinova.app/ | grep -i content-security-policy
+curl -sI https://codeherway.com/ | grep -i content-security-policy
 # expected: a single CSP header with no fonts.googleapis.com
 ```
 
 If any of the above fails, check the Netlify deploy log and the
 Supabase logs first — 90% of the time it's an unset env var or a
 migration that hasn't been run yet.
+
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+﻿import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { trackEvent } from '../../lib/analytics';
@@ -7,7 +7,7 @@ const STEPS = [
   {
     icon: '01',
     eyebrow: 'Start here',
-    title: 'Welcome to Cinova',
+    title: 'Welcome to CodeHerWay',
     subtitle: 'Learn by shipping something real, not by getting trapped in endless theory.',
     points: [
       'Four complete learning tracks: HTML, CSS, JavaScript, and React.',
@@ -220,3 +220,4 @@ export function Onboarding({ isOpen, onClose, displayName }) {
     </div>
   );
 }
+

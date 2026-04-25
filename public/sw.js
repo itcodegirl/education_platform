@@ -1,4 +1,4 @@
-// Service worker for CodeHerWay.
+﻿// Service worker for CodeHerWay.
 // Keep navigation network-first so deploys pick up the latest HTML shell.
 
 const CACHE_VERSION = 'v8';
@@ -93,7 +93,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Vite hashed assets (JS/CSS chunks including course data, quizzes, lessons)
-  // These are immutable (hash changes on content change) â€” safe to cache forever
+  // These are immutable (hash changes on content change) — safe to cache forever
   if (url.pathname.startsWith('/assets/')) {
     event.respondWith(
       cacheFirst(request, SHELL_CACHE, { cacheableResponse: isCacheableAssetResponse })
@@ -183,3 +183,4 @@ async function networkFirstNavigation(request) {
     throw error;
   }
 }
+

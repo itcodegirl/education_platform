@@ -59,7 +59,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
         tabIndex={-1}
       >
         <div className="cc-badge-row">
-          <span className="cc-trophy">ðŸ†</span>
+          <span className="cc-trophy">🏆</span>
         </div>
 
         <div className="cc-header">
@@ -116,9 +116,9 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
             type="button"
             className="cc-share-btn"
             onClick={() => {
-              const text = `I just completed the ${course.label} course on Cinova! ${lessonCount} lessons done. #Cinova #WomenInTech #LearnToCode`;
+              const text = `I just completed the ${course.label} course on CodeHerWay! ${lessonCount} lessons done. #CodeHerWay #WomenInTech #LearnToCode`;
               if (navigator.share) {
-                navigator.share({ title: 'Cinova Certificate', text });
+                navigator.share({ title: 'CodeHerWay Certificate', text });
               } else {
                 navigator.clipboard.writeText(text);
                 toast.show('Copied to clipboard!');
@@ -129,11 +129,14 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
           </button>
 
           <button type="button" className="cc-close-btn" onClick={onClose}>
-            Keep building â†’
+            Keep building →
           </button>
         </div>
       </div>
     </div>
   );
 }
+
+
+
 

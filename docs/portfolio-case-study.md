@@ -1,8 +1,8 @@
-# Portfolio Case Study: Cinova
+﻿# Portfolio Case Study: CodeHerWay
 
 ## Executive summary
 
-Cinova is a production-minded learning platform built to improve first-time coding confidence while preserving technical rigor. The project balances product clarity, secure architecture, and incremental delivery discipline.
+CodeHerWay is a production-minded learning platform built to improve first-time coding confidence while preserving technical rigor. The project balances product clarity, secure architecture, and incremental delivery discipline.
 
 This case study highlights how the platform was hardened for portfolio review across UX, accessibility, release readiness, and developer workflow quality.
 
@@ -163,3 +163,4 @@ Why: stronger release confidence without a complex pipeline redesign.
 ## Project story (resume-friendly)
 
 Built and hardened a multi-track SaaS-style coding education platform with secure AI integration, accessible interaction design, and release-grade quality workflow. Improved onboarding clarity, consistency, and maintainability through targeted, check-validated iterations without a full architectural rewrite.
+

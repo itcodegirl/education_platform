@@ -1,6 +1,6 @@
-# Architecture
+﻿# Architecture
 
-A practical walkthrough of how Cinova is built. This is written for engineers reviewing the repo. For product positioning, see [README.md](../README.md). For threat model details, see [SECURITY.md](../SECURITY.md).
+A practical walkthrough of how CodeHerWay is built. This is written for engineers reviewing the repo. For product positioning, see [README.md](../README.md). For threat model details, see [SECURITY.md](../SECURITY.md).
 
 ---
 
@@ -34,7 +34,7 @@ Design invariants:
 
 ## 2. Route model and navigation
 
-Cinova now uses path-based routing with history state, plus a legacy hash migration layer.
+CodeHerWay now uses path-based routing with history state, plus a legacy hash migration layer.
 
 | Path | Behavior |
 | --- | --- |
@@ -181,4 +181,5 @@ Live token preview route: `/styleguide`.
 - No heavyweight state library while current complexity remains manageable.
 - No decorative visual effects that reduce clarity or accessibility.
 
-Cinova is intentionally evolved through small, test-validated changes that improve product quality without destabilizing the core learning experience.
+CodeHerWay is intentionally evolved through small, test-validated changes that improve product quality without destabilizing the core learning experience.
+

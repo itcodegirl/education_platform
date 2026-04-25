@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+﻿import { supabase } from './supabaseClient';
 
 const ANALYTICS_QUEUE_KEY = '__cinovaAnalyticsQueue';
 const ANALYTICS_STORAGE_KEY = 'cinova.analytics.queue.v1';
@@ -194,6 +194,7 @@ export function trackEvent(name, payload = {}) {
   }
 
   if (import.meta.env.DEV && import.meta.env.VITE_ANALYTICS_DEBUG === 'true') {
-    console.info('[cinova analytics]', entry);
+    console.info('[codeherway analytics]', entry);
   }
 }
+

@@ -31,7 +31,7 @@ vi.mock('../../providers', () => ({
 }));
 
 vi.mock('../shared/Logo', () => ({
-  Logo: () => <span>Cinova</span>,
+  Logo: () => <span>CodeHerWay</span>,
 }));
 
 vi.mock('./LandingHero', () => ({
@@ -105,4 +105,5 @@ describe('AuthPage', () => {
     ).toBeInTheDocument();
   });
 });
+
 

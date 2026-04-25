@@ -1,6 +1,6 @@
-# Contributing to Cinova
+﻿# Contributing to CodeHerWay
 
-Thanks for wanting to help. Cinova is a learning platform for women in tech, and contributions are welcome, especially new lessons, accessibility fixes, and security improvements.
+Thanks for wanting to help. CodeHerWay is a learning platform for women in tech, and contributions are welcome, especially new lessons, accessibility fixes, and security improvements.
 
 ## Ground rules
 
@@ -63,3 +63,4 @@ Quizzes live in `src/data/<course>/quizzes.js`, challenges in `src/data/<course>
 ## Questions
 
 Open a GitHub Discussion or reach out to [@itcodegirl](https://github.com/itcodegirl).
+

@@ -12,9 +12,11 @@
   </defs>
   <rect width="1200" height="630" fill="url(#bg)"/>
   <rect x="0" y="610" width="1200" height="20" fill="url(#accent)"/>
-  <text x="600" y="240" text-anchor="middle" font-family="monospace" font-size="72" font-weight="700" fill="url(#accent)">Cinova</text>
+  <text x="600" y="240" text-anchor="middle" font-family="monospace" font-size="72" font-weight="700" fill="url(#accent)">CodeHerWay</text>
   <text x="600" y="320" text-anchor="middle" font-family="sans-serif" font-size="36" fill="#e0e0e8">Learn. Build. Ship.</text>
   <text x="600" y="420" text-anchor="middle" font-family="sans-serif" font-size="24" fill="#8888a8">Where women code, lead, and rewrite the future of tech.</text>
-  <text x="600" y="500" text-anchor="middle" font-family="monospace" font-size="20" fill="#5a5a7a">HTML  Â·  CSS  Â·  JavaScript  Â·  React</text>
+  <text x="600" y="500" text-anchor="middle" font-family="monospace" font-size="20" fill="#5a5a7a">HTML   -   CSS   -   JavaScript   -   React</text>
 </svg>
+
+
 

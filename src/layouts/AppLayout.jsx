@@ -1,7 +1,7 @@
-// ═══════════════════════════════════════════════
-// APP LAYOUT — Main platform shell
+﻿// ===============================================
+// APP LAYOUT - Main platform shell
 // Sidebar + Topbar + Content + Toolbar + Panels
-// ═══════════════════════════════════════════════
+// ===============================================
 
 import { useCallback, useMemo, useEffect, useRef, useState } from "react";
 import { useFetcher } from "react-router-dom";
@@ -68,7 +68,7 @@ export function AppLayout() {
 
   // Lazy-load the currently-selected course's lesson content. The
   // CourseContentProvider caches loads and auto-fetches the default
-  // ('html') on mount — this effect keeps it in sync as the user
+  // ('html') on mount - this effect keeps it in sync as the user
   // switches courses so we don't over-fetch.
   const {
     setActiveCourseId,
@@ -130,16 +130,16 @@ export function AppLayout() {
     }
   }, [isMobile, setSidebarCollapsed]);
 
-  // ─── Dynamic page title ───────────────────
+  // --- Dynamic page title -------------------
   useEffect(() => {
     const title = showModQuiz
-      ? `${mod.title} Quiz — Cinova`
-      : `${les.title} — Cinova`;
+      ? `${mod.title} Quiz - CodeHerWay`
+      : `${les.title} - CodeHerWay`;
     document.title = title;
-    return () => { document.title = 'Cinova — Learn. Build. Ship.'; };
+    return () => { document.title = 'CodeHerWay - Learn. Build. Ship.'; };
   }, [les.title, mod.title, showModQuiz]);
 
-  // ─── Save position on navigation ──────────
+  // --- Save position on navigation ----------
   useEffect(() => {
     if (dataLoaded) {
       savePosition({
@@ -162,7 +162,7 @@ export function AppLayout() {
     trackCourseVisit,
   ]);
 
-  // ─── Milestone + course completion ────────
+  // --- Milestone + course completion --------
   useEffect(() => {
     panels.checkMilestone(completed.length);
   }, [completed.length, panels]);
@@ -240,7 +240,7 @@ export function AppLayout() {
     }
   }, [isCourseComplete, isDone, panels]);
 
-  // ─── Actions ──────────────────────────────
+  // --- Actions ------------------------------
   const handleMarkDone = useCallback(async () => {
     if (marking) return;
     setMarking(true);
@@ -318,7 +318,7 @@ export function AppLayout() {
     [panels],
   );
 
-  // ─── Keyboard ─────────────────────────────
+  // --- Keyboard -----------------------------
   useKeyboardNav({
     onNext: nav.next,
     onPrev: nav.prev,
@@ -334,7 +334,7 @@ export function AppLayout() {
     },
   });
 
-  // ─── Render ───────────────────────────────
+  // --- Render -------------------------------
   // If the active course's content hasn't finished lazy-loading,
   // show a minimal skeleton instead of the lesson UI. This is fast
   // (~100-300ms on a warm cache, once per course per session) and
@@ -402,7 +402,7 @@ export function AppLayout() {
               aria-controls="course-sidebar"
               aria-expanded={isMobile ? panels.sidebar : !sidebarCollapsed}
             >
-              {isMobile ? "☰" : sidebarCollapsed ? "»" : "«"}
+              {isMobile ? "Menu" : sidebarCollapsed ? ">>" : "<<"}
             </button>
             <Breadcrumb
               course={course}
@@ -444,7 +444,7 @@ export function AppLayout() {
                 <span>🔍</span>
                 <span className="search-trigger-label">Search</span>
                 <span className="search-trigger-mobile-hint">Tap to search</span>
-                <kbd>⌘K</kbd>
+                <kbd>Ctrl+K</kbd>
               </button>
               {!showModQuiz && (
               <button
@@ -467,7 +467,7 @@ export function AppLayout() {
             <div className="lesson-surface">
               <div className="lesson-head">
                 <span className="lesson-emoji">📝</span>
-                <h1 className="lesson-title">{mod.title} — Module Quiz</h1>
+                <h1 className="lesson-title">{mod.title} - Module Quiz</h1>
               </div>
               <p className="lp">
                 Test your knowledge of <strong>{mod.title}</strong>.
@@ -619,5 +619,8 @@ export function AppLayout() {
     </div>
   );
 }
+
+
+
 
 

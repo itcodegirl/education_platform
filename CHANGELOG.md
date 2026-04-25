@@ -1,6 +1,6 @@
-# Changelog
+﻿# Changelog
 
-All notable changes to Cinova. Format loosely follows
+All notable changes to CodeHerWay. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 semantic versioning.
 
@@ -125,4 +125,5 @@ CSS, JS, React), a Python course, Monaco-backed code editor, AI
 tutor, gamification (XP, streaks, badges, daily goals), spaced
 repetition, bookmarks, notes, an admin dashboard, and PWA support.
 See `git log main` for the full history of that work.
+
 

@@ -1,4 +1,4 @@
-export const module = { id: 10, emoji: '🧱', title: 'Semantic HTML', tagline: 'This separates beginners from professionals.', difficulty: 'intermediate', lessons: [
+﻿export const module = { id: 10, emoji: '🧱', title: 'Semantic HTML', tagline: 'This separates beginners from professionals.', difficulty: 'intermediate', lessons: [
     { id: 'h10-1', scaffolding: 'starter', title: 'Semantic Elements & Why They Matter',
       prereqs: ['h9-1'],
       difficulty: 'beginner', duration: '14 min',
@@ -9,7 +9,7 @@ export const module = { id: 10, emoji: '🧱', title: 'Semantic HTML', tagline: 
         '<aside> is secondary content (sidebar), <footer> is the bottom section.',
         'Semantics improve accessibility, SEO, and make your code easier to read and target with JS.',
       ],
-      code: `<header>\n    <nav>\n        <a href="/">Home</a>\n        <a href="/about">About</a>\n    </nav>\n</header>\n\n<main>\n    <section>\n        <h2>Latest Posts</h2>\n        <article>\n            <h3>Post Title</h3>\n            <p>Post content...</p>\n        </article>\n    </section>\n\n    <aside>\n        <h3>Related Links</h3>\n    </aside>\n</main>\n\n<footer>\n    <p>&copy; 2025 Cinova</p>\n</footer>`,
+      code: `<header>\n    <nav>\n        <a href="/">Home</a>\n        <a href="/about">About</a>\n    </nav>\n</header>\n\n<main>\n    <section>\n        <h2>Latest Posts</h2>\n        <article>\n            <h3>Post Title</h3>\n            <p>Post content...</p>\n        </article>\n    </section>\n\n    <aside>\n        <h3>Related Links</h3>\n    </aside>\n</main>\n\n<footer>\n    <p>&copy; 2025 CodeHerWay</p>\n</footer>`,
       output: 'A full page structure using semantic elements instead of generic divs.',
       tasks: [
         'Replace <div> containers with the correct semantic element.',
@@ -22,19 +22,22 @@ export const module = { id: 10, emoji: '🧱', title: 'Semantic HTML', tagline: 
       prereqs: ['h10-1'],
       difficulty: 'beginner', duration: '8 min',
       concepts: [
-        '<details> and <summary> create expandable/collapsible content — no JavaScript needed.',
+        '<details> and <summary> create expandable/collapsible content - no JavaScript needed.',
         '<dialog> creates native modal dialogs.',
         '<time> marks up dates and times in machine-readable format.',
         '<address> marks up contact information.',
       ],
-      code: `<!-- Expandable content -->\n<details>\n    <summary>Click to expand</summary>\n    <p>Hidden content revealed!</p>\n</details>\n\n<!-- Time -->\n<p>Published <time datetime="2025-03-15">\n    March 15, 2025\n</time></p>\n\n<!-- Address -->\n<address>\n    <a href="mailto:hello@cinova.app">\n        hello@cinova.app\n    </a>\n</address>`,
+      code: `<!-- Expandable content -->\n<details>\n    <summary>Click to expand</summary>\n    <p>Hidden content revealed!</p>\n</details>\n\n<!-- Time -->\n<p>Published <time datetime="2025-03-15">\n    March 15, 2025\n</time></p>\n\n<!-- Address -->\n<address>\n    <a href="mailto:hello@codeherway.com">\n        hello@codeherway.com\n    </a>\n</address>`,
       output: 'A collapsible section, a machine-readable date, and contact info.',
       tasks: [
         'Create a FAQ section using <details> and <summary>.',
         'Add a <time> element with a datetime attribute.',
         'Use <address> for your contact information.',
       ],
-      challenge: 'Build a FAQ page with 5 expandable questions using only HTML — no CSS or JS.',
+      challenge: 'Build a FAQ page with 5 expandable questions using only HTML - no CSS or JS.',
       devFession: 'I built a custom accordion with JavaScript. Then someone showed me <details>. Zero lines of JS.' },
   ]};
+
+
+
 

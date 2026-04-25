@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, lazy, Suspense, useEffect } from 'react';
+﻿import { useState, useRef, useCallback, lazy, Suspense, useEffect } from 'react';
 import { IFRAME_STYLES } from '../../utils/iframeStyles';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { defineMonacoTheme, MONACO_THEME_NAME, MONACO_OPTIONS } from '../../utils/monacoTheme';
@@ -14,7 +14,7 @@ const MonacoEditor = lazy(() =>
 
 const SCAFFOLDING = {
   full:         { icon: '📝', label: 'Complete Example',    hint: 'Study this code, then try modifying it in the Editor tab.' },
-  partial:      { icon: '🔧', label: 'Partial Template',    hint: 'Some parts are marked TODO — fill them in using the Editor tab.' },
+  partial:      { icon: '🔧', label: 'Partial Template',    hint: 'Some parts are marked TODO - fill them in using the Editor tab.' },
   starter:      { icon: '🚀', label: 'Starter Code',        hint: 'A starting skeleton. Switch to the Editor tab and build on it.' },
   requirements: { icon: '📋', label: 'Requirements Only',   hint: 'No code given! Open the Editor tab and write it from scratch.' },
 };
@@ -86,7 +86,7 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
 
     try {
       const explanation = await explainCodeRequest({
-        system: `You are the Cinova code explainer - a direct, encouraging mentor for women learning web development. Explain the following ${monacoLang.toUpperCase()} code clearly for a beginner. Be concise (3-5 short paragraphs). Explain what each important part does. If there are mistakes, point them out kindly. Use the Cinova voice: no gatekeeping, no jargon without explanation.`,
+        system: `You are the CodeHerWay code explainer - a direct, encouraging mentor for women learning web development. Explain the following ${monacoLang.toUpperCase()} code clearly for a beginner. Be concise (3-5 short paragraphs). Explain what each important part does. If there are mistakes, point them out kindly. Use the CodeHerWay voice: no gatekeeping, no jargon without explanation.`,
         code: editorCode,
       });
 
@@ -222,5 +222,8 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
     </div>
   );
 }
+
+
+
 
 

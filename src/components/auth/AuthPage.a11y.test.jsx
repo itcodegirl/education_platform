@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import { AuthPage } from './AuthPage';
@@ -32,7 +32,7 @@ vi.mock('../../providers', () => ({
 }));
 
 vi.mock('../shared/Logo', () => ({
-  Logo: () => <span>Cinova</span>,
+  Logo: () => <span>CodeHerWay</span>,
 }));
 
 vi.mock('./LandingHero', () => ({
@@ -78,3 +78,4 @@ describe('AuthPage accessibility', () => {
     expect(results.violations).toEqual([]);
   });
 });
+

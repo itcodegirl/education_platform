@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react';
+﻿import { lazy, Suspense, useEffect } from 'react';
 import { Navigate, useLocation, useNavigate, useParams, useRoutes } from 'react-router-dom';
 import { useTheme, useAuth, useCourseContent, useProgressData } from '../providers';
 import { COURSES } from '../data';
@@ -41,7 +41,7 @@ function DisabledAccountScreen({ theme, onSignOut }) {
         <span className="disabled-icon" aria-hidden="true">[ ]</span>
         <h2 className="disabled-title">Account Disabled</h2>
         <p className="disabled-msg">Your account has been disabled. Contact support if this is a mistake.</p>
-        <a href="mailto:hello@cinova.app" className="disabled-link">Contact Support</a>
+        <a href="mailto:hello@codeherway.com" className="disabled-link">Contact Support</a>
         <button type="button" className="disabled-logout" onClick={onSignOut}>Log Out</button>
       </div>
     </div>
@@ -235,4 +235,5 @@ export default function AppRoutes() {
 
   return routes;
 }
+
 

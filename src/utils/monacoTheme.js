@@ -1,9 +1,9 @@
-﻿// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// MONACO THEME â€” Cinova dark editor theme
+﻿// ===============================================
+// MONACO THEME - CodeHerWay dark editor theme
 // Shared by CodePreview and CodeChallenge
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ===============================================
 
-export const MONACO_THEME_NAME = 'Cinova-dark';
+export const MONACO_THEME_NAME = 'CodeHerWay-dark';
 
 export function defineMonacoTheme(monaco) {
   monaco.editor.defineTheme(MONACO_THEME_NAME, {
@@ -52,4 +52,6 @@ export const MONACO_OPTIONS = {
   cursorBlinking: 'smooth',
   cursorSmoothCaretAnimation: 'on',
 };
+
+
 

@@ -1,5 +1,5 @@
-// ═══════════════════════════════════════════════
-// STREAK REMINDER — Scheduled Netlify function
+﻿// ===============================================
+// STREAK REMINDER - Scheduled Netlify function
 // Runs daily to find users at risk of losing their
 // streak and logs them for email notification.
 //
@@ -9,7 +9,7 @@
 // Schedule: Add to netlify.toml:
 //   [functions."streak-reminder"]
 //   schedule = "0 18 * * *"
-// ═══════════════════════════════════════════════
+// ===============================================
 
 import { json } from './_shared.js';
 import { createHmac, timingSafeEqual } from 'crypto';
@@ -34,7 +34,7 @@ function verifyWebhookAuth(body, secret, sig, plain) {
     try {
       return timingSafeEqual(Buffer.from(sig), Buffer.from(expected));
     } catch {
-      return false; // Buffer lengths differ → invalid signature
+      return false; // Buffer lengths differ -> invalid signature
     }
   }
   // Legacy: plain secret header comparison
@@ -132,7 +132,7 @@ export async function handler(event) {
       `[streak-reminder] ${reminders.length} users at risk of losing their streak`,
     );
 
-    // ─── Email sending (uncomment when provider is configured) ───
+    // --- Email sending (uncomment when provider is configured) ---
     //
     // const RESEND_API_KEY = process.env.RESEND_API_KEY;
     // if (RESEND_API_KEY) {
@@ -145,22 +145,22 @@ export async function handler(event) {
     //         'Content-Type': 'application/json',
     //       },
     //       body: JSON.stringify({
-    //         from: 'Cinova <noreply@cinova.app>',
+    //         from: 'CodeHerWay <noreply@codeherway.com>',
     //         to: r.email,
     //         subject: `Don't lose your ${r.streakDays}-day streak! 🔥`,
     //         html: `
     //           <h2>Hey ${r.name}!</h2>
-    //           <p>You've built a <strong>${r.streakDays}-day streak</strong> on Cinova — don't let it slip!</p>
+    //           <p>You've built a <strong>${r.streakDays}-day streak</strong> on CodeHerWay - don't let it slip!</p>
     //           <p>Just one lesson today keeps your streak alive.</p>
-    //           <a href="https://cinova.app/" style="display:inline-block;padding:12px 24px;background:#ff6b9d;color:#fff;border-radius:8px;text-decoration:none;font-weight:bold;">Continue Learning →</a>
-    //           <p style="color:#888;font-size:12px;margin-top:24px;">You're receiving this because you have an active streak on Cinova. Reply STOP to opt out.</p>
+    //           <a href="https://codeherway.com/" style="display:inline-block;padding:12px 24px;background:#ff6b9d;color:#fff;border-radius:8px;text-decoration:none;font-weight:bold;">Continue Learning -></a>
+    //           <p style="color:#888;font-size:12px;margin-top:24px;">You're receiving this because you have an active streak on CodeHerWay. Reply STOP to opt out.</p>
     //         `,
     //       }),
     //     });
     //   }
     // }
 
-    // Don't return names/emails in the response — the function can be
+    // Don't return names/emails in the response - the function can be
     // reached with the shared secret and the response shouldn't leak PII.
     return json(200, {
       message: `Found ${reminders.length} at-risk users`,
@@ -171,4 +171,7 @@ export async function handler(event) {
     return json(500, { error: 'Internal error' });
   }
 }
+
+
+
 

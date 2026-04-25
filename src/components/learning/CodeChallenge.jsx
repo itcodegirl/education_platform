@@ -1,8 +1,8 @@
-// ═══════════════════════════════════════════════
-// CODE CHALLENGE — Interactive coding challenges
+﻿// ===============================================
+// CODE CHALLENGE - Interactive coding challenges
 // Monaco editor + auto-grading via DOM validation
 // Checks actual output against requirements
-// ═══════════════════════════════════════════════
+// ===============================================
 
 import { useState, useRef, useCallback, lazy, Suspense } from 'react';
 import { IFRAME_STYLES } from '../../utils/iframeStyles';
@@ -112,7 +112,7 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
 
     try {
       const aiText = await askChallengeTutor({
-        system: `You are the Cinova AI Tutor helping a student with a coding challenge.
+        system: `You are the CodeHerWay AI Tutor helping a student with a coding challenge.
 
 Challenge: ${challenge.title}
 Description: ${challenge.description}
@@ -126,7 +126,7 @@ ${code}
 Rules:
 - NEVER give the full solution. Guide them toward it.
 - Point out what they're missing or doing wrong.
-- Give small, specific hints — one step at a time.
+- Give small, specific hints - one step at a time.
 - Be encouraging and direct. No gatekeeping.
 - Keep answers to 2-3 short paragraphs max.
 - If they ask for the answer directly, nudge them to try the hint first.`,
@@ -135,7 +135,7 @@ Rules:
 
       setAiHelp(aiText || 'Could not process that. Try rephrasing!');
     } catch {
-      setAiHelp('Connection issue — check your internet and try again.');
+      setAiHelp('Connection issue - check your internet and try again.');
     } finally {
       setAiLoading(false);
     }
@@ -174,7 +174,7 @@ Rules:
               return (
                 <li key={i} className={`cc-req-item ${statusClass}`}>
                   <span className="cc-req-check">
-                    {testResult ? (testResult.passed ? '✓' : '✗') : '○'}
+                    {testResult ? (testResult.passed ? 'OK' : 'X') : '○'}
                   </span>
                   {req}
                 </li>
@@ -190,7 +190,7 @@ Rules:
           <div className="cc-pane-header">
             <span>✏️ Your Code</span>
             <button type="button" className="cc-reset-btn" onClick={() => setCode(challenge.starter || '')}>
-              ↺ Reset
+              Retry Reset
             </button>
           </div>
           {isMobile ? (
@@ -294,7 +294,7 @@ Rules:
       {showAiHelp && (
         <div id="challenge-ai-panel" className="cc-ai-panel">
           <div className="cc-ai-header">
-            <span>🤖 AI Tutor — Challenge Help</span>
+            <span>🤖 AI Tutor - Challenge Help</span>
           </div>
 
           {aiHelp && (
@@ -338,7 +338,7 @@ Rules:
                 disabled={!aiInput.trim() || aiLoading}
                 aria-label="Send challenge help request"
               >
-                {aiLoading ? '⏳' : '↑'}
+                {aiLoading ? '⏳' : '^'}
               </button>
             </div>
           </div>
@@ -357,14 +357,14 @@ Rules:
             ) : (
               <>
                 <span className="cc-results-icon" aria-hidden="true">🔧</span>
-                <span className="cc-results-text">{passCount}/{totalTests} tests passing — keep going!</span>
+                <span className="cc-results-text">{passCount}/{totalTests} tests passing - keep going!</span>
               </>
             )}
           </div>
           <div className="cc-results-list">
             {results.map((r, i) => (
               <div key={i} className={`cc-result-item ${r.passed ? 'pass' : 'fail'}`}>
-                <span className="cc-result-check">{r.passed ? '✓' : '✗'}</span>
+                <span className="cc-result-check">{r.passed ? 'OK' : 'X'}</span>
                 <span>{r.label}</span>
               </div>
             ))}
@@ -390,5 +390,8 @@ Rules:
     </div>
   );
 }
+
+
+
 
 

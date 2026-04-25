@@ -1,18 +1,18 @@
-﻿// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// ADMIN DASHBOARD â€” Orchestrator
+﻿// ===============================================
+// ADMIN DASHBOARD - Orchestrator
 //
 // Composes five focused tab components + the useAdminData hook.
 // Owns nothing beyond the active tab index and the computed stats
 // derived from fetched data. Admin access check, data fetching,
 // and optimistic updates all live in useAdminData.
 //
-// Protected by the is_admin flag in profiles â€” the real security
+// Protected by the is_admin flag in profiles - the real security
 // boundary is the Postgres RLS policy + the admin-escalation
 // trigger + set_user_admin() RPC documented in supabase-schema.sql.
 // This UI only reflects what the database will allow.
 //
 // Split from a single 520-LOC component per the portfolio audit.
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ===============================================
 
 import { useEffect, useMemo, useState, lazy, Suspense } from 'react';
 import { useAuth, useCourseContent } from '../../providers';
@@ -29,11 +29,11 @@ const LessonBuilder = lazy(() =>
 );
 
 const TABS = [
-  { id: 'overview', label: 'ðŸ“Š Overview' },
-  { id: 'users',    label: 'ðŸ‘¥ Users'    },
-  { id: 'courses',  label: 'ðŸ“š Courses'  },
-  { id: 'quizzes',  label: 'ðŸ“ Quizzes'  },
-  { id: 'builder',  label: 'ðŸ› ï¸ Lesson Builder' },
+  { id: 'overview', label: '📊 Overview' },
+  { id: 'users',    label: '👥 Users'    },
+  { id: 'courses',  label: '📚 Courses'  },
+  { id: 'quizzes',  label: '📝 Quizzes'  },
+  { id: 'builder',  label: '🛠️ Lesson Builder' },
 ];
 
 function computeCourseStats(courses, progress) {
@@ -106,7 +106,7 @@ export function AdminDashboard({ onClose }) {
   const { ensureAllLoaded, allCoursesLoaded } = useCourseContent();
   useEffect(() => { ensureAllLoaded(); }, [ensureAllLoaded]);
 
-  // â”€â”€â”€ Derived stats â”€â”€â”€ memoized so tab switches don't recompute
+  // --- Derived stats --- memoized so tab switches don't recompute
   const stats = useMemo(() => {
     if (loading || !isAdmin) return null;
     return {
@@ -125,7 +125,7 @@ export function AdminDashboard({ onClose }) {
     };
   }, [dashboardMetrics, data, loading, isAdmin, usersCounts]);
 
-  // â”€â”€â”€ Early-return states â”€â”€â”€
+  // --- Early-return states ---
   if (checking) {
     return (
       <div className="admin-wrap">
@@ -138,7 +138,7 @@ export function AdminDashboard({ onClose }) {
     return (
       <div className="admin-wrap">
         <div className="admin-denied" role="status" aria-live="polite">
-          <span className="admin-denied-icon" aria-hidden="true">ðŸ”’</span>
+          <span className="admin-denied-icon" aria-hidden="true">🔒</span>
           <h2>Access Denied</h2>
           <p>You don&apos;t have admin privileges.</p>
           <button
@@ -147,7 +147,7 @@ export function AdminDashboard({ onClose }) {
             onClick={onClose}
             aria-label="Return to the main platform"
           >
-            â† Return to Platform
+            ← Return to Platform
           </button>
         </div>
       </div>
@@ -158,7 +158,7 @@ export function AdminDashboard({ onClose }) {
     return (
       <div className="admin-wrap">
         <div className="admin-denied" role="alert" aria-live="assertive">
-          <span className="admin-denied-icon" aria-hidden="true">ðŸ“¡</span>
+          <span className="admin-denied-icon" aria-hidden="true">📡</span>
           <h2>Connection Error</h2>
           <p>{loadError}</p>
           <button
@@ -167,7 +167,7 @@ export function AdminDashboard({ onClose }) {
             onClick={() => window.location.reload()}
             aria-label="Reload the admin dashboard"
           >
-            â†º Retry
+            Retry Retry
           </button>
         </div>
       </div>
@@ -179,10 +179,10 @@ export function AdminDashboard({ onClose }) {
       <div className="admin-container">
         <header className="admin-header">
           <div className="admin-header-left">
-            <span className="admin-logo" aria-hidden="true">âš¡</span>
+            <span className="admin-logo" aria-hidden="true">*</span>
             <div>
               <h1 className="admin-title">Admin Dashboard</h1>
-              <p className="admin-subtitle">Cinova Platform Analytics</p>
+              <p className="admin-subtitle">CodeHerWay Platform Analytics</p>
             </div>
           </div>
           <button
@@ -191,7 +191,7 @@ export function AdminDashboard({ onClose }) {
             onClick={onClose}
             aria-label="Return to the main platform"
           >
-            â† Return to Platform
+            ← Return to Platform
           </button>
         </header>
 
@@ -268,5 +268,8 @@ export function AdminDashboard({ onClose }) {
     </div>
   );
 }
+
+
+
 
 

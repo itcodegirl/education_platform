@@ -1,12 +1,12 @@
-﻿/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   SIDEBAR â€” Navigation-first glassmorphism sidebar
+﻿/* ═══════════════════════════════════════════════
+   SIDEBAR — Navigation-first glassmorphism sidebar
    (brand header, avatar, logo, profile popover,
    course switcher, module tree, lesson list, lock
    toggle, collapsed state).
    Depends on tokens.css + animations.css.
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ═══════════════════════════════════════════════ */
 
-/* â”€â”€â”€ 7. Sidebar â€” Brand Aligned Glassmorphism â”€â”€â”€ */
+/* ─── 7. Sidebar — Brand Aligned Glassmorphism ─── */
 .sidebar {
   width: min(100vw, var(--sidebar-width));
   min-width: min(100vw, var(--sidebar-width));
@@ -27,7 +27,7 @@
   .sidebar { background: rgba(13, 13, 30, 0.98); }
 }
 
-/* â”€â”€â”€ Brand + Avatar header â”€â”€â”€ */
+/* ─── Brand + Avatar header ─── */
 .sidebar-head {
   padding: 16px 16px 14px;
   border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -37,7 +37,7 @@
   flex-shrink: 0;
 }
 .brand { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
-/* â”€â”€â”€ Logo: <Code>Her</Way> â”€â”€â”€ */
+/* ─── Logo: <Code>Her</Way> ─── */
 .logo-wrap { display: flex; flex-direction: column; align-items: flex-start; }
 .logo-wrap-lg { align-items: center; }
 .logo {
@@ -117,7 +117,7 @@
 .sidebar-collapse:hover { border-color: var(--purple); color: var(--purple); background: rgba(180,74,255,0.1); }
 .sidebar-close { display: none; background: none; border: none; color: var(--text-dim); font-size: 18px; cursor: pointer; }
 
-/* â”€â”€â”€ Profile Popover â”€â”€â”€ */
+/* ─── Profile Popover ─── */
 .pp {
   position: absolute;
   top: 64px; left: 12px; right: 12px;
@@ -176,7 +176,7 @@
 .pp-signout { flex: 1; padding: 9px 10px; background: transparent; border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; color: var(--text-muted); font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
 .pp-signout:hover { border-color: var(--red); color: var(--red); }
 
-/* â”€â”€â”€ Course Switcher (Notion-style dropdown) â”€â”€â”€ */
+/* ─── Course Switcher (Notion-style dropdown) ─── */
 .cs-dropdown-wrap {
   padding: 0 14px;
   flex-shrink: 0;
@@ -257,7 +257,7 @@
 .cs-option-label { flex: 1; }
 .cs-option-check { color: var(--cyan); font-size: 14px; }
 
-/* â”€â”€â”€ Module Tree â”€â”€â”€ */
+/* ─── Module Tree ─── */
 .sidebar-scroll {
   flex: 1 1 auto;
   min-height: 0;
@@ -293,7 +293,7 @@
 
 .sidebar-nav { padding: 0; }
 
-/* â”€â”€â”€ Module groups â”€â”€â”€ */
+/* ─── Module groups ─── */
 .module-group {
   margin-bottom: 4px;
   border-radius: 12px;
@@ -331,7 +331,7 @@
 .module-group-sub { font-size: 10px; color: var(--text-muted); font-family: 'Poppins', sans-serif; }
 .module-group.locked { opacity: 0.35; }
 
-/* â”€â”€â”€ Lesson list â”€â”€â”€ */
+/* ─── Lesson list ─── */
 .lesson-list { padding: 4px 0 8px; animation: fadeIn 0.15s ease-out; }
 .lesson-list-btn {
   width: 100%; display: flex; align-items: center; gap: 10px; padding: 7px 14px 7px 60px;
@@ -348,14 +348,14 @@
 .lesson-list-quiz { color: var(--text-muted) !important; font-style: italic; }
 .lesson-list-quiz.act { color: var(--text) !important; font-style: normal; font-weight: 600; }
 
-/* â”€â”€â”€ Sidebar tab bar (Courses + Resources) â”€â”€â”€ */
+/* ─── Sidebar tab bar (Courses + Resources) ─── */
 /* Replaces the old course switcher at the top of the sidebar. Two
    symmetric pill buttons side-by-side; each opens a small popout card
    below. Only one popout can be open at a time. The active-course
    context strip below the tabs shows which course the user is viewing
    and its progress. */
 .sidebar-tabs {
-  /* No `position: relative` â€” the popout is `position: fixed` and
+  /* No `position: relative` — the popout is `position: fixed` and
      escapes the sidebar's overflow:hidden entirely. */
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -397,7 +397,7 @@
   opacity: 0.6;
   transition: transform var(--duration-fast);
 }
-/* Arrow points right (â–¸) when closed, rotates down when active so it
+/* Arrow points right (▸) when closed, rotates down when active so it
    points toward the popout that just opened to the right. */
 .sidebar-tab.active .sidebar-tab-arrow { transform: rotate(90deg); opacity: 1; }
 
@@ -443,7 +443,7 @@
   transition: width 0.5s var(--ease-out);
 }
 
-/* â”€â”€â”€ Side popout card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ─── Side popout card ───────────────────────
    Flies out to the RIGHT of the sidebar. Uses
    position: fixed so it escapes the sidebar's
    overflow:hidden. Top/left are set inline from the
@@ -483,7 +483,7 @@
   to   { opacity: 1; transform: translateX(0); }
 }
 
-/* Resources tool row â€” parallel to .cs-option but for tool actions. */
+/* Resources tool row — parallel to .cs-option but for tool actions. */
 .sidebar-tab-opt {
   display: flex;
   align-items: center;
@@ -520,7 +520,7 @@
   font-weight: 600;
 }
 
-/* â”€â”€â”€ Collapsed sidebar: icons only â”€â”€â”€ */
+/* ─── Collapsed sidebar: icons only ─── */
 .sidebar.collapsed .sidebar-tabs {
   grid-template-columns: 1fr;
   gap: 4px;
@@ -531,7 +531,7 @@
 .sidebar.collapsed .sidebar-tab { padding: 10px 0; }
 .sidebar.collapsed .sidebar-tabs-context { display: none; }
 
-/* â”€â”€â”€ Lock toggle (inside scroll area) â”€â”€â”€ */
+/* ─── Lock toggle (inside scroll area) ─── */
 .sidebar-lock-row {
   padding: 12px 8px 16px;
   margin-top: 8px;
@@ -546,7 +546,7 @@
 .lock-label input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--cyan); cursor: pointer; }
 .lock-text { font-family: 'Inter', sans-serif; }
 
-/* â”€â”€â”€ Collapsed sidebar â”€â”€â”€ */
+/* ─── Collapsed sidebar ─── */
 @media (min-width: 901px) {
   .sidebar.collapsed { width: var(--sidebar-width-collapsed); min-width: var(--sidebar-width-collapsed); }
   .sidebar.collapsed .sidebar-head { padding: 14px 10px; justify-content: center; flex-direction: column; gap: 8px; }
@@ -563,6 +563,7 @@
   .sidebar.collapsed .cs-trigger { justify-content: center; padding: 10px; }
   .sidebar.collapsed .cs-trigger-icon { font-size: 20px; }
 }
+
 
 
 

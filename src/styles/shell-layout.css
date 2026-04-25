@@ -4,7 +4,7 @@
    Keep import order stable via styles/App.css.
    ================================================ */
 
-/* â”€â”€â”€ 6. Shell Layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 6. Shell Layout ──────────────────────────── */
 .shell {
   display: flex;
   height: 100vh;
@@ -24,7 +24,7 @@
   backdrop-filter: blur(4px);
 }
 
-/* â”€â”€â”€ 8. Main Content & Topbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 8. Main Content & Topbar ─────────────────── */
 .main-shell {
   flex: 1;
   overflow-y: auto;
@@ -35,7 +35,7 @@
   padding-bottom: 120px;
 }
 
-/* Course skeleton â€” shown while a lazy-loaded course is still
+/* Course skeleton — shown while a lazy-loaded course is still
    in flight. Intentionally lightweight (no animation frames,
    no keyframes) so the skeleton itself can't add to TBT. */
 .course-skeleton {
@@ -137,13 +137,13 @@
 }
 
 .ham {
-  /* No `display` here on purpose â€” the two breakpoint media queries
+  /* No `display` here on purpose — the two breakpoint media queries
      (responsive.css `@media (max-width: 900px)` sets `display: block`,
      and App.css EOF `@media (min-width: 901px)` sets `display: inline-flex`)
      together cover every viewport. A default `display: none` used to
      live here, but because App.css is loaded AFTER responsive.css, the
      unconditional `none` won the cascade on mobile and made the
-     hamburger invisible on narrow screens â€” so the drawer couldn't
+     hamburger invisible on narrow screens — so the drawer couldn't
      be opened at all. */
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -307,7 +307,7 @@
   color: var(--cyan);
 }
 
-/* â”€â”€â”€ 16. Navigation Row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 16. Navigation Row ───────────────────────── */
 .nav-row {
   display: flex;
   justify-content: space-between;
@@ -396,7 +396,7 @@
   transform: translateY(-2px);
 }
 
-/* â”€â”€â”€ 17. XP Bar & Daily Goal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 17. XP Bar & Daily Goal ──────────────────── */
 .xp-bar-wrap {
   margin-top: 12px;
 }
@@ -492,7 +492,7 @@
   box-shadow: 0 0 8px rgba(78, 205, 196, 0.3);
 }
 
-/* â”€â”€â”€ 18. Stats Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 18. Stats Panel ──────────────────────────── */
 .stats-panel {
   margin-top: 12px;
 }
@@ -531,7 +531,7 @@
   letter-spacing: 0.5px;
 }
 
-/* â”€â”€â”€ 19. XP Popup & Badge Unlock â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 19. XP Popup & Badge Unlock ──────────────── */
 .xp-popup {
   position: fixed;
   top: 50%;
@@ -726,7 +726,7 @@
   }
 }
 
-/* â”€â”€â”€ 20. Theme Toggle & Toolbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 20. Theme Toggle & Toolbar ───────────────── */
 .theme-toggle {
   position: fixed;
   bottom: 20px;
@@ -753,7 +753,7 @@
   border-color: rgba(255, 255, 255, 0.18);
 }
 
-/* â”€â”€â”€ 21. Reading Time â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 21. Reading Time ─────────────────────────── */
 .read-time {
   display: inline-flex;
   align-items: center;
@@ -773,7 +773,7 @@
   font-size: 13px;
 }
 
-/* â”€â”€â”€ 22. Light Theme â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 22. Light Theme ──────────────────────────── */
 .shell.light,
 .loading-screen.light,
 .light {
@@ -979,7 +979,7 @@
   background: #fff;
 }
 
-/* â”€â”€â”€ 23. Course Accent Overrides â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── 23. Course Accent Overrides ──────────────── */
 [data-course="css"] .module-group.act>.module-group-btn {
   background: rgba(78, 205, 196, 0.08);
   border-left-color: var(--cyan);
@@ -1052,6 +1052,7 @@
   border-color: var(--purple);
   color: var(--purple);
 }
+
 
 
 
