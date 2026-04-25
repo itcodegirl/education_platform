@@ -1,71 +1,52 @@
 # Release Checklist
 
-Use this checklist for Netlify releases and hotfix deploys.
+Use this checklist before Netlify releases or hotfix deploys.
 
-## Before deploy
+## Pre-Deploy Checks
 
-- Confirm the branch is correct and the working tree is clean.
-- Run `npm run typecheck` (JS-only policy guard).
-- Run `npm run check` (lint + build + bundle gate + unit tests).
-- Run `npm run check:ci` when Playwright environment variables are available.
-- Run `npm run test:policy` when Supabase policy test secrets are configured.
-- Confirm required Netlify env vars are present:
+- Confirm branch, target deploy context, and commit SHA.
+- Run:
+  - `npm run build`
+  - `npm run test:e2e`
+- Confirm required runtime environment variables:
   - `VITE_SUPABASE_URL`
   - `VITE_SUPABASE_ANON_KEY`
-  - `OPENAI_API_KEY`
-  - optional: `OPENAI_MODEL`
-- Skim the changed areas and note anything that needs focused QA.
+  - Any server-side AI keys used by Netlify Functions
+- Verify documentation is still truthful:
+  - [README.md](./README.md)
+  - [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md)
+  - [docs/repair-roadmap.md](./docs/repair-roadmap.md)
 
-## Deploy validation
+## Smoke Validation After Deploy
 
-- Wait for the Netlify deploy to finish.
-- Open the Netlify subdomain first, then the custom domain (`https://cinova.app/`) if configured.
-- Hard refresh once with `Ctrl+Shift+R`.
-- Confirm the app shell loads without the error boundary.
-- Open DevTools console and confirm there are no new app errors.
-
-## Smoke test
-
-- Auth:
-  - sign in with an existing account
-  - if auth changed, also test a fresh sign-up
-- Learning flow:
+- Open the Netlify deploy URL and hard refresh.
+- Validate auth shell loads cleanly.
+- Validate core learning flow:
   - open a lesson
-  - mark a lesson complete
-  - move to another lesson
-  - refresh and test Continue Learning
-- Saved state:
-  - bookmark a lesson and reopen it from Bookmarks
-  - open the Review / spaced repetition panel
-  - open a panel (search/bookmarks), press browser Back, confirm it closes the panel before leaving lesson context
-- Deep-linking:
-  - copy the current `/learn/{course}/{module}/{lesson}` URL and load it in a new tab
-  - confirm the same lesson opens (or module quiz opens for `/quiz` routes)
-- AI:
-  - open AI Tutor and ask a simple question
-  - open a coding challenge and test AI help
-- Mobile:
-  - open the sidebar on a narrow viewport
-  - confirm the sidebar scrolls
-  - confirm the sidebar closes cleanly
-- Optional QA:
-  - run `npm run test:e2e` (or `npm run test:integration`) if environment variables for authenticated flows are available
+  - complete a lesson
+  - refresh and confirm progress reloads
+- Validate persistence UX:
+  - create/edit a note
+  - bookmark a lesson
+- Validate quiz path for a mapped lesson/module quiz.
 
-## PWA and cache check
+## PWA / Cache Validation
 
-- If the release changed routing, lazy-loaded panels, or the service worker:
-  - verify the app loads the newest bundle
-  - verify glossary/search/panels open without chunk-load errors
-- If the app looks stale:
-  1. Open DevTools
-  2. Go to Application
-  3. Service Workers -> Unregister
-  4. Storage / Clear storage -> Clear site data
-  5. Reload with `Ctrl+Shift+R`
+- Confirm install metadata shows CodeHerWay naming.
+- If stale shell appears:
+  1. DevTools -> Application -> Service Workers -> Unregister
+  2. DevTools -> Application -> Storage -> Clear site data
+  3. Reload with `Ctrl+Shift+R`
 
-## Sign-off
+## Test Scope Reminder
 
-- Record the deployed commit SHA.
-- Save the Netlify deploy URL.
-- Confirm both the Netlify subdomain and production domain behave correctly.
-- Merge or announce the release only after the checklist passes.
+- `npm run test:e2e` always covers public smoke path.
+- Authenticated smoke checks require environment credentials and will otherwise skip.
+- Production-grade reliability still requires broader learning/data/a11y regression coverage.
+
+## Release Sign-Off
+
+- Record deployed commit SHA and Netlify deploy URL.
+- Confirm no mismatch between published behavior and documented status/limitations.
+- Do not label release as production-grade until roadmap hardening stages are complete.
+
