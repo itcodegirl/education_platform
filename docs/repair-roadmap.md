@@ -26,19 +26,30 @@ Current quiz checkpoint:
 - Quiz variant groups and legacy orphan quiz inventory are now classified and monitored through `npm run audit:quizzes`.
 - Strict-mode quiz audit CI criteria are still planned, not enabled as a release gate.
 
+Current progress/reward checkpoint:
+
+- Lesson completion XP uses stable reward keys to prevent same-device uncomplete/recomplete farming.
+- Quiz retries remain available for learning, while base quiz XP and perfect-score bonus XP are awarded once per stable quiz key.
+- Streaks now advance from explicit learning actions instead of app load, while preserving existing UTC date semantics.
+- Challenge completion is persisted and deduped for same-device learning motivation, but is not secure certification.
+- Core localStorage and route-action write failures mark sync-failed state instead of failing completely silently.
+
 Remaining hardening:
 
 - Maintain completed active lesson quiz coverage for HTML, CSS, JavaScript, and React
 - Keep Python quiz coverage as explicit roadmap scope; define module checkpoint quizzes before deciding on full lesson-level coverage
 - Continue legacy alias review and monitor classified orphan/variant drift through `npm run audit:quizzes`
-- Use the reward/progress trust policy in `docs/reward-progress-policy.md` as the source of truth for upcoming XP, streak, quiz retry, and challenge persistence hardening
-- Harden completion, XP, streak, and challenge progression rules
+- Use the reward/progress trust policy in `docs/reward-progress-policy.md` as the source of truth for future schema-backed reward hardening
+- Add server-side reward-event tracking or an equivalent atomic XP award operation for cross-device idempotency
+- Move challenge completion history toward backend-backed persistence when the data model is ready
+- Add durable retry/reconciliation for failed progress writes
+- Decide whether learner-local streak dates should replace the current UTC date semantics
 - Ensure search indexes intended learning content consistently
 
 Exit criteria:
 
 - Active frontend-track quiz coverage remains complete, Python scope is explicit, and remaining audit findings stay classified with documented owner/decision status.
-- Core learning loop cannot be easily gamed or silently desynced.
+- Core same-device learning loop cannot be easily gamed or silently desynced; full cross-device reward integrity waits for P2 data-model hardening.
 
 ## P2: Data Model Hardening + Migration Safety
 

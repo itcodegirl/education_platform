@@ -1,6 +1,6 @@
 # Reward and Progress Trust Policy
 
-This policy defines the intended reward behavior for future progress-engine hardening. It is a source-of-truth foundation, not a runtime behavior migration by itself.
+This policy defines the intended reward behavior for progress-engine hardening. It started as the source-of-truth foundation and now also records the current checkpoint.
 
 ## Stable Reward Keys
 
@@ -51,4 +51,18 @@ The current implementation uses the existing UTC date helpers (`YYYY-MM-DD` from
 
 ## Current Status
 
-The policy constants live in `src/services/rewardPolicy.js`. Lesson, quiz, streak, and same-device challenge completion dedupe have runtime hardening. A future schema-backed reward-event table is still needed for cross-device reward idempotency.
+The policy constants live in `src/services/rewardPolicy.js`. Runtime hardening now covers:
+
+- Lesson completion XP idempotency for same-device uncomplete/recomplete flows.
+- Quiz retry reward idempotency for base completion XP and perfect-score bonus XP.
+- Best-score preservation when quiz retries improve a learner's score.
+- Activity-based streak updates from explicit learning actions rather than app load.
+- Same-device challenge completion persistence and dedupe.
+- Sync-failed state marking for core localStorage and route-action write failures.
+
+Remaining future work:
+
+- Add a schema-backed reward-event table, equivalent stable tracking table, or server-side atomic award operation for cross-device reward idempotency.
+- Move challenge completion history from same-device localStorage toward backend-backed persistence.
+- Add durable retry/reconciliation for failed writes.
+- Decide whether learner-local streak dates should replace the current UTC date semantics.
