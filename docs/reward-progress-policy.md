@@ -39,6 +39,8 @@ Streaks should reflect real learning activity. Qualifying actions are:
 
 App load, navigation, and passive session activity should not count as streak activity.
 
+The current implementation uses the existing UTC date helpers (`YYYY-MM-DD` from `toISOString()`) for streak and daily-goal dates. This preserves current stored date semantics without a migration. A future timezone batch can decide whether learner-local dates should replace UTC dates.
+
 ## Persistence Policy
 
 - Reward-critical actions should become idempotent in runtime code.

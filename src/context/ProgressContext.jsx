@@ -155,16 +155,12 @@ export function ProgressProvider({ children }) {
 
   const clearSyncFailed = useCallback(() => setSyncFailed(0), []);
 
-  // Guard: prevent the streak effect from firing more than once per
-  // data-load, including in React StrictMode where effects run twice.
-  const streakSyncedRef = useRef(false);
-
   // ─── State ─────────────────────────────────────
   const [completed, setCompleted] = useState([]);
   const [quizScores, setQuizScores] = useState({});
   const [xpTotal, setXpTotal] = useState(0);
   const [streak, setStreak] = useState(0);
-  const [streakLastDate, setStreakLastDate] = useState('');
+  const [_streakLastDate, setStreakLastDate] = useState('');
   const [dailyCount, setDailyCount] = useState(0);
   const [dailyDate, setDailyDate] = useState('');
   const [earnedBadges, setEarnedBadges] = useState({});
@@ -175,6 +171,7 @@ export function ProgressProvider({ children }) {
   const [lastPosition, setLastPosition] = useState({ course: '', mod: '', les: '', time: 0 });
   const [rewardHistory, setRewardHistory] = useState([]);
   const rewardHistoryRef = useRef(new Set());
+  const streakStateRef = useRef({ days: 0, lastDate: '' });
   const [xpPopup, setXpPopup] = useState(null);
   const [newBadge, setNewBadge] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -203,6 +200,7 @@ export function ProgressProvider({ children }) {
     setXpTotal(0);
     setStreak(0);
     setStreakLastDate('');
+    streakStateRef.current = { days: 0, lastDate: '' };
     setDailyCount(0);
     setDailyDate('');
     setEarnedBadges({});
@@ -269,8 +267,13 @@ export function ProgressProvider({ children }) {
 
       const sd = streakRes.data;
       if (sd) {
-        setStreak(sd.days || 0);
-        setStreakLastDate(sd.last_date || '');
+        const loadedStreak = sd.days || 0;
+        const loadedLastDate = sd.last_date || '';
+        setStreak(loadedStreak);
+        setStreakLastDate(loadedLastDate);
+        streakStateRef.current = { days: loadedStreak, lastDate: loadedLastDate };
+      } else {
+        streakStateRef.current = { days: 0, lastDate: '' };
       }
 
       const dd = dailyRes.data;
@@ -331,38 +334,6 @@ export function ProgressProvider({ children }) {
       cancelled = true;
     };
   }, [user, loadVersion, resetUserState, replaceRewardHistory]);
-
-  // ─── Streak check on load ─────────────────────
-  // Reset the guard whenever the user session changes so a fresh login
-  // always runs the streak check once.
-  useEffect(() => {
-    streakSyncedRef.current = false;
-  }, [user]);
-
-  useEffect(() => {
-    if (!user || !dataLoaded) return;
-    // Only run once per data-load (guards against StrictMode double-invoke
-    // and against re-runs triggered by unrelated state changes).
-    if (streakSyncedRef.current) return;
-    streakSyncedRef.current = true;
-
-    const today = getTodayString();
-    const yesterday = getYesterdayString();
-
-    if (streakLastDate === today) return;
-
-    let newDays;
-    if (streakLastDate === yesterday) {
-      newDays = streak + 1;
-    } else {
-      newDays = 1;
-    }
-
-    setStreak(newDays);
-    setStreakLastDate(today);
-
-    dbWrite(progressService.updateStreak(user.id, newDays, today), 'updateStreak');
-  }, [user, dataLoaded, streakLastDate, streak, dbWrite]);
 
   // ─── Progress ─────────────────────────────────
   const completedSet = useMemo(() => new Set(completed), [completed]);
@@ -440,8 +411,18 @@ export function ProgressProvider({ children }) {
   const recordDailyActivity = useCallback(async () => {
     if (!user) return;
     const today = getTodayString();
+    const yesterday = getYesterdayString();
     const currentCount = dailyDate === today ? dailyCount : 0;
     const newCount = Math.min(currentCount + 1, DAILY_GOAL);
+    const streakState = streakStateRef.current;
+
+    if (streakState.lastDate !== today) {
+      const nextStreakDays = streakState.lastDate === yesterday ? streakState.days + 1 : 1;
+      streakStateRef.current = { days: nextStreakDays, lastDate: today };
+      setStreak(nextStreakDays);
+      setStreakLastDate(today);
+      dbWrite(progressService.updateStreak(user.id, nextStreakDays, today), 'updateStreak');
+    }
 
     setDailyCount(newCount);
     setDailyDate(today);

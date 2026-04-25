@@ -11,13 +11,16 @@
 // ═══════════════════════════════════════════════
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
+import { getTodayString, getYesterdayString } from '../utils/helpers';
 
 // ─── Hoist mutable mocks so vi.mock factories can reference them ──
-const { mockUseAuth, mockFetchAllUserData } = vi.hoisted(() => ({
+const { mockUseAuth, mockFetchAllUserData, mockUpdateStreak, mockUpdateDailyGoal } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
   mockFetchAllUserData: vi.fn(),
+  mockUpdateStreak: vi.fn(),
+  mockUpdateDailyGoal: vi.fn(),
 }));
 
 // ─── Mock AuthContext ────────────────────────────
@@ -33,8 +36,8 @@ vi.mock('../services/progressService', () => ({
   removeLesson: vi.fn(),
   saveQuizScore: vi.fn(),
   updateXP: vi.fn(),
-  updateStreak: vi.fn(),
-  updateDailyGoal: vi.fn(),
+  updateStreak: (...args) => mockUpdateStreak(...args),
+  updateDailyGoal: (...args) => mockUpdateDailyGoal(...args),
   awardBadge: vi.fn(),
   addSRCard: vi.fn(),
   updateSRCard: vi.fn(),
@@ -45,7 +48,7 @@ vi.mock('../services/progressService', () => ({
   trackCourseVisit: vi.fn(),
 }));
 
-import { ProgressProvider, useProgressData } from './ProgressContext';
+import { ProgressProvider, useProgressData, useXP } from './ProgressContext';
 
 // ─── Test consumer ───────────────────────────────
 // Renders a div with data attributes we can query in tests.
@@ -61,10 +64,33 @@ function TestConsumer() {
   );
 }
 
+function XPTestConsumer() {
+  const { streak, dailyCount, recordDailyActivity } = useXP();
+  return (
+    <button
+      type="button"
+      data-testid="activity"
+      data-streak={String(streak)}
+      data-daily={String(dailyCount)}
+      onClick={recordDailyActivity}
+    >
+      Record activity
+    </button>
+  );
+}
+
 function renderWithProvider() {
   return render(
     <ProgressProvider>
       <TestConsumer />
+    </ProgressProvider>,
+  );
+}
+
+function renderXPWithProvider() {
+  return render(
+    <ProgressProvider>
+      <XPTestConsumer />
     </ProgressProvider>,
   );
 }
@@ -89,6 +115,8 @@ function makeFetchResult(overrides = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockUpdateStreak.mockResolvedValue({});
+  mockUpdateDailyGoal.mockResolvedValue({});
 });
 
 // ─── Tests ───────────────────────────────────────
@@ -145,6 +173,51 @@ describe('ProgressContext — user logged in (happy path)', () => {
       const el = screen.getByTestId('consumer');
       expect(el.dataset.completed).toBe('HTML|Basics|Intro,HTML|Basics|Tags');
     });
+  });
+
+  it('does not update streak just because progress data loaded', async () => {
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-abc' } });
+    mockFetchAllUserData.mockResolvedValue(
+      makeFetchResult({
+        streak: {
+          data: { days: 3, last_date: '2026-01-01' },
+          error: null,
+        },
+      }),
+    );
+
+    renderXPWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('activity').dataset.streak).toBe('3');
+    });
+
+    expect(mockUpdateStreak).not.toHaveBeenCalled();
+  });
+
+  it('updates streak when explicit learning activity is recorded', async () => {
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-abc' } });
+    mockFetchAllUserData.mockResolvedValue(
+      makeFetchResult({
+        streak: {
+          data: { days: 3, last_date: getYesterdayString() },
+          error: null,
+        },
+      }),
+    );
+
+    renderXPWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('activity').dataset.streak).toBe('3');
+    });
+
+    fireEvent.click(screen.getByTestId('activity'));
+
+    await waitFor(() => {
+      expect(mockUpdateStreak).toHaveBeenCalledWith('uid-abc', 4, getTodayString());
+    });
+    expect(screen.getByTestId('activity').dataset.streak).toBe('4');
   });
 });
 
