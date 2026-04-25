@@ -49,4 +49,14 @@ The function uses `security definer` because direct browser insert/update polici
 
 ## Runtime Status
 
-The RPC migration exists, but frontend reward flows are not wired to it until the feature-gated backend sync phase. Local reward behavior remains the default fallback.
+The RPC migration exists and the frontend has a feature-gated service wrapper in `src/services/rewardEventService.js`.
+
+Backend reward sync runs only when:
+
+- Supabase browser config is available.
+- The learner is authenticated.
+- `VITE_REWARD_BACKEND_SYNC_ENABLED=true`.
+
+When the backend awards an event, the app updates local reward UI/state without calling the older direct `progressService.updateXP()` path again. When the backend reports a duplicate as `skipped`, the app marks local dedupe state and does not award duplicate local XP. When the backend is disabled or unavailable, local reward behavior remains the fallback.
+
+The migrations still need to be applied and validated against a real Supabase project before treating the backend path as production-ready.

@@ -13,7 +13,7 @@ Reward-critical actions should use stable event keys before XP is awarded:
 
 These keys should be treated as idempotency keys. A learner may repeat a learning action for practice, but the same reward key should not grant XP more than once.
 
-The local reward-event ledger also records learner-scoped event keys that are shaped for a future backend reward-event table:
+The local reward-event ledger also records learner-scoped event keys that match the backend reward-event direction:
 
 - `lesson-complete:{lessonId}:{learnerKey}`
 - `quiz-base:{quizKey}:{learnerKey}`
@@ -54,7 +54,7 @@ The current implementation uses the existing UTC date helpers (`YYYY-MM-DD` from
 ## Persistence Policy
 
 - Reward-critical actions should become idempotent in runtime code.
-- Future implementation should prefer reward-event records, an equivalent stable tracking table, or a server-side atomic award operation.
+- Runtime implementation should prefer reward-event records, an equivalent stable tracking table, or a server-side atomic award operation when backend sync is explicitly enabled.
 - Failed reward/progress writes should be surfaced to the learner or queued for retry.
 - Silent local-only success should not be shown as durable progress unless the app can retry or reconcile the write.
 
@@ -70,11 +70,14 @@ The policy constants live in `src/services/rewardPolicy.js`. Runtime hardening n
 - Sync-failed state marking for core localStorage and route-action write failures.
 - A local reward-event foundation in `src/engine/rewards/` with event types, stable learner-scoped event keys, local ledger storage, dedupe behavior, and a shared processor/runtime helper.
 - Lesson, quiz base, quiz perfect, and challenge XP paths now flow through the local reward-event processor while keeping legacy reward history as the first compatibility guard.
+- Additive Supabase migrations define `public.reward_events` and the `public.award_reward_event()` RPC.
+- `src/services/rewardEventService.js` normalizes backend reward results and safely returns `disabled` when Supabase config or the feature flag is unavailable.
+- Backend reward sync is gated by `VITE_REWARD_BACKEND_SYNC_ENABLED=true` and authenticated user context; local reward behavior remains the default fallback.
 
 Remaining future work:
 
-- Add a schema-backed reward-event table, equivalent stable tracking table, or server-side atomic award operation for cross-device reward idempotency.
+- Apply the backend reward migrations to a real Supabase project and validate RLS/RPC behavior with authenticated users.
 - Move challenge completion history from same-device localStorage toward backend-backed persistence.
-- Add durable retry/reconciliation for failed writes.
+- Add durable retry/reconciliation for failed writes. The prior `feat/reward-retry-reconciliation` work is not merged into this branch.
 - Decide whether learner-local streak dates should replace the current UTC date semantics.
-- Reconcile or backfill local reward-event ledger records with backend events if/when a server-side reward ledger is introduced.
+- Decide if and how learners can explicitly import local reward history into backend reward events.

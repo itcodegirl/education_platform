@@ -18,7 +18,7 @@ Unmerged commits checked:
 - `9b99337 feat(progress): scaffold reward sync service`
 - `011c24d feat(progress): add reward engine diagnostics`
 
-Missing prior-phase artifacts in this branch:
+Missing prior-phase artifacts found at the start of this branch:
 
 - `src/services/rewardEventService.js`
 - `src/engine/rewards/rewardQueue.js`
@@ -27,6 +27,8 @@ Missing prior-phase artifacts in this branch:
 - Backend reward-event design docs from the retry branch
 
 For this Supabase backend phase, only backend-facing service, SQL, and documentation pieces should be recreated. The full retry/reconciliation queue and diagnostics engine are not recreated here unless a later backend phase directly needs them.
+
+Phase checkpoint update: `src/services/rewardEventService.js` has now been recreated additively for the Supabase backend path. The retry queue, reconciliation helpers, and diagnostics utilities from `feat/reward-retry-reconciliation` remain unmerged and intentionally absent from this branch.
 
 ## Supabase Files Found
 
@@ -98,12 +100,14 @@ This branch currently has:
 - A local reward processor/runtime used by lesson, quiz, and challenge flows.
 - Legacy reward history as the first same-device compatibility guard.
 
-This branch does not have:
+At Phase 13, this branch did not have:
 
 - Local reward retry queue.
 - Reward reconciliation helpers.
 - Reward diagnostics.
 - Backend reward service wrapper.
+
+By the Phase 20 checkpoint, the backend reward service wrapper exists. The local retry queue, reconciliation helpers, and diagnostics utilities still do not exist on this branch.
 
 ## Recommended Backend Reward Strategy
 

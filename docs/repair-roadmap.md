@@ -34,6 +34,7 @@ Current progress/reward checkpoint:
 - Challenge completion is persisted, deduped, and reward-event processed for same-device learning motivation, but is not secure certification.
 - Core localStorage and route-action write failures mark sync-failed state instead of failing completely silently.
 - `src/engine/rewards/` now contains the local reward-event foundation, local ledger, processor, and shared runtime bridge used by lesson, quiz, and challenge rewards.
+- Supabase reward backend scaffolding now exists: additive `reward_events` and `award_reward_event` migrations, a backend reward service wrapper, and feature-gated runtime integration that preserves local fallback behavior.
 
 Remaining hardening:
 
@@ -41,17 +42,17 @@ Remaining hardening:
 - Keep Python quiz coverage as explicit roadmap scope; define module checkpoint quizzes before deciding on full lesson-level coverage
 - Continue legacy alias review and monitor classified orphan/variant drift through `npm run audit:quizzes`
 - Use the reward/progress trust policy in `docs/reward-progress-policy.md` as the source of truth for future schema-backed reward hardening
-- Add server-side reward-event tracking or an equivalent atomic XP award operation for cross-device idempotency
-- Decide how to reconcile local reward-event ledger entries with future backend reward-event records
+- Apply and validate the reward backend migrations in a real Supabase project before enabling `VITE_REWARD_BACKEND_SYNC_ENABLED`
+- Decide how to reconcile or explicitly import local reward-event ledger entries with backend reward-event records
 - Move challenge completion history toward backend-backed persistence when the data model is ready
-- Add durable retry/reconciliation for failed progress writes
+- Add durable retry/reconciliation for failed progress writes; the previous retry/reconciliation branch is not merged into this branch
 - Decide whether learner-local streak dates should replace the current UTC date semantics
 - Ensure search indexes intended learning content consistently
 
 Exit criteria:
 
 - Active frontend-track quiz coverage remains complete, Python scope is explicit, and remaining audit findings stay classified with documented owner/decision status.
-- Core same-device learning loop cannot be easily gamed or silently desynced; full cross-device reward integrity waits for P2 data-model hardening.
+- Core same-device learning loop cannot be easily gamed or silently desynced; cross-device reward integrity is scaffolded but waits for live Supabase migration application, validation, and import/backfill policy.
 
 ## P2: Data Model Hardening + Migration Safety
 
