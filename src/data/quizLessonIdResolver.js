@@ -42,16 +42,20 @@ const CSS_FALLBACK_DENYLIST = Object.freeze({
 });
 
 const JS_HIGH_CONFIDENCE_LEGACY_LESSON_ALIASES = Object.freeze({
+  'j3-1': 'js-3-3',
   'j7-1': 'js-2-1',
   'j7-2': 'js-2-2',
   'j8-1': 'js-2-3',
   'j8-2': 'js-2-3',
   'j9-2': 'js-3-2',
   'j10-1': 'js-3-2',
+  'j12-1': 'js-4-3',
   'j12-2': 'js-5-2',
   'j12-3': 'js-5-2',
   'j14-1': 'js-5-3',
+  'j17-1': 'js-4-4',
   'j18-1': 'js-1-4',
+  'j21-1': 'js-6-4',
   'j21-2': 'js-3-1',
   'j21-3': 'js-5-3',
 });
