@@ -31,6 +31,7 @@ Remaining hardening:
 - Maintain completed active lesson quiz coverage for HTML, CSS, JavaScript, and React
 - Keep Python quiz coverage as explicit roadmap scope; define module checkpoint quizzes before deciding on full lesson-level coverage
 - Continue legacy alias review and monitor classified orphan/variant drift through `npm run audit:quizzes`
+- Use the reward/progress trust policy in `docs/reward-progress-policy.md` as the source of truth for upcoming XP, streak, quiz retry, and challenge persistence hardening
 - Harden completion, XP, streak, and challenge progression rules
 - Ensure search indexes intended learning content consistently
 
