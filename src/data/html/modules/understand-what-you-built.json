@@ -6,7 +6,7 @@
   "difficulty": "beginner",
   "lessons": [
     {
-      "id": "lesson-05",
+      "id": "lesson-10",
       "title": "Decode the Secret Language Browsers Speak",
       "prereqs": [
         "lesson-08"
@@ -91,14 +91,14 @@
       },
       "bridge": {
         "preview": "In Lesson 6, you'll see how browsers read your HTML code top-to-bottom and build a \"tree\" structure called the DOM. You'll make a page that visualizes this process!",
-        "nextLessonId": "lesson-06"
+        "nextLessonId": "lesson-11"
       }
     },
     {
-      "id": "lesson-06",
+      "id": "lesson-11",
       "title": "Watch a Browser Build Your Page Step-by-Step",
       "prereqs": [
-        "lesson-05"
+        "lesson-10"
       ],
       "difficulty": "beginner",
       "duration": "18 min",

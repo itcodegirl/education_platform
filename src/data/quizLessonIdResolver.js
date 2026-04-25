@@ -1,4 +1,6 @@
 const HTML_LEGACY_LESSON_ALIASES = Object.freeze({
+  'h1-1': 'lesson-10',
+  'h1-2': 'lesson-11',
   'h3-1': 'lesson-01',
   'h4-1': 'lesson-01',
   'h4-2': 'lesson-01',

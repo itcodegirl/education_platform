@@ -148,6 +148,7 @@ function analyzeCourse(courseMeta, loadedCourse) {
   const quizzes = loadedCourse.quizzes || [];
   const index = buildCourseEntityIndex(courseId, modules);
 
+  const activeLessonIdMap = new Map();
   const rawQuizIdMap = new Map();
   const scopedLessonKeyMap = new Map();
   const scopedModuleKeyMap = new Map();
@@ -155,6 +156,10 @@ function analyzeCourse(courseMeta, loadedCourse) {
   const validModuleKeyMap = new Map();
   const orphanLessonQuizzes = [];
   const orphanModuleQuizzes = [];
+
+  index.lessons.forEach((lesson) => {
+    pushList(activeLessonIdMap, lesson.lessonId, lesson);
+  });
 
   quizzes.forEach((quiz, indexInArray) => {
     const lessonResolution = resolveQuizLessonId(courseId, quiz?.lessonId, index.lessonIdSet);
@@ -184,6 +189,7 @@ function analyzeCourse(courseMeta, loadedCourse) {
     }
   });
 
+  const duplicateActiveLessonIds = summarizeMapDuplicates(activeLessonIdMap);
   const duplicateRawQuizIds = summarizeMapDuplicates(rawQuizIdMap);
   const duplicateScopedLessonKeys = summarizeMapDuplicates(scopedLessonKeyMap);
   const duplicateScopedModuleKeys = summarizeMapDuplicates(scopedModuleKeyMap);
@@ -216,6 +222,7 @@ function analyzeCourse(courseMeta, loadedCourse) {
     moduleCount: index.modules.length,
     lessonCount: index.lessons.length,
     quizCount: quizzes.length,
+    duplicateActiveLessonIds,
     duplicateRawQuizIds,
     duplicateScopedLessonKeys,
     duplicateScopedModuleKeys,
@@ -243,6 +250,12 @@ function formatLessonVariantGroup({ scopedLessonKey, primary, bonus, review }) {
 function printCourseReport(report) {
   console.log(`\n[${report.courseId}] ${report.courseLabel}`);
   console.log(`  modules=${report.moduleCount} lessons=${report.lessonCount} quizzes=${report.quizCount}`);
+
+  printIssueGroup(
+    'Duplicate active lesson IDs',
+    report.duplicateActiveLessonIds,
+    ({ key, entries }) => `${key} -> ${entries.map((lesson) => `${lesson.moduleId}/${lesson.lessonTitle}`).join(' | ')}`,
+  );
 
   printIssueGroup(
     'Duplicate raw quiz IDs',
@@ -312,6 +325,7 @@ function printCourseReport(report) {
 
 function summarizeReports(reports) {
   const total = {
+    duplicateActiveLessonIds: 0,
     duplicateRawQuizIds: 0,
     duplicateScopedLessonKeys: 0,
     duplicateScopedModuleKeys: 0,
@@ -325,6 +339,7 @@ function summarizeReports(reports) {
   };
 
   reports.forEach((report) => {
+    total.duplicateActiveLessonIds += report.duplicateActiveLessonIds.length;
     total.duplicateRawQuizIds += report.duplicateRawQuizIds.length;
     total.duplicateScopedLessonKeys += report.duplicateScopedLessonKeys.length;
     total.duplicateScopedModuleKeys += report.duplicateScopedModuleKeys.length;
@@ -347,6 +362,7 @@ function summarizeReports(reports) {
 function strictIssueCount(total) {
   return (
     total.duplicateRawQuizIds +
+    total.duplicateActiveLessonIds +
     total.duplicateScopedLessonKeys +
     total.duplicateScopedModuleKeys +
     total.orphanLessonQuizzes +
@@ -393,6 +409,7 @@ async function main() {
 
   const totals = summarizeReports(reports);
   console.log('\nGlobal Summary');
+  console.log(`  duplicate active lesson IDs: ${totals.duplicateActiveLessonIds}`);
   console.log(`  duplicate raw quiz IDs: ${totals.duplicateRawQuizIds}`);
   console.log(`  duplicate scoped lesson quiz keys: ${totals.duplicateScopedLessonKeys}`);
   console.log(`  duplicate scoped module quiz keys: ${totals.duplicateScopedModuleKeys}`);

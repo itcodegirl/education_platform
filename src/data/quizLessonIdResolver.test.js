@@ -21,20 +21,32 @@ describe('quizLessonIdResolver', () => {
   });
 
   it('does not resolve mismatched HTML aliases for forms and tables lessons', () => {
-    expect(resolveQuizLessonId('html', 'h1-1', new Set(['lesson-05']))).toEqual({
-      rawLessonId: 'h1-1',
+    expect(resolveQuizLessonId('html', 'h12-1', new Set(['lesson-10']))).toEqual({
+      rawLessonId: 'h12-1',
       resolvedLessonId: null,
       resolution: 'unresolved',
     });
 
-    expect(resolveQuizLessonId('html', 'h1-2', new Set(['lesson-06']))).toEqual({
-      rawLessonId: 'h1-2',
+    expect(resolveQuizLessonId('html', 'h9-1', new Set(['lesson-11']))).toEqual({
+      rawLessonId: 'h9-1',
       resolvedLessonId: null,
       resolution: 'unresolved',
     });
   });
 
-  it('keeps aligned HTML aliases for forms and tables lessons', () => {
+  it('keeps aligned HTML aliases for distinct active lesson identities', () => {
+    expect(resolveQuizLessonId('html', 'h1-1', new Set(['lesson-10']))).toEqual({
+      rawLessonId: 'h1-1',
+      resolvedLessonId: 'lesson-10',
+      resolution: 'alias',
+    });
+
+    expect(resolveQuizLessonId('html', 'h1-2', new Set(['lesson-11']))).toEqual({
+      rawLessonId: 'h1-2',
+      resolvedLessonId: 'lesson-11',
+      resolution: 'alias',
+    });
+
     expect(resolveQuizLessonId('html', 'h12-2', new Set(['lesson-05']))).toEqual({
       rawLessonId: 'h12-2',
       resolvedLessonId: 'lesson-05',
