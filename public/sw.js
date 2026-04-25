@@ -1,7 +1,7 @@
-﻿// Service worker for Cinova.
+// Service worker for CodeHerWay.
 // Keep navigation network-first so deploys pick up the latest HTML shell.
 
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v8';
 const CACHE_PREFIX = 'chw-';
 const SHELL_CACHE = `${CACHE_PREFIX}shell-${CACHE_VERSION}`;
 const DATA_CACHE = `${CACHE_PREFIX}data-${CACHE_VERSION}`;
@@ -14,6 +14,14 @@ const SHELL_FILES = [
   '/icon-512.png',
   '/apple-touch-icon.png',
 ];
+
+function isLegacyCache(name) {
+  return (
+    name.startsWith(CACHE_PREFIX) ||
+    name.startsWith('cinova-') ||
+    name.startsWith('codeherway-')
+  );
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -30,7 +38,7 @@ self.addEventListener('activate', (event) => {
     const names = await caches.keys();
     await Promise.all(
       names
-        .filter((name) => name.startsWith(CACHE_PREFIX) && !currentCaches.has(name))
+        .filter((name) => isLegacyCache(name) && !currentCaches.has(name))
         .map((name) => caches.delete(name))
     );
 
@@ -175,4 +183,3 @@ async function networkFirstNavigation(request) {
     throw error;
   }
 }
-
