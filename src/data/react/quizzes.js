@@ -1,4 +1,4 @@
-export const REACT_QUIZZES = [
+const REACT_QUIZZES_SOURCE = [
 
   { lessonId:'r1-1', questions:[
     { id:'r1a1', type:'mc', question:'What problem does React solve?', options:['Server hosting','Managing complex UI updates efficiently','Database design','CSS styling'], correct:1, explanation:'React solves UI complexity with components and Virtual DOM.' },
@@ -432,3 +432,29 @@ export const REACT_QUIZZES = [
       correct:[2,1,3,0], explanation:'Define lazy → wrap in Suspense → user triggers → component downloads.' },
   ]},
 ];
+
+const REACT_CROSS_COURSE_MISPLACED_LESSON_IDS = new Set([
+  'h3-1',
+  'h5-1',
+  'h6-1',
+  'h12-1',
+  'c2-3',
+  'c4-1',
+  'c5-1',
+  'c6-1',
+  'c7-1',
+  'j2-2',
+  'j3-1',
+  'j6-2',
+  'j7-1',
+  'j9-1',
+  'j12-2',
+]);
+
+export const REACT_QUIZZES = REACT_QUIZZES_SOURCE.filter(
+  (quiz) => !REACT_CROSS_COURSE_MISPLACED_LESSON_IDS.has(quiz.lessonId),
+);
+
+export const REACT_CROSS_COURSE_MISPLACED_QUIZ_ARCHIVE = REACT_QUIZZES_SOURCE.filter(
+  (quiz) => REACT_CROSS_COURSE_MISPLACED_LESSON_IDS.has(quiz.lessonId),
+);

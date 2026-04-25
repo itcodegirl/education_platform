@@ -17,6 +17,7 @@ This project is actively stabilized and is not yet production-grade. The followi
 - Quiz identity and lesson/module mapping consistency still needs follow-up repair.
 - Quiz inventory still has known data gaps (orphan lesson quizzes, lessons without mapped lesson quizzes, and duplicate lesson quiz variants in some tracks).
 - Run `npm run audit:quizzes` for the current inventory report (`npm run audit:quizzes -- --strict` to fail on known integrity gaps).
+- Cross-course mixed-type quiz entries previously embedded in React quiz data are intentionally archived as inactive exports and excluded from active React lookup.
 - XP/streak/challenge trust rules still need hardening against edge cases and abuse paths.
 
 ## Search / Content
