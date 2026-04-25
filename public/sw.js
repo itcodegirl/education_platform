@@ -59,6 +59,9 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
   if (!url.protocol.startsWith('http')) return;
   if (request.cache === 'only-if-cached' && request.mode !== 'same-origin') return;
+  // Never proxy Netlify Functions through the SPA cache layer.
+  // Let the browser hit the function endpoint directly.
+  if (url.pathname.startsWith('/.netlify/functions/')) return;
 
   // Always fetch latest manifest so install metadata cannot get stuck on stale branding.
   if (url.pathname === '/manifest.json') {

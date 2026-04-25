@@ -20,6 +20,7 @@ import { Logo } from '../components/shared/Logo';
 import { AdminRoute } from './guards/AdminRoute';
 import { APP_ROUTES, parsePublicProfilePath } from './routePaths';
 import { closeRouteOrGoHome, toPathFromLegacyHash } from './routeUtils';
+import { RouteErrorBoundary } from './RouteErrorBoundary';
 
 const AdminDashboard = lazy(() =>
   import('../components/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })),
@@ -405,7 +406,9 @@ const LEARN_SEGMENT = `${APP_ROUTES.learnBase.replace(/^\//, '')}/:courseId/:mod
 export const appRouter = createBrowserRouter([
   {
     path: APP_ROUTES.home,
+    action: learnRouteAction,
     element: <RouteShell />,
+    errorElement: <RouteErrorBoundary />,
     children: [
       { index: true, element: <HomeRoute /> },
       { path: STYLEGUIDE_SEGMENT, element: <StyleguideRoute /> },
