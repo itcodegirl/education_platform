@@ -20,7 +20,7 @@ Exit criteria:
 Goal: make learner progress and completion signals trustworthy.
 
 - Maintain completed active lesson quiz coverage for HTML, CSS, JavaScript, and React
-- Keep Python quiz coverage as explicit roadmap scope until policy/checkpoints are defined
+- Keep Python quiz coverage as explicit roadmap scope; define module checkpoint quizzes before deciding on full lesson-level coverage
 - Continue orphan quiz triage, variant group documentation/cleanup, and legacy alias review through `npm run audit:quizzes`
 - Harden completion, XP, streak, and challenge progression rules
 - Ensure search indexes intended learning content consistently

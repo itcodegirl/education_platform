@@ -32,6 +32,7 @@ Current test boundaries:
 
 - Authenticated Playwright smoke checks are skipped when auth env credentials are not provided.
 - `npm run audit:quizzes` remains the source of truth for quiz integrity drift, including orphan quizzes, variant groups, legacy aliases, and deferred Python quiz coverage.
+- Python missing-quiz findings are an intentional roadmap signal; future Python coverage should start with module-level checkpoint quizzes before full lesson-level coverage.
 - Deeper learning-integrity, data-model, and accessibility regression coverage is still planned work.
 - Linting scripts exist, but lint enforcement is not yet treated as a stabilized release gate in this repair stage.
 

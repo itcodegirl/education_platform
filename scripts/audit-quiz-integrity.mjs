@@ -8,6 +8,26 @@ const args = new Set(process.argv.slice(2));
 const strictMode = args.has('--strict');
 const forceModuleQuizExpectation = args.has('--expect-module-quizzes');
 
+const DEFAULT_LESSON_QUIZ_COVERAGE_POLICY = Object.freeze({
+  status: 'expected',
+  label: 'active coverage expected',
+  reason: 'Active frontend course lessons should have matching lesson quizzes.',
+});
+
+const LESSON_QUIZ_COVERAGE_POLICIES = Object.freeze({
+  python: Object.freeze({
+    status: 'deferred',
+    label: 'deferred/roadmap',
+    reason: 'Python quizzes are intentionally deferred while the checkpoint policy is defined.',
+    checkpointPolicy:
+      'Future Python coverage should start with learner-friendly module checkpoints before full lesson-level coverage.',
+  }),
+});
+
+function getLessonQuizCoveragePolicy(courseId) {
+  return LESSON_QUIZ_COVERAGE_POLICIES[courseId] || DEFAULT_LESSON_QUIZ_COVERAGE_POLICY;
+}
+
 function pushList(map, key, value) {
   if (!map.has(key)) {
     map.set(key, []);
@@ -147,6 +167,7 @@ function analyzeCourse(courseMeta, loadedCourse) {
   const modules = loadedCourse.modules || [];
   const quizzes = loadedCourse.quizzes || [];
   const index = buildCourseEntityIndex(courseId, modules);
+  const lessonQuizCoveragePolicy = getLessonQuizCoveragePolicy(courseId);
 
   const activeLessonIdMap = new Map();
   const rawQuizIdMap = new Map();
@@ -222,6 +243,7 @@ function analyzeCourse(courseMeta, loadedCourse) {
     moduleCount: index.modules.length,
     lessonCount: index.lessons.length,
     quizCount: quizzes.length,
+    lessonQuizCoveragePolicy,
     duplicateActiveLessonIds,
     duplicateRawQuizIds,
     duplicateScopedLessonKeys,
@@ -250,6 +272,12 @@ function formatLessonVariantGroup({ scopedLessonKey, primary, bonus, review }) {
 function printCourseReport(report) {
   console.log(`\n[${report.courseId}] ${report.courseLabel}`);
   console.log(`  modules=${report.moduleCount} lessons=${report.lessonCount} quizzes=${report.quizCount}`);
+  console.log(
+    `  lesson quiz coverage policy: ${report.lessonQuizCoveragePolicy.label} - ${report.lessonQuizCoveragePolicy.reason}`,
+  );
+  if (report.lessonQuizCoveragePolicy.checkpointPolicy) {
+    console.log(`  future checkpoint policy: ${report.lessonQuizCoveragePolicy.checkpointPolicy}`);
+  }
 
   printIssueGroup(
     'Duplicate active lesson IDs',
@@ -288,7 +316,9 @@ function printCourseReport(report) {
   );
 
   printIssueGroup(
-    'Lessons with no matching lesson quiz',
+    report.lessonQuizCoveragePolicy.status === 'deferred'
+      ? 'Lessons with no matching lesson quiz (deferred/roadmap)'
+      : 'Lessons with no matching lesson quiz',
     report.lessonsWithNoQuiz,
     (lesson) => `${lesson.moduleId}/${lesson.lessonId} :: ${lesson.lessonTitle}`,
     40,
@@ -332,6 +362,8 @@ function summarizeReports(reports) {
     orphanLessonQuizzes: 0,
     orphanModuleQuizzes: 0,
     lessonsWithNoQuiz: 0,
+    activeExpectedLessonsWithNoQuiz: 0,
+    deferredLessonsWithNoQuiz: 0,
     modulesWithNoQuiz: 0,
     lessonVariantGroups: 0,
     intentionalLessonVariantGroups: 0,
@@ -346,6 +378,11 @@ function summarizeReports(reports) {
     total.orphanLessonQuizzes += report.orphanLessonQuizzes.length;
     total.orphanModuleQuizzes += report.orphanModuleQuizzes.length;
     total.lessonsWithNoQuiz += report.lessonsWithNoQuiz.length;
+    if (report.lessonQuizCoveragePolicy.status === 'deferred') {
+      total.deferredLessonsWithNoQuiz += report.lessonsWithNoQuiz.length;
+    } else {
+      total.activeExpectedLessonsWithNoQuiz += report.lessonsWithNoQuiz.length;
+    }
     total.modulesWithNoQuiz += report.moduleQuizExpectationEnabled ? report.modulesWithNoQuiz.length : 0;
     total.lessonVariantGroups += report.lessonVariantGroups.length;
     total.intentionalLessonVariantGroups += report.lessonVariantGroups
@@ -416,6 +453,8 @@ async function main() {
   console.log(`  orphan lesson quizzes: ${totals.orphanLessonQuizzes}`);
   console.log(`  orphan module quizzes: ${totals.orphanModuleQuizzes}`);
   console.log(`  lessons with no matching lesson quiz: ${totals.lessonsWithNoQuiz}`);
+  console.log(`  active-coverage lessons with no matching lesson quiz: ${totals.activeExpectedLessonsWithNoQuiz}`);
+  console.log(`  deferred-policy lessons with no matching lesson quiz: ${totals.deferredLessonsWithNoQuiz}`);
   console.log(`  modules with no matching module quiz (expected courses only): ${totals.modulesWithNoQuiz}`);
   console.log(`  lesson variant groups (primary + bonus): ${totals.lessonVariantGroups}`);
   console.log(`  intentional locked lesson variant groups: ${totals.intentionalLessonVariantGroups}`);

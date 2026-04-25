@@ -16,6 +16,7 @@ This project is actively stabilized and is not yet production-grade. The followi
 - Learning identity/data model hardening is still pending.
 - Active lesson quiz coverage is complete for HTML, CSS, JavaScript, and React.
 - Python quizzes are intentionally deferred/roadmap work, so the audit still reports Python lessons without matching lesson quizzes.
+- Future Python quiz policy should define learner-friendly module checkpoints first, then decide whether every Python lesson needs a dedicated lesson quiz.
 - Quiz inventory still has known integrity follow-up: orphan lesson quizzes, duplicate lesson quiz variant groups, legacy aliases, and archived cross-course entries.
 - Run `npm run audit:quizzes` for the current inventory report (`npm run audit:quizzes -- --strict` to fail on known integrity gaps). Use it to monitor orphan quizzes, variant groups, legacy aliases, and deferred Python quiz coverage.
 - Cross-course mixed-type quiz entries previously embedded in React quiz data are intentionally archived as inactive exports and excluded from active React lookup.
