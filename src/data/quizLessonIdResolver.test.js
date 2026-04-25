@@ -21,16 +21,38 @@ describe('quizLessonIdResolver', () => {
   });
 
   it('maps explicit high-confidence CSS and JS aliases when targets exist', () => {
-    expect(resolveQuizLessonId('css', 'c5-1', new Set(['css-1-4']))).toEqual({
-      rawLessonId: 'c5-1',
-      resolvedLessonId: 'css-1-4',
-      resolution: 'alias',
+    const cssAliases = [
+      ['c5-1', 'css-1-4'],
+      ['c6-2', 'css-2-1'],
+      ['c6-3', 'css-2-3'],
+      ['c7-1', 'css-3-2'],
+      ['c7-3', 'css-4-1'],
+      ['c8-1', 'css-4-3'],
+    ];
+
+    cssAliases.forEach(([rawLessonId, targetLessonId]) => {
+      expect(resolveQuizLessonId('css', rawLessonId, new Set([targetLessonId]))).toEqual({
+        rawLessonId,
+        resolvedLessonId: targetLessonId,
+        resolution: 'alias',
+      });
     });
 
-    expect(resolveQuizLessonId('js', 'j18-1', new Set(['js-1-4']))).toEqual({
-      rawLessonId: 'j18-1',
-      resolvedLessonId: 'js-1-4',
-      resolution: 'alias',
+    const jsAliases = [
+      ['j7-1', 'js-2-1'],
+      ['j7-2', 'js-2-2'],
+      ['j8-1', 'js-2-3'],
+      ['j8-2', 'js-2-3'],
+      ['j18-1', 'js-1-4'],
+      ['j21-2', 'js-3-1'],
+    ];
+
+    jsAliases.forEach(([rawLessonId, targetLessonId]) => {
+      expect(resolveQuizLessonId('js', rawLessonId, new Set([targetLessonId]))).toEqual({
+        rawLessonId,
+        resolvedLessonId: targetLessonId,
+        resolution: 'alias',
+      });
     });
   });
 
@@ -41,10 +63,32 @@ describe('quizLessonIdResolver', () => {
       resolution: 'alias',
     });
 
-    expect(resolveQuizLessonId('js', 'j2-3', new Set(['js-2-3']))).toEqual({
-      rawLessonId: 'j2-3',
-      resolvedLessonId: 'js-2-3',
+    expect(resolveQuizLessonId('js', 'j4-2', new Set(['js-4-2']))).toEqual({
+      rawLessonId: 'j4-2',
+      resolvedLessonId: 'js-4-2',
       resolution: 'alias',
+    });
+  });
+
+  it('does not resolve risky CSS and JS fallback IDs', () => {
+    const cssFallbackBlocked = ['c2-1', 'c2-3', 'c3-2', 'c4-1', 'c4-3'];
+    cssFallbackBlocked.forEach((rawLessonId) => {
+      const fallbackTarget = rawLessonId.replace(/^c(\d+)-(\d+)$/, 'css-$1-$2');
+      expect(resolveQuizLessonId('css', rawLessonId, new Set([fallbackTarget]))).toEqual({
+        rawLessonId,
+        resolvedLessonId: null,
+        resolution: 'unresolved',
+      });
+    });
+
+    const jsFallbackBlocked = ['j2-1', 'j2-2', 'j2-3', 'j3-1'];
+    jsFallbackBlocked.forEach((rawLessonId) => {
+      const fallbackTarget = rawLessonId.replace(/^j(\d+)-(\d+)$/, 'js-$1-$2');
+      expect(resolveQuizLessonId('js', rawLessonId, new Set([fallbackTarget]))).toEqual({
+        rawLessonId,
+        resolvedLessonId: null,
+        resolution: 'unresolved',
+      });
     });
   });
 

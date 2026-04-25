@@ -35,6 +35,14 @@ const CSS_HIGH_CONFIDENCE_LEGACY_LESSON_ALIASES = Object.freeze({
   'c10-3': 'css-4-6',
 });
 
+const CSS_FALLBACK_DENYLIST = Object.freeze({
+  'c2-1': true,
+  'c2-3': true,
+  'c3-2': true,
+  'c4-1': true,
+  'c4-3': true,
+});
+
 const JS_HIGH_CONFIDENCE_LEGACY_LESSON_ALIASES = Object.freeze({
   'j7-1': 'js-2-1',
   'j7-2': 'js-2-2',
@@ -48,6 +56,13 @@ const JS_HIGH_CONFIDENCE_LEGACY_LESSON_ALIASES = Object.freeze({
   'j18-1': 'js-1-4',
   'j21-2': 'js-3-1',
   'j21-3': 'js-5-3',
+});
+
+const JS_FALLBACK_DENYLIST = Object.freeze({
+  'j2-1': true,
+  'j2-2': true,
+  'j2-3': true,
+  'j3-1': true,
 });
 
 const REACT_HIGH_CONFIDENCE_LEGACY_LESSON_ALIASES = Object.freeze({
@@ -65,12 +80,14 @@ const REACT_HIGH_CONFIDENCE_LEGACY_LESSON_ALIASES = Object.freeze({
 });
 
 function resolveCssLegacyLessonId(rawLessonId) {
+  if (CSS_FALLBACK_DENYLIST[rawLessonId]) return null;
   const match = /^c(\d+)-(\d+)$/.exec(rawLessonId);
   if (!match) return null;
   return `css-${match[1]}-${match[2]}`;
 }
 
 function resolveJsLegacyLessonId(rawLessonId) {
+  if (JS_FALLBACK_DENYLIST[rawLessonId]) return null;
   const match = /^j(\d+)-(\d+)$/.exec(rawLessonId);
   if (!match) return null;
   return `js-${match[1]}-${match[2]}`;
