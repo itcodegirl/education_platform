@@ -169,10 +169,10 @@ describe('createLearningEngine → submitQuiz', () => {
     deps = buildDeps();
   });
 
-  it('persists the score, awards quiz XP, and records activity', () => {
+  it('persists the score, awards quiz XP, and records activity', async () => {
     const engine = createLearningEngine(deps);
 
-    const result = engine.submitQuiz('html|quiz|1', 7, 10);
+    const result = await engine.submitQuiz('html|quiz|1', 7, 10);
 
     expect(result).toEqual({ score: 7, total: 10, pct: 70 });
     expect(deps.saveQuizScore).toHaveBeenCalledWith('html|quiz|1', '7/10');
@@ -180,12 +180,12 @@ describe('createLearningEngine → submitQuiz', () => {
     expect(deps.recordDailyActivity).toHaveBeenCalledTimes(1);
   });
 
-  it('does not award base quiz XP again when the quiz completion reward already exists', () => {
+  it('does not award base quiz XP again when the quiz completion reward already exists', async () => {
     const completionKey = rewardKeys.quizComplete('html|quiz|1');
     deps.hasRewardBeenAwarded = vi.fn((rewardKey) => rewardKey === completionKey);
     const engine = createLearningEngine(deps);
 
-    engine.submitQuiz('html|quiz|1', 7, 10);
+    await engine.submitQuiz('html|quiz|1', 7, 10);
 
     expect(deps.saveQuizScore).toHaveBeenCalledWith('html|quiz|1', '7/10');
     expect(deps.markRewardAwarded).not.toHaveBeenCalledWith(completionKey);
@@ -193,7 +193,7 @@ describe('createLearningEngine → submitQuiz', () => {
     expect(deps.recordDailyActivity).toHaveBeenCalledTimes(1);
   });
 
-  it('awards the perfect quiz bonus only when that reward key has not been earned', () => {
+  it('awards the perfect quiz bonus only when that reward key has not been earned', async () => {
     const earned = new Set([rewardKeys.quizComplete('html|quiz|1')]);
     deps.hasRewardBeenAwarded = vi.fn((rewardKey) => earned.has(rewardKey));
     deps.markRewardAwarded = vi.fn((rewardKey) => {
@@ -203,32 +203,65 @@ describe('createLearningEngine → submitQuiz', () => {
     });
     const engine = createLearningEngine(deps);
 
-    engine.submitQuiz('html|quiz|1', 10, 10);
-    engine.submitQuiz('html|quiz|1', 10, 10);
+    await engine.submitQuiz('html|quiz|1', 10, 10);
+    await engine.submitQuiz('html|quiz|1', 10, 10);
 
     expect(deps.awardXP).toHaveBeenCalledTimes(1);
     expect(deps.awardXP).toHaveBeenCalledWith(60, 'Perfect quiz score!');
   });
 
-  it('preserves an existing better quiz score on a lower-scoring retry', () => {
+  it('records learner-scoped reward events for quiz base and perfect rewards', async () => {
+    const rewardEventStorage = createMemoryStorage();
+    deps.learnerKey = 'learner-123';
+    deps.rewardEventStorage = rewardEventStorage;
+    const engine = createLearningEngine(deps);
+
+    await engine.submitQuiz('html|quiz|1', 10, 10);
+
+    const result = readRewardLedger('learner-123', { storage: rewardEventStorage });
+    expect(result.ledger.processedKeys).toEqual([
+      'quiz-base:html|quiz|1:learner-123',
+      'quiz-perfect:html|quiz|1:learner-123',
+    ]);
+    expect(result.ledger.events).toEqual([
+      expect.objectContaining({
+        type: 'QUIZ_BASE',
+        targetId: 'html|quiz|1',
+        metadata: expect.objectContaining({
+          rewardKey: rewardKeys.quizComplete('html|quiz|1'),
+          pct: 100,
+        }),
+      }),
+      expect.objectContaining({
+        type: 'QUIZ_PERFECT',
+        targetId: 'html|quiz|1',
+        metadata: expect.objectContaining({
+          rewardKey: rewardKeys.quizPerfect('html|quiz|1'),
+          pct: 100,
+        }),
+      }),
+    ]);
+  });
+
+  it('preserves an existing better quiz score on a lower-scoring retry', async () => {
     const localDeps = buildDeps({
       quizScores: { q: '8/10' },
     });
     const engine = createLearningEngine(localDeps);
 
-    const result = engine.submitQuiz('q', 6, 10);
+    const result = await engine.submitQuiz('q', 6, 10);
 
     expect(result.pct).toBe(60);
     expect(localDeps.saveQuizScore).not.toHaveBeenCalled();
   });
 
-  it('rounds percent to the nearest whole number', () => {
+  it('rounds percent to the nearest whole number', async () => {
     const engine = createLearningEngine(deps);
 
-    expect(engine.submitQuiz('q', 1, 3).pct).toBe(33);
-    expect(engine.submitQuiz('q', 2, 3).pct).toBe(67);
-    expect(engine.submitQuiz('q', 10, 10).pct).toBe(100);
-    expect(engine.submitQuiz('q', 0, 10).pct).toBe(0);
+    expect((await engine.submitQuiz('q', 1, 3)).pct).toBe(33);
+    expect((await engine.submitQuiz('q', 2, 3)).pct).toBe(67);
+    expect((await engine.submitQuiz('q', 10, 10)).pct).toBe(100);
+    expect((await engine.submitQuiz('q', 0, 10)).pct).toBe(0);
   });
 });
 

@@ -12,7 +12,7 @@
 // ═══════════════════════════════════════════════
 
 import { useState, useCallback, memo } from 'react';
-import { useProgressData, useXP, useSR } from '../../providers';
+import { useAuth, useProgressData, useXP, useSR } from '../../providers';
 import { TIMING } from '../../utils/helpers';
 import {
   REWARD_XP,
@@ -20,6 +20,9 @@ import {
   isQuizScoreImprovement,
   rewardKeys,
 } from '../../services/rewardPolicy';
+import { REWARD_EVENT_TYPES } from '../../engine/rewards/rewardEventTypes';
+import { createRewardEvent } from '../../engine/rewards/rewardEvents';
+import { awardRewardOnce } from '../../engine/rewards/rewardRuntime';
 
 // ─── Check if answer is correct per type ────
 function isAnswerCorrect(q, answer) {
@@ -228,11 +231,13 @@ const TYPE_LABELS = {
 // ─── Main QuizView ──────────────────────────
 
 export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey }) {
+  const { user } = useAuth();
   const {
     saveQuizScore,
     quizScores = {},
     hasRewardBeenAwarded = () => false,
     markRewardAwarded = () => false,
+    markSyncFailed = () => {},
   } = useProgressData();
   const { awardXP, recordDailyActivity } = useXP();
   const { addToSRQueue } = useSR();
@@ -246,7 +251,7 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
     setAnswers((p) => { const n = new Map(p); n.set(qId, value); return n; });
   };
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     setSubmitted(true);
 
     const score = quiz.questions.reduce(
@@ -263,17 +268,43 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
 
     if (quizKey) {
       const completionRewardKey = rewardKeys.quizComplete(quizKey);
-      if (!hasRewardBeenAwarded(completionRewardKey) && markRewardAwarded(completionRewardKey)) {
-        awardXP(REWARD_XP.quizComplete, 'Quiz completed');
-        earnedXp += REWARD_XP.quizComplete;
-      }
+      const completionResult = await awardRewardOnce({
+        learnerKey: user?.id || '',
+        event: createRewardEvent({
+          type: REWARD_EVENT_TYPES.QUIZ_BASE,
+          targetId: quizKey,
+          learnerKey: user?.id || 'legacy-local',
+          metadata: { rewardKey: completionRewardKey, score, total, pct },
+        }),
+        legacyRewardKey: completionRewardKey,
+        hasRewardBeenAwarded,
+        markRewardAwarded,
+        awardXP,
+        xpAmount: REWARD_XP.quizComplete,
+        reason: 'Quiz completed',
+        markSyncFailed,
+      });
+      earnedXp += completionResult.rewardResult?.xpAwarded || 0;
 
       if (pct === 100) {
         const perfectRewardKey = rewardKeys.quizPerfect(quizKey);
-        if (!hasRewardBeenAwarded(perfectRewardKey) && markRewardAwarded(perfectRewardKey)) {
-          awardXP(REWARD_XP.quizPerfect, 'Perfect quiz score!');
-          earnedXp += REWARD_XP.quizPerfect;
-        }
+        const perfectResult = await awardRewardOnce({
+          learnerKey: user?.id || '',
+          event: createRewardEvent({
+            type: REWARD_EVENT_TYPES.QUIZ_PERFECT,
+            targetId: quizKey,
+            learnerKey: user?.id || 'legacy-local',
+            metadata: { rewardKey: perfectRewardKey, score, total, pct },
+          }),
+          legacyRewardKey: perfectRewardKey,
+          hasRewardBeenAwarded,
+          markRewardAwarded,
+          awardXP,
+          xpAmount: REWARD_XP.quizPerfect,
+          reason: 'Perfect quiz score!',
+          markSyncFailed,
+        });
+        earnedXp += perfectResult.rewardResult?.xpAwarded || 0;
       }
     } else {
       const xpAmount = pct === 100 ? REWARD_XP.quizPerfect : REWARD_XP.quizComplete;
@@ -308,9 +339,11 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
     answers,
     quizKey,
     label,
+    user?.id,
     quizScores,
     hasRewardBeenAwarded,
     markRewardAwarded,
+    markSyncFailed,
     awardXP,
     recordDailyActivity,
     saveQuizScore,

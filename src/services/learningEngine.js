@@ -12,7 +12,7 @@ import {
 } from './rewardPolicy';
 import { REWARD_EVENT_TYPES } from '../engine/rewards/rewardEventTypes';
 import { createRewardEvent } from '../engine/rewards/rewardEvents';
-import { REWARD_PROCESSOR_STATUSES, processRewardEvent } from '../engine/rewards/rewardProcessor';
+import { awardRewardOnce } from '../engine/rewards/rewardRuntime';
 
 export function createLearningEngine({
   toggleLesson,
@@ -29,62 +29,6 @@ export function createLearningEngine({
   rewardEventStorage,
   markSyncFailed = () => {},
 }) {
-  async function awardRewardOnce({
-    event,
-    rewardKey,
-    xpAmount,
-    reason,
-    onRewardApplied = () => {},
-  }) {
-    if (hasRewardBeenAwarded(rewardKey)) {
-      return { status: REWARD_PROCESSOR_STATUSES.SKIPPED, source: 'legacy-reward-history' };
-    }
-
-    const applyReward = () => {
-      if (!markRewardAwarded(rewardKey)) {
-        return { xpAwarded: 0, legacySkipped: true };
-      }
-
-      awardXP(xpAmount, reason);
-      onRewardApplied();
-      return { xpAwarded: xpAmount };
-    };
-
-    if (!learnerKey) {
-      const rewardResult = applyReward();
-      return {
-        status: rewardResult.xpAwarded > 0
-          ? REWARD_PROCESSOR_STATUSES.APPLIED
-          : REWARD_PROCESSOR_STATUSES.SKIPPED,
-        source: 'legacy-reward-history',
-        rewardResult,
-      };
-    }
-
-    const result = await processRewardEvent(learnerKey, event, {
-      storage: rewardEventStorage,
-      applyReward,
-    });
-
-    if (result.status === REWARD_PROCESSOR_STATUSES.FAILED) {
-      markSyncFailed(`reward event ${result.phase}:${event.key}`);
-
-      if (result.phase === 'ledger-read') {
-        const rewardResult = applyReward();
-        return {
-          status: rewardResult.xpAwarded > 0
-            ? REWARD_PROCESSOR_STATUSES.APPLIED
-            : REWARD_PROCESSOR_STATUSES.SKIPPED,
-          source: 'legacy-reward-history',
-          rewardResult,
-          ledgerError: result.error,
-        };
-      }
-    }
-
-    return result;
-  }
-
   // ─── Lesson completion ────────────────────
   async function completeLesson(lessonKey, options = {}) {
     const alreadyDone = completedSet.has(lessonKey);
@@ -93,16 +37,22 @@ export function createLearningEngine({
 
     if (!alreadyDone) {
       await awardRewardOnce({
+        learnerKey,
         event: createRewardEvent({
           type: REWARD_EVENT_TYPES.LESSON_COMPLETE,
           targetId: lessonKey,
           learnerKey: learnerKey || 'legacy-local',
           metadata: { rewardKey },
         }),
-        rewardKey,
+        legacyRewardKey: rewardKey,
+        hasRewardBeenAwarded,
+        markRewardAwarded,
+        awardXP,
         xpAmount: REWARD_XP.lessonComplete,
         reason: 'Lesson completed',
         onRewardApplied: recordDailyActivity,
+        markSyncFailed,
+        storage: rewardEventStorage,
       });
     }
   }
@@ -124,7 +74,7 @@ export function createLearningEngine({
   }
 
   // ─── Quiz submission ──────────────────────
-  function submitQuiz(
+  async function submitQuiz(
     quizKey,
     score,
     total,
@@ -135,15 +85,43 @@ export function createLearningEngine({
     }
 
     const completionRewardKey = rewardKeys.quizComplete(quizKey);
-    if (!hasRewardBeenAwarded(completionRewardKey) && markRewardAwarded(completionRewardKey)) {
-      awardXP(REWARD_XP.quizComplete, 'Quiz completed');
-    }
+    await awardRewardOnce({
+      learnerKey,
+      event: createRewardEvent({
+        type: REWARD_EVENT_TYPES.QUIZ_BASE,
+        targetId: quizKey,
+        learnerKey: learnerKey || 'legacy-local',
+        metadata: { rewardKey: completionRewardKey, score, total, pct },
+      }),
+      legacyRewardKey: completionRewardKey,
+      hasRewardBeenAwarded,
+      markRewardAwarded,
+      awardXP,
+      xpAmount: REWARD_XP.quizComplete,
+      reason: 'Quiz completed',
+      markSyncFailed,
+      storage: rewardEventStorage,
+    });
 
     if (pct === 100) {
       const perfectRewardKey = rewardKeys.quizPerfect(quizKey);
-      if (!hasRewardBeenAwarded(perfectRewardKey) && markRewardAwarded(perfectRewardKey)) {
-        awardXP(REWARD_XP.quizPerfect, 'Perfect quiz score!');
-      }
+      await awardRewardOnce({
+        learnerKey,
+        event: createRewardEvent({
+          type: REWARD_EVENT_TYPES.QUIZ_PERFECT,
+          targetId: quizKey,
+          learnerKey: learnerKey || 'legacy-local',
+          metadata: { rewardKey: perfectRewardKey, score, total, pct },
+        }),
+        legacyRewardKey: perfectRewardKey,
+        hasRewardBeenAwarded,
+        markRewardAwarded,
+        awardXP,
+        xpAmount: REWARD_XP.quizPerfect,
+        reason: 'Perfect quiz score!',
+        markSyncFailed,
+        storage: rewardEventStorage,
+      });
     }
 
     recordDailyActivity();
@@ -176,3 +154,4 @@ export function createLearningEngine({
     completeChallenge,
   };
 }
+
