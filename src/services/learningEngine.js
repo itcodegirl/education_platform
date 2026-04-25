@@ -129,7 +129,7 @@ export function createLearningEngine({
   }
 
   // ─── Challenge completion ─────────────────
-  function completeChallenge(challengeId) {
+  async function completeChallenge(challengeId) {
     const alreadyCompleted = isChallengeCompleted(challengeId);
     const newlyCompleted = !alreadyCompleted && markChallengeCompleted(challengeId);
 
@@ -138,9 +138,23 @@ export function createLearningEngine({
     }
 
     const rewardKey = rewardKeys.challengeComplete(challengeId);
-    if (!hasRewardBeenAwarded(rewardKey) && markRewardAwarded(rewardKey)) {
-      awardXP(REWARD_XP.challengeComplete, 'Challenge completed');
-    }
+    await awardRewardOnce({
+      learnerKey,
+      event: createRewardEvent({
+        type: REWARD_EVENT_TYPES.CHALLENGE_COMPLETE,
+        targetId: challengeId,
+        learnerKey: learnerKey || 'legacy-local',
+        metadata: { rewardKey },
+      }),
+      legacyRewardKey: rewardKey,
+      hasRewardBeenAwarded,
+      markRewardAwarded,
+      awardXP,
+      xpAmount: REWARD_XP.challengeComplete,
+      reason: 'Challenge completed',
+      markSyncFailed,
+      storage: rewardEventStorage,
+    });
 
     recordDailyActivity();
     return { challengeId, completed: true, alreadyCompleted: false };

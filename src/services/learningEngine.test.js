@@ -266,11 +266,11 @@ describe('createLearningEngine → submitQuiz', () => {
 });
 
 describe('createLearningEngine → completeChallenge', () => {
-  it('awards challenge XP, records activity, and returns the completed shape', () => {
+  it('awards challenge XP, records activity, and returns the completed shape', async () => {
     const deps = buildDeps();
     const engine = createLearningEngine(deps);
 
-    const result = engine.completeChallenge('challenge-42');
+    const result = await engine.completeChallenge('challenge-42');
 
     expect(result).toEqual({ challengeId: 'challenge-42', completed: true, alreadyCompleted: false });
     expect(deps.markChallengeCompleted).toHaveBeenCalledWith('challenge-42');
@@ -281,13 +281,38 @@ describe('createLearningEngine → completeChallenge', () => {
     expect(deps.recordDailyActivity).toHaveBeenCalledTimes(1);
   });
 
-  it('does not duplicate challenge completion, XP, or activity', () => {
+  it('records a learner-scoped reward event when completing a challenge', async () => {
+    const rewardEventStorage = createMemoryStorage();
+    const deps = buildDeps({
+      learnerKey: 'learner-123',
+      rewardEventStorage,
+    });
+    const engine = createLearningEngine(deps);
+
+    const result = await engine.completeChallenge('challenge-42');
+
+    expect(result).toEqual({ challengeId: 'challenge-42', completed: true, alreadyCompleted: false });
+    const ledgerResult = readRewardLedger('learner-123', { storage: rewardEventStorage });
+    expect(ledgerResult.ledger.processedKeys).toEqual([
+      'challenge-complete:challenge-42:learner-123',
+    ]);
+    expect(ledgerResult.ledger.events[0]).toMatchObject({
+      type: 'CHALLENGE_COMPLETE',
+      targetId: 'challenge-42',
+      learnerKey: 'learner-123',
+      metadata: {
+        rewardKey: rewardKeys.challengeComplete('challenge-42'),
+      },
+    });
+  });
+
+  it('does not duplicate challenge completion, XP, or activity', async () => {
     const deps = buildDeps({
       isChallengeCompleted: vi.fn(() => true),
     });
     const engine = createLearningEngine(deps);
 
-    const result = engine.completeChallenge('challenge-42');
+    const result = await engine.completeChallenge('challenge-42');
 
     expect(result).toEqual({ challengeId: 'challenge-42', completed: true, alreadyCompleted: true });
     expect(deps.markChallengeCompleted).not.toHaveBeenCalled();
