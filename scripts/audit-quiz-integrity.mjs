@@ -495,6 +495,31 @@ function strictIssueCount(total) {
   );
 }
 
+function printEngineStabilizationSummary(totals) {
+  const activeCoverageStatus = totals.activeExpectedLessonsWithNoQuiz === 0
+    ? 'complete for active HTML/CSS/JavaScript/React lessons'
+    : `needs attention (${totals.activeExpectedLessonsWithNoQuiz} active-coverage lesson gaps)`;
+  const pythonCoverageStatus = totals.deferredLessonsWithNoQuiz === 0
+    ? 'no deferred Python quiz gaps reported'
+    : `deferred/roadmap (${totals.deferredLessonsWithNoQuiz} Python lesson gaps tracked)`;
+  const variantStatus = totals.suspiciousLessonVariantGroups === 0
+    ? `locked (${totals.intentionalLessonVariantGroups}/${totals.lessonVariantGroups} intentional, 0 unreviewed)`
+    : `needs review (${totals.suspiciousLessonVariantGroups} unreviewed or mismatched group(s))`;
+  const orphanStatus = totals.unclassifiedOrphanLessonQuizzes === 0
+    ? `classified (${totals.orphanLessonQuizzes} total, 0 unclassified)`
+    : `needs classification (${totals.unclassifiedOrphanLessonQuizzes} unclassified)`;
+  const strictStatus = strictMode
+    ? 'enabled for this run'
+    : 'not enabled; report-only mode remains in use until CI criteria are finalized';
+
+  console.log('\nEngine Stabilization Summary');
+  console.log(`  active frontend quiz coverage: ${activeCoverageStatus}`);
+  console.log(`  Python quiz coverage: ${pythonCoverageStatus}`);
+  console.log(`  variant group inventory: ${variantStatus}`);
+  console.log(`  orphan quiz inventory: ${orphanStatus}`);
+  console.log(`  strict-mode CI gate: ${strictStatus}`);
+}
+
 async function loadAllCourseData() {
   const viteServer = await createServer({
     logLevel: 'silent',
@@ -552,6 +577,8 @@ async function main() {
   console.log(`  lesson variant groups (primary + bonus): ${totals.lessonVariantGroups}`);
   console.log(`  intentional locked lesson variant groups: ${totals.intentionalLessonVariantGroups}`);
   console.log(`  suspicious/unreviewed lesson variant groups: ${totals.suspiciousLessonVariantGroups}`);
+
+  printEngineStabilizationSummary(totals);
 
   const blockingIssues = strictIssueCount(totals);
   if (strictMode && blockingIssues > 0) {
