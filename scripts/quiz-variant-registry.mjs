@@ -1,4 +1,18 @@
 export const INTENTIONAL_LESSON_QUIZ_VARIANTS = Object.freeze({
+  'l:html:lesson-01': {
+    status: 'intentional',
+    primaryRawLessonIds: Object.freeze(['h3-1']),
+    bonusRawLessonIds: Object.freeze(['h4-1', 'h4-2', 'h5-1']),
+    reason:
+      'Reviewed as beginner HTML reinforcement; primary covers document structure while bonus quizzes reinforce early tags, headings, and attributes.',
+  },
+  'l:html:lesson-05': {
+    status: 'intentional',
+    primaryRawLessonIds: Object.freeze(['h12-1']),
+    bonusRawLessonIds: Object.freeze(['h12-2', 'h12-3']),
+    reason:
+      'Reviewed after duplicate HTML lesson identity repair; lesson-05 is the Forms lesson and all variants cover form controls, labels, inputs, or validation.',
+  },
   'l:html:lesson-08': {
     status: 'intentional',
     primaryRawLessonIds: Object.freeze(['h5-2']),
