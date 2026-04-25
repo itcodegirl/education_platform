@@ -20,7 +20,21 @@ describe('quizLessonIdResolver', () => {
     });
   });
 
-  it('maps CSS and JS prefix aliases when target lessons exist', () => {
+  it('maps explicit high-confidence CSS and JS aliases when targets exist', () => {
+    expect(resolveQuizLessonId('css', 'c5-1', new Set(['css-1-4']))).toEqual({
+      rawLessonId: 'c5-1',
+      resolvedLessonId: 'css-1-4',
+      resolution: 'alias',
+    });
+
+    expect(resolveQuizLessonId('js', 'j18-1', new Set(['js-1-4']))).toEqual({
+      rawLessonId: 'j18-1',
+      resolvedLessonId: 'js-1-4',
+      resolution: 'alias',
+    });
+  });
+
+  it('keeps CSS and JS prefix fallback aliases for unmapped legacy IDs', () => {
     expect(resolveQuizLessonId('css', 'c4-2', new Set(['css-4-2']))).toEqual({
       rawLessonId: 'c4-2',
       resolvedLessonId: 'css-4-2',
@@ -34,10 +48,27 @@ describe('quizLessonIdResolver', () => {
     });
   });
 
+  it('maps explicit high-confidence React aliases when targets exist', () => {
+    expect(resolveQuizLessonId('react', 'r3-1', new Set(['r1-3']))).toEqual({
+      rawLessonId: 'r3-1',
+      resolvedLessonId: 'r1-3',
+      resolution: 'alias',
+    });
+  });
+
   it('does not resolve when alias target is missing from active lessons', () => {
     const result = resolveQuizLessonId('css', 'c1-1', new Set(['css-2-1']));
     expect(result).toEqual({
       rawLessonId: 'c1-1',
+      resolvedLessonId: null,
+      resolution: 'unresolved',
+    });
+  });
+
+  it('does not add medium-confidence HTML aliases', () => {
+    const result = resolveQuizLessonId('html', 'h13-2', new Set(['lesson-07']));
+    expect(result).toEqual({
+      rawLessonId: 'h13-2',
       resolvedLessonId: null,
       resolution: 'unresolved',
     });

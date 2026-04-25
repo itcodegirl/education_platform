@@ -24,6 +24,46 @@ const HTML_LEGACY_LESSON_ALIASES = Object.freeze({
   'h20-2': 'lesson-12',
 });
 
+const CSS_HIGH_CONFIDENCE_LEGACY_LESSON_ALIASES = Object.freeze({
+  'c5-1': 'css-1-4',
+  'c6-1': 'css-2-5',
+  'c6-2': 'css-2-1',
+  'c6-3': 'css-2-3',
+  'c7-1': 'css-3-2',
+  'c7-3': 'css-4-1',
+  'c8-1': 'css-4-3',
+  'c10-3': 'css-4-6',
+});
+
+const JS_HIGH_CONFIDENCE_LEGACY_LESSON_ALIASES = Object.freeze({
+  'j7-1': 'js-2-1',
+  'j7-2': 'js-2-2',
+  'j8-1': 'js-2-3',
+  'j8-2': 'js-2-3',
+  'j9-2': 'js-3-2',
+  'j10-1': 'js-3-2',
+  'j12-2': 'js-5-2',
+  'j12-3': 'js-5-2',
+  'j14-1': 'js-5-3',
+  'j18-1': 'js-1-4',
+  'j21-2': 'js-3-1',
+  'j21-3': 'js-5-3',
+});
+
+const REACT_HIGH_CONFIDENCE_LEGACY_LESSON_ALIASES = Object.freeze({
+  'r3-1': 'r1-3',
+  'r4-1': 'r1-4',
+  'r5-1': 'r2-1',
+  'r6-1': 'r1-5',
+  'r6-3': 'r19-3',
+  'r7-1': 'r2-2',
+  'r7-2': 'r2-3',
+  'r10-2': 'r9-3',
+  'r11-1': 'r15-2',
+  'r14-1': 'r9-2',
+  'r18-1': 'r16-2',
+});
+
 function resolveCssLegacyLessonId(rawLessonId) {
   const match = /^c(\d+)-(\d+)$/.exec(rawLessonId);
   if (!match) return null;
@@ -44,14 +84,22 @@ function resolveLegacyLessonId(courseId, rawLessonId) {
   }
 
   if (courseId === 'css') {
+    const explicitAlias = CSS_HIGH_CONFIDENCE_LEGACY_LESSON_ALIASES[rawLessonId];
+    if (explicitAlias) return explicitAlias;
     return resolveCssLegacyLessonId(rawLessonId);
   }
 
   if (courseId === 'js') {
+    const explicitAlias = JS_HIGH_CONFIDENCE_LEGACY_LESSON_ALIASES[rawLessonId];
+    if (explicitAlias) return explicitAlias;
     return resolveJsLegacyLessonId(rawLessonId);
   }
 
-  // React/Python: do not infer broad remaps.
+  if (courseId === 'react') {
+    return REACT_HIGH_CONFIDENCE_LEGACY_LESSON_ALIASES[rawLessonId] || null;
+  }
+
+  // Python: do not infer broad remaps.
   return null;
 }
 
