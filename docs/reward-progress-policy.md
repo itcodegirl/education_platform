@@ -70,11 +70,13 @@ The policy constants live in `src/services/rewardPolicy.js`. Runtime hardening n
 - Sync-failed state marking for core localStorage and route-action write failures.
 - A local reward-event foundation in `src/engine/rewards/` with event types, stable learner-scoped event keys, local ledger storage, dedupe behavior, and a shared processor/runtime helper.
 - Lesson, quiz base, quiz perfect, and challenge XP paths now flow through the local reward-event processor while keeping legacy reward history as the first compatibility guard.
+- Reward queue storage now records pending, processed, skipped, failed, applied-unrecorded, and reconciled local reward events for same-device recovery and inspection.
+- Reconciliation utilities can resolve already-awarded local events against the processed ledger or legacy reward history without replaying XP.
 
 Remaining future work:
 
 - Add a schema-backed reward-event table, equivalent stable tracking table, or server-side atomic award operation for cross-device reward idempotency.
 - Move challenge completion history from same-device localStorage toward backend-backed persistence.
-- Add durable retry/reconciliation for failed writes.
+- Add backend-backed durable retry/reconciliation and optional background queue processing.
 - Decide whether learner-local streak dates should replace the current UTC date semantics.
 - Reconcile or backfill local reward-event ledger records with backend events if/when a server-side reward ledger is introduced.

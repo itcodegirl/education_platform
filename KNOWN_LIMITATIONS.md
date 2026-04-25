@@ -23,9 +23,10 @@ This project is actively stabilized and is not yet production-grade. The followi
 - Renamed HTML Module 102 lesson IDs resolved duplicate identity risk, but existing progress/bookmark keys for those old lesson IDs may need a later targeted compatibility decision.
 - Core same-device reward trust rules are hardened for lesson completion XP, quiz retry rewards, activity-based streaks, and challenge completion dedupe.
 - Lesson, quiz, and challenge XP now use a local reward-event ledger/processor with legacy reward history as a compatibility guard, but this is still client-side storage.
+- Failed reward events now have a local queue/reconciliation foundation for same-device recovery and inspection.
 - Cross-device reward idempotency still needs a server-side reward-event table, equivalent stable tracking table, or atomic XP award operation.
 - Challenge completion persistence is same-device/localStorage-backed and should not be treated as secure certification.
-- Supabase/localStorage write failures now mark sync-failed state in core flows, but there is no durable retry queue or reconciliation workflow yet.
+- Supabase/localStorage write failures now mark sync-failed state in core flows, but durable backend retry/reconciliation is not implemented yet.
 
 ## Search / Content
 
