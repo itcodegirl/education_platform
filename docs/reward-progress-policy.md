@@ -78,6 +78,7 @@ Remaining future work:
 - Add a schema-backed reward-event table, equivalent stable tracking table, or server-side atomic award operation for cross-device reward idempotency.
 - The proposed backend reward-event schema is documented in `docs/backend-reward-events.md` with a draft SQL artifact in `docs/sql/reward-events-schema-draft.sql`; it is not deployed or called by runtime code yet.
 - The future atomic award contract is documented in `docs/atomic-reward-award.md` with a draft RPC in `docs/sql/atomic-reward-award-draft.sql` and an unused frontend wrapper in `src/services/rewardEventService.js`.
+- The cross-device sync strategy is documented in `docs/reward-sync-strategy.md` with an unused planning scaffold in `src/services/rewardSyncService.js`.
 - Move challenge completion history from same-device localStorage toward backend-backed persistence.
 - Add backend-backed durable retry/reconciliation and optional background queue processing.
 - Decide whether learner-local streak dates should replace the current UTC date semantics.
