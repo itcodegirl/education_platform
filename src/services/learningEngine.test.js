@@ -9,6 +9,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createLearningEngine } from './learningEngine';
+import { rewardKeys } from './rewardPolicy';
 
 function buildDeps(overrides = {}) {
   return {
@@ -17,6 +18,8 @@ function buildDeps(overrides = {}) {
     awardXP: vi.fn(),
     recordDailyActivity: vi.fn(),
     completedSet: new Set(),
+    hasRewardBeenAwarded: vi.fn(() => false),
+    markRewardAwarded: vi.fn(() => true),
     ...overrides,
   };
 }
@@ -30,6 +33,9 @@ describe('createLearningEngine → completeLesson', () => {
 
     expect(deps.toggleLesson).toHaveBeenCalledTimes(1);
     expect(deps.toggleLesson).toHaveBeenCalledWith('html|intro|first', {});
+    expect(deps.markRewardAwarded).toHaveBeenCalledWith(
+      rewardKeys.lessonComplete('html|intro|first'),
+    );
     expect(deps.awardXP).toHaveBeenCalledTimes(1);
     expect(deps.awardXP).toHaveBeenCalledWith(25, 'Lesson completed'); // XP_VALUES.lesson
     expect(deps.recordDailyActivity).toHaveBeenCalledTimes(1);
@@ -44,6 +50,22 @@ describe('createLearningEngine → completeLesson', () => {
     engine.completeLesson('html|intro|first');
 
     expect(deps.toggleLesson).toHaveBeenCalledTimes(1);
+    expect(deps.awardXP).not.toHaveBeenCalled();
+    expect(deps.recordDailyActivity).not.toHaveBeenCalled();
+  });
+
+  it('does not award XP again when a previously rewarded lesson is recompleted', () => {
+    const deps = buildDeps({
+      completedSet: new Set(),
+      hasRewardBeenAwarded: vi.fn(() => true),
+    });
+    const engine = createLearningEngine(deps);
+
+    engine.completeLesson('html|intro|first');
+
+    expect(deps.toggleLesson).toHaveBeenCalledTimes(1);
+    expect(deps.toggleLesson).toHaveBeenCalledWith('html|intro|first', {});
+    expect(deps.markRewardAwarded).not.toHaveBeenCalled();
     expect(deps.awardXP).not.toHaveBeenCalled();
     expect(deps.recordDailyActivity).not.toHaveBeenCalled();
   });

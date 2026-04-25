@@ -5,6 +5,7 @@
 // ═══════════════════════════════════════════════
 
 import { XP_VALUES } from '../utils/helpers';
+import { REWARD_XP, rewardKeys } from './rewardPolicy';
 
 export function createLearningEngine({
   toggleLesson,
@@ -12,14 +13,19 @@ export function createLearningEngine({
   awardXP,
   recordDailyActivity,
   completedSet,
+  hasRewardBeenAwarded = () => false,
+  markRewardAwarded = () => false,
 }) {
   // ─── Lesson completion ────────────────────
   function completeLesson(lessonKey, options = {}) {
     const alreadyDone = completedSet.has(lessonKey);
+    const rewardKey = rewardKeys.lessonComplete(lessonKey);
+    const rewardAlreadyAwarded = hasRewardBeenAwarded(rewardKey);
     toggleLesson(lessonKey, options);
 
-    if (!alreadyDone) {
-      awardXP(XP_VALUES.lesson, 'Lesson completed');
+    if (!alreadyDone && !rewardAlreadyAwarded) {
+      markRewardAwarded(rewardKey);
+      awardXP(REWARD_XP.lessonComplete, 'Lesson completed');
       recordDailyActivity();
     }
   }

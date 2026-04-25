@@ -9,12 +9,32 @@ import { useProgressData, useXP } from '../providers';
 import { createLearningEngine } from '../services/learningEngine';
 
 export function useLearning() {
-  const { toggleLesson, saveQuizScore, completedSet } = useProgressData();
+  const {
+    toggleLesson,
+    saveQuizScore,
+    completedSet,
+    hasRewardBeenAwarded,
+    markRewardAwarded,
+  } = useProgressData();
   const { awardXP, recordDailyActivity } = useXP();
 
   const engine = useMemo(() => createLearningEngine({
-    toggleLesson, saveQuizScore, awardXP, recordDailyActivity, completedSet,
-  }), [toggleLesson, saveQuizScore, awardXP, recordDailyActivity, completedSet]);
+    toggleLesson,
+    saveQuizScore,
+    awardXP,
+    recordDailyActivity,
+    completedSet,
+    hasRewardBeenAwarded,
+    markRewardAwarded,
+  }), [
+    toggleLesson,
+    saveQuizScore,
+    awardXP,
+    recordDailyActivity,
+    completedSet,
+    hasRewardBeenAwarded,
+    markRewardAwarded,
+  ]);
 
   return engine;
 }

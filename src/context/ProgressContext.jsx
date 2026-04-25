@@ -8,6 +8,7 @@ import { useAuth } from './AuthContext';
 import { DAILY_GOAL, TIMING, getLevel, getTodayString, getYesterdayString } from '../utils/helpers';
 import { COURSES } from '../data';
 import * as progressService from '../services/progressService';
+import { rewardKeys } from '../services/rewardPolicy';
 import { lessonKeysEquivalent, resolveStableLessonKeyAcrossCourses } from '../utils/lessonKeys';
 
 // ─── Badge Definitions ──────────────────────────
@@ -45,6 +46,9 @@ const ProgressContext = createContext({
   dataLoaded: false,
   loadError: null,
   retryLoad: () => {},
+  rewardHistory: [],
+  hasRewardBeenAwarded: () => false,
+  markRewardAwarded: () => false,
   // Count of DB writes that failed since the last successful read.
   // Used by the UI to show a "sync failed" banner; the optimistic
   // state is still the source of truth for the current session.
@@ -80,6 +84,39 @@ const SRContext = createContext({
 
 function normalizeLessonKey(lessonKey) {
   return resolveStableLessonKeyAcrossCourses(lessonKey, COURSES);
+}
+
+function getRewardHistoryStorageKey(userId) {
+  return `chw-reward-history:${userId}`;
+}
+
+function normalizeRewardHistory(keys) {
+  if (!Array.isArray(keys)) return [];
+  return Array.from(new Set(
+    keys
+      .filter((key) => typeof key === 'string' && key.trim())
+      .map((key) => key.trim()),
+  ));
+}
+
+function readRewardHistory(userId) {
+  if (typeof window === 'undefined' || !userId) return [];
+
+  try {
+    const raw = window.localStorage.getItem(getRewardHistoryStorageKey(userId));
+    return normalizeRewardHistory(raw ? JSON.parse(raw) : []);
+  } catch {
+    return [];
+  }
+}
+
+function writeRewardHistory(userId, keys) {
+  if (typeof window === 'undefined' || !userId) return;
+
+  window.localStorage.setItem(
+    getRewardHistoryStorageKey(userId),
+    JSON.stringify(normalizeRewardHistory(keys)),
+  );
 }
 
 export function ProgressProvider({ children }) {
@@ -136,10 +173,29 @@ export function ProgressProvider({ children }) {
   const [notes, setNotes] = useState({});
   const [coursesVisited, setCoursesVisited] = useState([]);
   const [lastPosition, setLastPosition] = useState({ course: '', mod: '', les: '', time: 0 });
+  const [rewardHistory, setRewardHistory] = useState([]);
+  const rewardHistoryRef = useRef(new Set());
   const [xpPopup, setXpPopup] = useState(null);
   const [newBadge, setNewBadge] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [loadError, setLoadError] = useState(null);
+
+  const replaceRewardHistory = useCallback((userId, keys, { persist = false } = {}) => {
+    const normalizedKeys = normalizeRewardHistory(keys);
+    rewardHistoryRef.current = new Set(normalizedKeys);
+    setRewardHistory(normalizedKeys);
+
+    if (persist) {
+      try {
+        writeRewardHistory(userId, normalizedKeys);
+      } catch (err) {
+        if (import.meta.env.DEV) {
+          console.warn('[ProgressContext] reward history write failed:', err);
+        }
+        setSyncFailed((count) => count + 1);
+      }
+    }
+  }, []);
 
   const resetUserState = useCallback(() => {
     setCompleted([]);
@@ -155,6 +211,8 @@ export function ProgressProvider({ children }) {
     setNotes({});
     setCoursesVisited([]);
     setLastPosition({ course: '', mod: '', les: '', time: 0 });
+    rewardHistoryRef.current = new Set();
+    setRewardHistory([]);
     setXpPopup(null);
     setNewBadge(null);
   }, []);
@@ -182,7 +240,18 @@ export function ProgressProvider({ children }) {
         daily: dailyRes, badges: badgesRes, sr: srRes, bookmarks: bookmarkRes,
         notes: notesRes, visited: visitedRes, position: posRes } = results;
 
-      setCompleted(progressRes.data?.map(r => r.lesson_key) || []);
+      const completedLessonKeys = progressRes.data?.map(r => r.lesson_key) || [];
+      setCompleted(completedLessonKeys);
+
+      const storedRewardHistory = readRewardHistory(uid);
+      const completedLessonRewardKeys = completedLessonKeys
+        .filter((lessonKey) => typeof lessonKey === 'string' && lessonKey.trim())
+        .map((lessonKey) => rewardKeys.lessonComplete(lessonKey));
+      replaceRewardHistory(
+        uid,
+        [...storedRewardHistory, ...completedLessonRewardKeys],
+        { persist: completedLessonRewardKeys.length > 0 },
+      );
 
       const scores = {};
       quizRes.data?.forEach(r => { scores[r.quiz_key] = r.score; });
@@ -253,7 +322,7 @@ export function ProgressProvider({ children }) {
     return () => {
       cancelled = true;
     };
-  }, [user, loadVersion, resetUserState]);
+  }, [user, loadVersion, resetUserState, replaceRewardHistory]);
 
   // ─── Streak check on load ─────────────────────
   // Reset the guard whenever the user session changes so a fresh login
@@ -332,6 +401,32 @@ export function ProgressProvider({ children }) {
   }, [user, xpTotal, dbWrite]);
 
   const clearXPPopup = useCallback(() => setXpPopup(null), []);
+
+  const hasRewardBeenAwarded = useCallback((rewardKey) => {
+    return rewardHistoryRef.current.has(rewardKey);
+  }, []);
+
+  const markRewardAwarded = useCallback((rewardKey) => {
+    if (!user || typeof rewardKey !== 'string' || !rewardKey.trim()) return false;
+    const normalizedRewardKey = rewardKey.trim();
+
+    if (rewardHistoryRef.current.has(normalizedRewardKey)) return false;
+
+    const nextKeys = [...rewardHistoryRef.current, normalizedRewardKey];
+    rewardHistoryRef.current = new Set(nextKeys);
+    setRewardHistory(nextKeys);
+
+    try {
+      writeRewardHistory(user.id, nextKeys);
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.warn('[ProgressContext] reward history write failed:', err);
+      }
+      setSyncFailed((count) => count + 1);
+    }
+
+    return true;
+  }, [user]);
 
   // ─── Daily Goal ───────────────────────────────
   const recordDailyActivity = useCallback(async () => {
@@ -563,6 +658,9 @@ export function ProgressProvider({ children }) {
     dataLoaded,
     loadError,
     retryLoad,
+    rewardHistory,
+    hasRewardBeenAwarded,
+    markRewardAwarded,
     syncFailed,
     clearSyncFailed,
   }), [
@@ -578,6 +676,9 @@ export function ProgressProvider({ children }) {
     dataLoaded,
     loadError,
     retryLoad,
+    rewardHistory,
+    hasRewardBeenAwarded,
+    markRewardAwarded,
     syncFailed,
     clearSyncFailed,
   ]);
