@@ -30,7 +30,8 @@ Use this checklist before Netlify releases or hotfix deploys.
   - create/edit a note
   - bookmark a lesson
 - Validate quiz path for an active HTML/CSS/JS/React lesson quiz.
-- Confirm any `npm run audit:quizzes` findings are expected and documented, especially orphan quizzes, variant groups, legacy aliases, and deferred Python quiz coverage.
+- Confirm any `npm run audit:quizzes` findings are expected and documented, especially classified orphan quizzes, intentional variant groups, legacy aliases, and deferred Python quiz coverage.
+- If touching HTML Module 102 lesson identity, verify the targeted progress/bookmark compatibility decision before release.
 
 ## PWA / Cache Validation
 
@@ -44,7 +45,7 @@ Use this checklist before Netlify releases or hotfix deploys.
 
 - `npm run test:e2e` always covers public smoke path.
 - Authenticated smoke checks require environment credentials and will otherwise skip.
-- `npm run audit:quizzes` should remain report-only until strict-mode criteria are defined for orphan, variant, alias, and Python policy decisions.
+- `npm run audit:quizzes` should remain report-only until strict-mode criteria are defined for classified orphan inventory, intentional variants, aliases, and Python policy decisions.
 - Production-grade reliability still requires broader learning/data/a11y regression coverage.
 
 ## Release Sign-Off

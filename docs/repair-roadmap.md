@@ -19,15 +19,24 @@ Exit criteria:
 
 Goal: make learner progress and completion signals trustworthy.
 
+Current quiz checkpoint:
+
+- Active HTML, CSS, JavaScript, and React lesson quiz coverage is complete.
+- Python quiz coverage is intentionally deferred and should start with module checkpoint policy decisions.
+- Quiz variant groups and legacy orphan quiz inventory are now classified and monitored through `npm run audit:quizzes`.
+- Strict-mode quiz audit CI criteria are still planned, not enabled as a release gate.
+
+Remaining hardening:
+
 - Maintain completed active lesson quiz coverage for HTML, CSS, JavaScript, and React
 - Keep Python quiz coverage as explicit roadmap scope; define module checkpoint quizzes before deciding on full lesson-level coverage
-- Continue orphan quiz triage, variant group documentation/cleanup, and legacy alias review through `npm run audit:quizzes`
+- Continue legacy alias review and monitor classified orphan/variant drift through `npm run audit:quizzes`
 - Harden completion, XP, streak, and challenge progression rules
 - Ensure search indexes intended learning content consistently
 
 Exit criteria:
 
-- Active frontend-track quiz coverage remains complete, Python scope is explicit, and remaining audit findings have documented owner/decision status.
+- Active frontend-track quiz coverage remains complete, Python scope is explicit, and remaining audit findings stay classified with documented owner/decision status.
 - Core learning loop cannot be easily gamed or silently desynced.
 
 ## P2: Data Model Hardening + Migration Safety
@@ -37,6 +46,7 @@ Goal: move persistence from fragile labels to stable identifiers.
 - Replace string/display-label keys with stable IDs
 - Unify course/module/lesson/quiz/challenge/badge identity model
 - Define safe migration strategy for existing local storage and Supabase records
+- Decide targeted compatibility handling for renamed HTML Module 102 lesson progress/bookmark keys
 
 Exit criteria:
 
