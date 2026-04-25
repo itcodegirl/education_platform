@@ -13,6 +13,7 @@ import { useKeyboardNav } from "../hooks/useKeyboardNav";
 import { useLearning } from "../hooks/useLearning";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useLocalStorage } from "../hooks/useLocalStorage";
+import { useFetcherSyncFailure } from "../hooks/useFetcherSyncFailure";
 import { estimateReadingTime, getLevel } from "../utils/helpers";
 import { trackEvent } from "../lib/analytics";
 import {
@@ -53,6 +54,7 @@ export function AppLayout() {
     trackCourseVisit,
     dataLoaded,
     lastPosition,
+    markSyncFailed,
   } = useProgressData();
   const { xpTotal = 0, streak = 0, dailyCount = 0 } = useXP();
 
@@ -123,6 +125,8 @@ export function AppLayout() {
   const lessonViewStartRef = useRef(Date.now());
   const trackedLessonRef = useRef('');
   const isSidebarOpen = isMobile ? panels.sidebar : true;
+
+  useFetcherSyncFailure(progressMutation, markSyncFailed, 'lesson progress');
 
   useEffect(() => {
     if (isMobile) {

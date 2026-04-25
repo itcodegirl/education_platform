@@ -2,8 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { LessonView } from './LessonView';
 
-const { mockUseSR, mockUseLocalStorage } = vi.hoisted(() => ({
+const { mockUseSR, mockUseProgressData, mockUseLocalStorage } = vi.hoisted(() => ({
   mockUseSR: vi.fn(),
+  mockUseProgressData: vi.fn(),
   mockUseLocalStorage: vi.fn(),
 }));
 const { mockBookmarkSubmit } = vi.hoisted(() => ({
@@ -12,6 +13,7 @@ const { mockBookmarkSubmit } = vi.hoisted(() => ({
 
 vi.mock('../../providers', () => ({
   useSR: () => mockUseSR(),
+  useProgressData: () => mockUseProgressData(),
 }));
 
 vi.mock('react-router-dom', () => ({
@@ -66,6 +68,9 @@ describe('LessonView', () => {
     mockUseSR.mockReturnValue({
       toggleBookmark: vi.fn(),
       isBookmarked: () => false,
+    });
+    mockUseProgressData.mockReturnValue({
+      markSyncFailed: vi.fn(),
     });
     mockUseLocalStorage.mockReturnValue([{}, vi.fn()]);
   });

@@ -17,8 +17,9 @@
 
 import { useState, useEffect, memo } from 'react';
 import { useFetcher, useLocation } from 'react-router-dom';
-import { useSR } from '../../providers';
+import { useProgressData, useSR } from '../../providers';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { useFetcherSyncFailure } from '../../hooks/useFetcherSyncFailure';
 import { AITutor } from './AITutor';
 import { LessonFeedback } from './LessonFeedback';
 import { LessonHeader } from './LessonHeader';
@@ -35,6 +36,7 @@ export const LessonView = memo(function LessonView({
   moduleTitle,
 }) {
   const { toggleBookmark, isBookmarked } = useSR();
+  const { markSyncFailed = () => {} } = useProgressData();
   const bookmarkMutation = useFetcher();
   const location = useLocation();
   const [showNotes, setShowNotes] = useState(false);
@@ -50,6 +52,7 @@ export const LessonView = memo(function LessonView({
 
   const bookmarked = isBookmarked(lessonKey);
   const isStructured = !!(lesson.hook || lesson.do || lesson.understand);
+  useFetcherSyncFailure(bookmarkMutation, markSyncFailed, 'lesson bookmark');
 
   // Derived counts surfaced in the header metadata chips.
   const conceptCount = isStructured

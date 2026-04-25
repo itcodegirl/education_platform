@@ -53,13 +53,14 @@ import { ProgressProvider, useProgressData, useXP } from './ProgressContext';
 // ─── Test consumer ───────────────────────────────
 // Renders a div with data attributes we can query in tests.
 function TestConsumer() {
-  const { dataLoaded, loadError, completed } = useProgressData();
+  const { dataLoaded, loadError, completed, syncFailed } = useProgressData();
   return (
     <div
       data-testid="consumer"
       data-loaded={String(dataLoaded)}
       data-error={loadError ?? ''}
       data-completed={completed.join(',')}
+      data-sync-failed={String(syncFailed)}
     />
   );
 }
@@ -130,6 +131,20 @@ describe('ProgressContext — no user logged in', () => {
     const el = screen.getByTestId('consumer');
     expect(el.dataset.loaded).toBe('false');
     expect(mockFetchAllUserData).not.toHaveBeenCalled();
+  });
+
+  it('surfaces localStorage persistence failures through syncFailed', async () => {
+    mockUseAuth.mockReturnValue({ user: null });
+
+    renderWithProvider();
+
+    window.dispatchEvent(new window.CustomEvent('chw:local-storage-sync-error', {
+      detail: { key: 'chw-tasks', phase: 'write' },
+    }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('consumer').dataset.syncFailed).toBe('1');
+    });
   });
 });
 

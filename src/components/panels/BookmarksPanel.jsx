@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { useFetcher, useLocation } from 'react-router-dom';
-import { useSR, useCourseContent } from '../../providers';
+import { useProgressData, useSR, useCourseContent } from '../../providers';
 import { COURSES } from '../../data';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useFetcherSyncFailure } from '../../hooks/useFetcherSyncFailure';
 import { findLessonByKey } from '../../utils/lessonKeys';
 
 function findBookmarkTarget(bookmark, courses) {
@@ -34,6 +35,7 @@ function findBookmarkTarget(bookmark, courses) {
 
 export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
   const { bookmarks, toggleBookmark } = useSR();
+  const { markSyncFailed = () => {} } = useProgressData();
   const bookmarkMutation = useFetcher();
   const location = useLocation();
   const modalRef = useRef(null);
@@ -43,6 +45,7 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
   // moduleIndex + lessonIndex synchronously.
   const { ensureAllLoaded, courses = [] } = useCourseContent();
   const sourceCourses = courses.length > 0 ? courses : COURSES;
+  useFetcherSyncFailure(bookmarkMutation, markSyncFailed, 'bookmarks panel');
   useEffect(() => {
     if (isOpen) ensureAllLoaded();
   }, [isOpen, ensureAllLoaded]);

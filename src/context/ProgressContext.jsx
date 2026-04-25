@@ -10,6 +10,7 @@ import { COURSES } from '../data';
 import * as progressService from '../services/progressService';
 import { isPerfectQuizScore, rewardKeys } from '../services/rewardPolicy';
 import { lessonKeysEquivalent, resolveStableLessonKeyAcrossCourses } from '../utils/lessonKeys';
+import { LOCAL_STORAGE_SYNC_ERROR_EVENT } from '../hooks/useLocalStorage';
 
 // ─── Badge Definitions ──────────────────────────
 export const BADGE_DEFS = [
@@ -56,6 +57,7 @@ const ProgressContext = createContext({
   // Used by the UI to show a "sync failed" banner; the optimistic
   // state is still the source of truth for the current session.
   syncFailed: 0,
+  markSyncFailed: () => {},
   clearSyncFailed: () => {},
 });
 
@@ -164,6 +166,10 @@ export function ProgressProvider({ children }) {
   // not save to the cloud" instead of silently losing writes.
   const [syncFailed, setSyncFailed] = useState(0);
 
+  const markSyncFailed = useCallback(() => {
+    setSyncFailed((count) => count + 1);
+  }, []);
+
   // Supabase write helper. Optimistic state is updated BEFORE this is
   // called, so we catch and report failures rather than rollback.
   // Previously this silently swallowed all errors, which made every
@@ -185,11 +191,24 @@ export function ProgressProvider({ children }) {
           err,
         );
       }
-      setSyncFailed((count) => count + 1);
+      markSyncFailed(label);
     }
-  }, []);
+  }, [markSyncFailed]);
 
   const clearSyncFailed = useCallback(() => setSyncFailed(0), []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleLocalStorageFailure = (event) => {
+      const key = typeof event.detail?.key === 'string' ? event.detail.key : 'unknown-key';
+      const phase = typeof event.detail?.phase === 'string' ? event.detail.phase : 'unknown';
+      markSyncFailed(`localStorage ${phase}:${key}`);
+    };
+
+    window.addEventListener(LOCAL_STORAGE_SYNC_ERROR_EVENT, handleLocalStorageFailure);
+    return () => window.removeEventListener(LOCAL_STORAGE_SYNC_ERROR_EVENT, handleLocalStorageFailure);
+  }, [markSyncFailed]);
 
   // ─── State ─────────────────────────────────────
   const [completed, setCompleted] = useState([]);
@@ -753,6 +772,7 @@ export function ProgressProvider({ children }) {
     isChallengeCompleted,
     markChallengeCompleted,
     syncFailed,
+    markSyncFailed,
     clearSyncFailed,
   }), [
     completed,
@@ -774,6 +794,7 @@ export function ProgressProvider({ children }) {
     isChallengeCompleted,
     markChallengeCompleted,
     syncFailed,
+    markSyncFailed,
     clearSyncFailed,
   ]);
 

@@ -2,8 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BookmarksPanel } from './BookmarksPanel';
 
-const { mockUseSR, mockUseCourseContent } = vi.hoisted(() => ({
+const { mockUseSR, mockUseProgressData, mockUseCourseContent } = vi.hoisted(() => ({
   mockUseSR: vi.fn(),
+  mockUseProgressData: vi.fn(),
   mockUseCourseContent: vi.fn(),
 }));
 const { mockBookmarkSubmit } = vi.hoisted(() => ({
@@ -12,6 +13,7 @@ const { mockBookmarkSubmit } = vi.hoisted(() => ({
 
 vi.mock('../../providers', () => ({
   useSR: () => mockUseSR(),
+  useProgressData: () => mockUseProgressData(),
   useCourseContent: () => mockUseCourseContent(),
 }));
 
@@ -40,6 +42,9 @@ describe('BookmarksPanel', () => {
     mockUseSR.mockReturnValue({
       bookmarks: [],
       toggleBookmark: vi.fn(),
+    });
+    mockUseProgressData.mockReturnValue({
+      markSyncFailed: vi.fn(),
     });
     mockUseCourseContent.mockReturnValue({
       ensureAllLoaded: vi.fn(),
