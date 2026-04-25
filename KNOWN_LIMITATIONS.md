@@ -24,6 +24,7 @@ This project is actively stabilized and is not yet production-grade. The followi
 - Core same-device reward trust rules are hardened for lesson completion XP, quiz retry rewards, activity-based streaks, and challenge completion dedupe.
 - Lesson, quiz, and challenge XP now use a local reward-event ledger/processor with legacy reward history as a compatibility guard, but this is still client-side storage.
 - Failed reward events now have a local queue/reconciliation foundation for same-device recovery and inspection.
+- Reward engine diagnostics can summarize local ledger/queue health, but they are developer-facing and do not replace backend observability.
 - Cross-device reward idempotency still needs a server-side reward-event table, equivalent stable tracking table, or atomic XP award operation.
 - Challenge completion persistence is same-device/localStorage-backed and should not be treated as secure certification.
 - Supabase/localStorage write failures now mark sync-failed state in core flows, but durable backend retry/reconciliation is not implemented yet.

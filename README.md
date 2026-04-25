@@ -13,7 +13,7 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 
 - Course browsing and lesson viewing UI for HTML, CSS, JavaScript, and React tracks.
 - Progress save/reload behavior for core learning flow.
-- Same-device reward trust hardening for lesson completion XP, quiz retry XP, activity-based streaks, challenge completion dedupe, local reward-event processing, and sync-failure visibility.
+- Same-device reward trust hardening for lesson completion XP, quiz retry XP, activity-based streaks, challenge completion dedupe, local reward-event processing, local retry/reconciliation evidence, diagnostics, and sync-failure visibility.
 - Active lesson quiz coverage for HTML, CSS, JavaScript, and React tracks is complete.
 - Quiz variant groups and legacy orphan quiz inventory are classified and monitored by the audit.
 - Python quiz coverage is intentionally deferred as roadmap work.
@@ -36,7 +36,7 @@ Current test boundaries:
 - `npm run audit:quizzes` remains the source of truth for quiz integrity drift, including classified orphan quizzes, intentional variant groups, legacy aliases, and deferred Python quiz coverage.
 - Python missing-quiz findings are an intentional roadmap signal; future Python coverage should start with module-level checkpoint quizzes before full lesson-level coverage.
 - Quiz audit strict-mode CI criteria are planned but not enabled yet.
-- The local reward-event ledger is backend-ready groundwork, not a server-side reward-event table; deeper data-model, cross-device reward-event, durable retry/reconciliation, and accessibility regression coverage is still planned work.
+- The local reward-event ledger/queue is backend-ready groundwork, not a server-side reward-event table; deeper data-model, cross-device reward-event, backend durable reconciliation, and accessibility regression coverage is still planned work.
 - Linting scripts exist, but lint enforcement is not yet treated as a stabilized release gate in this repair stage.
 
 ## Known Limitations

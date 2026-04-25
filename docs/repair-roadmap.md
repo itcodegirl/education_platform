@@ -33,7 +33,8 @@ Current progress/reward checkpoint:
 - Streaks now advance from explicit learning actions instead of app load, while preserving existing UTC date semantics.
 - Challenge completion is persisted, deduped, and reward-event processed for same-device learning motivation, but is not secure certification.
 - Core localStorage and route-action write failures mark sync-failed state instead of failing completely silently.
-- `src/engine/rewards/` now contains the local reward-event foundation, local ledger, processor, and shared runtime bridge used by lesson, quiz, and challenge rewards.
+- `src/engine/rewards/` now contains the local reward-event foundation, local ledger, local retry queue, reconciliation helpers, diagnostics, processor, and shared runtime bridge used by lesson, quiz, and challenge rewards.
+- Backend reward-event schema, atomic award operation, and cross-device sync strategy are documented/scaffolded but not wired into production runtime.
 
 Remaining hardening:
 
@@ -42,9 +43,9 @@ Remaining hardening:
 - Continue legacy alias review and monitor classified orphan/variant drift through `npm run audit:quizzes`
 - Use the reward/progress trust policy in `docs/reward-progress-policy.md` as the source of truth for future schema-backed reward hardening
 - Add server-side reward-event tracking or an equivalent atomic XP award operation for cross-device idempotency
-- Decide how to reconcile local reward-event ledger entries with future backend reward-event records
+- Wire the documented backend reward-event schema, atomic award operation, and sync plan into production when the data model is ready
 - Move challenge completion history toward backend-backed persistence when the data model is ready
-- Add durable retry/reconciliation for failed progress writes
+- Add backend durable retry/reconciliation for failed progress writes
 - Decide whether learner-local streak dates should replace the current UTC date semantics
 - Ensure search indexes intended learning content consistently
 

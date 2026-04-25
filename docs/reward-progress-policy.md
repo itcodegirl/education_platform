@@ -72,6 +72,7 @@ The policy constants live in `src/services/rewardPolicy.js`. Runtime hardening n
 - Lesson, quiz base, quiz perfect, and challenge XP paths now flow through the local reward-event processor while keeping legacy reward history as the first compatibility guard.
 - Reward queue storage now records pending, processed, skipped, failed, applied-unrecorded, and reconciled local reward events for same-device recovery and inspection.
 - Reconciliation utilities can resolve already-awarded local events against the processed ledger or legacy reward history without replaying XP.
+- Reward engine diagnostics summarize local ledger/queue health without exposing secrets or mutating reward state.
 
 Remaining future work:
 
@@ -79,6 +80,7 @@ Remaining future work:
 - The proposed backend reward-event schema is documented in `docs/backend-reward-events.md` with a draft SQL artifact in `docs/sql/reward-events-schema-draft.sql`; it is not deployed or called by runtime code yet.
 - The future atomic award contract is documented in `docs/atomic-reward-award.md` with a draft RPC in `docs/sql/atomic-reward-award-draft.sql` and an unused frontend wrapper in `src/services/rewardEventService.js`.
 - The cross-device sync strategy is documented in `docs/reward-sync-strategy.md` with an unused planning scaffold in `src/services/rewardSyncService.js`.
+- Reward engine diagnostics are documented in `docs/reward-engine-diagnostics.md` and implemented in `src/engine/rewards/rewardDiagnostics.js`.
 - Move challenge completion history from same-device localStorage toward backend-backed persistence.
 - Add backend-backed durable retry/reconciliation and optional background queue processing.
 - Decide whether learner-local streak dates should replace the current UTC date semantics.
