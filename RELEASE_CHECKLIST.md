@@ -7,6 +7,7 @@ Use this checklist before Netlify releases or hotfix deploys.
 - Confirm branch, target deploy context, and commit SHA.
 - Run:
   - `npm run build`
+  - `npm run audit:quizzes`
   - `npm run test:e2e`
 - Confirm required runtime environment variables:
   - `VITE_SUPABASE_URL`
@@ -28,7 +29,8 @@ Use this checklist before Netlify releases or hotfix deploys.
 - Validate persistence UX:
   - create/edit a note
   - bookmark a lesson
-- Validate quiz path for a mapped lesson/module quiz.
+- Validate quiz path for an active HTML/CSS/JS/React lesson quiz.
+- Confirm any `npm run audit:quizzes` findings are expected and documented, especially orphan quizzes, variant groups, legacy aliases, and deferred Python quiz coverage.
 
 ## PWA / Cache Validation
 
@@ -42,6 +44,7 @@ Use this checklist before Netlify releases or hotfix deploys.
 
 - `npm run test:e2e` always covers public smoke path.
 - Authenticated smoke checks require environment credentials and will otherwise skip.
+- `npm run audit:quizzes` should remain report-only until strict-mode criteria are defined for orphan, variant, alias, and Python policy decisions.
 - Production-grade reliability still requires broader learning/data/a11y regression coverage.
 
 ## Release Sign-Off
@@ -49,4 +52,3 @@ Use this checklist before Netlify releases or hotfix deploys.
 - Record deployed commit SHA and Netlify deploy URL.
 - Confirm no mismatch between published behavior and documented status/limitations.
 - Do not label release as production-grade until roadmap hardening stages are complete.
-

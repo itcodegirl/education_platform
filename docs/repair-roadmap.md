@@ -19,12 +19,15 @@ Exit criteria:
 
 Goal: make learner progress and completion signals trustworthy.
 
-- Fix lesson/quiz identity mismatches
+- Maintain completed active lesson quiz coverage for HTML, CSS, JavaScript, and React
+- Keep Python quiz coverage as explicit roadmap scope until policy/checkpoints are defined
+- Continue orphan quiz triage, variant group documentation/cleanup, and legacy alias review through `npm run audit:quizzes`
 - Harden completion, XP, streak, and challenge progression rules
 - Ensure search indexes intended learning content consistently
 
 Exit criteria:
 
+- Active frontend-track quiz coverage remains complete, Python scope is explicit, and remaining audit findings have documented owner/decision status.
 - Core learning loop cannot be easily gamed or silently desynced.
 
 ## P2: Data Model Hardening + Migration Safety
@@ -57,9 +60,9 @@ Goal: raise confidence with targeted regression coverage and enforceable quality
 
 - Add tests for learning flow, progress integrity, XP/streaks, search, bookmarks, auth, and accessibility
 - Expand CI gates around build/test quality checks
+- Define future strict-mode CI criteria for quiz integrity once orphan, variant, alias, and Python policy decisions are complete
 - Tighten release checklist around verified behavior
 
 Exit criteria:
 
 - Critical user journeys are covered by repeatable, actionable automated checks.
-

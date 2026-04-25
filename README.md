@@ -13,7 +13,8 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 
 - Course browsing and lesson viewing UI for HTML, CSS, JavaScript, and React tracks.
 - Progress save/reload behavior for core learning flow.
-- Quiz experience where lesson/module quiz mappings are correctly wired.
+- Active lesson quiz coverage for HTML, CSS, JavaScript, and React tracks.
+- Python quiz coverage is intentionally deferred as roadmap work.
 - Bookmarks and lesson notes in the active app.
 - Certificate export flow.
 - Public Playwright smoke coverage.
@@ -24,17 +25,19 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 Current baseline checks:
 
 - `npm run build`
+- `npm run audit:quizzes`
 - `npm run test:e2e` (public smoke path runs by default)
 
 Current test boundaries:
 
 - Authenticated Playwright smoke checks are skipped when auth env credentials are not provided.
+- `npm run audit:quizzes` remains the source of truth for quiz integrity drift, including orphan quizzes, variant groups, legacy aliases, and deferred Python quiz coverage.
 - Deeper learning-integrity, data-model, and accessibility regression coverage is still planned work.
 - Linting scripts exist, but lint enforcement is not yet treated as a stabilized release gate in this repair stage.
 
 ## Known Limitations
 
-See [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md) for the current limitation baseline, including learning identity hardening, quiz mapping follow-up, trust-rule hardening, search coverage limits, and AI/security hardening scope.
+See [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md) for the current limitation baseline, including learning identity hardening, quiz integrity follow-up, deferred Python quiz coverage, trust-rule hardening, search coverage limits, and AI/security hardening scope.
 
 ## Repair Roadmap
 
@@ -131,4 +134,3 @@ Configured in [`netlify.toml`](./netlify.toml):
 - Functions directory: `netlify/functions`
 
 For release QA, use [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md).
-
