@@ -13,7 +13,7 @@ This project is actively stabilized and is not yet production-grade. The followi
 
 ## Learning Integrity
 
-- Learning identity/data model hardening is still pending, especially server-side reward-event tracking and cross-device reconciliation.
+- Learning identity/data model hardening is still pending. The local retry/reconciliation reward engine and Supabase backend reward branch have been unified, but production cross-device reward trust still requires applying migrations, validating the RPC/RLS behavior against a real Supabase project, and deciding local import/backfill policy.
 - Active lesson quiz coverage is complete for HTML, CSS, JavaScript, and React.
 - Python quizzes are intentionally deferred/roadmap work, so the audit still reports Python lessons without matching lesson quizzes.
 - Future Python quiz policy should define learner-friendly module checkpoints first, then decide whether every Python lesson needs a dedicated lesson quiz.
@@ -22,12 +22,13 @@ This project is actively stabilized and is not yet production-grade. The followi
 - Cross-course mixed-type quiz entries previously embedded in React quiz data are intentionally archived as inactive exports and excluded from active React lookup.
 - Renamed HTML Module 102 lesson IDs resolved duplicate identity risk, but existing progress/bookmark keys for those old lesson IDs may need a later targeted compatibility decision.
 - Core same-device reward trust rules are hardened for lesson completion XP, quiz retry rewards, activity-based streaks, and challenge completion dedupe.
-- Lesson, quiz, and challenge XP now use a local reward-event ledger/processor with legacy reward history as a compatibility guard, but this is still client-side storage.
-- Failed reward events now have a local queue/reconciliation foundation for same-device recovery and inspection.
+- Lesson, quiz, and challenge XP use a local reward-event ledger/processor with legacy reward history as a compatibility guard.
+- Failed reward events have a local queue/reconciliation foundation for same-device recovery and inspection.
 - Reward engine diagnostics can summarize local ledger/queue health, but they are developer-facing and do not replace backend observability.
-- Cross-device reward idempotency still needs a server-side reward-event table, equivalent stable tracking table, or atomic XP award operation.
+- Additive Supabase migrations define `reward_events` and `award_reward_event`, and the frontend has a feature-gated backend reward service wrapper. Backend reward sync remains disabled by default so demos and existing local fallback behavior are preserved.
+- Cross-device reward idempotency is backend-ready but not production-complete until those migrations are applied, the feature flag is enabled intentionally, and authenticated duplicate-award behavior is verified.
 - Challenge completion persistence is same-device/localStorage-backed and should not be treated as secure certification.
-- Supabase/localStorage write failures now mark sync-failed state in core flows, but durable backend retry/reconciliation is not implemented yet.
+- Supabase/localStorage write failures mark sync-failed state in core flows, but automatic backend queue replay/import is still future work.
 
 ## Search / Content
 

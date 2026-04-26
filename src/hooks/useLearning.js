@@ -7,6 +7,7 @@
 import { useMemo } from 'react';
 import { useAuth, useProgressData, useXP } from '../providers';
 import { createLearningEngine } from '../services/learningEngine';
+import { isBackendRewardSyncEnabled } from '../services/rewardEventService';
 
 export function useLearning() {
   const { user } = useAuth();
@@ -36,6 +37,7 @@ export function useLearning() {
     markChallengeCompleted,
     learnerKey: user?.id || '',
     markSyncFailed,
+    backendRewardSyncEnabled: Boolean(user?.id) && isBackendRewardSyncEnabled(),
   }), [
     user?.id,
     toggleLesson,

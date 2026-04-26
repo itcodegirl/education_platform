@@ -1,42 +1,81 @@
 # Atomic Reward Award Operation
 
-This Phase 10 design defines the future server-authoritative reward award operation. It is not connected to the current runtime yet. The app continues to use the local reward ledger, retry queue, and legacy reward history.
+The local reward retry/reconciliation branch and the Supabase backend reward branch are now unified. This document describes the backend atomic award contract and how the runtime uses it only when explicitly enabled.
 
-## Contract
+## Purpose
 
-`award_reward_event(payload)` should perform one trusted transaction:
+`public.award_reward_event()` is the server-authoritative reward path. It prevents duplicate XP across devices by using `public.reward_events` as the idempotency ledger and `public.xp` as the aggregate XP total.
 
-1. Validate the authenticated user.
-2. Validate the event type, entity ID, stable event key, and XP amount.
-3. Insert `reward_events(user_id, event_key, ...)` only if the user/event key does not already exist.
-4. Award XP in `public.xp` only when the insert succeeds.
-5. Return a structured result:
-   - `awarded`: event inserted and XP applied.
-   - `skipped`: event key already existed, so no XP was applied.
-   - `failed`: validation, auth, or database failure.
+The local reward ledger, queue, diagnostics, and legacy reward history remain the default and fallback behavior.
+
+## Input
+
+- `p_event_key text`
+- `p_event_type text`
+- `p_entity_id text`
+- `p_xp_amount integer`
+- `p_metadata jsonb default '{}'`
+- `p_source text default 'client'`
+
+The function never accepts `user_id` from the client. It derives the learner from `auth.uid()`.
+
+## Result
+
+The function returns JSON with:
+
+- `status`: `awarded`, `skipped`, or `failed`
+- `event_key`
+- `xp_awarded`
+- `total_xp`
+- `reason` when failed
+
+The frontend wrapper normalizes those results, plus local configuration states, into:
+
+- `awarded`
+- `skipped`
+- `failed`
+- `disabled`
+
+## Behavior
+
+- Reject unauthenticated calls.
+- Reject missing event keys.
+- Reject unsupported reward event types.
+- Reject missing entity IDs.
+- Reject XP amounts less than or equal to zero.
+- Insert `reward_events(user_id, event_key, ...)` if it does not already exist.
+- Increment `xp.total` only when the reward event insert succeeds.
+- Return `skipped` with the current backend XP total when `(user_id, event_key)` already exists.
 
 ## Required Properties
 
-- The unique `(user_id, event_key)` constraint is the idempotency guard.
+- The unique `(user_id, event_key)` constraint is the backend idempotency guard.
 - XP and reward-event insert must happen in the same transaction.
-- The function must never double-award the same event key.
-- The function should be the only production writer for processed backend reward events.
+- The function must never double-award the same backend event key.
 - Metadata must stay small and safe: no auth tokens, secrets, or raw learner code.
+- Browser code must not use a service-role key.
 
-## Offline And Backend-Unavailable Behavior
+## Runtime Integration
 
-- Current local-first reward processing remains the fallback.
-- If the backend is unavailable, the local reward queue can keep `pending`, `failed_retryable`, or `applied_unrecorded` evidence.
-- When backend sync is introduced, reconciliation should submit local events through the atomic operation, not by directly inserting rows.
-- If the backend returns `skipped`, the local ledger/queue can be marked reconciled without awarding XP again.
+Backend reward sync runs only when:
 
-## Frontend Service Stub
+- The learner is authenticated.
+- `VITE_REWARD_BACKEND_SYNC_ENABLED=true`.
+- The runtime has a stable learner-scoped event key.
+- Supabase browser config and the RPC are available.
 
-`src/services/rewardEventService.js` defines an unused wrapper contract for calling the future RPC. It requires an injected Supabase-like client so importing it does not require environment variables and does not change runtime behavior.
+Before attempting a backend award, the runtime still checks the local reward ledger for an already processed event. This preserves same-device dedupe and avoids double-awarding when local state already recorded the reward.
+
+When the backend returns `awarded`, the app updates local UI/state with `skipRemote` so it does not call the older direct XP update path again. The local ledger and queue are updated for same-device continuity.
+
+When the backend returns `skipped`, the app marks local dedupe state and local queue state without awarding duplicate local XP.
+
+When the backend returns `failed` or `disabled`, local reward processing remains the fallback and local queue evidence is preserved for inspection or later reconciliation.
 
 ## Non-Goals
 
-- No production Supabase RPC call path is enabled in this phase.
 - No XP amount changes.
-- No quiz retry or streak semantics changes.
+- No quiz retry or streak semantic changes.
 - No localStorage migration.
+- No automatic local reward import/backfill into Supabase yet.
+- No background queue replay to the backend yet.

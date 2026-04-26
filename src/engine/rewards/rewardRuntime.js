@@ -1,9 +1,14 @@
+import { REWARD_LEDGER_STATUSES, readRewardLedger, recordProcessedRewardEvent } from './rewardLedger';
 import { REWARD_PROCESSOR_STATUSES, processRewardEvent } from './rewardProcessor';
 import {
   REWARD_QUEUE_ITEM_STATUSES,
   REWARD_QUEUE_RESULT_STATUSES,
   upsertRewardQueueItem,
 } from './rewardQueue';
+import {
+  BACKEND_REWARD_STATUSES,
+  awardBackendRewardEvent,
+} from '../../services/rewardEventService';
 
 function getErrorMessage(error) {
   return error instanceof Error ? error.message : String(error || 'Unknown reward error');
@@ -41,6 +46,38 @@ function recordQueueState({
   return result;
 }
 
+function readLocalProcessedEvent({ learnerKey, event, storage }) {
+  const ledgerResult = readRewardLedger(learnerKey, { storage });
+  if (ledgerResult.status !== REWARD_LEDGER_STATUSES.SUCCESS) {
+    return {
+      status: 'unknown',
+      ledgerResult,
+    };
+  }
+
+  return {
+    status: ledgerResult.ledger.processedKeys.includes(event.key) ? 'processed' : 'unprocessed',
+    ledgerResult,
+  };
+}
+
+function recordLocalProcessedEvent({ learnerKey, event, storage, markSyncFailed }) {
+  const ledgerResult = recordProcessedRewardEvent(learnerKey, event, { storage });
+  if (ledgerResult.status === REWARD_LEDGER_STATUSES.FAILED) {
+    markSyncFailed(`reward event ledger-write:${event.key}`);
+  }
+  return ledgerResult;
+}
+
+function isLedgerRecorded(ledgerResult) {
+  return ledgerResult?.status === REWARD_LEDGER_STATUSES.SUCCESS ||
+    ledgerResult?.status === REWARD_LEDGER_STATUSES.SKIPPED;
+}
+
+function withBackendResult(result, backendResult) {
+  return backendResult ? { ...result, backendResult } : result;
+}
+
 export async function awardRewardOnce({
   learnerKey = '',
   event,
@@ -53,6 +90,9 @@ export async function awardRewardOnce({
   onRewardApplied = () => {},
   markSyncFailed = () => {},
   storage,
+  backendRewardSyncEnabled = false,
+  backendRewardAward = awardBackendRewardEvent,
+  backendRewardSource = 'client',
 }) {
   if (hasRewardBeenAwarded(legacyRewardKey)) {
     const queueResult = recordQueueState({
@@ -72,12 +112,16 @@ export async function awardRewardOnce({
     };
   }
 
-  const applyReward = () => {
+  const applyReward = ({ skipRemote = false } = {}) => {
     if (!markRewardAwarded(legacyRewardKey)) {
       return { xpAwarded: 0, legacySkipped: true };
     }
 
-    awardXP(xpAmount, reason);
+    if (skipRemote) {
+      awardXP(xpAmount, reason, { skipRemote: true });
+    } else {
+      awardXP(xpAmount, reason);
+    }
     onRewardApplied();
     return { xpAwarded: xpAmount };
   };
@@ -103,11 +147,157 @@ export async function awardRewardOnce({
     markSyncFailed,
   });
 
+  if (backendRewardSyncEnabled) {
+    const localProcessedResult = readLocalProcessedEvent({ learnerKey, event, storage });
+    if (localProcessedResult.status === 'processed') {
+      const queueResult = recordQueueState({
+        learnerKey,
+        event,
+        legacyRewardKey,
+        status: REWARD_QUEUE_ITEM_STATUSES.SKIPPED,
+        phase: 'local-ledger-skip',
+        storage,
+        markSyncFailed,
+      });
+
+      return {
+        status: REWARD_PROCESSOR_STATUSES.SKIPPED,
+        source: 'local-reward-ledger',
+        phase: 'dedupe',
+        event,
+        ledger: localProcessedResult.ledgerResult.ledger,
+        rewardApplied: false,
+        ledgerRecorded: true,
+        pendingQueueResult,
+        queueResult,
+      };
+    }
+
+    const backendResult = await backendRewardAward({
+      event,
+      xpAmount,
+      source: backendRewardSource,
+    }, {
+      enabled: true,
+    });
+
+    if (backendResult.status === BACKEND_REWARD_STATUSES.AWARDED) {
+      const rewardResult = applyReward({ skipRemote: true });
+      const ledgerResult = recordLocalProcessedEvent({
+        learnerKey,
+        event,
+        storage,
+        markSyncFailed,
+      });
+      const queueResult = recordQueueState({
+        learnerKey,
+        event,
+        legacyRewardKey,
+        status: isLedgerRecorded(ledgerResult)
+          ? REWARD_QUEUE_ITEM_STATUSES.PROCESSED
+          : REWARD_QUEUE_ITEM_STATUSES.APPLIED_UNRECORDED,
+        phase: 'backend-awarded',
+        storage,
+        markSyncFailed,
+        lastErrorPhase: isLedgerRecorded(ledgerResult) ? null : 'ledger-write',
+        lastErrorMessage: isLedgerRecorded(ledgerResult) ? null : getErrorMessage(ledgerResult.error),
+      });
+
+      return {
+        status: rewardResult.xpAwarded > 0
+          ? REWARD_PROCESSOR_STATUSES.APPLIED
+          : REWARD_PROCESSOR_STATUSES.SKIPPED,
+        source: 'backend-reward-event',
+        backendResult,
+        rewardResult,
+        ledgerResult,
+        pendingQueueResult,
+        queueResult,
+      };
+    }
+
+    if (backendResult.status === BACKEND_REWARD_STATUSES.SKIPPED) {
+      markRewardAwarded(legacyRewardKey);
+      const ledgerResult = recordLocalProcessedEvent({
+        learnerKey,
+        event,
+        storage,
+        markSyncFailed,
+      });
+      const queueResult = recordQueueState({
+        learnerKey,
+        event,
+        legacyRewardKey,
+        status: isLedgerRecorded(ledgerResult)
+          ? REWARD_QUEUE_ITEM_STATUSES.SKIPPED
+          : REWARD_QUEUE_ITEM_STATUSES.FAILED_RETRYABLE,
+        phase: 'backend-skipped',
+        storage,
+        markSyncFailed,
+        lastErrorPhase: isLedgerRecorded(ledgerResult) ? null : 'ledger-write',
+        lastErrorMessage: isLedgerRecorded(ledgerResult) ? null : getErrorMessage(ledgerResult.error),
+      });
+
+      return {
+        status: REWARD_PROCESSOR_STATUSES.SKIPPED,
+        source: 'backend-reward-event',
+        backendResult,
+        ledgerResult,
+        pendingQueueResult,
+        queueResult,
+      };
+    }
+
+    if (backendResult.status === BACKEND_REWARD_STATUSES.FAILED) {
+      markSyncFailed(`backend reward failed:${event.key}`);
+    }
+
+    const result = await processRewardEvent(learnerKey, event, {
+      storage,
+      applyReward,
+    });
+
+    return handleLocalRewardResult({
+      result,
+      learnerKey,
+      event,
+      legacyRewardKey,
+      storage,
+      markSyncFailed,
+      pendingQueueResult,
+      backendResult,
+      applyReward,
+    });
+  }
+
   const result = await processRewardEvent(learnerKey, event, {
     storage,
     applyReward,
   });
 
+  return handleLocalRewardResult({
+    result,
+    learnerKey,
+    event,
+    legacyRewardKey,
+    storage,
+    markSyncFailed,
+    pendingQueueResult,
+    applyReward,
+  });
+}
+
+function handleLocalRewardResult({
+  result,
+  learnerKey,
+  event,
+  legacyRewardKey,
+  storage,
+  markSyncFailed,
+  pendingQueueResult,
+  backendResult = null,
+  applyReward,
+}) {
   if (result.status === REWARD_PROCESSOR_STATUSES.APPLIED) {
     const queueResult = recordQueueState({
       learnerKey,
@@ -119,11 +309,11 @@ export async function awardRewardOnce({
       markSyncFailed,
     });
 
-    return {
+    return withBackendResult({
       ...result,
       pendingQueueResult,
       queueResult,
-    };
+    }, backendResult);
   }
 
   if (result.status === REWARD_PROCESSOR_STATUSES.SKIPPED) {
@@ -137,11 +327,11 @@ export async function awardRewardOnce({
       markSyncFailed,
     });
 
-    return {
+    return withBackendResult({
       ...result,
       pendingQueueResult,
       queueResult,
-    };
+    }, backendResult);
   }
 
   if (result.status === REWARD_PROCESSOR_STATUSES.FAILED) {
@@ -164,7 +354,7 @@ export async function awardRewardOnce({
         lastErrorMessage: getErrorMessage(result.error),
       });
 
-      return {
+      return withBackendResult({
         status: rewardResult.xpAwarded > 0
           ? REWARD_PROCESSOR_STATUSES.APPLIED
           : REWARD_PROCESSOR_STATUSES.SKIPPED,
@@ -173,7 +363,7 @@ export async function awardRewardOnce({
         ledgerError: result.error,
         pendingQueueResult,
         queueResult,
-      };
+      }, backendResult);
     }
 
     const queueStatus = result.rewardApplied
@@ -191,15 +381,15 @@ export async function awardRewardOnce({
       lastErrorMessage: getErrorMessage(result.error),
     });
 
-    return {
+    return withBackendResult({
       ...result,
       pendingQueueResult,
       queueResult,
-    };
+    }, backendResult);
   }
 
-  return {
+  return withBackendResult({
     ...result,
     pendingQueueResult,
-  };
+  }, backendResult);
 }

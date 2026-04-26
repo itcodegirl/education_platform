@@ -1,9 +1,10 @@
 import { REWARD_EVENT_TYPES } from '../engine/rewards/rewardEventTypes';
 
-export const ATOMIC_REWARD_STATUSES = Object.freeze({
+export const BACKEND_REWARD_STATUSES = Object.freeze({
   AWARDED: 'awarded',
   SKIPPED: 'skipped',
   FAILED: 'failed',
+  DISABLED: 'disabled',
 });
 
 const SUPPORTED_EVENT_TYPES = new Set(Object.values(REWARD_EVENT_TYPES));
@@ -17,8 +18,8 @@ function normalizeString(value, label) {
 }
 
 function normalizeXpAmount(value) {
-  if (!Number.isInteger(value) || value < 0) {
-    throw new Error('xp amount must be a non-negative integer');
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error('xp amount must be a positive integer');
   }
 
   return value;
@@ -30,46 +31,103 @@ function normalizeMetadata(value) {
 }
 
 function normalizeRpcStatus(status) {
-  if (status === ATOMIC_REWARD_STATUSES.AWARDED) return ATOMIC_REWARD_STATUSES.AWARDED;
-  if (status === ATOMIC_REWARD_STATUSES.SKIPPED) return ATOMIC_REWARD_STATUSES.SKIPPED;
-  return ATOMIC_REWARD_STATUSES.FAILED;
+  const normalizedStatus = typeof status === 'string' ? status.trim().toLowerCase() : '';
+  if (normalizedStatus === BACKEND_REWARD_STATUSES.AWARDED) {
+    return BACKEND_REWARD_STATUSES.AWARDED;
+  }
+  if (normalizedStatus === BACKEND_REWARD_STATUSES.SKIPPED) {
+    return BACKEND_REWARD_STATUSES.SKIPPED;
+  }
+  return BACKEND_REWARD_STATUSES.FAILED;
 }
 
-export function normalizeAtomicRewardPayload(payload = {}) {
-  const eventType = normalizeString(payload.eventType, 'reward event type');
-  if (!SUPPORTED_EVENT_TYPES.has(eventType)) {
-    throw new Error(`Unsupported reward event type: ${eventType}`);
+function getImportMetaEnv() {
+  return typeof import.meta !== 'undefined' ? import.meta.env || {} : {};
+}
+
+export function normalizeBackendRewardPayload(payload = {}) {
+  const event = payload.event || {};
+  const eventKey = payload.eventKey ?? event.key;
+  const eventType = payload.eventType ?? event.type;
+  const entityId = payload.entityId ?? event.targetId;
+  const metadata = payload.metadata ?? event.metadata;
+
+  const normalizedEventType = normalizeString(eventType, 'reward event type');
+  if (!SUPPORTED_EVENT_TYPES.has(normalizedEventType)) {
+    throw new Error(`Unsupported reward event type: ${normalizedEventType}`);
   }
 
   return {
-    eventKey: normalizeString(payload.eventKey, 'reward event key'),
-    eventType,
-    entityId: normalizeString(payload.entityId, 'reward entity id'),
+    eventKey: normalizeString(eventKey, 'reward event key'),
+    eventType: normalizedEventType,
+    entityId: normalizeString(entityId, 'reward entity id'),
     xpAmount: normalizeXpAmount(payload.xpAmount),
-    metadata: normalizeMetadata(payload.metadata),
+    metadata: normalizeMetadata(metadata),
     source: typeof payload.source === 'string' && payload.source.trim()
       ? payload.source.trim()
-      : 'web',
+      : 'client',
   };
 }
 
-export async function awardRewardEventAtomic(payload, options = {}) {
-  let normalizedPayload;
+export function isSupabaseRewardBackendConfigured(env = getImportMetaEnv()) {
+  return Boolean(env?.VITE_SUPABASE_URL && env?.VITE_SUPABASE_ANON_KEY);
+}
+
+export function isBackendRewardSyncEnabled(env = getImportMetaEnv()) {
+  return env?.VITE_REWARD_BACKEND_SYNC_ENABLED === 'true';
+}
+
+function shouldAttemptBackendRewardSync(options = {}) {
+  if (options.enabled === true) return true;
+  if (options.enabled === false) return false;
+  return isBackendRewardSyncEnabled(options.env);
+}
+
+async function resolveSupabaseClient(options = {}) {
+  if (options.client) return { client: options.client };
+
+  if (!isSupabaseRewardBackendConfigured(options.env)) {
+    return {
+      disabledReason: 'missing_supabase_config',
+    };
+  }
+
   try {
-    normalizedPayload = normalizeAtomicRewardPayload(payload);
+    const module = await import('../lib/supabaseClient');
+    return { client: module.supabase };
   } catch (error) {
     return {
-      status: ATOMIC_REWARD_STATUSES.FAILED,
+      disabledReason: 'supabase_client_unavailable',
+      error,
+    };
+  }
+}
+
+export async function awardBackendRewardEvent(payload, options = {}) {
+  if (!shouldAttemptBackendRewardSync(options)) {
+    return {
+      status: BACKEND_REWARD_STATUSES.DISABLED,
+      reason: 'backend_reward_sync_disabled',
+    };
+  }
+
+  let normalizedPayload;
+  try {
+    normalizedPayload = normalizeBackendRewardPayload(payload);
+  } catch (error) {
+    return {
+      status: BACKEND_REWARD_STATUSES.FAILED,
       error,
     };
   }
 
-  const client = options.client;
+  const { client, disabledReason, error: clientError } = await resolveSupabaseClient(options);
   if (!client?.rpc) {
     return {
-      status: ATOMIC_REWARD_STATUSES.FAILED,
+      status: BACKEND_REWARD_STATUSES.DISABLED,
+      reason: disabledReason || 'supabase_client_unavailable',
       payload: normalizedPayload,
-      error: new Error('Supabase client is required for atomic reward awards'),
+      error: clientError,
     };
   }
 
@@ -83,16 +141,25 @@ export async function awardRewardEventAtomic(payload, options = {}) {
       p_source: normalizedPayload.source,
     });
 
-    if (error) throw error;
+    if (error) {
+      return {
+        status: BACKEND_REWARD_STATUSES.FAILED,
+        payload: normalizedPayload,
+        error,
+      };
+    }
 
     return {
       status: normalizeRpcStatus(data?.status),
+      reason: typeof data?.reason === 'string' ? data.reason : null,
       payload: normalizedPayload,
       data,
+      xpAwarded: Number.isInteger(data?.xp_awarded) ? data.xp_awarded : 0,
+      totalXp: Number.isInteger(data?.total_xp) ? data.total_xp : null,
     };
   } catch (error) {
     return {
-      status: ATOMIC_REWARD_STATUSES.FAILED,
+      status: BACKEND_REWARD_STATUSES.FAILED,
       payload: normalizedPayload,
       error,
     };

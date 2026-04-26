@@ -33,35 +33,36 @@ Current progress/reward checkpoint:
 - Streaks now advance from explicit learning actions instead of app load, while preserving existing UTC date semantics.
 - Challenge completion is persisted, deduped, and reward-event processed for same-device learning motivation, but is not secure certification.
 - Core localStorage and route-action write failures mark sync-failed state instead of failing completely silently.
-- `src/engine/rewards/` now contains the local reward-event foundation, local ledger, local retry queue, reconciliation helpers, diagnostics, processor, and shared runtime bridge used by lesson, quiz, and challenge rewards.
-- Backend reward-event schema, atomic award operation, and cross-device sync strategy are documented/scaffolded but not wired into production runtime.
+- `src/engine/rewards/` contains the local reward-event foundation, local ledger, local retry queue, reconciliation helpers, diagnostics, processor, and shared runtime bridge used by lesson, quiz, and challenge rewards.
+- Supabase reward backend scaffolding is unified with the local runtime: additive `reward_events` and `award_reward_event` migrations, a backend reward service wrapper, and feature-gated runtime integration that preserves local fallback behavior.
 
 Remaining hardening:
 
-- Maintain completed active lesson quiz coverage for HTML, CSS, JavaScript, and React
-- Keep Python quiz coverage as explicit roadmap scope; define module checkpoint quizzes before deciding on full lesson-level coverage
-- Continue legacy alias review and monitor classified orphan/variant drift through `npm run audit:quizzes`
-- Use the reward/progress trust policy in `docs/reward-progress-policy.md` as the source of truth for future schema-backed reward hardening
-- Add server-side reward-event tracking or an equivalent atomic XP award operation for cross-device idempotency
-- Wire the documented backend reward-event schema, atomic award operation, and sync plan into production when the data model is ready
-- Move challenge completion history toward backend-backed persistence when the data model is ready
-- Add backend durable retry/reconciliation for failed progress writes
-- Decide whether learner-local streak dates should replace the current UTC date semantics
-- Ensure search indexes intended learning content consistently
+- Maintain completed active lesson quiz coverage for HTML, CSS, JavaScript, and React.
+- Keep Python quiz coverage as explicit roadmap scope; define module checkpoint quizzes before deciding on full lesson-level coverage.
+- Continue legacy alias review and monitor classified orphan/variant drift through `npm run audit:quizzes`.
+- Use the reward/progress trust policy in `docs/reward-progress-policy.md` as the source of truth for future schema-backed reward hardening.
+- Apply and validate the reward backend migrations in a real Supabase project before enabling `VITE_REWARD_BACKEND_SYNC_ENABLED`.
+- Decide how to reconcile or explicitly import local reward-event ledger entries with backend reward-event records.
+- Turn the unified local queue/backend sync plan into an intentional background or user-initiated reconciliation workflow.
+- Move challenge completion history toward backend-backed persistence when the data model is ready.
+- Add backend durable retry/reconciliation for failed progress writes outside the local reward queue.
+- Decide whether learner-local streak dates should replace the current UTC date semantics.
+- Ensure search indexes intended learning content consistently.
 
 Exit criteria:
 
 - Active frontend-track quiz coverage remains complete, Python scope is explicit, and remaining audit findings stay classified with documented owner/decision status.
-- Core same-device learning loop cannot be easily gamed or silently desynced; full cross-device reward integrity waits for P2 data-model hardening.
+- Core same-device learning loop cannot be easily gamed or silently desynced; cross-device reward integrity is scaffolded but waits for live Supabase migration application, validation, and import/backfill policy.
 
 ## P2: Data Model Hardening + Migration Safety
 
 Goal: move persistence from fragile labels to stable identifiers.
 
-- Replace string/display-label keys with stable IDs
-- Unify course/module/lesson/quiz/challenge/badge identity model
-- Define safe migration strategy for existing local storage and Supabase records
-- Decide targeted compatibility handling for renamed HTML Module 102 lesson progress/bookmark keys
+- Replace string/display-label keys with stable IDs.
+- Unify course/module/lesson/quiz/challenge/badge identity model.
+- Define safe migration strategy for existing local storage and Supabase records.
+- Decide targeted compatibility handling for renamed HTML Module 102 lesson progress/bookmark keys.
 
 Exit criteria:
 
@@ -71,9 +72,9 @@ Exit criteria:
 
 Goal: reduce cognitive load and increase next-step clarity.
 
-- Reduce overlay stacking and competing panel states
-- Clarify one primary next action in signed-in shell
-- Improve keyboard/focus behavior and interaction predictability
+- Reduce overlay stacking and competing panel states.
+- Clarify one primary next action in signed-in shell.
+- Improve keyboard/focus behavior and interaction predictability.
 
 Exit criteria:
 
@@ -83,10 +84,10 @@ Exit criteria:
 
 Goal: raise confidence with targeted regression coverage and enforceable quality gates.
 
-- Add tests for learning flow, progress integrity, XP/streaks, search, bookmarks, auth, and accessibility
-- Expand CI gates around build/test quality checks
-- Define future strict-mode CI criteria for quiz integrity once orphan, variant, alias, and Python policy decisions are complete
-- Tighten release checklist around verified behavior
+- Add tests for learning flow, progress integrity, XP/streaks, search, bookmarks, auth, and accessibility.
+- Expand CI gates around build/test quality checks.
+- Define future strict-mode CI criteria for quiz integrity once orphan, variant, alias, and Python policy decisions are complete.
+- Tighten release checklist around verified behavior.
 
 Exit criteria:
 

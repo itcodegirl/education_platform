@@ -12,8 +12,14 @@ doc is a single copy-paste guide for all of them.
 ## 1. Run the Supabase migration
 
 The `supabase-schema.sql` file is idempotent — you can paste the
-**entire file** into the Supabase SQL Editor and hit Run. Or, if you
-only want the additions that landed during the portfolio-polish
+**entire file** into the Supabase SQL Editor and hit Run.
+
+Reward backend note: if you plan to enable
+`VITE_REWARD_BACKEND_SYNC_ENABLED=true`, also run the additive files in
+`supabase/migrations/` after the base schema and verify the
+`reward_events` table plus `award_reward_event()` RPC before release.
+
+If you only want the additions that landed during the portfolio-polish
 branch, here's the minimal delta you need to apply:
 
 ```sql

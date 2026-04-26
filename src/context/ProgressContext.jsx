@@ -454,8 +454,9 @@ export function ProgressProvider({ children }) {
   }, [user, dbWrite]);
 
   // ─── XP ───────────────────────────────────────
-  const awardXP = useCallback(async (amount, reason) => {
+  const awardXP = useCallback(async (amount, reason, options = {}) => {
     if (!user) return;
+    const skipRemote = Boolean(options?.skipRemote);
     const oldLevel = getLevel(xpTotal);
     const newTotal = xpTotal + amount;
     const newLevel = getLevel(newTotal);
@@ -467,7 +468,9 @@ export function ProgressProvider({ children }) {
       newLevel: newLevel > oldLevel ? newLevel : null,
     });
 
-    dbWrite(progressService.updateXP(user.id, newTotal), 'updateXP');
+    if (!skipRemote) {
+      dbWrite(progressService.updateXP(user.id, newTotal), 'updateXP');
+    }
   }, [user, xpTotal, dbWrite]);
 
   const clearXPPopup = useCallback(() => setXpPopup(null), []);

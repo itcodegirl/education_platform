@@ -28,6 +28,8 @@ export function createLearningEngine({
   learnerKey = '',
   rewardEventStorage,
   markSyncFailed = () => {},
+  backendRewardSyncEnabled = false,
+  backendRewardAward,
 }) {
   // ─── Lesson completion ────────────────────
   async function completeLesson(lessonKey, options = {}) {
@@ -53,6 +55,8 @@ export function createLearningEngine({
         onRewardApplied: recordDailyActivity,
         markSyncFailed,
         storage: rewardEventStorage,
+        backendRewardSyncEnabled,
+        backendRewardAward,
       });
     }
   }
@@ -101,6 +105,8 @@ export function createLearningEngine({
       reason: 'Quiz completed',
       markSyncFailed,
       storage: rewardEventStorage,
+      backendRewardSyncEnabled,
+      backendRewardAward,
     });
 
     if (pct === 100) {
@@ -121,6 +127,8 @@ export function createLearningEngine({
         reason: 'Perfect quiz score!',
         markSyncFailed,
         storage: rewardEventStorage,
+        backendRewardSyncEnabled,
+        backendRewardAward,
       });
     }
 
@@ -154,6 +162,8 @@ export function createLearningEngine({
       reason: 'Challenge completed',
       markSyncFailed,
       storage: rewardEventStorage,
+      backendRewardSyncEnabled,
+      backendRewardAward,
     });
 
     recordDailyActivity();

@@ -13,7 +13,8 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 
 - Course browsing and lesson viewing UI for HTML, CSS, JavaScript, and React tracks.
 - Progress save/reload behavior for core learning flow.
-- Same-device reward trust hardening for lesson completion XP, quiz retry XP, activity-based streaks, challenge completion dedupe, local reward-event processing, local retry/reconciliation evidence, diagnostics, and sync-failure visibility.
+- Unified reward-engine hardening for lesson completion XP, quiz retry XP, activity-based streaks, challenge completion dedupe, local reward-event processing, local retry/reconciliation evidence, diagnostics, sync-failure visibility, and feature-gated Supabase backend awards.
+- Supabase reward backend scaffolding for future cross-device idempotency, including reward-event migrations, an atomic award RPC, and a frontend service wrapper that preserves local fallback behavior.
 - Active lesson quiz coverage for HTML, CSS, JavaScript, and React tracks is complete.
 - Quiz variant groups and legacy orphan quiz inventory are classified and monitored by the audit.
 - Python quiz coverage is intentionally deferred as roadmap work.
@@ -36,7 +37,8 @@ Current test boundaries:
 - `npm run audit:quizzes` remains the source of truth for quiz integrity drift, including classified orphan quizzes, intentional variant groups, legacy aliases, and deferred Python quiz coverage.
 - Python missing-quiz findings are an intentional roadmap signal; future Python coverage should start with module-level checkpoint quizzes before full lesson-level coverage.
 - Quiz audit strict-mode CI criteria are planned but not enabled yet.
-- The local reward-event ledger/queue is backend-ready groundwork, not a server-side reward-event table; deeper data-model, cross-device reward-event, backend durable reconciliation, and accessibility regression coverage is still planned work.
+- The local reward-event ledger/queue and Supabase reward backend branches are now unified. The local engine remains the default fallback, and backend reward sync remains disabled until the migrations are applied and authenticated reward flows are validated in a real project.
+- Backend reward details live in [docs/backend-reward-events.md](./docs/backend-reward-events.md), [docs/atomic-reward-award.md](./docs/atomic-reward-award.md), and [docs/reward-sync-strategy.md](./docs/reward-sync-strategy.md).
 - Linting scripts exist, but lint enforcement is not yet treated as a stabilized release gate in this repair stage.
 
 ## Known Limitations
@@ -91,14 +93,17 @@ Required frontend values:
 ```env
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+VITE_REWARD_BACKEND_SYNC_ENABLED=false
 ```
 
 ### 3. Configure Supabase
 
 1. Create a Supabase project.
 2. Run [`supabase-schema.sql`](./supabase-schema.sql) in Supabase SQL editor.
-3. Enable Email auth.
-4. Optionally enable Google/GitHub auth.
+3. For the optional backend reward engine, run the additive SQL files in [`supabase/migrations`](./supabase/migrations) after the base schema.
+4. Keep `VITE_REWARD_BACKEND_SYNC_ENABLED=false` until `reward_events` and `award_reward_event` are applied and verified.
+5. Enable Email auth.
+6. Optionally enable Google/GitHub auth.
 
 ### 4. Run the app
 

@@ -12,6 +12,7 @@ Use this checklist before Netlify releases or hotfix deploys.
 - Confirm required runtime environment variables:
   - `VITE_SUPABASE_URL`
   - `VITE_SUPABASE_ANON_KEY`
+  - `VITE_REWARD_BACKEND_SYNC_ENABLED` stays `false` unless reward backend migrations are applied and verified
   - Any server-side AI keys used by Netlify Functions
 - Verify documentation is still truthful:
   - [README.md](./README.md)
@@ -30,6 +31,7 @@ Use this checklist before Netlify releases or hotfix deploys.
   - create/edit a note
   - bookmark a lesson
 - Validate quiz path for an active HTML/CSS/JS/React lesson quiz.
+- If backend reward sync is enabled, validate one authenticated reward event is awarded once and repeated completion returns a skipped/duplicate result without extra XP.
 - Confirm any `npm run audit:quizzes` findings are expected and documented, especially classified orphan quizzes, intentional variant groups, legacy aliases, and deferred Python quiz coverage.
 - If touching HTML Module 102 lesson identity, verify the targeted progress/bookmark compatibility decision before release.
 
