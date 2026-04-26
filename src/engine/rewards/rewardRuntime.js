@@ -134,29 +134,14 @@ export async function awardRewardOnce({
     reason: backendRewardSyncEnabled ? 'backend_sync_enabled' : 'backend_sync_disabled',
   });
 
-  if (hasRewardBeenAwarded(legacyRewardKey)) {
+  const legacyRewardAlreadyAwarded = hasRewardBeenAwarded(legacyRewardKey);
+  if (legacyRewardAlreadyAwarded) {
     diagnoseBackend({
-      phase: 'legacy-dedupe-skip',
+      phase: 'legacy-dedupe-detected',
       backendAwardAttempted: false,
       resultStatus: BACKEND_REWARD_STATUSES.SKIPPED,
       reason: 'legacy_reward_history',
     });
-
-    const queueResult = recordQueueState({
-      learnerKey,
-      event,
-      legacyRewardKey,
-      status: REWARD_QUEUE_ITEM_STATUSES.SKIPPED,
-      phase: 'legacy-skip',
-      storage,
-      markSyncFailed,
-    });
-
-    return {
-      status: REWARD_PROCESSOR_STATUSES.SKIPPED,
-      source: 'legacy-reward-history',
-      queueResult,
-    };
   }
 
   const applyReward = ({ skipRemote = false } = {}) => {
@@ -181,6 +166,24 @@ export async function awardRewardOnce({
       reason: backendRewardSyncEnabled ? 'missing_learner_key' : 'backend_sync_disabled',
     });
 
+    if (legacyRewardAlreadyAwarded) {
+      const queueResult = recordQueueState({
+        learnerKey,
+        event,
+        legacyRewardKey,
+        status: REWARD_QUEUE_ITEM_STATUSES.SKIPPED,
+        phase: 'legacy-skip',
+        storage,
+        markSyncFailed,
+      });
+
+      return {
+        status: REWARD_PROCESSOR_STATUSES.SKIPPED,
+        source: 'legacy-reward-history',
+        queueResult,
+      };
+    }
+
     const rewardResult = applyReward();
     return {
       status: rewardResult.xpAwarded > 0
@@ -203,36 +206,20 @@ export async function awardRewardOnce({
 
   if (backendRewardSyncEnabled) {
     const localProcessedResult = readLocalProcessedEvent({ learnerKey, event, storage });
-    if (localProcessedResult.status === 'processed') {
+    const localLedgerAlreadyProcessed = localProcessedResult.status === 'processed';
+    if (localLedgerAlreadyProcessed) {
       diagnoseBackend({
-        phase: 'local-ledger-dedupe-skip',
+        phase: 'local-ledger-dedupe-detected',
         backendAwardAttempted: false,
         resultStatus: BACKEND_REWARD_STATUSES.SKIPPED,
         reason: 'local_ledger_processed',
       });
-
-      const queueResult = recordQueueState({
-        learnerKey,
-        event,
-        legacyRewardKey,
-        status: REWARD_QUEUE_ITEM_STATUSES.SKIPPED,
-        phase: 'local-ledger-skip',
-        storage,
-        markSyncFailed,
-      });
-
-      return {
-        status: REWARD_PROCESSOR_STATUSES.SKIPPED,
-        source: 'local-reward-ledger',
-        phase: 'dedupe',
-        event,
-        ledger: localProcessedResult.ledgerResult.ledger,
-        rewardApplied: false,
-        ledgerRecorded: true,
-        pendingQueueResult,
-        queueResult,
-      };
     }
+    const localDedupeSource = legacyRewardAlreadyAwarded
+      ? 'legacy-reward-history'
+      : localLedgerAlreadyProcessed
+        ? 'local-reward-ledger'
+        : null;
 
     diagnoseBackend({
       phase: 'backend-award-attempt',
@@ -257,7 +244,16 @@ export async function awardRewardOnce({
     });
 
     if (backendResult.status === BACKEND_REWARD_STATUSES.AWARDED) {
-      const rewardResult = applyReward({ skipRemote: true });
+      const rewardResult = localDedupeSource
+        ? {
+            xpAwarded: 0,
+            localSkipped: true,
+            localDedupeSource,
+          }
+        : applyReward({ skipRemote: true });
+      if (localDedupeSource && !legacyRewardAlreadyAwarded) {
+        markRewardAwarded(legacyRewardKey);
+      }
       const ledgerResult = recordLocalProcessedEvent({
         learnerKey,
         event,
@@ -279,9 +275,7 @@ export async function awardRewardOnce({
       });
 
       return {
-        status: rewardResult.xpAwarded > 0
-          ? REWARD_PROCESSOR_STATUSES.APPLIED
-          : REWARD_PROCESSOR_STATUSES.SKIPPED,
+        status: REWARD_PROCESSOR_STATUSES.APPLIED,
         source: 'backend-reward-event',
         backendResult,
         rewardResult,
@@ -327,6 +321,26 @@ export async function awardRewardOnce({
       markSyncFailed(`backend reward failed:${event.key}`);
     }
 
+    if (legacyRewardAlreadyAwarded) {
+      const queueResult = recordQueueState({
+        learnerKey,
+        event,
+        legacyRewardKey,
+        status: REWARD_QUEUE_ITEM_STATUSES.SKIPPED,
+        phase: 'legacy-skip-after-backend-fallback',
+        storage,
+        markSyncFailed,
+      });
+
+      return {
+        status: REWARD_PROCESSOR_STATUSES.SKIPPED,
+        source: 'legacy-reward-history',
+        backendResult,
+        pendingQueueResult,
+        queueResult,
+      };
+    }
+
     const result = await processRewardEvent(learnerKey, event, {
       storage,
       applyReward,
@@ -351,6 +365,25 @@ export async function awardRewardOnce({
     resultStatus: BACKEND_REWARD_STATUSES.DISABLED,
     reason: 'backend_reward_sync_disabled',
   });
+
+  if (legacyRewardAlreadyAwarded) {
+    const queueResult = recordQueueState({
+      learnerKey,
+      event,
+      legacyRewardKey,
+      status: REWARD_QUEUE_ITEM_STATUSES.SKIPPED,
+      phase: 'legacy-skip',
+      storage,
+      markSyncFailed,
+    });
+
+    return {
+      status: REWARD_PROCESSOR_STATUSES.SKIPPED,
+      source: 'legacy-reward-history',
+      pendingQueueResult,
+      queueResult,
+    };
+  }
 
   const result = await processRewardEvent(learnerKey, event, {
     storage,

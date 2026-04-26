@@ -304,7 +304,7 @@ describe('awardRewardOnce', () => {
     });
   });
 
-  it('does not call the backend when the local ledger already processed the event', async () => {
+  it('attempts backend sync when the local ledger already processed the event without double-awarding local XP', async () => {
     const storage = createMemoryStorage();
     await awardRewardOnce(createRewardDeps({ storage }));
     const backendRewardAward = vi.fn(async () => ({
@@ -322,19 +322,89 @@ describe('awardRewardOnce', () => {
 
     const result = await awardRewardOnce(deps);
 
-    expect(result.status).toBe(REWARD_PROCESSOR_STATUSES.SKIPPED);
-    expect(result.source).toBe('local-reward-ledger');
-    expect(backendRewardAward).not.toHaveBeenCalled();
+    expect(result.status).toBe(REWARD_PROCESSOR_STATUSES.APPLIED);
+    expect(result.source).toBe('backend-reward-event');
+    expect(result.rewardResult).toMatchObject({
+      xpAwarded: 0,
+      localSkipped: true,
+      localDedupeSource: 'local-reward-ledger',
+    });
+    expect(backendRewardAward).toHaveBeenCalledTimes(1);
+    expect(backendRewardAward).toHaveBeenCalledWith({
+      event: deps.event,
+      xpAmount: 25,
+      source: 'client',
+    }, {
+      enabled: true,
+    });
     expect(diagnoseBackendRewardSync).toHaveBeenCalledWith(expect.objectContaining({
-      phase: 'local-ledger-dedupe-skip',
+      phase: 'local-ledger-dedupe-detected',
       featureFlagEnabled: true,
       userAuthenticated: true,
       backendAwardAttempted: false,
       resultStatus: BACKEND_REWARD_STATUSES.SKIPPED,
       reason: 'local_ledger_processed',
     }));
-    expect(JSON.stringify(diagnoseBackendRewardSync.mock.calls)).not.toContain('backend-award-attempt');
+    expect(diagnoseBackendRewardSync).toHaveBeenCalledWith(expect.objectContaining({
+      phase: 'backend-award-attempt',
+      featureFlagEnabled: true,
+      userAuthenticated: true,
+      backendAwardAttempted: true,
+      resultStatus: 'pending',
+    }));
     expect(deps.awardXP).not.toHaveBeenCalled();
+    expect(deps.onRewardApplied).not.toHaveBeenCalled();
+    expect(readRewardLedger(learnerKey, { storage }).ledger.processedKeys).toEqual([
+      'lesson-complete:lesson-01:learner-123',
+    ]);
+    expect(readRewardQueue(learnerKey, { storage }).queue.items[0]).toMatchObject({
+      event: deps.event,
+      status: REWARD_QUEUE_ITEM_STATUSES.PROCESSED,
+    });
+  });
+
+  it('attempts backend sync when legacy reward history already processed the event without double-awarding local XP', async () => {
+    const backendRewardAward = vi.fn(async () => ({
+      status: BACKEND_REWARD_STATUSES.AWARDED,
+      totalXp: 150,
+      xpAwarded: 25,
+    }));
+    const diagnoseBackendRewardSync = vi.fn();
+    const deps = createRewardDeps({
+      backendRewardSyncEnabled: true,
+      backendRewardAward,
+      diagnoseBackendRewardSync,
+      hasRewardBeenAwarded: vi.fn(() => true),
+    });
+
+    const result = await awardRewardOnce(deps);
+
+    expect(result.status).toBe(REWARD_PROCESSOR_STATUSES.APPLIED);
+    expect(result.source).toBe('backend-reward-event');
+    expect(result.rewardResult).toMatchObject({
+      xpAwarded: 0,
+      localSkipped: true,
+      localDedupeSource: 'legacy-reward-history',
+    });
+    expect(backendRewardAward).toHaveBeenCalledTimes(1);
+    expect(deps.markRewardAwarded).not.toHaveBeenCalled();
+    expect(deps.awardXP).not.toHaveBeenCalled();
+    expect(deps.onRewardApplied).not.toHaveBeenCalled();
+    expect(diagnoseBackendRewardSync).toHaveBeenCalledWith(expect.objectContaining({
+      phase: 'legacy-dedupe-detected',
+      featureFlagEnabled: true,
+      userAuthenticated: true,
+      backendAwardAttempted: false,
+      resultStatus: BACKEND_REWARD_STATUSES.SKIPPED,
+      reason: 'legacy_reward_history',
+    }));
+    expect(diagnoseBackendRewardSync).toHaveBeenCalledWith(expect.objectContaining({
+      phase: 'backend-award-attempt',
+      featureFlagEnabled: true,
+      userAuthenticated: true,
+      backendAwardAttempted: true,
+      resultStatus: 'pending',
+    }));
   });
 
   it('uses legacy reward history as the first dedupe guard', async () => {
