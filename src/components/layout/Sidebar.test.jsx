@@ -97,6 +97,7 @@ function installNavigationStorage(initialValue = null) {
 describe('Sidebar', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    document.querySelectorAll('.bottom-tools').forEach((element) => element.remove());
     installNavigationStorage();
     mockUseProgressData.mockReturnValue({ completed: [] });
     mockUseAuth.mockReturnValue({ user: { email: 'jenna@example.com', user_metadata: {} } });
@@ -118,6 +119,64 @@ describe('Sidebar', () => {
     fireEvent.click(screen.getByRole('button', { name: /lesson two/i }));
 
     expect(onSelectLesson).toHaveBeenCalledWith(0, 1);
+  });
+
+  it('sets Courses as the active sidebar tab and keeps course navigation visible', () => {
+    renderSidebar();
+
+    const coursesTab = screen.getByRole('button', { name: /courses/i });
+    fireEvent.click(coursesTab);
+
+    expect(coursesTab).toHaveAttribute('aria-expanded', 'true');
+    expect(coursesTab).toHaveClass('active');
+    expect(screen.getByRole('menu', { name: /courses/i })).toBeInTheDocument();
+    expect(screen.getByText('Modules')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /foundations module/i })).toBeInTheDocument();
+  });
+
+  it('switches from Courses to Resources as the active sidebar tab', () => {
+    renderSidebar();
+
+    const coursesTab = screen.getByRole('button', { name: /courses/i });
+    const resourcesTab = screen.getByRole('button', { name: /resources/i });
+
+    fireEvent.click(coursesTab);
+    expect(coursesTab).toHaveAttribute('aria-expanded', 'true');
+
+    fireEvent.click(resourcesTab);
+
+    expect(coursesTab).toHaveAttribute('aria-expanded', 'false');
+    expect(resourcesTab).toHaveAttribute('aria-expanded', 'true');
+    expect(resourcesTab).toHaveClass('active');
+    expect(screen.getByRole('menu', { name: /resources/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /open cheat sheets panel/i })).toBeInTheDocument();
+  });
+
+  it('keeps tab switching and lesson navigation working together', () => {
+    const onSelectLesson = vi.fn();
+    mockUseLocalStorage.mockReturnValue([false, vi.fn()]);
+    renderSidebar({ onSelectLesson });
+
+    fireEvent.click(screen.getByRole('button', { name: /resources/i }));
+    fireEvent.click(screen.getByRole('button', { name: /courses/i }));
+    fireEvent.click(screen.getByRole('button', { name: /lesson two/i }));
+
+    expect(screen.getByRole('button', { name: /courses/i })).toHaveAttribute('aria-expanded', 'true');
+    expect(onSelectLesson).toHaveBeenCalledWith(0, 1);
+  });
+
+  it('keeps hidden chrome from intercepting sidebar tab clicks', () => {
+    const hiddenToolbar = document.createElement('div');
+    hiddenToolbar.className = 'bottom-tools';
+    hiddenToolbar.style.pointerEvents = 'none';
+    document.body.appendChild(hiddenToolbar);
+    renderSidebar();
+
+    const resourcesTab = screen.getByRole('button', { name: /resources/i });
+    fireEvent.click(resourcesTab);
+
+    expect(resourcesTab).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('menu', { name: /resources/i })).toBeInTheDocument();
   });
 
   it('logs gated navigation diagnostics when a lesson click fires', () => {

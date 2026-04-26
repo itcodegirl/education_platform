@@ -59,9 +59,8 @@ export const Sidebar = memo(function Sidebar({
   // state for the Courses + Resources tab bar. Only one popout can be
   // open at a time; clicking a tab while the other is open switches.
   const [activePopout, setActivePopout] = useState(null); // 'courses' | 'resources' | null
-  // Desktop: popout is `position: fixed` and flies out to the right of
-  // the sidebar. Mobile: we dock it inline under the tabs to avoid iOS
-  // fixed-position jumps during drawer transforms.
+  // Keep tab content docked inside the sidebar. Fixed flyouts can be
+  // clipped by the sidebar's glass/overflow stack and look non-responsive.
   const [popoutPos, setPopoutPos] = useState(null);
   const [expandedMod, setExpandedMod] = useState(modIdx);
   const tabsRef = useRef(null);
@@ -76,38 +75,11 @@ export const Sidebar = memo(function Sidebar({
   // Sync expanded module when active module changes
   useEffect(() => { setExpandedMod(modIdx); }, [modIdx]);
 
-  // Shared position calculator so the same logic runs on initial open
-  // and on every window resize. Returns null if the tab bar ref isn't
-  // mounted yet (shouldn't happen once the sidebar is rendered).
-  //
-  // Popout width matches .sidebar-tab-flyout in CSS (~240px). We try to
-  // place it to the RIGHT of the tab bar so it flies out of the
-  // sidebar. If that would overflow the viewport (narrow windows,
-  // mobile drawer) OR if the tab bar itself is still animating in
-  // from off-screen-left (drawer mid-transition), flip it BELOW the
-  // tab bar instead, clamped to the viewport on both sides so it
-  // stays fully visible.
+  // Shared position calculator kept for the existing tab-open flow. It now
+  // always docks content inline on both desktop and mobile.
   const computePopoutPos = useCallback(() => {
-    if (isMobile) {
-      return { mode: 'docked' };
-    }
-    if (!tabsRef.current) return null;
-    const rect = tabsRef.current.getBoundingClientRect();
-    const POPOUT_WIDTH = 240;
-    const PADDING = 8;
-    const vw = window.innerWidth;
-    const wantLeft = rect.right + PADDING;
-    const fitsRight =
-      wantLeft >= PADDING &&
-      wantLeft + POPOUT_WIDTH <= vw - PADDING;
-    const belowLeft = Math.max(
-      PADDING,
-      Math.min(rect.left, vw - POPOUT_WIDTH - PADDING),
-    );
-    return fitsRight
-      ? { mode: 'fixed', top: rect.top, left: wantLeft }
-      : { mode: 'fixed', top: rect.bottom + PADDING, left: belowLeft };
-  }, [isMobile]);
+    return { mode: 'docked' };
+  }, []);
 
   const getPopoutItems = useCallback(() => {
     if (!popoutRef.current) return [];
@@ -144,7 +116,14 @@ export const Sidebar = memo(function Sidebar({
     (which, focusTarget = null) => {
       setActivePopout((prev) => {
         const next = prev === which ? null : which;
-        setPopoutPos(next ? computePopoutPos() : null);
+        const nextPos = next ? computePopoutPos() : null;
+        setPopoutPos(nextPos);
+        logNavigationDiagnostic('sidebar-tab-state-updated', {
+          targetTab: which,
+          previousTab: prev || '',
+          activeTab: next || '',
+          mode: nextPos?.mode || 'closed',
+        });
         if (next && focusTarget) {
           focusPopoutItem(focusTarget);
         }
@@ -153,6 +132,14 @@ export const Sidebar = memo(function Sidebar({
     },
     [computePopoutPos, focusPopoutItem],
   );
+
+  const handleSidebarTabClick = useCallback((which) => {
+    logNavigationDiagnostic('sidebar-tab-click-fired', {
+      targetTab: which,
+      activeTab: activePopout || '',
+    });
+    openPopout(which);
+  }, [activePopout, openPopout]);
 
   const focusPopoutByOffset = useCallback((offset) => {
     const items = getPopoutItems();
@@ -274,10 +261,7 @@ export const Sidebar = memo(function Sidebar({
     return undefined;
   }, [isDesktopCollapsed]);
 
-  // While a popout is active, close it on click-outside or Escape,
-  // and REPOSITION (not close) it on window resize so users who
-  // drag the browser edge to test responsiveness don't see the
-  // popout disappear on the first resize event.
+  // While tab content is active, close it on click-outside or Escape.
   useEffect(() => {
     if (!activePopout) return undefined;
     const handlePointerDown = (e) => {
@@ -294,25 +278,13 @@ export const Sidebar = memo(function Sidebar({
         setPopoutPos(null);
       }
     };
-    const handleResize = () => {
-      // Recompute instead of close. If the tab bar is no longer in
-      // the DOM (hot-reload edge case), fall back to closing.
-      const nextPos = computePopoutPos();
-      if (nextPos) setPopoutPos(nextPos);
-      else {
-        setActivePopout(null);
-        setPopoutPos(null);
-      }
-    };
     document.addEventListener('pointerdown', handlePointerDown);
     document.addEventListener('keydown', handleEscape);
-    window.addEventListener('resize', handleResize);
     return () => {
       document.removeEventListener('pointerdown', handlePointerDown);
       document.removeEventListener('keydown', handleEscape);
-      window.removeEventListener('resize', handleResize);
     };
-  }, [activePopout, computePopoutPos]);
+  }, [activePopout]);
 
   const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Coder';
   const userInitial = displayName.trim().charAt(0).toUpperCase() || 'C';
@@ -407,20 +379,19 @@ export const Sidebar = memo(function Sidebar({
         <ProfilePopover isOpen={popoverOpen} onClose={closePopover} isMobile={isMobile} />
 
         {/* ─── Tab bar: Courses + Resources ─── */}
-        {/* Two tabs side-by-side. Each opens a small popout card that
-            flies out to the RIGHT of the sidebar (position: fixed, so
-            it escapes the sidebar's overflow: hidden).
+        {/* Two tabs side-by-side. Each opens a small docked panel inside
+            the sidebar so overflow/glass layers cannot clip the content.
             Courses: switches between course tracks (HTML/CSS/JS/React/Python).
             Resources: opens a quick-launcher for the learning tools
             (cheat sheets, glossary, bookmarks, review queue, challenges, badges).
-            Click-outside, Escape, and window resize close the active popout. */}
+            Click-outside and Escape close the active panel. */}
         <div className="sidebar-tabs" ref={tabsRef} aria-label="Sidebar navigation">
           <button
             id="sidebar-tab-courses"
             ref={coursesTabRef}
             type="button"
             className={`sidebar-tab ${activePopout === 'courses' ? 'active' : ''}`}
-            onClick={() => openPopout('courses')}
+            onClick={() => handleSidebarTabClick('courses')}
             onKeyDown={handleTabKeyDown('courses')}
             aria-haspopup="menu"
             aria-expanded={activePopout === 'courses'}
@@ -436,7 +407,7 @@ export const Sidebar = memo(function Sidebar({
             ref={resourcesTabRef}
             type="button"
             className={`sidebar-tab ${activePopout === 'resources' ? 'active' : ''}`}
-            onClick={() => openPopout('resources')}
+            onClick={() => handleSidebarTabClick('resources')}
             onKeyDown={handleTabKeyDown('resources')}
             aria-haspopup="menu"
             aria-expanded={activePopout === 'resources'}
@@ -462,9 +433,8 @@ export const Sidebar = memo(function Sidebar({
           </div>
         </div>
 
-        {/* Popout card — rendered OUTSIDE .sidebar-tabs so it can escape the
-            sidebar's overflow:hidden via position:fixed. Position is
-            computed from the tab bar's bounding rect in openPopout(). */}
+        {/* Docked tab card rendered outside .sidebar-tabs so it can span the
+            sidebar body while staying inside the sidebar's hit area. */}
         {activePopout && popoutPos && (
           <div
             ref={popoutRef}
