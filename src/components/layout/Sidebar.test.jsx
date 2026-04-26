@@ -76,8 +76,28 @@ function renderSidebar(overrides = {}) {
   );
 }
 
+function installNavigationStorage(initialValue = null) {
+  let debugValue = initialValue;
+  const storage = {
+    getItem: vi.fn((key) => (key === 'debug-navigation' ? debugValue : null)),
+    setItem: vi.fn((key, value) => {
+      if (key === 'debug-navigation') debugValue = value;
+    }),
+    removeItem: vi.fn((key) => {
+      if (key === 'debug-navigation') debugValue = null;
+    }),
+  };
+  Object.defineProperty(window, 'localStorage', {
+    configurable: true,
+    value: storage,
+  });
+  return storage;
+}
+
 describe('Sidebar', () => {
   beforeEach(() => {
+    vi.restoreAllMocks();
+    installNavigationStorage();
     mockUseProgressData.mockReturnValue({ completed: [] });
     mockUseAuth.mockReturnValue({ user: { email: 'jenna@example.com', user_metadata: {} } });
     mockUseLocalStorage.mockReturnValue([true, vi.fn()]);
@@ -92,6 +112,56 @@ describe('Sidebar', () => {
 
   it('fires lesson navigation clicks when free-roam mode is enabled', () => {
     const onSelectLesson = vi.fn();
+    mockUseLocalStorage.mockReturnValue([false, vi.fn()]);
+    renderSidebar({ onSelectLesson });
+
+    fireEvent.click(screen.getByRole('button', { name: /lesson two/i }));
+
+    expect(onSelectLesson).toHaveBeenCalledWith(0, 1);
+  });
+
+  it('logs gated navigation diagnostics when a lesson click fires', () => {
+    const onSelectLesson = vi.fn();
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+    window.localStorage.setItem('debug-navigation', 'true');
+    mockUseLocalStorage.mockReturnValue([false, vi.fn()]);
+    renderSidebar({ onSelectLesson });
+
+    fireEvent.click(screen.getByRole('button', { name: /lesson two/i }));
+
+    expect(infoSpy).toHaveBeenCalledWith(
+      '[CodeHerWay navigation]',
+      'lesson-click-fired',
+      expect.objectContaining({
+        targetLessonId: 'h2',
+        targetModuleId: 1,
+        unlocked: true,
+        lockMode: false,
+      }),
+    );
+    expect(onSelectLesson).toHaveBeenCalledWith(0, 1);
+  });
+
+  it('allows completed sequential lessons to navigate without reward-processing gates', () => {
+    const onSelectLesson = vi.fn();
+    mockUseProgressData.mockReturnValue({ completed: ['c:html|m:1|l:h1'] });
+    mockUseLocalStorage.mockReturnValue([true, vi.fn()]);
+    renderSidebar({ onSelectLesson });
+
+    const secondLesson = screen.getByRole('button', { name: /lesson two/i });
+    expect(secondLesson).not.toBeDisabled();
+
+    fireEvent.click(secondLesson);
+
+    expect(onSelectLesson).toHaveBeenCalledWith(0, 1);
+  });
+
+  it('keeps sidebar lesson clicks available when hidden app chrome is present', () => {
+    const onSelectLesson = vi.fn();
+    const hiddenToolbar = document.createElement('div');
+    hiddenToolbar.className = 'bottom-tools';
+    hiddenToolbar.style.pointerEvents = 'none';
+    document.body.appendChild(hiddenToolbar);
     mockUseLocalStorage.mockReturnValue([false, vi.fn()]);
     renderSidebar({ onSelectLesson });
 

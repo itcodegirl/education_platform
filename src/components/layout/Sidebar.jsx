@@ -11,6 +11,7 @@ import { QUIZ_MAP } from '../../data';
 import { ProfilePopover } from './ProfilePopover';
 import { Logo } from '../shared/Logo';
 import { getCourseCompletedLessonCount, hasLessonCompletion } from '../../utils/lessonKeys';
+import { logNavigationDiagnostic } from '../../utils/navigationDiagnostics';
 
 const POPUP_MENU_ITEM_SELECTOR = '[role="menuitem"]';
 
@@ -325,6 +326,19 @@ export const Sidebar = memo(function Sidebar({
 
   const togglePopover = useCallback(() => setPopoverOpen((v) => !v), []);
   const closePopover = useCallback(() => setPopoverOpen(false), []);
+  const handleLessonSelect = useCallback((module, lesson, mi, li, unlocked) => {
+    logNavigationDiagnostic('lesson-click-fired', {
+      targetLessonId: lesson?.id || '',
+      targetModuleId: module?.id || '',
+      targetModuleIndex: mi,
+      targetLessonIndex: li,
+      unlocked,
+      lockMode,
+    });
+
+    if (!unlocked) return;
+    onSelectLesson(mi, li);
+  }, [lockMode, onSelectLesson]);
 
   // Mobile drawer: trap focus inside the <nav> while it is open,
   // restore focus to the trigger on close, lock body scroll, and
@@ -570,7 +584,7 @@ export const Sidebar = memo(function Sidebar({
                             key={lesson.id}
                             type="button"
                             className={`lesson-list-btn ${mi === modIdx && li === lesIdx && !showModQuiz ? 'act' : ''} ${isDone ? 'dn' : ''} ${!unlocked ? 'locked' : ''}`}
-                            onClick={() => unlocked && onSelectLesson(mi, li)}
+                            onClick={() => handleLessonSelect(module, lesson, mi, li, unlocked)}
                             disabled={!unlocked}
                             aria-label={`${lesson.title} lesson${isDone ? ', completed' : ''}${!unlocked ? ', locked' : ''}`}
                             aria-current={mi === modIdx && li === lesIdx && !showModQuiz ? 'page' : undefined}

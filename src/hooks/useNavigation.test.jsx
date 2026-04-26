@@ -70,7 +70,27 @@ beforeAll(() => {
   });
 });
 
+function installNavigationStorage(initialValue = null) {
+  let debugValue = initialValue;
+  const storage = {
+    getItem: vi.fn((key) => (key === 'debug-navigation' ? debugValue : null)),
+    setItem: vi.fn((key, value) => {
+      if (key === 'debug-navigation') debugValue = value;
+    }),
+    removeItem: vi.fn((key) => {
+      if (key === 'debug-navigation') debugValue = null;
+    }),
+  };
+  Object.defineProperty(window, 'localStorage', {
+    configurable: true,
+    value: storage,
+  });
+  return storage;
+}
+
 beforeEach(() => {
+  vi.restoreAllMocks();
+  installNavigationStorage();
   window.history.replaceState(null, '', '/');
 });
 
@@ -152,6 +172,41 @@ describe('useNavigation go()', () => {
     const { result } = renderHook(() => useNavigation());
     act(() => result.current.go(0, 1));
     expect(window.location.pathname).toBe('/learn/html/basics/l-tags');
+  });
+
+  it('changes the active lesson id immediately when selecting a different lesson', () => {
+    const { result } = renderHook(() => useNavigation());
+
+    act(() => result.current.go(0, 1));
+
+    expect(result.current.les.id).toBe('l-tags');
+    expect(result.current.lessonKey).toBe('c:html|m:basics|l:l-tags');
+  });
+
+  it('emits gated diagnostics for route attempts and selected lesson state', () => {
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+    window.localStorage.setItem('debug-navigation', 'true');
+    const { result } = renderHook(() => useNavigation());
+
+    act(() => result.current.go(0, 1));
+
+    expect(infoSpy).toHaveBeenCalledWith(
+      '[CodeHerWay navigation]',
+      'route-update-attempted',
+      expect.objectContaining({
+        targetLessonId: 'l-tags',
+        targetModuleId: 'basics',
+        path: '/learn/html/basics/l-tags',
+      }),
+    );
+    expect(infoSpy).toHaveBeenCalledWith(
+      '[CodeHerWay navigation]',
+      'selected-lesson-after-navigation',
+      expect.objectContaining({
+        selectedLessonId: 'l-tags',
+        selectedModuleId: 'basics',
+      }),
+    );
   });
 });
 

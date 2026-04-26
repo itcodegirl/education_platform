@@ -9,6 +9,7 @@ import { useCourseContent } from '../providers';
 import { navigateTo, toPathFromLegacyHash } from '../routes/routeUtils';
 import { buildLearnPath, parseLearnPath } from '../routes/routePaths';
 import { getLessonKeyVariants } from '../utils/lessonKeys';
+import { logNavigationDiagnostic } from '../utils/navigationDiagnostics';
 
 // Safe empty shells used when a course's modules haven't loaded yet.
 // AppLayout gates the real UI behind isActiveCourseLoaded, so these
@@ -175,10 +176,72 @@ export function useNavigation() {
     && lesIdx === (mod.lessons?.length || 1) - 1
     && (showModQuiz || !moduleQuiz);
 
-  const scrollTop = () => {
+  const scrollTop = useCallback(() => {
     const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
     mainRef.current?.scrollTo({ top: 0, behavior });
-  };
+  }, []);
+
+  const writeNavigationPath = useCallback((nextCourse, nextModule, nextLesson, nextShowModQuiz, options = {}) => {
+    const nextPath = buildLearnPath(nextCourse, nextModule, nextLesson, nextShowModQuiz);
+    if (!nextPath) {
+      logNavigationDiagnostic('route-update-skipped', {
+        reason: 'missing-path',
+        targetLessonId: nextLesson?.id || '',
+        targetModuleId: nextModule?.id || '',
+      });
+      return '';
+    }
+
+    logNavigationDiagnostic('route-update-attempted', {
+      targetLessonId: nextShowModQuiz ? 'quiz' : nextLesson?.id || '',
+      targetModuleId: nextModule?.id || '',
+      path: nextPath,
+      replace: Boolean(options.replace),
+    });
+    navigateTo(nextPath, options);
+    return nextPath;
+  }, []);
+
+  const selectLessonPosition = useCallback((nextCourseIdx, nextModIdx, nextLesIdx, nextShowModQuiz = false, options = {}) => {
+    const nextCourse = COURSES[nextCourseIdx];
+    const nextModules = nextCourse?.modules || [];
+    const nextModule = nextModules[nextModIdx];
+    const nextLesson = nextModule?.lessons?.[nextLesIdx];
+
+    if (!nextCourse || !nextModule || !nextLesson) {
+      logNavigationDiagnostic('selection-skipped', {
+        reason: 'missing-target',
+        targetCourseIndex: nextCourseIdx,
+        targetModuleIndex: nextModIdx,
+        targetLessonIndex: nextLesIdx,
+      });
+      return false;
+    }
+
+    // Invalidate any older async path hydration before writing the user-selected route.
+    pathSyncTokenRef.current += 1;
+    syncingFromPathRef.current = false;
+
+    writeNavigationPath(nextCourse, nextModule, nextLesson, nextShowModQuiz, {
+      replace: Boolean(options.replace),
+    });
+
+    setCourseIdx(nextCourseIdx);
+    setModIdx(nextModIdx);
+    setLesIdx(nextLesIdx);
+    setShowModQuiz(nextShowModQuiz);
+    scrollTop();
+
+    logNavigationDiagnostic('selected-lesson-after-navigation', {
+      selectedCourseId: nextCourse.id,
+      selectedModuleId: nextModule.id,
+      selectedLessonId: nextShowModQuiz ? 'quiz' : nextLesson.id,
+      selectedModuleIndex: nextModIdx,
+      selectedLessonIndex: nextLesIdx,
+    });
+
+    return true;
+  }, [scrollTop, writeNavigationPath]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -261,24 +324,37 @@ export function useNavigation() {
       return;
     }
 
+    logNavigationDiagnostic('route-state-effect-update', {
+      targetLessonId: showModQuiz ? 'quiz' : les.id,
+      targetModuleId: mod.id,
+      path: nextPath,
+    });
     navigateTo(nextPath);
   }, [course, mod, les, showModQuiz]);
 
   const go = useCallback((mi, li) => {
-    setModIdx(mi);
-    setLesIdx(li);
-    setShowModQuiz(false);
-    scrollTop();
-  }, []);
+    selectLessonPosition(courseIdx, mi, li, false);
+  }, [courseIdx, selectLessonPosition]);
 
   const switchCourse = useCallback((ci) => {
     if (ci < 0 || ci >= COURSES.length) return;
-    setCourseIdx(ci);
-    setModIdx(0);
-    setLesIdx(0);
-    setShowModQuiz(false);
-    scrollTop();
-  }, []);
+    const nextCourse = COURSES[ci];
+    if (!nextCourse?.modules?.length) {
+      pathSyncTokenRef.current += 1;
+      syncingFromPathRef.current = false;
+      setCourseIdx(ci);
+      setModIdx(0);
+      setLesIdx(0);
+      setShowModQuiz(false);
+      scrollTop();
+      logNavigationDiagnostic('selection-pending-course-load', {
+        selectedCourseId: nextCourse?.id || '',
+      });
+      return;
+    }
+
+    selectLessonPosition(ci, 0, 0, false);
+  }, [scrollTop, selectLessonPosition]);
 
   const next = useCallback(() => {
     if (showModQuiz) {
@@ -287,50 +363,55 @@ export function useNavigation() {
       return;
     }
     if (isLastLesson && moduleQuiz && !showModQuiz) {
-      setShowModQuiz(true);
-      scrollTop();
+      selectLessonPosition(courseIdx, modIdx, lesIdx, true);
       return;
     }
     if (lesIdx < mod.lessons.length - 1) go(modIdx, lesIdx + 1);
     else if (modIdx < modules.length - 1) go(modIdx + 1, 0);
-  }, [modIdx, lesIdx, showModQuiz, isLastLesson, moduleQuiz, mod.lessons.length, modules.length, go]);
+  }, [
+    courseIdx,
+    modIdx,
+    lesIdx,
+    showModQuiz,
+    isLastLesson,
+    moduleQuiz,
+    mod.lessons.length,
+    modules.length,
+    go,
+    selectLessonPosition,
+  ]);
 
   const prev = useCallback(() => {
     if (showModQuiz) {
-      setShowModQuiz(false);
-      scrollTop();
+      selectLessonPosition(courseIdx, modIdx, lesIdx, false);
       return;
     }
     if (lesIdx > 0) go(modIdx, lesIdx - 1);
     else if (modIdx > 0) go(modIdx - 1, modules[modIdx - 1].lessons.length - 1);
-  }, [modIdx, lesIdx, showModQuiz, modules, go]);
+  }, [courseIdx, modIdx, lesIdx, showModQuiz, modules, go, selectLessonPosition]);
 
   const goToSearch = useCallback((ci, mi, li) => {
-    setCourseIdx(ci);
-    setModIdx(mi);
-    setLesIdx(li);
-    setShowModQuiz(false);
-    scrollTop();
-  }, []);
+    selectLessonPosition(ci, mi, li, false);
+  }, [selectLessonPosition]);
 
   const goToModQuiz = useCallback((mi) => {
-    setModIdx(mi);
-    setLesIdx(modules[mi].lessons.length - 1);
-    setShowModQuiz(true);
-    scrollTop();
-  }, [modules]);
+    const moduleData = modules[mi];
+    if (!moduleData?.lessons?.length) return;
+    selectLessonPosition(courseIdx, mi, moduleData.lessons.length - 1, true);
+  }, [courseIdx, modules, selectLessonPosition]);
 
   const resumeFromPosition = useCallback((lastPosition) => {
     const saved = findSavedPosition(lastPosition);
     if (!saved) return false;
 
-    setCourseIdx(saved.courseIndex);
-    setModIdx(saved.moduleIndex);
-    setLesIdx(saved.lessonIndex);
-    setShowModQuiz(saved.isModuleQuiz);
-    scrollTop();
-    return true;
-  }, []);
+    return selectLessonPosition(
+      saved.courseIndex,
+      saved.moduleIndex,
+      saved.lessonIndex,
+      saved.isModuleQuiz,
+      { replace: true },
+    );
+  }, [selectLessonPosition]);
 
   return {
     courseIdx, modIdx, lesIdx, showModQuiz,
