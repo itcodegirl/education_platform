@@ -38,8 +38,12 @@ describe('rewardEventService', () => {
   it('keeps backend reward sync disabled unless explicitly enabled', () => {
     expect(isBackendRewardSyncEnabled({})).toBe(false);
     expect(isBackendRewardSyncEnabled({ VITE_REWARD_BACKEND_SYNC_ENABLED: 'false' })).toBe(false);
-    expect(isBackendRewardSyncEnabled({ VITE_REWARD_BACKEND_SYNC_ENABLED: 'true' })).toBe(true);
-    expect(isBackendRewardSyncEnabled({ VITE_REWARD_BACKEND_SYNC_ENABLED: ' TRUE ' })).toBe(true);
+
+    ['true', 'TRUE', ' true '].forEach((flagValue) => {
+      expect(isBackendRewardSyncEnabled({
+        VITE_REWARD_BACKEND_SYNC_ENABLED: flagValue,
+      })).toBe(true);
+    });
   });
 
   it('normalizes event-shaped backend reward payloads', () => {
@@ -146,7 +150,39 @@ describe('rewardEventService', () => {
     expect(result.reason).toBe('missing_supabase_config');
   });
 
-  it('calls the award_reward_event RPC and normalizes awarded results', async () => {
+  it.each([
+    ['awarded', BACKEND_REWARD_STATUSES.AWARDED, 25, 125],
+    ['AWARDED', BACKEND_REWARD_STATUSES.AWARDED, 25, 125],
+    [' skipped ', BACKEND_REWARD_STATUSES.SKIPPED, 0, 125],
+    ['failed', BACKEND_REWARD_STATUSES.FAILED, 0, null],
+    ['disabled', BACKEND_REWARD_STATUSES.FAILED, 0, null],
+  ])('normalizes RPC status %s to %s', async (
+    rpcStatus,
+    expectedStatus,
+    expectedXp,
+    expectedTotal,
+  ) => {
+    const client = {
+      rpc: vi.fn(async () => ({
+        data: {
+          status: rpcStatus,
+          event_key: event.key,
+          reason: rpcStatus === 'failed' ? 'not_authenticated' : null,
+          xp_awarded: expectedXp,
+          total_xp: expectedTotal,
+        },
+        error: null,
+      })),
+    };
+
+    const result = await awardBackendRewardEvent(payload, { client, enabled: true });
+
+    expect(result.status).toBe(expectedStatus);
+    expect(result.xpAwarded).toBe(expectedXp);
+    expect(result.totalXp).toBe(expectedTotal);
+  });
+
+  it('calls the award_reward_event RPC with normalized awarded payloads', async () => {
     const client = {
       rpc: vi.fn(async () => ({
         data: {
@@ -159,11 +195,8 @@ describe('rewardEventService', () => {
       })),
     };
 
-    const result = await awardBackendRewardEvent(payload, { client, enabled: true });
+    await awardBackendRewardEvent(payload, { client, enabled: true });
 
-    expect(result.status).toBe(BACKEND_REWARD_STATUSES.AWARDED);
-    expect(result.xpAwarded).toBe(25);
-    expect(result.totalXp).toBe(125);
     expect(client.rpc).toHaveBeenCalledWith('award_reward_event', {
       p_event_key: event.key,
       p_event_type: REWARD_EVENT_TYPES.LESSON_COMPLETE,
@@ -172,46 +205,6 @@ describe('rewardEventService', () => {
       p_metadata: { rewardKey: 'lesson_complete:lesson-01' },
       p_source: 'test',
     });
-  });
-
-  it('normalizes duplicate backend events to skipped', async () => {
-    const client = {
-      rpc: vi.fn(async () => ({
-        data: {
-          status: 'skipped',
-          xp_awarded: 0,
-          total_xp: 125,
-        },
-        error: null,
-      })),
-    };
-
-    const result = await awardBackendRewardEvent(payload, { client, enabled: true });
-
-    expect(result.status).toBe(BACKEND_REWARD_STATUSES.SKIPPED);
-    expect(result.xpAwarded).toBe(0);
-    expect(result.totalXp).toBe(125);
-  });
-
-  it('normalizes failed RPC payloads to failed', async () => {
-    const client = {
-      rpc: vi.fn(async () => ({
-        data: {
-          status: 'failed',
-          reason: 'not_authenticated',
-          xp_awarded: 0,
-          total_xp: null,
-        },
-        error: null,
-      })),
-    };
-
-    const result = await awardBackendRewardEvent(payload, { client, enabled: true });
-
-    expect(result.status).toBe(BACKEND_REWARD_STATUSES.FAILED);
-    expect(result.reason).toBe('not_authenticated');
-    expect(result.xpAwarded).toBe(0);
-    expect(result.totalXp).toBeNull();
   });
 
   it('returns failed for invalid payloads before calling the backend', async () => {

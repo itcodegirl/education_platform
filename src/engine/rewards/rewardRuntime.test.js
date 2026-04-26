@@ -85,9 +85,11 @@ describe('awardRewardOnce', () => {
 
   it('uses local rewards when backend sync is disabled', async () => {
     const backendRewardAward = vi.fn();
+    const diagnoseBackendRewardSync = vi.fn();
     const deps = createRewardDeps({
       backendRewardSyncEnabled: false,
       backendRewardAward,
+      diagnoseBackendRewardSync,
     });
 
     const result = await awardRewardOnce(deps);
@@ -95,15 +97,32 @@ describe('awardRewardOnce', () => {
     expect(result.status).toBe(REWARD_PROCESSOR_STATUSES.APPLIED);
     expect(result.source).not.toBe('backend-reward-event');
     expect(backendRewardAward).not.toHaveBeenCalled();
+    expect(diagnoseBackendRewardSync).toHaveBeenCalledWith(expect.objectContaining({
+      phase: 'runtime-start',
+      featureFlagEnabled: false,
+      userAuthenticated: true,
+      backendAwardAttempted: false,
+      reason: 'backend_sync_disabled',
+    }));
+    expect(diagnoseBackendRewardSync).toHaveBeenCalledWith(expect.objectContaining({
+      phase: 'feature-flag-local-fallback',
+      featureFlagEnabled: false,
+      userAuthenticated: true,
+      backendAwardAttempted: false,
+      resultStatus: BACKEND_REWARD_STATUSES.DISABLED,
+      reason: 'backend_reward_sync_disabled',
+    }));
     expect(deps.awardXP).toHaveBeenCalledWith(25, 'Lesson completed');
   });
 
   it('uses local rewards when no authenticated learner key exists', async () => {
     const backendRewardAward = vi.fn();
+    const diagnoseBackendRewardSync = vi.fn();
     const deps = createRewardDeps({
       learnerKey: '',
       backendRewardSyncEnabled: true,
       backendRewardAward,
+      diagnoseBackendRewardSync,
     });
 
     const result = await awardRewardOnce(deps);
@@ -111,6 +130,21 @@ describe('awardRewardOnce', () => {
     expect(result.status).toBe(REWARD_PROCESSOR_STATUSES.APPLIED);
     expect(result.source).toBe('legacy-reward-history');
     expect(backendRewardAward).not.toHaveBeenCalled();
+    expect(diagnoseBackendRewardSync).toHaveBeenCalledWith(expect.objectContaining({
+      phase: 'runtime-start',
+      featureFlagEnabled: true,
+      userAuthenticated: false,
+      backendAwardAttempted: false,
+      reason: 'backend_sync_enabled',
+    }));
+    expect(diagnoseBackendRewardSync).toHaveBeenCalledWith(expect.objectContaining({
+      phase: 'unauthenticated-local-fallback',
+      featureFlagEnabled: true,
+      userAuthenticated: false,
+      backendAwardAttempted: false,
+      resultStatus: BACKEND_REWARD_STATUSES.DISABLED,
+      reason: 'missing_learner_key',
+    }));
     expect(deps.awardXP).toHaveBeenCalledWith(25, 'Lesson completed');
   });
 
@@ -278,10 +312,12 @@ describe('awardRewardOnce', () => {
       totalXp: 150,
       xpAwarded: 25,
     }));
+    const diagnoseBackendRewardSync = vi.fn();
     const deps = createRewardDeps({
       storage,
       backendRewardSyncEnabled: true,
       backendRewardAward,
+      diagnoseBackendRewardSync,
     });
 
     const result = await awardRewardOnce(deps);
@@ -289,6 +325,15 @@ describe('awardRewardOnce', () => {
     expect(result.status).toBe(REWARD_PROCESSOR_STATUSES.SKIPPED);
     expect(result.source).toBe('local-reward-ledger');
     expect(backendRewardAward).not.toHaveBeenCalled();
+    expect(diagnoseBackendRewardSync).toHaveBeenCalledWith(expect.objectContaining({
+      phase: 'local-ledger-dedupe-skip',
+      featureFlagEnabled: true,
+      userAuthenticated: true,
+      backendAwardAttempted: false,
+      resultStatus: BACKEND_REWARD_STATUSES.SKIPPED,
+      reason: 'local_ledger_processed',
+    }));
+    expect(JSON.stringify(diagnoseBackendRewardSync.mock.calls)).not.toContain('backend-award-attempt');
     expect(deps.awardXP).not.toHaveBeenCalled();
   });
 
