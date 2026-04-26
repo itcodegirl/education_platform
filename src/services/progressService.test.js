@@ -124,7 +124,7 @@ describe('removeLesson', () => {
 });
 
 describe('saveQuizScore', () => {
-  it('upserts to quiz_scores with a completed_at timestamp', async () => {
+  it('upserts the first quiz score using the user_id + quiz_key conflict target', async () => {
     const chain = makeChain(null);
     mockFrom.mockReturnValue(chain);
     await saveQuizScore(UID, 'html|mod1', '80');
@@ -136,6 +136,48 @@ describe('saveQuizScore', () => {
         score: '80',
         completed_at: expect.any(String),
       }),
+      {
+        onConflict: 'user_id,quiz_key',
+      },
+    );
+  });
+
+  it('uses the same conflict-safe upsert for repeated quiz score saves', async () => {
+    const chain = makeChain(null);
+    mockFrom.mockReturnValue(chain);
+
+    await saveQuizScore(UID, 'html|mod1', '80');
+    await saveQuizScore(UID, 'html|mod1', '80');
+
+    expect(chain.upsert).toHaveBeenCalledTimes(2);
+    expect(chain.upsert).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        user_id: UID,
+        quiz_key: 'html|mod1',
+        score: '80',
+      }),
+      {
+        onConflict: 'user_id,quiz_key',
+      },
+    );
+  });
+
+  it('updates an improved quiz score through the same conflict target', async () => {
+    const chain = makeChain(null);
+    mockFrom.mockReturnValue(chain);
+
+    await saveQuizScore(UID, 'html|mod1', '90');
+
+    expect(chain.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_id: UID,
+        quiz_key: 'html|mod1',
+        score: '90',
+      }),
+      {
+        onConflict: 'user_id,quiz_key',
+      },
     );
   });
 });

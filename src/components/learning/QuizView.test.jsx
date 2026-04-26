@@ -105,6 +105,34 @@ describe('QuizView', () => {
     });
   });
 
+  it('does not overwrite a better saved score with a lower retry score', async () => {
+    const saveQuizScore = vi.fn();
+    mockUseProgressData.mockReturnValue({
+      quizScores: { 'html-foundations-quiz': '1/1' },
+      saveQuizScore,
+      hasRewardBeenAwarded: vi.fn(() => false),
+      markRewardAwarded: vi.fn(() => true),
+      markSyncFailed: vi.fn(),
+    });
+
+    render(
+      <QuizView
+        quiz={quiz}
+        accent="#4ecdc4"
+        label="Module Quiz"
+        quizKey="html-foundations-quiz"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /<p>/i }));
+    fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Best score saved to your progress/i)).toBeInTheDocument();
+    });
+    expect(saveQuizScore).not.toHaveBeenCalled();
+  });
+
   it('does not award quiz XP again on retry after both quiz rewards are earned', async () => {
     const awarded = new Set();
     const awardXP = vi.fn();

@@ -103,6 +103,8 @@ export function saveQuizScore(uid, quizKey, score) {
     quiz_key: quizKey,
     score,
     completed_at: new Date().toISOString(),
+  }, {
+    onConflict: 'user_id,quiz_key',
   });
 }
 
