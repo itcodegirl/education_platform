@@ -92,11 +92,11 @@ function AppDataGate({ theme, dataLoaded, loadError, retryLoad }) {
   return <AppLayout />;
 }
 
-function ProtectedRoute({ children }) {
+export function ProtectedRoute({ children }) {
   const { theme } = useTheme();
-  const { user, profile, loading: authLoading, signOut } = useAuth();
+  const { user, profile, loading: authLoading, profileLoading, signOut } = useAuth();
 
-  if (authLoading) {
+  if (authLoading || (user && profileLoading)) {
     return (
       <RouteLoadingScreen theme={theme} size="lg">
         <p style={{ marginTop: '16px', opacity: 0.5 }}>Checking your account session...</p>

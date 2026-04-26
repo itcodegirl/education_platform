@@ -3,7 +3,7 @@
 // All Supabase logic lives in services/authService.js
 // ═══════════════════════════════════════════════
 
-import { createContext, useContext, useEffect, useState, useMemo } from 'react';
+import { createContext, useContext, useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import * as authService from '../services/authService';
 
 const AuthContext = createContext({
@@ -24,9 +24,14 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
+  const authInitRequestRef = useRef(0);
+  const profileRequestRef = useRef(0);
 
   // ─── Load profile ──────────────────────────
-  const handleLoadProfile = async (userId) => {
+  const handleLoadProfile = useCallback(async (userId) => {
+    const requestId = profileRequestRef.current + 1;
+    profileRequestRef.current = requestId;
+
     if (!userId) {
       setProfile(null);
       setProfileLoading(false);
@@ -35,46 +40,64 @@ export function AuthProvider({ children }) {
     setProfileLoading(true);
     try {
       const data = await authService.loadProfile(userId);
+      if (profileRequestRef.current !== requestId) return;
       setProfile(data);
     } catch {
+      if (profileRequestRef.current !== requestId) return;
       setProfile(null);
     } finally {
-      setProfileLoading(false);
-    }
-  };
-
-  // ─── Get initial session ──────────────────
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const u = await authService.getInitialSession();
-        setUser(u);
-        if (u) await handleLoadProfile(u.id);
-      } catch (err) {
-        console.error('Auth session error:', err.message);
-        setUser(null);
-        setProfile(null);
+      if (profileRequestRef.current === requestId) {
         setProfileLoading(false);
-      } finally {
+      }
+    }
+  }, []);
+
+  // Auth restoration and auth-change events share one guarded path.
+  useEffect(() => {
+    let active = true;
+    let initialSessionResolved = false;
+    const requestId = authInitRequestRef.current + 1;
+    authInitRequestRef.current = requestId;
+
+    const applyAuthUser = (nextUser, { markInitialized = false } = {}) => {
+      if (!active || authInitRequestRef.current !== requestId) return;
+      setUser(nextUser);
+      handleLoadProfile(nextUser?.id);
+      if (markInitialized || initialSessionResolved) {
         setLoading(false);
       }
     };
-    init();
-  }, []);
 
-  // ─── Listen for auth changes ──────────────
-  useEffect(() => {
-    const subscription = authService.onAuthStateChange((u) => {
-      setUser(u);
-      if (u) {
-        handleLoadProfile(u.id);
-      } else {
-        setProfile(null);
-        setProfileLoading(false);
+    const init = async () => {
+      setLoading(true);
+      try {
+        const u = await authService.getInitialSession();
+        initialSessionResolved = true;
+        applyAuthUser(u, { markInitialized: true });
+      } catch (err) {
+        if (!active || authInitRequestRef.current !== requestId) return;
+        initialSessionResolved = true;
+        console.error('Auth session error:', err.message);
+        applyAuthUser(null, { markInitialized: true });
+      } finally {
+        initialSessionResolved = true;
+        if (active && authInitRequestRef.current === requestId) {
+          setLoading(false);
+        }
       }
+    };
+
+    const subscription = authService.onAuthStateChange((u) => {
+      applyAuthUser(u);
     });
-    return () => subscription.unsubscribe();
-  }, []);
+
+    init();
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, [handleLoadProfile]);
 
   // ─── Auth actions (thin wrappers) ─────────
   const signIn = async (email, password) => {

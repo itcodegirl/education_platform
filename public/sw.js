@@ -1,7 +1,7 @@
 ﻿// Service worker for CodeHerWay.
 // Keep navigation network-first so deploys pick up the latest HTML shell.
 
-const CACHE_VERSION = 'v8';
+const CACHE_VERSION = 'v9';
 const CACHE_PREFIX = 'chw-';
 const SHELL_CACHE = `${CACHE_PREFIX}shell-${CACHE_VERSION}`;
 const DATA_CACHE = `${CACHE_PREFIX}data-${CACHE_VERSION}`;
@@ -71,6 +71,13 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate' || request.destination === 'document') {
     event.respondWith(networkFirstNavigation(request));
+    return;
+  }
+
+  // Supabase Auth endpoints carry session identity and refresh state.
+  // Let them bypass the service worker entirely so deploy/cache updates
+  // cannot replay stale auth responses or interfere with token refresh.
+  if (url.hostname.includes('supabase') && url.pathname.includes('/auth/v1/')) {
     return;
   }
 

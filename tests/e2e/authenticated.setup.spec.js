@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 const authDir = path.join(process.cwd(), 'playwright', '.auth');
 const authFile = path.join(authDir, 'user.json');
@@ -33,7 +33,7 @@ test('capture authenticated storage state', async ({ page }) => {
 		await page.getByRole('button', { name: /log in/i }).last().click();
 	}
 
-	await page.waitForSelector('.topbar, .shell', { timeout: 30000 });
+	await waitForAuthenticatedShell(page);
 
 	const startFreshButton = page.getByRole('button', { name: /start fresh/i });
 	if (await startFreshButton.isVisible().catch(() => false)) {
@@ -43,3 +43,21 @@ test('capture authenticated storage state', async ({ page }) => {
 	fs.mkdirSync(authDir, { recursive: true });
 	await page.context().storageState({ path: authFile });
 });
+
+async function waitForAuthenticatedShell(page) {
+	await page.waitForFunction(() => {
+		const isVisible = (selector) => {
+			const element = document.querySelector(selector);
+			return Boolean(element && (element.offsetWidth || element.offsetHeight || element.getClientRects().length));
+		};
+
+		return isVisible('.topbar') &&
+			isVisible('#course-sidebar') &&
+			isVisible('.main-shell') &&
+			!isVisible('.auth-card');
+	}, null, { timeout: 30000 });
+
+	await expect(page.locator('.topbar')).toBeVisible({ timeout: 30000 });
+	await expect(page.locator('#course-sidebar')).toBeVisible({ timeout: 30000 });
+	await expect(page.locator('.main-shell')).toBeVisible({ timeout: 30000 });
+}
