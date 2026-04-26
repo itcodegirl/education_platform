@@ -7,6 +7,8 @@ export const BACKEND_REWARD_STATUSES = Object.freeze({
   DISABLED: 'disabled',
 });
 
+export const BACKEND_REWARD_DIAGNOSTIC_EVENT = 'codeherway:backend-reward-sync';
+
 const SUPPORTED_EVENT_TYPES = new Set(Object.values(REWARD_EVENT_TYPES));
 
 function normalizeString(value, label) {
@@ -45,6 +47,22 @@ function getImportMetaEnv() {
   return typeof import.meta !== 'undefined' ? import.meta.env || {} : {};
 }
 
+function normalizeBooleanFlag(value) {
+  return String(value || '').trim().toLowerCase() === 'true';
+}
+
+function normalizeDiagnosticString(value) {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed || null;
+}
+
+function normalizeDiagnosticBoolean(value) {
+  if (value === true) return true;
+  if (value === false) return false;
+  return null;
+}
+
 export function normalizeBackendRewardPayload(payload = {}) {
   const event = payload.event || {};
   const eventKey = payload.eventKey ?? event.key;
@@ -74,7 +92,44 @@ export function isSupabaseRewardBackendConfigured(env = getImportMetaEnv()) {
 }
 
 export function isBackendRewardSyncEnabled(env = getImportMetaEnv()) {
-  return env?.VITE_REWARD_BACKEND_SYNC_ENABLED === 'true';
+  return normalizeBooleanFlag(env?.VITE_REWARD_BACKEND_SYNC_ENABLED);
+}
+
+export function createBackendRewardDiagnostic(detail = {}) {
+  return {
+    phase: normalizeDiagnosticString(detail.phase) || 'unknown',
+    featureFlagEnabled: Boolean(detail.featureFlagEnabled),
+    userAuthenticated: normalizeDiagnosticBoolean(detail.userAuthenticated),
+    backendAwardAttempted: Boolean(detail.backendAwardAttempted),
+    resultStatus: normalizeDiagnosticString(detail.resultStatus),
+    reason: normalizeDiagnosticString(detail.reason),
+    eventType: normalizeDiagnosticString(detail.eventType),
+    entityId: normalizeDiagnosticString(detail.entityId),
+    timestamp: new Date().toISOString(),
+  };
+}
+
+export function emitBackendRewardDiagnostic(detail = {}, options = {}) {
+  const diagnostic = createBackendRewardDiagnostic(detail);
+
+  if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+    try {
+      window.dispatchEvent(new CustomEvent(BACKEND_REWARD_DIAGNOSTIC_EVENT, {
+        detail: diagnostic,
+      }));
+    } catch {
+      // Diagnostics should never break reward fallback behavior.
+    }
+  }
+
+  const env = options.env || getImportMetaEnv();
+  const shouldLogToConsole = options.logToConsole ?? env.MODE !== 'test';
+  const logger = options.logger || console;
+  if (shouldLogToConsole && logger?.info) {
+    logger.info('[CodeHerWay] backend reward sync', diagnostic);
+  }
+
+  return diagnostic;
 }
 
 function shouldAttemptBackendRewardSync(options = {}) {

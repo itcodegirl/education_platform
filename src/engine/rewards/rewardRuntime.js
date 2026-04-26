@@ -8,6 +8,7 @@ import {
 import {
   BACKEND_REWARD_STATUSES,
   awardBackendRewardEvent,
+  emitBackendRewardDiagnostic,
 } from '../../services/rewardEventService';
 
 function getErrorMessage(error) {
@@ -78,6 +79,30 @@ function withBackendResult(result, backendResult) {
   return backendResult ? { ...result, backendResult } : result;
 }
 
+function createBackendDiagnosticEmitter({
+  learnerKey,
+  event,
+  backendRewardSyncEnabled,
+  diagnoseBackendRewardSync,
+}) {
+  return (detail = {}) => {
+    try {
+      return diagnoseBackendRewardSync({
+        phase: detail.phase,
+        featureFlagEnabled: Boolean(backendRewardSyncEnabled),
+        userAuthenticated: Boolean(learnerKey),
+        backendAwardAttempted: Boolean(detail.backendAwardAttempted),
+        resultStatus: detail.resultStatus || null,
+        reason: detail.reason || null,
+        eventType: event?.type || null,
+        entityId: event?.targetId || null,
+      });
+    } catch {
+      return null;
+    }
+  };
+}
+
 export async function awardRewardOnce({
   learnerKey = '',
   event,
@@ -93,8 +118,30 @@ export async function awardRewardOnce({
   backendRewardSyncEnabled = false,
   backendRewardAward = awardBackendRewardEvent,
   backendRewardSource = 'client',
+  diagnoseBackendRewardSync = emitBackendRewardDiagnostic,
 }) {
+  const diagnoseBackend = createBackendDiagnosticEmitter({
+    learnerKey,
+    event,
+    backendRewardSyncEnabled,
+    diagnoseBackendRewardSync,
+  });
+
+  diagnoseBackend({
+    phase: 'runtime-start',
+    backendAwardAttempted: false,
+    resultStatus: null,
+    reason: backendRewardSyncEnabled ? 'backend_sync_enabled' : 'backend_sync_disabled',
+  });
+
   if (hasRewardBeenAwarded(legacyRewardKey)) {
+    diagnoseBackend({
+      phase: 'legacy-dedupe-skip',
+      backendAwardAttempted: false,
+      resultStatus: BACKEND_REWARD_STATUSES.SKIPPED,
+      reason: 'legacy_reward_history',
+    });
+
     const queueResult = recordQueueState({
       learnerKey,
       event,
@@ -127,6 +174,13 @@ export async function awardRewardOnce({
   };
 
   if (!learnerKey) {
+    diagnoseBackend({
+      phase: 'unauthenticated-local-fallback',
+      backendAwardAttempted: false,
+      resultStatus: BACKEND_REWARD_STATUSES.DISABLED,
+      reason: backendRewardSyncEnabled ? 'missing_learner_key' : 'backend_sync_disabled',
+    });
+
     const rewardResult = applyReward();
     return {
       status: rewardResult.xpAwarded > 0
@@ -150,6 +204,13 @@ export async function awardRewardOnce({
   if (backendRewardSyncEnabled) {
     const localProcessedResult = readLocalProcessedEvent({ learnerKey, event, storage });
     if (localProcessedResult.status === 'processed') {
+      diagnoseBackend({
+        phase: 'local-ledger-dedupe-skip',
+        backendAwardAttempted: false,
+        resultStatus: BACKEND_REWARD_STATUSES.SKIPPED,
+        reason: 'local_ledger_processed',
+      });
+
       const queueResult = recordQueueState({
         learnerKey,
         event,
@@ -173,12 +234,26 @@ export async function awardRewardOnce({
       };
     }
 
+    diagnoseBackend({
+      phase: 'backend-award-attempt',
+      backendAwardAttempted: true,
+      resultStatus: 'pending',
+      reason: null,
+    });
+
     const backendResult = await backendRewardAward({
       event,
       xpAmount,
       source: backendRewardSource,
     }, {
       enabled: true,
+    });
+
+    diagnoseBackend({
+      phase: 'backend-award-result',
+      backendAwardAttempted: true,
+      resultStatus: backendResult.status,
+      reason: backendResult.reason || null,
     });
 
     if (backendResult.status === BACKEND_REWARD_STATUSES.AWARDED) {
@@ -269,6 +344,13 @@ export async function awardRewardOnce({
       applyReward,
     });
   }
+
+  diagnoseBackend({
+    phase: 'feature-flag-local-fallback',
+    backendAwardAttempted: false,
+    resultStatus: BACKEND_REWARD_STATUSES.DISABLED,
+    reason: 'backend_reward_sync_disabled',
+  });
 
   const result = await processRewardEvent(learnerKey, event, {
     storage,

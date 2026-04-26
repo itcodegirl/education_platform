@@ -2,8 +2,11 @@ import { describe, expect, it, vi } from 'vitest';
 import { REWARD_EVENT_TYPES } from '../engine/rewards/rewardEventTypes';
 import { createRewardEvent } from '../engine/rewards/rewardEvents';
 import {
+  BACKEND_REWARD_DIAGNOSTIC_EVENT,
   BACKEND_REWARD_STATUSES,
   awardBackendRewardEvent,
+  createBackendRewardDiagnostic,
+  emitBackendRewardDiagnostic,
   isBackendRewardSyncEnabled,
   isSupabaseRewardBackendConfigured,
   normalizeBackendRewardPayload,
@@ -36,6 +39,7 @@ describe('rewardEventService', () => {
     expect(isBackendRewardSyncEnabled({})).toBe(false);
     expect(isBackendRewardSyncEnabled({ VITE_REWARD_BACKEND_SYNC_ENABLED: 'false' })).toBe(false);
     expect(isBackendRewardSyncEnabled({ VITE_REWARD_BACKEND_SYNC_ENABLED: 'true' })).toBe(true);
+    expect(isBackendRewardSyncEnabled({ VITE_REWARD_BACKEND_SYNC_ENABLED: ' TRUE ' })).toBe(true);
   });
 
   it('normalizes event-shaped backend reward payloads', () => {
@@ -47,6 +51,63 @@ describe('rewardEventService', () => {
       metadata: { rewardKey: 'lesson_complete:lesson-01' },
       source: 'test',
     });
+  });
+
+  it('creates safe diagnostics without reward event keys or learner IDs', () => {
+    const diagnostic = createBackendRewardDiagnostic({
+      phase: 'backend-award-result',
+      featureFlagEnabled: true,
+      userAuthenticated: true,
+      backendAwardAttempted: true,
+      resultStatus: BACKEND_REWARD_STATUSES.AWARDED,
+      reason: 'ok',
+      eventType: REWARD_EVENT_TYPES.LESSON_COMPLETE,
+      entityId: 'lesson-01',
+      eventKey: event.key,
+      learnerKey: 'learner-123',
+    });
+
+    expect(diagnostic).toEqual({
+      phase: 'backend-award-result',
+      featureFlagEnabled: true,
+      userAuthenticated: true,
+      backendAwardAttempted: true,
+      resultStatus: BACKEND_REWARD_STATUSES.AWARDED,
+      reason: 'ok',
+      eventType: REWARD_EVENT_TYPES.LESSON_COMPLETE,
+      entityId: 'lesson-01',
+      timestamp: expect.any(String),
+    });
+    expect(diagnostic.eventKey).toBeUndefined();
+    expect(diagnostic.learnerKey).toBeUndefined();
+  });
+
+  it('emits reward diagnostics as a browser event and safe console payload', () => {
+    const listener = vi.fn();
+    const logger = { info: vi.fn() };
+    window.addEventListener(BACKEND_REWARD_DIAGNOSTIC_EVENT, listener);
+
+    const diagnostic = emitBackendRewardDiagnostic({
+      phase: 'backend-award-attempt',
+      featureFlagEnabled: true,
+      userAuthenticated: true,
+      backendAwardAttempted: true,
+      resultStatus: 'pending',
+      eventType: REWARD_EVENT_TYPES.LESSON_COMPLETE,
+      entityId: 'lesson-01',
+    }, {
+      logger,
+      logToConsole: true,
+    });
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(listener.mock.calls[0][0].detail).toEqual(diagnostic);
+    expect(logger.info).toHaveBeenCalledWith(
+      '[CodeHerWay] backend reward sync',
+      diagnostic,
+    );
+
+    window.removeEventListener(BACKEND_REWARD_DIAGNOSTIC_EVENT, listener);
   });
 
   it('returns disabled when the backend flag is off', async () => {

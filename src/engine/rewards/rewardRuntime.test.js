@@ -148,6 +148,55 @@ describe('awardRewardOnce', () => {
     });
   });
 
+  it('emits safe diagnostics and attempts backend sync when enabled with a learner key', async () => {
+    const backendRewardAward = vi.fn(async () => ({
+      status: BACKEND_REWARD_STATUSES.AWARDED,
+      totalXp: 125,
+      xpAwarded: 25,
+    }));
+    const diagnoseBackendRewardSync = vi.fn();
+    const deps = createRewardDeps({
+      backendRewardSyncEnabled: true,
+      backendRewardAward,
+      diagnoseBackendRewardSync,
+    });
+
+    const result = await awardRewardOnce(deps);
+
+    expect(result.source).toBe('backend-reward-event');
+    expect(backendRewardAward).toHaveBeenCalledTimes(1);
+    expect(diagnoseBackendRewardSync).toHaveBeenCalledWith(expect.objectContaining({
+      phase: 'runtime-start',
+      featureFlagEnabled: true,
+      userAuthenticated: true,
+      backendAwardAttempted: false,
+      reason: 'backend_sync_enabled',
+      eventType: REWARD_EVENT_TYPES.LESSON_COMPLETE,
+      entityId: 'lesson-01',
+    }));
+    expect(diagnoseBackendRewardSync).toHaveBeenCalledWith(expect.objectContaining({
+      phase: 'backend-award-attempt',
+      featureFlagEnabled: true,
+      userAuthenticated: true,
+      backendAwardAttempted: true,
+      resultStatus: 'pending',
+      eventType: REWARD_EVENT_TYPES.LESSON_COMPLETE,
+      entityId: 'lesson-01',
+    }));
+    expect(diagnoseBackendRewardSync).toHaveBeenCalledWith(expect.objectContaining({
+      phase: 'backend-award-result',
+      featureFlagEnabled: true,
+      userAuthenticated: true,
+      backendAwardAttempted: true,
+      resultStatus: BACKEND_REWARD_STATUSES.AWARDED,
+      eventType: REWARD_EVENT_TYPES.LESSON_COMPLETE,
+      entityId: 'lesson-01',
+    }));
+    const diagnosticPayloads = JSON.stringify(diagnoseBackendRewardSync.mock.calls);
+    expect(diagnosticPayloads).not.toContain(deps.event.key);
+    expect(diagnosticPayloads).not.toContain(learnerKey);
+  });
+
   it('treats backend duplicate rewards as skipped and records local dedupe state', async () => {
     const backendRewardAward = vi.fn(async () => ({
       status: BACKEND_REWARD_STATUSES.SKIPPED,
