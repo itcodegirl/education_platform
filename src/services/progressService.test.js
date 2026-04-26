@@ -39,6 +39,7 @@ function makeChain(data, error = null) {
     eq: vi.fn(() => chain),
     delete: vi.fn(() => chain),
     upsert: vi.fn(() => result),
+    update: vi.fn(() => chain),
     maybeSingle: vi.fn(() => result),
     then: result.then.bind(result),
     catch: result.catch.bind(result),
@@ -49,6 +50,7 @@ function makeChain(data, error = null) {
 const UID = '00000000-0000-0000-0000-000000000001';
 
 beforeEach(() => {
+  mockFrom.mockReset();
   // Default: every table returns empty data, no error
   mockFrom.mockImplementation(() => makeChain([], null));
 });
@@ -127,58 +129,125 @@ describe('saveQuizScore', () => {
   it('upserts the first quiz score using the user_id + quiz_key conflict target', async () => {
     const chain = makeChain(null);
     mockFrom.mockReturnValue(chain);
-    await saveQuizScore(UID, 'html|mod1', '80');
+    await saveQuizScore(UID, 'html|mod1', '8/10');
     expect(mockFrom).toHaveBeenCalledWith('quiz_scores');
     expect(chain.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         user_id: UID,
         quiz_key: 'html|mod1',
-        score: '80',
+        score: '8/10',
         completed_at: expect.any(String),
       }),
       {
         onConflict: 'user_id,quiz_key',
+        ignoreDuplicates: false,
       },
     );
   });
 
-  it('uses the same conflict-safe upsert for repeated quiz score saves', async () => {
-    const chain = makeChain(null);
-    mockFrom.mockReturnValue(chain);
+  it('handles duplicate identical quiz score saves without surfacing a conflict', async () => {
+    const upsertChain = makeChain(null, {
+      status: 409,
+      message: 'duplicate key value violates unique constraint',
+    });
+    const selectChain = makeChain({ score: '8/10' });
+    const logger = { info: vi.fn() };
+    const storage = {
+      getItem: vi.fn((key) => (key === 'debug-quiz-score-save' ? 'true' : null)),
+    };
+    mockFrom
+      .mockReturnValueOnce(upsertChain)
+      .mockReturnValueOnce(selectChain);
 
-    await saveQuizScore(UID, 'html|mod1', '80');
-    await saveQuizScore(UID, 'html|mod1', '80');
+    const result = await saveQuizScore(UID, 'html|mod1', '8/10', { logger, storage });
 
-    expect(chain.upsert).toHaveBeenCalledTimes(2);
-    expect(chain.upsert).toHaveBeenNthCalledWith(
-      2,
+    expect(result).toMatchObject({
+      error: null,
+      conflictHandled: true,
+      skipped: true,
+    });
+    expect(upsertChain.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         user_id: UID,
         quiz_key: 'html|mod1',
-        score: '80',
+        score: '8/10',
       }),
       {
         onConflict: 'user_id,quiz_key',
+        ignoreDuplicates: false,
       },
+    );
+    expect(selectChain.select).toHaveBeenCalledWith('score');
+    expect(selectChain.eq).toHaveBeenCalledWith('user_id', UID);
+    expect(selectChain.eq).toHaveBeenCalledWith('quiz_key', 'html|mod1');
+    expect(selectChain.update).not.toHaveBeenCalled();
+    expect(logger.info).toHaveBeenCalledWith(
+      '[CodeHerWay] quiz score save',
+      expect.objectContaining({
+        attempted: true,
+        upsertUsed: true,
+        conflictHandled: true,
+        finalResult: 'skipped_existing_best',
+      }),
     );
   });
 
-  it('updates an improved quiz score through the same conflict target', async () => {
-    const chain = makeChain(null);
-    mockFrom.mockReturnValue(chain);
+  it('updates an improved quiz score after a production upsert conflict', async () => {
+    const upsertChain = makeChain(null, {
+      status: 409,
+      message: 'duplicate key value violates unique constraint',
+    });
+    const selectChain = makeChain({ score: '1/2' });
+    const updateChain = makeChain(null);
+    mockFrom
+      .mockReturnValueOnce(upsertChain)
+      .mockReturnValueOnce(selectChain)
+      .mockReturnValueOnce(updateChain);
 
-    await saveQuizScore(UID, 'html|mod1', '90');
+    const result = await saveQuizScore(UID, 'html|mod1', '2/2');
 
-    expect(chain.upsert).toHaveBeenCalledWith(
+    expect(result).toMatchObject({
+      error: null,
+      conflictHandled: true,
+      skipped: false,
+    });
+    expect(upsertChain.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         user_id: UID,
         quiz_key: 'html|mod1',
-        score: '90',
+        score: '2/2',
       }),
       {
         onConflict: 'user_id,quiz_key',
+        ignoreDuplicates: false,
       },
     );
+    expect(updateChain.update).toHaveBeenCalledWith({
+      score: '2/2',
+      completed_at: expect.any(String),
+    });
+    expect(updateChain.eq).toHaveBeenCalledWith('user_id', UID);
+    expect(updateChain.eq).toHaveBeenCalledWith('quiz_key', 'html|mod1');
+  });
+
+  it('does not overwrite a higher quiz score after a production upsert conflict', async () => {
+    const upsertChain = makeChain(null, {
+      status: 409,
+      message: 'duplicate key value violates unique constraint',
+    });
+    const selectChain = makeChain({ score: '2/2' });
+    mockFrom
+      .mockReturnValueOnce(upsertChain)
+      .mockReturnValueOnce(selectChain);
+
+    const result = await saveQuizScore(UID, 'html|mod1', '1/2');
+
+    expect(result).toMatchObject({
+      error: null,
+      conflictHandled: true,
+      skipped: true,
+    });
+    expect(selectChain.update).not.toHaveBeenCalled();
   });
 });
 

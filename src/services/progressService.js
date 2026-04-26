@@ -4,6 +4,91 @@
 // ═══════════════════════════════════════════════
 
 import { supabase } from '../lib/supabaseClient';
+import { parseQuizScore } from './rewardPolicy';
+
+const QUIZ_SCORE_CONFLICT_TARGET = 'user_id,quiz_key';
+const QUIZ_SCORE_DEBUG_KEYS = Object.freeze([
+  'debug-quiz-score-save',
+  'debug-reward-sync',
+]);
+
+function isQuizScoreDebugEnabled(storage = globalThis.localStorage) {
+  try {
+    return QUIZ_SCORE_DEBUG_KEYS.some((key) => storage?.getItem(key) === 'true');
+  } catch {
+    return false;
+  }
+}
+
+function emitQuizScoreDiagnostic(detail, options = {}) {
+  const debugEnabled = options.debugEnabled ?? isQuizScoreDebugEnabled(options.storage);
+  if (!debugEnabled) return null;
+
+  const diagnostic = {
+    phase: detail.phase || 'unknown',
+    attempted: Boolean(detail.attempted),
+    upsertUsed: Boolean(detail.upsertUsed),
+    conflictHandled: Boolean(detail.conflictHandled),
+    finalResult: detail.finalResult || null,
+    quizKey: typeof detail.quizKey === 'string' ? detail.quizKey : null,
+    reason: typeof detail.reason === 'string' ? detail.reason : null,
+    errorMessage: typeof detail.errorMessage === 'string' ? detail.errorMessage : null,
+  };
+  const logger = options.logger || console;
+  if (logger?.info) {
+    logger.info('[CodeHerWay] quiz score save', diagnostic);
+  }
+
+  return diagnostic;
+}
+
+function getErrorMessage(error) {
+  if (!error) return null;
+  if (typeof error.message === 'string' && error.message.trim()) return error.message.trim();
+  if (typeof error.details === 'string' && error.details.trim()) return error.details.trim();
+  return null;
+}
+
+function isConflictError(error) {
+  if (!error) return false;
+  const status = Number(error.status || error.code);
+  const message = `${error.message || ''} ${error.details || ''}`.toLowerCase();
+  return status === 409 ||
+    error.code === '23505' ||
+    message.includes('duplicate key') ||
+    message.includes('unique constraint') ||
+    message.includes('conflict');
+}
+
+function compareQuizScores(currentScoreValue, nextScoreValue) {
+  const current = parseQuizScore(currentScoreValue);
+  const next = parseQuizScore(nextScoreValue);
+
+  if (current && next) {
+    if (next.pct !== current.pct) return next.pct - current.pct;
+    return next.score - current.score;
+  }
+
+  if (!current && next) return 1;
+  if (current && !next) return -1;
+
+  const currentNumber = Number(currentScoreValue);
+  const nextNumber = Number(nextScoreValue);
+  if (Number.isFinite(currentNumber) && Number.isFinite(nextNumber)) {
+    return nextNumber - currentNumber;
+  }
+
+  return String(nextScoreValue || '').localeCompare(String(currentScoreValue || ''));
+}
+
+function createQuizScorePayload(uid, quizKey, score) {
+  return {
+    user_id: uid,
+    quiz_key: quizKey,
+    score,
+    completed_at: new Date().toISOString(),
+  };
+}
 
 // ─── Fetch all user data on login ───────────
 export async function fetchAllUserData(uid) {
@@ -97,15 +182,114 @@ export function removeLesson(uid, lessonKey) {
 }
 
 // ─── Quiz Scores ────────────────────────────
-export function saveQuizScore(uid, quizKey, score) {
-  return supabase.from('quiz_scores').upsert({
-    user_id: uid,
-    quiz_key: quizKey,
-    score,
-    completed_at: new Date().toISOString(),
-  }, {
-    onConflict: 'user_id,quiz_key',
+export async function saveQuizScore(uid, quizKey, score, options = {}) {
+  const payload = createQuizScorePayload(uid, quizKey, score);
+  emitQuizScoreDiagnostic({
+    phase: 'attempted',
+    attempted: true,
+    upsertUsed: true,
+    conflictHandled: false,
+    finalResult: 'pending',
+    quizKey,
+  }, options);
+
+  const upsertResult = await supabase.from('quiz_scores').upsert(payload, {
+    onConflict: QUIZ_SCORE_CONFLICT_TARGET,
+    ignoreDuplicates: false,
   });
+
+  if (!upsertResult?.error) {
+    emitQuizScoreDiagnostic({
+      phase: 'final',
+      attempted: true,
+      upsertUsed: true,
+      conflictHandled: false,
+      finalResult: 'saved',
+      quizKey,
+    }, options);
+    return {
+      ...upsertResult,
+      conflictHandled: false,
+      skipped: false,
+    };
+  }
+
+  if (!isConflictError(upsertResult.error)) {
+    emitQuizScoreDiagnostic({
+      phase: 'final',
+      attempted: true,
+      upsertUsed: true,
+      conflictHandled: false,
+      finalResult: 'failed',
+      quizKey,
+      errorMessage: getErrorMessage(upsertResult.error),
+    }, options);
+    return upsertResult;
+  }
+
+  const existingResult = await supabase
+    .from('quiz_scores')
+    .select('score')
+    .eq('user_id', uid)
+    .eq('quiz_key', quizKey)
+    .maybeSingle();
+
+  if (existingResult?.error) {
+    emitQuizScoreDiagnostic({
+      phase: 'final',
+      attempted: true,
+      upsertUsed: true,
+      conflictHandled: true,
+      finalResult: 'failed',
+      quizKey,
+      reason: 'conflict_read_failed',
+      errorMessage: getErrorMessage(existingResult.error),
+    }, options);
+    return existingResult;
+  }
+
+  const existingScore = existingResult?.data?.score;
+  if (existingScore && compareQuizScores(existingScore, score) <= 0) {
+    emitQuizScoreDiagnostic({
+      phase: 'final',
+      attempted: true,
+      upsertUsed: true,
+      conflictHandled: true,
+      finalResult: 'skipped_existing_best',
+      quizKey,
+    }, options);
+    return {
+      data: existingResult.data,
+      error: null,
+      conflictHandled: true,
+      skipped: true,
+    };
+  }
+
+  const updateResult = await supabase
+    .from('quiz_scores')
+    .update({
+      score,
+      completed_at: payload.completed_at,
+    })
+    .eq('user_id', uid)
+    .eq('quiz_key', quizKey);
+
+  emitQuizScoreDiagnostic({
+    phase: 'final',
+    attempted: true,
+    upsertUsed: true,
+    conflictHandled: true,
+    finalResult: updateResult?.error ? 'failed' : 'updated_existing',
+    quizKey,
+    errorMessage: getErrorMessage(updateResult?.error),
+  }, options);
+
+  return {
+    ...updateResult,
+    conflictHandled: true,
+    skipped: false,
+  };
 }
 
 // ─── XP ─────────────────────────────────────
