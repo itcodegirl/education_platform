@@ -3,15 +3,46 @@
 const ANALYTICS_QUEUE_KEY = '__cinovaAnalyticsQueue';
 const ANALYTICS_STORAGE_KEY = 'cinova.analytics.queue.v1';
 const ANALYTICS_EVENT_NAME = 'cinova:analytics';
+const ANALYTICS_DEBUG_STORAGE_KEY = 'debug-analytics';
 const MAX_ANALYTICS_QUEUE = 200;
 const MAX_EVENT_NAME_CHARS = 80;
 const FLUSH_BATCH_SIZE = 25;
 const FLUSH_TRIGGER_SIZE = 10;
 const FLUSH_INTERVAL_MS = 30_000;
+const ANALYTICS_INGEST_PATH = '/.netlify/functions/analytics-ingest';
 
 let analyticsInitialized = false;
 let flushTimer = null;
 let inFlightFlush = null;
+let analyticsIngestSuppressed = false;
+
+function isEnabledFlag(value) {
+  return String(value || '').trim().toLowerCase() === 'true';
+}
+
+export function isAnalyticsConfigured(env = import.meta.env) {
+  return Boolean(
+    isEnabledFlag(env?.VITE_ANALYTICS_ENABLED) &&
+    env?.VITE_SUPABASE_URL &&
+    env?.VITE_SUPABASE_ANON_KEY,
+  );
+}
+
+export function isAnalyticsDebugEnabled(env = import.meta.env, storage = null) {
+  if (isEnabledFlag(env?.VITE_ANALYTICS_DEBUG)) return true;
+  const targetStorage = storage || (typeof window !== 'undefined' ? window.localStorage : null);
+
+  try {
+    return targetStorage?.getItem?.(ANALYTICS_DEBUG_STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function logAnalyticsDebug(message, detail = {}) {
+  if (!isAnalyticsDebugEnabled()) return;
+  console.info('[codeherway analytics]', message, detail);
+}
 
 function getSafePayload(payload) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return {};
@@ -77,28 +108,62 @@ function trimQueue(count) {
 }
 
 async function getAccessToken() {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  return session?.access_token || '';
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    return session?.access_token || '';
+  } catch {
+    return '';
+  }
 }
 
 async function postBatch(events) {
   if (!events.length) return true;
+  if (!isAnalyticsConfigured() || analyticsIngestSuppressed) {
+    logAnalyticsDebug('ingest-skipped', {
+      reason: analyticsIngestSuppressed ? 'suppressed' : 'not_configured',
+      count: events.length,
+    });
+    return false;
+  }
+
   const accessToken = await getAccessToken();
-  if (!accessToken) return false;
+  if (!accessToken) {
+    logAnalyticsDebug('ingest-skipped', { reason: 'missing_session', count: events.length });
+    return false;
+  }
 
-  const response = await fetch('/.netlify/functions/analytics-ingest', {
-    method: 'POST',
-    keepalive: true,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify({ events }),
-  });
+  try {
+    const response = await fetch(ANALYTICS_INGEST_PATH, {
+      method: 'POST',
+      keepalive: true,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ events }),
+    });
 
-  return response.ok;
+    if (response.status === 401 || response.status === 403) {
+      analyticsIngestSuppressed = true;
+      logAnalyticsDebug('ingest-suppressed', {
+        reason: 'unauthorized',
+        status: response.status,
+      });
+      return false;
+    }
+
+    if (!response.ok) {
+      logAnalyticsDebug('ingest-failed', { status: response.status });
+      return false;
+    }
+
+    return true;
+  } catch {
+    logAnalyticsDebug('ingest-failed', { reason: 'network_error' });
+    return false;
+  }
 }
 
 function scheduleFlushLoop() {
@@ -123,6 +188,7 @@ function onVisibilityChange() {
 
 export async function flushAnalyticsQueue({ force = false } = {}) {
   if (typeof window === 'undefined') return false;
+  if (!isAnalyticsConfigured() || analyticsIngestSuppressed) return false;
   if (inFlightFlush && !force) return inFlightFlush;
   if (!force && document.visibilityState === 'hidden') return false;
 
@@ -155,6 +221,12 @@ export async function flushAnalyticsQueue({ force = false } = {}) {
 
 export function initializeAnalytics() {
   if (typeof window === 'undefined' || analyticsInitialized) return;
+  if (!isAnalyticsConfigured() || analyticsIngestSuppressed) {
+    logAnalyticsDebug('initialize-skipped', {
+      reason: analyticsIngestSuppressed ? 'suppressed' : 'not_configured',
+    });
+    return;
+  }
 
   analyticsInitialized = true;
   getQueue();
@@ -176,6 +248,13 @@ export function trackEvent(name, payload = {}) {
 
   const eventName = normalizeEventName(name);
   if (!eventName) return;
+  if (!isAnalyticsConfigured() || analyticsIngestSuppressed) {
+    logAnalyticsDebug('track-skipped', {
+      reason: analyticsIngestSuppressed ? 'suppressed' : 'not_configured',
+      name: eventName,
+    });
+    return;
+  }
 
   initializeAnalytics();
 
@@ -193,8 +272,8 @@ export function trackEvent(name, payload = {}) {
     void flushAnalyticsQueue();
   }
 
-  if (import.meta.env.DEV && import.meta.env.VITE_ANALYTICS_DEBUG === 'true') {
-    console.info('[codeherway analytics]', entry);
+  if (isAnalyticsDebugEnabled()) {
+    console.info('[codeherway analytics]', 'event-queued', entry);
   }
 }
 
