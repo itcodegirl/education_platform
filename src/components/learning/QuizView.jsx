@@ -20,6 +20,7 @@ import {
   isQuizScoreImprovement,
   rewardKeys,
 } from '../../services/rewardPolicy';
+import { isBackendRewardSyncEnabled } from '../../services/rewardEventService';
 import { REWARD_EVENT_TYPES } from '../../engine/rewards/rewardEventTypes';
 import { createRewardEvent } from '../../engine/rewards/rewardEvents';
 import { awardRewardOnce } from '../../engine/rewards/rewardRuntime';
@@ -245,6 +246,7 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
   const [answers, setAnswers] = useState(new Map());
   const [submitted, setSubmitted] = useState(false);
   const [lastEarnedXp, setLastEarnedXp] = useState(0);
+  const backendRewardSyncEnabled = Boolean(user?.id) && isBackendRewardSyncEnabled();
 
   const setAnswer = (qId, value) => {
     if (submitted) return;
@@ -283,6 +285,7 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
         xpAmount: REWARD_XP.quizComplete,
         reason: 'Quiz completed',
         markSyncFailed,
+        backendRewardSyncEnabled,
       });
       earnedXp += completionResult.rewardResult?.xpAwarded || 0;
 
@@ -303,6 +306,7 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
           xpAmount: REWARD_XP.quizPerfect,
           reason: 'Perfect quiz score!',
           markSyncFailed,
+          backendRewardSyncEnabled,
         });
         earnedXp += perfectResult.rewardResult?.xpAwarded || 0;
       }
@@ -344,6 +348,7 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
     hasRewardBeenAwarded,
     markRewardAwarded,
     markSyncFailed,
+    backendRewardSyncEnabled,
     awardXP,
     recordDailyActivity,
     saveQuizScore,

@@ -8,6 +8,7 @@ export const BACKEND_REWARD_STATUSES = Object.freeze({
 });
 
 export const BACKEND_REWARD_DIAGNOSTIC_EVENT = 'codeherway:backend-reward-sync';
+export const BACKEND_REWARD_DEBUG_STORAGE_KEY = 'debug-reward-sync';
 
 const SUPPORTED_EVENT_TYPES = new Set(Object.values(REWARD_EVENT_TYPES));
 
@@ -63,6 +64,26 @@ function normalizeDiagnosticBoolean(value) {
   return null;
 }
 
+function getSafeErrorMessage(error) {
+  if (!error) return null;
+  if (typeof error === 'string') return normalizeDiagnosticString(error);
+  if (typeof error.message === 'string') return normalizeDiagnosticString(error.message);
+  return 'Unknown backend reward error';
+}
+
+function getRpcFailureMessage(data) {
+  if (!data || typeof data !== 'object') return null;
+  return normalizeDiagnosticString(data.message) || normalizeDiagnosticString(data.reason);
+}
+
+export function isRewardSyncDebugLoggingEnabled(storage = globalThis.localStorage) {
+  try {
+    return storage?.getItem(BACKEND_REWARD_DEBUG_STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
 export function normalizeBackendRewardPayload(payload = {}) {
   const event = payload.event || {};
   const eventKey = payload.eventKey ?? event.key;
@@ -95,8 +116,8 @@ export function isBackendRewardSyncEnabled(env = getImportMetaEnv()) {
   return normalizeBooleanFlag(env?.VITE_REWARD_BACKEND_SYNC_ENABLED);
 }
 
-export function createBackendRewardDiagnostic(detail = {}) {
-  return {
+export function createBackendRewardDiagnostic(detail = {}, options = {}) {
+  const diagnostic = {
     phase: normalizeDiagnosticString(detail.phase) || 'unknown',
     featureFlagEnabled: Boolean(detail.featureFlagEnabled),
     userAuthenticated: normalizeDiagnosticBoolean(detail.userAuthenticated),
@@ -107,10 +128,21 @@ export function createBackendRewardDiagnostic(detail = {}) {
     entityId: normalizeDiagnosticString(detail.entityId),
     timestamp: new Date().toISOString(),
   };
+
+  if (options.includeDebugDetails) {
+    diagnostic.eventKey = normalizeDiagnosticString(detail.eventKey);
+    diagnostic.errorMessage = normalizeDiagnosticString(detail.errorMessage);
+    diagnostic.supabaseConfigured = normalizeDiagnosticBoolean(detail.supabaseConfigured);
+  }
+
+  return diagnostic;
 }
 
 export function emitBackendRewardDiagnostic(detail = {}, options = {}) {
-  const diagnostic = createBackendRewardDiagnostic(detail);
+  const debugEnabled = options.debugEnabled ?? isRewardSyncDebugLoggingEnabled(options.storage);
+  const diagnostic = createBackendRewardDiagnostic(detail, {
+    includeDebugDetails: debugEnabled,
+  });
 
   if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
     try {
@@ -122,8 +154,7 @@ export function emitBackendRewardDiagnostic(detail = {}, options = {}) {
     }
   }
 
-  const env = options.env || getImportMetaEnv();
-  const shouldLogToConsole = options.logToConsole ?? env.MODE !== 'test';
+  const shouldLogToConsole = debugEnabled && (options.logToConsole ?? true);
   const logger = options.logger || console;
   if (shouldLogToConsole && logger?.info) {
     logger.info('[CodeHerWay] backend reward sync', diagnostic);
@@ -158,6 +189,40 @@ async function resolveSupabaseClient(options = {}) {
   }
 }
 
+async function resolveAuthenticatedUser(client) {
+  if (!client?.auth?.getUser) {
+    return {
+      checked: false,
+      authUserPresent: null,
+    };
+  }
+
+  try {
+    const { data, error } = await client.auth.getUser();
+    if (error) {
+      return {
+        checked: true,
+        authUserPresent: false,
+        disabledReason: 'missing_authenticated_user',
+        error,
+      };
+    }
+
+    return {
+      checked: true,
+      authUserPresent: Boolean(data?.user?.id),
+      disabledReason: data?.user?.id ? null : 'missing_authenticated_user',
+    };
+  } catch (error) {
+    return {
+      checked: true,
+      authUserPresent: false,
+      disabledReason: 'auth_check_failed',
+      error,
+    };
+  }
+}
+
 export async function awardBackendRewardEvent(payload, options = {}) {
   if (!shouldAttemptBackendRewardSync(options)) {
     return {
@@ -172,6 +237,7 @@ export async function awardBackendRewardEvent(payload, options = {}) {
   } catch (error) {
     return {
       status: BACKEND_REWARD_STATUSES.FAILED,
+      errorMessage: getSafeErrorMessage(error),
       error,
     };
   }
@@ -182,7 +248,21 @@ export async function awardBackendRewardEvent(payload, options = {}) {
       status: BACKEND_REWARD_STATUSES.DISABLED,
       reason: disabledReason || 'supabase_client_unavailable',
       payload: normalizedPayload,
+      authUserPresent: null,
+      errorMessage: getSafeErrorMessage(clientError),
       error: clientError,
+    };
+  }
+
+  const authResult = await resolveAuthenticatedUser(client);
+  if (authResult.checked && !authResult.authUserPresent) {
+    return {
+      status: BACKEND_REWARD_STATUSES.DISABLED,
+      reason: authResult.disabledReason || 'missing_authenticated_user',
+      payload: normalizedPayload,
+      authUserPresent: false,
+      errorMessage: getSafeErrorMessage(authResult.error) || authResult.disabledReason,
+      error: authResult.error,
     };
   }
 
@@ -200,15 +280,22 @@ export async function awardBackendRewardEvent(payload, options = {}) {
       return {
         status: BACKEND_REWARD_STATUSES.FAILED,
         payload: normalizedPayload,
+        authUserPresent: authResult.authUserPresent,
+        errorMessage: getSafeErrorMessage(error),
         error,
       };
     }
 
+    const status = normalizeRpcStatus(data?.status);
     return {
-      status: normalizeRpcStatus(data?.status),
+      status,
       reason: typeof data?.reason === 'string' ? data.reason : null,
       payload: normalizedPayload,
       data,
+      authUserPresent: authResult.authUserPresent,
+      errorMessage: status === BACKEND_REWARD_STATUSES.FAILED
+        ? getRpcFailureMessage(data)
+        : null,
       xpAwarded: Number.isInteger(data?.xp_awarded) ? data.xp_awarded : 0,
       totalXp: Number.isInteger(data?.total_xp) ? data.total_xp : null,
     };
@@ -216,6 +303,8 @@ export async function awardBackendRewardEvent(payload, options = {}) {
     return {
       status: BACKEND_REWARD_STATUSES.FAILED,
       payload: normalizedPayload,
+      authUserPresent: authResult.authUserPresent,
+      errorMessage: getSafeErrorMessage(error),
       error,
     };
   }

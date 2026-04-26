@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QuizView } from './QuizView';
+import { awardRewardOnce } from '../../engine/rewards/rewardRuntime';
 import { rewardKeys } from '../../services/rewardPolicy';
 
 const { mockUseAuth, mockUseProgressData, mockUseXP, mockUseSR } = vi.hoisted(() => ({
@@ -15,6 +16,26 @@ vi.mock('../../providers', () => ({
   useProgressData: () => mockUseProgressData(),
   useXP: () => mockUseXP(),
   useSR: () => mockUseSR(),
+}));
+
+vi.mock('../../engine/rewards/rewardRuntime', () => ({
+  awardRewardOnce: vi.fn(async ({
+    legacyRewardKey,
+    markRewardAwarded = () => false,
+    awardXP = () => {},
+    xpAmount = 0,
+    reason = '',
+  }) => {
+    const awarded = markRewardAwarded(legacyRewardKey);
+    if (awarded) {
+      awardXP(xpAmount, reason);
+    }
+    return {
+      rewardResult: {
+        xpAwarded: awarded ? xpAmount : 0,
+      },
+    };
+  }),
 }));
 
 const quiz = {
@@ -34,6 +55,8 @@ let learnerCounter = 0;
 
 describe('QuizView', () => {
   beforeEach(() => {
+    vi.unstubAllEnvs();
+    vi.mocked(awardRewardOnce).mockClear();
     learnerCounter += 1;
     mockUseAuth.mockReturnValue({ user: { id: `learner-${learnerCounter}` } });
     mockUseProgressData.mockReturnValue({
@@ -131,6 +154,35 @@ describe('QuizView', () => {
         rewardKeys.quizPerfect('html-foundations-quiz'),
       );
       expect(screen.getByText(/XP already earned/i)).toBeInTheDocument();
+    });
+  });
+
+  it('passes the backend reward sync flag into direct quiz reward calls', async () => {
+    vi.stubEnv('VITE_REWARD_BACKEND_SYNC_ENABLED', 'true');
+
+    render(
+      <QuizView
+        quiz={quiz}
+        accent="#4ecdc4"
+        label="Module Quiz"
+        quizKey="html-foundations-quiz"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /<h1>/i }));
+    fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
+
+    await waitFor(() => {
+      expect(awardRewardOnce).toHaveBeenCalledTimes(2);
+    });
+
+    expect(vi.mocked(awardRewardOnce).mock.calls[0][0]).toMatchObject({
+      learnerKey: expect.stringMatching(/^learner-/),
+      backendRewardSyncEnabled: true,
+    });
+    expect(vi.mocked(awardRewardOnce).mock.calls[1][0]).toMatchObject({
+      learnerKey: expect.stringMatching(/^learner-/),
+      backendRewardSyncEnabled: true,
     });
   });
 });

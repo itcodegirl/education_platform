@@ -15,6 +15,22 @@ function getErrorMessage(error) {
   return error instanceof Error ? error.message : String(error || 'Unknown reward error');
 }
 
+function getBackendResultErrorMessage(backendResult) {
+  if (!backendResult) return null;
+  if (typeof backendResult.errorMessage === 'string' && backendResult.errorMessage.trim()) {
+    return backendResult.errorMessage.trim();
+  }
+  if (backendResult.error) return getErrorMessage(backendResult.error);
+  if (
+    (backendResult.status === BACKEND_REWARD_STATUSES.FAILED ||
+      backendResult.status === BACKEND_REWARD_STATUSES.DISABLED) &&
+    typeof backendResult.reason === 'string'
+  ) {
+    return backendResult.reason;
+  }
+  return null;
+}
+
 function recordQueueState({
   learnerKey,
   event,
@@ -90,12 +106,16 @@ function createBackendDiagnosticEmitter({
       return diagnoseBackendRewardSync({
         phase: detail.phase,
         featureFlagEnabled: Boolean(backendRewardSyncEnabled),
-        userAuthenticated: Boolean(learnerKey),
+        userAuthenticated: typeof detail.userAuthenticated === 'boolean'
+          ? detail.userAuthenticated
+          : Boolean(learnerKey),
         backendAwardAttempted: Boolean(detail.backendAwardAttempted),
         resultStatus: detail.resultStatus || null,
         reason: detail.reason || null,
+        eventKey: event?.key || null,
         eventType: event?.type || null,
         entityId: event?.targetId || null,
+        errorMessage: detail.errorMessage || null,
       });
     } catch {
       return null;
@@ -239,8 +259,12 @@ export async function awardRewardOnce({
     diagnoseBackend({
       phase: 'backend-award-result',
       backendAwardAttempted: true,
+      userAuthenticated: typeof backendResult.authUserPresent === 'boolean'
+        ? backendResult.authUserPresent
+        : undefined,
       resultStatus: backendResult.status,
       reason: backendResult.reason || null,
+      errorMessage: getBackendResultErrorMessage(backendResult),
     });
 
     if (backendResult.status === BACKEND_REWARD_STATUSES.AWARDED) {

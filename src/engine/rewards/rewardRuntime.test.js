@@ -205,6 +205,7 @@ describe('awardRewardOnce', () => {
       userAuthenticated: true,
       backendAwardAttempted: false,
       reason: 'backend_sync_enabled',
+      eventKey: deps.event.key,
       eventType: REWARD_EVENT_TYPES.LESSON_COMPLETE,
       entityId: 'lesson-01',
     }));
@@ -214,6 +215,7 @@ describe('awardRewardOnce', () => {
       userAuthenticated: true,
       backendAwardAttempted: true,
       resultStatus: 'pending',
+      eventKey: deps.event.key,
       eventType: REWARD_EVENT_TYPES.LESSON_COMPLETE,
       entityId: 'lesson-01',
     }));
@@ -223,12 +225,10 @@ describe('awardRewardOnce', () => {
       userAuthenticated: true,
       backendAwardAttempted: true,
       resultStatus: BACKEND_REWARD_STATUSES.AWARDED,
+      eventKey: deps.event.key,
       eventType: REWARD_EVENT_TYPES.LESSON_COMPLETE,
       entityId: 'lesson-01',
     }));
-    const diagnosticPayloads = JSON.stringify(diagnoseBackendRewardSync.mock.calls);
-    expect(diagnosticPayloads).not.toContain(deps.event.key);
-    expect(diagnosticPayloads).not.toContain(learnerKey);
   });
 
   it('treats backend duplicate rewards as skipped and records local dedupe state', async () => {
@@ -261,11 +261,15 @@ describe('awardRewardOnce', () => {
   it('falls back to local rewards when backend sync fails', async () => {
     const backendRewardAward = vi.fn(async () => ({
       status: BACKEND_REWARD_STATUSES.FAILED,
+      reason: 'database_error',
+      errorMessage: 'relation "public.xp" does not exist',
       error: new Error('network unavailable'),
     }));
+    const diagnoseBackendRewardSync = vi.fn();
     const deps = createRewardDeps({
       backendRewardSyncEnabled: true,
       backendRewardAward,
+      diagnoseBackendRewardSync,
     });
 
     const result = await awardRewardOnce(deps);
@@ -275,6 +279,16 @@ describe('awardRewardOnce', () => {
     expect(deps.markSyncFailed).toHaveBeenCalledWith(
       'backend reward failed:lesson-complete:lesson-01:learner-123',
     );
+    expect(diagnoseBackendRewardSync).toHaveBeenCalledWith(expect.objectContaining({
+      phase: 'backend-award-result',
+      featureFlagEnabled: true,
+      userAuthenticated: true,
+      backendAwardAttempted: true,
+      resultStatus: BACKEND_REWARD_STATUSES.FAILED,
+      reason: 'database_error',
+      eventKey: deps.event.key,
+      errorMessage: 'relation "public.xp" does not exist',
+    }));
     expect(deps.awardXP).toHaveBeenCalledWith(25, 'Lesson completed');
     expect(readRewardQueue(learnerKey, { storage: deps.storage }).queue.items[0]).toMatchObject({
       event: deps.event,
