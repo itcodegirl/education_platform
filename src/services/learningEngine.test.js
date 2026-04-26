@@ -8,6 +8,7 @@
 // ═══════════════════════════════════════════════
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { waitFor } from '@testing-library/react';
 import { readRewardLedger } from '../engine/rewards/rewardLedger';
 import { createLearningEngine } from './learningEngine';
 import { rewardKeys } from './rewardPolicy';
@@ -19,6 +20,14 @@ function createMemoryStorage(initialEntries = {}) {
     getItem: (key) => (entries.has(key) ? entries.get(key) : null),
     setItem: (key, value) => entries.set(key, String(value)),
   };
+}
+
+function createDeferred() {
+  let resolve;
+  const promise = new Promise((res) => {
+    resolve = res;
+  });
+  return { promise, resolve };
 }
 
 function buildDeps(overrides = {}) {
@@ -47,12 +56,14 @@ describe('createLearningEngine → completeLesson', () => {
 
     expect(deps.toggleLesson).toHaveBeenCalledTimes(1);
     expect(deps.toggleLesson).toHaveBeenCalledWith('html|intro|first', {});
-    expect(deps.markRewardAwarded).toHaveBeenCalledWith(
-      rewardKeys.lessonComplete('html|intro|first'),
-    );
-    expect(deps.awardXP).toHaveBeenCalledTimes(1);
-    expect(deps.awardXP).toHaveBeenCalledWith(25, 'Lesson completed'); // XP_VALUES.lesson
-    expect(deps.recordDailyActivity).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(deps.markRewardAwarded).toHaveBeenCalledWith(
+        rewardKeys.lessonComplete('html|intro|first'),
+      );
+      expect(deps.awardXP).toHaveBeenCalledTimes(1);
+      expect(deps.awardXP).toHaveBeenCalledWith(25, 'Lesson completed'); // XP_VALUES.lesson
+      expect(deps.recordDailyActivity).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('toggles a completed lesson OFF without awarding XP again', async () => {
@@ -79,6 +90,11 @@ describe('createLearningEngine → completeLesson', () => {
 
     expect(deps.toggleLesson).toHaveBeenCalledTimes(1);
     expect(deps.toggleLesson).toHaveBeenCalledWith('html|intro|first', {});
+    await waitFor(() => {
+      expect(deps.hasRewardBeenAwarded).toHaveBeenCalledWith(
+        rewardKeys.lessonComplete('html|intro|first'),
+      );
+    });
     expect(deps.markRewardAwarded).not.toHaveBeenCalled();
     expect(deps.awardXP).not.toHaveBeenCalled();
     expect(deps.recordDailyActivity).not.toHaveBeenCalled();
@@ -94,7 +110,13 @@ describe('createLearningEngine → completeLesson', () => {
 
     await engine.completeLesson('html|intro|first');
 
-    const result = readRewardLedger('learner-123', { storage: rewardEventStorage });
+    let result;
+    await waitFor(() => {
+      result = readRewardLedger('learner-123', { storage: rewardEventStorage });
+      expect(result.ledger.processedKeys).toEqual([
+        'lesson-complete:html|intro|first:learner-123',
+      ]);
+    });
     expect(result.ledger.processedKeys).toEqual([
       'lesson-complete:html|intro|first:learner-123',
     ]);
@@ -106,6 +128,54 @@ describe('createLearningEngine → completeLesson', () => {
       metadata: {
         rewardKey: rewardKeys.lessonComplete('html|intro|first'),
       },
+    });
+  });
+
+  it('does not wait for backend reward processing before returning to the caller', async () => {
+    const backendAttempt = createDeferred();
+    const deps = buildDeps({
+      learnerKey: 'learner-123',
+      backendRewardSyncEnabled: true,
+      backendRewardAward: vi.fn(() => backendAttempt.promise),
+    });
+    const engine = createLearningEngine(deps);
+    const navigation = vi.fn();
+
+    await engine.toggleLessonDone('html|intro|first');
+    navigation();
+
+    expect(deps.toggleLesson).toHaveBeenCalledWith('html|intro|first', {});
+    expect(navigation).toHaveBeenCalledTimes(1);
+    expect(deps.awardXP).not.toHaveBeenCalled();
+
+    backendAttempt.resolve({ status: 'awarded', xpAwarded: 25, totalXp: 25 });
+    await waitFor(() => {
+      expect(deps.awardXP).toHaveBeenCalledWith(25, 'Lesson completed', { skipRemote: true });
+    });
+  });
+
+  it('keeps the caller unblocked when background lesson reward processing fails', async () => {
+    const deps = buildDeps({
+      learnerKey: 'learner-123',
+      backendRewardSyncEnabled: true,
+      backendRewardAward: vi.fn(async () => ({
+        status: 'failed',
+        reason: 'backend unavailable',
+        errorMessage: 'backend unavailable',
+      })),
+    });
+    const engine = createLearningEngine(deps);
+    const navigation = vi.fn();
+
+    await engine.toggleLessonDone('html|intro|first');
+    navigation();
+
+    expect(deps.toggleLesson).toHaveBeenCalledWith('html|intro|first', {});
+    expect(navigation).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(deps.markSyncFailed).toHaveBeenCalledWith(
+        'backend reward failed:lesson-complete:html|intro|first:learner-123',
+      );
     });
   });
 });
@@ -139,7 +209,9 @@ describe('createLearningEngine → toggleLessonDone', () => {
     await engine.toggleLessonDone('x|y|z');
 
     expect(deps.toggleLesson).toHaveBeenCalled();
-    expect(deps.awardXP).toHaveBeenCalledWith(25, 'Lesson completed');
+    await waitFor(() => {
+      expect(deps.awardXP).toHaveBeenCalledWith(25, 'Lesson completed');
+    });
   });
 
   it('routes to uncompleteLesson when already done (no XP awarded again)', () => {

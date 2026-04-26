@@ -14,6 +14,14 @@ import { REWARD_EVENT_TYPES } from '../engine/rewards/rewardEventTypes';
 import { createRewardEvent } from '../engine/rewards/rewardEvents';
 import { awardRewardOnce } from '../engine/rewards/rewardRuntime';
 
+function runRewardInBackground(rewardWork, onFailure = () => {}) {
+  Promise.resolve()
+    .then(rewardWork)
+    .catch((error) => {
+      onFailure(error);
+    });
+}
+
 export function createLearningEngine({
   toggleLesson,
   saveQuizScore,
@@ -38,26 +46,36 @@ export function createLearningEngine({
     toggleLesson(lessonKey, options);
 
     if (!alreadyDone) {
-      await awardRewardOnce({
-        learnerKey,
-        event: createRewardEvent({
-          type: REWARD_EVENT_TYPES.LESSON_COMPLETE,
-          targetId: lessonKey,
-          learnerKey: learnerKey || 'legacy-local',
-          metadata: { rewardKey },
-        }),
-        legacyRewardKey: rewardKey,
-        hasRewardBeenAwarded,
-        markRewardAwarded,
-        awardXP,
-        xpAmount: REWARD_XP.lessonComplete,
-        reason: 'Lesson completed',
-        onRewardApplied: recordDailyActivity,
-        markSyncFailed,
-        storage: rewardEventStorage,
-        backendRewardSyncEnabled,
-        backendRewardAward,
+      const rewardEvent = createRewardEvent({
+        type: REWARD_EVENT_TYPES.LESSON_COMPLETE,
+        targetId: lessonKey,
+        learnerKey: learnerKey || 'legacy-local',
+        metadata: { rewardKey },
       });
+
+      runRewardInBackground(
+        () => awardRewardOnce({
+          learnerKey,
+          event: rewardEvent,
+          legacyRewardKey: rewardKey,
+          hasRewardBeenAwarded,
+          markRewardAwarded,
+          awardXP,
+          xpAmount: REWARD_XP.lessonComplete,
+          reason: 'Lesson completed',
+          onRewardApplied: recordDailyActivity,
+          markSyncFailed,
+          storage: rewardEventStorage,
+          backendRewardSyncEnabled,
+          backendRewardAward,
+        }),
+        (error) => {
+          markSyncFailed(`lesson reward failed:${rewardEvent.key}`);
+          if (import.meta.env.DEV) {
+            console.warn('[LearningEngine] lesson reward failed:', error);
+          }
+        },
+      );
     }
   }
 
