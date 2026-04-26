@@ -338,7 +338,7 @@ export const Sidebar = memo(function Sidebar({
 
   return (
     <>
-      {isMobile && isOpen && <div className="overlay" onClick={onClose} aria-hidden="true" />}
+      {isMobile && isOpen && <div className="overlay overlay-open" onClick={onClose} aria-hidden="true" />}
       {/* Mobile drawer wrapper carries the dialog semantics; the inner
           navigation remains a semantic <nav> landmark in every mode. */}
       <div

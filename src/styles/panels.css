@@ -690,6 +690,7 @@
   box-shadow:0 18px 44px rgba(0,0,0,0.3);
   overflow-x:auto;
   scrollbar-width:none;
+  pointer-events:none;
 }
 .bottom-tools::-webkit-scrollbar { display: none; }
 
@@ -716,6 +717,7 @@
   justify-content:center;
   box-shadow:0 10px 22px rgba(0,0,0,.14);
   transition:all .25s;
+  pointer-events:auto;
 }
 .tool-btn:hover { transform:translateY(-2px); border-color: rgba(255,255,255,0.16); box-shadow:0 16px 28px rgba(0,0,0,.22); }
 .tool-btn.active {
@@ -751,6 +753,7 @@
 .tool-menu-wrap {
   position: relative;
   display: flex;
+  pointer-events:auto;
 }
 .tool-menu {
   position: absolute;
@@ -765,6 +768,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  pointer-events:auto;
 }
 .tool-menu-item {
   width: 100%;

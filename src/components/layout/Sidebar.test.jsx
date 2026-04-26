@@ -90,6 +90,23 @@ describe('Sidebar', () => {
     expect(secondLesson).toBeDisabled();
   });
 
+  it('fires lesson navigation clicks when free-roam mode is enabled', () => {
+    const onSelectLesson = vi.fn();
+    mockUseLocalStorage.mockReturnValue([false, vi.fn()]);
+    renderSidebar({ onSelectLesson });
+
+    fireEvent.click(screen.getByRole('button', { name: /lesson two/i }));
+
+    expect(onSelectLesson).toHaveBeenCalledWith(0, 1);
+  });
+
+  it('marks the mobile drawer backdrop as the only active click overlay', () => {
+    renderSidebar({ isMobile: true, isOpen: true });
+
+    const overlay = document.querySelector('.overlay');
+    expect(overlay).toHaveClass('overlay-open');
+  });
+
   it('opens Resources popout and triggers selected tool', () => {
     const onOpenTool = vi.fn();
     renderSidebar({ onOpenTool });

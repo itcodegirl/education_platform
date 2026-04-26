@@ -1632,18 +1632,18 @@ img {
   }
 
   .bottom-tools {
-    left: 18px !important;
-    right: auto !important;
-    bottom: 20px !important;
+    left: auto !important;
+    right: 18px !important;
+    bottom: 74px !important;
     transform: none !important;
     flex-direction: column !important;
     max-width: none !important;
   }
 
   .tool-menu {
-    right: auto;
-    left: calc(100% + 8px);
-    bottom: 0;
+    right: 0;
+    left: auto;
+    bottom: calc(100% + 12px);
   }
 
   .theme-toggle {

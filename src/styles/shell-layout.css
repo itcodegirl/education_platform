@@ -22,6 +22,12 @@
   background: rgba(0, 0, 0, 0.6);
   z-index: 90;
   backdrop-filter: blur(4px);
+  pointer-events: none;
+}
+
+.overlay.overlay-open {
+  display: block;
+  pointer-events: auto;
 }
 
 /* ─── 8. Main Content & Topbar ─────────────────── */
