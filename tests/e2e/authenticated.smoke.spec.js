@@ -9,7 +9,7 @@ const requiredEnv = [
 
 const missingEnv = requiredEnv.filter((name) => !process.env[name]);
 
-test.describe.skip('authenticated smoke', () => {
+test.describe('authenticated smoke', () => {
   test.setTimeout(90000);
 
   test.skip(
