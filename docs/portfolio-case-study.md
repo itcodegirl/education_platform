@@ -72,6 +72,7 @@ The goal was to keep the existing core vision and architecture intact while maki
 - Sharper CTA hierarchy in entry flow
 - clearer onboarding and "next step" language
 - improved empty states and helper copy where users previously hit dead ends
+- replaced misleading sync-retry messaging with an honest local-browser warning that does not risk overwriting unsynced learner progress
 
 ### 2. Visual consistency
 

@@ -30,6 +30,7 @@ This project is actively stabilized and is not yet production-grade. The followi
 - Cross-device reward idempotency is backend-ready but not production-complete until those migrations are applied, the feature flag is enabled intentionally, and authenticated duplicate-award behavior is verified.
 - Challenge completion persistence is same-device/localStorage-backed and should not be treated as secure certification.
 - Supabase/localStorage write failures mark sync-failed state in core flows, but automatic backend queue replay/import is still future work.
+- The sync warning banner is intentionally non-destructive. Hiding the warning does not retry failed cloud writes, and the product still needs an explicit replay/import workflow before it can promise durable recovery from every failed write.
 
 ## Search / Content
 
