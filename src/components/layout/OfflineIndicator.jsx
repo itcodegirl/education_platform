@@ -6,7 +6,7 @@ const ONLINE_TOAST_DURATION = 3000;
 export function OfflineIndicator() {
   const [offline, setOffline] = useState(!navigator.onLine);
   const [showOnlineToast, setShowOnlineToast] = useState(false);
-  const { syncFailed, clearSyncFailed, retryLoad } = useProgressData();
+  const { syncFailed, clearSyncFailed } = useProgressData();
 
   useEffect(() => {
     let timer;
@@ -55,14 +55,6 @@ export function OfflineIndicator() {
             : `${syncFailed} progress updates could not sync to the cloud yet.`}
           Your work is still saved on this device.
         </span>
-        <button
-          type="button"
-          className="offline-retry"
-          onClick={() => { retryLoad(); }}
-          aria-label="Retry syncing to the cloud"
-        >
-          Sync now
-        </button>
         <button
           type="button"
           className="offline-dismiss"

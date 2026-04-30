@@ -234,12 +234,37 @@ export async function awardRewardOnce({
         resultStatus: BACKEND_REWARD_STATUSES.SKIPPED,
         reason: 'local_ledger_processed',
       });
+
+      if (!legacyRewardAlreadyAwarded) {
+        markRewardAwarded(legacyRewardKey);
+      }
+
+      const queueResult = recordQueueState({
+        learnerKey,
+        event,
+        legacyRewardKey,
+        status: REWARD_QUEUE_ITEM_STATUSES.PROCESSED,
+        phase: 'local-ledger-skip',
+        storage,
+        markSyncFailed,
+      });
+
+      return {
+        status: REWARD_PROCESSOR_STATUSES.SKIPPED,
+        source: 'local-reward-ledger',
+        rewardResult: {
+          xpAwarded: 0,
+          localSkipped: true,
+          localDedupeSource: 'local-reward-ledger',
+        },
+        ledgerResult: localProcessedResult.ledgerResult,
+        pendingQueueResult,
+        queueResult,
+      };
     }
     const localDedupeSource = legacyRewardAlreadyAwarded
       ? 'legacy-reward-history'
-      : localLedgerAlreadyProcessed
-        ? 'local-reward-ledger'
-        : null;
+      : null;
 
     diagnoseBackend({
       phase: 'backend-award-attempt',
