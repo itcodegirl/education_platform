@@ -4,6 +4,9 @@ dist
 .env.local
 .vscode
 .codex-backup-wrong-local
+Cinova
+codeherway-ceo-os
+supabase/.temp
 playwright-report
 test-results
 scripts/Delete-GitHubRepos.ps1
