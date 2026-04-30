@@ -468,8 +468,13 @@
 }
 
 .panel-close {
-  width: 34px;
-  height: 34px;
+  /* 44x44 to match cheatsheet-close — primary modal-dismiss target,
+     so it needs to clear WCAG 2.5.5 (AAA) on phones. */
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.02);
