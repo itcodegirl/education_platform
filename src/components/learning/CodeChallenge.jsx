@@ -369,6 +369,14 @@ Rules:
               </div>
             ))}
           </div>
+          {/* Transparency: today's tests look at your source text, not the
+              rendered output. That's enough to guide most beginners but
+              easy to game. The preview pane is the source of truth for
+              what your code actually does — trust it over the checklist. */}
+          <p className="cc-results-honest">
+            <strong>How tests work:</strong> these checks read your code, not the live preview.
+            If a test passes but the preview looks wrong, trust the preview.
+          </p>
         </div>
       )}
 

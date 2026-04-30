@@ -28,6 +28,7 @@ This project is actively stabilized and is not yet production-grade. The followi
 - Additive Supabase migrations define `reward_events` and `award_reward_event`, and the frontend has a feature-gated backend reward service wrapper. Backend reward sync remains disabled by default so demos and existing local fallback behavior are preserved.
 - Cross-device reward idempotency is backend-ready but not production-complete until those migrations are applied, the feature flag is enabled intentionally, and authenticated duplicate-award behavior is verified.
 - Challenge completion persistence is same-device/localStorage-backed and should not be treated as secure certification.
+- Challenge auto-grading reads the learner's source text via `string.includes` / regex helpers (see `src/data/{html,css,js,python}/challenges.js`). It is good enough as a beginner guide rail but is intentionally not robust — a learner can pass requirements like "uses `<nav>`" by adding the substring inside an HTML comment. The CodeChallenge UI now states this explicitly under the test results so the limitation is visible to learners. The iframe ref is already plumbed through `runTests` in `src/components/learning/CodeChallenge.jsx`, so a future improvement is to migrate test data to grade against the live iframe DOM.
 - Supabase/localStorage write failures mark sync-failed state in core flows, but automatic backend queue replay/import is still future work.
 
 ## Search / Content

@@ -344,6 +344,22 @@
   font-weight: 700;
 }
 
+/* Honest disclaimer below the test results — reminds the learner that
+   passing the checklist isn't the same as a working result. Subdued
+   styling so it reads as a footnote, not as a warning. */
+.cc-results-honest {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+.cc-results-honest strong {
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
 /* Hint & Solution */
 .cc-hint,
 .cc-solution {
