@@ -3,7 +3,7 @@
 // Pure logic, no state. Context calls these.
 // ═══════════════════════════════════════════════
 
-import { BADGE_DEFS } from '../context/ProgressContext';
+import { BADGE_DEFS } from '../data/badges';
 
 // ─── Badge eligibility check ────────────────
 export function checkBadgeEligibility(

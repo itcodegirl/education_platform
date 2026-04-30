@@ -7,32 +7,11 @@ import { createContext, useContext, useCallback, useEffect, useRef, useState, us
 import { useAuth } from './AuthContext';
 import { DAILY_GOAL, TIMING, getLevel, getTodayString, getYesterdayString } from '../utils/helpers';
 import { COURSES } from '../data';
+import { BADGE_DEFS } from '../data/badges';
 import * as progressService from '../services/progressService';
 import { isPerfectQuizScore, rewardKeys } from '../services/rewardPolicy';
 import { lessonKeysEquivalent, resolveStableLessonKeyAcrossCourses } from '../utils/lessonKeys';
 import { LOCAL_STORAGE_SYNC_ERROR_EVENT } from '../hooks/useLocalStorage';
-
-// ─── Badge Definitions ──────────────────────────
-export const BADGE_DEFS = [
-  { id: 'first_lesson', icon: '🌱', name: 'First Steps', desc: 'Complete your first lesson' },
-  { id: 'five_lessons', icon: '📚', name: 'Getting Started', desc: 'Complete 5 lessons' },
-  { id: 'ten_lessons', icon: '🔥', name: 'On Fire', desc: 'Complete 10 lessons' },
-  { id: 'twenty_lessons', icon: '💪', name: 'Unstoppable', desc: 'Complete 20 lessons' },
-  { id: 'fifty_lessons', icon: '👑', name: 'Legend', desc: 'Complete 50 lessons' },
-  { id: 'first_quiz', icon: '🧠', name: 'Quiz Taker', desc: 'Complete your first quiz' },
-  { id: 'five_quizzes', icon: '🎓', name: 'Scholar', desc: 'Complete 5 quizzes' },
-  { id: 'perfect_quiz', icon: '💯', name: 'Perfectionist', desc: 'Get 100% on any quiz' },
-  { id: 'streak_3', icon: '📅', name: 'Hat Trick', desc: '3-day learning streak' },
-  { id: 'streak_7', icon: '⚡', name: 'Weekly Warrior', desc: '7-day learning streak' },
-  { id: 'level_5', icon: '⭐', name: 'Rising Star', desc: 'Reach Level 5' },
-  { id: 'level_10', icon: '🌟', name: 'Superstar', desc: 'Reach Level 10' },
-  { id: 'night_owl', icon: '🦉', name: 'Night Owl', desc: 'Study after 10 PM' },
-  { id: 'early_bird', icon: '🐦', name: 'Early Bird', desc: 'Study before 7 AM' },
-  { id: 'explorer', icon: '🗺️', name: 'Explorer', desc: 'Visit all 4 course tracks' },
-  { id: 'daily_goal', icon: '🎯', name: 'Goal Crusher', desc: 'Complete your daily goal' },
-  { id: 'bookworm', icon: '📖', name: 'Bookworm', desc: 'Bookmark 10 lessons' },
-  { id: 'note_taker', icon: '✏️', name: 'Note Taker', desc: 'Write 5 notes' },
-];
 
 const ProgressContext = createContext({
   completed: [],

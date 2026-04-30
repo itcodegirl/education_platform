@@ -6,16 +6,13 @@
 // no I/O, no React — so they're trivial to test in
 // pure Node.
 //
-// getNewBadges depends on BADGE_DEFS from ProgressContext
-// (a React module), so we stub that import with a mock
-// so the test file never pulls in React.
+// getNewBadges depends on shared badge metadata. Keep this unit test
+// focused on filtering behavior instead of the full badge catalog.
 // ═══════════════════════════════════════════════
 
 import { describe, it, expect, vi } from 'vitest';
 
-// Stub BADGE_DEFS so importing gamificationService doesn't pull in
-// React via src/context/ProgressContext.jsx.
-vi.mock('../context/ProgressContext', () => ({
+vi.mock('../data/badges', () => ({
   BADGE_DEFS: [
     { id: 'first_lesson', name: 'First Lesson', emoji: '🌱' },
     { id: 'five_lessons', name: 'Five Lessons', emoji: '🌿' },
