@@ -171,17 +171,14 @@ img {
   animation: slideDown 0.3s var(--ease-out), fadeOut 0.5s 2.5s forwards;
 }
 
-/* Sync-failed state — writes to Supabase silently failed. Amber
-   warning, not red (user's local state is still correct — it's a
-   "heads up" not a "disaster"). Two action buttons: Retry (does a
-   full retryLoad) and Dismiss (clears the counter). */
+/* Sync-failed state — writes to Supabase failed, but the learner's
+   latest local state is still available in the current browser. */
 .offline-banner.is-sync-failed {
   background: #f59e0b;
   color: #1a1a2e;
   animation: slideDown 0.3s var(--ease-out);
 }
 
-.offline-retry,
 .offline-dismiss {
   flex-shrink: 0;
   padding: 4px 12px;
@@ -191,17 +188,6 @@ img {
   font-family: inherit;
   cursor: pointer;
   transition: background 0.15s, transform 0.15s;
-}
-
-.offline-retry {
-  background: rgba(0, 0, 0, 0.85);
-  color: #f59e0b;
-  border: 1px solid rgba(0, 0, 0, 0.9);
-}
-
-.offline-retry:hover {
-  transform: translateY(-1px);
-  background: #000;
 }
 
 .offline-dismiss {

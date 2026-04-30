@@ -1,17 +1,28 @@
-﻿import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useProgressData } from '../../providers';
 
 const ONLINE_TOAST_DURATION = 3000;
 
+function getInitialOfflineState() {
+  return typeof navigator !== 'undefined' ? !navigator.onLine : false;
+}
+
 export function OfflineIndicator() {
-  const [offline, setOffline] = useState(!navigator.onLine);
+  const [offline, setOffline] = useState(getInitialOfflineState);
   const [showOnlineToast, setShowOnlineToast] = useState(false);
   const { syncFailed, clearSyncFailed } = useProgressData();
+  const onlineToastTimerRef = useRef(null);
 
   useEffect(() => {
-    let timer;
+    const clearOnlineToastTimer = () => {
+      if (onlineToastTimerRef.current) {
+        clearTimeout(onlineToastTimerRef.current);
+        onlineToastTimerRef.current = null;
+      }
+    };
 
     const handleOffline = () => {
+      clearOnlineToastTimer();
       setOffline(true);
       setShowOnlineToast(false);
     };
@@ -19,60 +30,61 @@ export function OfflineIndicator() {
     const handleOnline = () => {
       setOffline(false);
       setShowOnlineToast(true);
-      timer = setTimeout(() => setShowOnlineToast(false), ONLINE_TOAST_DURATION);
+      clearOnlineToastTimer();
+      onlineToastTimerRef.current = setTimeout(() => {
+        setShowOnlineToast(false);
+        onlineToastTimerRef.current = null;
+      }, ONLINE_TOAST_DURATION);
     };
 
     window.addEventListener('offline', handleOffline);
     window.addEventListener('online', handleOnline);
 
     return () => {
-      clearTimeout(timer);
+      clearOnlineToastTimer();
       window.removeEventListener('offline', handleOffline);
       window.removeEventListener('online', handleOnline);
     };
   }, []);
 
-  // Priority 1: offline
   if (offline) {
     return (
-      <div className="offline-banner is-offline" role="status" aria-live="polite">
+      <div className="offline-banner is-offline" role="status" aria-live="polite" aria-atomic="true">
         <span className="offline-icon" aria-hidden="true">!</span>
         <span className="offline-text">
-          You are offline. You can keep learning, and we will sync your progress automatically when your connection returns.
+          You are offline. You can keep learning in this browser, and new cloud saves can resume after your connection returns.
         </span>
       </div>
     );
   }
 
-  // Priority 2: sync failures (at least one DB write failed silently)
   if (syncFailed > 0) {
     return (
-      <div className="offline-banner is-sync-failed" role="alert" aria-live="assertive">
+      <div className="offline-banner is-sync-failed" role="alert" aria-live="assertive" aria-atomic="true">
         <span className="offline-icon" aria-hidden="true">!</span>
         <span className="offline-text">
           {syncFailed === 1
-            ? 'One progress update could not sync to the cloud yet.'
-            : `${syncFailed} progress updates could not sync to the cloud yet.`}
-          Your work is still saved on this device.
+            ? 'One progress update could not reach the cloud yet.'
+            : `${syncFailed} progress updates could not reach the cloud yet.`}
+          {' '}Your latest work is still available in this browser.
         </span>
         <button
           type="button"
           className="offline-dismiss"
           onClick={clearSyncFailed}
-          aria-label="Dismiss sync warning"
+          aria-label="Hide sync warning"
         >
-          Dismiss
+          Hide
         </button>
       </div>
     );
   }
 
-  // Priority 3: brief "back online" toast after a reconnect
   if (showOnlineToast) {
     return (
-      <div className="offline-banner is-online" role="status" aria-live="polite">
-        <span className="offline-icon" aria-hidden="true">✓</span>
-        <span className="offline-text">Back online. Your progress is syncing now.</span>
+      <div className="offline-banner is-online" role="status" aria-live="polite" aria-atomic="true">
+        <span className="offline-icon" aria-hidden="true">+</span>
+        <span className="offline-text">Back online. New progress saves can reach the cloud again.</span>
       </div>
     );
   }
