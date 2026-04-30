@@ -28,6 +28,8 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 Current baseline checks:
 
 - `npm run build`
+- `npm run lint`
+- `npm run test` (Vitest unit/component suite — passes on a fresh clone with no `.env` configured; the suite stubs the `VITE_SUPABASE_*` placeholders via `vitest.config.js` so client-importing tests can evaluate)
 - `npm run audit:quizzes`
 - `npm run test:e2e` (public smoke path runs by default)
 
@@ -65,6 +67,22 @@ This project is intended to demonstrate:
 - Learning-platform UX and retention-oriented interaction design
 - Honest iteration discipline (audit -> staged repairs -> verification)
 - Ability to assess and improve a real codebase under constraints
+
+Concrete shape of the project at the current commit:
+
+- Four full courses (HTML, CSS, JavaScript, React) with a Python track in roadmap state.
+- A reward system (XP, streaks, badges, bookmarks, spaced-repetition queue) that is event-driven, idempotent (`hasRewardBeenAwarded()` + `markRewardAwarded()`), persisted to Supabase, and reconciles cleanly with the local optimistic state on reload.
+- A lazy-loaded Monaco editor split into multiple chunks via Vite manual chunking so it never enters the initial bundle.
+- A Vitest unit/component suite of 275+ tests including accessibility integration tests (axe-core).
+- A Playwright public smoke suite plus an opt-in authenticated path.
+
+Files most worth a look from a senior reviewer:
+
+- `src/context/ProgressContext.jsx` — the dual-layer optimistic + canonical persistence model.
+- `src/engine/rewards/` — the reward event ledger and idempotent runtime.
+- `src/components/learning/QuizView.jsx` + `src/hooks/useQuizSession.js` + `src/components/learning/quiz/questionTypes.jsx` — recent split of the quiz engine into a renderer registry + session hook.
+- `src/components/learning/CodeChallenge.jsx` — Monaco editor + iframe preview + auto-grading. Includes an explicit honesty note in the UI about what the auto-grader actually checks (see `KNOWN_LIMITATIONS.md`).
+- `vite.config.js` — Monaco manual-chunking strategy.
 
 ## Stack
 
