@@ -9,6 +9,7 @@ export const REWARD_SYNC_ACTIONS = Object.freeze({
   SUBMIT_LEDGER_EVENT: 'submit_ledger_event',
   SUBMIT_PENDING_QUEUE_EVENT: 'submit_pending_queue_event',
   SUBMIT_APPLIED_UNRECORDED_EVENT: 'submit_applied_unrecorded_event',
+  SUBMIT_COMPLETED_QUEUE_EVENT: 'submit_completed_queue_event',
   MARK_LOCAL_RECONCILED: 'mark_local_reconciled',
   IGNORE_COMPLETED_LOCAL: 'ignore_completed_local',
 });
@@ -151,7 +152,7 @@ export function buildRewardSyncPlan({
 
     if (COMPLETED_QUEUE_STATUSES.has(item.status)) {
       actions.push({
-        type: REWARD_SYNC_ACTIONS.IGNORE_COMPLETED_LOCAL,
+        type: REWARD_SYNC_ACTIONS.SUBMIT_COMPLETED_QUEUE_EVENT,
         eventKey: event.key,
         event,
         queueStatus: item.status,

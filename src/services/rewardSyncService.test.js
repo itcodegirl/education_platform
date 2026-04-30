@@ -104,6 +104,31 @@ describe('rewardSyncService', () => {
     }]);
   });
 
+  it.each([
+    REWARD_QUEUE_ITEM_STATUSES.PROCESSED,
+    REWARD_QUEUE_ITEM_STATUSES.SKIPPED,
+    REWARD_QUEUE_ITEM_STATUSES.RECONCILED,
+  ])('plans completed queue evidence for backend submission when the ledger is missing (%s)', (queueStatus) => {
+    const event = createLessonEvent();
+
+    const result = buildRewardSyncPlan({
+      learnerKey,
+      localQueue: {
+        items: [{
+          event,
+          status: queueStatus,
+        }],
+      },
+    });
+
+    expect(result.actions).toEqual([{
+      type: REWARD_SYNC_ACTIONS.SUBMIT_COMPLETED_QUEUE_EVENT,
+      eventKey: event.key,
+      event,
+      queueStatus,
+    }]);
+  });
+
   it('blocks events whose learner key does not match the active learner', () => {
     const event = createLessonEvent({ learnerKey: 'someone-else' });
 
