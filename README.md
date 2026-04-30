@@ -8,6 +8,7 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 - `codeherway-v2/` is archived/reference-only and not part of active runtime behavior.
 - The project is usable for demos and portfolio review.
 - The project is not yet production-grade.
+- The quality baseline currently includes lint, production build, bundle budget, unit tests, quiz audit reporting, and Playwright smoke coverage.
 
 ## What Is Currently Working
 
@@ -27,7 +28,7 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 
 Current baseline checks:
 
-- `npm run build`
+- `npm run check` (lint, production build, bundle budget, unit tests)
 - `npm run audit:quizzes`
 - `npm run test:e2e` (public smoke path runs by default)
 
@@ -39,7 +40,7 @@ Current test boundaries:
 - Quiz audit strict-mode CI criteria are planned but not enabled yet.
 - The local reward-event ledger/queue and Supabase reward backend branches are now unified. The local engine remains the default fallback, and backend reward sync remains disabled until the migrations are applied and authenticated reward flows are validated in a real project.
 - Backend reward details live in [docs/backend-reward-events.md](./docs/backend-reward-events.md), [docs/atomic-reward-award.md](./docs/atomic-reward-award.md), and [docs/reward-sync-strategy.md](./docs/reward-sync-strategy.md).
-- Linting scripts exist, but lint enforcement is not yet treated as a stabilized release gate in this repair stage.
+- Authenticated smoke checks are enabled in the suite, but they self-skip unless Supabase and learner test credentials are configured.
 
 ## Known Limitations
 
@@ -65,6 +66,16 @@ This project is intended to demonstrate:
 - Learning-platform UX and retention-oriented interaction design
 - Honest iteration discipline (audit -> staged repairs -> verification)
 - Ability to assess and improve a real codebase under constraints
+
+Reviewer shortcuts:
+
+- Product story: [docs/portfolio-case-study.md](./docs/portfolio-case-study.md)
+- Architecture overview: [docs/architecture.md](./docs/architecture.md)
+- Release checklist: [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md)
+- Known limitations: [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md)
+- Screenshot capture guidance: [docs/screenshots/README.md](./docs/screenshots/README.md)
+
+This should be presented as a stabilized learning-platform case study, not as a finished production SaaS product.
 
 ## Stack
 

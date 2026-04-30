@@ -61,6 +61,7 @@ The goal was to keep the existing core vision and architecture intact while maki
 
 - ESLint, Vitest, and Playwright
 - scripted quality gates for local and CI parity
+- authenticated smoke coverage that runs when test credentials are configured and self-skips locally when they are not
 
 ---
 
@@ -88,6 +89,9 @@ The goal was to keep the existing core vision and architecture intact while maki
 
 - improved root scripts for clear unit/integration/release gates
 - aligned README, CONTRIBUTING, and release checklist with actual commands
+- separated badge catalog metadata from React progress context
+- aligned badge eligibility logic with the actual reward catalog
+- hardened transient toast feedback so new messages cannot be hidden by stale timers
 - maintained small, intentional commits with check-backed verification
 
 ---

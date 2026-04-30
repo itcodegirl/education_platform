@@ -8,8 +8,9 @@ This project is actively stabilized and is not yet production-grade. The followi
 
 ## Tooling / Verification
 
-- Linting is not yet treated as a stable, required release gate in this repair stage.
+- The local quality gate covers lint, production build, bundle budget, and unit tests through `npm run check`.
 - Authenticated E2E scenarios are skipped when auth credentials are not configured in environment variables.
+- Full production CI policy still needs ownership decisions for strict quiz-audit criteria, live Supabase migration validation, and authenticated regression coverage.
 
 ## Learning Integrity
 
