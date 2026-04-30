@@ -16,11 +16,18 @@ import React from 'react';
 import { getTodayString, getYesterdayString } from '../utils/helpers';
 
 // ─── Hoist mutable mocks so vi.mock factories can reference them ──
-const { mockUseAuth, mockFetchAllUserData, mockUpdateStreak, mockUpdateDailyGoal } = vi.hoisted(() => ({
+const {
+  mockUseAuth,
+  mockFetchAllUserData,
+  mockUpdateStreak,
+  mockUpdateDailyGoal,
+  mockUpdateXP,
+} = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
   mockFetchAllUserData: vi.fn(),
   mockUpdateStreak: vi.fn(),
   mockUpdateDailyGoal: vi.fn(),
+  mockUpdateXP: vi.fn(),
 }));
 
 // ─── Mock AuthContext ────────────────────────────
@@ -35,7 +42,7 @@ vi.mock('../services/progressService', () => ({
   addLesson: vi.fn(),
   removeLesson: vi.fn(),
   saveQuizScore: vi.fn(),
-  updateXP: vi.fn(),
+  updateXP: (...args) => mockUpdateXP(...args),
   updateStreak: (...args) => mockUpdateStreak(...args),
   updateDailyGoal: (...args) => mockUpdateDailyGoal(...args),
   awardBadge: vi.fn(),
@@ -80,6 +87,22 @@ function XPTestConsumer() {
   );
 }
 
+function XPWriteConsumer() {
+  const { awardXP } = useXP();
+  const { syncFailed } = useProgressData();
+
+  return (
+    <button
+      type="button"
+      data-testid="award-xp"
+      data-sync-failed={String(syncFailed)}
+      onClick={() => awardXP(25, 'Test XP')}
+    >
+      Award XP
+    </button>
+  );
+}
+
 function renderWithProvider() {
   return render(
     <ProgressProvider>
@@ -92,6 +115,14 @@ function renderXPWithProvider() {
   return render(
     <ProgressProvider>
       <XPTestConsumer />
+    </ProgressProvider>,
+  );
+}
+
+function renderXPWriteWithProvider() {
+  return render(
+    <ProgressProvider>
+      <XPWriteConsumer />
     </ProgressProvider>,
   );
 }
@@ -116,6 +147,7 @@ function makeFetchResult(overrides = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockUpdateXP.mockResolvedValue({ error: null });
   mockUpdateStreak.mockResolvedValue({});
   mockUpdateDailyGoal.mockResolvedValue({});
 });
@@ -257,5 +289,29 @@ describe('ProgressContext — fetch error', () => {
     await waitFor(() => {
       expect(screen.getByTestId('consumer').dataset.loaded).toBe('true');
     });
+  });
+});
+
+describe('ProgressContext write failure detection', () => {
+  it('counts Supabase result errors returned by optimistic writes', async () => {
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-write' } });
+    mockFetchAllUserData.mockResolvedValue(makeFetchResult());
+    mockUpdateXP.mockResolvedValue({
+      data: null,
+      error: { message: 'write timeout' },
+    });
+
+    renderXPWriteWithProvider();
+
+    await waitFor(() => {
+      expect(mockFetchAllUserData).toHaveBeenCalledWith('uid-write');
+    });
+
+    fireEvent.click(screen.getByTestId('award-xp'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('award-xp').dataset.syncFailed).toBe('1');
+    });
+    expect(mockUpdateXP).toHaveBeenCalledWith('uid-write', 25);
   });
 });

@@ -9,6 +9,7 @@ import { DAILY_GOAL, TIMING, getLevel, getTodayString, getYesterdayString } from
 import { COURSES } from '../data';
 import { BADGE_DEFS } from '../data/badges';
 import * as progressService from '../services/progressService';
+import { getProgressWriteFailure } from '../services/progressWriteRuntime';
 import { isPerfectQuizScore, rewardKeys } from '../services/rewardPolicy';
 import { lessonKeysEquivalent, resolveStableLessonKeyAcrossCourses } from '../utils/lessonKeys';
 import { LOCAL_STORAGE_SYNC_ERROR_EVENT } from '../hooks/useLocalStorage';
@@ -162,7 +163,9 @@ export function ProgressProvider({ children }) {
   //      which service call failed.
   const dbWrite = useCallback(async (operation, label = 'db-write') => {
     try {
-      await operation;
+      const result = await operation;
+      const failure = getProgressWriteFailure(result);
+      if (failure) throw failure;
     } catch (err) {
       if (import.meta.env.DEV) {
         console.warn(
