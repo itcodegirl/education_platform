@@ -23,10 +23,10 @@ describe('useChallengeSession', () => {
     expect(result.current.passCount).toBe(0);
   });
 
-  it('handleEditorChange updates code and clears stale results', () => {
+  it('handleEditorChange updates code and clears stale results', async () => {
     const { result } = renderHook(() => useChallengeSession({ challenge: baseChallenge }));
 
-    act(() => result.current.runTests(null));
+    await act(async () => { await result.current.runTests(null); });
     expect(result.current.results).not.toBeNull();
 
     act(() => result.current.handleEditorChange('<h1>Done</h1>'));
@@ -34,11 +34,11 @@ describe('useChallengeSession', () => {
     expect(result.current.results).toBeNull();
   });
 
-  it('runTests grades the current code and surfaces per-check pass/fail', () => {
+  it('runTests grades the current code and surfaces per-check pass/fail', async () => {
     const { result } = renderHook(() => useChallengeSession({ challenge: baseChallenge }));
 
     act(() => result.current.handleEditorChange('<h1>Done</h1>'));
-    act(() => result.current.runTests(null));
+    await act(async () => { await result.current.runTests(null); });
 
     expect(result.current.results).toEqual([
       { label: 'has h1', passed: true },
@@ -48,14 +48,14 @@ describe('useChallengeSession', () => {
     expect(result.current.passCount).toBe(2);
   });
 
-  it('calls onComplete exactly once when all tests pass, even on repeat runs', () => {
+  it('calls onComplete exactly once when all tests pass, even on repeat runs', async () => {
     const onComplete = vi.fn();
     const { result } = renderHook(() => useChallengeSession({ challenge: baseChallenge, onComplete }));
 
     act(() => result.current.handleEditorChange('<h1>Done</h1>'));
-    act(() => result.current.runTests(null));
-    act(() => result.current.runTests(null));
-    act(() => result.current.runTests(null));
+    await act(async () => { await result.current.runTests(null); });
+    await act(async () => { await result.current.runTests(null); });
+    await act(async () => { await result.current.runTests(null); });
 
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
@@ -69,10 +69,10 @@ describe('useChallengeSession', () => {
     expect(result.current.confirmRevealSolution).toBe(true);
   });
 
-  it('toggleSolution reveals the solution directly once tests have been attempted', () => {
+  it('toggleSolution reveals the solution directly once tests have been attempted', async () => {
     const { result } = renderHook(() => useChallengeSession({ challenge: baseChallenge }));
 
-    act(() => result.current.runTests(null));
+    await act(async () => { await result.current.runTests(null); });
     act(() => result.current.toggleSolution());
 
     expect(result.current.showSolution).toBe(true);
@@ -99,37 +99,37 @@ describe('useChallengeSession', () => {
     expect(result.current.confirmRevealSolution).toBe(false);
   });
 
-  it('reset restores the starter code and clears results', () => {
+  it('reset restores the starter code and clears results', async () => {
     const { result } = renderHook(() => useChallengeSession({ challenge: baseChallenge }));
 
     act(() => result.current.handleEditorChange('<h1>Different</h1>'));
-    act(() => result.current.runTests(null));
+    await act(async () => { await result.current.runTests(null); });
     act(() => result.current.reset());
 
     expect(result.current.code).toBe('<h1>Start</h1>');
     expect(result.current.results).toBeNull();
   });
 
-  it('reports a failed test when its check function throws', () => {
+  it('reports a failed test when its check function throws', async () => {
     const challenge = {
       ...baseChallenge,
       tests: [{ label: 'throws', check: () => { throw new Error('boom'); } }],
     };
     const { result } = renderHook(() => useChallengeSession({ challenge }));
 
-    act(() => result.current.runTests(null));
+    await act(async () => { await result.current.runTests(null); });
 
     expect(result.current.results).toEqual([{ label: 'throws', passed: false }]);
     expect(result.current.allPassed).toBe(false);
   });
 
-  it('clearing the solution-reveal confirmation flag is idempotent on re-runs', () => {
+  it('clearing the solution-reveal confirmation flag is idempotent on re-runs', async () => {
     const { result } = renderHook(() => useChallengeSession({ challenge: baseChallenge }));
 
     act(() => result.current.toggleSolution()); // confirm shown
     expect(result.current.confirmRevealSolution).toBe(true);
 
-    act(() => result.current.runTests(null)); // running tests should clear it
+    await act(async () => { await result.current.runTests(null); }); // running tests should clear it
     expect(result.current.confirmRevealSolution).toBe(false);
   });
 });
