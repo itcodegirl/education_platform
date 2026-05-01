@@ -36,7 +36,10 @@ export const LessonView = memo(function LessonView({
   moduleTitle,
 }) {
   const { toggleBookmark, isBookmarked } = useSR();
-  const { markSyncFailed = () => {} } = useProgressData();
+  const {
+    markSyncFailed = () => {},
+    enqueuePendingSyncWrite = () => false,
+  } = useProgressData();
   const bookmarkMutation = useFetcher();
   const location = useLocation();
   const [showNotes, setShowNotes] = useState(false);
@@ -52,7 +55,11 @@ export const LessonView = memo(function LessonView({
 
   const bookmarked = isBookmarked(lessonKey);
   const isStructured = !!(lesson.hook || lesson.do || lesson.understand);
-  useFetcherSyncFailure(bookmarkMutation, markSyncFailed, 'lesson bookmark');
+  useFetcherSyncFailure(
+    bookmarkMutation,
+    { markSyncFailed, enqueuePendingSyncWrite },
+    'lesson bookmark',
+  );
 
   // Derived counts surfaced in the header metadata chips.
   const conceptCount = isStructured

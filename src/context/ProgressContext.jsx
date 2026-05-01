@@ -48,6 +48,7 @@ const ProgressContext = createContext({
   syncRetryInFlight: false,
   markSyncFailed: () => {},
   clearSyncFailed: () => {},
+  enqueuePendingSyncWrite: () => false,
   retryPendingSyncWrites: async () => ({ processed: 0, remaining: 0 }),
 });
 
@@ -178,6 +179,30 @@ export function ProgressProvider({ children }) {
     return queueCount;
   }, [userId]);
 
+  const enqueuePendingSyncWrite = useCallback((writeLike, label = 'sync-write') => {
+    if (!userId || !writeLike?.operation) return false;
+
+    try {
+      const queueItem = writeLike.id
+        ? writeLike
+        : createProgressWrite(writeLike.operation, writeLike.payload, { label });
+
+      enqueueProgressWrite(userId, queueItem);
+      hydratePendingQueueRef.current = false;
+      syncPendingQueueCount(userId);
+      return true;
+    } catch (queueErr) {
+      if (import.meta.env.DEV) {
+        console.warn(
+          `[ProgressContext] ${label} could not be added to the retry queue:`,
+          queueErr,
+        );
+      }
+      markSyncFailed(label);
+      return false;
+    }
+  }, [markSyncFailed, syncPendingQueueCount, userId]);
+
   // Supabase write helper. Optimistic state is updated BEFORE this is
   // called, so we catch and report failures rather than rollback.
   // Previously this silently swallowed all errors, which made every
@@ -204,23 +229,10 @@ export function ProgressProvider({ children }) {
           err,
         );
       }
-      try {
-        enqueueProgressWrite(userId, write);
-        hydratePendingQueueRef.current = false;
-        const queueCount = syncPendingQueueCount(userId);
-        return { queued: queueCount > 0, skipped: false };
-      } catch (queueErr) {
-        if (import.meta.env.DEV) {
-          console.warn(
-            `[ProgressContext] ${label} could not be added to the retry queue:`,
-            queueErr,
-          );
-        }
-      }
-      markSyncFailed(label);
-      return { queued: false, skipped: false };
+      const queued = enqueuePendingSyncWrite(write, label);
+      return { queued, skipped: false };
     }
-  }, [markSyncFailed, syncPendingQueueCount, userId]);
+  }, [enqueuePendingSyncWrite, userId]);
 
   const clearSyncFailed = useCallback(() => setSyncFailed(0), []);
 
@@ -917,6 +929,7 @@ export function ProgressProvider({ children }) {
     syncRetryInFlight,
     markSyncFailed,
     clearSyncFailed,
+    enqueuePendingSyncWrite,
     retryPendingSyncWrites,
   }), [
     completed,
@@ -942,6 +955,7 @@ export function ProgressProvider({ children }) {
     syncRetryInFlight,
     markSyncFailed,
     clearSyncFailed,
+    enqueuePendingSyncWrite,
     retryPendingSyncWrites,
   ]);
 

@@ -35,7 +35,10 @@ function findBookmarkTarget(bookmark, courses) {
 
 export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
   const { bookmarks, toggleBookmark } = useSR();
-  const { markSyncFailed = () => {} } = useProgressData();
+  const {
+    markSyncFailed = () => {},
+    enqueuePendingSyncWrite = () => false,
+  } = useProgressData();
   const bookmarkMutation = useFetcher();
   const location = useLocation();
   const modalRef = useRef(null);
@@ -45,7 +48,11 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
   // moduleIndex + lessonIndex synchronously.
   const { ensureAllLoaded, courses = [] } = useCourseContent();
   const sourceCourses = courses.length > 0 ? courses : COURSES;
-  useFetcherSyncFailure(bookmarkMutation, markSyncFailed, 'bookmarks panel');
+  useFetcherSyncFailure(
+    bookmarkMutation,
+    { markSyncFailed, enqueuePendingSyncWrite },
+    'bookmarks panel',
+  );
   useEffect(() => {
     if (isOpen) ensureAllLoaded();
   }, [isOpen, ensureAllLoaded]);
