@@ -95,6 +95,8 @@ The goal was to keep the existing core vision and architecture intact while maki
 - hardened transient toast feedback so new messages cannot be hidden by stale timers
 - added a same-browser retry queue for direct optimistic progress writes so failed learner saves can replay instead of dying as one-shot warnings
 - extended that recovery path to recoverable lesson progress and bookmark route mutations, with route-action test coverage to protect the contract
+- added privacy-safe sync recovery telemetry for queued writes and replay outcomes, while keeping raw learner payloads out of analytics
+- ignored local Playwright auth storage so authenticated test runs do not create commit-risk session files
 - maintained small, intentional commits with check-backed verification
 
 ---
@@ -125,6 +127,12 @@ Decision: add a real same-browser retry queue for direct optimistic progress wri
 
 Why: learners need actionable recovery when saves fail, but the product should not claim universal cloud durability before every persistence path supports it.
 
+### Tradeoff: observability vs learner privacy
+
+Decision: emit sync queue/replay summaries through the existing analytics path without learner IDs, lesson keys, note content, queue payloads, or raw database errors.
+
+Why: product reliability needs visibility, but portfolio credibility is stronger when analytics discipline is explicit and privacy-preserving.
+
 ---
 
 ## Security and accessibility posture
@@ -151,6 +159,7 @@ Why: learners need actionable recovery when saves fail, but the product should n
 - stronger confidence in release quality through explicit checks
 - more believable progress reliability because direct learner saves can now retry after transient failures
 - stronger trust in lesson completion and bookmark persistence because recoverable route failures now fall back into the same-browser retry queue
+- cleaner QA hygiene because authenticated Playwright state is ignored instead of appearing as untracked session residue
 - clearer portfolio narrative for both non-technical and technical reviewers
 
 ---

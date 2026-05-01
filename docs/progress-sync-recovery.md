@@ -37,12 +37,24 @@ Queued writes retry through three paths:
 
 The queue uses last-write-wins compaction for overwrite-style writes such as XP totals, notes, daily-goal counters, and last position, while keeping distinct operations that must replay separately.
 
+## Observability
+
+When analytics is configured, sync recovery emits privacy-safe events:
+
+- `progress_sync_queued`
+- `progress_sync_replay`
+
+These events include operation names, retry triggers, queue counts, replay counts, and failed operation summaries. They intentionally do not include learner IDs, lesson keys, note content, queue payloads, or raw database error messages.
+
+The learner-facing banner also distinguishes between queued writes, active retry, and a failed retry with pending writes still preserved in the browser.
+
 ## What this does not promise yet
 
 - cross-device recovery
 - durable recovery when localStorage itself is unavailable
 - retry/import for route-fetcher mutations that do not return a recoverable write descriptor
 - reward backend replay/import beyond the existing reward-event work
+- production alerting or backend observability for repeated sync failures
 
 Because of those limits, the product can now honestly claim same-browser retry for direct progress writes plus recoverable lesson progress/bookmark route mutations, but it should not claim universal cloud recovery for every failed mutation.
 
@@ -52,4 +64,6 @@ Because of those limits, the product can now honestly claim same-browser retry f
 - `npm run test:e2e`
 - `npx vitest run src/routes/appRouter.test.jsx`
 - `npx vitest run src/context/ProgressContext.test.jsx`
+- `npx vitest run src/hooks/useFetcherSyncFailure.test.jsx`
+- `npx vitest run src/services/progressSyncTelemetry.test.js`
 - `npx vitest run src/services/progressWriteQueue.test.js`

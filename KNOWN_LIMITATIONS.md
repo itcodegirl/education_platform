@@ -10,6 +10,7 @@ This project is actively stabilized and is not yet production-grade. The followi
 
 - The local quality gate covers lint, production build, bundle budget, and unit tests through `npm run check`.
 - Authenticated E2E scenarios are skipped when auth credentials are not configured in environment variables.
+- Authenticated Playwright storage state is intentionally ignored under `playwright/.auth/` to avoid committing local session files.
 - Full production CI policy still needs ownership decisions for strict quiz-audit criteria, live Supabase migration validation, and authenticated regression coverage.
 
 ## Learning Integrity
@@ -33,6 +34,7 @@ This project is actively stabilized and is not yet production-grade. The followi
 - Recoverable lesson route mutations for completion toggles and bookmarks now enqueue same-browser retry writes instead of stopping at a generic sync warning.
 - Other route-fetcher mutations and backend reward flows still surface advisory sync warnings without the same queued replay/import guarantees.
 - The sync warning banner remains intentionally non-destructive for non-queued failures. Hiding a generic warning does not recover a failed route action or promise durable recovery from every cloud-write failure.
+- Progress sync queue/replay telemetry is privacy-safe and analytics-gated, but it is not a replacement for backend observability or alerting.
 
 ## Search / Content
 

@@ -35,6 +35,7 @@ Current baseline checks:
 Current test boundaries:
 
 - Authenticated Playwright smoke checks are skipped when auth env credentials are not provided.
+- Playwright authenticated storage state is generated under `playwright/.auth/` and intentionally ignored by Git.
 - `npm run audit:quizzes` remains the source of truth for quiz integrity drift, including classified orphan quizzes, intentional variant groups, legacy aliases, and deferred Python quiz coverage.
 - Python missing-quiz findings are an intentional roadmap signal; future Python coverage should start with module-level checkpoint quizzes before full lesson-level coverage.
 - Quiz audit strict-mode CI criteria are planned but not enabled yet.
@@ -43,6 +44,7 @@ Current test boundaries:
 - Authenticated smoke checks are enabled in the suite, but they self-skip unless Supabase and learner test credentials are configured.
 - Direct optimistic progress writes now use a same-browser retry queue with manual retry, reconnect retry, and next-session replay.
 - Recoverable lesson route mutations for completion toggles and bookmarks now feed that same-browser retry queue when Supabase route actions fail with a recoverable write descriptor.
+- Progress sync queue and replay outcomes emit privacy-safe analytics events when analytics is configured; event payloads avoid learner IDs, lesson keys, note content, and raw database messages.
 - Backend reward sync and non-recoverable route failures still surface advisory warnings where full replay/import is not implemented yet.
 - Progress sync recovery details live in [docs/progress-sync-recovery.md](./docs/progress-sync-recovery.md).
 
