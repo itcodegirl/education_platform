@@ -237,7 +237,13 @@ export function ProgressProvider({ children }) {
   // shifts the head off so the next award (if any) takes its place.
   const [xpPopupQueue, setXpPopupQueue] = useState([]);
   const xpPopup = xpPopupQueue[0] || null;
-  const [newBadge, setNewBadge] = useState(null);
+  // Same queue pattern for badge unlock celebrations: a single
+  // checkBadges() call can earn multiple badges (e.g. hitting a streak
+  // milestone and a lesson-count milestone in the same action), and the
+  // BadgeUnlock celebration is a 4.5s full-screen modal — overwriting it
+  // would silently drop a real reward the learner just earned.
+  const [newBadgeQueue, setNewBadgeQueue] = useState([]);
+  const newBadge = newBadgeQueue[0] || null;
   const [dataLoaded, setDataLoaded] = useState(false);
   const [loadError, setLoadError] = useState(null);
 
@@ -295,7 +301,7 @@ export function ProgressProvider({ children }) {
     challengeCompletionsRef.current = new Set();
     setChallengeCompletions([]);
     setXpPopupQueue([]);
-    setNewBadge(null);
+    setNewBadgeQueue([]);
   }, []);
 
   // ─── Load all data from Supabase on login ──────
@@ -606,21 +612,23 @@ export function ProgressProvider({ children }) {
       note_taker: ctx.noteCount >= 5,
     };
 
-    let foundNew = null;
+    const newlyEarned = [];
     const updated = { ...earnedBadges };
 
     for (const b of BADGE_DEFS) {
       if (!updated[b.id] && checks[b.id]) {
         updated[b.id] = { date: getTodayString() };
-        if (!foundNew) foundNew = b;
+        newlyEarned.push(b);
 
         dbWrite(progressService.awardBadge(user.id, b.id), `awardBadge:${b.id}`);
       }
     }
 
-    if (foundNew) {
+    if (newlyEarned.length > 0) {
       setEarnedBadges(updated);
-      setNewBadge(foundNew);
+      // Enqueue every newly earned badge so each one gets its own
+      // celebration in turn, instead of all but the first being lost.
+      setNewBadgeQueue((queue) => [...queue, ...newlyEarned]);
     }
   }, [user, completed, quizScores, xpTotal, streak, coursesVisited, dailyCount, dailyDate, earnedBadges, bookmarks, notes, dbWrite]);
 
@@ -628,7 +636,9 @@ export function ProgressProvider({ children }) {
     if (dataLoaded) checkBadges();
   }, [dataLoaded, checkBadges, completed.length, quizScores, xpTotal, dailyCount, bookmarks.length, notes]);
 
-  const clearNewBadge = useCallback(() => setNewBadge(null), []);
+  const clearNewBadge = useCallback(() => {
+    setNewBadgeQueue((queue) => (queue.length > 0 ? queue.slice(1) : queue));
+  }, []);
 
   // ─── Spaced Repetition ────────────────────────
   const addToSRQueue = useCallback(async (cards) => {
