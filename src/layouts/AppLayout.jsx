@@ -246,9 +246,15 @@ export function AppLayout() {
   }, [isCourseComplete, isDone, panels]);
 
   // --- Actions ------------------------------
+  // The optimistic toggle + analytics happen in the same tick, so
+  // without a min-show duration the "Saving..." label flickers by
+  // in well under one frame and learners think the click did
+  // nothing. 350ms reads as deliberate without feeling sluggish.
+  const MARK_DONE_MIN_FEEDBACK_MS = 350;
   const handleMarkDone = useCallback(async () => {
     if (marking) return;
     setMarking(true);
+    const startedAt = Date.now();
     try {
       const wasDone = completedSet.has(stableLessonKey) || completedSet.has(legacyLessonKey);
       const keyToToggle = completedSet.has(stableLessonKey)
@@ -277,7 +283,13 @@ export function AppLayout() {
         secondsOnLesson: Math.round((Date.now() - lessonViewStartRef.current) / 1000),
       });
     } finally {
-      setMarking(false);
+      const elapsed = Date.now() - startedAt;
+      const remaining = Math.max(MARK_DONE_MIN_FEEDBACK_MS - elapsed, 0);
+      if (remaining > 0) {
+        setTimeout(() => setMarking(false), remaining);
+      } else {
+        setMarking(false);
+      }
     }
   }, [
     completedSet,

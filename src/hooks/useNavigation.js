@@ -59,23 +59,47 @@ function findPathPosition(pathname) {
   return { courseIndex, moduleIndex, lessonIndex, isModuleQuiz: false };
 }
 
+// Resolve the persisted (course, module, lesson) labels saved by
+// AppLayout.savePosition back into stable indices. The saved labels
+// include emojis and titles ("⚛️ React" / "🧬 Hooks"), so we try
+// strict-equal labels first and fall back to substring matching only
+// when the strict match misses. This keeps a renamed lesson from
+// silently grabbing an unrelated saved position.
 function findSavedPosition(lastPosition) {
   if (!lastPosition?.course || !lastPosition?.mod || !lastPosition?.les) {
     return null;
   }
 
-  const courseIndex = COURSES.findIndex((course) => lastPosition.course.includes(course.label));
+  const matchCourse = (course) => {
+    const label = course.label;
+    if (!label) return false;
+    if (lastPosition.course === label) return true;
+    if (lastPosition.course === `${course.icon} ${label}`) return true;
+    return lastPosition.course.includes(label);
+  };
+
+  const courseIndex = COURSES.findIndex(matchCourse);
   if (courseIndex === -1) return null;
 
   const course = COURSES[courseIndex];
   if (!course.modules.length) return null;
-  const moduleIndex = course.modules.findIndex((module) => lastPosition.mod.includes(module.title));
+
+  const matchModule = (module) => {
+    const title = module.title;
+    if (!title) return false;
+    if (lastPosition.mod === title) return true;
+    if (lastPosition.mod === `${module.emoji} ${title}`) return true;
+    return lastPosition.mod.includes(title);
+  };
+
+  const moduleIndex = course.modules.findIndex(matchModule);
   if (moduleIndex === -1) return null;
 
   const isModuleQuiz = lastPosition.les.toLowerCase().includes('module quiz');
+  const lessons = course.modules[moduleIndex].lessons;
   const lessonIndex = isModuleQuiz
-    ? course.modules[moduleIndex].lessons.length - 1
-    : course.modules[moduleIndex].lessons.findIndex((lesson) => lesson.title === lastPosition.les);
+    ? lessons.length - 1
+    : lessons.findIndex((lesson) => lesson.title === lastPosition.les);
 
   if (lessonIndex === -1) return null;
 
