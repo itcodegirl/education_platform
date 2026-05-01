@@ -2,7 +2,10 @@
 
 ## What this covers
 
-CodeHerWay now keeps a same-browser retry queue for direct optimistic progress writes that originate inside `ProgressContext`.
+CodeHerWay now keeps a same-browser retry queue for:
+
+- direct optimistic progress writes that originate inside `ProgressContext`
+- recoverable lesson route mutations that fail inside `learnRouteAction` and return a retry-safe write descriptor
 
 Covered write types:
 
@@ -15,6 +18,8 @@ Covered write types:
 - lesson notes
 - last-position saves
 - course-visit tracking
+- lesson completion route toggles
+- bookmark route toggles
 
 ## Recovery behavior
 
@@ -36,14 +41,15 @@ The queue uses last-write-wins compaction for overwrite-style writes such as XP 
 
 - cross-device recovery
 - durable recovery when localStorage itself is unavailable
-- retry/import for route-fetcher mutations that still report generic sync warnings
+- retry/import for route-fetcher mutations that do not return a recoverable write descriptor
 - reward backend replay/import beyond the existing reward-event work
 
-Because of those limits, the product can now honestly claim same-browser retry for direct progress writes, but it should not claim universal cloud recovery for every failed mutation.
+Because of those limits, the product can now honestly claim same-browser retry for direct progress writes plus recoverable lesson progress/bookmark route mutations, but it should not claim universal cloud recovery for every failed mutation.
 
 ## Verification
 
 - `npm run check`
 - `npm run test:e2e`
+- `npx vitest run src/routes/appRouter.test.jsx`
 - `npx vitest run src/context/ProgressContext.test.jsx`
 - `npx vitest run src/services/progressWriteQueue.test.js`

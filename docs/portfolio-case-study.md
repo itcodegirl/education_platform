@@ -94,6 +94,7 @@ The goal was to keep the existing core vision and architecture intact while maki
 - aligned badge eligibility logic with the actual reward catalog
 - hardened transient toast feedback so new messages cannot be hidden by stale timers
 - added a same-browser retry queue for direct optimistic progress writes so failed learner saves can replay instead of dying as one-shot warnings
+- extended that recovery path to recoverable lesson progress and bookmark route mutations, with route-action test coverage to protect the contract
 - maintained small, intentional commits with check-backed verification
 
 ---
@@ -120,7 +121,7 @@ Why: stronger release confidence without a complex pipeline redesign.
 
 ### Tradeoff: trust cues vs overpromising recovery
 
-Decision: add a real same-browser retry queue for direct optimistic progress writes, and keep route-action warnings honest where replay is still not implemented.
+Decision: add a real same-browser retry queue for direct optimistic progress writes, extend recoverable lesson route mutations into the same queue, and keep remaining route-action warnings honest where replay is still not implemented.
 
 Why: learners need actionable recovery when saves fail, but the product should not claim universal cloud durability before every persistence path supports it.
 
@@ -149,6 +150,7 @@ Why: learners need actionable recovery when saves fail, but the product should n
 - more consistent, premium-feeling UI without sacrificing readability
 - stronger confidence in release quality through explicit checks
 - more believable progress reliability because direct learner saves can now retry after transient failures
+- stronger trust in lesson completion and bookmark persistence because recoverable route failures now fall back into the same-browser retry queue
 - clearer portfolio narrative for both non-technical and technical reviewers
 
 ---

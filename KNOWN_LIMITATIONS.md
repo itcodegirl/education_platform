@@ -30,7 +30,8 @@ This project is actively stabilized and is not yet production-grade. The followi
 - Cross-device reward idempotency is backend-ready but not production-complete until those migrations are applied, the feature flag is enabled intentionally, and authenticated duplicate-award behavior is verified.
 - Challenge completion persistence is same-device/localStorage-backed and should not be treated as secure certification.
 - Direct optimistic progress writes from `ProgressContext` now have same-browser queue replay, including reconnect retry and next-session replay in the same browser.
-- Route-fetcher mutations and backend reward flows still surface advisory sync warnings without the same queued replay/import guarantees.
+- Recoverable lesson route mutations for completion toggles and bookmarks now enqueue same-browser retry writes instead of stopping at a generic sync warning.
+- Other route-fetcher mutations and backend reward flows still surface advisory sync warnings without the same queued replay/import guarantees.
 - The sync warning banner remains intentionally non-destructive for non-queued failures. Hiding a generic warning does not recover a failed route action or promise durable recovery from every cloud-write failure.
 
 ## Search / Content
