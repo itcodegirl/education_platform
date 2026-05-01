@@ -206,9 +206,11 @@ describe('quizLessonIdResolver', () => {
       resolution: 'direct',
     });
 
-    const pythonResult = resolveQuizLessonId('python', 'py-1-1', new Set(['py-2-1']));
-    expect(pythonResult).toEqual({
-      rawLessonId: 'py-1-1',
+    // An unknown course id has no alias rules, so an unrecognized lesson
+    // must come back as unresolved rather than getting silently remapped.
+    const unknownCourseResult = resolveQuizLessonId('unknown-course', 'xx-1-1', new Set(['xx-2-1']));
+    expect(unknownCourseResult).toEqual({
+      rawLessonId: 'xx-1-1',
       resolvedLessonId: null,
       resolution: 'unresolved',
     });
