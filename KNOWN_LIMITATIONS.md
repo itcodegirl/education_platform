@@ -2,10 +2,6 @@
 
 This project is actively stabilized and is not yet production-grade. The following limitations are known and intentionally documented.
 
-## Repo / Surface
-
-- `codeherway-v2/` is still tracked in-repo as archived/reference-only content.
-
 ## Tooling / Verification
 
 - The local quality gate covers lint, production build, bundle budget, and unit tests through `npm run check`.

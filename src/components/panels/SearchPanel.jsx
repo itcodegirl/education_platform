@@ -134,7 +134,6 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleInputKeyDown}
-            aria-label="Search lessons"
             aria-autocomplete="list"
             aria-controls="search-results-list"
             aria-activedescendant={activeIndex >= 0 ? `search-result-${activeIndex}` : undefined}

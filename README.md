@@ -5,7 +5,6 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 ## Current Project Status
 
 - This repository root is the active canonical app.
-- `codeherway-v2/` is archived/reference-only and not part of active runtime behavior.
 - The project is usable for demos and portfolio review.
 - The project is not yet production-grade.
 - The quality baseline currently includes lint, production build, bundle budget, unit tests, quiz audit reporting, and Playwright smoke coverage.
