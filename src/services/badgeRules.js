@@ -1,39 +1,26 @@
 // ═══════════════════════════════════════════════
 // badgeRules — pure logic for badge eligibility.
 //
-// Extracted from ProgressContext so the rules are
-// testable in isolation. ProgressContext just builds
-// a context snapshot from its state, asks this module
-// "what's earned?", and persists/celebrates anything
-// new.
+// ProgressContext builds a context snapshot from its
+// state, asks this module "what's earned?", and
+// persists/celebrates anything new.
 //
-// Adding a new badge = add a definition to BADGE_DEFS,
-// add a check in evaluateBadgeChecks, and (if it needs
-// new context) widen the BadgeContext shape.
+// Adding a new badge = add a definition to BADGE_DEFS
+// in src/data/badges.js, add a check in
+// evaluateBadgeChecks below, and (if it needs new
+// context) widen the snapshot shape used by
+// findNewlyEarnedBadges callers.
+//
+// BADGE_DEFS lives in src/data/badges.js (the canonical
+// home alongside the rest of the catalog data); we
+// re-export it here so callers reading the rules can
+// see both the definitions and the evaluator together.
 // ═══════════════════════════════════════════════
 
 import { DAILY_GOAL, getLevel } from '../utils/helpers';
+import { BADGE_DEFS } from '../data/badges';
 
-export const BADGE_DEFS = [
-  { id: 'first_lesson', icon: '🌱', name: 'First Steps', desc: 'Complete your first lesson' },
-  { id: 'five_lessons', icon: '📚', name: 'Getting Started', desc: 'Complete 5 lessons' },
-  { id: 'ten_lessons', icon: '🔥', name: 'On Fire', desc: 'Complete 10 lessons' },
-  { id: 'twenty_lessons', icon: '💪', name: 'Unstoppable', desc: 'Complete 20 lessons' },
-  { id: 'fifty_lessons', icon: '👑', name: 'Legend', desc: 'Complete 50 lessons' },
-  { id: 'first_quiz', icon: '🧠', name: 'Quiz Taker', desc: 'Complete your first quiz' },
-  { id: 'five_quizzes', icon: '🎓', name: 'Scholar', desc: 'Complete 5 quizzes' },
-  { id: 'perfect_quiz', icon: '💯', name: 'Perfectionist', desc: 'Get 100% on any quiz' },
-  { id: 'streak_3', icon: '📅', name: 'Hat Trick', desc: '3-day learning streak' },
-  { id: 'streak_7', icon: '⚡', name: 'Weekly Warrior', desc: '7-day learning streak' },
-  { id: 'level_5', icon: '⭐', name: 'Rising Star', desc: 'Reach Level 5' },
-  { id: 'level_10', icon: '🌟', name: 'Superstar', desc: 'Reach Level 10' },
-  { id: 'night_owl', icon: '🦉', name: 'Night Owl', desc: 'Study after 10 PM' },
-  { id: 'early_bird', icon: '🐦', name: 'Early Bird', desc: 'Study before 7 AM' },
-  { id: 'explorer', icon: '🗺️', name: 'Explorer', desc: 'Visit all 4 course tracks' },
-  { id: 'daily_goal', icon: '🎯', name: 'Goal Crusher', desc: 'Complete your daily goal' },
-  { id: 'bookworm', icon: '📖', name: 'Bookworm', desc: 'Bookmark 10 lessons' },
-  { id: 'note_taker', icon: '✏️', name: 'Note Taker', desc: 'Write 5 notes' },
-];
+export { BADGE_DEFS };
 
 // Pure: given a snapshot of learner state, return the bool map of
 // whether each badge's criteria are currently met.
