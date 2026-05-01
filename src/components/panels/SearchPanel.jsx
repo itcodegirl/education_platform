@@ -137,26 +137,38 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleInputKeyDown}
+            aria-label="Search lessons"
+            aria-autocomplete="list"
+            aria-controls="search-results-list"
+            aria-activedescendant={activeIndex >= 0 ? `search-result-${activeIndex}` : undefined}
+            role="combobox"
+            aria-expanded={results.length > 0}
           />
           <span className="search-hint">ESC</span>
         </div>
 
-        <div className="search-results">
+        <div className="search-results" id="search-results-list" role="listbox" aria-label="Search results">
           {q.length < 2 ? (
             <div className="search-empty">
-              Start typing to search across all courses
+              {allCoursesLoaded
+                ? 'Start typing to search across all courses'
+                : 'Start typing to search — loading additional courses…'}
             </div>
           ) : results.length === 0 ? (
-            <div className="search-empty">No results for "{query}"</div>
+            <div className="search-empty">No results for &ldquo;{query}&rdquo;</div>
           ) : (
             <>
               <div className="search-meta">
                 {results.length} result{results.length === 1 ? "" : "s"}
+                {!allCoursesLoaded && ' (loading more courses…)'}
               </div>
               {results.map((result, index) => (
                 <button
                   key={index}
+                  id={`search-result-${index}`}
                   type="button"
+                  role="option"
+                  aria-selected={activeIndex === index}
                   className={`search-result ${activeIndex === index ? "active" : ""}`}
                   onClick={() => handleClick(result)}
                   onMouseEnter={() => setActiveIndex(index)}
