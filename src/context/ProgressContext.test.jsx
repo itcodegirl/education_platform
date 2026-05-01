@@ -13,14 +13,29 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
+import {
+  getProgressWriteQueueStorageKey,
+  readProgressWriteQueue,
+} from '../services/progressWriteQueue';
 import { getTodayString, getYesterdayString } from '../utils/helpers';
 
 // ─── Hoist mutable mocks so vi.mock factories can reference them ──
-const { mockUseAuth, mockFetchAllUserData, mockUpdateStreak, mockUpdateDailyGoal } = vi.hoisted(() => ({
+const {
+  mockUseAuth,
+  mockFetchAllUserData,
+  mockUpdateStreak,
+  mockUpdateDailyGoal,
+  mockUpdateXP,
+  mockTrackProgressSyncQueued,
+  mockTrackProgressSyncReplay,
+} = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
   mockFetchAllUserData: vi.fn(),
   mockUpdateStreak: vi.fn(),
   mockUpdateDailyGoal: vi.fn(),
+  mockUpdateXP: vi.fn(),
+  mockTrackProgressSyncQueued: vi.fn(),
+  mockTrackProgressSyncReplay: vi.fn(),
 }));
 
 // ─── Mock AuthContext ────────────────────────────
@@ -35,7 +50,7 @@ vi.mock('../services/progressService', () => ({
   addLesson: vi.fn(),
   removeLesson: vi.fn(),
   saveQuizScore: vi.fn(),
-  updateXP: vi.fn(),
+  updateXP: (...args) => mockUpdateXP(...args),
   updateStreak: (...args) => mockUpdateStreak(...args),
   updateDailyGoal: (...args) => mockUpdateDailyGoal(...args),
   awardBadge: vi.fn(),
@@ -46,6 +61,11 @@ vi.mock('../services/progressService', () => ({
   saveNote: vi.fn(),
   savePosition: vi.fn(),
   trackCourseVisit: vi.fn(),
+}));
+
+vi.mock('../services/progressSyncTelemetry', () => ({
+  trackProgressSyncQueued: mockTrackProgressSyncQueued,
+  trackProgressSyncReplay: mockTrackProgressSyncReplay,
 }));
 
 import { ProgressProvider, useProgressData, useXP } from './ProgressContext';
@@ -77,6 +97,38 @@ function XPTestConsumer() {
     >
       Record activity
     </button>
+  );
+}
+
+function XPWriteConsumer() {
+  const { awardXP } = useXP();
+  const {
+    syncFailed,
+    pendingSyncWrites,
+    syncRetryInFlight,
+    retryPendingSyncWrites,
+  } = useProgressData();
+
+  return (
+    <>
+      <button
+        type="button"
+        data-testid="award-xp"
+        data-sync-failed={String(syncFailed)}
+        data-pending-sync={String(pendingSyncWrites)}
+        data-retrying={String(syncRetryInFlight)}
+        onClick={() => awardXP(25, 'Test XP')}
+      >
+        Award XP
+      </button>
+      <button
+        type="button"
+        data-testid="retry-pending"
+        onClick={() => retryPendingSyncWrites()}
+      >
+        Retry pending
+      </button>
+    </>
   );
 }
 
@@ -118,6 +170,14 @@ function renderXPWithProvider() {
   );
 }
 
+function renderXPWriteWithProvider() {
+  return render(
+    <ProgressProvider>
+      <XPWriteConsumer />
+    </ProgressProvider>,
+  );
+}
+
 function renderXPPopupQueueWithProvider() {
   return render(
     <ProgressProvider>
@@ -144,10 +204,40 @@ function makeFetchResult(overrides = {}) {
   };
 }
 
+function createMemoryStorage() {
+  const store = new Map();
+  return {
+    getItem(key) {
+      return store.has(key) ? store.get(key) : null;
+    },
+    setItem(key, value) {
+      store.set(key, value);
+    },
+    removeItem(key) {
+      store.delete(key);
+    },
+  };
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
+  const storage = createMemoryStorage();
+  Object.defineProperty(window, 'localStorage', {
+    configurable: true,
+    value: storage,
+  });
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    value: storage,
+  });
+  ['uid-write', 'uid-retry'].forEach((userId) => {
+    window.localStorage.removeItem(getProgressWriteQueueStorageKey(userId));
+  });
+  mockUpdateXP.mockResolvedValue({ error: null });
   mockUpdateStreak.mockResolvedValue({});
   mockUpdateDailyGoal.mockResolvedValue({});
+  mockTrackProgressSyncQueued.mockReset();
+  mockTrackProgressSyncReplay.mockReset();
 });
 
 // ─── Tests ───────────────────────────────────────
@@ -290,29 +380,82 @@ describe('ProgressContext — fetch error', () => {
   });
 });
 
+describe('ProgressContext write failure detection', () => {
+  it('queues Supabase result errors returned by optimistic writes', async () => {
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-write' } });
+    mockFetchAllUserData.mockResolvedValue(makeFetchResult());
+    mockUpdateXP.mockResolvedValue({
+      data: null,
+      error: { message: 'write timeout' },
+    });
+
+    renderXPWriteWithProvider();
+
+    await waitFor(() => {
+      expect(mockFetchAllUserData).toHaveBeenCalledWith('uid-write');
+    });
+
+    fireEvent.click(screen.getByTestId('award-xp'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('award-xp').dataset.pendingSync).toBe('1');
+    });
+    expect(screen.getByTestId('award-xp').dataset.syncFailed).toBe('0');
+    expect(readProgressWriteQueue('uid-write')).toHaveLength(1);
+    expect(mockUpdateXP).toHaveBeenCalledWith('uid-write', 25);
+    expect(mockTrackProgressSyncQueued).toHaveBeenCalledWith({
+      operation: 'updateXP',
+      label: 'updateXP',
+      queueSize: 1,
+    });
+  });
+
+  it('retries queued progress writes and clears the pending queue', async () => {
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-retry' } });
+    mockFetchAllUserData.mockResolvedValue(makeFetchResult());
+    mockUpdateXP.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'write timeout' },
+    });
+
+    renderXPWriteWithProvider();
+
+    await waitFor(() => {
+      expect(mockFetchAllUserData).toHaveBeenCalledWith('uid-retry');
+    });
+
+    fireEvent.click(screen.getByTestId('award-xp'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('award-xp').dataset.pendingSync).toBe('1');
+    });
+
+    fireEvent.click(screen.getByTestId('retry-pending'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('award-xp').dataset.pendingSync).toBe('0');
+    });
+    expect(readProgressWriteQueue('uid-retry')).toEqual([]);
+    expect(mockUpdateXP).toHaveBeenCalledTimes(2);
+    expect(mockTrackProgressSyncReplay).toHaveBeenCalledWith({
+      trigger: 'manual',
+      processed: 1,
+      remaining: 0,
+      failedItem: null,
+      error: null,
+    });
+  });
+});
+
 describe('ProgressContext — XP popup queue', () => {
   beforeEach(() => {
     mockUseAuth.mockReturnValue({ user: { id: 'uid-popup' } });
-    mockFetchAllUserData.mockResolvedValue({
-      progress:  { data: [], error: null },
-      quiz:      { data: [], error: null },
-      xp:        { data: null, error: null },
-      streak:    { data: null, error: null },
-      daily:     { data: null, error: null },
-      badges:    { data: [], error: null },
-      sr:        { data: [], error: null },
-      bookmarks: { data: [], error: null },
-      notes:     { data: [], error: null },
-      visited:   { data: [], error: null },
-      position:  { data: null, error: null },
-    });
+    mockFetchAllUserData.mockResolvedValue(makeFetchResult());
   });
 
   it('shows the first popup, then the second one only after dismissal', async () => {
     renderXPPopupQueueWithProvider();
 
-    // Wait for the provider to finish loading the user — awardXP returns
-    // early when there is no user yet.
     await waitFor(() => {
       expect(screen.getByTestId('award-30')).not.toBeDisabled();
     });
@@ -320,9 +463,6 @@ describe('ProgressContext — XP popup queue', () => {
     fireEvent.click(screen.getByTestId('award-30'));
     fireEvent.click(screen.getByTestId('award-50'));
 
-    // Without queueing, the +50 award would overwrite the +30 popup
-    // before the user ever saw it. With queueing, +30 stays visible
-    // until clearXPPopup shifts it off, then +50 takes the head.
     await waitFor(() => {
       expect(screen.getByTestId('xp-popup-amount').textContent).toBe('30');
       expect(screen.getByTestId('xp-popup-reason').textContent).toBe('Quiz completed');
@@ -349,7 +489,6 @@ describe('ProgressContext — XP popup queue', () => {
       expect(screen.getByTestId('award-30')).not.toBeDisabled();
     });
 
-    // Should not throw or affect any state.
     fireEvent.click(screen.getByTestId('dismiss'));
     fireEvent.click(screen.getByTestId('dismiss'));
 

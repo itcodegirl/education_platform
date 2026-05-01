@@ -6,4 +6,4 @@ export {
   useXP,
   useSR,
 } from '../context/ProgressContext';
-export { BADGE_DEFS } from '../context/ProgressContext';
+export { BADGE_DEFS } from '../data/badges';

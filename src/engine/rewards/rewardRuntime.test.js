@@ -318,7 +318,7 @@ describe('awardRewardOnce', () => {
     });
   });
 
-  it('attempts backend sync when the local ledger already processed the event without double-awarding local XP', async () => {
+  it('skips backend sync when the local ledger already processed the event', async () => {
     const storage = createMemoryStorage();
     await awardRewardOnce(createRewardDeps({ storage }));
     const backendRewardAward = vi.fn(async () => ({
@@ -336,21 +336,14 @@ describe('awardRewardOnce', () => {
 
     const result = await awardRewardOnce(deps);
 
-    expect(result.status).toBe(REWARD_PROCESSOR_STATUSES.APPLIED);
-    expect(result.source).toBe('backend-reward-event');
+    expect(result.status).toBe(REWARD_PROCESSOR_STATUSES.SKIPPED);
+    expect(result.source).toBe('local-reward-ledger');
     expect(result.rewardResult).toMatchObject({
       xpAwarded: 0,
       localSkipped: true,
       localDedupeSource: 'local-reward-ledger',
     });
-    expect(backendRewardAward).toHaveBeenCalledTimes(1);
-    expect(backendRewardAward).toHaveBeenCalledWith({
-      event: deps.event,
-      xpAmount: 25,
-      source: 'client',
-    }, {
-      enabled: true,
-    });
+    expect(backendRewardAward).not.toHaveBeenCalled();
     expect(diagnoseBackendRewardSync).toHaveBeenCalledWith(expect.objectContaining({
       phase: 'local-ledger-dedupe-detected',
       featureFlagEnabled: true,
@@ -358,13 +351,6 @@ describe('awardRewardOnce', () => {
       backendAwardAttempted: false,
       resultStatus: BACKEND_REWARD_STATUSES.SKIPPED,
       reason: 'local_ledger_processed',
-    }));
-    expect(diagnoseBackendRewardSync).toHaveBeenCalledWith(expect.objectContaining({
-      phase: 'backend-award-attempt',
-      featureFlagEnabled: true,
-      userAuthenticated: true,
-      backendAwardAttempted: true,
-      resultStatus: 'pending',
     }));
     expect(deps.awardXP).not.toHaveBeenCalled();
     expect(deps.onRewardApplied).not.toHaveBeenCalled();

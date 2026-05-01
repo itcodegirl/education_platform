@@ -23,6 +23,7 @@ import { COURSE_METADATA } from './metadata';
 
 export { COURSE_METADATA } from './metadata';
 export { loadCourse, COURSE_LOADER_IDS } from './loaders';
+export { BADGE_DEFS } from './badges';
 
 // Mutable! CourseContentProvider writes to `modules` as courses load.
 // Components should prefer reading via useCourseContent() so React

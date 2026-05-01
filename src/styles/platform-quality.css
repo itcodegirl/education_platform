@@ -152,6 +152,7 @@ img {
   padding: 10px 20px;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
   font-size: 13px;
   font-weight: 600;
@@ -171,17 +172,20 @@ img {
   animation: slideDown 0.3s var(--ease-out), fadeOut 0.5s 2.5s forwards;
 }
 
-/* Sync-failed state — writes to Supabase silently failed. Amber
-   warning, not red (user's local state is still correct — it's a
-   "heads up" not a "disaster"). Two action buttons: Retry (does a
-   full retryLoad) and Dismiss (clears the counter). */
+.offline-banner.is-sync-pending {
+  background: #fbbf24;
+  color: #1a1a2e;
+  animation: slideDown 0.3s var(--ease-out);
+}
+
+/* Sync-failed state — writes to Supabase failed, but the learner's
+   latest local state is still available in the current browser. */
 .offline-banner.is-sync-failed {
   background: #f59e0b;
   color: #1a1a2e;
   animation: slideDown 0.3s var(--ease-out);
 }
 
-.offline-retry,
 .offline-dismiss {
   flex-shrink: 0;
   padding: 4px 12px;
@@ -193,22 +197,49 @@ img {
   transition: background 0.15s, transform 0.15s;
 }
 
-.offline-retry {
-  background: rgba(0, 0, 0, 0.85);
-  color: #f59e0b;
-  border: 1px solid rgba(0, 0, 0, 0.9);
-}
-
-.offline-retry:hover {
-  transform: translateY(-1px);
-  background: #000;
-}
-
 .offline-dismiss {
   background: transparent;
   color: #1a1a2e;
   border: 1px solid rgba(26, 26, 46, 0.3);
   padding: 4px 8px;
+}
+
+.offline-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.offline-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.offline-retry {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s, opacity 0.15s;
+  background: #1a1a2e;
+  color: #fff;
+  border: 1px solid rgba(26, 26, 46, 0.4);
+}
+
+.offline-retry:hover:not(:disabled) {
+  background: #0f172a;
+}
+
+.offline-retry:disabled {
+  opacity: 0.7;
+  cursor: wait;
 }
 
 .offline-dismiss:hover {
@@ -221,7 +252,34 @@ img {
 }
 
 .offline-text {
-  flex: 1;
+  min-width: 0;
+}
+
+.offline-note {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.offline-banner.is-sync-pending.is-retrying .offline-retry {
+  box-shadow: 0 0 0 1px rgba(26, 26, 46, 0.12);
+}
+
+@media (max-width: 640px) {
+  .offline-banner {
+    padding: 10px 14px;
+  }
+
+  .offline-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .offline-retry,
+  .offline-dismiss {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 @keyframes slideDown {

@@ -15,7 +15,7 @@ Backend reward sync is attempted only when all of these are true:
 
 If any condition is missing, rewards continue through the local reward-event ledger, local queue, and legacy reward-history guard.
 
-Before attempting a backend award, the runtime checks the local ledger. If the event was already processed locally, the backend is not called and XP is not awarded again.
+Before attempting a backend award, the runtime checks the local ledger. If the event was already processed locally, the hot path skips the backend RPC and does not award XP again. Later reconciliation is responsible for any deliberate backend catch-up.
 
 ## Sync Modes
 
@@ -56,6 +56,7 @@ Before attempting a backend award, the runtime checks the local ledger. If the e
 - If the backend already has the event key, mark the local queue/ledger as reconciled and do not award XP.
 - If local queue status is `applied_unrecorded`, submit evidence without replaying client XP.
 - If local queue status is `pending` or `failed_retryable`, retry only when the backend is reachable and the local idempotency guards still allow it.
+- If local queue status is `processed`, `skipped`, or `reconciled` and the ledger entry is missing, treat the queue record as backend submission evidence instead of silently ignoring it.
 - If learner identity changes, do not blindly replay events under the new identity. Treat mismatched learner keys as conflicts that require a deliberate policy decision.
 
 ## Legacy Data

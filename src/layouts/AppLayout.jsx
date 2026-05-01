@@ -55,6 +55,7 @@ export function AppLayout() {
     dataLoaded,
     lastPosition,
     markSyncFailed,
+    enqueuePendingSyncWrite,
   } = useProgressData();
   const { xpTotal = 0, streak = 0, dailyCount = 0 } = useXP();
 
@@ -126,7 +127,11 @@ export function AppLayout() {
   const trackedLessonRef = useRef('');
   const isSidebarOpen = isMobile ? panels.sidebar : true;
 
-  useFetcherSyncFailure(progressMutation, markSyncFailed, 'lesson progress');
+  useFetcherSyncFailure(
+    progressMutation,
+    { markSyncFailed, enqueuePendingSyncWrite },
+    'lesson progress',
+  );
 
   useEffect(() => {
     if (isMobile) {

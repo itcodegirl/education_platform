@@ -61,6 +61,7 @@ The goal was to keep the existing core vision and architecture intact while maki
 
 - ESLint, Vitest, and Playwright
 - scripted quality gates for local and CI parity
+- authenticated smoke coverage that runs when test credentials are configured and self-skips locally when they are not
 
 ---
 
@@ -71,6 +72,7 @@ The goal was to keep the existing core vision and architecture intact while maki
 - Sharper CTA hierarchy in entry flow
 - clearer onboarding and "next step" language
 - improved empty states and helper copy where users previously hit dead ends
+- replaced misleading sync-retry messaging with an honest local-browser warning that does not risk overwriting unsynced learner progress
 
 ### 2. Visual consistency
 
@@ -88,6 +90,13 @@ The goal was to keep the existing core vision and architecture intact while maki
 
 - improved root scripts for clear unit/integration/release gates
 - aligned README, CONTRIBUTING, and release checklist with actual commands
+- separated badge catalog metadata from React progress context
+- aligned badge eligibility logic with the actual reward catalog
+- hardened transient toast feedback so new messages cannot be hidden by stale timers
+- added a same-browser retry queue for direct optimistic progress writes so failed learner saves can replay instead of dying as one-shot warnings
+- extended that recovery path to recoverable lesson progress and bookmark route mutations, with route-action test coverage to protect the contract
+- added privacy-safe sync recovery telemetry for queued writes and replay outcomes, while keeping raw learner payloads out of analytics
+- ignored local Playwright auth storage so authenticated test runs do not create commit-risk session files
 - maintained small, intentional commits with check-backed verification
 
 ---
@@ -111,6 +120,18 @@ Why: prevented regressions while improving screen reader and keyboard behavior.
 Decision: use simple command gates (`check`, `check:ci`) to keep both fast feedback and CI parity.
 
 Why: stronger release confidence without a complex pipeline redesign.
+
+### Tradeoff: trust cues vs overpromising recovery
+
+Decision: add a real same-browser retry queue for direct optimistic progress writes, extend recoverable lesson route mutations into the same queue, and keep remaining route-action warnings honest where replay is still not implemented.
+
+Why: learners need actionable recovery when saves fail, but the product should not claim universal cloud durability before every persistence path supports it.
+
+### Tradeoff: observability vs learner privacy
+
+Decision: emit sync queue/replay summaries through the existing analytics path without learner IDs, lesson keys, note content, queue payloads, or raw database errors.
+
+Why: product reliability needs visibility, but portfolio credibility is stronger when analytics discipline is explicit and privacy-preserving.
 
 ---
 
@@ -136,6 +157,9 @@ Why: stronger release confidence without a complex pipeline redesign.
 - clearer user path from landing to lesson completion
 - more consistent, premium-feeling UI without sacrificing readability
 - stronger confidence in release quality through explicit checks
+- more believable progress reliability because direct learner saves can now retry after transient failures
+- stronger trust in lesson completion and bookmark persistence because recoverable route failures now fall back into the same-browser retry queue
+- cleaner QA hygiene because authenticated Playwright state is ignored instead of appearing as untracked session residue
 - clearer portfolio narrative for both non-technical and technical reviewers
 
 ---

@@ -6,23 +6,11 @@
 // no I/O, no React — so they're trivial to test in
 // pure Node.
 //
-// getNewBadges depends on BADGE_DEFS from ProgressContext
-// (a React module), so we stub that import with a mock
-// so the test file never pulls in React.
+// getNewBadges depends on shared badge metadata. Keep this unit test
+// focused on filtering behavior instead of the full badge catalog.
 // ═══════════════════════════════════════════════
 
-import { describe, it, expect, vi } from 'vitest';
-
-// Stub BADGE_DEFS so importing gamificationService doesn't pull in
-// React via src/context/ProgressContext.jsx.
-vi.mock('../context/ProgressContext', () => ({
-  BADGE_DEFS: [
-    { id: 'first_lesson', name: 'First Lesson', emoji: '🌱' },
-    { id: 'five_lessons', name: 'Five Lessons', emoji: '🌿' },
-    { id: 'streak_7', name: 'Week Warrior', emoji: '🔥' },
-    { id: 'xp_100', name: 'XP 100', emoji: '💯' },
-  ],
-}));
+import { describe, it, expect } from 'vitest';
 
 import {
   checkBadgeEligibility,
@@ -37,11 +25,13 @@ const emptyCtx = {
   completedCount: 0,
   quizCount: 0,
   streak: 0,
-  xp: 0,
-  coursesVisited: 0,
+  xpTotal: 0,
+  coursesVisitedCount: 0,
   bookmarkCount: 0,
   dailyCount: 0,
-  srCount: 0,
+  dailyGoal: 5,
+  hasPerfect: false,
+  hour: 12,
   noteCount: 0,
 };
 
@@ -66,25 +56,39 @@ describe('checkBadgeEligibility', () => {
     expect(e.fifty_lessons).toBe(true);
   });
 
-  it('unlocks streak badges at 3, 7, and 30 days', () => {
+  it('unlocks streak badges at 3 and 7 days', () => {
     expect(checkBadgeEligibility({ ...emptyCtx, streak: 2 }).streak_3).toBe(false);
     expect(checkBadgeEligibility({ ...emptyCtx, streak: 3 }).streak_3).toBe(true);
     expect(checkBadgeEligibility({ ...emptyCtx, streak: 7 }).streak_7).toBe(true);
-    expect(checkBadgeEligibility({ ...emptyCtx, streak: 30 }).streak_30).toBe(true);
   });
 
-  it('unlocks XP badges at 100, 500, and 1000', () => {
-    const e = checkBadgeEligibility({ ...emptyCtx, xp: 1000 });
-    expect(e.xp_100).toBe(true);
-    expect(e.xp_500).toBe(true);
-    expect(e.xp_1000).toBe(true);
+  it('unlocks level badges from XP totals', () => {
+    const e = checkBadgeEligibility({ ...emptyCtx, xpTotal: XP_PER_LEVEL * 9 });
+    expect(e.level_5).toBe(true);
+    expect(e.level_10).toBe(true);
   });
 
-  it('unlocks the explorer badge after 3 course visits', () => {
-    expect(checkBadgeEligibility({ ...emptyCtx, coursesVisited: 2 }).explorer).toBe(
+  it('unlocks quiz, perfect, daily, and time-based badges from matching signals', () => {
+    const e = checkBadgeEligibility({
+      ...emptyCtx,
+      quizCount: 5,
+      hasPerfect: true,
+      dailyCount: 5,
+      hour: 23,
+    });
+    expect(e.first_quiz).toBe(true);
+    expect(e.five_quizzes).toBe(true);
+    expect(e.perfect_quiz).toBe(true);
+    expect(e.daily_goal).toBe(true);
+    expect(e.night_owl).toBe(true);
+    expect(e.early_bird).toBe(false);
+  });
+
+  it('unlocks the explorer badge after all four course tracks are visited', () => {
+    expect(checkBadgeEligibility({ ...emptyCtx, coursesVisitedCount: 3 }).explorer).toBe(
       false,
     );
-    expect(checkBadgeEligibility({ ...emptyCtx, coursesVisited: 3 }).explorer).toBe(
+    expect(checkBadgeEligibility({ ...emptyCtx, coursesVisitedCount: 4 }).explorer).toBe(
       true,
     );
   });
@@ -96,7 +100,7 @@ describe('getNewBadges', () => {
       ...emptyCtx,
       completedCount: 5,
       streak: 7,
-      xp: 100,
+      xpTotal: XP_PER_LEVEL * 4,
     });
     const alreadyEarned = ['first_lesson'];
 
@@ -105,8 +109,14 @@ describe('getNewBadges', () => {
 
     expect(ids).toContain('five_lessons');
     expect(ids).toContain('streak_7');
-    expect(ids).toContain('xp_100');
+    expect(ids).toContain('level_5');
     expect(ids).not.toContain('first_lesson');
+  });
+
+  it('accepts an earned-badge map when filtering already earned badges', () => {
+    const eligibility = { first_lesson: true, five_lessons: true };
+    const newOnes = getNewBadges(eligibility, { first_lesson: { date: 'today' } });
+    expect(newOnes.map((badge) => badge.id)).toEqual(['five_lessons']);
   });
 
   it('returns an empty array when nothing is newly earned', () => {

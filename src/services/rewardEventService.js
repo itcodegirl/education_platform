@@ -179,8 +179,8 @@ async function resolveSupabaseClient(options = {}) {
   }
 
   try {
-    const module = await import('../lib/supabaseClient');
-    return { client: module.supabase };
+    const module = await import('../lib/lazySupabaseClient');
+    return { client: module.getLazySupabaseClient(options.env) };
   } catch (error) {
     return {
       disabledReason: 'supabase_client_unavailable',

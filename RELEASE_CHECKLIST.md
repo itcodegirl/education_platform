@@ -6,7 +6,7 @@ Use this checklist before Netlify releases or hotfix deploys.
 
 - Confirm branch, target deploy context, and commit SHA.
 - Run:
-  - `npm run build`
+  - `npm run check`
   - `npm run audit:quizzes`
   - `npm run test:e2e`
 - Confirm required runtime environment variables:

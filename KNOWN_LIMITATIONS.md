@@ -8,8 +8,9 @@ This project is actively stabilized and is not yet production-grade. The followi
 
 ## Tooling / Verification
 
-- Linting is not yet treated as a stable, required release gate in this repair stage.
+- The local quality gate covers lint, production build, bundle budget, and unit tests through `npm run check`.
 - Authenticated E2E scenarios are skipped when auth credentials are not configured in environment variables.
+- Authenticated Playwright storage state is intentionally ignored under `playwright/.auth/` to avoid committing local session files.
 
 ## Learning Integrity
 
@@ -29,6 +30,13 @@ This project is actively stabilized and is not yet production-grade. The followi
 - Challenge completion persistence is same-device/localStorage-backed and should not be treated as secure certification.
 - Challenge auto-grading reads the learner's source text via `string.includes` / regex helpers (see `src/data/{html,css,js}/challenges.js`). It is good enough as a beginner guide rail but is intentionally not robust — a learner can pass requirements like "uses `<nav>`" by adding the substring inside an HTML comment. The CodeChallenge UI now states this explicitly under the test results so the limitation is visible to learners. The infrastructure for DOM-based grading is now in place: `useChallengeSession.runTests` is async and waits for the iframe's `onLoad` (or a 1.5s safety timeout) before grading, so a future migration is data-only — rewrite each test's `check(code, iframe)` to inspect `iframe.contentDocument` instead of regexing the source. Until that data migration lands, the source-text limitation above still applies.
 - Supabase/localStorage write failures mark sync-failed state in core flows, but automatic backend queue replay/import is still future work.
+- Direct optimistic progress writes from `ProgressContext` now have same-browser queue replay, including reconnect retry and next-session replay in the same browser.
+- Recoverable lesson route mutations for completion toggles and bookmarks now enqueue same-browser retry writes instead of stopping at a generic sync warning.
+- Other route-fetcher mutations and backend reward flows still surface advisory sync warnings without the same queued replay/import guarantees.
+- The sync warning banner remains intentionally non-destructive for non-queued failures. Hiding a generic warning does not recover a failed route action or promise durable recovery from every cloud-write failure.
+- Progress sync queue/replay telemetry is privacy-safe and analytics-gated, but it is not a replacement for backend observability or alerting.
+- Challenge auto-grading reads the learner's source text via `string.includes` / regex helpers (see `src/data/{html,css,js}/challenges.js`). It is good enough as a beginner guide rail but is intentionally not robust — a learner can pass requirements like "uses `<nav>`" by adding the substring inside an HTML comment. The CodeChallenge UI now states this explicitly under the test results so the limitation is visible to learners. The iframe ref is already plumbed through `runTests` in `src/components/learning/CodeChallenge.jsx`, so a future improvement is to migrate test data to grade against the live iframe DOM.
+- Supabase/localStorage write failures outside the covered same-browser retry path still mark sync-failed state, but universal backend queue replay/import is still future work.
 
 ## Search / Content
 

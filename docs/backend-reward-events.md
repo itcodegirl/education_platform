@@ -97,6 +97,7 @@ The RPC never accepts `user_id` from the client.
 - `disabled`
 
 Normal fallback cases do not throw. Missing Supabase config, disabled backend sync, or an unavailable Supabase client return `disabled` so local reward behavior can continue.
+The backend award path now lazy-loads a dedicated reward client module so it does not dynamically import the same eager Supabase singleton used by the main app shell.
 
 ## Local Fallback And Queue Preservation
 
@@ -105,6 +106,7 @@ The runtime preserves local behavior:
 - Legacy reward history remains the first compatibility guard.
 - The local reward ledger remains the same-device idempotency guard.
 - The local queue records pending, processed, skipped, failed, applied-unrecorded, and reconciled event states.
+- If the local ledger already shows an event as processed, the hot path skips the backend award RPC and leaves cross-device catch-up to explicit reconciliation planning.
 - Backend `awarded` results update local UI with `skipRemote` to avoid a second direct XP write.
 - Backend `skipped` results mark local dedupe without awarding local XP.
 - Backend `failed` and `disabled` results fall back through the local reward processor.
