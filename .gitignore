@@ -8,6 +8,7 @@ Cinova
 codeherway-ceo-os
 supabase/.temp
 playwright-report
+playwright/.auth/
 test-results
 scripts/Delete-GitHubRepos.ps1
 secret_grid.bmp
