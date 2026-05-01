@@ -5,7 +5,7 @@
 
 import { createContext, useContext, useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useAuth } from './AuthContext';
-import { DAILY_GOAL, TIMING, getLevel, getTodayString, getYesterdayString } from '../utils/helpers';
+import { DAILY_GOAL, getLevel, getTodayString, getYesterdayString } from '../utils/helpers';
 import { COURSES } from '../data';
 import * as progressService from '../services/progressService';
 import {
@@ -24,6 +24,7 @@ import { isPerfectQuizScore, rewardKeys } from '../services/rewardPolicy';
 import { lessonKeysEquivalent, resolveStableLessonKeyAcrossCourses } from '../utils/lessonKeys';
 import { LOCAL_STORAGE_SYNC_ERROR_EVENT } from '../hooks/useLocalStorage';
 import { findNewlyEarnedBadges } from '../services/badgeRules';
+import { nextSRCardState } from '../services/srAlgorithm';
 
 // BADGE_DEFS is imported above from '../data/badges' (the canonical
 // catalog home) and re-exported via providers/ProgressProvider, so
@@ -804,27 +805,16 @@ export function ProgressProvider({ children }) {
   const updateSRCard = useCallback(async (question, correct) => {
     if (!user) return;
 
-    const currentCard = srCards.find(c => c.question === question);
+    const currentCard = srCards.find((c) => c.question === question);
     if (!currentCard) return;
 
-    const nextInterval = correct
-      ? Math.round(currentCard.interval * currentCard.ease)
-      : 1;
-    const nextEase = correct
-      ? Math.min(currentCard.ease + 0.1, 3.0)
-      : Math.max(currentCard.ease - 0.2, 1.3);
-    const nextReviewTs = Date.now() + (correct ? nextInterval : 1) * TIMING.dayMs;
-    const updatedCard = {
-      ...currentCard,
-      interval: nextInterval,
-      ease: nextEase,
-      nextReview: nextReviewTs,
-    };
+    // The SM-2-style scheduling math lives in services/srAlgorithm so
+    // it's unit-testable in isolation. This callback only does state +
+    // persistence.
+    const { interval, ease, nextReview } = nextSRCardState({ card: currentCard, correct });
+    const updatedCard = { ...currentCard, interval, ease, nextReview };
 
-    setSrCards(prev => prev.map(card => {
-      if (card.question !== question) return card;
-      return updatedCard;
-    }));
+    setSrCards((prev) => prev.map((card) => (card.question === question ? updatedCard : card)));
 
     dbWrite(
       createProgressWrite('updateSRCard', {
