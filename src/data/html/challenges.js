@@ -52,12 +52,29 @@ export const HTML_CHALLENGES = [
     starter:'<!-- header, nav, main, section, article, aside, footer -->',
     requirements:['Has <header> with <nav>','Has <main>','Has <section> with <article>','Has <aside>','Has <footer>','No <div> elements'],
     tests:[
-      { label:'<header> with <nav>', check:c=>has(c,'<header')&&has(c,'<nav') },
-      { label:'<main>', check:c=>has(c,'<main') },
-      { label:'<section> with <article>', check:c=>has(c,'<section')&&has(c,'<article') },
-      { label:'<aside>', check:c=>has(c,'<aside') },
-      { label:'<footer>', check:c=>has(c,'<footer') },
-      { label:'No divs', check:c=>count(c,'<div')=== 0 },
+      // DOM-based: enforces both presence AND nesting (the source-text
+      // version passed if both substrings appeared anywhere in the
+      // file, even if the <nav> wasn't actually inside the <header>).
+      { label:'<header> with <nav>', check:(_, iframe)=>{
+        const header = dom(iframe)?.querySelector('header');
+        return !!header && !!header.querySelector('nav');
+      } },
+      { label:'<main>', check:(_, iframe)=>!!dom(iframe)?.querySelector('main') },
+      { label:'<section> with <article>', check:(_, iframe)=>{
+        const section = dom(iframe)?.querySelector('section');
+        return !!section && !!section.querySelector('article');
+      } },
+      { label:'<aside>', check:(_, iframe)=>!!dom(iframe)?.querySelector('aside') },
+      { label:'<footer>', check:(_, iframe)=>!!dom(iframe)?.querySelector('footer') },
+      // No-div check now actually inspects the rendered DOM, so an
+      // HTML comment containing the literal '<div' no longer counts.
+      // We only look at body descendants to avoid being tripped up by
+      // any wrapper the iframe boilerplate adds.
+      { label:'No divs', check:(_, iframe)=>{
+        const body = dom(iframe)?.body;
+        if (!body) return false;
+        return body.querySelectorAll('div').length === 0;
+      } },
     ],
     hint:'Think zones: header (top), main (center), aside (sidebar), footer (bottom).',
     solution:'<header>\n  <nav><a href="/">Home</a> <a href="/about">About</a></nav>\n</header>\n<main>\n  <section>\n    <h2>Posts</h2>\n    <article><h3>First Post</h3><p>Content.</p></article>\n  </section>\n  <aside><h3>About</h3><p>Sidebar.</p></aside>\n</main>\n<footer><p>&copy; 2025 CodeHerWay</p></footer>' },
