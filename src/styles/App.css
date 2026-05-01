@@ -2558,14 +2558,9 @@ input, textarea, select {
   font-display: swap;
 }
 
-/* Reduce motion for users who prefer it */
+/* Component-specific reduced-motion overrides.
+   The global *, *::before, *::after override lives in base.css. */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
   .loading-pulse { animation: none; }
   .sk-line { animation: none; opacity: 0.2; }
   .ai-typing span { animation: none; opacity: 0.5; }
