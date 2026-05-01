@@ -2,9 +2,18 @@
 import { supabase } from '../../lib/supabaseClient';
 import { Logo } from './Logo';
 import { XP_PER_LEVEL, getLevel, getXPInLevel } from '../../utils/helpers';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 export function PublicProfile({ handle, onClose }) {
   const [state, setState] = useState({ loading: true, error: null, profile: null });
+
+  useDocumentTitle(
+    state.profile?.display_name
+      ? `${state.profile.display_name}'s profile`
+      : handle
+        ? `@${handle}`
+        : 'Public profile',
+  );
 
   useEffect(() => {
     let cancelled = false;

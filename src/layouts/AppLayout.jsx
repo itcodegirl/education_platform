@@ -14,6 +14,7 @@ import { useLearning } from "../hooks/useLearning";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useFetcherSyncFailure } from "../hooks/useFetcherSyncFailure";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { estimateReadingTime, getLevel } from "../utils/helpers";
 import { trackEvent } from "../lib/analytics";
 import {
@@ -21,6 +22,12 @@ import {
   getLessonKeyVariants,
   hasLessonCompletion,
 } from "../utils/lessonKeys";
+import {
+  getLessonPositionLabel,
+  getNextLessonTitle,
+  getNextStepHint,
+  getPrevLessonTitle,
+} from "../utils/lessonNavCopy";
 
 // Layout components
 import { Sidebar } from "../components/layout/Sidebar";
@@ -140,13 +147,7 @@ export function AppLayout() {
   }, [isMobile, setSidebarCollapsed]);
 
   // --- Dynamic page title -------------------
-  useEffect(() => {
-    const title = showModQuiz
-      ? `${mod.title} Quiz - CodeHerWay`
-      : `${les.title} - CodeHerWay`;
-    document.title = title;
-    return () => { document.title = 'CodeHerWay - Learn. Build. Ship.'; };
-  }, [les.title, mod.title, showModQuiz]);
+  useDocumentTitle(showModQuiz ? `${mod.title} Quiz` : les.title);
 
   // --- Save position on navigation ----------
   useEffect(() => {
@@ -180,43 +181,38 @@ export function AppLayout() {
   const coursePct = courseTotal > 0 ? Math.round((courseDone / courseTotal) * 100) : 0;
   const isCourseComplete = courseDone === courseTotal && courseTotal > 0;
 
-  // Prev/next lesson title previews for the nav buttons.
-  const prevTitle = (() => {
-    if (isFirst || showModQuiz) return null;
-    if (nav.lesIdx > 0) return nav.mod.lessons[nav.lesIdx - 1]?.title || null;
-    if (nav.modIdx > 0) {
-      const prevMod = nav.modules[nav.modIdx - 1];
-      const lastLesson = prevMod?.lessons?.[prevMod.lessons.length - 1];
-      return lastLesson?.title || null;
-    }
-    return null;
-  })();
-
-  const nextTitle = (() => {
-    if (nav.isLast) return null;
-    if (nav.isLastLesson && nav.moduleQuiz && !showModQuiz) return `${nav.mod.title} Quiz`;
-    if (showModQuiz) {
-      const nextMod = nav.modules[nav.modIdx + 1];
-      return nextMod?.lessons?.[0]?.title || null;
-    }
-    if (nav.lesIdx < nav.mod.lessons.length - 1) return nav.mod.lessons[nav.lesIdx + 1]?.title || null;
-    const nextMod = nav.modules[nav.modIdx + 1];
-    return nextMod?.lessons?.[0]?.title || null;
-  })();
-
-  const lessonPosition = showModQuiz
-    ? `Module quiz for ${mod.title}`
-    : `Lesson ${nav.lesIdx + 1} of ${mod.lessons.length}`;
+  // Prev/next lesson title previews for the nav buttons. The
+  // pure helpers in utils/lessonNavCopy.js own the gnarly
+  // boundary conditions so this layout file stays readable.
+  const prevTitle = getPrevLessonTitle({
+    isFirst,
+    showModQuiz,
+    modIdx: nav.modIdx,
+    lesIdx: nav.lesIdx,
+    mod: nav.mod,
+    modules: nav.modules,
+  });
+  const nextTitle = getNextLessonTitle({
+    isLast,
+    isLastLesson: nav.isLastLesson,
+    moduleQuiz: nav.moduleQuiz,
+    showModQuiz,
+    modIdx: nav.modIdx,
+    lesIdx: nav.lesIdx,
+    mod: nav.mod,
+    modules: nav.modules,
+  });
+  const lessonPosition = getLessonPositionLabel({
+    showModQuiz,
+    modTitle: mod.title,
+    lesIdx: nav.lesIdx,
+    lessonsLength: mod.lessons.length,
+  });
   const mutationActionPath = `/learn/${encodeURIComponent(course.id)}/${encodeURIComponent(
     mod.id,
   )}/${encodeURIComponent(showModQuiz ? 'quiz' : les.id)}`;
 
-  const nextStepHint = (() => {
-    if (isLast) return "Track complete. Pick another course or review key lessons.";
-    if (showModQuiz) return "Finish this quiz to move into the next module.";
-    if (!isDone) return "Mark this lesson done, then continue to the next lesson.";
-    return "Nice progress. Continue when you are ready.";
-  })();
+  const nextStepHint = getNextStepHint({ isLast, showModQuiz, isDone });
 
   useEffect(() => {
     if (showModQuiz || !course.id || !mod.id || !les.id) return;
