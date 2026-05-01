@@ -211,6 +211,14 @@ img {
   margin-left: auto;
 }
 
+.offline-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .offline-retry {
   flex-shrink: 0;
   padding: 4px 12px;
@@ -244,8 +252,17 @@ img {
 }
 
 .offline-text {
-  flex: 1;
   min-width: 0;
+}
+
+.offline-note {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.offline-banner.is-sync-pending.is-retrying .offline-retry {
+  box-shadow: 0 0 0 1px rgba(26, 26, 46, 0.12);
 }
 
 @media (max-width: 640px) {

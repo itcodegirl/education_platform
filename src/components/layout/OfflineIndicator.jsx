@@ -69,14 +69,28 @@ export function OfflineIndicator() {
   }
 
   if (pendingSyncWrites > 0) {
+    const queuedUpdateLabel = pendingSyncWrites === 1
+      ? 'One progress update'
+      : `${pendingSyncWrites} progress updates`;
+    const retrySummary = syncRetryInFlight
+      ? `${queuedUpdateLabel} ${pendingSyncWrites === 1 ? 'is' : 'are'} retrying now.`
+      : `${queuedUpdateLabel} ${pendingSyncWrites === 1 ? 'is' : 'are'} queued to retry.`;
+    const retryDetail = syncRetryInFlight
+      ? 'Keep this tab open while the cloud sync catches up.'
+      : 'Your latest in-tab progress is still here.';
+
     return (
-      <div className="offline-banner is-sync-pending" role="alert" aria-live="assertive" aria-atomic="true">
+      <div
+        className={`offline-banner is-sync-pending${syncRetryInFlight ? ' is-retrying' : ''}`}
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        aria-busy={syncRetryInFlight ? 'true' : undefined}
+      >
         <span className="offline-icon" aria-hidden="true">!</span>
-        <span className="offline-text">
-          {pendingSyncWrites === 1
-            ? 'One progress update is queued to retry.'
-            : `${pendingSyncWrites} progress updates are queued to retry.`}
-          {' '}Your latest in-tab progress is still here.
+        <span className="offline-copy">
+          <span className="offline-text">{retrySummary}</span>
+          <span className="offline-note">{retryDetail}</span>
         </span>
         <div className="offline-actions">
           <button

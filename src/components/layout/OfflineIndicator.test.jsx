@@ -62,6 +62,31 @@ describe('OfflineIndicator', () => {
     expect(retryPendingSyncWrites).toHaveBeenCalledTimes(1);
   });
 
+  it('announces when queued progress writes are actively retrying', () => {
+    mockUseProgressData.mockReturnValue({
+      syncFailed: 0,
+      pendingSyncWrites: 1,
+      syncRetryInFlight: true,
+      clearSyncFailed: vi.fn(),
+      retryPendingSyncWrites: vi.fn(),
+    });
+
+    render(<OfflineIndicator />);
+
+    const retryBanner = screen.getByRole('alert');
+    expect(retryBanner).toHaveAttribute('aria-busy', 'true');
+    expect(
+      screen.getByText(/one progress update is retrying now\./i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/keep this tab open while the cloud sync catches up\./i),
+    ).toBeInTheDocument();
+
+    const retryButton = screen.getByRole('button', { name: /retrying queued progress updates/i });
+    expect(retryButton).toBeDisabled();
+    expect(retryButton).toHaveTextContent(/retrying/i);
+  });
+
   it('renders a local-session sync warning with only a hide action', () => {
     const clearSyncFailed = vi.fn();
     mockUseProgressData.mockReturnValue({
