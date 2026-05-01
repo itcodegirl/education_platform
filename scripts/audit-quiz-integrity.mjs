@@ -18,15 +18,7 @@ const DEFAULT_LESSON_QUIZ_COVERAGE_POLICY = Object.freeze({
   reason: 'Active frontend course lessons should have matching lesson quizzes.',
 });
 
-const LESSON_QUIZ_COVERAGE_POLICIES = Object.freeze({
-  python: Object.freeze({
-    status: 'deferred',
-    label: 'deferred/roadmap',
-    reason: 'Python quizzes are intentionally deferred while the checkpoint policy is defined.',
-    checkpointPolicy:
-      'Future Python coverage should start with learner-friendly module checkpoints before full lesson-level coverage.',
-  }),
-});
+const LESSON_QUIZ_COVERAGE_POLICIES = Object.freeze({});
 
 function getLessonQuizCoveragePolicy(courseId) {
   return LESSON_QUIZ_COVERAGE_POLICIES[courseId] || DEFAULT_LESSON_QUIZ_COVERAGE_POLICY;
@@ -499,9 +491,6 @@ function printEngineStabilizationSummary(totals) {
   const activeCoverageStatus = totals.activeExpectedLessonsWithNoQuiz === 0
     ? 'complete for active HTML/CSS/JavaScript/React lessons'
     : `needs attention (${totals.activeExpectedLessonsWithNoQuiz} active-coverage lesson gaps)`;
-  const pythonCoverageStatus = totals.deferredLessonsWithNoQuiz === 0
-    ? 'no deferred Python quiz gaps reported'
-    : `deferred/roadmap (${totals.deferredLessonsWithNoQuiz} Python lesson gaps tracked)`;
   const variantStatus = totals.suspiciousLessonVariantGroups === 0
     ? `locked (${totals.intentionalLessonVariantGroups}/${totals.lessonVariantGroups} intentional, 0 unreviewed)`
     : `needs review (${totals.suspiciousLessonVariantGroups} unreviewed or mismatched group(s))`;
@@ -514,7 +503,6 @@ function printEngineStabilizationSummary(totals) {
 
   console.log('\nEngine Stabilization Summary');
   console.log(`  active frontend quiz coverage: ${activeCoverageStatus}`);
-  console.log(`  Python quiz coverage: ${pythonCoverageStatus}`);
   console.log(`  variant group inventory: ${variantStatus}`);
   console.log(`  orphan quiz inventory: ${orphanStatus}`);
   console.log(`  strict-mode CI gate: ${strictStatus}`);

@@ -225,8 +225,10 @@
   background: rgba(255, 255, 255, 0.05);
   color: var(--text);
   border-radius: 999px;
-  min-height: 34px;
-  padding: 0 12px;
+  /* Bumped from 34px so the chip clears the iOS HIG (44pt) and
+     Material 3 (48dp) recommended minimums on touch devices. */
+  min-height: 44px;
+  padding: 0 14px;
   display: inline-flex;
   gap: 8px;
   align-items: center;

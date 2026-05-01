@@ -381,7 +381,7 @@ export const Sidebar = memo(function Sidebar({
         {/* ─── Tab bar: Courses + Resources ─── */}
         {/* Two tabs side-by-side. Each opens a small docked panel inside
             the sidebar so overflow/glass layers cannot clip the content.
-            Courses: switches between course tracks (HTML/CSS/JS/React/Python).
+            Courses: switches between course tracks (HTML/CSS/JS/React).
             Resources: opens a quick-launcher for the learning tools
             (cheat sheets, glossary, bookmarks, review queue, challenges, badges).
             Click-outside and Escape close the active panel. */}

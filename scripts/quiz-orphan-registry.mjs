@@ -1,10 +1,4 @@
-export const COURSE_ORPHAN_CLASSIFICATION_POLICIES = Object.freeze({
-  python: Object.freeze({
-    classification: 'python-not-applicable',
-    reason:
-      'Python currently has no quiz records, so Python risk is tracked as deferred missing coverage rather than orphan quiz inventory.',
-  }),
-});
+export const COURSE_ORPHAN_CLASSIFICATION_POLICIES = Object.freeze({});
 
 export const LESSON_QUIZ_ORPHAN_CLASSIFICATIONS = Object.freeze({
   'o:html:h2-1': {

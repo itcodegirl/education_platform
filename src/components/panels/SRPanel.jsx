@@ -8,7 +8,6 @@ const TOPICS = [
   { id: "css", label: "CSS" },
   { id: "js", label: "JS" },
   { id: "react", label: "React" },
-  { id: "python", label: "Python" },
 ];
 
 export function SRPanel({ isOpen, onClose }) {
