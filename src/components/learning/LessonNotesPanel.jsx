@@ -5,7 +5,7 @@
 // the user clicks the ✎ button in LessonHeader.
 // ═══════════════════════════════════════════════
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useProgress } from '../../providers';
 
 const SAVE_DEBOUNCE_MS = 800;
@@ -14,31 +14,40 @@ export function LessonNotesPanel({ lessonKey }) {
   const { saveNote, getNote } = useProgress();
   const [noteText, setNoteText] = useState(() => getNote(lessonKey));
   const saveTimer = useRef(null);
+  const noteRef = useRef(noteText);
+  const keyRef = useRef(lessonKey);
 
-  // Re-seed when the user navigates to a different lesson. Without
-  // this, a fresh open of lesson B would still show lesson A's draft.
+  noteRef.current = noteText;
+  keyRef.current = lessonKey;
+
+  // Re-seed when the user navigates to a different lesson.
   useEffect(() => {
     setNoteText(getNote(lessonKey));
   }, [lessonKey, getNote]);
+
+  const flushSave = useCallback(() => {
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+      saveNote(keyRef.current, noteRef.current);
+    }
+  }, [saveNote]);
 
   const handleChange = (event) => {
     const value = event.target.value;
     setNoteText(value);
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
+      saveTimer.current = null;
       saveNote(lessonKey, value);
     }, SAVE_DEBOUNCE_MS);
   };
 
-  // Flush any pending save on unmount (user navigating away) so we
-  // don't lose the last ~800ms of typing.
+  // Flush pending save on unmount or when lessonKey changes so we
+  // never lose the last ~800ms of typing.
   useEffect(() => {
-    return () => {
-      if (saveTimer.current) {
-        clearTimeout(saveTimer.current);
-      }
-    };
-  }, []);
+    return () => flushSave();
+  }, [lessonKey, flushSave]);
 
   const savedText = getNote(lessonKey);
   const isDirty = noteText !== savedText;
@@ -48,7 +57,7 @@ export function LessonNotesPanel({ lessonKey }) {
       <div className="notes-head">
         <span className="notes-icon" aria-hidden="true">✎</span>
         <span>Your Notes</span>
-        <span className="notes-saved" aria-live="polite">
+        <span className="notes-saved" aria-live="polite" aria-atomic="true">
           {isDirty ? 'Saving...' : noteText ? '✓ Saved' : ''}
         </span>
       </div>
