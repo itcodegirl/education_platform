@@ -21,7 +21,7 @@ export function Confetti() {
   }, []);
 
   return (
-    <div className="confetti-container">
+    <div className="confetti-container" aria-hidden="true">
       {pieces.map((p) => (
         <div
           key={p.id}

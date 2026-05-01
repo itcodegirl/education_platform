@@ -82,6 +82,7 @@
   .dg-count,
   .prog-info { font-size: 11px; }
   .bc-course { display: none; }
+  .bc-les::before { display: none; }
   .lv-emoji { font-size: 28px; }
   .lesson-nav-label { font-size: 12px; }
   .lesson-nav-btn { padding: 10px 6px; }
@@ -109,6 +110,6 @@
   .topbar-actions .read-time { display: none; }
   .search-trigger span:not(:first-child) { display: none; }
   .search-trigger kbd { display: none; }
-  .bc-mod, .bc-sep:nth-of-type(1) { display: none; }
+  .bc-mod { display: none; }
 }
 
