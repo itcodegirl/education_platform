@@ -2,7 +2,7 @@
 // COURSE METADATA — the sync, lightweight shell of
 // every course. Split out of src/data/index.js so that
 // the main bundle can render the landing page + course
-// picker without pulling in all 5 courses' lesson content.
+// picker without pulling in all four courses' lesson content.
 //
 // The actual lesson modules + quizzes + challenges live
 // in src/data/{id}/{course,quizzes,challenges}.js and
@@ -17,7 +17,6 @@ export const COURSE_METADATA = [
   { id: 'css',    label: 'CSS',    icon: '🎨', accent: '#4ecdc4' },
   { id: 'js',     label: 'JS',     icon: '⚡', accent: '#ffa726' },
   { id: 'react',  label: 'React',  icon: '⚛️', accent: '#a78bfa' },
-  { id: 'python', label: 'Python', icon: '🐍', accent: '#3b82f6' },
 ];
 
 export const COURSE_IDS = COURSE_METADATA.map((c) => c.id);

@@ -12,7 +12,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-smoke:
+  check-ci:
+    name: check:ci
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -34,11 +35,76 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build app
-        run: npm run build
-
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      - name: Run Playwright smoke tests
-        run: npm run test:e2e
+      - name: Run accessibility smoke gate (axe)
+        run: npm run test:a11y
+
+      - name: Run check:ci (lint, build, bundle budget, unit, e2e)
+        run: npm run check:ci
+
+  deploy-preview-smoke:
+    name: deploy-preview-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs:
+      - check-ci
+    env:
+      VITE_SUPABASE_URL: ${{ vars.E2E_SUPABASE_URL || 'http://127.0.0.1:54321' }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.E2E_SUPABASE_ANON_KEY || 'example-anon-key' }}
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Preview deploy smoke test
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 > preview.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/ > /dev/null; then
+              echo "Preview smoke passed on attempt ${attempt}."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Preview smoke failed: server did not become ready in time."
+          cat preview.log
+          exit 1
+
+  policy-integration:
+    name: Supabase policy integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_URL: ${{ secrets.POLICY_SUPABASE_URL || '' }}
+      SUPABASE_ANON_KEY: ${{ secrets.POLICY_SUPABASE_ANON_KEY || '' }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.POLICY_SUPABASE_SERVICE_KEY || '' }}
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Supabase policy integration checks
+        run: npm run test:policy

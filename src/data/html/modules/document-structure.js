@@ -1,11 +1,11 @@
-export const module = { id: 3, emoji: '📄', title: 'Document Structure', tagline: 'Every HTML file has a blueprint.', difficulty: 'beginner', lessons: [
+﻿export const module = { id: 3, emoji: '📄', title: 'Document Structure', tagline: 'Every HTML file has a blueprint.', difficulty: 'beginner', lessons: [
     { id: 'h3-1', title: 'The HTML5 Skeleton',
       prereqs: ['h2-2'],
       difficulty: 'beginner', duration: '10 min',
       concepts: [
-        '<!DOCTYPE html> tells the browser this is HTML5 — always first line.',
+        '<!DOCTYPE html> tells the browser this is HTML5 - always first line.',
         '<html lang="en"> is the root element wrapping everything.',
-        '<head> contains metadata — invisible to visitors but critical for browsers.',
+        '<head> contains metadata - invisible to visitors but critical for browsers.',
         '<body> contains everything the user actually sees.',
         'Proper indentation makes your HTML readable and debuggable.',
       ],
@@ -26,7 +26,7 @@ export const module = { id: 3, emoji: '📄', title: 'Document Structure', tagli
         'The viewport meta tag makes your page responsive on mobile devices.',
         '<title> sets the text shown in the browser tab and search results.',
         '<link> connects external files like CSS stylesheets.',
-        '<script> connects JavaScript files — use defer to load after HTML.',
+        '<script> connects JavaScript files - use defer to load after HTML.',
       ],
       code: `<head>\n    <meta charset="UTF-8">\n    <meta name="viewport"\n          content="width=device-width, initial-scale=1.0">\n    <meta name="description"\n          content="Learn HTML the right way.">\n    <title>CodeHerWay | HTML Course</title>\n    <link rel="stylesheet" href="styles.css">\n    <link rel="icon" href="favicon.ico">\n    <script src="app.js" defer></script>\n</head>`,
       output: 'A fully configured <head> with metadata, styles, and scripts.',
@@ -38,3 +38,7 @@ export const module = { id: 3, emoji: '📄', title: 'Document Structure', tagli
       challenge: 'Create a <head> that includes charset, viewport, title, description, CSS link, JS link, and a favicon.',
       devFession: 'I put a <p> tag inside <head> and wondered why it showed up in a weird place.' },
   ]};
+
+
+
+

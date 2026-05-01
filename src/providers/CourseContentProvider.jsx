@@ -35,7 +35,8 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { COURSES, QUIZ_MAP, loadCourse, COURSE_LOADER_IDS } from '../data';
+import { COURSES, QUIZ_MAP, QUIZ_VARIANTS, loadCourse, COURSE_LOADER_IDS } from '../data';
+import { resolveQuizLessonId } from '../data/quizLessonIdResolver';
 
 const CourseContentContext = createContext({
   loadedCourseIds: new Set(),
@@ -51,16 +52,80 @@ const CourseContentContext = createContext({
 // Module-level cache of in-flight loads so concurrent callers share
 // one network request and don't double-mutate COURSES/QUIZ_MAP.
 const inFlight = new Map();
+const scopedQuizKeysByCourse = new Map();
+
+function buildScopedQuizKey(type, courseId, entityId) {
+  return `${type}:${courseId}:${entityId}`;
+}
+
+function collectCourseEntityIds(modules = []) {
+  const lessonIds = new Set();
+  const moduleIds = new Set();
+  modules.forEach((moduleData) => {
+    moduleIds.add(moduleData.id);
+    (moduleData.lessons || []).forEach((lesson) => {
+      lessonIds.add(lesson.id);
+    });
+  });
+  return { lessonIds, moduleIds };
+}
+
+function clearCourseQuizIndexes(courseId) {
+  const existingKeys = scopedQuizKeysByCourse.get(courseId);
+  if (!existingKeys) return;
+
+  existingKeys.forEach((key) => {
+    QUIZ_MAP.delete(key);
+    QUIZ_VARIANTS.delete(key);
+  });
+  scopedQuizKeysByCourse.delete(courseId);
+}
+
+function registerScopedQuiz({ scopedKey, quiz, nextScopedKeys }) {
+  const variant = QUIZ_VARIANTS.get(scopedKey);
+
+  if (!variant) {
+    QUIZ_MAP.set(scopedKey, quiz);
+    QUIZ_VARIANTS.set(scopedKey, { primary: quiz, bonus: [] });
+  } else {
+    variant.bonus.push(quiz);
+  }
+
+  nextScopedKeys.add(scopedKey);
+}
 
 function hydrateCourse(id, { modules, quizzes }) {
   const target = COURSES.find((c) => c.id === id);
   if (target) {
     target.modules = modules;
   }
-  quizzes.forEach((q) => {
-    if (q.lessonId) QUIZ_MAP.set(`l:${q.lessonId}`, q);
-    if (q.moduleId) QUIZ_MAP.set(`m:${q.moduleId}`, q);
+
+  clearCourseQuizIndexes(id);
+
+  const { lessonIds, moduleIds } = collectCourseEntityIds(modules);
+  const nextScopedKeys = new Set();
+
+  (quizzes || []).forEach((quiz) => {
+    const lessonResolution = resolveQuizLessonId(id, quiz.lessonId, lessonIds);
+
+    if (lessonResolution.resolvedLessonId) {
+      registerScopedQuiz({
+        scopedKey: buildScopedQuizKey('l', id, lessonResolution.resolvedLessonId),
+        quiz,
+        nextScopedKeys,
+      });
+    }
+
+    if (quiz.moduleId && moduleIds.has(quiz.moduleId)) {
+      registerScopedQuiz({
+        scopedKey: buildScopedQuizKey('m', id, quiz.moduleId),
+        quiz,
+        nextScopedKeys,
+      });
+    }
   });
+
+  scopedQuizKeysByCourse.set(id, nextScopedKeys);
 }
 
 export function CourseContentProvider({ children }) {

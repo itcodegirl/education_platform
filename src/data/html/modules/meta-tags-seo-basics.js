@@ -1,4 +1,4 @@
-export const module = { id: 14, emoji: '🔍', title: 'Meta Tags & SEO Basics', tagline: 'Get found. Get clicks.', difficulty: 'intermediate', lessons: [
+﻿export const module = { id: 14, emoji: '🔍', title: 'Meta Tags & SEO Basics', tagline: 'Get found. Get clicks.', difficulty: 'intermediate', lessons: [
     { id: 'h14-1', scaffolding: 'requirements',
       prereqs: ['h13-2'], title: 'SEO-Friendly HTML & Open Graph',
       difficulty: 'beginner', duration: '12 min',
@@ -20,3 +20,6 @@ export const module = { id: 14, emoji: '🔍', title: 'Meta Tags & SEO Basics', 
       challenge: 'Write a complete <head> section with title, description, canonical, OG tags, Twitter Card, and favicon.',
       devFession: 'I shared my portfolio on LinkedIn and it showed "localhost:3000" as the preview. Open Graph would have fixed that.' },
   ]};
+
+
+

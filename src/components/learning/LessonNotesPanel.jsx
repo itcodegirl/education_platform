@@ -6,20 +6,25 @@
 // ═══════════════════════════════════════════════
 
 import { useEffect, useRef, useState } from 'react';
-import { useProgress } from '../../providers';
+import { useSR } from '../../providers';
 
 const SAVE_DEBOUNCE_MS = 800;
 
 export function LessonNotesPanel({ lessonKey }) {
-  const { saveNote, getNote } = useProgress();
+  const { saveNote, getNote } = useSR();
   const [noteText, setNoteText] = useState(() => getNote(lessonKey));
   const saveTimer = useRef(null);
+  const latestNoteText = useRef(noteText);
 
   // Re-seed when the user navigates to a different lesson. Without
   // this, a fresh open of lesson B would still show lesson A's draft.
   useEffect(() => {
     setNoteText(getNote(lessonKey));
   }, [lessonKey, getNote]);
+
+  useEffect(() => {
+    latestNoteText.current = noteText;
+  }, [noteText]);
 
   const handleChange = (event) => {
     const value = event.target.value;
@@ -36,9 +41,13 @@ export function LessonNotesPanel({ lessonKey }) {
     return () => {
       if (saveTimer.current) {
         clearTimeout(saveTimer.current);
+        const currentSavedText = getNote(lessonKey);
+        if (latestNoteText.current !== currentSavedText) {
+          saveNote(lessonKey, latestNoteText.current);
+        }
       }
     };
-  }, []);
+  }, [lessonKey, getNote, saveNote]);
 
   const savedText = getNote(lessonKey);
   const isDirty = noteText !== savedText;
@@ -47,7 +56,10 @@ export function LessonNotesPanel({ lessonKey }) {
     <div className="notes-panel">
       <div className="notes-head">
         <span className="notes-icon" aria-hidden="true">✎</span>
-        <span>Your Notes</span>
+        <div className="notes-head-copy">
+          <span className="notes-title">Your Notes</span>
+          <span className="notes-sub">Capture the part you do not want to forget five minutes from now.</span>
+        </div>
         <span className="notes-saved" aria-live="polite">
           {isDirty ? 'Saving...' : noteText ? '✓ Saved' : ''}
         </span>
@@ -56,7 +68,7 @@ export function LessonNotesPanel({ lessonKey }) {
         className="notes-input"
         value={noteText}
         onChange={handleChange}
-        placeholder="Type your notes for this lesson..."
+        placeholder="Summarize the pattern, write the gotcha, or leave yourself the next step to try."
         rows={4}
         aria-label="Lesson notes"
       />

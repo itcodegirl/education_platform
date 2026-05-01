@@ -1,0 +1,1069 @@
+﻿/* ================================================
+   APP SHELL + CORE LAYOUT
+   Extracted from the legacy App.css for maintainability.
+   Keep import order stable via styles/App.css.
+   ================================================ */
+
+/* ─── 6. Shell Layout ──────────────────────────── */
+.shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(167, 139, 250, 0.08), transparent 24%),
+    radial-gradient(circle at 85% 5%, rgba(78, 205, 196, 0.08), transparent 18%),
+    linear-gradient(180deg, #090913 0%, #06060c 100%);
+}
+
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 90;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
+
+.overlay.overlay-open {
+  display: block;
+  pointer-events: auto;
+}
+
+/* ─── 8. Main Content & Topbar ─────────────────── */
+.main-shell {
+  flex: 1;
+  overflow-y: auto;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.03), transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent 18%),
+    transparent;
+  padding-bottom: 120px;
+}
+
+/* Course skeleton — shown while a lazy-loaded course is still
+   in flight. Intentionally lightweight (no animation frames,
+   no keyframes) so the skeleton itself can't add to TBT. */
+.course-skeleton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+}
+
+.course-skeleton-inner {
+  text-align: center;
+}
+
+.course-skeleton-emoji {
+  display: block;
+  font-size: clamp(48px, 8vw, 72px);
+  margin-bottom: 18px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.course-skeleton-label {
+  color: var(--text-dim);
+  font-size: 15px;
+  letter-spacing: 0.5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .course-skeleton-emoji {
+    animation: none;
+  }
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 14px 24px;
+  background: color-mix(in srgb, var(--bg-deep) 85%, transparent);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.topbar-inner {
+  width: min(100%, var(--shell-max));
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.topbar-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.topbar-greeting {
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.topbar-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-dim);
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.topbar-pill.streak {
+  border-color: rgba(255, 107, 157, 0.2);
+  background: rgba(255, 107, 157, 0.08);
+  color: var(--pink);
+}
+
+.topbar-pill.warm {
+  border-color: rgba(78, 205, 196, 0.2);
+  background: rgba(78, 205, 196, 0.07);
+  color: var(--cyan);
+}
+
+.topbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ham {
+  /* No `display` here on purpose — the two breakpoint media queries
+     (responsive.css `@media (max-width: 900px)` sets `display: block`,
+     and App.css EOF `@media (min-width: 901px)` sets `display: inline-flex`)
+     together cover every viewport. A default `display: none` used to
+     live here, but because App.css is loaded AFTER responsive.css, the
+     unconditional `none` won the cascade on mobile and made the
+     hamburger invisible on narrow screens — so the drawer couldn't
+     be opened at all. */
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  font-size: 20px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ham:hover {
+  border-color: var(--purple);
+  color: var(--purple);
+  background: rgba(180, 74, 255, 0.08);
+}
+
+.first-run-guide {
+  max-width: var(--content-max);
+  margin: 16px auto 24px;
+  padding: 20px 22px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    135deg,
+    rgba(180, 74, 255, 0.1),
+    rgba(78, 205, 196, 0.08)
+  );
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.14);
+}
+
+.frg-content {
+  margin-bottom: 14px;
+}
+
+.frg-kicker {
+  margin: 0 0 6px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-family: 'Space Mono', ui-monospace, monospace;
+}
+
+.frg-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.frg-copy,
+.frg-sub {
+  margin: 8px 0 0;
+  color: var(--text-dim);
+  line-height: 1.5;
+  max-width: 70ch;
+}
+
+.frg-sub {
+  margin-top: 10px;
+}
+
+.frg-courses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.frg-course {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  border-radius: 999px;
+  /* Bumped from 34px so the chip clears the iOS HIG (44pt) and
+     Material 3 (48dp) recommended minimums on touch devices. */
+  min-height: 44px;
+  padding: 0 14px;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.frg-course:hover {
+  transform: translateY(-1px);
+  border-color: var(--purple);
+}
+
+.frg-course-active {
+  border-color: var(--purple);
+  background: rgba(180, 74, 255, 0.16);
+}
+
+.breadcrumb {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  min-width: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.15);
+}
+
+.breadcrumb-course {
+  font-weight: 700;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.breadcrumb-mod {
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.breadcrumb-sep {
+  color: var(--text-muted);
+}
+
+.breadcrumb-les {
+  color: var(--text);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.breadcrumb-progress {
+  margin-left: auto;
+  border-color: rgba(0, 229, 255, 0.28);
+  background: rgba(0, 229, 255, 0.1);
+  color: var(--cyan);
+  flex-shrink: 0;
+}
+
+.mark-btn {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+}
+
+.mark-btn:hover {
+  box-shadow: 0 4px 16px rgba(180, 74, 255, 0.15);
+}
+
+.mark-btn.dn {
+  background: var(--cyan-dim);
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+/* ─── 16. Navigation Row ───────────────────────── */
+.nav-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 clamp(14px, 2vw, 24px) 48px;
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+.nav-guidance {
+  max-width: var(--content-max);
+  margin: -36px auto 38px;
+  padding: 0 clamp(14px, 2vw, 24px);
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* Layout for prev/next buttons that include a lesson title preview */
+.nav-btn {
+  min-height: 44px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 42%;
+}
+
+.nav-btn-dir {
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.nav-btn-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  text-align: left;
+}
+
+.nav-btn.nx .nav-btn-text {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.nav-btn-label {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.65;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.nav-btn-title {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.nav-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.nav-btn.nx {
+  color: #fff;
+}
+
+.nav-btn.nx:hover:not(:disabled) {
+  box-shadow: 0 8px 28px rgba(180, 74, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+/* ─── 17. XP Bar & Daily Goal ──────────────────── */
+.xp-bar-wrap {
+  margin-top: 12px;
+}
+
+.xp-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.xp-level {
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.xp-level .lvl-num {
+  color: var(--cyan);
+}
+
+.xp-amount {
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.xp-track {
+  height: 6px;
+  background: var(--bg-surface);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.xp-fill {
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #ff6b9d, #a78bfa, #4ecdc4);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.xp-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: shimmer 2s infinite;
+}
+
+.daily-goal {
+  margin-top: 12px;
+}
+
+.dg-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.dg-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.dg-count {
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.dg-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.dg-dot {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dg-dot.filled {
+  background: linear-gradient(90deg, #4ecdc4, #a78bfa);
+  border-color: transparent;
+  box-shadow: 0 0 8px rgba(78, 205, 196, 0.3);
+}
+
+/* ─── 18. Stats Panel ──────────────────────────── */
+.stats-panel {
+  margin-top: 12px;
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.stat-card {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 10px 10px;
+  text-align: center;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.stat-card:hover {
+  border-color: var(--border-bright);
+  transform: translateY(-1px);
+}
+
+.stat-num {
+  font-family: 'Poppins', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.stat-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ─── 19. XP Popup & Badge Unlock ──────────────── */
+.xp-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  z-index: 600;
+  background: var(--bg-dark);
+  border: 2px solid var(--purple);
+  border-radius: 20px;
+  padding: 32px 48px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(255, 107, 157, 0.2);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.xp-popup.show {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.xp-gain {
+  font-family: 'Poppins', sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  background: linear-gradient(90deg, #ff6b9d, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.xp-reason {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+.xp-lvlup {
+  font-size: 16px;
+  color: var(--amber);
+  margin-top: 12px;
+  font-weight: 700;
+  animation: float 2s ease-in-out infinite;
+}
+
+.badge-unlock-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 700;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.3s ease;
+}
+
+.badge-unlock {
+  text-align: center;
+  transform: scale(0);
+  transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  padding: 48px 40px 36px;
+}
+
+.badge-unlock.show {
+  transform: scale(1);
+}
+
+.bu-icon {
+  font-size: 96px;
+  display: block;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 0 30px rgba(255, 107, 157, 0.6));
+  animation: buBounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+}
+
+.bu-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  font-family: 'Poppins', sans-serif;
+  animation: fadeIn 0.4s ease 0.5s both;
+}
+
+.bu-name {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--cyan);
+  font-family: 'Poppins', sans-serif;
+  margin: 8px 0;
+  animation: fadeIn 0.4s ease 0.6s both;
+}
+
+.bu-desc {
+  font-size: 14px;
+  color: var(--text-dim);
+  max-width: 300px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease 0.7s both;
+}
+
+.bu-dismiss {
+  margin-top: 24px;
+  padding: 10px 32px;
+  background: var(--grad-brand);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 16px;
+  font-weight: 700;
+  font-family: 'Inter', system-ui, sans-serif;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: fadeIn 0.4s ease 0.9s both;
+}
+
+.bu-dismiss:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 24px rgba(255, 107, 157, 0.4);
+}
+
+/* Badge glow ring */
+.bu-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 140px;
+  height: 140px;
+  transform: translate(-50%, -65%);
+  border-radius: 50%;
+  box-shadow: 0 0 60px 20px rgba(255, 107, 157, 0.2), 0 0 120px 40px rgba(167, 139, 250, 0.1);
+  animation: buGlowPulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Badge particles */
+.bu-particles {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.bu-particle {
+  position: absolute;
+  width: var(--bu-size);
+  height: var(--bu-size);
+  border-radius: 50%;
+  animation: buBurst 0.8s cubic-bezier(0.25, 1, 0.5, 1) var(--bu-delay) both;
+}
+
+@keyframes buBounce {
+  0% {
+    transform: scale(0) rotate(-20deg);
+    opacity: 0;
+  }
+
+  60% {
+    transform: scale(1.2) rotate(5deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes buBurst {
+  0% {
+    transform: rotate(var(--bu-angle)) translateY(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: rotate(var(--bu-angle)) translateY(calc(var(--bu-dist) * -1));
+    opacity: 0;
+  }
+}
+
+@keyframes buGlowPulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 60px 20px rgba(255, 107, 157, 0.2), 0 0 120px 40px rgba(167, 139, 250, 0.1);
+  }
+
+  50% {
+    box-shadow: 0 0 80px 30px rgba(255, 107, 157, 0.3), 0 0 160px 50px rgba(167, 139, 250, 0.15);
+  }
+}
+
+/* ─── 20. Theme Toggle & Toolbar ───────────────── */
+.theme-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 18px;
+  z-index: 220;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(17, 17, 29, 0.9), rgba(9, 9, 19, 0.9));
+  color: var(--text);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  transition: all 0.25s;
+}
+
+.theme-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 28px rgba(0, 0, 0, .26);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* ─── 21. Reading Time ─────────────────────────── */
+.read-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: 'Poppins', sans-serif;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  white-space: nowrap;
+  height: 40px;
+}
+
+.rt-icon {
+  font-size: 13px;
+}
+
+/* ─── 22. Light Theme ──────────────────────────── */
+.shell.light,
+.loading-screen.light,
+.light {
+  --bg-deep: #f5f5f8;
+  --bg-dark: #ffffff;
+  --bg-card: #f0f0f5;
+  --bg-surface: #e8e8f0;
+  --border: #d0d0dd;
+  --border-bright: #b0b0c0;
+  --text: #1a1a2e;
+  --text-dim: #555570;
+  --text-muted: #8888a0;
+  --pink: #e0558a;
+  --pink-dim: #e0558a25;
+  --pink-glow: #e0558a15;
+  --cyan: #0d9488;
+  --cyan-dim: #0d948815;
+  --amber: #d97706;
+  --amber-dim: #d9770615;
+  --purple: #7c3aed;
+  --purple-dim: #7c3aed15;
+}
+
+/* Code blocks stay dark in light mode (industry standard) */
+.shell.light .code-preview-code,
+.shell.light .code-preview-iframe {
+  background: #1a1a2e;
+  color: #e0e0ec;
+}
+
+.shell.light .code-preview-tabs {
+  background: #2a2a3e;
+  border-color: #3a3a5e;
+}
+
+.shell.light .code-preview-tab {
+  color: #8888a8;
+}
+
+.shell.light .code-preview-tab.on {
+  color: #ff6b9d;
+  background: #1a1a2e;
+}
+
+.shell.light .code-preview-copy,
+.shell.light .code-preview-reset,
+.shell.light .code-preview-explain {
+  background: #1a1a2e;
+  border-color: #3a3a5e;
+  color: #8888a8;
+}
+
+/* Boxes */
+.shell.light .box.tip {
+  background: rgba(13, 148, 136, 0.08);
+}
+
+.shell.light .box.chal {
+  background: rgba(217, 119, 6, 0.08);
+}
+
+.shell.light .box.output-box {
+  background: rgba(13, 148, 136, 0.06);
+}
+
+/* DevFession */
+.shell.light .devfession-toggle {
+  background: var(--bg-card);
+}
+
+.shell.light .devfession-content {
+  background: var(--purple-dim);
+}
+
+/* Sidebar */
+.shell.light .sidebar,
+.shell.light .sidebar {
+  background: #ffffff;
+  border-color: var(--border);
+}
+
+.shell.light .module-group.act>.module-group-btn {
+  background: var(--pink-glow);
+}
+
+.shell.light .lesson-list-btn:hover {
+  background: var(--bg-surface);
+}
+
+/* AI Tutor */
+.shell.light .ai-tutor-toggle {
+  background: var(--bg-card);
+}
+
+.shell.light .ai-tutor-panel {
+  background: var(--bg-card);
+}
+
+.shell.light .ai-msg-user .ai-msg-content {
+  background: var(--bg-surface);
+}
+
+.shell.light .ai-msg-assistant .ai-msg-content {
+  background: var(--cyan-dim);
+  border-color: var(--border);
+}
+
+.shell.light .ai-code-block {
+  background: #1a1a2e;
+  color: #e0e0ec;
+}
+
+.shell.light .ai-input {
+  background: #fff;
+  border-color: var(--border);
+}
+
+/* Challenge cards */
+.shell.light .challenge-card {
+  background: var(--bg-card);
+}
+
+.shell.light .cc-challenge {
+  background: var(--bg-card);
+}
+
+.shell.light .cc-workspace {
+  background: var(--bg-card);
+}
+
+/* Scrollbars in light mode */
+.shell.light .main-shell::-webkit-scrollbar-track,
+.shell.light .sidebar-scroll::-webkit-scrollbar-track {
+  background: #f5f5f8;
+}
+
+.shell.light .main-shell::-webkit-scrollbar-thumb,
+.shell.light .sidebar-scroll::-webkit-scrollbar-thumb {
+  background: #d0d0dd;
+}
+
+/* Notes */
+.shell.light .notes-panel {
+  background: var(--bg-card);
+}
+
+.shell.light .notes-input {
+  background: #fff;
+  border-color: var(--border);
+  color: var(--text);
+}
+
+/* Auth page light mode */
+.light .auth-bg {
+  background: linear-gradient(135deg, #f0f0f5, #e8e8f0);
+}
+
+.light .auth-card {
+  background: #fff;
+  border-color: var(--border);
+}
+
+.light .auth-input {
+  background: var(--bg-surface);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+/* Search modal light */
+.shell.light .search-modal {
+  background: #fff;
+  border-color: var(--border);
+}
+
+.shell.light .search-input {
+  background: var(--bg-surface);
+  color: var(--text);
+}
+
+.shell.light .search-result:hover,
+.shell.light .search-result.active {
+  background: var(--bg-surface);
+}
+
+/* Admin light */
+.light .admin-wrap {
+  background: #f5f5f8;
+}
+
+.light .admin-stat-card {
+  background: #fff;
+}
+
+.light .admin-course-card {
+  background: #fff;
+}
+
+.light .admin-table th {
+  background: var(--bg-surface);
+}
+
+.light .admin-tabs {
+  background: #fff;
+}
+
+/* ─── 23. Course Accent Overrides ──────────────── */
+[data-course="css"] .module-group.act>.module-group-btn {
+  background: rgba(78, 205, 196, 0.08);
+  border-left-color: var(--cyan);
+}
+
+[data-course="css"] .lesson-list-btn.act {
+  color: var(--cyan);
+}
+
+[data-course="css"] .lp strong {
+  color: var(--cyan);
+}
+
+[data-course="css"] .lp em {
+  color: var(--pink);
+}
+
+[data-course="css"] .code-preview-tab.on {
+  color: var(--cyan);
+  border-bottom-color: var(--cyan);
+}
+
+[data-course="css"] .mark-btn:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+[data-course="js"] .module-group.act>.module-group-btn {
+  background: rgba(255, 167, 38, 0.08);
+  border-left-color: var(--amber);
+}
+
+[data-course="js"] .lesson-list-btn.act {
+  color: var(--amber);
+}
+
+[data-course="js"] .lp strong {
+  color: var(--amber);
+}
+
+[data-course="js"] .code-preview-tab.on {
+  color: var(--amber);
+  border-bottom-color: var(--amber);
+}
+
+[data-course="js"] .mark-btn:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+[data-course="react"] .module-group.act>.module-group-btn {
+  background: rgba(167, 139, 250, 0.08);
+  border-left-color: var(--purple);
+}
+
+[data-course="react"] .lesson-list-btn.act {
+  color: var(--purple);
+}
+
+[data-course="react"] .lp strong {
+  color: var(--purple);
+}
+
+[data-course="react"] .code-preview-tab.on {
+  color: var(--purple);
+  border-bottom-color: var(--purple);
+}
+
+[data-course="react"] .mark-btn:hover {
+  border-color: var(--purple);
+  color: var(--purple);
+}
+
+
+
+
+
+
+

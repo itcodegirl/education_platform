@@ -1,7 +1,9 @@
-{
-  "name": "CodeHerWay — Learn. Build. Ship.",
+﻿{
+  "name": "CodeHerWay",
   "short_name": "CodeHerWay",
+  "id": "/",
   "description": "A coding education platform for women in tech. Learn HTML, CSS, JavaScript, and React.",
+  "scope": "/",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#08080f",
@@ -51,3 +53,4 @@
     }
   ]
 }
+

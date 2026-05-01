@@ -44,16 +44,22 @@
   animation: robotGlow 2.5s ease-in-out infinite;
 }
 
-/* Brand area robot */
+/* Brand area robot — formerly an infinite robotGlow loop, but the
+   sidebar brand sits in the user's peripheral vision while they read
+   lessons; a constant pulse there reads as restless. The static
+   drop-shadow keeps the brand color cue without animation. The
+   AITutor robot (.robot-glow) and active-lesson robot
+   (.lesson-list-robot) still pulse because they actually signal
+   active state. */
 .brand-robot {
   font-size: 20px;
   margin-left: auto;
-  animation: robotGlow 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(180,74,255,0.35));
 }
-.sb.collapsed .brand-robot { display: none; }
+.sidebar.collapsed .brand-robot { display: none; }
 
 /* Active lesson robot indicator */
-.lg-robot {
+.lesson-list-robot {
   font-size: 14px;
   margin-left: auto;
   flex-shrink: 0;
@@ -77,3 +83,5 @@
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
+
+

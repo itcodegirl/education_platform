@@ -1,14 +1,20 @@
-import { useState, useRef, useCallback, lazy, Suspense, useEffect } from 'react';
+﻿import { useState, useRef, useCallback, lazy, Suspense, useEffect } from 'react';
 import { IFRAME_STYLES } from '../../utils/iframeStyles';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { defineMonacoTheme, MONACO_THEME_NAME, MONACO_OPTIONS } from '../../utils/monacoTheme';
 import { explainCode as explainCodeRequest } from '../../services/aiService';
+import { buildCodePreviewConsoleScript } from './codePreviewConsoleScript';
 
-const MonacoEditor = lazy(() => import('@monaco-editor/react'));
+// Chain monacoLoader so it runs its side-effects (loader.config,
+// MonacoEnvironment) before @monaco-editor/react is evaluated. Both
+// end up in the same lazy chunk, keeping Monaco out of the main bundle.
+const MonacoEditor = lazy(() =>
+  import('../../lib/monacoLoader').then(() => import('@monaco-editor/react'))
+);
 
 const SCAFFOLDING = {
   full:         { icon: '📝', label: 'Complete Example',    hint: 'Study this code, then try modifying it in the Editor tab.' },
-  partial:      { icon: '🔧', label: 'Partial Template',    hint: 'Some parts are marked TODO — fill them in using the Editor tab.' },
+  partial:      { icon: '🔧', label: 'Partial Template',    hint: 'Some parts are marked TODO - fill them in using the Editor tab.' },
   starter:      { icon: '🚀', label: 'Starter Code',        hint: 'A starting skeleton. Switch to the Editor tab and build on it.' },
   requirements: { icon: '📋', label: 'Requirements Only',   hint: 'No code given! Open the Editor tab and write it from scratch.' },
 };
@@ -61,7 +67,7 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
 
   function buildPreview(sourceCode) {
     if (isJS) {
-      const consoleScript = `const _out=document.getElementById("out");const _log=(p,c,...a)=>{const d=document.createElement("div");d.className="console-line";d.innerHTML='<span class="prefix" style="color:'+c+'">'+p+'</span>'+a.map(x=>{try{if(typeof x==="object")return JSON.stringify(x,null,2);return String(x)}catch(e){return String(x)}}).join(" ");_out.appendChild(d)};const console={log:(...a)=>_log("->","#4ecdc4",...a),error:(...a)=>_log("x","#ff6b6b",...a),warn:(...a)=>_log("!","#ffa726",...a),table:(a)=>_log("[]","#4ecdc4",a),group:()=>{},groupEnd:()=>{},time:()=>{},timeEnd:(l)=>_log("t","#8888a8",l+": ~1ms")};try{${sourceCode.replace(/<\/script>/g, '<\\/script>')}}catch(e){console.error(e.message)}`;
+      const consoleScript = buildCodePreviewConsoleScript(sourceCode);
       return `<!DOCTYPE html><html><head><style>${IFRAME_STYLES} .console-line{font-family:monospace;font-size:13px;padding:3px 0;border-bottom:1px solid #1a1a2e;color:#e0e0e0}.prefix{color:#5a5a7a;margin-right:8px}pre.output{background:#0a0a14;padding:16px;border-radius:8px;margin:0;overflow:auto}</style></head><body><pre class="output" id="out"></pre><script>${consoleScript}<\/script></body></html>`;
     }
 
@@ -97,39 +103,39 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
   const previewSource = tab === 'code' ? code : editorCode;
 
   return (
-    <div className="cpv">
+    <div className="code-preview">
       {/* Scaffolding badge */}
       {scaffolding !== 'full' && (
-        <div className={`cpv-scaffolding cpv-scaffolding-${scaffolding}`}>
-          <span className="cpv-scaffolding-icon">{level.icon}</span>
-          <span className="cpv-scaffolding-label">{level.label}</span>
-          <span className="cpv-scaffolding-hint">{level.hint}</span>
+        <div className={`code-preview-scaffolding code-preview-scaffolding-${scaffolding}`}>
+          <span className="code-preview-scaffolding-icon" aria-hidden="true">{level.icon}</span>
+          <span className="code-preview-scaffolding-label">{level.label}</span>
+          <span className="code-preview-scaffolding-hint">{level.hint}</span>
         </div>
       )}
 
-      <div className="cpv-tabs">
+      <div className="code-preview-tabs">
         {scaffolding !== 'requirements' && (
-          <button type="button" className={`cpv-tab ${tab === 'code' ? 'on' : ''}`} onClick={() => setTab('code')}>
+          <button type="button" className={`code-preview-tab ${tab === 'code' ? 'on' : ''}`} onClick={() => setTab('code')}>
             {tabIcon} Code
           </button>
         )}
-        <button type="button" className={`cpv-tab ${tab === 'editor' ? 'on' : ''}`} onClick={() => setTab('editor')}>
+        <button type="button" className={`code-preview-tab ${tab === 'editor' ? 'on' : ''}`} onClick={() => setTab('editor')}>
           {scaffolding === 'requirements' ? '✏️ Write Code' : 'Editor'}
         </button>
-        <button type="button" className={`cpv-tab ${tab === 'preview' ? 'on' : ''}`} onClick={() => setTab('preview')}>
+        <button type="button" className={`code-preview-tab ${tab === 'preview' ? 'on' : ''}`} onClick={() => setTab('preview')}>
           {previewLabel}
         </button>
 
-        <div className="cpv-actions">
+        <div className="code-preview-actions">
           {tab === 'editor' && editorCode !== code && (
-            <button type="button" className="cpv-reset" onClick={handleReset} title="Reset to original">
+            <button type="button" className="code-preview-reset" onClick={handleReset} title="Reset to original">
               Reset
             </button>
           )}
           {tab === 'editor' && (
             <button
               type="button"
-              className={`cpv-explain ${aiExplaining ? 'loading' : ''}`}
+              className={`code-preview-explain ${aiExplaining ? 'loading' : ''}`}
               onClick={explainCode}
               disabled={aiExplaining}
               title="AI explains your code"
@@ -137,21 +143,21 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
               {aiExplaining ? '⏳ Thinking...' : '🤖 Explain'}
             </button>
           )}
-          <button type="button" className="cpv-copy" onClick={handleCopy}>
+          <button type="button" className="code-preview-copy" onClick={handleCopy}>
             {copied ? 'Copied' : 'Copy'}
           </button>
         </div>
       </div>
 
       {tab === 'code' && (
-        <pre className="cpv-code"><code>{code}</code></pre>
+        <pre className="code-preview-code"><code>{code}</code></pre>
       )}
 
       {tab === 'editor' && (
-        <div className="cpv-editor-wrap">
+        <div className="code-preview-editor-wrap">
           {isMobile ? (
             <textarea
-              className="cpv-mobile-editor"
+              className="code-preview-mobile-editor"
               value={editorCode}
               onChange={(event) => handleEditorChange(event.target.value)}
               spellCheck={false}
@@ -161,7 +167,7 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
               placeholder={scaffolding === 'requirements' ? 'Write your code here...' : undefined}
             />
           ) : (
-            <Suspense fallback={<div className="cpv-editor-loading"><span className="cpv-loading-spinner"></span>Loading editor...</div>}>
+            <Suspense fallback={<div className="code-preview-editor-loading"><span className="code-preview-loading-spinner"></span>Loading editor...</div>}>
               <MonacoEditor
                 height="320px"
                 language={monacoLang}
@@ -183,14 +189,14 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
           )}
 
           {showExplanation && (
-            <div className="cpv-explanation">
-              <div className="cpv-explanation-head">
+            <div className="code-preview-explanation">
+              <div className="code-preview-explanation-head">
                 <span>Code Explanation</span>
-                <button type="button" className="cpv-explanation-close" onClick={() => setShowExplanation(false)}>Close</button>
+                <button type="button" className="code-preview-explanation-close" onClick={() => setShowExplanation(false)}>Close</button>
               </div>
-              <div className="cpv-explanation-body">
+              <div className="code-preview-explanation-body">
                 {aiExplaining ? (
-                  <div className="cpv-explanation-loading">
+                  <div className="code-preview-explanation-loading">
                     <div className="ai-typing"><span></span><span></span><span></span></div>
                     Analyzing your code...
                   </div>
@@ -207,7 +213,7 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
 
       {tab === 'preview' && (
         <iframe
-          className="cpv-iframe"
+          className="code-preview-iframe"
           srcDoc={buildPreview(previewSource)}
           title="Preview"
           sandbox="allow-scripts"
@@ -216,3 +222,8 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
     </div>
   );
 }
+
+
+
+
+

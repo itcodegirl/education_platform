@@ -16,8 +16,10 @@
 // ═══════════════════════════════════════════════
 
 import { useState, useEffect, memo } from 'react';
-import { useProgress } from '../../providers';
+import { useFetcher, useLocation } from 'react-router-dom';
+import { useProgressData, useSR } from '../../providers';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { useFetcherSyncFailure } from '../../hooks/useFetcherSyncFailure';
 import { AITutor } from './AITutor';
 import { LessonFeedback } from './LessonFeedback';
 import { LessonHeader } from './LessonHeader';
@@ -33,7 +35,10 @@ export const LessonView = memo(function LessonView({
   courseId,
   moduleTitle,
 }) {
-  const { toggleBookmark, isBookmarked } = useProgress();
+  const { toggleBookmark, isBookmarked } = useSR();
+  const { markSyncFailed = () => {} } = useProgressData();
+  const bookmarkMutation = useFetcher();
+  const location = useLocation();
   const [showNotes, setShowNotes] = useState(false);
   const [showDevFession, setShowDevFession] = useState(false);
 
@@ -47,6 +52,7 @@ export const LessonView = memo(function LessonView({
 
   const bookmarked = isBookmarked(lessonKey);
   const isStructured = !!(lesson.hook || lesson.do || lesson.understand);
+  useFetcherSyncFailure(bookmarkMutation, markSyncFailed, 'lesson bookmark');
 
   // Derived counts surfaced in the header metadata chips.
   const conceptCount = isStructured
@@ -87,8 +93,26 @@ export const LessonView = memo(function LessonView({
     });
   };
 
+  const handleToggleBookmark = () => {
+    const nextMode = bookmarked ? 'remove' : 'save';
+    toggleBookmark(lessonKey, courseId, lesson.title, { skipRemote: true });
+    bookmarkMutation.submit(
+      {
+        intent: 'toggle-bookmark',
+        mode: nextMode,
+        lessonKey,
+        courseId,
+        lessonTitle: lesson.title,
+      },
+      {
+        method: 'post',
+        action: location.pathname,
+      },
+    );
+  };
+
   return (
-    <div className="lv">
+    <div className="lesson-surface">
       <LessonHeader
         lesson={lesson}
         emoji={emoji}
@@ -100,7 +124,7 @@ export const LessonView = memo(function LessonView({
         scaffolding={scaffolding}
         bookmarked={bookmarked}
         showNotes={showNotes}
-        onToggleBookmark={() => toggleBookmark(lessonKey, courseId, lesson.title)}
+        onToggleBookmark={handleToggleBookmark}
         onToggleNotes={() => setShowNotes((value) => !value)}
       />
 

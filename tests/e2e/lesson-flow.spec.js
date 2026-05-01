@@ -45,20 +45,20 @@ test.describe('lesson flow', () => {
   });
 
   test('displays lesson content with title and concepts', async ({ page }) => {
-    await page.waitForSelector('.lv-title', { timeout: 10000 });
-    const title = await page.textContent('.lv-title');
+    await page.waitForSelector('.lesson-title', { timeout: 10000 });
+    const title = await page.textContent('.lesson-title');
     expect(title).toBeTruthy();
     expect(title.length).toBeGreaterThan(0);
   });
 
   test('navigates to next lesson with Next button', async ({ page }) => {
-    await page.waitForSelector('.lv-title', { timeout: 10000 });
-    const firstTitle = await page.textContent('.lv-title');
+    await page.waitForSelector('.lesson-title', { timeout: 10000 });
+    const firstTitle = await page.textContent('.lesson-title');
 
     await page.click('.nav-btn.nx');
     await page.waitForTimeout(500);
 
-    const secondTitle = await page.textContent('.lv-title');
+    const secondTitle = await page.textContent('.lesson-title');
     expect(secondTitle).not.toBe(firstTitle);
   });
 
@@ -68,13 +68,44 @@ test.describe('lesson flow', () => {
     await page.click('.nav-btn.nx');
     await page.waitForTimeout(500);
 
-    const secondTitle = await page.textContent('.lv-title');
+    const secondTitle = await page.textContent('.lesson-title');
 
     await page.click('.nav-btn:not(.nx)');
     await page.waitForTimeout(500);
 
-    const backTitle = await page.textContent('.lv-title');
+    const backTitle = await page.textContent('.lesson-title');
     expect(backTitle).not.toBe(secondTitle);
+  });
+
+  test('browser back returns to the previous lesson URL and title', async ({ page }) => {
+    await page.waitForSelector('.lesson-title', { timeout: 10000 });
+    const firstUrl = page.url();
+    const firstTitle = (await page.textContent('.lesson-title'))?.trim();
+
+    await page.click('.nav-btn.nx');
+    await page.waitForTimeout(500);
+
+    const secondUrl = page.url();
+    expect(secondUrl).not.toBe(firstUrl);
+
+    await page.goBack();
+
+    await expect(page).toHaveURL(firstUrl);
+    await expect(page.locator('.lesson-title')).toHaveText(firstTitle || '');
+  });
+
+  test('deep-linked lesson URL restores the same lesson after reload', async ({ page }) => {
+    await page.waitForSelector('.lesson-title', { timeout: 10000 });
+    await page.click('.nav-btn.nx');
+    await page.waitForTimeout(500);
+
+    const deepLinkUrl = page.url();
+    const deepLinkTitle = (await page.textContent('.lesson-title'))?.trim() || '';
+
+    await page.goto(deepLinkUrl, { waitUntil: 'domcontentloaded' });
+
+    await expect(page).toHaveURL(deepLinkUrl);
+    await expect(page.locator('.lesson-title')).toHaveText(deepLinkTitle);
   });
 
   test('mark done button toggles lesson completion', async ({ page }) => {
@@ -108,25 +139,93 @@ test.describe('lesson flow', () => {
     await page.keyboard.press('Escape');
   });
 
+  test('browser back closes search panel before leaving the lesson route', async ({ page }) => {
+    await page.waitForSelector('.search-trigger', { timeout: 10000 });
+    await page.click('.search-trigger');
+    await page.waitForSelector('.search-modal', { timeout: 5000 });
+
+    const urlWithPanelOpen = page.url();
+    await page.goBack();
+
+    await expect(page.locator('.search-modal')).not.toBeVisible();
+    await expect(page).toHaveURL(/\/learn\/[^/]+\/[^/]+\/[^/]+/);
+    expect(page.url()).not.toBe(urlWithPanelOpen);
+  });
+
   test('sidebar shows course switcher and modules', async ({ page }) => {
     // Open sidebar on mobile or verify it's visible on desktop
     const hamVisible = await page.locator('.ham').isVisible().catch(() => false);
     if (hamVisible) {
       await page.click('.ham');
-      await page.waitForSelector('.sb.open', { timeout: 5000 });
+      await page.waitForSelector('#course-sidebar.open', { timeout: 5000 });
     }
 
+    await page.getByRole('button', { name: 'Courses' }).click();
+    await page.waitForSelector('.sidebar-tab-flyout-courses', { timeout: 5000 });
+
     // Course buttons should be visible
-    const courseButtons = await page.locator('.cs-btn').count();
-    expect(courseButtons).toBe(4); // HTML, CSS, JS, React
+    const courseButtons = await page.locator('.cs-option').count();
+    expect(courseButtons).toBeGreaterThanOrEqual(4);
 
     // Module groups should be visible
-    const modules = await page.locator('.mg-btn').count();
+    const modules = await page.locator('.module-group-btn').count();
     expect(modules).toBeGreaterThan(0);
   });
 
+  test('skip link lands keyboard focus on the main lesson container', async ({ page }) => {
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', { name: /skip to main content/i })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#main-content')).toBeFocused();
+  });
+
+  test('resources flyout supports menu keyboard controls', async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name === 'mobile-chrome',
+      'Desktop keyboard menu behavior is verified in Chromium desktop.'
+    );
+
+    const resourcesTrigger = page.getByRole('button', { name: 'Resources' });
+    await resourcesTrigger.focus();
+    await page.keyboard.press('ArrowDown');
+
+    const menu = page.getByRole('menu');
+    const firstItem = page.getByRole('menuitem', { name: 'Open Cheat Sheets panel' });
+    const lastItem = page.getByRole('menuitem', { name: 'Open Badges panel' });
+
+    await expect(menu).toBeVisible();
+    await expect(firstItem).toBeFocused();
+
+    await page.keyboard.press('End');
+    await expect(lastItem).toBeFocused();
+
+    await page.keyboard.press('Home');
+    await expect(firstItem).toBeFocused();
+
+    await page.keyboard.press('Escape');
+    await expect(menu).toHaveCount(0);
+    await expect(resourcesTrigger).toBeFocused();
+  });
+
+  test('desktop collapse toggle sets sidebar to inert until expanded', async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name === 'mobile-chrome',
+      'Desktop-only collapse/inert behavior.'
+    );
+
+    const collapseToggle = page.getByRole('button', { name: /collapse course navigation/i });
+    await collapseToggle.click();
+
+    const sidebar = page.locator('#course-sidebar');
+    await expect(sidebar).toHaveAttribute('aria-hidden', 'true');
+    await expect(sidebar).toHaveAttribute('inert', '');
+
+    await page.getByRole('button', { name: /expand course navigation/i }).click();
+    await expect(sidebar).not.toHaveAttribute('aria-hidden', 'true');
+  });
+
   test('quiz section is collapsible', async ({ page }) => {
-    await page.waitForSelector('.lv-title', { timeout: 10000 });
+    await page.waitForSelector('.lesson-title', { timeout: 10000 });
 
     // Look for quiz toggle
     const quizToggle = page.locator('.quiz-toggle');

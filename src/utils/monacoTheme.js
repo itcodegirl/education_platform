@@ -1,9 +1,9 @@
-// ═══════════════════════════════════════════════
-// MONACO THEME — CodeHerWay dark editor theme
+﻿// ===============================================
+// MONACO THEME - CodeHerWay dark editor theme
 // Shared by CodePreview and CodeChallenge
-// ═══════════════════════════════════════════════
+// ===============================================
 
-export const MONACO_THEME_NAME = 'codeherway-dark';
+export const MONACO_THEME_NAME = 'CodeHerWay-dark';
 
 export function defineMonacoTheme(monaco) {
   monaco.editor.defineTheme(MONACO_THEME_NAME, {
@@ -52,3 +52,6 @@ export const MONACO_OPTIONS = {
   cursorBlinking: 'smooth',
   cursorSmoothCaretAnimation: 'on',
 };
+
+
+

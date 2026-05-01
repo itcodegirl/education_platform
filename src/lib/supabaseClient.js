@@ -15,11 +15,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
+export const supabaseAuthOptions = Object.freeze({
+  persistSession: true,
+  autoRefreshToken: true,
+  detectSessionInUrl: true,
+});
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-    },
-  }
-);
+  auth: supabaseAuthOptions,
+});

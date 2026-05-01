@@ -1,5 +1,5 @@
-// ═══════════════════════════════════════════════
-// AI PROXY — Authenticated, rate-limited gateway
+﻿// ===============================================
+// AI PROXY - Authenticated, rate-limited gateway
 // to the OpenAI API. Never expose API keys to
 // the browser; all AI calls go through here.
 //
@@ -13,30 +13,32 @@
 //      fallback for the hot instance.
 //   4. Strict payload caps (length, message count).
 //   5. Mandatory server-side guardrail prefix prepended
-//      to whatever `system` the client sends — this
+//      to whatever `system` the client sends - this
 //      prevents the endpoint from being used as a free
 //      general-purpose LLM under someone else's brand.
 //   6. Role whitelist for messages.
-// ═══════════════════════════════════════════════
+// ===============================================
+
+import { json, verifyUser, consumeQuotaPersistent, createRateLimiter } from './_shared.js';
 
 const OPENAI_URL = 'https://api.openai.com/v1/responses';
 
-// ─── In-memory rate limit (defense in depth) ───
+// --- In-memory rate limit (defense in depth) ---
 // The authoritative limit lives in Postgres (consume_ai_quota); this
 // hot-instance check just shaves obvious bursts off before we hit the
 // database. Resets on cold start.
 const WINDOW_MS = 60_000; // 1 minute
 const MAX_REQUESTS = 10;  // 10 requests per minute per user
-const rateLimits = new Map();
+const checkRateLimit = createRateLimiter(WINDOW_MS, MAX_REQUESTS);
 
-// ─── Payload limits ────────────────────────────
+// --- Payload limits ----------------------------
 const MAX_SYSTEM_CHARS = 2000;
 const MAX_MESSAGES = 20;
 const MAX_MESSAGE_CHARS = 4000;
 const MAX_TOTAL_CHARS = 12000;
 const MAX_OUTPUT_TOKENS = 1024;
 
-// ─── Server-side guardrail ─────────────────────
+// --- Server-side guardrail ---------------------
 // Always prepended to the client-supplied system prompt. Keeps this
 // endpoint on-brand and on-topic even if someone tries to repurpose it.
 const GUARDRAIL_PREFIX = [
@@ -46,37 +48,6 @@ const GUARDRAIL_PREFIX = [
   'Keep responses concise and beginner-friendly.',
   '---',
 ].join('\n');
-
-function checkRateLimit(userId) {
-  const now = Date.now();
-  let timestamps = rateLimits.get(userId) || [];
-  timestamps = timestamps.filter((t) => t > now - WINDOW_MS);
-
-  if (timestamps.length >= MAX_REQUESTS) {
-    return false;
-  }
-
-  timestamps.push(now);
-  rateLimits.set(userId, timestamps);
-
-  // Prevent memory leak: prune inactive users every 100 entries
-  if (rateLimits.size > 200) {
-    for (const [key, ts] of rateLimits) {
-      if (ts.every((t) => t <= now - WINDOW_MS)) rateLimits.delete(key);
-    }
-  }
-
-  return true;
-}
-
-// ─── Helpers ───────────────────────────────────
-function json(statusCode, body) {
-  return {
-    statusCode,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  };
-}
 
 function toInputItems(system, messages) {
   const items = [];
@@ -99,61 +70,7 @@ function toInputItems(system, messages) {
   return items;
 }
 
-function getSupabaseConfig() {
-  return {
-    url: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
-    key: process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY,
-  };
-}
-
-async function verifyUser(token) {
-  const { url, key } = getSupabaseConfig();
-  if (!url || !key) return null;
-
-  try {
-    const res = await fetch(`${url}/auth/v1/user`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        apikey: key,
-      },
-    });
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
-}
-
-// Atomic, persistent per-user rate limit. Calls public.consume_ai_quota()
-// in Postgres with the user's JWT — the RPC reads auth.uid() server-side
-// so the user can't spoof their own id. Returns:
-//   true  — quota OK, request may proceed
-//   false — quota exceeded, return 429
-//   null  — RPC failed / unreachable (caller decides)
-async function consumeQuotaPersistent(token) {
-  const { url, key } = getSupabaseConfig();
-  if (!url || !key) return null;
-
-  try {
-    const res = await fetch(`${url}/rest/v1/rpc/consume_ai_quota`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        apikey: key,
-        'Content-Type': 'application/json',
-      },
-      body: '{}',
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    // The RPC returns a bare boolean.
-    return data === true;
-  } catch {
-    return null;
-  }
-}
-
-// ─── Handler ───────────────────────────────────
+// --- Handler -----------------------------------
 export async function handler(event) {
   if (event.httpMethod !== 'POST') {
     return json(405, { error: 'Method not allowed' });
@@ -177,7 +94,7 @@ export async function handler(event) {
     return json(401, { error: 'Invalid or expired session' });
   }
 
-  // 3a. Hot-instance rate limit (defense in depth — best-effort).
+  // 3a. Hot-instance rate limit (defense in depth - best-effort).
   if (!checkRateLimit(user.id)) {
     return json(429, { error: 'Too many requests. Please wait a moment and try again.' });
   }
@@ -270,7 +187,10 @@ export async function handler(event) {
     }
 
     return json(200, { text: data.output_text || '' });
-  } catch (error) {
+  } catch {
     return json(502, { error: 'Failed to reach AI service' });
   }
 }
+
+
+

@@ -10,6 +10,7 @@ export const XP_VALUES = {
   lesson: 25,
   quiz: 40,
   perfectQuiz: 60,
+  challenge: 25,
 };
 
 // Timing constants (ms)

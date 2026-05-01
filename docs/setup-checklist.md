@@ -1,4 +1,4 @@
-# Post-deploy setup checklist
+﻿# Post-deploy setup checklist
 
 Everything in the repo builds and tests green, but a handful of
 operational steps require a human with the right credentials. This
@@ -12,8 +12,14 @@ doc is a single copy-paste guide for all of them.
 ## 1. Run the Supabase migration
 
 The `supabase-schema.sql` file is idempotent — you can paste the
-**entire file** into the Supabase SQL Editor and hit Run. Or, if you
-only want the additions that landed during the portfolio-polish
+**entire file** into the Supabase SQL Editor and hit Run.
+
+Reward backend note: if you plan to enable
+`VITE_REWARD_BACKEND_SYNC_ENABLED=true`, also run the additive files in
+`supabase/migrations/` after the base schema and verify the
+`reward_events` table plus `award_reward_event()` RPC before release.
+
+If you only want the additions that landed during the portfolio-polish
 branch, here's the minimal delta you need to apply:
 
 ```sql
@@ -330,30 +336,32 @@ npm test
 npm audit --audit-level=high
 
 # 2. Try the live site
-open https://mellow-sunflower-9c92cd.netlify.app/
+open https://codeherway.com/
 # expected: landing hero loads, auth card scrolls into view
 
 # 3. Try the design system
-open https://mellow-sunflower-9c92cd.netlify.app/#styleguide
+open https://codeherway.com/styleguide
 # expected: full token preview, no login required
 
 # 4. Try an invalid public profile
-open https://mellow-sunflower-9c92cd.netlify.app/#u/nobody
+open https://codeherway.com/u/nobody
 # expected: "Profile not found" card
 
 # 5. Sign up, opt in to public profile, share the link
-# expected: visiting /#u/your-handle in an incognito window works
+# expected: visiting /u/your-handle in an incognito window works
 
 # 6. Check the AI function returns 401 with no auth
-curl -i -X POST https://mellow-sunflower-9c92cd.netlify.app/.netlify/functions/ai \
+curl -i -X POST https://codeherway.com/.netlify/functions/ai \
   -H "Content-Type: application/json" -d '{}'
 # expected: HTTP/1.1 401 Unauthorized + {"error":"Authentication required"}
 
 # 7. Verify CSP is live
-curl -sI https://mellow-sunflower-9c92cd.netlify.app/ | grep -i content-security-policy
+curl -sI https://codeherway.com/ | grep -i content-security-policy
 # expected: a single CSP header with no fonts.googleapis.com
 ```
 
 If any of the above fails, check the Netlify deploy log and the
 Supabase logs first — 90% of the time it's an unset env var or a
 migration that hasn't been run yet.
+
+

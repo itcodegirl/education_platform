@@ -8,9 +8,15 @@ export function ProtectedRoute({
   requireProfile = true,
   allowDisabled = false,
 }) {
+<<<<<<< HEAD
   const { user, profile, loading } = useAuth();
 
   const isProfilePending = user && requireProfile && profile === null;
+=======
+  const { user, profile, loading, profileLoading } = useAuth();
+
+  const isProfilePending = user && requireProfile && profileLoading;
+>>>>>>> origin/main
 
   if (loading || isProfilePending) {
     return loadingFallback ?? <GuardScreen message="Checking access..." />;

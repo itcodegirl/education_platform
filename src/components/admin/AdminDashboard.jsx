@@ -1,23 +1,24 @@
-// ═══════════════════════════════════════════════
-// ADMIN DASHBOARD — Orchestrator
+﻿// ===============================================
+// ADMIN DASHBOARD - Orchestrator
 //
 // Composes five focused tab components + the useAdminData hook.
 // Owns nothing beyond the active tab index and the computed stats
 // derived from fetched data. Admin access check, data fetching,
 // and optimistic updates all live in useAdminData.
 //
-// Protected by the is_admin flag in profiles — the real security
+// Protected by the is_admin flag in profiles - the real security
 // boundary is the Postgres RLS policy + the admin-escalation
 // trigger + set_user_admin() RPC documented in supabase-schema.sql.
 // This UI only reflects what the database will allow.
 //
 // Split from a single 520-LOC component per the portfolio audit.
-// ═══════════════════════════════════════════════
+// ===============================================
 
 import { useEffect, useMemo, useState, lazy, Suspense } from 'react';
 import { useAuth, useCourseContent } from '../../providers';
 import { useAdminData } from '../../hooks/useAdminData';
 import { COURSES } from '../../data';
+import { lessonKeyBelongsToCourse, resolveStableLessonKey } from '../../utils/lessonKeys';
 import { AdminOverviewTab } from './AdminOverviewTab';
 import { AdminUsersTab } from './AdminUsersTab';
 import { AdminCoursesTab } from './AdminCoursesTab';
@@ -38,83 +39,97 @@ const TABS = [
 function computeCourseStats(courses, progress) {
   return courses.map((course) => {
     const totalLessons = course.modules.reduce((s, m) => s + m.lessons.length, 0);
-    const courseProgress = progress.filter((p) => p.lesson_key.startsWith(course.label));
-    const uniqueUsers = new Set(courseProgress.map((p) => p.user_id)).size;
+    const courseProgress = progress.filter((row) => lessonKeyBelongsToCourse(row.lesson_key, course));
+    const userLessonSets = new Map();
+    const lessonUsers = new Map();
 
-    const userLessonCounts = {};
-    courseProgress.forEach((p) => {
-      userLessonCounts[p.user_id] = (userLessonCounts[p.user_id] || 0) + 1;
+    courseProgress.forEach((row) => {
+      const stableLessonKey = resolveStableLessonKey(course, row.lesson_key);
+      if (!stableLessonKey) return;
+
+      if (!userLessonSets.has(row.user_id)) {
+        userLessonSets.set(row.user_id, new Set());
+      }
+      userLessonSets.get(row.user_id).add(stableLessonKey);
+
+      if (!lessonUsers.has(stableLessonKey)) {
+        lessonUsers.set(stableLessonKey, new Set());
+      }
+      lessonUsers.get(stableLessonKey).add(row.user_id);
     });
-    const completedUsers = Object.values(userLessonCounts).filter((c) => c >= totalLessons).length;
+
+    const uniqueUsers = userLessonSets.size;
+    const completedUsers = Array.from(userLessonSets.values())
+      .filter((lessonSet) => lessonSet.size >= totalLessons)
+      .length;
 
     const lessonCounts = {};
-    courseProgress.forEach((p) => {
-      lessonCounts[p.lesson_key] = (lessonCounts[p.lesson_key] || 0) + 1;
+    lessonUsers.forEach((usersForLesson, key) => {
+      lessonCounts[key] = usersForLesson.size;
     });
+
+    const totalCompletions = Array.from(userLessonSets.values())
+      .reduce((sum, lessonSet) => sum + lessonSet.size, 0);
 
     return {
       ...course,
       totalLessons,
       uniqueUsers,
       completedUsers,
-      totalCompletions: courseProgress.length,
+      totalCompletions,
       avgProgress:
         uniqueUsers > 0
-          ? Math.round((courseProgress.length / uniqueUsers / totalLessons) * 100)
+          ? Math.round((totalCompletions / uniqueUsers / totalLessons) * 100)
           : 0,
       lessonCounts,
     };
   });
 }
 
-function computeTopUsers(xp, users) {
-  return [...xp]
-    .sort((a, b) => (b.total || 0) - (a.total || 0))
-    .slice(0, 10)
-    .map((x) => {
-      const profile = users.find((u) => u.id === x.user_id);
-      return { ...x, name: profile?.display_name || 'Anonymous' };
-    });
-}
-
 export function AdminDashboard({ onClose }) {
   const { user } = useAuth();
-  const { isAdmin, checking, data, setData, loading, loadError } = useAdminData(user);
+  const {
+    isAdmin,
+    checking,
+    data,
+    setData,
+    dashboardMetrics,
+    loading,
+    loadError,
+    usersCounts,
+    usersPagination,
+    analyticsMeta,
+  } = useAdminData(user);
   const [tab, setTab] = useState('overview');
   // Admin stats span every course, so load them all on mount.
   // Safe: if the courses are already loaded, this is a no-op.
   const { ensureAllLoaded, allCoursesLoaded } = useCourseContent();
   useEffect(() => { ensureAllLoaded(); }, [ensureAllLoaded]);
 
-  // ─── Derived stats ─── memoized so tab switches don't recompute
+  // --- Derived stats --- memoized so tab switches don't recompute
   const stats = useMemo(() => {
     if (loading || !isAdmin) return null;
-    const now = new Date();
-    const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
-    const monthAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
     return {
-      totalUsers: data.users.length,
-      newUsersWeek: data.users.filter((u) => new Date(u.created_at) > weekAgo).length,
-      newUsersMonth: data.users.filter((u) => new Date(u.created_at) > monthAgo).length,
-      totalCompletions: data.progress.length,
-      activeUsers: new Set(
-        data.progress
-          .filter((p) => new Date(p.completed_at) > weekAgo)
-          .map((p) => p.user_id),
-      ).size,
-      totalQuizAttempts: data.quizScores.length,
-      totalBadges: data.badges.length,
-      totalXP: data.xp.reduce((s, x) => s + (x.total || 0), 0),
+      totalUsers: usersCounts.total,
+      newUsersWeek: usersCounts.newWeek,
+      newUsersMonth: usersCounts.newMonth,
+      totalCompletions: dashboardMetrics.totalCompletions || data.progress.length,
+      activeUsers: dashboardMetrics.activeUsersWeek,
+      totalQuizAttempts: dashboardMetrics.totalQuizAttempts || data.quizScores.length,
+      totalBadges: dashboardMetrics.totalBadges,
+      totalXP: dashboardMetrics.totalXP,
       courseStats: computeCourseStats(COURSES, data.progress),
-      topUsers: computeTopUsers(data.xp, data.users),
+      topUsers: dashboardMetrics.topUsers,
+      funnel7d: dashboardMetrics.funnel7d,
+      funnel30d: dashboardMetrics.funnel30d,
     };
-  }, [data, loading, isAdmin]);
+  }, [dashboardMetrics, data, loading, isAdmin, usersCounts]);
 
-  // ─── Early-return states ───
+  // --- Early-return states ---
   if (checking) {
     return (
       <div className="admin-wrap">
-        <div className="admin-loading">Checking access...</div>
+        <div className="admin-loading" role="status" aria-live="polite">Checking admin access...</div>
       </div>
     );
   }
@@ -122,12 +137,17 @@ export function AdminDashboard({ onClose }) {
   if (!isAdmin) {
     return (
       <div className="admin-wrap">
-        <div className="admin-denied">
+        <div className="admin-denied" role="status" aria-live="polite">
           <span className="admin-denied-icon" aria-hidden="true">🔒</span>
           <h2>Access Denied</h2>
           <p>You don&apos;t have admin privileges.</p>
-          <button type="button" className="admin-back-btn" onClick={onClose}>
-            ← Back to Platform
+          <button
+            type="button"
+            className="admin-back-btn"
+            onClick={onClose}
+            aria-label="Return to the main platform"
+          >
+            ← Return to Platform
           </button>
         </div>
       </div>
@@ -137,7 +157,7 @@ export function AdminDashboard({ onClose }) {
   if (loadError) {
     return (
       <div className="admin-wrap">
-        <div className="admin-denied">
+        <div className="admin-denied" role="alert" aria-live="assertive">
           <span className="admin-denied-icon" aria-hidden="true">📡</span>
           <h2>Connection Error</h2>
           <p>{loadError}</p>
@@ -145,8 +165,9 @@ export function AdminDashboard({ onClose }) {
             type="button"
             className="admin-back-btn"
             onClick={() => window.location.reload()}
+            aria-label="Reload the admin dashboard"
           >
-            ↺ Retry
+            Retry Retry
           </button>
         </div>
       </div>
@@ -158,14 +179,19 @@ export function AdminDashboard({ onClose }) {
       <div className="admin-container">
         <header className="admin-header">
           <div className="admin-header-left">
-            <span className="admin-logo" aria-hidden="true">⚡</span>
+            <span className="admin-logo" aria-hidden="true">*</span>
             <div>
               <h1 className="admin-title">Admin Dashboard</h1>
               <p className="admin-subtitle">CodeHerWay Platform Analytics</p>
             </div>
           </div>
-          <button type="button" className="admin-back-btn" onClick={onClose}>
-            ← Back to Platform
+          <button
+            type="button"
+            className="admin-back-btn"
+            onClick={onClose}
+            aria-label="Return to the main platform"
+          >
+            ← Return to Platform
           </button>
         </header>
 
@@ -186,9 +212,17 @@ export function AdminDashboard({ onClose }) {
         </nav>
 
         {loading || !stats || !allCoursesLoaded ? (
-          <div className="admin-loading">Loading data...</div>
+          <div className="admin-loading" role="status" aria-live="polite">
+            Loading dashboard data...
+          </div>
         ) : (
           <div className="admin-content">
+            {(analyticsMeta.progressIsSampled || analyticsMeta.quizIsSampled) && (
+              <p className="admin-data-scope" role="note">
+                Large dataset mode: course and activity analytics are computed from the latest
+                {' '}{analyticsMeta.rowLimit.toLocaleString()} records per table for faster admin loads.
+              </p>
+            )}
             {tab === 'overview' && (
               <div id="admin-tab-panel-overview" role="tabpanel">
                 <AdminOverviewTab {...stats} />
@@ -196,7 +230,13 @@ export function AdminDashboard({ onClose }) {
             )}
             {tab === 'users' && (
               <div id="admin-tab-panel-users" role="tabpanel">
-                <AdminUsersTab data={data} currentUserId={user.id} setData={setData} />
+                <AdminUsersTab
+                  data={data}
+                  currentUserId={user.id}
+                  setData={setData}
+                  usersPagination={usersPagination}
+                  usersTotal={usersCounts.total}
+                />
               </div>
             )}
             {tab === 'courses' && (
@@ -211,7 +251,13 @@ export function AdminDashboard({ onClose }) {
             )}
             {tab === 'builder' && (
               <div id="admin-tab-panel-builder" role="tabpanel">
-                <Suspense fallback={<div className="admin-loading">Loading builder...</div>}>
+                <Suspense
+                  fallback={
+                    <div className="admin-loading" role="status" aria-live="polite">
+                      Loading lesson builder...
+                    </div>
+                  }
+                >
                   <LessonBuilder />
                 </Suspense>
               </div>
@@ -222,3 +268,8 @@ export function AdminDashboard({ onClose }) {
     </div>
   );
 }
+
+
+
+
+

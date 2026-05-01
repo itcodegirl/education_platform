@@ -6,6 +6,6 @@ dist
 .codex-backup-wrong-local
 playwright-report
 test-results
-Downloads/
-# NOTE: package-lock.json IS committed so builds are reproducible
-# and `npm audit` runs against a pinned dependency tree.
+scripts/Delete-GitHubRepos.ps1
+secret_grid.bmp
+secret_grid.ppm

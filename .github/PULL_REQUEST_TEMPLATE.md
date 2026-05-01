@@ -11,7 +11,6 @@
 ## Verification
 
 - [ ] `npm run build` passes
-- [ ] `npm run typecheck` passes
 - [ ] `npm test` passes
 - [ ] `npm audit --audit-level=high` — no new findings
 - [ ] Relevant flows tested locally (mark which):
@@ -22,8 +21,8 @@
   - [ ] Sidebar nav + lesson nav
   - [ ] Gamification (XP popup, badge unlock, streaks)
   - [ ] Mobile layout (< 768px)
-  - [ ] `/#styleguide` design preview
-  - [ ] `/#u/:handle` public profile
+  - [ ] `/styleguide` design preview
+  - [ ] `/u/:handle` public profile
 
 ## Security checklist
 

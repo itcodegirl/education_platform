@@ -1,5 +1,6 @@
-# CodeHerWay
+# CodeHerWay Learning Platform
 
+<<<<<<< HEAD
 > A free, browser-based coding bootcamp for women learning to ship.
 > HTML -> CSS -> JavaScript -> React -> Python, with an AI tutor, a real
 > code editor, and gamified progress tracking.
@@ -23,11 +24,35 @@ CodeHerWay is built to feel like a real product, not a tutorial dump:
 - a real Monaco editor with live preview and challenge validation, so learners ship while they study
 - an authenticated AI tutor behind a server-side proxy, with rate limits and guardrails built in
 - a portfolio-ready frontend with security, accessibility, and product thinking visible in the repo itself
+=======
+CodeHerWay is an active frontend learning platform project and portfolio product focused on beginner-friendly coding education.
 
----
+## Current Project Status
 
-## What it is
+- This repository root is the active canonical app.
+- `codeherway-v2/` is archived/reference-only and not part of active runtime behavior.
+- The project is usable for demos and portfolio review.
+- The project is not yet production-grade.
 
+## What Is Currently Working
+
+- Course browsing and lesson viewing UI for HTML, CSS, JavaScript, and React tracks.
+- Progress save/reload behavior for core learning flow.
+- Unified reward-engine hardening for lesson completion XP, quiz retry XP, activity-based streaks, challenge completion dedupe, local reward-event processing, local retry/reconciliation evidence, diagnostics, sync-failure visibility, and feature-gated Supabase backend awards.
+- Supabase reward backend scaffolding for future cross-device idempotency, including reward-event migrations, an atomic award RPC, and a frontend service wrapper that preserves local fallback behavior.
+- Active lesson quiz coverage for HTML, CSS, JavaScript, and React tracks is complete.
+- Quiz variant groups and legacy orphan quiz inventory are classified and monitored by the audit.
+- Bookmarks and lesson notes in the active app.
+- Certificate export flow.
+- Public Playwright smoke coverage.
+- Netlify + Vite build/deploy flow.
+>>>>>>> origin/main
+
+## Testing Scope
+
+Current baseline checks:
+
+<<<<<<< HEAD
 CodeHerWay is a complete coding curriculum that runs entirely in the
 browser. Every lesson follows the same opinionated structure:
 **hook -> do -> understand -> build -> challenge -> summary**.
@@ -90,9 +115,38 @@ engineering tradeoffs. The strongest public signals in the repo are:
 If you want the deeper story, the
 [security audit commits](https://github.com/itcodegirl/codeherway-platform/commits/main)
 show the threat model and the fixes that followed.
+=======
+- `npm run build`
+- `npm run lint`
+- `npm run test` (Vitest unit/component suite — passes on a fresh clone with no `.env` configured; the suite stubs the `VITE_SUPABASE_*` placeholders via `vitest.config.js` so client-importing tests can evaluate)
+- `npm run audit:quizzes`
+- `npm run test:e2e` (public smoke path runs by default)
 
-## Tech stack
+Current test boundaries:
 
+- Authenticated Playwright smoke checks are skipped when auth env credentials are not provided.
+- `npm run audit:quizzes` remains the source of truth for quiz integrity drift, including classified orphan quizzes, intentional variant groups, and legacy aliases.
+- Quiz audit strict-mode CI criteria are planned but not enabled yet.
+- The local reward-event ledger/queue and Supabase reward backend branches are now unified. The local engine remains the default fallback, and backend reward sync remains disabled until the migrations are applied and authenticated reward flows are validated in a real project.
+- Backend reward details live in [docs/backend-reward-events.md](./docs/backend-reward-events.md), [docs/atomic-reward-award.md](./docs/atomic-reward-award.md), and [docs/reward-sync-strategy.md](./docs/reward-sync-strategy.md).
+- Linting scripts exist, but lint enforcement is not yet treated as a stabilized release gate in this repair stage.
+
+## Known Limitations
+
+See [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md) for the current limitation baseline, including learning identity hardening, quiz integrity follow-up, reward-event/cross-device limits, search coverage limits, and AI/security hardening scope.
+
+## Repair Roadmap
+
+See [docs/repair-roadmap.md](./docs/repair-roadmap.md) for the staged repair plan:
+>>>>>>> origin/main
+
+- P0: Repo trust and documentation
+- P1: Learning integrity
+- P2: Data model hardening and migration safety
+- P3: ADHD-friendly UX simplification
+- P4: Reliability testing and CI gates
+
+<<<<<<< HEAD
 | Layer | Choice | Why |
 | --- | --- | --- |
 | UI | React 18 + Vite 6 | Fast HMR, modern bundler, real code splitting |
@@ -105,9 +159,13 @@ show the threat model and the fixes that followed.
 | Unit tests | Vitest + React Testing Library + jsdom | Covers gamification, learning engine, and component behavior |
 | E2E | Playwright | Browser coverage already wired into CI |
 | CI | GitHub Actions | build, smoke tests, typecheck, vitest, `npm audit`, `gitleaks` |
+=======
+## Recruiter / Hiring Context
+>>>>>>> origin/main
 
-## Architecture at a glance
+This project is intended to demonstrate:
 
+<<<<<<< HEAD
 ```text
 Browser (React 18, PWA)
    |
@@ -122,10 +180,46 @@ Every arrow above is gated by something: a Supabase JWT, an RLS
 policy, a Postgres trigger, a CSP, or a shared secret. The full
 picture lives in [`SECURITY.md`](./SECURITY.md) and
 [`supabase-schema.sql`](./supabase-schema.sql).
+=======
+- Frontend architecture and modular React app composition
+- Product thinking for learning workflows
+- Accessibility awareness and iterative UX hardening
+- Learning-platform UX and retention-oriented interaction design
+- Honest iteration discipline (audit -> staged repairs -> verification)
+- Ability to assess and improve a real codebase under constraints
 
-## Run it locally
+Concrete shape of the project at the current commit:
+>>>>>>> origin/main
+
+- Four full courses (HTML, CSS, JavaScript, React).
+- A reward system (XP, streaks, badges, bookmarks, spaced-repetition queue) that is event-driven, idempotent (`hasRewardBeenAwarded()` + `markRewardAwarded()`), persisted to Supabase, and reconciles cleanly with the local optimistic state on reload. XP popups and badge-unlock celebrations are queued so back-to-back rewards (e.g. quiz completion + perfect-score bonus) all display in turn instead of overwriting each other.
+- A lazy-loaded Monaco editor split into multiple chunks via Vite manual chunking so it never enters the initial bundle.
+- A top-level `ErrorBoundary` so a provider crash falls back to a visible retry/reload screen, not a blank page.
+- A Vitest unit/component suite of 330+ tests including accessibility integration tests (axe-core).
+- A Playwright public smoke suite plus an opt-in authenticated path.
+
+Files most worth a look from a senior reviewer:
+
+- `src/context/ProgressContext.jsx` — the dual-layer optimistic + canonical persistence model, with queued XP-popup and badge-unlock state slots.
+- `src/engine/rewards/` — the reward event ledger and idempotent runtime.
+- `src/components/learning/QuizView.jsx` + `src/hooks/useQuizSession.js` + `src/components/learning/quiz/questionTypes.jsx` — quiz engine split into a renderer registry + session hook.
+- `src/components/learning/CodeChallenge.jsx` + `src/hooks/useChallengeSession.js` + `src/components/learning/challenge/` — challenge engine split into the same shape (session hook + AI panel + preview-builder util). Includes an explicit honesty note in the UI about what the auto-grader actually checks (see `KNOWN_LIMITATIONS.md`).
+- `src/components/admin/LessonBuilder.jsx` + `src/hooks/useLessonBuilder.js` + `src/components/admin/lesson-builder/` — admin lesson-authoring tool split into a state hook, a pure codegen util, three view-tab components, and shared `LBField` / `ArrayField` primitives.
+- `src/services/aiService.js` — `AIServiceError` carries a stable `code` from `AI_ERROR_CODES`, so callers switch on the code instead of regex-matching error message strings.
+- `vite.config.js` — Monaco manual-chunking strategy.
+
+## Stack
+
+- React 18 + Vite
+- Supabase Auth + Postgres
+- Netlify static hosting + Netlify Functions
+
+## Local Setup
+
+### 1. Install dependencies
 
 ```bash
+<<<<<<< HEAD
 git clone https://github.com/itcodegirl/codeherway-platform.git
 cd codeherway-platform
 npm ci
@@ -138,9 +232,16 @@ Then add your Supabase URL and anon key to `.env`.
 The AI tutor stays disabled in local dev unless you also run
 `netlify dev` with `OPENAI_API_KEY` set. The full environment
 reference lives in [`.env.example`](./.env.example).
+=======
+npm install
+```
 
-### One-time database setup
+### 2. Configure environment variables
+>>>>>>> origin/main
 
+Copy [`.env.example`](./.env.example) to `.env`:
+
+<<<<<<< HEAD
 Open your Supabase project's SQL editor, paste
 [`supabase-schema.sql`](./supabase-schema.sql), and run it.
 Re-running is safe.
@@ -184,10 +285,23 @@ src/
 netlify/functions/  ai.js, practice-generate.js, streak-reminder.js
 supabase-schema.sql tables, RLS, triggers, RPCs, audit log
 .github/workflows/  ci-smoke, security-audit, ops-checks
+=======
+```bash
+cp .env.example .env
 ```
 
-## Security highlights
+Required frontend values:
 
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+VITE_REWARD_BACKEND_SYNC_ENABLED=false
+>>>>>>> origin/main
+```
+
+### 3. Configure Supabase
+
+<<<<<<< HEAD
 - **No secrets in the bundle.** The OpenAI key lives only in Netlify env vars.
 - **Authenticated AI proxy** with Postgres-backed per-user rate limits, payload caps, and a mandatory server-side guardrail prompt.
 - **Row-Level Security** on every Supabase table.
@@ -264,8 +378,50 @@ https://mellow-sunflower-9c92cd.netlify.app/#styleguide
 ## License
 
 MIT - see [`LICENSE`](./LICENSE).
+=======
+1. Create a Supabase project.
+2. Run [`supabase-schema.sql`](./supabase-schema.sql) in Supabase SQL editor.
+3. For the optional backend reward engine, run the additive SQL files in [`supabase/migrations`](./supabase/migrations) after the base schema.
+4. Keep `VITE_REWARD_BACKEND_SYNC_ENABLED=false` until `reward_events` and `award_reward_event` are applied and verified.
+5. Enable Email auth.
+6. Optionally enable Google/GitHub auth.
 
----
+### 4. Run the app
 
-Built by [@itcodegirl](https://github.com/itcodegirl) for women who
-code, lead, and rewrite the future of tech.
+```bash
+npm run dev
+```
+
+## Playwright Smoke Tests
+
+Install Chromium once:
+
+```bash
+npm run test:e2e:install
+```
+
+Run smoke tests:
+
+```bash
+npm run test:e2e
+```
+>>>>>>> origin/main
+
+Optional authenticated smoke coverage requires:
+
+```env
+E2E_EMAIL=learner@example.com
+E2E_PASSWORD=your-test-password
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+## Netlify Deploy
+
+Configured in [`netlify.toml`](./netlify.toml):
+
+- Build command: `npm run build`
+- Publish directory: `dist`
+- Functions directory: `netlify/functions`
+
+For release QA, use [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md).

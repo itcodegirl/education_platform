@@ -6,9 +6,15 @@ export function AdminRoute({
   fallback = null,
   loadingFallback = null,
 }) {
+<<<<<<< HEAD
   const { user, profile, loading } = useAuth();
 
   const isProfilePending = user && profile === null;
+=======
+  const { user, profile, loading, profileLoading } = useAuth();
+
+  const isProfilePending = user && profileLoading;
+>>>>>>> origin/main
 
   if (loading || isProfilePending) {
     return loadingFallback ?? <GuardScreen message="Checking admin access..." />;

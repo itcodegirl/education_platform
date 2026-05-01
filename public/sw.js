@@ -1,7 +1,7 @@
-// Service worker for CodeHerWay.
+﻿// Service worker for CodeHerWay.
 // Keep navigation network-first so deploys pick up the latest HTML shell.
 
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v9';
 const CACHE_PREFIX = 'chw-';
 const SHELL_CACHE = `${CACHE_PREFIX}shell-${CACHE_VERSION}`;
 const DATA_CACHE = `${CACHE_PREFIX}data-${CACHE_VERSION}`;
@@ -9,12 +9,19 @@ const FONT_CACHE = `${CACHE_PREFIX}fonts-${CACHE_VERSION}`;
 
 const SHELL_FILES = [
   '/index.html',
-  '/manifest.json',
   '/icon.svg',
   '/icon-192.png',
   '/icon-512.png',
   '/apple-touch-icon.png',
 ];
+
+function isLegacyCache(name) {
+  return (
+    name.startsWith(CACHE_PREFIX) ||
+    name.startsWith('cinova-') ||
+    name.startsWith('codeherway-')
+  );
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -31,7 +38,7 @@ self.addEventListener('activate', (event) => {
     const names = await caches.keys();
     await Promise.all(
       names
-        .filter((name) => name.startsWith(CACHE_PREFIX) && !currentCaches.has(name))
+        .filter((name) => isLegacyCache(name) && !currentCaches.has(name))
         .map((name) => caches.delete(name))
     );
 
@@ -52,9 +59,25 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
   if (!url.protocol.startsWith('http')) return;
   if (request.cache === 'only-if-cached' && request.mode !== 'same-origin') return;
+  // Never proxy Netlify Functions through the SPA cache layer.
+  // Let the browser hit the function endpoint directly.
+  if (url.pathname.startsWith('/.netlify/functions/')) return;
+
+  // Always fetch latest manifest so install metadata cannot get stuck on stale branding.
+  if (url.pathname === '/manifest.json') {
+    event.respondWith(fetch(request, { cache: 'no-store' }));
+    return;
+  }
 
   if (request.mode === 'navigate' || request.destination === 'document') {
     event.respondWith(networkFirstNavigation(request));
+    return;
+  }
+
+  // Supabase Auth endpoints carry session identity and refresh state.
+  // Let them bypass the service worker entirely so deploy/cache updates
+  // cannot replay stale auth responses or interfere with token refresh.
+  if (url.hostname.includes('supabase') && url.pathname.includes('/auth/v1/')) {
     return;
   }
 
@@ -170,3 +193,4 @@ async function networkFirstNavigation(request) {
     throw error;
   }
 }
+

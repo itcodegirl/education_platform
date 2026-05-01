@@ -1,4 +1,4 @@
-const has = (code, str) => code.toLowerCase().includes(str.toLowerCase());
+﻿const has = (code, str) => code.toLowerCase().includes(str.toLowerCase());
 const count = (code, str) => (code.toLowerCase().match(new RegExp(str.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
 
 export const HTML_CHALLENGES = [
@@ -27,7 +27,7 @@ export const HTML_CHALLENGES = [
     hint:'<label for="x"> needs matching <input id="x">.',
     solution:'<form>\n  <fieldset>\n    <legend>Contact Us</legend>\n    <label for="name">Name</label>\n    <input type="text" id="name" name="name" required />\n    <label for="email">Email</label>\n    <input type="email" id="email" name="email" required />\n    <label for="msg">Message</label>\n    <textarea id="msg" name="message" rows="4"></textarea>\n    <button type="submit">Send</button>\n  </fieldset>\n</form>' },
 
-  { id:'html-ch-3', title:'Semantic Page Layout', description:'Build a full page using semantic HTML — no divs.', difficulty:'beginner', courseId:'html',
+  { id:'html-ch-3', title:'Semantic Page Layout', description:'Build a full page using semantic HTML - no divs.', difficulty:'beginner', courseId:'html',
     starter:'<!-- header, nav, main, section, article, aside, footer -->',
     requirements:['Has <header> with <nav>','Has <main>','Has <section> with <article>','Has <aside>','Has <footer>','No <div> elements'],
     tests:[
@@ -75,7 +75,7 @@ export const HTML_CHALLENGES = [
       { label:'Wrapped in <section>', check:c=>has(c,'<section') },
     ],
     hint:'<details><summary>Question?</summary><p>Answer.</p></details>',
-    solution:'<section>\n  <h2>FAQ</h2>\n  <details><summary>What is HTML?</summary><p>HyperText Markup Language — structures web content.</p></details>\n  <details><summary>Is HTML a programming language?</summary><p>No, it is a markup language.</p></details>\n  <details><summary>What is semantic HTML?</summary><p>Using tags that describe meaning, like nav, main, article.</p></details>\n  <details><summary>Why is alt text important?</summary><p>Screen readers need it to describe images to visually impaired users.</p></details>\n</section>' },
+    solution:'<section>\n  <h2>FAQ</h2>\n  <details><summary>What is HTML?</summary><p>HyperText Markup Language - structures web content.</p></details>\n  <details><summary>Is HTML a programming language?</summary><p>No, it is a markup language.</p></details>\n  <details><summary>What is semantic HTML?</summary><p>Using tags that describe meaning, like nav, main, article.</p></details>\n  <details><summary>Why is alt text important?</summary><p>Screen readers need it to describe images to visually impaired users.</p></details>\n</section>' },
 
   { id:'html-ch-7', title:'Registration Form', description:'Build a job application form with multiple input types.', difficulty:'intermediate', courseId:'html',
     starter:'<form>\n  <!-- name, email, phone, experience (radio),\n       skills (checkboxes), resume (file), submit -->\n</form>',
@@ -125,9 +125,13 @@ export const HTML_CHALLENGES = [
       { label:'header + main + footer', check:c=>has(c,'<header')&&has(c,'<main')&&has(c,'<footer') },
       { label:'3+ nav links', check:c=>count(c,'<a ')>=3 },
       { label:'One <h1>', check:c=>count(c,'<h1')===1 },
-      { label:'Copyright entity', check:c=>has(c,'&copy;')||has(c,'©') },
+      { label:'Copyright entity', check:c=>has(c,'&copy;')||has(c,'(c)') },
       { label:'Relative paths', check:c=>has(c,'.html') },
     ],
     hint:'Use relative paths: <a href="about.html">About</a>',
     solution:'<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8" />\n  <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n  <title>My Site</title>\n</head>\n<body>\n  <header>\n    <nav>\n      <a href="index.html">Home</a>\n      <a href="about.html">About</a>\n      <a href="projects.html">Projects</a>\n      <a href="contact.html">Contact</a>\n    </nav>\n  </header>\n  <main>\n    <h1>Welcome to My Site</h1>\n    <p>Frontend developer portfolio.</p>\n  </main>\n  <footer>\n    <p>&copy; 2025 My Name</p>\n  </footer>\n</body>\n</html>' },
 ];
+
+
+
+
