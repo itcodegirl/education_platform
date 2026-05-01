@@ -31,7 +31,7 @@ describe('CodePreview', () => {
   it('copies source code from code tab', () => {
     render(<CodePreview code="console.log('hi')" lang="js" scaffolding="full" />);
 
-    fireEvent.click(screen.getByRole('button', { name: /^copy$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /copy code to clipboard/i }));
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith("console.log('hi')");
   });
@@ -41,7 +41,7 @@ describe('CodePreview', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /preview/i }));
 
-    const frame = screen.getByTitle('Preview');
+    const frame = screen.getByTitle('HTML preview');
     expect(frame).toBeInTheDocument();
     expect(frame.getAttribute('srcdoc')).toContain('<main>Preview Me</main>');
   });

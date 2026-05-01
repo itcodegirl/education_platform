@@ -199,7 +199,6 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
                     </div>
                   </button>
                 ))}
-              </div>
             </>
           )}
         </div>

@@ -44,19 +44,19 @@ describe('SearchPanel', () => {
     render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
 
     expect(
-      screen.getByText(/Start with at least two characters\./i),
+      screen.getByText(/Start typing to search across all courses/i),
     ).toBeInTheDocument();
   });
 
   it('shows a clear no-results message when query has no matches', () => {
     render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
 
-    fireEvent.change(screen.getByRole('textbox', { name: /Search lessons/i }), {
+    fireEvent.change(screen.getByRole('combobox', { name: /Search lessons/i }), {
       target: { value: 'zzz' },
     });
 
     expect(
-      screen.getByText(/No matches for "zzz"/i),
+      screen.getByText(/No results for/i),
     ).toBeInTheDocument();
   });
 });
