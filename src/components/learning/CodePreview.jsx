@@ -38,11 +38,13 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
     setTab(scaffolding === 'starter' || scaffolding === 'requirements' ? 'editor' : 'code');
   }, [code, scaffolding]);
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     const textToCopy = tab === 'editor' ? editorCode : code;
-    navigator.clipboard.writeText(textToCopy);
-    setCopied(true);
-    setTimeout(() => setCopied(false), COPY_FEEDBACK_MS);
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(textToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), COPY_FEEDBACK_MS);
+    }
   };
 
   const handleReset = () => {
@@ -122,7 +124,7 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
 
         <div className="cpv-actions">
           {tab === 'editor' && editorCode !== code && (
-            <button type="button" className="cpv-reset" onClick={handleReset} title="Reset to original">
+            <button type="button" className="cpv-reset" onClick={handleReset} aria-label="Reset code to original">
               Reset
             </button>
           )}
@@ -132,12 +134,13 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
               className={`cpv-explain ${aiExplaining ? 'loading' : ''}`}
               onClick={explainCode}
               disabled={aiExplaining}
-              title="AI explains your code"
+              aria-label={aiExplaining ? 'AI is analyzing your code' : 'AI explains your code'}
+              aria-busy={aiExplaining}
             >
               {aiExplaining ? '⏳ Thinking...' : '🤖 Explain'}
             </button>
           )}
-          <button type="button" className="cpv-copy" onClick={handleCopy}>
+          <button type="button" className="cpv-copy" onClick={handleCopy} aria-label={copied ? 'Code copied to clipboard' : 'Copy code to clipboard'}>
             {copied ? 'Copied' : 'Copy'}
           </button>
         </div>
@@ -158,6 +161,7 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
               autoCapitalize="off"
               autoCorrect="off"
               rows={14}
+              aria-label="Code editor"
               placeholder={scaffolding === 'requirements' ? 'Write your code here...' : undefined}
             />
           ) : (
@@ -209,7 +213,7 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
         <iframe
           className="cpv-iframe"
           srcDoc={buildPreview(previewSource)}
-          title="Preview"
+          title={isJS ? 'Code output' : isCSS ? 'CSS preview' : 'HTML preview'}
           sandbox="allow-scripts"
         />
       )}
