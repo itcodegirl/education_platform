@@ -132,6 +132,28 @@ function XPWriteConsumer() {
   );
 }
 
+// Consumer for the XP-popup queue tests below. Exposes the head of the
+// queue plus actions to enqueue / dismiss so tests can drive the
+// queue without relying on the full reward pipeline.
+function XPPopupQueueConsumer() {
+  const { xpPopup, awardXP, clearXPPopup } = useXP();
+  return (
+    <div data-testid="xp-popup-consumer">
+      <div data-testid="xp-popup-amount">{xpPopup ? String(xpPopup.amount) : ''}</div>
+      <div data-testid="xp-popup-reason">{xpPopup ? xpPopup.reason : ''}</div>
+      <button type="button" data-testid="award-30" onClick={() => awardXP(30, 'Quiz completed')}>
+        +30
+      </button>
+      <button type="button" data-testid="award-50" onClick={() => awardXP(50, 'Perfect quiz score!')}>
+        +50
+      </button>
+      <button type="button" data-testid="dismiss" onClick={clearXPPopup}>
+        Dismiss
+      </button>
+    </div>
+  );
+}
+
 function renderWithProvider() {
   return render(
     <ProgressProvider>
@@ -152,6 +174,14 @@ function renderXPWriteWithProvider() {
   return render(
     <ProgressProvider>
       <XPWriteConsumer />
+    </ProgressProvider>,
+  );
+}
+
+function renderXPPopupQueueWithProvider() {
+  return render(
+    <ProgressProvider>
+      <XPPopupQueueConsumer />
     </ProgressProvider>,
   );
 }
@@ -414,5 +444,54 @@ describe('ProgressContext write failure detection', () => {
       failedItem: null,
       error: null,
     });
+  });
+});
+
+describe('ProgressContext — XP popup queue', () => {
+  beforeEach(() => {
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-popup' } });
+    mockFetchAllUserData.mockResolvedValue(makeFetchResult());
+  });
+
+  it('shows the first popup, then the second one only after dismissal', async () => {
+    renderXPPopupQueueWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('award-30')).not.toBeDisabled();
+    });
+
+    fireEvent.click(screen.getByTestId('award-30'));
+    fireEvent.click(screen.getByTestId('award-50'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('xp-popup-amount').textContent).toBe('30');
+      expect(screen.getByTestId('xp-popup-reason').textContent).toBe('Quiz completed');
+    });
+
+    fireEvent.click(screen.getByTestId('dismiss'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('xp-popup-amount').textContent).toBe('50');
+      expect(screen.getByTestId('xp-popup-reason').textContent).toBe('Perfect quiz score!');
+    });
+
+    fireEvent.click(screen.getByTestId('dismiss'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('xp-popup-amount').textContent).toBe('');
+    });
+  });
+
+  it('clearXPPopup is a safe no-op when the queue is already empty', async () => {
+    renderXPPopupQueueWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('award-30')).not.toBeDisabled();
+    });
+
+    fireEvent.click(screen.getByTestId('dismiss'));
+    fireEvent.click(screen.getByTestId('dismiss'));
+
+    expect(screen.getByTestId('xp-popup-amount').textContent).toBe('');
   });
 });

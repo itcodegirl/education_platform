@@ -63,17 +63,6 @@ const loaders = {
       challenges: challenges.REACT_CHALLENGES || [],
     };
   },
-  python: async () => {
-    const [course, quizzes] = await Promise.all([
-      import('./python/course'),
-      import('./python/quizzes'),
-    ]);
-    return {
-      modules: course.PYTHON_MODULES,
-      quizzes: quizzes.PYTHON_QUIZZES,
-      challenges: [],
-    };
-  },
 };
 
 export function loadCourse(id) {

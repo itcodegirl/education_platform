@@ -54,7 +54,21 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
               challenge={activeChallenge}
               lang={lang}
               onComplete={() => {
-                learn.completeChallenge(activeChallenge.id);
+                // completeChallenge is async (it awaits awardRewardOnce),
+                // but we deliberately don't block the UI on reward sync —
+                // see the commit history around 'prevent reward processing
+                // from blocking lesson navigation'. Catch here so that an
+                // unexpected throw (network timeout, throw inside the
+                // backend reward path) doesn't surface as an unhandled
+                // promise rejection. Promise.resolve() wraps the call so
+                // a sync return (mocks, future early-return path) is
+                // tolerated too.
+                Promise.resolve(learn.completeChallenge(activeChallenge.id))
+                  .catch((error) => {
+                    if (import.meta.env.DEV) {
+                      console.warn('[ChallengesPanel] completeChallenge failed:', error);
+                    }
+                  });
               }}
             />
           </div>

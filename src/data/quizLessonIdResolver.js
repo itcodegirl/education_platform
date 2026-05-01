@@ -121,7 +121,7 @@ function resolveLegacyLessonId(courseId, rawLessonId) {
     return REACT_HIGH_CONFIDENCE_LEGACY_LESSON_ALIASES[rawLessonId] || null;
   }
 
-  // Python: do not infer broad remaps.
+  // Unknown course: do not infer broad remaps.
   return null;
 }
 

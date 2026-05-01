@@ -500,8 +500,14 @@
 }
 .cheatsheet-head h2 { font-family:'Poppins', sans-serif; font-size:18px; }
 .cheatsheet-close {
-  width: 34px;
-  height: 34px;
+  /* 44x44 hits the WCAG 2.5.5 (AAA) touch-target size — important
+     because this control is the primary "get out of the modal" path
+     on phones, where it was previously 34x34 and easy to mistap. */
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 10px;
   border: 1px solid rgba(255,255,255,0.12);
   background: rgba(255,255,255,0.02);

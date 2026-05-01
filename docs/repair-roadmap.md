@@ -22,7 +22,7 @@ Goal: make learner progress and completion signals trustworthy.
 Current quiz checkpoint:
 
 - Active HTML, CSS, JavaScript, and React lesson quiz coverage is complete.
-- Python quiz coverage is intentionally deferred and should start with module checkpoint policy decisions.
+- The platform now ships only the four frontend tracks (HTML, CSS, JS, React); the previous Python track was removed to keep the product focus tight.
 - Quiz variant groups and legacy orphan quiz inventory are now classified and monitored through `npm run audit:quizzes`.
 - Strict-mode quiz audit CI criteria are still planned, not enabled as a release gate.
 
@@ -39,7 +39,6 @@ Current progress/reward checkpoint:
 Remaining hardening:
 
 - Maintain completed active lesson quiz coverage for HTML, CSS, JavaScript, and React.
-- Keep Python quiz coverage as explicit roadmap scope; define module checkpoint quizzes before deciding on full lesson-level coverage.
 - Continue legacy alias review and monitor classified orphan/variant drift through `npm run audit:quizzes`.
 - Use the reward/progress trust policy in `docs/reward-progress-policy.md` as the source of truth for future schema-backed reward hardening.
 - Apply and validate the reward backend migrations in a real Supabase project before enabling `VITE_REWARD_BACKEND_SYNC_ENABLED`.
@@ -52,7 +51,7 @@ Remaining hardening:
 
 Exit criteria:
 
-- Active frontend-track quiz coverage remains complete, Python scope is explicit, and remaining audit findings stay classified with documented owner/decision status.
+- Active frontend-track quiz coverage remains complete and remaining audit findings stay classified with documented owner/decision status.
 - Core same-device learning loop cannot be easily gamed or silently desynced; cross-device reward integrity is scaffolded but waits for live Supabase migration application, validation, and import/backfill policy.
 
 ## P2: Data Model Hardening + Migration Safety
@@ -86,7 +85,7 @@ Goal: raise confidence with targeted regression coverage and enforceable quality
 
 - Add tests for learning flow, progress integrity, XP/streaks, search, bookmarks, auth, and accessibility.
 - Expand CI gates around build/test quality checks.
-- Define future strict-mode CI criteria for quiz integrity once orphan, variant, alias, and Python policy decisions are complete.
+- Define future strict-mode CI criteria for quiz integrity once orphan, variant, and alias policy decisions are complete.
 - Tighten release checklist around verified behavior.
 
 Exit criteria:
