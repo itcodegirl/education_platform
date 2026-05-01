@@ -283,6 +283,8 @@ export function AppLayout() {
                   className={`mark-btn ${isDone ? "dn" : ""}`}
                   onClick={handleMarkDone}
                   disabled={marking}
+                  aria-label={isDone ? "Lesson completed" : "Mark lesson as done"}
+                  aria-pressed={isDone}
                 >
                   {marking ? "..." : isDone ? "✓ Done" : "Mark Done"}
                 </button>
