@@ -1,21 +1,14 @@
 // ═══════════════════════════════════════════════
-// BADGE UNLOCK — Amplified celebration with particles
-//
-// Two ways the celebration can end: the auto-dismiss timer
-// (4.5s of show + 500ms fade), or the learner clicking "Nice!".
-// Both paths schedule a single trailing setTimeout(clearNewBadge,
-// 500) for the fade-out animation. We hold that timer in a single
-// ref so:
-//   - Unmounting while the fade is in flight cancels it.
-//   - A second dismiss / a re-render that triggers a new clear
-//     never schedules a duplicate clearNewBadge — which would
-//     shift TWO entries off the badge queue and silently drop a
-//     fresh badge the learner just earned.
+// BADGE UNLOCK — Amplified celebration with particles.
+// Lifecycle (visible time + fade-out + queue clear,
+// including the manual 'Nice!' dismiss path) is owned
+// by useAutoDismissReveal.
 // ═══════════════════════════════════════════════
 
-import { useCallback, useEffect, useState, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { useXP } from '../../providers';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useAutoDismissReveal } from '../../hooks/useAutoDismissReveal';
 
 const BURST_COLORS = ['#ff6b9d', '#4ecdc4', '#ffa726', '#a78bfa', '#ff8fab', '#66d9e8', '#ffd93d'];
 
@@ -24,9 +17,14 @@ const FADE_OUT_MS = 500;
 
 export function BadgeUnlock() {
   const { newBadge, clearNewBadge } = useXP();
-  const [show, setShow] = useState(false);
   const modalRef = useRef(null);
-  const clearTimerRef = useRef(null);
+
+  const { show, dismiss } = useAutoDismissReveal({
+    active: newBadge,
+    visibleMs: VISIBLE_MS,
+    fadeOutMs: FADE_OUT_MS,
+    onClear: clearNewBadge,
+  });
 
   // Generate burst particles when badge changes
   const particles = useMemo(() => {
@@ -39,40 +37,6 @@ export function BadgeUnlock() {
       color: BURST_COLORS[i % BURST_COLORS.length],
     }));
   }, [newBadge]);
-
-  // Coalesces every "trigger the fade-out" path into one pending
-  // timer. Cancels any prior pending clear so we never call
-  // clearNewBadge twice in a row.
-  const scheduleClear = useCallback(() => {
-    if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
-    clearTimerRef.current = setTimeout(() => {
-      clearTimerRef.current = null;
-      clearNewBadge();
-    }, FADE_OUT_MS);
-  }, [clearNewBadge]);
-
-  useEffect(() => {
-    if (!newBadge) return undefined;
-
-    setShow(true);
-    const visibleTimer = setTimeout(() => {
-      setShow(false);
-      scheduleClear();
-    }, VISIBLE_MS);
-
-    return () => {
-      clearTimeout(visibleTimer);
-      if (clearTimerRef.current) {
-        clearTimeout(clearTimerRef.current);
-        clearTimerRef.current = null;
-      }
-    };
-  }, [newBadge, scheduleClear]);
-
-  const dismiss = useCallback(() => {
-    setShow(false);
-    scheduleClear();
-  }, [scheduleClear]);
 
   // role="dialog" + aria-modal live on the INNER container, not the
   // backdrop — the backdrop is a presentational overlay, the inner
