@@ -13,6 +13,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
+import {
+  getProgressWriteQueueStorageKey,
+  readProgressWriteQueue,
+} from '../services/progressWriteQueue';
 import { getTodayString, getYesterdayString } from '../utils/helpers';
 
 // ─── Hoist mutable mocks so vi.mock factories can reference them ──
@@ -89,17 +93,33 @@ function XPTestConsumer() {
 
 function XPWriteConsumer() {
   const { awardXP } = useXP();
-  const { syncFailed } = useProgressData();
+  const {
+    syncFailed,
+    pendingSyncWrites,
+    syncRetryInFlight,
+    retryPendingSyncWrites,
+  } = useProgressData();
 
   return (
-    <button
-      type="button"
-      data-testid="award-xp"
-      data-sync-failed={String(syncFailed)}
-      onClick={() => awardXP(25, 'Test XP')}
-    >
-      Award XP
-    </button>
+    <>
+      <button
+        type="button"
+        data-testid="award-xp"
+        data-sync-failed={String(syncFailed)}
+        data-pending-sync={String(pendingSyncWrites)}
+        data-retrying={String(syncRetryInFlight)}
+        onClick={() => awardXP(25, 'Test XP')}
+      >
+        Award XP
+      </button>
+      <button
+        type="button"
+        data-testid="retry-pending"
+        onClick={() => retryPendingSyncWrites()}
+      >
+        Retry pending
+      </button>
+    </>
   );
 }
 
@@ -145,8 +165,35 @@ function makeFetchResult(overrides = {}) {
   };
 }
 
+function createMemoryStorage() {
+  const store = new Map();
+  return {
+    getItem(key) {
+      return store.has(key) ? store.get(key) : null;
+    },
+    setItem(key, value) {
+      store.set(key, value);
+    },
+    removeItem(key) {
+      store.delete(key);
+    },
+  };
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
+  const storage = createMemoryStorage();
+  Object.defineProperty(window, 'localStorage', {
+    configurable: true,
+    value: storage,
+  });
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    value: storage,
+  });
+  ['uid-write', 'uid-retry'].forEach((userId) => {
+    window.localStorage.removeItem(getProgressWriteQueueStorageKey(userId));
+  });
   mockUpdateXP.mockResolvedValue({ error: null });
   mockUpdateStreak.mockResolvedValue({});
   mockUpdateDailyGoal.mockResolvedValue({});
@@ -293,7 +340,7 @@ describe('ProgressContext — fetch error', () => {
 });
 
 describe('ProgressContext write failure detection', () => {
-  it('counts Supabase result errors returned by optimistic writes', async () => {
+  it('queues Supabase result errors returned by optimistic writes', async () => {
     mockUseAuth.mockReturnValue({ user: { id: 'uid-write' } });
     mockFetchAllUserData.mockResolvedValue(makeFetchResult());
     mockUpdateXP.mockResolvedValue({
@@ -310,8 +357,39 @@ describe('ProgressContext write failure detection', () => {
     fireEvent.click(screen.getByTestId('award-xp'));
 
     await waitFor(() => {
-      expect(screen.getByTestId('award-xp').dataset.syncFailed).toBe('1');
+      expect(screen.getByTestId('award-xp').dataset.pendingSync).toBe('1');
     });
+    expect(screen.getByTestId('award-xp').dataset.syncFailed).toBe('0');
+    expect(readProgressWriteQueue('uid-write')).toHaveLength(1);
     expect(mockUpdateXP).toHaveBeenCalledWith('uid-write', 25);
+  });
+
+  it('retries queued progress writes and clears the pending queue', async () => {
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-retry' } });
+    mockFetchAllUserData.mockResolvedValue(makeFetchResult());
+    mockUpdateXP.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'write timeout' },
+    });
+
+    renderXPWriteWithProvider();
+
+    await waitFor(() => {
+      expect(mockFetchAllUserData).toHaveBeenCalledWith('uid-retry');
+    });
+
+    fireEvent.click(screen.getByTestId('award-xp'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('award-xp').dataset.pendingSync).toBe('1');
+    });
+
+    fireEvent.click(screen.getByTestId('retry-pending'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('award-xp').dataset.pendingSync).toBe('0');
+    });
+    expect(readProgressWriteQueue('uid-retry')).toEqual([]);
+    expect(mockUpdateXP).toHaveBeenCalledTimes(2);
   });
 });
