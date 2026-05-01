@@ -9,6 +9,13 @@ import { DAILY_GOAL, TIMING, getLevel, getTodayString, getYesterdayString } from
 import { COURSES } from '../data';
 import { BADGE_DEFS } from '../data/badges';
 import * as progressService from '../services/progressService';
+import {
+  createProgressWrite,
+  enqueueProgressWrite,
+  executeProgressWrite,
+  readProgressWriteQueue,
+  replayProgressWriteQueue,
+} from '../services/progressWriteQueue';
 import { getProgressWriteFailure } from '../services/progressWriteRuntime';
 import { isPerfectQuizScore, rewardKeys } from '../services/rewardPolicy';
 import { lessonKeysEquivalent, resolveStableLessonKeyAcrossCourses } from '../utils/lessonKeys';
@@ -37,8 +44,11 @@ const ProgressContext = createContext({
   // Used by the UI to show a "sync failed" banner; the optimistic
   // state is still the source of truth for the current session.
   syncFailed: 0,
+  pendingSyncWrites: 0,
+  syncRetryInFlight: false,
   markSyncFailed: () => {},
   clearSyncFailed: () => {},
+  retryPendingSyncWrites: async () => ({ processed: 0, remaining: 0 }),
 });
 
 const XPContext = createContext({
@@ -139,16 +149,34 @@ function writeChallengeCompletions(userId, challengeIds) {
 
 export function ProgressProvider({ children }) {
   const { user } = useAuth();
+  const userId = user?.id || '';
   const [loadVersion, setLoadVersion] = useState(0);
   // Counter for DB writes that have failed since the last successful
   // load. The optimistic state is still the source of truth for the
   // session — this is just so the UI can surface "your progress did
   // not save to the cloud" instead of silently losing writes.
   const [syncFailed, setSyncFailed] = useState(0);
+  const [pendingSyncWrites, setPendingSyncWrites] = useState(0);
+  const [syncRetryInFlight, setSyncRetryInFlight] = useState(false);
+  const pendingSyncWritesRef = useRef(0);
+  const hydratePendingQueueRef = useRef(false);
 
   const markSyncFailed = useCallback(() => {
     setSyncFailed((count) => count + 1);
   }, []);
+
+  const syncPendingQueueCount = useCallback((targetUserId = userId) => {
+    if (!targetUserId) {
+      pendingSyncWritesRef.current = 0;
+      setPendingSyncWrites(0);
+      return 0;
+    }
+
+    const queueCount = readProgressWriteQueue(targetUserId).length;
+    pendingSyncWritesRef.current = queueCount;
+    setPendingSyncWrites(queueCount);
+    return queueCount;
+  }, [userId]);
 
   // Supabase write helper. Optimistic state is updated BEFORE this is
   // called, so we catch and report failures rather than rollback.
@@ -161,11 +189,14 @@ export function ProgressProvider({ children }) {
   //      banner. Calling retryLoad() will reset the counter.
   //   3. accept a human-readable label so the warning identifies
   //      which service call failed.
-  const dbWrite = useCallback(async (operation, label = 'db-write') => {
+  const dbWrite = useCallback(async (write, label = 'db-write') => {
+    if (!userId) return { queued: false, skipped: true };
+
     try {
-      const result = await operation;
+      const result = await executeProgressWrite(userId, write);
       const failure = getProgressWriteFailure(result);
       if (failure) throw failure;
+      return { queued: false, skipped: false };
     } catch (err) {
       if (import.meta.env.DEV) {
         console.warn(
@@ -173,11 +204,69 @@ export function ProgressProvider({ children }) {
           err,
         );
       }
+      try {
+        enqueueProgressWrite(userId, write);
+        hydratePendingQueueRef.current = false;
+        const queueCount = syncPendingQueueCount(userId);
+        return { queued: queueCount > 0, skipped: false };
+      } catch (queueErr) {
+        if (import.meta.env.DEV) {
+          console.warn(
+            `[ProgressContext] ${label} could not be added to the retry queue:`,
+            queueErr,
+          );
+        }
+      }
       markSyncFailed(label);
+      return { queued: false, skipped: false };
     }
-  }, [markSyncFailed]);
+  }, [markSyncFailed, syncPendingQueueCount, userId]);
 
   const clearSyncFailed = useCallback(() => setSyncFailed(0), []);
+
+  const retryPendingSyncWrites = useCallback(async ({ reloadAfterSuccess = false } = {}) => {
+    if (!userId || syncRetryInFlight || pendingSyncWritesRef.current === 0) {
+      return {
+        processed: 0,
+        remaining: pendingSyncWritesRef.current,
+        queue: readProgressWriteQueue(userId),
+        failedItem: null,
+        error: null,
+      };
+    }
+
+    setSyncRetryInFlight(true);
+    try {
+      const result = await replayProgressWriteQueue(userId);
+      pendingSyncWritesRef.current = result.remaining;
+      setPendingSyncWrites(result.remaining);
+
+      if (result.error) {
+        markSyncFailed('retryPendingSyncWrites');
+      } else if (result.remaining === 0) {
+        hydratePendingQueueRef.current = false;
+        if (reloadAfterSuccess) {
+          setLoadVersion((version) => version + 1);
+        }
+      }
+
+      return result;
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.warn('[ProgressContext] retryPendingSyncWrites failed:', err);
+      }
+      markSyncFailed('retryPendingSyncWrites');
+      return {
+        processed: 0,
+        remaining: pendingSyncWritesRef.current,
+        queue: readProgressWriteQueue(userId),
+        failedItem: null,
+        error: err,
+      };
+    } finally {
+      setSyncRetryInFlight(false);
+    }
+  }, [markSyncFailed, syncRetryInFlight, userId]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -191,6 +280,32 @@ export function ProgressProvider({ children }) {
     window.addEventListener(LOCAL_STORAGE_SYNC_ERROR_EVENT, handleLocalStorageFailure);
     return () => window.removeEventListener(LOCAL_STORAGE_SYNC_ERROR_EVENT, handleLocalStorageFailure);
   }, [markSyncFailed]);
+
+  useEffect(() => {
+    if (!userId) {
+      hydratePendingQueueRef.current = false;
+      pendingSyncWritesRef.current = 0;
+      setPendingSyncWrites(0);
+      setSyncRetryInFlight(false);
+      return;
+    }
+
+    const queueCount = syncPendingQueueCount(userId);
+    hydratePendingQueueRef.current = queueCount > 0;
+  }, [syncPendingQueueCount, userId]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !userId) return undefined;
+
+    const handleOnline = () => {
+      if (pendingSyncWritesRef.current > 0) {
+        retryPendingSyncWrites();
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [retryPendingSyncWrites, userId]);
 
   // ─── State ─────────────────────────────────────
   const [completed, setCompleted] = useState([]);
@@ -215,6 +330,21 @@ export function ProgressProvider({ children }) {
   const [newBadge, setNewBadge] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [loadError, setLoadError] = useState(null);
+
+  useEffect(() => {
+    if (!userId || !dataLoaded || loadError) return;
+    if (!hydratePendingQueueRef.current || pendingSyncWrites === 0) return;
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+
+    hydratePendingQueueRef.current = false;
+    retryPendingSyncWrites({ reloadAfterSuccess: true });
+  }, [
+    dataLoaded,
+    loadError,
+    pendingSyncWrites,
+    retryPendingSyncWrites,
+    userId,
+  ]);
 
   const replaceRewardHistory = useCallback((userId, keys, { persist = false } = {}) => {
     const normalizedKeys = normalizeRewardHistory(keys);
@@ -419,12 +549,12 @@ export function ProgressProvider({ children }) {
     if (has) {
       setCompleted(prev => prev.filter(k => k !== lessonKey));
       if (!skipRemote) {
-        dbWrite(progressService.removeLesson(user.id, lessonKey), 'removeLesson');
+        dbWrite(createProgressWrite('removeLesson', { lessonKey }), 'removeLesson');
       }
     } else {
       setCompleted(prev => [...prev, lessonKey]);
       if (!skipRemote) {
-        dbWrite(progressService.addLesson(user.id, lessonKey), 'addLesson');
+        dbWrite(createProgressWrite('addLesson', { lessonKey }), 'addLesson');
       }
     }
   }, [user, completedSet, dbWrite]);
@@ -432,7 +562,7 @@ export function ProgressProvider({ children }) {
   const saveQuizScore = useCallback(async (quizKey, score) => {
     if (!user) return;
     setQuizScores(prev => ({ ...prev, [quizKey]: score }));
-    dbWrite(progressService.saveQuizScore(user.id, quizKey, score), 'saveQuizScore');
+    dbWrite(createProgressWrite('saveQuizScore', { quizKey, score }), 'saveQuizScore');
   }, [user, dbWrite]);
 
   // ─── XP ───────────────────────────────────────
@@ -451,7 +581,7 @@ export function ProgressProvider({ children }) {
     });
 
     if (!skipRemote) {
-      dbWrite(progressService.updateXP(user.id, newTotal), 'updateXP');
+      dbWrite(createProgressWrite('updateXP', { total: newTotal }), 'updateXP');
     }
   }, [user, xpTotal, dbWrite]);
 
@@ -524,13 +654,25 @@ export function ProgressProvider({ children }) {
       streakStateRef.current = { days: nextStreakDays, lastDate: today };
       setStreak(nextStreakDays);
       setStreakLastDate(today);
-      dbWrite(progressService.updateStreak(user.id, nextStreakDays, today), 'updateStreak');
+      dbWrite(
+        createProgressWrite('updateStreak', {
+          days: nextStreakDays,
+          lastDate: today,
+        }),
+        'updateStreak',
+      );
     }
 
     setDailyCount(newCount);
     setDailyDate(today);
 
-    dbWrite(progressService.updateDailyGoal(user.id, today, newCount), 'updateDailyGoal');
+    dbWrite(
+      createProgressWrite('updateDailyGoal', {
+        goalDate: today,
+        count: newCount,
+      }),
+      'updateDailyGoal',
+    );
   }, [user, dailyCount, dailyDate, dbWrite]);
 
   // ─── Badges ───────────────────────────────────
@@ -582,7 +724,7 @@ export function ProgressProvider({ children }) {
         updated[b.id] = { date: getTodayString() };
         if (!foundNew) foundNew = b;
 
-        dbWrite(progressService.awardBadge(user.id, b.id), `awardBadge:${b.id}`);
+        dbWrite(createProgressWrite('awardBadge', { badgeId: b.id }), `awardBadge:${b.id}`);
       }
     }
 
@@ -607,7 +749,7 @@ export function ProgressProvider({ children }) {
     setSrCards(prev => [...prev, ...newCards]);
 
     for (const card of newCards) {
-      dbWrite(progressService.addSRCard(user.id, card), 'addSRCard');
+      dbWrite(createProgressWrite('addSRCard', { card }), 'addSRCard');
     }
   }, [user, srCards, dbWrite]);
 
@@ -637,10 +779,13 @@ export function ProgressProvider({ children }) {
     }));
 
     dbWrite(
-      progressService.updateSRCard(user.id, question, {
-        next_review: new Date(updatedCard.nextReview).toISOString(),
-        interval_days: updatedCard.interval,
-        ease: updatedCard.ease,
+      createProgressWrite('updateSRCard', {
+        question,
+        updates: {
+          next_review: new Date(updatedCard.nextReview).toISOString(),
+          interval_days: updatedCard.interval,
+          ease: updatedCard.ease,
+        },
       }),
       'updateSRCard',
     );
@@ -666,7 +811,7 @@ export function ProgressProvider({ children }) {
       if (!skipRemote) {
         const removalKeys = new Set([existing.lesson_key, normalizedLessonKey]);
         removalKeys.forEach((key) => {
-          dbWrite(progressService.removeBookmark(user.id, key), 'removeBookmark');
+          dbWrite(createProgressWrite('removeBookmark', { lessonKey: key }), 'removeBookmark');
         });
       }
     } else {
@@ -678,11 +823,16 @@ export function ProgressProvider({ children }) {
       };
       setBookmarks(prev => [...prev, newBookmark]);
       if (!skipRemote) {
-        dbWrite(progressService.addBookmark(user.id, {
-          lessonKey: normalizedLessonKey,
-          courseId,
-          lessonTitle,
-        }), 'addBookmark');
+        dbWrite(
+          createProgressWrite('addBookmark', {
+            bookmark: {
+              lessonKey: normalizedLessonKey,
+              courseId,
+              lessonTitle,
+            },
+          }),
+          'addBookmark',
+        );
       }
     }
   }, [user, bookmarks, dbWrite]);
@@ -699,7 +849,13 @@ export function ProgressProvider({ children }) {
     if (!user) return;
     const normalizedLessonKey = normalizeLessonKey(lessonKey);
     setNotes(prev => ({ ...prev, [normalizedLessonKey]: content }));
-    dbWrite(progressService.saveNote(user.id, normalizedLessonKey, content), 'saveNote');
+    dbWrite(
+      createProgressWrite('saveNote', {
+        lessonKey: normalizedLessonKey,
+        content,
+      }),
+      'saveNote',
+    );
   }, [user, dbWrite]);
 
   const getNote = useCallback((lessonKey) => {
@@ -717,7 +873,7 @@ export function ProgressProvider({ children }) {
   const savePosition = useCallback(async (pos) => {
     if (!user) return;
     setLastPosition(prev => ({ ...prev, ...pos, time: Date.now() }));
-    dbWrite(progressService.savePosition(user.id, pos), 'savePosition');
+    dbWrite(createProgressWrite('savePosition', { position: pos }), 'savePosition');
   }, [user, dbWrite]);
 
   // ─── Courses Visited ──────────────────────────
@@ -725,7 +881,7 @@ export function ProgressProvider({ children }) {
     if (!user) return;
     if (coursesVisited.includes(courseId)) return;
     setCoursesVisited(prev => [...prev, courseId]);
-    dbWrite(progressService.trackCourseVisit(user.id, courseId), 'trackCourseVisit');
+    dbWrite(createProgressWrite('trackCourseVisit', { courseId }), 'trackCourseVisit');
   }, [user, coursesVisited, dbWrite]);
 
   const retryLoad = useCallback(() => {
@@ -757,8 +913,11 @@ export function ProgressProvider({ children }) {
     isChallengeCompleted,
     markChallengeCompleted,
     syncFailed,
+    pendingSyncWrites,
+    syncRetryInFlight,
     markSyncFailed,
     clearSyncFailed,
+    retryPendingSyncWrites,
   }), [
     completed,
     completedSet,
@@ -779,8 +938,11 @@ export function ProgressProvider({ children }) {
     isChallengeCompleted,
     markChallengeCompleted,
     syncFailed,
+    pendingSyncWrites,
+    syncRetryInFlight,
     markSyncFailed,
     clearSyncFailed,
+    retryPendingSyncWrites,
   ]);
 
   const xpValue = useMemo(() => ({
