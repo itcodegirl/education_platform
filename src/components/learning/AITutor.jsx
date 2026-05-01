@@ -5,7 +5,7 @@
 // ===============================================
 
 import { useState, useRef, useEffect } from 'react';
-import { askLessonTutor } from '../../services/aiService';
+import { askLessonTutor, AI_ERROR_CODES } from '../../services/aiService';
 
 const MAX_TUTOR_CHARS = 4000;
 const HISTORY_WINDOW = 8;
@@ -114,14 +114,23 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
 
       setMessages(prev => [...prev, { role: 'assistant', text: aiText }]);
     } catch (error) {
-      const message = error instanceof Error ? error.message : '';
-      const payloadTooLarge = /413|too large|payload|request entity/i.test(message);
-      const networkIssue = !isOnline || /network|failed to fetch|offline|internet/i.test(message);
-      const fallback = payloadTooLarge
-        ? 'That request was too long for the tutor context. Shorten it and try again.'
-        : networkIssue
-          ? 'You appear offline right now. Reconnect and try again.'
-          : 'AI tutor is temporarily unavailable. Please try again in a moment.';
+      // The aiService throws AIServiceError with a stable .code; we still
+      // fall back to the offline-state hint if the navigator says we're
+      // offline but the request somehow returned an unrecognized error.
+      const code = error?.code || AI_ERROR_CODES.UNKNOWN;
+      const isNetwork = code === AI_ERROR_CODES.NETWORK || !isOnline;
+      const effectiveCode = isNetwork ? AI_ERROR_CODES.NETWORK : code;
+
+      const fallback =
+        effectiveCode === AI_ERROR_CODES.PAYLOAD_TOO_LARGE
+          ? 'That request was too long for the tutor context. Shorten it and try again.'
+          : effectiveCode === AI_ERROR_CODES.NETWORK
+            ? 'You appear offline right now. Reconnect and try again.'
+            : effectiveCode === AI_ERROR_CODES.RATE_LIMITED
+              ? 'You are sending requests too quickly. Wait a moment and try again.'
+              : effectiveCode === AI_ERROR_CODES.UNAUTHENTICATED
+                ? 'Your session expired. Sign in again and retry your message.'
+                : error?.userMessage || 'AI tutor is temporarily unavailable. Please try again in a moment.';
       setSubmitError(fallback);
       setMessages(prev => [...prev, {
         role: 'assistant',

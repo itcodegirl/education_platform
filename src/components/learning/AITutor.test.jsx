@@ -1,14 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AITutor } from './AITutor';
+import { AIServiceError, AI_ERROR_CODES } from '../../services/aiService';
 
 const { askLessonTutorMock } = vi.hoisted(() => ({
   askLessonTutorMock: vi.fn(),
 }));
 
-vi.mock('../../services/aiService', () => ({
-  askLessonTutor: (...args) => askLessonTutorMock(...args),
-}));
+vi.mock('../../services/aiService', async () => {
+  // Re-export the real AIServiceError + AI_ERROR_CODES so tests can
+  // construct the same structured error the real service throws,
+  // while still mocking the network call via askLessonTutor.
+  const actual = await vi.importActual('../../services/aiService');
+  return {
+    ...actual,
+    askLessonTutor: (...args) => askLessonTutorMock(...args),
+  };
+});
 
 const lesson = {
   id: 'lesson-1',
@@ -78,7 +86,9 @@ describe('AITutor', () => {
   });
 
   it('maps 413 payload failures to a clear, actionable tutor message', async () => {
-    askLessonTutorMock.mockRejectedValueOnce(new Error('[413] payload too large'));
+    askLessonTutorMock.mockRejectedValueOnce(
+      new AIServiceError({ code: AI_ERROR_CODES.PAYLOAD_TOO_LARGE, status: 413 }),
+    );
     render(<AITutor lesson={lesson} moduleTitle="Foundations" courseId="html" />);
 
     fireEvent.click(screen.getByRole('button', { name: /ai tutor/i }));
@@ -89,6 +99,42 @@ describe('AITutor', () => {
     await waitFor(() => {
       expect(
         screen.getAllByText(/too long for the tutor context/i).length,
+      ).toBeGreaterThan(0);
+    });
+  });
+
+  it('maps a network failure to the offline tutor message', async () => {
+    askLessonTutorMock.mockRejectedValueOnce(
+      new AIServiceError({ code: AI_ERROR_CODES.NETWORK }),
+    );
+    render(<AITutor lesson={lesson} moduleTitle="Foundations" courseId="html" />);
+
+    fireEvent.click(screen.getByRole('button', { name: /ai tutor/i }));
+    const input = screen.getByPlaceholderText(/ask about this lesson/i);
+    fireEvent.change(input, { target: { value: 'Help' } });
+    fireEvent.click(screen.getByRole('button', { name: /send message to ai tutor/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getAllByText(/appear offline right now/i).length,
+      ).toBeGreaterThan(0);
+    });
+  });
+
+  it('maps a rate-limit failure to the slow-down message', async () => {
+    askLessonTutorMock.mockRejectedValueOnce(
+      new AIServiceError({ code: AI_ERROR_CODES.RATE_LIMITED, status: 429 }),
+    );
+    render(<AITutor lesson={lesson} moduleTitle="Foundations" courseId="html" />);
+
+    fireEvent.click(screen.getByRole('button', { name: /ai tutor/i }));
+    const input = screen.getByPlaceholderText(/ask about this lesson/i);
+    fireEvent.change(input, { target: { value: 'Help' } });
+    fireEvent.click(screen.getByRole('button', { name: /send message to ai tutor/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getAllByText(/sending requests too quickly/i).length,
       ).toBeGreaterThan(0);
     });
   });

@@ -11,7 +11,7 @@
 // ═══════════════════════════════════════════════
 
 import { useState } from 'react';
-import { askChallengeTutor } from '../../../services/aiService';
+import { askChallengeTutor, AI_ERROR_CODES } from '../../../services/aiService';
 
 const SUGGESTION_PROMPTS = [
   'What am I doing wrong?',
@@ -73,8 +73,21 @@ export function ChallengeAIPanel({ challenge, monacoLang, code, results, isOpen 
         question,
       });
       setReply(text || 'Could not process that. Try rephrasing!');
-    } catch {
-      setReply('Connection issue - check your internet and try again.');
+    } catch (error) {
+      // Reuse the AIServiceError contract so the same error code maps to
+      // the same user-facing message everywhere AI is invoked.
+      const code = error?.code || AI_ERROR_CODES.UNKNOWN;
+      const message =
+        code === AI_ERROR_CODES.NETWORK
+          ? 'Connection issue - check your internet and try again.'
+          : code === AI_ERROR_CODES.PAYLOAD_TOO_LARGE
+            ? 'Your question plus this challenge is too long. Try shortening the question.'
+            : code === AI_ERROR_CODES.RATE_LIMITED
+              ? 'You are sending requests too quickly. Wait a moment and try again.'
+              : code === AI_ERROR_CODES.UNAUTHENTICATED
+                ? 'Your session expired. Sign in again and retry your question.'
+                : error?.userMessage || 'AI tutor is temporarily unavailable. Please try again in a moment.';
+      setReply(message);
     } finally {
       setLoading(false);
     }
