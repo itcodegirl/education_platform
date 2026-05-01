@@ -181,6 +181,22 @@ export function removeLesson(uid, lessonKey) {
     .eq('lesson_key', lessonKey);
 }
 
+export function removeLessonsByKeys(uid, lessonKeys) {
+  const normalizedLessonKeys = Array.from(
+    new Set(
+      Array.isArray(lessonKeys)
+        ? lessonKeys.filter((key) => typeof key === 'string' && key.trim()).map((key) => key.trim())
+        : [],
+    ),
+  );
+
+  return supabase
+    .from('progress')
+    .delete()
+    .eq('user_id', uid)
+    .in('lesson_key', normalizedLessonKeys);
+}
+
 // ─── Quiz Scores ────────────────────────────
 export async function saveQuizScore(uid, quizKey, score, options = {}) {
   const payload = createQuizScorePayload(uid, quizKey, score);
@@ -371,6 +387,22 @@ export function removeBookmark(uid, lessonKey) {
     .delete()
     .eq('user_id', uid)
     .eq('lesson_key', lessonKey);
+}
+
+export function removeBookmarksByKeys(uid, lessonKeys) {
+  const normalizedLessonKeys = Array.from(
+    new Set(
+      Array.isArray(lessonKeys)
+        ? lessonKeys.filter((key) => typeof key === 'string' && key.trim()).map((key) => key.trim())
+        : [],
+    ),
+  );
+
+  return supabase
+    .from('bookmarks')
+    .delete()
+    .eq('user_id', uid)
+    .in('lesson_key', normalizedLessonKeys);
 }
 
 // ─── Notes ──────────────────────────────────

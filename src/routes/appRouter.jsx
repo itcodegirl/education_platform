@@ -12,6 +12,7 @@ import {
 import { COURSE_LOADER_IDS, COURSES, loadCourse } from '../data';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth, useCourseContent, useProgressData, useTheme } from '../providers';
+import { createRecoverableLearnActionWrite } from './learnRouteRecovery';
 import { resolveStableLessonKeyAcrossCourses } from '../utils/lessonKeys';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { AppLayout } from '../layouts/AppLayout';
@@ -305,6 +306,8 @@ export async function learnRouteAction({ request }) {
       return json({ ok: false, error: 'Missing lesson key' }, { status: 400 });
     }
 
+    const recoverableWrite = createRecoverableLearnActionWrite(intent, payload);
+
     const stableLessonKey = resolveStableLessonKeyAcrossCourses(rawLessonKey, COURSES);
     const lessonKey = stableLessonKey || rawLessonKey;
     const candidateKeys = [...new Set([lessonKey, rawLessonKey])];
@@ -316,7 +319,7 @@ export async function learnRouteAction({ request }) {
       .eq('user_id', user.id)
       .in('lesson_key', candidateKeys);
     if (existingError) {
-      return json({ ok: false, error: existingError.message }, { status: 500 });
+      return json({ ok: false, intent, error: existingError.message, recoverableWrite }, { status: 500 });
     }
 
     const hasCompletion = Array.isArray(existing) && existing.length > 0;
@@ -326,14 +329,14 @@ export async function learnRouteAction({ request }) {
       const { error } = await supabase
         .from('progress')
         .upsert({ user_id: user.id, lesson_key: lessonKey, completed_at: new Date().toISOString() });
-      if (error) return json({ ok: false, error: error.message }, { status: 500 });
+      if (error) return json({ ok: false, intent, error: error.message, recoverableWrite }, { status: 500 });
     } else {
       const { error } = await supabase
         .from('progress')
         .delete()
         .eq('user_id', user.id)
         .in('lesson_key', candidateKeys);
-      if (error) return json({ ok: false, error: error.message }, { status: 500 });
+      if (error) return json({ ok: false, intent, error: error.message, recoverableWrite }, { status: 500 });
     }
 
     return json({
@@ -352,6 +355,8 @@ export async function learnRouteAction({ request }) {
       return json({ ok: false, error: 'Missing bookmark fields' }, { status: 400 });
     }
 
+    const recoverableWrite = createRecoverableLearnActionWrite(intent, payload);
+
     const stableLessonKey = resolveStableLessonKeyAcrossCourses(rawLessonKey, COURSES);
     const lessonKey = stableLessonKey || rawLessonKey;
     const candidateKeys = [...new Set([lessonKey, rawLessonKey])];
@@ -363,7 +368,7 @@ export async function learnRouteAction({ request }) {
       .eq('user_id', user.id)
       .in('lesson_key', candidateKeys);
     if (existingError) {
-      return json({ ok: false, error: existingError.message }, { status: 500 });
+      return json({ ok: false, intent, error: existingError.message, recoverableWrite }, { status: 500 });
     }
 
     const hasBookmark = Array.isArray(existing) && existing.length > 0;
@@ -376,14 +381,14 @@ export async function learnRouteAction({ request }) {
         course_id: courseId,
         lesson_title: lessonTitle,
       });
-      if (error) return json({ ok: false, error: error.message }, { status: 500 });
+      if (error) return json({ ok: false, intent, error: error.message, recoverableWrite }, { status: 500 });
     } else {
       const { error } = await supabase
         .from('bookmarks')
         .delete()
         .eq('user_id', user.id)
         .in('lesson_key', candidateKeys);
-      if (error) return json({ ok: false, error: error.message }, { status: 500 });
+      if (error) return json({ ok: false, intent, error: error.message, recoverableWrite }, { status: 500 });
     }
 
     return json({

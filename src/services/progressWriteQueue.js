@@ -12,6 +12,11 @@ const PROGRESS_WRITE_HANDLERS = Object.freeze({
     dedupeKey: ({ lessonKey }) => `lesson:${lessonKey || ''}`,
     execute: (uid, payload) => progressService.removeLesson(uid, payload.lessonKey),
   },
+  removeLessonVariants: {
+    dedupeKey: ({ dedupeLessonKey, lessonKeys }) =>
+      `lesson:${dedupeLessonKey || lessonKeys?.[0] || ''}`,
+    execute: (uid, payload) => progressService.removeLessonsByKeys(uid, payload.lessonKeys),
+  },
   saveQuizScore: {
     dedupeKey: ({ quizKey }) => `quiz:${quizKey || ''}`,
     execute: (uid, payload) => progressService.saveQuizScore(uid, payload.quizKey, payload.score),
@@ -47,6 +52,11 @@ const PROGRESS_WRITE_HANDLERS = Object.freeze({
   removeBookmark: {
     dedupeKey: ({ lessonKey }) => `bookmark:${lessonKey || ''}`,
     execute: (uid, payload) => progressService.removeBookmark(uid, payload.lessonKey),
+  },
+  removeBookmarkVariants: {
+    dedupeKey: ({ dedupeLessonKey, lessonKeys }) =>
+      `bookmark:${dedupeLessonKey || lessonKeys?.[0] || ''}`,
+    execute: (uid, payload) => progressService.removeBookmarksByKeys(uid, payload.lessonKeys),
   },
   saveNote: {
     dedupeKey: ({ lessonKey }) => `note:${lessonKey || ''}`,
