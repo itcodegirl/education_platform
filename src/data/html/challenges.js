@@ -1,15 +1,36 @@
 ﻿const has = (code, str) => code.toLowerCase().includes(str.toLowerCase());
 const count = (code, str) => (code.toLowerCase().match(new RegExp(str.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
 
+// Helper for DOM-based tests. Returns the iframe's document or null if
+// the iframe hasn't loaded yet — useChallengeSession.runTests already
+// awaits the iframe's onLoad before grading, so this should normally
+// be non-null. Falsy check returns false (test fails) to be safe.
+const dom = (iframe) => iframe?.contentDocument || null;
+
 export const HTML_CHALLENGES = [
+  // ─── Demonstrated DOM-based grading pattern ─────────────────────
+  // The test checks below run against the live iframe DOM (the
+  // `iframe` arg, plumbed from useChallengeSession.runTests after the
+  // iframe's onLoad). This is harder to game than the source-regex
+  // pattern used by the rest of the file — a learner can no longer
+  // pass "Uses <nav>" by typing `<!-- <nav> -->` because the parser
+  // strips the comment before querySelector runs.
+  //
+  // Migrating the rest of the catalog is purely additive: change
+  // each `check:(c)=>...` to `check:(_, iframe)=>...` and use the
+  // `dom(iframe)` helper. Source-regex tests continue to work as-is
+  // until each is migrated.
   { id:'html-ch-1', title:'Build a Navigation Bar', description:'Create a semantic nav with 4 links.', difficulty:'beginner', courseId:'html',
     starter:'<nav>\n  <!-- Add 4 links -->\n</nav>',
     requirements:['Use a <nav> element','Include exactly 4 links','Each link has href','One link opens in new tab'],
     tests:[
-      { label:'Uses <nav>', check:c=>has(c,'<nav') },
-      { label:'Has 4 links', check:c=>count(c,'<a ')>=4||count(c,'<a>')>=4 },
-      { label:'All have href', check:c=>count(c,'href=')>=4 },
-      { label:'One has target="_blank"', check:c=>has(c,'target="_blank"') },
+      { label:'Uses <nav>', check:(_, iframe)=>!!dom(iframe)?.querySelector('nav') },
+      { label:'Has 4 links', check:(_, iframe)=>(dom(iframe)?.querySelectorAll('nav a, a').length || 0) >= 4 },
+      { label:'All have href', check:(_, iframe)=>{
+        const links = Array.from(dom(iframe)?.querySelectorAll('a') || []);
+        return links.length >= 4 && links.every((a) => a.hasAttribute('href') && a.getAttribute('href').length > 0);
+      } },
+      { label:'One has target="_blank"', check:(_, iframe)=>!!dom(iframe)?.querySelector('a[target="_blank"]') },
     ],
     hint:'Use <a href="..."> for each link. Add target="_blank" to the external one.',
     solution:'<nav>\n  <a href="/">Home</a>\n  <a href="/about">About</a>\n  <a href="/contact">Contact</a>\n  <a href="https://github.com" target="_blank">GitHub</a>\n</nav>' },

@@ -5,9 +5,8 @@
 
 import { createContext, useContext, useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useAuth } from './AuthContext';
-import { DAILY_GOAL, TIMING, getLevel, getTodayString, getYesterdayString } from '../utils/helpers';
+import { DAILY_GOAL, getLevel, getTodayString, getYesterdayString } from '../utils/helpers';
 import { COURSES } from '../data';
-import { BADGE_DEFS } from '../data/badges';
 import * as progressService from '../services/progressService';
 import {
   createProgressWrite,
@@ -24,13 +23,13 @@ import { getProgressWriteFailure } from '../services/progressWriteRuntime';
 import { isPerfectQuizScore, rewardKeys } from '../services/rewardPolicy';
 import { lessonKeysEquivalent, resolveStableLessonKeyAcrossCourses } from '../utils/lessonKeys';
 import { LOCAL_STORAGE_SYNC_ERROR_EVENT } from '../hooks/useLocalStorage';
-import { BADGE_DEFS, findNewlyEarnedBadges } from '../services/badgeRules';
+import { findNewlyEarnedBadges } from '../services/badgeRules';
+import { nextSRCardState } from '../services/srAlgorithm';
 
-// Re-exported here so existing call sites
-// (`import { BADGE_DEFS } from '../../providers'`) keep working.
-// The actual definitions and evaluation logic live in
-// services/badgeRules.js.
-export { BADGE_DEFS };
+// BADGE_DEFS is imported above from '../data/badges' (the canonical
+// catalog home) and re-exported via providers/ProgressProvider, so
+// existing `import { BADGE_DEFS } from '../../providers'` call sites
+// keep working without going through this file.
 
 const ProgressContext = createContext({
   completed: [],
@@ -770,15 +769,10 @@ export function ProgressProvider({ children }) {
     const today = getTodayString();
     for (const badge of newlyEarned) {
       updated[badge.id] = { date: today };
-      dbWrite(progressService.awardBadge(user.id, badge.id), `awardBadge:${badge.id}`);
-
-    for (const b of BADGE_DEFS) {
-      if (!updated[b.id] && checks[b.id]) {
-        updated[b.id] = { date: getTodayString() };
-        newlyEarned.push(b);
-
-        dbWrite(createProgressWrite('awardBadge', { badgeId: b.id }), `awardBadge:${b.id}`);
-      }
+      // dbWrite expects a createProgressWrite envelope so writes can be
+      // queued + replayed by the same-browser sync queue. Match the
+      // pattern used by every other dbWrite call in this file.
+      dbWrite(createProgressWrite('awardBadge', { badgeId: badge.id }), `awardBadge:${badge.id}`);
     }
 
     setEarnedBadges(updated);
@@ -811,27 +805,16 @@ export function ProgressProvider({ children }) {
   const updateSRCard = useCallback(async (question, correct) => {
     if (!user) return;
 
-    const currentCard = srCards.find(c => c.question === question);
+    const currentCard = srCards.find((c) => c.question === question);
     if (!currentCard) return;
 
-    const nextInterval = correct
-      ? Math.round(currentCard.interval * currentCard.ease)
-      : 1;
-    const nextEase = correct
-      ? Math.min(currentCard.ease + 0.1, 3.0)
-      : Math.max(currentCard.ease - 0.2, 1.3);
-    const nextReviewTs = Date.now() + (correct ? nextInterval : 1) * TIMING.dayMs;
-    const updatedCard = {
-      ...currentCard,
-      interval: nextInterval,
-      ease: nextEase,
-      nextReview: nextReviewTs,
-    };
+    // The SM-2-style scheduling math lives in services/srAlgorithm so
+    // it's unit-testable in isolation. This callback only does state +
+    // persistence.
+    const { interval, ease, nextReview } = nextSRCardState({ card: currentCard, correct });
+    const updatedCard = { ...currentCard, interval, ease, nextReview };
 
-    setSrCards(prev => prev.map(card => {
-      if (card.question !== question) return card;
-      return updatedCard;
-    }));
+    setSrCards((prev) => prev.map((card) => (card.question === question ? updatedCard : card)));
 
     dbWrite(
       createProgressWrite('updateSRCard', {
