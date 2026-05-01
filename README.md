@@ -71,15 +71,17 @@ Concrete shape of the project at the current commit:
 - Four full courses (HTML, CSS, JavaScript, React).
 - A reward system (XP, streaks, badges, bookmarks, spaced-repetition queue) that is event-driven, idempotent (`hasRewardBeenAwarded()` + `markRewardAwarded()`), persisted to Supabase, and reconciles cleanly with the local optimistic state on reload.
 - A lazy-loaded Monaco editor split into multiple chunks via Vite manual chunking so it never enters the initial bundle.
-- A Vitest unit/component suite of 275+ tests including accessibility integration tests (axe-core).
+- A top-level `ErrorBoundary` so a provider crash falls back to a visible retry/reload screen, not a blank page.
+- A Vitest unit/component suite of 300+ tests including accessibility integration tests (axe-core).
 - A Playwright public smoke suite plus an opt-in authenticated path.
 
 Files most worth a look from a senior reviewer:
 
 - `src/context/ProgressContext.jsx` — the dual-layer optimistic + canonical persistence model.
 - `src/engine/rewards/` — the reward event ledger and idempotent runtime.
-- `src/components/learning/QuizView.jsx` + `src/hooks/useQuizSession.js` + `src/components/learning/quiz/questionTypes.jsx` — recent split of the quiz engine into a renderer registry + session hook.
-- `src/components/learning/CodeChallenge.jsx` — Monaco editor + iframe preview + auto-grading. Includes an explicit honesty note in the UI about what the auto-grader actually checks (see `KNOWN_LIMITATIONS.md`).
+- `src/components/learning/QuizView.jsx` + `src/hooks/useQuizSession.js` + `src/components/learning/quiz/questionTypes.jsx` — quiz engine split into a renderer registry + session hook.
+- `src/components/learning/CodeChallenge.jsx` + `src/hooks/useChallengeSession.js` + `src/components/learning/challenge/` — challenge engine split into the same shape (session hook + AI panel + preview-builder util). Includes an explicit honesty note in the UI about what the auto-grader actually checks (see `KNOWN_LIMITATIONS.md`).
+- `src/services/aiService.js` — `AIServiceError` carries a stable `code` from `AI_ERROR_CODES`, so callers switch on the code instead of regex-matching error message strings.
 - `vite.config.js` — Monaco manual-chunking strategy.
 
 ## Stack
