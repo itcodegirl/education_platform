@@ -23,11 +23,17 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
   useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
 
   useEffect(() => {
-    if (isOpen) {
-      setQuery('');
-      setActiveIndex(-1);
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
+    if (!isOpen) return undefined;
+
+    setQuery('');
+    setActiveIndex(-1);
+    // Defer focus a tick so the modal has finished its open animation
+    // and the focus call lands on the visible input instead of an
+    // animating element. The cleanup return matters: if the user
+    // closes the panel within 100ms, or the component unmounts, we
+    // would otherwise try to focus a hidden / stale element.
+    const focusTimer = setTimeout(() => inputRef.current?.focus(), 100);
+    return () => clearTimeout(focusTimer);
   }, [isOpen]);
 
   const normalizedQuery = query.toLowerCase();

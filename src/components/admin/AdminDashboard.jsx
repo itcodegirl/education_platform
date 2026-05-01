@@ -14,7 +14,7 @@
 // Split from a single 520-LOC component per the portfolio audit.
 // ===============================================
 
-import { useEffect, useMemo, useState, lazy, Suspense } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react';
 import { useAuth, useCourseContent } from '../../providers';
 import { useAdminData } from '../../hooks/useAdminData';
 import { COURSES } from '../../data';
@@ -106,6 +106,26 @@ export function AdminDashboard({ onClose }) {
   const { ensureAllLoaded, allCoursesLoaded } = useCourseContent();
   useEffect(() => { ensureAllLoaded(); }, [ensureAllLoaded]);
 
+  // ARIA tab keyboard navigation — Left/Right arrow moves between
+  // tabs, Home jumps to first, End jumps to last. Mirrors the WAI-ARIA
+  // Authoring Practices tab pattern. Tab/Shift+Tab still work to
+  // enter/leave the tablist normally because each tab is a <button>.
+  const tabRefs = useRef({});
+  const handleTabsKeyDown = useCallback((e) => {
+    const currentIdx = TABS.findIndex((t) => t.id === tab);
+    let nextIdx = null;
+    if (e.key === 'ArrowRight') nextIdx = (currentIdx + 1) % TABS.length;
+    else if (e.key === 'ArrowLeft') nextIdx = (currentIdx - 1 + TABS.length) % TABS.length;
+    else if (e.key === 'Home') nextIdx = 0;
+    else if (e.key === 'End') nextIdx = TABS.length - 1;
+    if (nextIdx === null) return;
+
+    e.preventDefault();
+    const nextTab = TABS[nextIdx];
+    setTab(nextTab.id);
+    tabRefs.current[nextTab.id]?.focus();
+  }, [tab]);
+
   // --- Derived stats --- memoized so tab switches don't recompute
   const stats = useMemo(() => {
     if (loading || !isAdmin) return null;
@@ -195,10 +215,16 @@ export function AdminDashboard({ onClose }) {
           </button>
         </header>
 
-        <nav className="admin-tabs" role="tablist" aria-label="Admin sections">
+        <nav
+          className="admin-tabs"
+          role="tablist"
+          aria-label="Admin sections"
+          onKeyDown={handleTabsKeyDown}
+        >
           {TABS.map((t) => (
             <button
               key={t.id}
+              ref={(el) => { tabRefs.current[t.id] = el; }}
               type="button"
               role="tab"
               aria-selected={tab === t.id}

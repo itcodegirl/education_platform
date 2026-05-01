@@ -36,6 +36,7 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
     handleEditorChange,
     reset,
     runTests,
+    handleIframeLoad,
     toggleHint,
     toggleSolution,
     cancelRevealSolution,
@@ -134,6 +135,10 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
               lang,
               previewHTML: challenge.previewHTML,
             })}
+            // useChallengeSession.runTests waits on this to fire before
+            // grading any DOM-based tests, so the test never inspects
+            // an iframe document that's still loading the previous code.
+            onLoad={handleIframeLoad}
             title="Challenge Preview"
             sandbox="allow-scripts allow-same-origin"
           />

@@ -24,6 +24,13 @@ import { getProgressWriteFailure } from '../services/progressWriteRuntime';
 import { isPerfectQuizScore, rewardKeys } from '../services/rewardPolicy';
 import { lessonKeysEquivalent, resolveStableLessonKeyAcrossCourses } from '../utils/lessonKeys';
 import { LOCAL_STORAGE_SYNC_ERROR_EVENT } from '../hooks/useLocalStorage';
+import { BADGE_DEFS, findNewlyEarnedBadges } from '../services/badgeRules';
+
+// Re-exported here so existing call sites
+// (`import { BADGE_DEFS } from '../../providers'`) keep working.
+// The actual definitions and evaluation logic live in
+// services/badgeRules.js.
+export { BADGE_DEFS };
 
 const ProgressContext = createContext({
   completed: [],
@@ -733,13 +740,17 @@ export function ProgressProvider({ children }) {
   }, [user, dailyCount, dailyDate, dbWrite]);
 
   // ─── Badges ───────────────────────────────────
+  // The pure rules (which conditions earn which badge) live in
+  // services/badgeRules.js. This callback's only job is to build a
+  // context snapshot from current state, ask findNewlyEarnedBadges
+  // what's freshly earned, and then persist + celebrate it.
   const checkBadges = useCallback(async () => {
     if (!user) return;
 
     const ctx = {
       completedCount: completed.length,
       quizCount: Object.keys(quizScores).length,
-      hasPerfect: Object.values(quizScores).some(v => {
+      hasPerfect: Object.values(quizScores).some((v) => {
         const [a, b] = v.split('/');
         return a === b && parseInt(a) > 0;
       }),
@@ -752,29 +763,14 @@ export function ProgressProvider({ children }) {
       noteCount: Object.keys(notes).length,
     };
 
-    const checks = {
-      first_lesson: ctx.completedCount >= 1,
-      five_lessons: ctx.completedCount >= 5,
-      ten_lessons: ctx.completedCount >= 10,
-      twenty_lessons: ctx.completedCount >= 20,
-      fifty_lessons: ctx.completedCount >= 50,
-      first_quiz: ctx.quizCount >= 1,
-      five_quizzes: ctx.quizCount >= 5,
-      perfect_quiz: ctx.hasPerfect,
-      streak_3: ctx.streak >= 3,
-      streak_7: ctx.streak >= 7,
-      level_5: getLevel(ctx.xpTotal) >= 5,
-      level_10: getLevel(ctx.xpTotal) >= 10,
-      night_owl: ctx.hour >= 22,
-      early_bird: ctx.hour < 7,
-      explorer: ctx.coursesVisitedCount >= 4,
-      daily_goal: ctx.dailyCount >= DAILY_GOAL,
-      bookworm: ctx.bookmarkCount >= 10,
-      note_taker: ctx.noteCount >= 5,
-    };
+    const newlyEarned = findNewlyEarnedBadges(ctx, earnedBadges);
+    if (newlyEarned.length === 0) return;
 
-    const newlyEarned = [];
     const updated = { ...earnedBadges };
+    const today = getTodayString();
+    for (const badge of newlyEarned) {
+      updated[badge.id] = { date: today };
+      dbWrite(progressService.awardBadge(user.id, badge.id), `awardBadge:${badge.id}`);
 
     for (const b of BADGE_DEFS) {
       if (!updated[b.id] && checks[b.id]) {
@@ -785,12 +781,10 @@ export function ProgressProvider({ children }) {
       }
     }
 
-    if (newlyEarned.length > 0) {
-      setEarnedBadges(updated);
-      // Enqueue every newly earned badge so each one gets its own
-      // celebration in turn, instead of all but the first being lost.
-      setNewBadgeQueue((queue) => [...queue, ...newlyEarned]);
-    }
+    setEarnedBadges(updated);
+    // Enqueue every newly earned badge so each one gets its own
+    // celebration in turn, instead of all but the first being lost.
+    setNewBadgeQueue((queue) => [...queue, ...newlyEarned]);
   }, [user, completed, quizScores, xpTotal, streak, coursesVisited, dailyCount, dailyDate, earnedBadges, bookmarks, notes, dbWrite]);
 
   useEffect(() => {
