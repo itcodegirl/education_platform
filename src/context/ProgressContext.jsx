@@ -11,28 +11,13 @@ import * as progressService from '../services/progressService';
 import { isPerfectQuizScore, rewardKeys } from '../services/rewardPolicy';
 import { lessonKeysEquivalent, resolveStableLessonKeyAcrossCourses } from '../utils/lessonKeys';
 import { LOCAL_STORAGE_SYNC_ERROR_EVENT } from '../hooks/useLocalStorage';
+import { BADGE_DEFS, findNewlyEarnedBadges } from '../services/badgeRules';
 
-// ─── Badge Definitions ──────────────────────────
-export const BADGE_DEFS = [
-  { id: 'first_lesson', icon: '🌱', name: 'First Steps', desc: 'Complete your first lesson' },
-  { id: 'five_lessons', icon: '📚', name: 'Getting Started', desc: 'Complete 5 lessons' },
-  { id: 'ten_lessons', icon: '🔥', name: 'On Fire', desc: 'Complete 10 lessons' },
-  { id: 'twenty_lessons', icon: '💪', name: 'Unstoppable', desc: 'Complete 20 lessons' },
-  { id: 'fifty_lessons', icon: '👑', name: 'Legend', desc: 'Complete 50 lessons' },
-  { id: 'first_quiz', icon: '🧠', name: 'Quiz Taker', desc: 'Complete your first quiz' },
-  { id: 'five_quizzes', icon: '🎓', name: 'Scholar', desc: 'Complete 5 quizzes' },
-  { id: 'perfect_quiz', icon: '💯', name: 'Perfectionist', desc: 'Get 100% on any quiz' },
-  { id: 'streak_3', icon: '📅', name: 'Hat Trick', desc: '3-day learning streak' },
-  { id: 'streak_7', icon: '⚡', name: 'Weekly Warrior', desc: '7-day learning streak' },
-  { id: 'level_5', icon: '⭐', name: 'Rising Star', desc: 'Reach Level 5' },
-  { id: 'level_10', icon: '🌟', name: 'Superstar', desc: 'Reach Level 10' },
-  { id: 'night_owl', icon: '🦉', name: 'Night Owl', desc: 'Study after 10 PM' },
-  { id: 'early_bird', icon: '🐦', name: 'Early Bird', desc: 'Study before 7 AM' },
-  { id: 'explorer', icon: '🗺️', name: 'Explorer', desc: 'Visit all 4 course tracks' },
-  { id: 'daily_goal', icon: '🎯', name: 'Goal Crusher', desc: 'Complete your daily goal' },
-  { id: 'bookworm', icon: '📖', name: 'Bookworm', desc: 'Bookmark 10 lessons' },
-  { id: 'note_taker', icon: '✏️', name: 'Note Taker', desc: 'Write 5 notes' },
-];
+// Re-exported here so existing call sites
+// (`import { BADGE_DEFS } from '../../providers'`) keep working.
+// The actual definitions and evaluation logic live in
+// services/badgeRules.js.
+export { BADGE_DEFS };
 
 const ProgressContext = createContext({
   completed: [],
@@ -572,13 +557,17 @@ export function ProgressProvider({ children }) {
   }, [user, dailyCount, dailyDate, dbWrite]);
 
   // ─── Badges ───────────────────────────────────
+  // The pure rules (which conditions earn which badge) live in
+  // services/badgeRules.js. This callback's only job is to build a
+  // context snapshot from current state, ask findNewlyEarnedBadges
+  // what's freshly earned, and then persist + celebrate it.
   const checkBadges = useCallback(async () => {
     if (!user) return;
 
     const ctx = {
       completedCount: completed.length,
       quizCount: Object.keys(quizScores).length,
-      hasPerfect: Object.values(quizScores).some(v => {
+      hasPerfect: Object.values(quizScores).some((v) => {
         const [a, b] = v.split('/');
         return a === b && parseInt(a) > 0;
       }),
@@ -591,45 +580,20 @@ export function ProgressProvider({ children }) {
       noteCount: Object.keys(notes).length,
     };
 
-    const checks = {
-      first_lesson: ctx.completedCount >= 1,
-      five_lessons: ctx.completedCount >= 5,
-      ten_lessons: ctx.completedCount >= 10,
-      twenty_lessons: ctx.completedCount >= 20,
-      fifty_lessons: ctx.completedCount >= 50,
-      first_quiz: ctx.quizCount >= 1,
-      five_quizzes: ctx.quizCount >= 5,
-      perfect_quiz: ctx.hasPerfect,
-      streak_3: ctx.streak >= 3,
-      streak_7: ctx.streak >= 7,
-      level_5: getLevel(ctx.xpTotal) >= 5,
-      level_10: getLevel(ctx.xpTotal) >= 10,
-      night_owl: ctx.hour >= 22,
-      early_bird: ctx.hour < 7,
-      explorer: ctx.coursesVisitedCount >= 4,
-      daily_goal: ctx.dailyCount >= DAILY_GOAL,
-      bookworm: ctx.bookmarkCount >= 10,
-      note_taker: ctx.noteCount >= 5,
-    };
+    const newlyEarned = findNewlyEarnedBadges(ctx, earnedBadges);
+    if (newlyEarned.length === 0) return;
 
-    const newlyEarned = [];
     const updated = { ...earnedBadges };
-
-    for (const b of BADGE_DEFS) {
-      if (!updated[b.id] && checks[b.id]) {
-        updated[b.id] = { date: getTodayString() };
-        newlyEarned.push(b);
-
-        dbWrite(progressService.awardBadge(user.id, b.id), `awardBadge:${b.id}`);
-      }
+    const today = getTodayString();
+    for (const badge of newlyEarned) {
+      updated[badge.id] = { date: today };
+      dbWrite(progressService.awardBadge(user.id, badge.id), `awardBadge:${badge.id}`);
     }
 
-    if (newlyEarned.length > 0) {
-      setEarnedBadges(updated);
-      // Enqueue every newly earned badge so each one gets its own
-      // celebration in turn, instead of all but the first being lost.
-      setNewBadgeQueue((queue) => [...queue, ...newlyEarned]);
-    }
+    setEarnedBadges(updated);
+    // Enqueue every newly earned badge so each one gets its own
+    // celebration in turn, instead of all but the first being lost.
+    setNewBadgeQueue((queue) => [...queue, ...newlyEarned]);
   }, [user, completed, quizScores, xpTotal, streak, coursesVisited, dailyCount, dailyDate, earnedBadges, bookmarks, notes, dbWrite]);
 
   useEffect(() => {
