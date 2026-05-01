@@ -2242,10 +2242,14 @@ img {
 }
 
 .pp-badge-grid {
+  /* Rendered as a real <ul>/<li> for screen readers; reset the
+     default list styles so the grid layout is unchanged. */
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 10px;
   margin-bottom: 32px;
+  list-style: none;
+  padding: 0;
 }
 
 .pp-badge-card {
