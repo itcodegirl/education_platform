@@ -40,7 +40,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
         completionDate: today,
       });
     } catch {
-      // Certificate generation is non-critical.
+      toast.show('Certificate failed — try again in a moment.');
     } finally {
       setTimeout(() => setDownloading(false), 1000);
     }
@@ -108,24 +108,21 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
             className="cc-download-btn"
             onClick={handleDownload}
             disabled={downloading}
+            aria-busy={downloading}
           >
             {downloading ? 'Generating...' : 'Download certificate (PDF)'}
           </button>
 
-          <button
-            type="button"
-            className="cc-share-btn"
-            onClick={() => {
-              const text = `I just completed the ${course.label} course on CodeHerWay! ${lessonCount} lessons done. #CodeHerWay #WomenInTech #LearnToCode`;
-              if (navigator.share) {
-                navigator.share({ title: 'CodeHerWay Certificate', text });
-              } else {
-                navigator.clipboard.writeText(text);
-                toast.show('Copied to clipboard!');
-              }
-            }}
-          >
-            Share achievement
+          <button type="button" className="cc-share-btn" onClick={async () => {
+            const text = `I just completed the ${course.label} course on CodeHerWay! 🎉 ${lessonCount} lessons done. #CodeHerWay #WomenInTech #LearnToCode`;
+            if (navigator.share) {
+              try { await navigator.share({ title: 'CodeHerWay Certificate', text }); } catch { /* user cancelled */ }
+            } else if (navigator.clipboard) {
+              await navigator.clipboard.writeText(text);
+              toast.show('Copied to clipboard!');
+            }
+          }}>
+            📤 Share Achievement
           </button>
 
           <button type="button" className="cc-close-btn" onClick={onClose}>

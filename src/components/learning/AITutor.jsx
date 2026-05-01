@@ -197,7 +197,7 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
       {isOpen && (
         <div id="lesson-ai-tutor-panel" className="ai-tutor-panel">
           {/* Messages */}
-          <div className="ai-messages">
+          <div className="ai-messages" role="log" aria-live="polite" aria-label="AI tutor conversation">
             {messages.length === 0 && (
               <div className="ai-welcome">
                 <p className="ai-welcome-text">
@@ -224,8 +224,8 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
             )}
 
             {messages.map((msg, i) => (
-              <div key={i} className={`ai-msg ai-msg-${msg.role}`}>
-                <div className="ai-msg-avatar">
+              <div key={i} className={`ai-msg ai-msg-${msg.role}`} aria-label={msg.role === 'user' ? 'You' : 'AI Tutor'}>
+                <div className="ai-msg-avatar" aria-hidden="true">
                   {msg.role === 'user' ? '👤' : '🤖'}
                 </div>
                 <div className="ai-msg-content">
@@ -262,6 +262,7 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
               }}
               onKeyDown={handleKeyDown}
               placeholder="Ask about this lesson..."
+              aria-label="Ask the AI tutor a question"
               maxLength={MAX_TUTOR_CHARS}
               rows={1}
               disabled={loading || !isOnline}

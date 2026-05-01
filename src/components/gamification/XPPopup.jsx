@@ -24,7 +24,12 @@ export function XPPopup() {
   if (!xpPopup) return null;
 
   return (
-    <div className={`xp-popup ${show ? 'show' : ''}`}>
+    <div
+      className={`xp-popup ${show ? 'show' : ''}`}
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
       <div className="xp-gain">+{xpPopup.amount} XP</div>
       <div className="xp-reason">{xpPopup.reason}</div>
       {xpPopup.newLevel && (

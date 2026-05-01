@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSR } from "../../providers";
 
 export const BottomToolbar = memo(function BottomToolbar({
@@ -16,6 +16,12 @@ export const BottomToolbar = memo(function BottomToolbar({
   const dueCount = getDueSRCards().length;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  const triggerRef = useRef(null);
+
+  const closeMenu = useCallback((restoreFocus) => {
+    setIsMenuOpen(false);
+    if (restoreFocus) triggerRef.current?.focus();
+  }, []);
 
   const primaryTools = useMemo(
     () => [
@@ -99,11 +105,11 @@ export const BottomToolbar = memo(function BottomToolbar({
 
     const handlePointerDown = (event) => {
       if (!menuRef.current) return;
-      if (!menuRef.current.contains(event.target)) setIsMenuOpen(false);
+      if (!menuRef.current.contains(event.target)) closeMenu(false);
     };
 
     const handleEscape = (event) => {
-      if (event.key === "Escape") setIsMenuOpen(false);
+      if (event.key === "Escape") closeMenu(true);
     };
 
     document.addEventListener("pointerdown", handlePointerDown);
@@ -113,14 +119,14 @@ export const BottomToolbar = memo(function BottomToolbar({
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [isMenuOpen]);
+  }, [isMenuOpen, closeMenu]);
 
   useEffect(() => {
     setIsMenuOpen(false);
   }, [activePanel]);
 
   const closeMenuAndRun = (action) => {
-    setIsMenuOpen(false);
+    closeMenu(true);
     action();
   };
 
@@ -148,10 +154,11 @@ export const BottomToolbar = memo(function BottomToolbar({
 
       <div className="tool-menu-wrap" ref={menuRef}>
         <button
+          ref={triggerRef}
           type="button"
           className={`tool-btn ${isMenuOpen || isSecondaryPanelActive ? "active" : ""}`}
           title="More tools"
-          aria-label="Open more tools"
+          aria-label="More tools"
           aria-expanded={isMenuOpen}
           aria-haspopup="menu"
           onClick={() => setIsMenuOpen((open) => !open)}

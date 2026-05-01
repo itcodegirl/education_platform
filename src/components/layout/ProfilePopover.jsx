@@ -1,6 +1,7 @@
 import { useEffect, useRef, memo } from 'react';
 import { useProgressData, useXP, useAuth } from '../../providers';
 import { getLevel, getXPInLevel, XP_PER_LEVEL, DAILY_GOAL } from '../../utils/helpers';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { navigateTo } from '../../routes/routeUtils';
 
 export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, isMobile }) {
@@ -21,6 +22,9 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
       ? 'One more lesson locks in today\'s goal.'
       : `${lessonsToGoal} more lessons to hit today\'s goal.`;
 
+  useFocusTrap(popoverRef, { enabled: isOpen, onEscape: onClose });
+
+  // Close on click-outside
   useEffect(() => {
     if (!isOpen) return undefined;
 
@@ -30,19 +34,13 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
       }
     };
 
-    const handleKey = (event) => {
-      if (event.key === 'Escape') onClose();
-    };
-
     const timer = setTimeout(() => {
       document.addEventListener('pointerdown', handleClick);
-      document.addEventListener('keydown', handleKey);
     }, 10);
 
     return () => {
       clearTimeout(timer);
       document.removeEventListener('pointerdown', handleClick);
-      document.removeEventListener('keydown', handleKey);
     };
   }, [isOpen, onClose]);
 
@@ -54,6 +52,7 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
       className={`pp ${isMobile ? 'pp-mobile' : ''}`}
       role="dialog"
       aria-label="Your profile and stats"
+      tabIndex={-1}
     >
       <div className="pp-identity">
         <div className="pp-avatar">{displayName.charAt(0).toUpperCase()}</div>

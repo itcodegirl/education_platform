@@ -134,61 +134,61 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleInputKeyDown}
+            aria-label="Search lessons"
+            aria-autocomplete="list"
+            aria-controls="search-results-list"
+            aria-activedescendant={activeIndex >= 0 ? `search-result-${activeIndex}` : undefined}
+            role="combobox"
+            aria-expanded={results.length > 0}
           />
           <span id="search-shortcut-hint" className="search-hint">
             Enter opens the top result, Esc closes this panel
           </span>
         </div>
 
-        <div className="search-results">
-          <p className="panel-meta search-support">
-            {allCoursesLoaded
-              ? 'Search across the full curriculum, then jump directly into the lesson you need.'
-              : 'Search is live now for loaded tracks, and the rest of the curriculum is still streaming in.'}
-          </p>
-
+        <div className="search-results" id="search-results-list" role="listbox" aria-label="Search results">
           {normalizedQuery.length < 2 ? (
             <div className="search-empty">
-              Start with at least two characters. Example: flexbox, arrays, props, or loops.
+              {allCoursesLoaded
+                ? 'Start typing to search across all courses'
+                : 'Start typing to search — loading additional courses…'}
             </div>
           ) : results.length === 0 ? (
-            <div className="search-empty">
-              No matches for "{query}". Try a broader term, module name, or concept keyword.
-            </div>
+            <div className="search-empty">No results for &ldquo;{query}&rdquo;</div>
           ) : (
             <>
               <div className="search-meta">
-                {results.length} result{results.length === 1 ? '' : 's'}
+                {results.length} result{results.length === 1 ? "" : "s"}
+                {!allCoursesLoaded && ' (loading more courses…)'}
               </div>
-              <p className="panel-meta search-support">
-                Tip: use arrow keys to highlight a result, then press Enter to jump there.
-              </p>
-              <div role="list" aria-label="Search results">
-                {results.map((result, index) => (
-                  <button
-                    key={`${result.course}-${result.module}-${result.title}-${index}`}
-                    type="button"
-                    className={`search-result ${activeIndex === index ? 'active' : ''}`}
-                    onClick={() => handleClick(result)}
-                    onMouseEnter={() => setActiveIndex(index)}
-                  >
-                    <span className="sr-icon">{result.icon}</span>
-                    <div className="sr-body">
-                      <div
-                        className="sr-title"
+              {results.map((result, index) => (
+                <button
+                  key={`${result.course}-${result.module}-${result.title}-${index}`}
+                  id={`search-result-${index}`}
+                  type="button"
+                  role="option"
+                  aria-selected={activeIndex === index}
+                  className={`search-result ${activeIndex === index ? "active" : ""}`}
+                  onClick={() => handleClick(result)}
+                  onMouseEnter={() => setActiveIndex(index)}
+                >
+                  <span className="sr-icon">{result.icon}</span>
+                  <div className="sr-body">
+                    <div
+                      className="sr-title"
+                      dangerouslySetInnerHTML={{
+                        __html: highlight(result.title),
+                      }}
+                    />
+                    <div className="sr-path">
+                      {result.course} {'>'}{' '}
+                      <span
                         dangerouslySetInnerHTML={{
-                          __html: highlight(result.title),
+                          __html: highlight(result.module),
                         }}
                       />
-                      <div className="sr-path">
-                        {result.course} {'>'}{' '}
-                        <span
-                          dangerouslySetInnerHTML={{
-                            __html: highlight(result.module),
-                          }}
-                        />
-                      </div>
-                      {result.keywords && (
+                    </div>
+                    {result.keywords && (
                         <div
                           className="sr-snippet"
                           dangerouslySetInnerHTML={{
@@ -199,7 +199,6 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
                     </div>
                   </button>
                 ))}
-              </div>
             </>
           )}
         </div>

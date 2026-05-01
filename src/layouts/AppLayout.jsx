@@ -111,7 +111,7 @@ export function AppLayout() {
   const { stable: stableLessonKey, legacy: legacyLessonKey } = getLessonKeyVariants(course, mod, les);
   const isDone = hasLessonCompletion(completedSet, course, mod, les);
   const readTime = useMemo(
-    () => estimateReadingTime(les.content + les.code),
+    () => estimateReadingTime((les.content || '') + (les.code || '')),
     [les.content, les.code],
   );
   const level = useMemo(() => getLevel(xpTotal), [xpTotal]);
@@ -385,7 +385,10 @@ export function AppLayout() {
         onClose={() => panels.setSidebar(false)}
         onToggleCollapse={() => setSidebarCollapsed((value) => !value)}
         onSelectCourse={nav.switchCourse}
-        onSelectLesson={nav.go}
+        onSelectLesson={(mi, li) => {
+          nav.go(mi, li);
+          if (isMobile) panels.setSidebar(false);
+        }}
         onSelectModQuiz={(mi) => {
           nav.goToModQuiz(mi);
           panels.setSidebar(false);
@@ -457,15 +460,15 @@ export function AppLayout() {
               </button>
               {!showModQuiz && (
               <button
-                type="button"
-                className={`mark-btn ui-btn ui-btn-secondary ${isDone ? "dn" : ""}`}
-                onClick={handleMarkDone}
-                disabled={marking}
-                aria-label={marking ? "Saving lesson completion" : isDone ? "Mark lesson as not done" : "Mark lesson complete"}
-                aria-pressed={isDone}
-              >
-                {marking ? "Saving..." : isDone ? "Completed" : "Mark complete"}
-              </button>
+                  type="button"
+                  className={`mark-btn ${isDone ? "dn" : ""}`}
+                  onClick={handleMarkDone}
+                  disabled={marking}
+                  aria-label={marking ? "Saving lesson completion" : isDone ? "Mark lesson as not done" : "Mark lesson complete"}
+                  aria-pressed={isDone}
+                >
+                  {marking ? "Saving..." : isDone ? "✓ Done" : "Mark Done"}
+                </button>
               )}
             </div>
           </div>
