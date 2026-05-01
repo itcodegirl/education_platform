@@ -26,12 +26,16 @@ const {
   mockUpdateStreak,
   mockUpdateDailyGoal,
   mockUpdateXP,
+  mockTrackProgressSyncQueued,
+  mockTrackProgressSyncReplay,
 } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
   mockFetchAllUserData: vi.fn(),
   mockUpdateStreak: vi.fn(),
   mockUpdateDailyGoal: vi.fn(),
   mockUpdateXP: vi.fn(),
+  mockTrackProgressSyncQueued: vi.fn(),
+  mockTrackProgressSyncReplay: vi.fn(),
 }));
 
 // ─── Mock AuthContext ────────────────────────────
@@ -57,6 +61,11 @@ vi.mock('../services/progressService', () => ({
   saveNote: vi.fn(),
   savePosition: vi.fn(),
   trackCourseVisit: vi.fn(),
+}));
+
+vi.mock('../services/progressSyncTelemetry', () => ({
+  trackProgressSyncQueued: mockTrackProgressSyncQueued,
+  trackProgressSyncReplay: mockTrackProgressSyncReplay,
 }));
 
 import { ProgressProvider, useProgressData, useXP } from './ProgressContext';
@@ -197,6 +206,8 @@ beforeEach(() => {
   mockUpdateXP.mockResolvedValue({ error: null });
   mockUpdateStreak.mockResolvedValue({});
   mockUpdateDailyGoal.mockResolvedValue({});
+  mockTrackProgressSyncQueued.mockReset();
+  mockTrackProgressSyncReplay.mockReset();
 });
 
 // ─── Tests ───────────────────────────────────────
@@ -362,6 +373,11 @@ describe('ProgressContext write failure detection', () => {
     expect(screen.getByTestId('award-xp').dataset.syncFailed).toBe('0');
     expect(readProgressWriteQueue('uid-write')).toHaveLength(1);
     expect(mockUpdateXP).toHaveBeenCalledWith('uid-write', 25);
+    expect(mockTrackProgressSyncQueued).toHaveBeenCalledWith({
+      operation: 'updateXP',
+      label: 'updateXP',
+      queueSize: 1,
+    });
   });
 
   it('retries queued progress writes and clears the pending queue', async () => {
@@ -391,5 +407,12 @@ describe('ProgressContext write failure detection', () => {
     });
     expect(readProgressWriteQueue('uid-retry')).toEqual([]);
     expect(mockUpdateXP).toHaveBeenCalledTimes(2);
+    expect(mockTrackProgressSyncReplay).toHaveBeenCalledWith({
+      trigger: 'manual',
+      processed: 1,
+      remaining: 0,
+      failedItem: null,
+      error: null,
+    });
   });
 });

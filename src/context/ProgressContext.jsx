@@ -16,6 +16,10 @@ import {
   readProgressWriteQueue,
   replayProgressWriteQueue,
 } from '../services/progressWriteQueue';
+import {
+  trackProgressSyncQueued,
+  trackProgressSyncReplay,
+} from '../services/progressSyncTelemetry';
 import { getProgressWriteFailure } from '../services/progressWriteRuntime';
 import { isPerfectQuizScore, rewardKeys } from '../services/rewardPolicy';
 import { lessonKeysEquivalent, resolveStableLessonKeyAcrossCourses } from '../utils/lessonKeys';
@@ -187,7 +191,12 @@ export function ProgressProvider({ children }) {
         ? writeLike
         : createProgressWrite(writeLike.operation, writeLike.payload, { label });
 
-      enqueueProgressWrite(userId, queueItem);
+      const queue = enqueueProgressWrite(userId, queueItem);
+      trackProgressSyncQueued({
+        operation: queueItem.operation,
+        label: queueItem.label,
+        queueSize: queue.length,
+      });
       hydratePendingQueueRef.current = false;
       syncPendingQueueCount(userId);
       return true;
@@ -236,7 +245,10 @@ export function ProgressProvider({ children }) {
 
   const clearSyncFailed = useCallback(() => setSyncFailed(0), []);
 
-  const retryPendingSyncWrites = useCallback(async ({ reloadAfterSuccess = false } = {}) => {
+  const retryPendingSyncWrites = useCallback(async ({
+    reloadAfterSuccess = false,
+    trigger = 'manual',
+  } = {}) => {
     if (!userId || syncRetryInFlight || pendingSyncWritesRef.current === 0) {
       return {
         processed: 0,
@@ -252,6 +264,13 @@ export function ProgressProvider({ children }) {
       const result = await replayProgressWriteQueue(userId);
       pendingSyncWritesRef.current = result.remaining;
       setPendingSyncWrites(result.remaining);
+      trackProgressSyncReplay({
+        trigger,
+        processed: result.processed,
+        remaining: result.remaining,
+        failedItem: result.failedItem,
+        error: result.error,
+      });
 
       if (result.error) {
         markSyncFailed('retryPendingSyncWrites');
@@ -267,6 +286,12 @@ export function ProgressProvider({ children }) {
       if (import.meta.env.DEV) {
         console.warn('[ProgressContext] retryPendingSyncWrites failed:', err);
       }
+      trackProgressSyncReplay({
+        trigger,
+        processed: 0,
+        remaining: pendingSyncWritesRef.current,
+        error: err,
+      });
       markSyncFailed('retryPendingSyncWrites');
       return {
         processed: 0,
@@ -311,7 +336,7 @@ export function ProgressProvider({ children }) {
 
     const handleOnline = () => {
       if (pendingSyncWritesRef.current > 0) {
-        retryPendingSyncWrites();
+        retryPendingSyncWrites({ trigger: 'online' });
       }
     };
 
@@ -349,7 +374,7 @@ export function ProgressProvider({ children }) {
     if (typeof navigator !== 'undefined' && !navigator.onLine) return;
 
     hydratePendingQueueRef.current = false;
-    retryPendingSyncWrites({ reloadAfterSuccess: true });
+    retryPendingSyncWrites({ reloadAfterSuccess: true, trigger: 'session-replay' });
   }, [
     dataLoaded,
     loadError,
