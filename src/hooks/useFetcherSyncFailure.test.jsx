@@ -57,6 +57,32 @@ describe('useFetcherSyncFailure', () => {
     expect(markSyncFailed).not.toHaveBeenCalled();
   });
 
+  it('falls back to a sync warning when a recoverable route failure cannot be queued', () => {
+    const markSyncFailed = vi.fn();
+    const enqueuePendingSyncWrite = vi.fn(() => false);
+
+    render(
+      <FetcherFailureProbe
+        fetcher={{
+          data: {
+            ok: false,
+            intent: 'toggle-progress',
+            error: 'local storage unavailable',
+            recoverableWrite: {
+              operation: 'addLesson',
+              payload: { lessonKey: 'c:html|m:m-basics|l:l-intro' },
+            },
+          },
+        }}
+        markSyncFailed={markSyncFailed}
+        enqueuePendingSyncWrite={enqueuePendingSyncWrite}
+      />,
+    );
+
+    expect(enqueuePendingSyncWrite).toHaveBeenCalledTimes(1);
+    expect(markSyncFailed).toHaveBeenCalledWith('lesson progress: local storage unavailable');
+  });
+
   it('ignores successful route action responses', () => {
     const markSyncFailed = vi.fn();
 
