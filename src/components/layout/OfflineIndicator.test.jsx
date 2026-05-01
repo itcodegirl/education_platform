@@ -24,7 +24,10 @@ describe('OfflineIndicator', () => {
     setNavigatorOnline(true);
     mockUseProgressData.mockReturnValue({
       syncFailed: 0,
+      pendingSyncWrites: 0,
+      syncRetryInFlight: false,
       clearSyncFailed: vi.fn(),
+      retryPendingSyncWrites: vi.fn(),
     });
   });
 
@@ -32,20 +35,50 @@ describe('OfflineIndicator', () => {
     vi.useRealTimers();
   });
 
-  it('renders a local-browser sync warning with only a hide action', () => {
-    const clearSyncFailed = vi.fn();
+  it('renders a retry banner when queued progress writes are pending', () => {
+    const retryPendingSyncWrites = vi.fn();
     mockUseProgressData.mockReturnValue({
-      syncFailed: 2,
-      clearSyncFailed,
+      syncFailed: 0,
+      pendingSyncWrites: 2,
+      syncRetryInFlight: false,
+      clearSyncFailed: vi.fn(),
+      retryPendingSyncWrites,
     });
 
     render(<OfflineIndicator />);
 
     expect(
-      screen.getByText(/2 progress updates could not reach the cloud yet\./i),
+      screen.getByText(/2 progress updates are queued to retry\./i),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/your latest work is still available in this browser\./i),
+      screen.getByText(/your latest in-tab progress is still here\./i),
+    ).toBeInTheDocument();
+
+    const retryButton = screen.getByRole('button', { name: /retry queued progress updates now/i });
+    expect(retryButton).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /hide sync warning/i })).not.toBeInTheDocument();
+
+    fireEvent.click(retryButton);
+    expect(retryPendingSyncWrites).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders a local-session sync warning with only a hide action', () => {
+    const clearSyncFailed = vi.fn();
+    mockUseProgressData.mockReturnValue({
+      syncFailed: 2,
+      pendingSyncWrites: 0,
+      syncRetryInFlight: false,
+      clearSyncFailed,
+      retryPendingSyncWrites: vi.fn(),
+    });
+
+    render(<OfflineIndicator />);
+
+    expect(
+      screen.getByText(/2 progress updates could not be confirmed in the cloud\./i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/your latest local state is still visible in this browser session\./i),
     ).toBeInTheDocument();
 
     const hideButton = screen.getByRole('button', { name: /hide sync warning/i });
@@ -58,11 +91,18 @@ describe('OfflineIndicator', () => {
 
   it('renders the offline banner from the initial browser state', () => {
     setNavigatorOnline(false);
+    mockUseProgressData.mockReturnValue({
+      syncFailed: 0,
+      pendingSyncWrites: 1,
+      syncRetryInFlight: false,
+      clearSyncFailed: vi.fn(),
+      retryPendingSyncWrites: vi.fn(),
+    });
 
     render(<OfflineIndicator />);
 
     expect(
-      screen.getByText(/you are offline\. you can keep learning in this browser/i),
+      screen.getByText(/you are offline\. one progress update is queued in this browser/i),
     ).toBeInTheDocument();
   });
 

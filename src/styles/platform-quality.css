@@ -152,6 +152,7 @@ img {
   padding: 10px 20px;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
   font-size: 13px;
   font-weight: 600;
@@ -169,6 +170,12 @@ img {
   background: #10b981;
   color: #fff;
   animation: slideDown 0.3s var(--ease-out), fadeOut 0.5s 2.5s forwards;
+}
+
+.offline-banner.is-sync-pending {
+  background: #fbbf24;
+  color: #1a1a2e;
+  animation: slideDown 0.3s var(--ease-out);
 }
 
 /* Sync-failed state — writes to Supabase failed, but the learner's
@@ -197,6 +204,36 @@ img {
   padding: 4px 8px;
 }
 
+.offline-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.offline-retry {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s, opacity 0.15s;
+  background: #1a1a2e;
+  color: #fff;
+  border: 1px solid rgba(26, 26, 46, 0.4);
+}
+
+.offline-retry:hover:not(:disabled) {
+  background: #0f172a;
+}
+
+.offline-retry:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
 .offline-dismiss:hover {
   background: rgba(0, 0, 0, 0.1);
 }
@@ -208,6 +245,24 @@ img {
 
 .offline-text {
   flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .offline-banner {
+    padding: 10px 14px;
+  }
+
+  .offline-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .offline-retry,
+  .offline-dismiss {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 @keyframes slideDown {
