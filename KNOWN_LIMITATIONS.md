@@ -29,8 +29,9 @@ This project is actively stabilized and is not yet production-grade. The followi
 - Additive Supabase migrations define `reward_events` and `award_reward_event`, and the frontend has a feature-gated backend reward service wrapper. Backend reward sync remains disabled by default so demos and existing local fallback behavior are preserved.
 - Cross-device reward idempotency is backend-ready but not production-complete until those migrations are applied, the feature flag is enabled intentionally, and authenticated duplicate-award behavior is verified.
 - Challenge completion persistence is same-device/localStorage-backed and should not be treated as secure certification.
-- Supabase/localStorage write failures mark sync-failed state in core flows, but automatic backend queue replay/import is still future work.
-- The sync warning banner is intentionally non-destructive. Hiding the warning does not retry failed cloud writes, and the product still needs an explicit replay/import workflow before it can promise durable recovery from every failed write.
+- Direct optimistic progress writes from `ProgressContext` now have same-browser queue replay, including reconnect retry and next-session replay in the same browser.
+- Route-fetcher mutations and backend reward flows still surface advisory sync warnings without the same queued replay/import guarantees.
+- The sync warning banner remains intentionally non-destructive for non-queued failures. Hiding a generic warning does not recover a failed route action or promise durable recovery from every cloud-write failure.
 
 ## Search / Content
 

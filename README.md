@@ -41,7 +41,8 @@ Current test boundaries:
 - The local reward-event ledger/queue and Supabase reward backend branches are now unified. The local engine remains the default fallback, and backend reward sync remains disabled until the migrations are applied and authenticated reward flows are validated in a real project.
 - Backend reward details live in [docs/backend-reward-events.md](./docs/backend-reward-events.md), [docs/atomic-reward-award.md](./docs/atomic-reward-award.md), and [docs/reward-sync-strategy.md](./docs/reward-sync-strategy.md).
 - Authenticated smoke checks are enabled in the suite, but they self-skip unless Supabase and learner test credentials are configured.
-- Sync-failed learner messaging is intentionally advisory. The warning does not claim a cloud replay path that the product has not implemented yet.
+- Direct optimistic progress writes now use a same-browser retry queue with manual retry, reconnect retry, and next-session replay. Route-fetcher and backend reward failures still surface advisory warnings where full replay/import is not implemented yet.
+- Progress sync recovery details live in [docs/progress-sync-recovery.md](./docs/progress-sync-recovery.md).
 
 ## Known Limitations
 
@@ -71,6 +72,7 @@ This project is intended to demonstrate:
 Reviewer shortcuts:
 
 - Product story: [docs/portfolio-case-study.md](./docs/portfolio-case-study.md)
+- Progress sync recovery: [docs/progress-sync-recovery.md](./docs/progress-sync-recovery.md)
 - Architecture overview: [docs/architecture.md](./docs/architecture.md)
 - Release checklist: [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md)
 - Known limitations: [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md)
