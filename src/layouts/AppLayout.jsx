@@ -385,7 +385,10 @@ export function AppLayout() {
         onClose={() => panels.setSidebar(false)}
         onToggleCollapse={() => setSidebarCollapsed((value) => !value)}
         onSelectCourse={nav.switchCourse}
-        onSelectLesson={nav.go}
+        onSelectLesson={(mi, li) => {
+          nav.go(mi, li);
+          if (isMobile) panels.setSidebar(false);
+        }}
         onSelectModQuiz={(mi) => {
           nav.goToModQuiz(mi);
           panels.setSidebar(false);
