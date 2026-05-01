@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const progressServiceMocks = vi.hoisted(() => ({
   addLesson: vi.fn(),
   removeLesson: vi.fn(),
+  removeLessonsByKeys: vi.fn(),
   saveQuizScore: vi.fn(),
   updateXP: vi.fn(),
   updateStreak: vi.fn(),
@@ -12,6 +13,7 @@ const progressServiceMocks = vi.hoisted(() => ({
   updateSRCard: vi.fn(),
   addBookmark: vi.fn(),
   removeBookmark: vi.fn(),
+  removeBookmarksByKeys: vi.fn(),
   saveNote: vi.fn(),
   savePosition: vi.fn(),
   trackCourseVisit: vi.fn(),
@@ -171,6 +173,25 @@ describe('progressWriteQueue', () => {
       attemptCount: 1,
       lastError: 'network timeout',
     });
+  });
+
+  it('replays variant-safe bookmark removals through the multi-key delete helper', async () => {
+    enqueueProgressWrite(
+      userId,
+      createProgressWrite('removeBookmarkVariants', {
+        lessonKeys: ['c:html|m:m-basics|l:l-intro', 'HTML|Basics|Intro'],
+        dedupeLessonKey: 'c:html|m:m-basics|l:l-intro',
+      }),
+      { storage },
+    );
+
+    const result = await replayProgressWriteQueue(userId, { storage });
+
+    expect(progressServiceMocks.removeBookmarksByKeys).toHaveBeenCalledWith(
+      userId,
+      ['c:html|m:m-basics|l:l-intro', 'HTML|Basics|Intro'],
+    );
+    expect(result.remaining).toBe(0);
   });
 
   it('clears all queued writes for a user', () => {
