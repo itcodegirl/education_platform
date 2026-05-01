@@ -1,301 +1,186 @@
-# CodeHerWay
+# CodeHerWay Learning Platform
 
-> A free, browser-based coding bootcamp for women learning to ship.
-> HTML → CSS → JavaScript → React → Python, with an AI tutor, a real
-> code editor, and gamified progress tracking.
+CodeHerWay is an active frontend learning platform project and portfolio product focused on beginner-friendly coding education.
 
-**🌐 Live:** https://mellow-sunflower-9c92cd.netlify.app/
-**📖 Threat model & security:** [`SECURITY.md`](./SECURITY.md)
+## Current Project Status
 
-[![CI](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml/badge.svg)](https://github.com/itcodegirl/education_platform/actions/workflows/ci-smoke.yml)
-[![Security](https://github.com/itcodegirl/education_platform/actions/workflows/security-audit.yml/badge.svg)](https://github.com/itcodegirl/education_platform/actions/workflows/security-audit.yml)
-[![Made with React](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=white)](https://react.dev)
-[![Vite](https://img.shields.io/badge/Vite-6-646cff?logo=vite&logoColor=white)](https://vitejs.dev)
-[![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase&logoColor=white)](https://supabase.com)
-[![a11y: WCAG AA](https://img.shields.io/badge/a11y-WCAG%20AA-22c55e)](./docs/accessibility.md)
+- This repository root is the active canonical app.
+- `codeherway-v2/` is archived/reference-only and not part of active runtime behavior.
+- The project is usable for demos and portfolio review.
+- The project is not yet production-grade.
+- The quality baseline currently includes lint, production build, bundle budget, unit tests, quiz audit reporting, and Playwright smoke coverage.
 
-![CodeHerWay screenshot](./docs/screenshot.png)
+## What Is Currently Working
 
-<!--
-📸 SCREENSHOT TODO — this line currently 404s until docs/screenshot.png
-exists. Take a still of the lesson view with the AI tutor open on
-the right and save it to docs/screenshot.png. Recommended: 1600x900,
-lossless PNG, under 500KB. A GIF/MP4 of the code editor + live
-preview interaction is even higher impact if you have the bandwidth.
--->
-<!--
-📊 LIGHTHOUSE TODO — once you've run a real Lighthouse audit on the
-production URL, add a badge like:
-  [![Lighthouse](https://img.shields.io/badge/Lighthouse-95%2F100-22c55e)](./docs/lighthouse.png)
-and drop the full report at docs/lighthouse.png. Target: 95+ for
-Performance, Accessibility, Best Practices, and SEO after the
-a11y sweep.
--->
+- Course browsing and lesson viewing UI for HTML, CSS, JavaScript, and React tracks.
+- Progress save/reload behavior for core learning flow.
+- Unified reward-engine hardening for lesson completion XP, quiz retry XP, activity-based streaks, challenge completion dedupe, local reward-event processing, local retry/reconciliation evidence, diagnostics, sync-failure visibility, and feature-gated Supabase backend awards.
+- Supabase reward backend scaffolding for future cross-device idempotency, including reward-event migrations, an atomic award RPC, and a frontend service wrapper that preserves local fallback behavior.
+- Active lesson quiz coverage for HTML, CSS, JavaScript, and React tracks is complete.
+- Quiz variant groups and legacy orphan quiz inventory are classified and monitored by the audit.
+- Bookmarks and lesson notes in the active app.
+- Certificate export flow.
+- Public Playwright smoke coverage.
+- Netlify + Vite build/deploy flow.
 
----
+## Testing Scope
 
-## What it is
+Current baseline checks:
 
-CodeHerWay is a complete coding curriculum that runs entirely in the
-browser. Every lesson follows the same opinionated structure —
-**hook → do → understand → build → challenge → summary** — and every
-lesson ships with:
+- `npm run check` (lint, production build, bundle budget, unit tests)
+- `npm run build`
+- `npm run lint`
+- `npm run test` (Vitest unit/component suite — passes on a fresh clone with no `.env` configured; the suite stubs the `VITE_SUPABASE_*` placeholders via `vitest.config.js` so client-importing tests can evaluate)
+- `npm run audit:quizzes`
+- `npm run test:e2e` (public smoke path runs by default)
 
-- a real **Monaco code editor** with live preview in a sandboxed iframe,
-- an **AI tutor** that knows the current lesson and can explain the
-  student's own code,
-- **auto-graded challenges** that validate actual DOM output, and
-- **spaced-repetition** review cards generated from missed quizzes.
+Current test boundaries:
 
-It's built for women learning to code — past, present, and future.
+- Authenticated Playwright smoke checks are skipped when auth env credentials are not provided.
+- Playwright authenticated storage state is generated under `playwright/.auth/` and intentionally ignored by Git.
+- `npm run audit:quizzes` remains the source of truth for quiz integrity drift, including classified orphan quizzes, intentional variant groups, and legacy aliases.
+- Quiz audit strict-mode CI criteria are planned but not enabled yet.
+- The local reward-event ledger/queue and Supabase reward backend branches are now unified. The local engine remains the default fallback, and backend reward sync remains disabled until the migrations are applied and authenticated reward flows are validated in a real project.
+- Backend reward details live in [docs/backend-reward-events.md](./docs/backend-reward-events.md), [docs/atomic-reward-award.md](./docs/atomic-reward-award.md), and [docs/reward-sync-strategy.md](./docs/reward-sync-strategy.md).
+- Authenticated smoke checks are enabled in the suite, but they self-skip unless Supabase and learner test credentials are configured.
+- Direct optimistic progress writes now use a same-browser retry queue with manual retry, reconnect retry, and next-session replay.
+- Recoverable lesson route mutations for completion toggles and bookmarks now feed that same-browser retry queue when Supabase route actions fail with a recoverable write descriptor.
+- Progress sync queue and replay outcomes emit privacy-safe analytics events when analytics is configured; event payloads avoid learner IDs, lesson keys, note content, and raw database messages.
+- Backend reward sync and non-recoverable route failures still surface advisory warnings where full replay/import is not implemented yet.
+- Progress sync recovery details live in [docs/progress-sync-recovery.md](./docs/progress-sync-recovery.md).
 
-## What I built (and what it taught me)
+## Known Limitations
 
-This is a portfolio project, but it's a real product. Some of the
-decisions I'm proud of:
+See [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md) for the current limitation baseline, including learning identity hardening, quiz integrity follow-up, reward-event/cross-device limits, search coverage limits, and AI/security hardening scope.
 
-- **A server-side AI proxy with a Postgres-backed rate limiter.**
-  The OpenAI API key never touches the browser. Requests flow through
-  a Netlify Function that verifies the user's Supabase session, calls
-  a `SECURITY DEFINER` Postgres RPC (`consume_ai_quota()`) that reads
-  `auth.uid()` server-side so callers can't spoof another user, and
-  prepends a guardrail prompt before forwarding to OpenAI. The
-  function fails closed — if the rate limiter is unreachable, the
-  request is rejected with 503 rather than burning my OpenAI quota.
-- **Row-Level Security on every table.** Twelve Supabase tables, each
-  with `auth.uid() = user_id` policies. Admin reads use a separate
-  `is_admin()` SECURITY DEFINER function. The React UI is a
-  convenience layer; the database itself is the security boundary.
-- **An admin escalation guard.** A Postgres trigger blocks any direct
-  edit to `profiles.is_admin`. Promotions must go through a
-  `set_user_admin()` RPC that refuses self-edits and writes to an
-  `admin_audit_log` table. Even a fully compromised admin account
-  cannot promote itself silently.
-- **A sandboxed code playground.** Learner code runs inside an
-  `<iframe sandbox="allow-scripts">` with no `allow-same-origin`, so
-  it cannot read the parent origin, cookies, or `localStorage`. I
-  wrote the iframe-bridge `console` shim so learners see their
-  `console.log` output inline.
-- **Per-course code splitting.** Each course's lessons, quizzes, and
-  challenges is its own Vite chunk. Studying React doesn't download
-  the Python course. Monaco lazy-loads behind a `Suspense` boundary.
-- **Chunk-load error recovery.** If a deploy invalidates a dynamic
-  chunk while a tab is open, `main.jsx` catches the error, throttles
-  via `sessionStorage`, and force-refreshes once. Learned the hard way.
-- **A real design system.** Brand palette, 8pt spacing grid, fluid
-  type scale with `clamp()`, gradient tokens — all defined as CSS
-  custom properties from a `platform_design.docx` brand doc.
-- **PWA with offline indicator and update-available prompt.** Service
-  worker registers, auto-refreshes on update, posts `SKIP_WAITING`
-  to take over without reload loops.
-- **Hardened HTTP headers.** Strict CSP, HSTS, COOP/CORP, frame-deny,
-  referrer policy, and a restrictive permissions policy — all in
-  `netlify.toml`.
+## Repair Roadmap
 
-If you'd like the deeper version, the [security audit commits](https://github.com/itcodegirl/education_platform/commits/main)
-walk through the threat model and the fixes I made.
+See [docs/repair-roadmap.md](./docs/repair-roadmap.md) for the staged repair plan:
 
-## Tech stack
+- P0: Repo trust and documentation
+- P1: Learning integrity
+- P2: Data model hardening and migration safety
+- P3: ADHD-friendly UX simplification
+- P4: Reliability testing and CI gates
 
-| Layer | Choice | Why |
-| --- | --- | --- |
-| UI | React 18 + Vite 6 | Fast HMR, modern bundler, real code-splitting |
-| Types | TypeScript (services layer) | Hand-written row/DTO types in `src/services/supabaseTypes.ts`; `tsc --noEmit` in CI |
-| Editor | `@monaco-editor/react` | Same editor that powers VS Code |
-| Backend | Supabase (Postgres + Auth + RLS) | Real auth + a real database without a server |
-| Functions | Netlify Functions (Node 20 ESM) | One platform, scheduled jobs included |
-| AI | OpenAI Responses API (gpt-4o-mini) | Behind an authenticated proxy |
-| Fonts | `@fontsource` self-hosted | No `fonts.googleapis.com` in the CSP |
-| Unit tests | Vitest + React Testing Library + jsdom | 34 passing; covers gamification, learning engine, and component behavior |
-| E2E | Playwright | Already wired into CI |
-| CI | GitHub Actions | build · smoke tests · `tsc` · `vitest` · `npm audit` · `gitleaks` |
+## Recruiter / Hiring Context
 
-## Architecture at a glance
+This project is intended to demonstrate:
 
-```
-Browser (React 18, PWA)
-   │
-   ├─── REST ────▶ Supabase  (Postgres + Auth + RLS)
-   │
-   └─── fetch ───▶ Netlify Functions
-                       ├─ /ai            auth + rate limit + guardrail → OpenAI
-                       └─ /streak-reminder  daily cron, shared-secret protected
-```
+- Frontend architecture and modular React app composition
+- Product thinking for learning workflows
+- Accessibility awareness and iterative UX hardening
+- Learning-platform UX and retention-oriented interaction design
+- Honest iteration discipline (audit -> staged repairs -> verification)
+- Ability to assess and improve a real codebase under constraints
 
-Every arrow above is gated by something — a Supabase JWT, an RLS
-policy, a Postgres trigger, a CSP, or an HMAC-style shared secret.
-The full picture lives in [`SECURITY.md`](./SECURITY.md) and
-[`supabase-schema.sql`](./supabase-schema.sql).
+Reviewer shortcuts:
 
-## Run it locally
+- Product story: [docs/portfolio-case-study.md](./docs/portfolio-case-study.md)
+- Progress sync recovery: [docs/progress-sync-recovery.md](./docs/progress-sync-recovery.md)
+- Architecture overview: [docs/architecture.md](./docs/architecture.md)
+- Release checklist: [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md)
+- Known limitations: [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md)
+- Screenshot capture guidance: [docs/screenshots/README.md](./docs/screenshots/README.md)
+
+This should be presented as a stabilized learning-platform case study, not as a finished production SaaS product.
+
+Concrete shape of the project at the current commit:
+
+- Four full courses (HTML, CSS, JavaScript, React).
+- A reward system (XP, streaks, badges, bookmarks, spaced-repetition queue) that is event-driven, idempotent (`hasRewardBeenAwarded()` + `markRewardAwarded()`), persisted to Supabase, and reconciles cleanly with the local optimistic state on reload. XP popups and badge-unlock celebrations are queued so back-to-back rewards (e.g. quiz completion + perfect-score bonus) all display in turn instead of overwriting each other.
+- A lazy-loaded Monaco editor split into multiple chunks via Vite manual chunking so it never enters the initial bundle.
+- A top-level `ErrorBoundary` so a provider crash falls back to a visible retry/reload screen, not a blank page.
+- A Vitest unit/component suite of 400+ tests including accessibility integration tests (axe-core).
+- A Playwright public smoke suite plus an opt-in authenticated path.
+
+Files most worth a look from a senior reviewer:
+
+- `src/context/ProgressContext.jsx` — the dual-layer optimistic + canonical persistence model, with queued XP-popup and badge-unlock state slots.
+- `src/services/badgeRules.js` — pure badge eligibility rules (`evaluateBadgeChecks`, `findNewlyEarnedBadges`) extracted from ProgressContext so they're testable in isolation. Re-exports `BADGE_DEFS` from `src/data/badges.js` (the canonical catalog home).
+- `src/services/srAlgorithm.js` — pure SM-2-style spaced-repetition scheduling (`nextSRCardState`) extracted from `ProgressContext.updateSRCard` for the same reason.
+- `src/hooks/useAutoDismissReveal.js` — drives the visible-time + fade-out + queue-clear lifecycle for `XPPopup` and `BadgeUnlock`, with timer coalescing so a manual dismiss + auto dismiss firing close together can't shift the queue twice (and silently drop a fresh celebration).
+- `src/engine/rewards/` — the reward event ledger and idempotent runtime.
+- `src/components/learning/QuizView.jsx` + `src/hooks/useQuizSession.js` + `src/components/learning/quiz/questionTypes.jsx` — quiz engine split into a renderer registry + session hook.
+- `src/components/learning/CodeChallenge.jsx` + `src/hooks/useChallengeSession.js` + `src/components/learning/challenge/` — challenge engine split into the same shape (session hook + AI panel + preview-builder util). The session hook waits for the iframe's `onLoad` before grading so DOM-based test assertions can land cleanly; `src/data/html/challenges.js` (`html-ch-1`) is the demonstrated migration. Includes an explicit honesty note in the UI about what the auto-grader actually checks (see `KNOWN_LIMITATIONS.md`).
+- `src/components/admin/LessonBuilder.jsx` + `src/hooks/useLessonBuilder.js` + `src/components/admin/lesson-builder/` — admin lesson-authoring tool split into a state hook, a pure codegen util, three view-tab components, and shared `LBField` / `ArrayField` primitives.
+- `src/services/aiService.js` — `AIServiceError` carries a stable `code` from `AI_ERROR_CODES`, so callers switch on the code instead of regex-matching error message strings.
+- `vite.config.js` — Monaco manual-chunking strategy.
+
+## Stack
+
+- React 18 + Vite
+- Supabase Auth + Postgres
+- Netlify static hosting + Netlify Functions
+
+## Local Setup
+
+### 1. Install dependencies
 
 ```bash
-git clone https://github.com/itcodegirl/education_platform.git
-cd education_platform
-npm ci
-cp .env.example .env       # then add your Supabase URL + anon key
-npm run dev                # http://localhost:5173
+npm install
 ```
 
-The AI tutor is disabled in local dev unless you also run
-`netlify dev` with `OPENAI_API_KEY` set. The full env reference is in
-[`.env.example`](./.env.example).
+### 2. Configure environment variables
 
-### One-time database setup
+Copy [`.env.example`](./.env.example) to `.env`:
 
-Open your Supabase project's SQL Editor, paste
-[`supabase-schema.sql`](./supabase-schema.sql), and run it. It's
-idempotent — re-running is safe.
-
-```sql
--- Promote yourself as the first admin (run once, in Supabase Studio):
-update public.profiles set is_admin = true where id = '<your-uuid>';
+```bash
+cp .env.example .env
 ```
 
-After bootstrap, every subsequent admin change must go through the
-`set_user_admin()` RPC, which refuses self-edits.
+Required frontend values:
 
-## Scripts
-
-| Script | What it does |
-| --- | --- |
-| `npm run dev` | Vite dev server |
-| `npm run build` | Production build to `dist/` |
-| `npm run preview` | Preview the production build |
-| `npm test` | Vitest unit tests (services + pure logic) |
-| `npm run test:watch` | Vitest in watch mode |
-| `npm run typecheck` | `tsc --noEmit` across TS services |
-| `npm run test:e2e` | Run Playwright E2E suite |
-| `npm run test:e2e:ui` | Playwright in UI mode |
-
-## Project layout
-
-```
-src/
-├── components/   learning · panels · auth · admin · gamification · layout
-├── services/     auth · progress · gamification · AI · learning engine
-├── lib/          supabase client
-├── data/         course content (HTML · CSS · JS · React · Python)
-├── providers/    Auth · Theme · Progress
-├── routes/       AppRoutes
-├── hooks/        useIsMobile · useKeyboardNav · useNavigation · usePanels
-├── utils/        markdown · iframeStyles · monacoTheme
-└── styles/       design tokens + global styles
-netlify/functions/  ai.js (proxied, rate-limited) · streak-reminder.js
-supabase-schema.sql tables · RLS · triggers · RPCs · audit log
-.github/workflows/  ci-smoke · security-audit · ops-checks
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+VITE_REWARD_BACKEND_SYNC_ENABLED=false
 ```
 
-## Security highlights
+### 3. Configure Supabase
 
-- 🔒 **No secrets in the bundle.** OpenAI key lives only in Netlify env vars.
-- 🔒 **Authenticated AI proxy** with Postgres-backed per-user rate limit, payload caps, and a mandatory server-side guardrail prompt.
-- 🔒 **Row-Level Security** on every Supabase table.
-- 🔒 **Admin escalation guard** — Postgres trigger + `set_user_admin()` RPC + `admin_audit_log`. Admins cannot promote themselves.
-- 🔒 **XSS-hardened markdown renderer** — escape first, then format. CSP is the safety net.
-- 🔒 **Sandboxed code playground** — `allow-scripts` only, no `allow-same-origin`.
-- 🔒 **Strict HTTP headers** — CSP, HSTS (2y + preload), COOP, CORP, frame-deny, referrer policy, permissions policy.
-- 🔒 **Supply chain** — committed lockfile, weekly `npm audit` + `gitleaks`, Dependabot.
+1. Create a Supabase project.
+2. Run [`supabase-schema.sql`](./supabase-schema.sql) in Supabase SQL editor.
+3. For the optional backend reward engine, run the additive SQL files in [`supabase/migrations`](./supabase/migrations) after the base schema.
+4. Keep `VITE_REWARD_BACKEND_SYNC_ENABLED=false` until `reward_events` and `award_reward_event` are applied and verified.
+5. Enable Email auth.
+6. Optionally enable Google/GitHub auth.
 
-Full threat model and disclosure process: [`SECURITY.md`](./SECURITY.md).
+### 4. Run the app
 
-## Accessibility highlights
-
-Everything in the app targets WCAG 2.1 AA. Recent a11y sweep, in
-rough order of impact:
-
-- ♿ **Semantic HTML landmarks everywhere.** `<main>`, `<nav>`,
-  `<header>`, `<footer>` on the app shell + every sidebar. Screen
-  reader users can jump between "Course navigation", "Topbar",
-  "Main", and "Lesson pagination" with a single rotor key.
-- ♿ **One `<h1>` per page.** Lesson titles are the document h1,
-  not the brand name. The landing page, auth page, lesson view,
-  admin dashboard, and every modal dialog each have exactly one.
-- ♿ **Focus traps on every modal dialog.** Extracted a reusable
-  [`useFocusTrap`](./src/hooks/useFocusTrap.js) hook applied to
-  14 modals (sidebar drawer, cheatsheet, glossary, bookmarks,
-  badges, projects, challenges, stats, review queue, roadmap,
-  welcome back, break prompt, course complete, badge unlock,
-  what's new). Tab stays inside, Shift+Tab wraps backward, Escape
-  closes, focus returns to the trigger on close.
-- ♿ **WCAG AA color contrast on every token.** Every text
-  token (`--text`, `--text-dim`, `--text-muted`) passes 4.5:1 on
-  every background surface (`--bg-deep` through `--bg-surface`).
-  The palette was mathematically verified with the WCAG 2.1
-  relative-luminance formula — the worst ratio in the system is
-  5.22:1 (muted on surface).
-- ♿ **Visible keyboard focus everywhere.** Global
-  `:focus-visible` outline for keyboard users,
-  `:focus:not(:focus-visible)` suppresses the ring for mouse
-  clicks. Ten previously-broken per-element overrides have been
-  removed.
-- ♿ **`type="button"` on every button** — codemod swept 23
-  unflagged buttons that defaulted to `submit` (a latent
-  form-submission bug).
-- ♿ **Real buttons, not `<div onClick>`.** BookmarksPanel rows
-  split into sibling `<button>`s so keyboard users can actually
-  activate them.
-- ♿ **`prefers-reduced-motion` respected globally** — collapses
-  every keyframe animation to 0.01ms.
-- ♿ **Skip-to-content link** at the top of the app shell.
-- ♿ **ARIA live regions** on toast notifications and the new
-  sync-failed banner so they announce without stealing focus.
-- ♿ **aria-hidden on decorative emoji** throughout (`📸`, `🔗`,
-  `✨`, etc.) so they don't pollute the screen-reader stream.
-
-The threat model in [`SECURITY.md`](./SECURITY.md) and the
-accessibility work are intentionally paired — both care about
-"who can actually use this, and in what conditions".
-
-## Roadmap
-
-- [x] Animated landing-page hero with scroll-driven storytelling
-- [x] Public profile pages (`/#u/:handle`) — opt-in, RLS-gated
-- [x] AI-generated personalized practice quizzes from missed concepts
-- [x] Self-host fonts to drop the font CDN from the CSP
-- [x] Semantic HTML landmarks + WCAG AA contrast sweep
-- [x] `useFocusTrap` hook + focus traps on every modal
-- [x] Component-level test coverage (React Testing Library + jsdom)
-- [x] Split three 400+ LOC god-components into focused children
-- [ ] Server-rendered OG images for public profile pages
-- [ ] Migrate components to TypeScript
-- [ ] Wire ErrorBoundary to Sentry / LogRocket for prod telemetry
-- [ ] Real Lighthouse CI with a committed score badge
-
-## Contributing
-
-PRs welcome — especially new lessons, accessibility fixes, and
-security improvements. CI must pass (`ci-smoke`, `security-audit`).
-For security issues, **do not open a public issue** — see
-[`SECURITY.md`](./SECURITY.md).
-
-## Design system preview
-
-Every color, spacing value, type size, radius, and motion curve lives
-in [`src/styles/tokens.css`](./src/styles/tokens.css). Preview them
-live at `#styleguide` — the page is public (no auth required) and
-intended to be linkable during design review:
-
-```
-http://localhost:5173/#styleguide
-https://mellow-sunflower-9c92cd.netlify.app/#styleguide
+```bash
+npm run dev
 ```
 
-## License
+## Playwright Smoke Tests
 
-MIT — see [`LICENSE`](./LICENSE).
+Install Chromium once:
 
----
+```bash
+npm run test:e2e:install
+```
 
-## Further reading
+Run smoke tests:
 
-- [`SECURITY.md`](./SECURITY.md) — full threat model, disclosure process
-- [`docs/architecture.md`](./docs/architecture.md) — how the pieces fit together
-- [`docs/setup-checklist.md`](./docs/setup-checklist.md) — post-deploy operational steps (Supabase migration, Netlify env vars, GitHub settings)
-- [`CHANGELOG.md`](./CHANGELOG.md) — release history
-- [`CONTRIBUTING.md`](./CONTRIBUTING.md) — contributing guide
+```bash
+npm run test:e2e
+```
 
----
+Optional authenticated smoke coverage requires:
 
-Built by [@itcodegirl](https://github.com/itcodegirl) for women who
-code, lead, and rewrite the future of tech.
+```env
+E2E_EMAIL=learner@example.com
+E2E_PASSWORD=your-test-password
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+## Netlify Deploy
+
+Configured in [`netlify.toml`](./netlify.toml):
+
+- Build command: `npm run build`
+- Publish directory: `dist`
+- Functions directory: `netlify/functions`
+
+For release QA, use [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md).

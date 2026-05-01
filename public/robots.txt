@@ -1,4 +1,6 @@
-User-agent: *
+﻿User-agent: *
 Allow: /
 
-Sitemap: https://mellow-sunflower-9c92cd.netlify.app/sitemap.xml
+Sitemap: https://codeherway.com/sitemap.xml
+
+

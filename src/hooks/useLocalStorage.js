@@ -11,12 +11,22 @@
 //   setTasks(prev => ({ ...prev, [lessonKey]: [...] }));
 //
 // JSON-encoded values only. SSR-safe (returns the
-// initial value when window is undefined). Silently
-// degrades if localStorage is disabled (e.g. private
-// browsing in older Safari).
+// initial value when window is undefined). Degrades to
+// in-memory state if localStorage is disabled (e.g.
+// private browsing in older Safari) and emits a sanitized
+// sync-failure event for the progress shell to surface.
 // ═══════════════════════════════════════════════
 
 import { useState, useCallback, useEffect } from 'react';
+
+export const LOCAL_STORAGE_SYNC_ERROR_EVENT = 'chw:local-storage-sync-error';
+
+function notifyLocalStorageError(key, phase) {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new window.CustomEvent(LOCAL_STORAGE_SYNC_ERROR_EVENT, {
+    detail: { key, phase },
+  }));
+}
 
 function readInitial(key, initialValue) {
   if (typeof window === 'undefined') return initialValue;
@@ -25,6 +35,7 @@ function readInitial(key, initialValue) {
     if (raw === null) return initialValue;
     return JSON.parse(raw);
   } catch {
+    notifyLocalStorageError(key, 'read');
     return initialValue;
   }
 }
@@ -40,6 +51,7 @@ export function useLocalStorage(key, initialValue) {
       try {
         setValue(event.newValue === null ? initialValue : JSON.parse(event.newValue));
       } catch {
+        notifyLocalStorageError(key, 'sync');
         setValue(initialValue);
       }
     };
@@ -56,7 +68,7 @@ export function useLocalStorage(key, initialValue) {
             window.localStorage.setItem(key, JSON.stringify(resolved));
           }
         } catch {
-          /* storage full or disabled — keep the in-memory value */
+          notifyLocalStorageError(key, 'write');
         }
         return resolved;
       });
@@ -66,3 +78,4 @@ export function useLocalStorage(key, initialValue) {
 
   return [value, setStoredValue];
 }
+

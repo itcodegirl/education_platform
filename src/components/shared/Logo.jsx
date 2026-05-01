@@ -1,16 +1,16 @@
-// ═══════════════════════════════════════════════
-// LOGO — <Code>Her</Way> brand wordmark
+﻿// ===============================================
+// LOGO - <Code>Her</Way> brand wordmark
 //
 // Brackets: South Carolina blue (#56a0d3)
-// "Her": gradient purple→pink (#7B61FF → #FF6FD8)
+// "Her": gradient purple->pink (#7B61FF -> #FF6FD8)
 // Tagline: console.log("you belong here");
 //
 // Variants:
-//   size="sm"  → sidebar/nav (default)
-//   size="lg"  → auth page, splash screens
-//   size="icon" → just <H/>
-//   showTagline → adds console.log line below
-// ═══════════════════════════════════════════════
+//   size="sm"  -> sidebar/nav (default)
+//   size="lg"  -> auth page, splash screens
+//   size="icon" -> just <H/>
+//   showTagline -> adds console.log line below
+// ===============================================
 
 import { memo } from 'react';
 
@@ -50,3 +50,6 @@ export const Logo = memo(function Logo({ size = 'sm', className = '', showTaglin
     </div>
   );
 });
+
+
+

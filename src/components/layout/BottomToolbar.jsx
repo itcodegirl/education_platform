@@ -1,7 +1,8 @@
-import { memo, useEffect, useRef, useState, useCallback } from "react";
-import { useProgress } from "../../providers";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSR } from "../../providers";
 
 export const BottomToolbar = memo(function BottomToolbar({
+  activePanel,
   onCheatsheet,
   onGlossary,
   onProjects,
@@ -11,7 +12,7 @@ export const BottomToolbar = memo(function BottomToolbar({
   onChallenges,
   onStats,
 }) {
-  const { getDueSRCards, bookmarks } = useProgress();
+  const { getDueSRCards, bookmarks } = useSR();
   const dueCount = getDueSRCards().length;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -22,22 +23,107 @@ export const BottomToolbar = memo(function BottomToolbar({
     if (restoreFocus) triggerRef.current?.focus();
   }, []);
 
+  const primaryTools = useMemo(
+    () => [
+      {
+        key: "stats",
+        label: "Stats",
+        title: "Your Stats",
+        ariaLabel: "Open your stats",
+        icon: "📊",
+        onClick: onStats,
+      },
+      {
+        key: "bookmarks",
+        label: "Bookmarks",
+        title: "Bookmarks",
+        ariaLabel: "Open bookmarks",
+        icon: "★",
+        onClick: onBookmarks,
+        badge: bookmarks.length > 0 ? (
+          <span className="badge-notif bk-notif">{bookmarks.length}</span>
+        ) : null,
+      },
+      {
+        key: "glossary",
+        label: "Glossary",
+        title: "Glossary",
+        ariaLabel: "Open glossary",
+        icon: "📖",
+        onClick: onGlossary,
+      },
+      {
+        key: "challenges",
+        label: "Challenges",
+        title: "Code challenges",
+        ariaLabel: "Open code challenges",
+        icon: "🏋️",
+        onClick: onChallenges,
+      },
+    ],
+    [bookmarks.length, onBookmarks, onChallenges, onGlossary, onStats],
+  );
+
+  const secondaryTools = useMemo(
+    () => [
+      {
+        key: "badges",
+        label: "🏆 Badges",
+        onClick: onBadges,
+      },
+      {
+        key: "sr",
+        label: "🔄 Review Queue",
+        onClick: onSR,
+        count: dueCount > 0 ? dueCount : null,
+      },
+      {
+        key: "cheatsheet",
+        label: "📋 Cheat Sheets",
+        onClick: onCheatsheet,
+      },
+      {
+        key: "projects",
+        label: "🔨 Build Projects",
+        onClick: onProjects,
+      },
+      {
+        key: "print",
+        label: "🖨️ Print / PDF",
+        onClick: () => window.print(),
+      },
+    ],
+    [dueCount, onBadges, onCheatsheet, onProjects, onSR],
+  );
+
+  const isSecondaryPanelActive = secondaryTools.some(
+    (tool) => tool.key !== "print" && tool.key === activePanel,
+  );
+
   useEffect(() => {
     if (!isMenuOpen) return undefined;
+
     const handlePointerDown = (event) => {
       if (!menuRef.current) return;
       if (!menuRef.current.contains(event.target)) closeMenu(false);
     };
+
     const handleEscape = (event) => {
       if (event.key === "Escape") closeMenu(true);
     };
+
     document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("keydown", handleEscape);
+
     return () => {
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleEscape);
     };
   }, [isMenuOpen, closeMenu]);
+
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [activePanel]);
 
   const closeMenuAndRun = (action) => {
     closeMenu(true);
@@ -50,58 +136,27 @@ export const BottomToolbar = memo(function BottomToolbar({
       role="toolbar"
       aria-label="Quick learning tools"
     >
-      <button
-        type="button"
-        className="tool-btn"
-        title="Your Stats"
-        aria-label="Open your stats"
-        onClick={onStats}
-        data-label="Stats"
-      >
-        📊
-      </button>
-
-      <button
-        type="button"
-        className="tool-btn"
-        title="Bookmarks"
-        aria-label={`Open bookmarks${bookmarks.length > 0 ? `, ${bookmarks.length} saved` : ''}`}
-        onClick={onBookmarks}
-        data-label="Bookmarks"
-      >
-        ★
-        {bookmarks.length > 0 && (
-          <span className="badge-notif bk-notif" aria-hidden="true">{bookmarks.length}</span>
-        )}
-      </button>
-
-      <button
-        type="button"
-        className="tool-btn"
-        title="Glossary"
-        aria-label="Open glossary"
-        onClick={onGlossary}
-        data-label="Glossary"
-      >
-        📖
-      </button>
-
-      <button
-        type="button"
-        className="tool-btn"
-        title="Code Challenges"
-        aria-label="Open code challenges"
-        onClick={onChallenges}
-        data-label="Challenges"
-      >
-        🏋️
-      </button>
+      {primaryTools.map((tool) => (
+        <button
+          key={tool.key}
+          type="button"
+          className={`tool-btn ${activePanel === tool.key ? "active" : ""}`}
+          title={tool.title}
+          aria-label={tool.ariaLabel}
+          aria-pressed={activePanel === tool.key}
+          onClick={tool.onClick}
+          data-label={tool.label}
+        >
+          {tool.icon}
+          {tool.badge}
+        </button>
+      ))}
 
       <div className="tool-menu-wrap" ref={menuRef}>
         <button
           ref={triggerRef}
           type="button"
-          className={`tool-btn ${isMenuOpen ? "active" : ""}`}
+          className={`tool-btn ${isMenuOpen || isSecondaryPanelActive ? "active" : ""}`}
           title="More tools"
           aria-label="More tools"
           aria-expanded={isMenuOpen}
@@ -114,49 +169,21 @@ export const BottomToolbar = memo(function BottomToolbar({
 
         {isMenuOpen && (
           <div className="tool-menu" role="menu" aria-label="More tools">
-            <button
-              type="button"
-              className="tool-menu-item"
-              role="menuitem"
-              onClick={() => closeMenuAndRun(onBadges)}
-            >
-              🏆 Badges
-            </button>
-            <button
-              type="button"
-              className="tool-menu-item"
-              role="menuitem"
-              onClick={() => closeMenuAndRun(onSR)}
-            >
-              🔄 Review Queue
-              {dueCount > 0 && (
-                <span className="tool-menu-count" aria-label={`${dueCount} cards due`}>{dueCount}</span>
-              )}
-            </button>
-            <button
-              type="button"
-              className="tool-menu-item"
-              role="menuitem"
-              onClick={() => closeMenuAndRun(onCheatsheet)}
-            >
-              📋 Cheat Sheets
-            </button>
-            <button
-              type="button"
-              className="tool-menu-item"
-              role="menuitem"
-              onClick={() => closeMenuAndRun(onProjects)}
-            >
-              🔨 Build Projects
-            </button>
-            <button
-              type="button"
-              className="tool-menu-item"
-              role="menuitem"
-              onClick={() => closeMenuAndRun(() => window.print())}
-            >
-              🖨️ Print / PDF
-            </button>
+            {secondaryTools.map((tool) => (
+              <button
+                key={tool.key}
+                type="button"
+                className={`tool-menu-item ${activePanel === tool.key ? "active" : ""}`}
+                role="menuitem"
+                aria-pressed={activePanel === tool.key}
+                onClick={() => closeMenuAndRun(tool.onClick)}
+              >
+                {tool.label}
+                {tool.count ? (
+                  <span className="tool-menu-count">{tool.count}</span>
+                ) : null}
+              </button>
+            ))}
           </div>
         )}
       </div>

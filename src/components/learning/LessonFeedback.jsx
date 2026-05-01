@@ -19,7 +19,10 @@ export const LessonFeedback = memo(function LessonFeedback({ lessonKey }) {
 
   return (
     <div className="lesson-feedback">
-      <span className="lesson-feedback-label">Was this lesson helpful?</span>
+      <div className="lesson-feedback-copy">
+        <span className="lesson-feedback-label">How did this lesson feel?</span>
+        <span className="lesson-feedback-sub">Your quick rating helps us improve unclear steps and keep great lessons strong.</span>
+      </div>
       <div className="lesson-feedback-btns">
         <button
           type="button"
@@ -42,7 +45,7 @@ export const LessonFeedback = memo(function LessonFeedback({ lessonKey }) {
       </div>
       {feedback && (
         <span className="lesson-feedback-thanks">
-          {feedback === 'up' ? 'Thanks!' : 'We\'ll improve this.'}
+          {feedback === 'up' ? 'Thanks. We will keep building lessons like this.' : 'Thanks. We will tighten this lesson for the next revision.'}
         </span>
       )}
     </div>

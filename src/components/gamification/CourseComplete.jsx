@@ -1,8 +1,4 @@
-// ═══════════════════════════════════════════════
-// COURSE COMPLETE — Celebration + downloadable certificate
-// ═══════════════════════════════════════════════
-
-import { useEffect, useState, useRef } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { generateCertificate } from '../../utils/certificate';
 import { useToast } from '../shared/Toast';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
@@ -17,9 +13,10 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
     if (isOpen) {
       const timer = setTimeout(() => setShow(true), 200);
       return () => clearTimeout(timer);
-    } else {
-      setShow(false);
     }
+
+    setShow(false);
+    return undefined;
   }, [isOpen]);
 
   useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
@@ -31,8 +28,6 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
     month: 'long',
     day: 'numeric',
   });
-
-  const DOWNLOAD_FEEDBACK_MS = 1000;
 
   const handleDownload = async () => {
     setDownloading(true);
@@ -47,7 +42,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
     } catch {
       toast.show('Certificate failed — try again in a moment.');
     } finally {
-      setTimeout(() => setDownloading(false), DOWNLOAD_FEEDBACK_MS);
+      setTimeout(() => setDownloading(false), 1000);
     }
   };
 
@@ -56,10 +51,11 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
       <div
         ref={modalRef}
         className={`cc-card ${show ? 'show' : ''}`}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-label={`${course.label} course complete`}
+        aria-labelledby="cc-course-title"
+        aria-describedby="cc-course-desc cc-course-kicker"
         tabIndex={-1}
       >
         <div className="cc-badge-row">
@@ -67,35 +63,54 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
         </div>
 
         <div className="cc-header">
-          <h2 className="cc-title">Course Complete!</h2>
-          <p className="cc-sub">You crushed it.</p>
+          <span className="cc-overline">Milestone unlocked</span>
+          <h2 id="cc-course-title" className="cc-title">Course complete</h2>
+          <p id="cc-course-desc" className="cc-sub">
+            You finished <strong>{course.label}</strong> and shipped all {lessonCount} lessons.
+          </p>
+          <p id="cc-course-kicker" className="cc-kicker">
+            This is proof that you stayed with the work long enough to turn effort into
+            visible progress.
+          </p>
         </div>
 
         <div className="cc-cert">
           <div className="cc-cert-inner">
             <div className="cc-cert-border" style={{ borderColor: course.accent }} />
             <div className="cc-cert-icon">{course.icon}</div>
-            <div className="cc-cert-label">Certificate of Completion</div>
+            <div className="cc-cert-label">Certificate of completion</div>
             <div className="cc-cert-course" style={{ color: course.accent }}>
               {course.label}
             </div>
             <div className="cc-cert-name">{displayName || 'Learner'}</div>
-            <div className="cc-cert-detail">
-              Completed all {lessonCount} lessons
-            </div>
+            <div className="cc-cert-detail">Completed all {lessonCount} lessons</div>
             <div className="cc-cert-date">{today}</div>
-            <div className="cc-cert-brand">&lt;Code&gt;<span style={{fontWeight:700,background:'linear-gradient(135deg,#7B61FF,#FF6FD8)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>Her</span>&lt;/Way&gt;</div>
+            <div className="cc-cert-brand">
+              {'<Code>'}
+              <span
+                style={{
+                  fontWeight: 700,
+                  background: 'linear-gradient(135deg,#7B61FF,#FF6FD8)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                }}
+              >
+                Her
+              </span>
+              {'</Way>'}
+            </div>
           </div>
         </div>
 
         <div className="cc-actions">
-          <button type="button"
+          <button
+            type="button"
             className="cc-download-btn"
             onClick={handleDownload}
             disabled={downloading}
             aria-busy={downloading}
           >
-            {downloading ? '⏳ Generating...' : '📄 Download Certificate (PDF)'}
+            {downloading ? 'Generating...' : 'Download certificate (PDF)'}
           </button>
 
           <button type="button" className="cc-share-btn" onClick={async () => {
@@ -111,10 +126,14 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
           </button>
 
           <button type="button" className="cc-close-btn" onClick={onClose}>
-            Keep Going →
+            Keep building →
           </button>
         </div>
       </div>
     </div>
   );
 }
+
+
+
+

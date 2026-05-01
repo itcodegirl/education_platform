@@ -5,7 +5,7 @@ export const JS_QUIZZES = [
   { id:'j1a2', type:'mc', question:'JS runs primarily in:', options:['The server','The browser','A database','The CSS engine'], correct:1, explanation:'JavaScript runs in the browser (client-side). Node.js runs server-side.' },
   { id:'j1a3', type:'mc', question:'What happens without JavaScript?', options:['Page won\'t load','Page works but has no interactivity','CSS breaks','HTML is invalid'], correct:1, explanation:'HTML + CSS render without JS. JS adds behavior on top.' },
   { id:'j1a4', type:'mc', question:'JavaScript was created in:', options:['2010','1995','2005','1985'], correct:1, explanation:'Brendan Eich created JavaScript in 10 days in 1995.' },
-  { id:'j1a5', type:'mc', question:'JavaScript is NOT related to:', options:['Java','TypeScript','Node.js','React'], correct:0, explanation:'JavaScript and Java are completely different languages.' },
+  { id:'j1a5', type:'mc', question:'JavaScript is NOT related to:', options:['Java','ECMAScript','Node.js','React'], correct:0, explanation:'JavaScript and Java are completely different languages.' },
   { id:'j1a6', type:'mc', question:'console.log() is used for:', options:['Styling','Printing output to the browser console','Creating HTML','Sending data'], correct:1, explanation:'console.log() outputs values to DevTools for debugging.' },
   { id:'j1a7', type:'mc', question:'JS is a __ language.', options:['Markup','Stylesheet','Programming','Database'], correct:2, explanation:'JavaScript is a programming language with logic, loops, and functions.' },
 ]},
@@ -22,7 +22,7 @@ export const JS_QUIZZES = [
   { id:'j1c1', type:'mc', question:'defer on <script> means:', options:['Delete the script','Load after HTML is fully parsed','Run first','Block rendering'], correct:1, explanation:'defer prevents JS from blocking HTML parsing.' },
   { id:'j1c2', type:'mc', question:'Where should <script> tags go?', options:['In <head> always','Before </body> or in <head> with defer','After </html>','In <p> tags'], correct:1, explanation:'Before </body> or with defer ensures HTML loads first.' },
   { id:'j1c3', type:'mc', question:'What does "use strict" do?', options:['Nothing','Enables strict mode — catches silent errors','Makes JS faster','Disables features'], correct:1, explanation:'Strict mode catches common mistakes and prevents unsafe actions.' },
-  { id:'j1c4', type:'mc', question:'type="module" on a script:', options:['Is invalid','Enables ES module syntax (import/export)','Makes it faster','Adds TypeScript'], correct:1, explanation:'type="module" enables import/export and automatic strict mode.' },
+  { id:'j1c4', type:'mc', question:'type="module" on a script:', options:['Is invalid','Enables ES module syntax (import/export)','Makes it faster','Auto-loads Babel'], correct:1, explanation:'type="module" enables import/export and automatic strict mode.' },
   { id:'j1c5', type:'mc', question:'Script without defer in <head>:', options:['Loads fast','Blocks HTML parsing until the script downloads and runs','Is fine','Loads last'], correct:1, explanation:'Without defer, scripts in <head> block rendering.' },
   { id:'j1c6', type:'mc', question:'async vs defer:', options:['Same thing','async runs as soon as downloaded; defer waits for HTML','async is slower','defer downloads later'], correct:1, explanation:'async doesn\'t guarantee order. defer maintains script order.' },
   { id:'j1c7', type:'mc', question:'A linked JS file uses:', options:['<js src="...">','<script src="..."></script>','<link rel="js">','<import src="...">'], correct:1, explanation:'<script src="file.js"></script> links an external JavaScript file.' },
@@ -353,4 +353,24 @@ export const JS_QUIZZES = [
 ]},
 
   // ═══════════════════════════════════════════════
+
+{ lessonId:'js-2-4', questions:[
+  { id:'js24a1', type:'mc', question:'A good dashboard metric should be:', options:['Random and surprising','Clearly tied to a user or business goal','Only visual','Different every page load'], correct:1, explanation:'Useful metrics are measurable and connected to a real goal.' },
+  { id:'js24a2', type:'mc', question:'Which data shape is best for rendering a table of products?', options:['A single string','An array of objects','A boolean','A nested function'], correct:1, explanation:'An array of objects is ideal for rendering repeatable rows of structured data.' },
+  { id:'js24a3', type:'mc', question:'What is the result of this code? const total = sales.reduce((sum, row) => sum + row.revenue, 0);', options:['A new array of rows','The total revenue number','The highest revenue row','A string of revenues'], correct:1, explanation:'reduce combines all row.revenue values into one total.' },
+  { id:'js24a4', type:'mc', question:'Find the bug: const rows = data.map(item => `<li>${item.name}</li>`); list.innerHTML = rows;', options:['map cannot be used with objects','rows should be joined before assigning to innerHTML','innerHTML cannot render list items','item.name must use bracket notation'], correct:1, explanation:'map returns an array. Use rows.join("") so the HTML string renders correctly.' },
+  { id:'js24a5', type:'mc', question:'For a sales dashboard, which metric pair is most useful?', options:['Background color and font size','Total revenue and conversion rate','Number of comments and logo width','Page title and footer text'], correct:1, explanation:'Good dashboards focus on meaningful performance indicators.' },
+  { id:'js24a6', type:'mc', question:'When a user changes a date filter, what should happen?', options:['Only update a label','Recompute metrics from filtered data and rerender cards/charts','Refresh the whole site','Do nothing until page reload'], correct:1, explanation:'The UI should be driven by data changes, then rerendered.' },
+  { id:'js24a7', type:'mc', question:'Which approach keeps dashboard rendering maintainable?', options:['Hard-code each card manually','Create reusable render functions that accept data','Duplicate code for every metric','Store metrics in CSS'], correct:1, explanation:'Reusable rendering functions make updates and new metrics easier.' },
+]},
+{ lessonId:'js-5-4', questions:[
+  { id:'js54a1', type:'mc', question:'What does fetch(url) return?', options:['Parsed JSON data','A Promise resolving to a Response object','A DOM element','A synchronous result'], correct:1, explanation:'fetch is async and returns a Promise that resolves to Response.' },
+  { id:'js54a2', type:'mc', question:'In async/await code, which variable holds parsed response data? const res = await fetch(url); const data = await res.json();', options:['res','data','url','fetch'], correct:1, explanation:'res is the Response object. data is the parsed JSON body.' },
+  { id:'js54a3', type:'mc', question:'Find the bug: const res = await fetch(url); const data = res.json(); render(data.items);', options:['fetch should be inside setTimeout','res.json() is missing await','render should use innerText only','url must be an object'], correct:1, explanation:'res.json() returns a Promise. You must await it before using data.' },
+  { id:'js54a4', type:'mc', question:'What is the most reliable loading-state pattern?', options:['Set loading true after request completes','Set loading true before request and set false in finally','Set loading false only on success','Never show loading states'], correct:1, explanation:'finally guarantees loading is turned off on both success and failure.' },
+  { id:'js54a5', type:'mc', question:'Why check if (!res.ok) before parsing JSON?', options:['To make code shorter','To handle HTTP errors explicitly and show user-friendly feedback','To avoid await','To skip error handling'], correct:1, explanation:'res.ok catches non-2xx responses so the app can show meaningful errors.' },
+  { id:'js54a6', type:'mc', question:'If an API returns { results: [...] }, which line is correct for rendering rows?', options:['renderRows(data.items)','renderRows(data.results)','renderRows(data.response)','renderRows(results)'], correct:1, explanation:'Use the exact property shape from the API response.' },
+  { id:'js54a7', type:'mc', question:'A complete API-powered app should handle which UI states?', options:['Only success','Loading, success, empty, and error states','Only loading and success','Only error'], correct:1, explanation:'Production-ready apps handle all common states, not just the happy path.' },
+]},
+
 ];

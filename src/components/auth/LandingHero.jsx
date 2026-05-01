@@ -1,18 +1,4 @@
-// ═══════════════════════════════════════════════
-// LANDING HERO — Scroll-driven intro shown above
-// the auth card for logged-out visitors.
-//
-// Four code panels (HTML → CSS → JS → React) fade +
-// slide into view as the user scrolls past them,
-// each paired with its live-ish output. Ends with a
-// pinned CTA that scrolls the auth card into view.
-//
-// Uses IntersectionObserver via useInView (no GSAP /
-// no Three.js — pure CSS + a single hook).
-// Honors prefers-reduced-motion.
-// ═══════════════════════════════════════════════
-
-import { useInView } from '../../hooks/useInView';
+﻿import { useInView } from '../../hooks/useInView';
 
 const PANELS = [
   {
@@ -24,12 +10,14 @@ const PANELS = [
     lang: 'html',
     code: `<h1>Hi, I'm learning to code.</h1>
 <p>And I'm going to ship something real.</p>
-<button>Let's go →</button>`,
+<button>Let's go</button>`,
     preview: (
       <div className="lh-preview-html">
         <h1>Hi, I&apos;m learning to code.</h1>
         <p>And I&apos;m going to ship something real.</p>
-        <button type="button">Let&apos;s go →</button>
+        <span className="lh-preview-action" aria-hidden="true">
+          Let&apos;s go
+        </span>
       </div>
     ),
   },
@@ -38,7 +26,7 @@ const PANELS = [
     kicker: 'Step 2',
     title: 'Style it until it feels like yours',
     blurb:
-      'CSS turns markup into a product. Colors, layout, type, motion — all just rules you write.',
+      'CSS turns markup into a product. Colors, layout, type, and motion all come from rules.',
     lang: 'css',
     code: `h1 {
   background: linear-gradient(135deg, #b44aff, #e040a0);
@@ -56,9 +44,9 @@ button {
       <div className="lh-preview-css">
         <h1 className="lh-css-title">Hi, I&apos;m learning to code.</h1>
         <p>And I&apos;m going to ship something real.</p>
-        <button type="button" className="lh-css-button">
-          Let&apos;s go →
-        </button>
+        <span className="lh-preview-action lh-css-button" aria-hidden="true">
+          Let&apos;s go
+        </span>
       </div>
     ),
   },
@@ -74,15 +62,15 @@ let count = 0;
 
 btn.addEventListener('click', () => {
   count += 1;
-  btn.textContent = \`Clicked \${count}x →\`;
+  btn.textContent = \`Clicked \${count}x\`;
 });`,
     preview: (
       <div className="lh-preview-js">
         <h1 className="lh-css-title">Hi, I&apos;m learning to code.</h1>
         <p>And I&apos;m going to ship something real.</p>
-        <button type="button" className="lh-css-button lh-js-button">
-          Clicked 3x →
-        </button>
+        <span className="lh-preview-action lh-css-button lh-js-button" aria-hidden="true">
+          Clicked 3x
+        </span>
       </div>
     ),
   },
@@ -91,14 +79,14 @@ btn.addEventListener('click', () => {
     kicker: 'Step 4',
     title: 'Build real apps with React',
     blurb:
-      'Components, props, state, hooks. Same language you know — just a better way to compose it.',
+      'Components, props, state, and hooks. Same language you know, just a better way to compose it.',
     lang: 'jsx',
     code: `function CountButton() {
   const [count, setCount] = useState(0);
 
   return (
     <button onClick={() => setCount(c => c + 1)}>
-      Clicked {count}x →
+      Clicked {count}x
     </button>
   );
 }`,
@@ -106,9 +94,9 @@ btn.addEventListener('click', () => {
       <div className="lh-preview-react">
         <div className="lh-react-app">
           <span className="lh-react-tag">&lt;App /&gt;</span>
-          <button type="button" className="lh-css-button lh-js-button">
-            Clicked 3x →
-          </button>
+          <span className="lh-preview-action lh-css-button lh-js-button" aria-hidden="true">
+            Clicked 3x
+          </span>
         </div>
       </div>
     ),
@@ -120,7 +108,7 @@ function HeroPanel({ panel, index }) {
   return (
     <section
       ref={ref}
-      className={`lh-panel lh-panel-${panel.id} ${inView ? 'in-view' : ''}`}
+      className={`lh-panel lh-panel-${panel.id} ${index % 2 === 1 ? 'lh-panel-reverse' : ''} ${inView ? 'in-view' : ''}`}
       style={{ '--lh-delay': `${index * 80}ms` }}
       aria-label={panel.title}
     >
@@ -143,11 +131,6 @@ function HeroPanel({ panel, index }) {
         </div>
         <div className="lh-preview-card">
           <div className="lh-preview-label">PREVIEW</div>
-          {/* role="img" hides the inner markup from the a11y tree — the
-              preview body contains literal <h1>/<button> elements to
-              demonstrate the learner's output, and without this wrapper
-              they would pollute the landing page's heading outline with
-              3 extra h1s. The aria-label describes the whole thing. */}
           <div
             className="lh-preview-body"
             role="img"
@@ -161,33 +144,37 @@ function HeroPanel({ panel, index }) {
   );
 }
 
-// Just the headline + lede + CTA row. Exported so AuthPage can place
-// it next to the auth card in a 2-column grid above the fold.
 export function LandingHeroIntro({ onStart, compact = false }) {
   const [introRef, introInView] = useInView({ threshold: 0.1 });
 
   return (
     <section
       ref={introRef}
+      id="landing-hero-intro"
       className={`lh-intro ${compact ? 'lh-intro-compact' : ''} ${introInView ? 'in-view' : ''}`}
     >
-      <h1 className="lh-headline">
+      <h1 id="landing-hero-title" className="lh-headline">
         Learn to code by{' '}
         <span className="lh-headline-grad">building something real.</span>
       </h1>
       <p className="lh-lede">
-        CodeHerWay takes you from <code>&lt;h1&gt;Hi&lt;/h1&gt;</code> to a
-        shipped React app — one honest, opinionated lesson at a time. Write
+        CodeHerWay takes you from <span className="lh-inline-code">&lt;h1&gt;Hi&lt;/h1&gt;</span> to a
+        shipped React app in one clear, opinionated lesson at a time. Write
         the code, see it run, ask the tutor when you&apos;re stuck.
       </p>
       <div className="lh-cta-row">
         {onStart && (
-          <button type="button" className="lh-cta" onClick={onStart}>
-            Start learning free
+          <button
+            type="button"
+            className="lh-cta ui-btn ui-btn-primary ui-btn-pill"
+            onClick={onStart}
+            aria-label="Create a free account and start your first lesson"
+          >
+            Create free account
           </button>
         )}
-        <a className="lh-cta-ghost" href="#styleguide">
-          Peek the design system →
+        <a className="lh-cta-ghost ui-btn ui-btn-secondary" href="/styleguide" aria-label="Go to the design system">
+          Browse design system
         </a>
       </div>
       {!compact && (
@@ -200,8 +187,6 @@ export function LandingHeroIntro({ onStart, compact = false }) {
   );
 }
 
-// The scroll story (4 panels + outro). Exported so AuthPage can render
-// it full-width below the 2-column intro+auth-card block.
 export function LandingHeroStory() {
   return (
     <div className="landing-hero landing-hero-story">
@@ -212,20 +197,17 @@ export function LandingHeroStory() {
       <section className="lh-outro">
         <h2 className="lh-outro-title">Ready when you are.</h2>
         <p className="lh-outro-blurb">
-          You&apos;ve seen what you&apos;ll build. The first lesson is free —
-          no credit card, no scroll-jacking signup wall.
+          You&apos;ve seen what you&apos;ll build. The first lesson is free -
+          no credit card, no signup wall.
         </p>
-        <a className="lh-cta" href="#top">
-          Back to top ↑
+        <a className="lh-cta ui-btn ui-btn-primary ui-btn-pill" href="#top" aria-label="Back to top">
+          Back to top
         </a>
       </section>
     </div>
   );
 }
 
-// Backwards-compat wrapper — still renders the full hero if someone
-// imports <LandingHero /> directly. AuthPage uses the split exports
-// above so the auth card can sit next to the intro.
 export function LandingHero({ onStart }) {
   return (
     <div className="landing-hero">
@@ -234,3 +216,5 @@ export function LandingHero({ onStart }) {
     </div>
   );
 }
+
+

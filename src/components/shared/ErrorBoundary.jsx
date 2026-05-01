@@ -1,9 +1,10 @@
-// ═══════════════════════════════════════════════
-// ERROR BOUNDARY — Catches React render crashes
+﻿// ===============================================
+// ERROR BOUNDARY - Catches React render crashes
 // Shows friendly fallback with retry option
-// ═══════════════════════════════════════════════
+// ===============================================
 
 import { Component } from 'react';
+import { reportException } from '../../lib/sentry';
 
 export class ErrorBoundary extends Component {
   constructor(props) {
@@ -16,12 +17,12 @@ export class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
+    reportException(error, { componentStack: errorInfo?.componentStack });
+
     // In dev, log the full error to the console so the developer sees
     // the stack trace immediately. In production, we don't want to
-    // pollute the user's devtools (and a real deployment should wire
-    // this to Sentry / LogRocket / similar — tracked in the roadmap).
+    // pollute the user's devtools.
     if (import.meta.env.DEV) {
-      // eslint-disable-next-line no-console
       console.error('CodeHerWay render error:', error, errorInfo);
     }
   }
@@ -36,10 +37,18 @@ export class ErrorBoundary extends Component {
 
   render() {
     if (this.state.hasError) {
+      // Allow callers to supply a compact inline fallback (e.g. panels)
+      // instead of the full-screen overlay.
+      if (this.props.fallback) {
+        return typeof this.props.fallback === 'function'
+          ? this.props.fallback({ error: this.state.error, retry: this.handleRetry })
+          : this.props.fallback;
+      }
+
       return (
         <div className="eb-screen">
           <div className="eb-card">
-            <span className="eb-icon">⚠️</span>
+            <span className="eb-icon" aria-hidden="true">!</span>
             <h2 className="eb-title">Something went wrong</h2>
             <p className="eb-msg">
               The platform hit an unexpected error. This is usually temporary.
@@ -69,3 +78,6 @@ export class ErrorBoundary extends Component {
     return this.props.children;
   }
 }
+
+
+

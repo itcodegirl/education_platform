@@ -1,5 +1,5 @@
-// ═══════════════════════════════════════════════
-// PRACTICE GENERATE — AI-generated practice quiz
+﻿// ===============================================
+// PRACTICE GENERATE - AI-generated practice quiz
 // cards for the spaced-repetition queue.
 //
 // Given a topic + concept, calls OpenAI with a
@@ -20,28 +20,30 @@
 //   6. Strict JSON validation on the model output.
 //      Invalid shapes return 502 rather than
 //      forwarding a malformed card to the client.
-// ═══════════════════════════════════════════════
+// ===============================================
+
+import { json, verifyUser, consumeQuotaPersistent, createRateLimiter } from './_shared.js';
 
 const OPENAI_URL = 'https://api.openai.com/v1/responses';
 
-// ─── In-memory rate limit (defense in depth) ───
+// --- In-memory rate limit (defense in depth) ---
 const WINDOW_MS = 60_000;
 const MAX_REQUESTS = 10;
-const rateLimits = new Map();
+const checkRateLimit = createRateLimiter(WINDOW_MS, MAX_REQUESTS);
 
-// ─── Payload limits ────────────────────────────
+// --- Payload limits ----------------------------
 const MAX_TOPIC_CHARS = 60;
 const MAX_CONCEPT_CHARS = 200;
 const MAX_OUTPUT_TOKENS = 600;
 
-// ─── Allowed topics (must match data/*/course.js ids) ─
+// --- Allowed topics (must match data/*/course.js ids) -
 const ALLOWED_TOPICS = new Set(['html', 'css', 'js', 'react', 'python']);
 
-// ─── System prompt (SERVER-SIDE, never client-controlled) ─
+// --- System prompt (SERVER-SIDE, never client-controlled) -
 const SYSTEM_PROMPT = [
   'You are the CodeHerWay practice card generator.',
   'You only generate short, beginner-friendly multiple-choice questions about web development and Python, in the voice of a supportive mentor for women learning to code.',
-  'You must respond with a SINGLE JSON object and nothing else — no prose, no markdown fences, no leading "Here is". Just the object.',
+  'You must respond with a SINGLE JSON object and nothing else - no prose, no markdown fences, no leading "Here is". Just the object.',
   'The object MUST have exactly these fields:',
   '  - question: string, a concise multiple-choice question (max 200 chars)',
   '  - code:     optional string, a short code snippet (max 300 chars) illustrating the question, or null',
@@ -51,72 +53,7 @@ const SYSTEM_PROMPT = [
   'You must refuse anything that is not about learning to code. If the topic is off-topic, return {"question":"refused","options":["","","",""],"correct":0,"explanation":"off-topic"} so the server can discard it.',
 ].join('\n');
 
-function checkRateLimit(userId) {
-  const now = Date.now();
-  let timestamps = rateLimits.get(userId) || [];
-  timestamps = timestamps.filter((t) => t > now - WINDOW_MS);
-  if (timestamps.length >= MAX_REQUESTS) return false;
-  timestamps.push(now);
-  rateLimits.set(userId, timestamps);
-  if (rateLimits.size > 200) {
-    for (const [key, ts] of rateLimits) {
-      if (ts.every((t) => t <= now - WINDOW_MS)) rateLimits.delete(key);
-    }
-  }
-  return true;
-}
-
-function json(statusCode, body) {
-  return {
-    statusCode,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  };
-}
-
-function getSupabaseConfig() {
-  return {
-    url: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
-    key: process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY,
-  };
-}
-
-async function verifyUser(token) {
-  const { url, key } = getSupabaseConfig();
-  if (!url || !key) return null;
-  try {
-    const res = await fetch(`${url}/auth/v1/user`, {
-      headers: { Authorization: `Bearer ${token}`, apikey: key },
-    });
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
-}
-
-async function consumeQuotaPersistent(token) {
-  const { url, key } = getSupabaseConfig();
-  if (!url || !key) return null;
-  try {
-    const res = await fetch(`${url}/rest/v1/rpc/consume_ai_quota`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        apikey: key,
-        'Content-Type': 'application/json',
-      },
-      body: '{}',
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data === true;
-  } catch {
-    return null;
-  }
-}
-
-// ─── JSON validation ─────────────────────────
+// --- JSON validation -------------------------
 function validateCard(raw) {
   if (!raw || typeof raw !== 'object') return null;
 
@@ -157,7 +94,7 @@ function extractJson(text) {
   }
 }
 
-// ─── Handler ─────────────────────────────────
+// --- Handler ---------------------------------
 export async function handler(event) {
   if (event.httpMethod !== 'POST') {
     return json(405, { error: 'Method not allowed' });
@@ -188,7 +125,7 @@ export async function handler(event) {
     return json(503, { error: 'Rate limiter unavailable, try again shortly.' });
   }
 
-  // ─── Parse + validate request ─────────────
+  // --- Parse + validate request -------------
   let topic, concept;
   try {
     const body = JSON.parse(event.body || '{}');
@@ -205,7 +142,7 @@ export async function handler(event) {
     return json(413, { error: 'Topic too long' });
   }
   if (!concept || concept.length > MAX_CONCEPT_CHARS) {
-    return json(400, { error: 'Concept is required and must be ≤ 200 chars' });
+    return json(400, { error: 'Concept is required and must be <= 200 chars' });
   }
 
   const userPrompt = [
@@ -216,7 +153,7 @@ export async function handler(event) {
     'Return only the JSON object described in the system prompt.',
   ].join('\n');
 
-  // ─── Call OpenAI ──────────────────────────
+  // --- Call OpenAI --------------------------
   try {
     const response = await fetch(OPENAI_URL, {
       method: 'POST',
@@ -258,10 +195,13 @@ export async function handler(event) {
     return json(200, {
       card: {
         ...card,
-        source: `AI Practice · ${topic.toUpperCase()}`,
+        source: `AI Practice  -  ${topic.toUpperCase()}`,
       },
     });
   } catch {
     return json(502, { error: 'Failed to reach AI service' });
   }
 }
+
+
+

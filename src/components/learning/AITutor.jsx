@@ -1,17 +1,24 @@
-// ═══════════════════════════════════════════════
-// AI TUTOR — Context-aware lesson assistant
+﻿// ===============================================
+// AI TUTOR - Context-aware lesson assistant
 // Uses the app's server-side AI endpoint
 // Knows the current lesson, module, and course
-// ═══════════════════════════════════════════════
+// ===============================================
 
 import { useState, useRef, useEffect } from 'react';
-import { askLessonTutor } from '../../services/aiService';
+import { askLessonTutor, AI_ERROR_CODES } from '../../services/aiService';
+
+const MAX_TUTOR_CHARS = 4000;
+const HISTORY_WINDOW = 8;
 
 export function AITutor({ lesson, moduleTitle, courseId }) {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [isOnline, setIsOnline] = useState(
+    typeof navigator === 'undefined' ? true : navigator.onLine,
+  );
   const messagesEnd = useRef(null);
   const inputRef = useRef(null);
 
@@ -20,6 +27,7 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
     setMessages([]);
     setInput('');
     setIsOpen(false);
+    setSubmitError('');
   }, [lesson?.id]);
 
   // Scroll to latest message
@@ -35,10 +43,22 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
     return () => clearTimeout(timer);
   }, [isOpen]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const markOnline = () => setIsOnline(true);
+    const markOffline = () => setIsOnline(false);
+    window.addEventListener('online', markOnline);
+    window.addEventListener('offline', markOffline);
+    return () => {
+      window.removeEventListener('online', markOnline);
+      window.removeEventListener('offline', markOffline);
+    };
+  }, []);
+
   // Build lesson context for the AI system prompt
   function buildSystemPrompt() {
     const parts = [];
-    parts.push(`You are the CodeHerWay AI Tutor — a supportive, direct coding mentor for women learning web development.`);
+    parts.push(`You are the CodeHerWay AI Tutor - a supportive, direct coding mentor for women learning web development.`);
     parts.push(`\nThe student is currently studying:`);
     parts.push(`Course: ${courseId?.toUpperCase() || 'Web Development'}`);
     if (moduleTitle) parts.push(`Module: ${moduleTitle}`);
@@ -46,7 +66,7 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
 
     if (lesson.concepts?.length) {
       parts.push(`\nKey concepts in this lesson:`);
-      lesson.concepts.forEach(c => parts.push(`• ${c}`));
+      lesson.concepts.forEach(c => parts.push(`* ${c}`));
     }
 
     if (lesson.code) {
@@ -69,14 +89,19 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
     e?.preventDefault();
     const question = input.trim();
     if (!question || loading) return;
+    if (!isOnline) {
+      setSubmitError('You are offline. Reconnect, then send your message.');
+      return;
+    }
 
     const userMsg = { role: 'user', text: question };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
+    setSubmitError('');
     setLoading(true);
 
     try {
-      const history = messages.map((m) => ({
+      const history = messages.slice(-HISTORY_WINDOW).map((m) => ({
         role: m.role === 'user' ? 'user' : 'assistant',
         content: m.text,
       }));
@@ -88,10 +113,28 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
       });
 
       setMessages(prev => [...prev, { role: 'assistant', text: aiText }]);
-    } catch (err) {
+    } catch (error) {
+      // The aiService throws AIServiceError with a stable .code; we still
+      // fall back to the offline-state hint if the navigator says we're
+      // offline but the request somehow returned an unrecognized error.
+      const code = error?.code || AI_ERROR_CODES.UNKNOWN;
+      const isNetwork = code === AI_ERROR_CODES.NETWORK || !isOnline;
+      const effectiveCode = isNetwork ? AI_ERROR_CODES.NETWORK : code;
+
+      const fallback =
+        effectiveCode === AI_ERROR_CODES.PAYLOAD_TOO_LARGE
+          ? 'That request was too long for the tutor context. Shorten it and try again.'
+          : effectiveCode === AI_ERROR_CODES.NETWORK
+            ? 'You appear offline right now. Reconnect and try again.'
+            : effectiveCode === AI_ERROR_CODES.RATE_LIMITED
+              ? 'You are sending requests too quickly. Wait a moment and try again.'
+              : effectiveCode === AI_ERROR_CODES.UNAUTHENTICATED
+                ? 'Your session expired. Sign in again and retry your message.'
+                : error?.userMessage || 'AI tutor is temporarily unavailable. Please try again in a moment.';
+      setSubmitError(fallback);
       setMessages(prev => [...prev, {
         role: 'assistant',
-        text: 'Connection issue — check your internet and try again.'
+        text: fallback,
       }]);
     } finally {
       setLoading(false);
@@ -105,7 +148,7 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
     }
   }
 
-  // Format AI response — handles code blocks and paragraphs
+  // Format AI response - handles code blocks and paragraphs
   function formatResponse(text) {
     const parts = text.split(/(```[\s\S]*?```)/g);
     return parts.map((part, i) => {
@@ -140,12 +183,15 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
         aria-expanded={isOpen}
         aria-controls="lesson-ai-tutor-panel"
       >
-        <span className="ai-tutor-icon robot-glow">🤖</span>
+        {/* Only animate while the tutor is open. The toggle sits at the
+            bottom of every lesson, so a constantly-pulsing icon there
+            pulls attention away from the content the learner is reading. */}
+        <span className={`ai-tutor-icon ${isOpen ? 'robot-glow' : ''}`} aria-hidden="true">🤖</span>
         <span className="ai-tutor-label">AI Tutor</span>
         <span className="ai-tutor-hint">
           {isOpen ? 'Close' : 'Ask about this lesson'}
         </span>
-        <span className="ai-tutor-arrow">{isOpen ? '▾' : '▸'}</span>
+        <span className="ai-tutor-arrow">{isOpen ? 'v' : '>'}</span>
       </button>
 
       {isOpen && (
@@ -155,9 +201,9 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
             {messages.length === 0 && (
               <div className="ai-welcome">
                 <p className="ai-welcome-text">
-                  👋 I know what you're studying. Ask me anything about{' '}
-                  <strong>{lesson.title}</strong> — I'll explain it, show
-                  examples, or help you debug.
+                  👋 I am grounded in this lesson already. Ask about{' '}
+                  <strong>{lesson.title}</strong> and I will explain it, show a different example,
+                  or help you get unstuck without making you feel lost.
                 </p>
                 <div className="ai-suggestions">
                   {suggestions.map((s, i) => (
@@ -210,24 +256,51 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
               ref={inputRef}
               className="ai-input"
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                setInput(e.target.value);
+                if (submitError) setSubmitError('');
+              }}
               onKeyDown={handleKeyDown}
               placeholder="Ask about this lesson..."
               aria-label="Ask the AI tutor a question"
+              maxLength={MAX_TUTOR_CHARS}
               rows={1}
-              disabled={loading}
+              disabled={loading || !isOnline}
+              aria-describedby="ai-input-meta"
             />
             <button
               type="submit"
               className="ai-send"
-              disabled={!input.trim() || loading}
+              disabled={!input.trim() || loading || !isOnline}
               aria-label="Send message to AI tutor"
             >
-              ↑
+              ^
             </button>
           </form>
+          <div id="ai-input-meta" className="ai-input-meta">
+            <span className="ai-input-limit">
+              {isOnline
+                ? `Messages can be up to ${MAX_TUTOR_CHARS.toLocaleString()} characters.`
+                : 'Offline: reconnect to send a question.'}
+            </span>
+            <span
+              className={`ai-input-count ${input.length >= MAX_TUTOR_CHARS * 0.9 ? 'near-limit' : ''}`}
+              aria-live="polite"
+            >
+              {input.length.toLocaleString()} / {MAX_TUTOR_CHARS.toLocaleString()}
+            </span>
+          </div>
+          {submitError && (
+            <p className="ai-input-error" role="status" aria-live="polite">
+              {submitError}
+            </p>
+          )}
         </div>
       )}
     </div>
   );
 }
+
+
+
+

@@ -1,4 +1,4 @@
-/* ═══════════════════════════════════════════════
+﻿/* ═══════════════════════════════════════════════
    AUTH — Auth page shell, brand layout, and the
    shared loading screen that fronts it while the
    session check is in flight.
@@ -18,6 +18,15 @@
   position: relative;
   overflow: hidden;
   padding: 20px;
+}
+.auth-theme-toggle-wrap {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 4;
+}
+.auth-theme-toggle-wrap .theme-toggle {
+  position: static;
 }
 .auth-bg { position: absolute; inset: 0; overflow: hidden; }
 .auth-grid {
@@ -78,6 +87,12 @@
   font-size: 14px;
   color: var(--text-muted);
 }
+.auth-mode-copy {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
 .auth-logo {
   font-family: 'Poppins', sans-serif;
   font-size: 30px; font-weight: 800;
@@ -119,49 +134,74 @@
   letter-spacing: 1px; margin-bottom: 6px;
   font-family: 'Inter', sans-serif;
 }
-.auth-field input {
-  width: 100%; padding: 14px 16px;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 12px;
-  background: rgba(255,255,255,0.04);
-  color: var(--text); font-size: 15px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+.auth-field .ui-input {
+  min-height: 46px;
+  border-color: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.045);
+  font-size: 15px;
+}
+.auth-field-help {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.auth-field-help-error {
+  color: #ff9aac;
+}
+.auth-field .ui-input[aria-invalid='true'] {
+  border-color: rgba(255, 111, 145, 0.65);
+  box-shadow: 0 0 0 1px rgba(255, 111, 145, 0.3);
+}
+.auth-inline-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -4px;
+}
+.auth-inline-note {
+  margin: -8px 0 2px;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.auth-reset-link {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
   font-family: 'Inter', sans-serif;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  padding: 2px 0;
 }
-.auth-field input:focus {
-  border-color: var(--purple);
-  box-shadow: 0 0 0 3px rgba(180,74,255,0.15);
+.auth-reset-link:hover:not(:disabled) {
+  color: var(--text-main);
 }
-.auth-field input::placeholder { color: var(--text-muted); }
+.auth-reset-link:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.auth-reset-link:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
 .auth-error {
-  padding: 10px 14px;
-  background: rgba(255,92,124,0.1);
-  border: 1px solid rgba(255,92,124,0.25);
-  border-radius: 10px; color: var(--red); font-size: 13px;
+  margin-top: 2px;
 }
 .auth-success {
-  padding: 10px 14px;
-  background: rgba(0,229,255,0.08);
-  border: 1px solid rgba(0,229,255,0.2);
-  border-radius: 10px; color: var(--cyan); font-size: 13px;
+  margin-top: 2px;
 }
 
 /* Neon gradient CTA button */
 .auth-submit {
-  padding: 14px; border: none;
-  border-radius: 12px;
-  background: var(--grad-brand);
-  color: #fff; font-size: 15px; font-weight: 700;
-  cursor: pointer; transition: all 0.25s;
-  font-family: 'Poppins', sans-serif;
+  width: 100%;
+  min-height: 46px;
   margin-top: 4px;
-  box-shadow: 0 4px 20px rgba(180,74,255,0.2);
+  font-family: 'Poppins', sans-serif;
 }
-.auth-submit:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(180,74,255,0.3), 0 0 24px rgba(224,64,160,0.15);
-}
-.auth-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .auth-divider {
   text-align: center; color: var(--text-muted);
@@ -177,20 +217,11 @@
 
 .auth-social { display: flex; gap: 12px; }
 .auth-social-btn {
-  flex: 1; display: flex; align-items: center; justify-content: center;
-  gap: 8px; padding: 12px;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 12px;
-  background: rgba(255,255,255,0.04);
-  color: var(--text); font-size: 14px; font-weight: 600;
-  cursor: pointer; transition: all 0.2s;
+  flex: 1;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 600;
   font-family: 'Inter', sans-serif;
-}
-.auth-social-btn:hover {
-  border-color: rgba(180,74,255,0.3);
-  background: rgba(180,74,255,0.06);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
 }
 
 /* ─── 5. Loading Screen ───────────────────────── */
@@ -213,7 +244,9 @@
 }
 .loading-screen p {
   color: var(--text-muted);
-  font-family: 'Poppins', monospace;
+  font-family: 'Poppins', sans-serif;
   font-size: 14px;
 }
+
+
 

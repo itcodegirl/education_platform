@@ -1,18 +1,26 @@
-// ═══════════════════════════════════════════════
-// APP LAYOUT — Main platform shell
+﻿// ===============================================
+// APP LAYOUT - Main platform shell
 // Sidebar + Topbar + Content + Toolbar + Panels
-// ═══════════════════════════════════════════════
+// ===============================================
 
-import { useCallback, useMemo, useEffect, useState } from "react";
+import { useCallback, useMemo, useEffect, useRef, useState } from "react";
+import { useFetcher } from "react-router-dom";
 import { COURSES } from "../data";
-import { useTheme, useAuth, useProgress, useCourseContent } from "../providers";
+import { useTheme, useAuth, useProgressData, useXP, useCourseContent } from "../providers";
 import { useNavigation } from "../hooks/useNavigation";
 import { usePanels } from "../hooks/usePanels";
 import { useKeyboardNav } from "../hooks/useKeyboardNav";
 import { useLearning } from "../hooks/useLearning";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useLocalStorage } from "../hooks/useLocalStorage";
-import { estimateReadingTime } from "../utils/helpers";
+import { useFetcherSyncFailure } from "../hooks/useFetcherSyncFailure";
+import { estimateReadingTime, getLevel } from "../utils/helpers";
+import { trackEvent } from "../lib/analytics";
+import {
+  getCourseCompletedLessonCount,
+  getLessonKeyVariants,
+  hasLessonCompletion,
+} from "../utils/lessonKeys";
 
 // Layout components
 import { Sidebar } from "../components/layout/Sidebar";
@@ -38,7 +46,7 @@ import { BreakPrompt } from "../components/shared/BreakPrompt";
 
 export function AppLayout() {
   const { theme } = useTheme();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const {
     completed = [],
     completedSet = new Set(),
@@ -46,9 +54,13 @@ export function AppLayout() {
     trackCourseVisit,
     dataLoaded,
     lastPosition,
-  } = useProgress();
+    markSyncFailed,
+    enqueuePendingSyncWrite,
+  } = useProgressData();
+  const { xpTotal = 0, streak = 0, dailyCount = 0 } = useXP();
 
   const nav = useNavigation();
+  const progressMutation = useFetcher();
   const panels = usePanels({ dataLoaded, user: true, lastPosition });
   const learn = useLearning();
   const isMobile = useIsMobile(901);
@@ -59,7 +71,7 @@ export function AppLayout() {
 
   // Lazy-load the currently-selected course's lesson content. The
   // CourseContentProvider caches loads and auto-fetches the default
-  // ('html') on mount — this effect keeps it in sync as the user
+  // ('html') on mount - this effect keeps it in sync as the user
   // switches courses so we don't over-fetch.
   const {
     setActiveCourseId,
@@ -82,7 +94,6 @@ export function AppLayout() {
 
   const {
     course,
-    modules,
     mod,
     les,
     lessonKey,
@@ -95,14 +106,32 @@ export function AppLayout() {
     mainRef,
     showModQuiz,
   } = nav;
+  const goNextLesson = nav.next;
 
-  const isDone = completedSet.has(lessonKey);
+  const { stable: stableLessonKey, legacy: legacyLessonKey } = getLessonKeyVariants(course, mod, les);
+  const isDone = hasLessonCompletion(completedSet, course, mod, les);
   const readTime = useMemo(
     () => estimateReadingTime((les.content || '') + (les.code || '')),
     [les.content, les.code],
   );
+  const level = useMemo(() => getLevel(xpTotal), [xpTotal]);
+  const hasProgress = completed.length > 0 || Number(lastPosition?.time) > 0;
+  const showStarterGuide = !hasProgress && !showModQuiz;
+  const learnerName =
+    profile?.display_name ||
+    user?.user_metadata?.display_name ||
+    user?.email?.split("@")[0] ||
+    "Builder";
   const [marking, setMarking] = useState(false);
+  const lessonViewStartRef = useRef(Date.now());
+  const trackedLessonRef = useRef('');
   const isSidebarOpen = isMobile ? panels.sidebar : true;
+
+  useFetcherSyncFailure(
+    progressMutation,
+    { markSyncFailed, enqueuePendingSyncWrite },
+    'lesson progress',
+  );
 
   useEffect(() => {
     if (isMobile) {
@@ -110,16 +139,16 @@ export function AppLayout() {
     }
   }, [isMobile, setSidebarCollapsed]);
 
-  // ─── Dynamic page title ───────────────────
+  // --- Dynamic page title -------------------
   useEffect(() => {
     const title = showModQuiz
-      ? `${mod.title} Quiz — CodeHerWay`
-      : `${les.title} — CodeHerWay`;
+      ? `${mod.title} Quiz - CodeHerWay`
+      : `${les.title} - CodeHerWay`;
     document.title = title;
-    return () => { document.title = 'CodeHerWay — Learn. Build. Ship.'; };
+    return () => { document.title = 'CodeHerWay - Learn. Build. Ship.'; };
   }, [les.title, mod.title, showModQuiz]);
 
-  // ─── Save position on navigation ──────────
+  // --- Save position on navigation ----------
   useEffect(() => {
     if (dataLoaded) {
       savePosition({
@@ -129,53 +158,176 @@ export function AppLayout() {
       });
       trackCourseVisit(course.id);
     }
-  }, [nav.courseIdx, nav.modIdx, nav.lesIdx, showModQuiz, dataLoaded]);
+  }, [
+    course.icon,
+    course.id,
+    course.label,
+    dataLoaded,
+    les.title,
+    mod.emoji,
+    mod.title,
+    savePosition,
+    showModQuiz,
+    trackCourseVisit,
+  ]);
 
-  // ─── Milestone + course completion ────────
+  // --- Milestone + course completion --------
   useEffect(() => {
     panels.checkMilestone(completed.length);
-  }, [completed.length]);
+  }, [completed.length, panels]);
 
-  const courseDone = completed.filter((k) => k.startsWith(course.label)).length;
+  const courseDone = getCourseCompletedLessonCount(completedSet, course);
+  const coursePct = courseTotal > 0 ? Math.round((courseDone / courseTotal) * 100) : 0;
   const isCourseComplete = courseDone === courseTotal && courseTotal > 0;
+
+  // Prev/next lesson title previews for the nav buttons.
+  const prevTitle = (() => {
+    if (isFirst || showModQuiz) return null;
+    if (nav.lesIdx > 0) return nav.mod.lessons[nav.lesIdx - 1]?.title || null;
+    if (nav.modIdx > 0) {
+      const prevMod = nav.modules[nav.modIdx - 1];
+      const lastLesson = prevMod?.lessons?.[prevMod.lessons.length - 1];
+      return lastLesson?.title || null;
+    }
+    return null;
+  })();
+
+  const nextTitle = (() => {
+    if (nav.isLast) return null;
+    if (nav.isLastLesson && nav.moduleQuiz && !showModQuiz) return `${nav.mod.title} Quiz`;
+    if (showModQuiz) {
+      const nextMod = nav.modules[nav.modIdx + 1];
+      return nextMod?.lessons?.[0]?.title || null;
+    }
+    if (nav.lesIdx < nav.mod.lessons.length - 1) return nav.mod.lessons[nav.lesIdx + 1]?.title || null;
+    const nextMod = nav.modules[nav.modIdx + 1];
+    return nextMod?.lessons?.[0]?.title || null;
+  })();
+
+  const lessonPosition = showModQuiz
+    ? `Module quiz for ${mod.title}`
+    : `Lesson ${nav.lesIdx + 1} of ${mod.lessons.length}`;
+  const mutationActionPath = `/learn/${encodeURIComponent(course.id)}/${encodeURIComponent(
+    mod.id,
+  )}/${encodeURIComponent(showModQuiz ? 'quiz' : les.id)}`;
+
+  const nextStepHint = (() => {
+    if (isLast) return "Track complete. Pick another course or review key lessons.";
+    if (showModQuiz) return "Finish this quiz to move into the next module.";
+    if (!isDone) return "Mark this lesson done, then continue to the next lesson.";
+    return "Nice progress. Continue when you are ready.";
+  })();
+
+  useEffect(() => {
+    if (showModQuiz || !course.id || !mod.id || !les.id) return;
+    const lessonIdentity = `${course.id}|${mod.id}|${les.id}`;
+    if (trackedLessonRef.current === lessonIdentity) return;
+
+    trackedLessonRef.current = lessonIdentity;
+    lessonViewStartRef.current = Date.now();
+    trackEvent('lesson_viewed', {
+      courseId: course.id,
+      moduleId: mod.id,
+      lessonId: les.id,
+      courseIndex: nav.courseIdx,
+      moduleIndex: nav.modIdx,
+      lessonIndex: nav.lesIdx,
+    });
+  }, [
+    course.id,
+    les.id,
+    mod.id,
+    nav.courseIdx,
+    nav.lesIdx,
+    nav.modIdx,
+    showModQuiz,
+  ]);
 
   useEffect(() => {
     if (isCourseComplete && isDone) {
       panels.triggerCourseComplete();
     }
-  }, [isCourseComplete, isDone]);
+  }, [isCourseComplete, isDone, panels]);
 
-  // ─── Actions ──────────────────────────────
+  // --- Actions ------------------------------
   const handleMarkDone = useCallback(async () => {
     if (marking) return;
     setMarking(true);
     try {
-      learn.toggleLessonDone(lessonKey);
+      const wasDone = completedSet.has(stableLessonKey) || completedSet.has(legacyLessonKey);
+      const keyToToggle = completedSet.has(stableLessonKey)
+        ? stableLessonKey
+        : completedSet.has(legacyLessonKey)
+          ? legacyLessonKey
+          : stableLessonKey;
+      const nextMode = wasDone ? 'uncomplete' : 'complete';
+      learn.toggleLessonDone(keyToToggle, { skipRemote: true });
+      progressMutation.submit(
+        {
+          intent: 'toggle-progress',
+          mode: nextMode,
+          lessonKey: keyToToggle,
+        },
+        {
+          method: 'post',
+          action: mutationActionPath,
+        },
+      );
+      trackEvent('lesson_completion_toggled', {
+        courseId: course.id,
+        moduleId: mod.id,
+        lessonId: les.id,
+        completionState: wasDone ? 'unmarked' : 'marked_complete',
+        secondsOnLesson: Math.round((Date.now() - lessonViewStartRef.current) / 1000),
+      });
     } finally {
       setMarking(false);
     }
-  }, [lessonKey, marking, learn]);
+  }, [
+    completedSet,
+    course.id,
+    legacyLessonKey,
+    les.id,
+    marking,
+    mod.id,
+    mutationActionPath,
+    progressMutation,
+    stableLessonKey,
+    learn,
+  ]);
+
+  const handleNextLesson = useCallback(() => {
+    trackEvent('lesson_next_clicked', {
+      courseId: course.id,
+      moduleId: mod.id,
+      lessonId: les.id,
+      isModuleQuiz: showModQuiz,
+      isLastLesson,
+      hasModuleQuiz: Boolean(moduleQuiz),
+    });
+    goNextLesson();
+  }, [course.id, goNextLesson, isLastLesson, les.id, mod.id, moduleQuiz, showModQuiz]);
 
   const handleOpenTool = useCallback(
-    (tool) => panels.setPanel(tool),
-    [panels.setPanel],
+    (tool) => panels.togglePanel(tool),
+    [panels],
   );
 
   const toolbarHandlers = useMemo(
     () => ({
-      onCheatsheet: () => panels.setPanel("cheatsheet"),
-      onGlossary: () => panels.setPanel("glossary"),
-      onProjects: () => panels.setPanel("projects"),
-      onBadges: () => panels.setPanel("badges"),
-      onSR: () => panels.setPanel("sr"),
-      onBookmarks: () => panels.setPanel("bookmarks"),
-      onChallenges: () => panels.setPanel("challenges"),
-      onStats: () => panels.setPanel("stats"),
+      onCheatsheet: () => panels.togglePanel("cheatsheet"),
+      onGlossary: () => panels.togglePanel("glossary"),
+      onProjects: () => panels.togglePanel("projects"),
+      onBadges: () => panels.togglePanel("badges"),
+      onSR: () => panels.togglePanel("sr"),
+      onBookmarks: () => panels.togglePanel("bookmarks"),
+      onChallenges: () => panels.togglePanel("challenges"),
+      onStats: () => panels.togglePanel("stats"),
     }),
-    [panels.setPanel],
+    [panels],
   );
 
-  // ─── Keyboard ─────────────────────────────
+  // --- Keyboard -----------------------------
   useKeyboardNav({
     onNext: nav.next,
     onPrev: nav.prev,
@@ -191,7 +343,7 @@ export function AppLayout() {
     },
   });
 
-  // ─── Render ───────────────────────────────
+  // --- Render -------------------------------
   // If the active course's content hasn't finished lazy-loading,
   // show a minimal skeleton instead of the lesson UI. This is fast
   // (~100-300ms on a warm cache, once per course per session) and
@@ -202,13 +354,13 @@ export function AppLayout() {
         <a className="skip-link" href="#main-content">Skip to main content</a>
         <EmailVerifyBanner />
         <OfflineIndicator />
-        <main id="main-content" className="mn course-skeleton" aria-busy="true" aria-live="polite">
+        <main id="main-content" className="main-shell course-skeleton" tabIndex={-1} aria-busy="true" aria-live="polite">
           <div className="course-skeleton-inner">
             <span className="course-skeleton-emoji" aria-hidden="true">
-              {activeCourseMeta?.icon || '⚡'}
+              {activeCourseMeta?.icon || '[]'}
             </span>
             <p className="course-skeleton-label">
-              Loading {activeCourseMeta?.label || 'course'}…
+              Loading {activeCourseMeta?.label || 'course'}...
             </p>
           </div>
         </main>
@@ -239,9 +391,10 @@ export function AppLayout() {
           panels.setSidebar(false);
         }}
         onOpenTool={handleOpenTool}
+        activePanel={panels.panel}
       />
 
-      <main className="mn" ref={mainRef} id="main-content">
+      <main className="main-shell" ref={mainRef} id="main-content" tabIndex={-1}>
         <header className="topbar">
           <div className="topbar-inner">
             <button
@@ -258,47 +411,72 @@ export function AppLayout() {
               aria-controls="course-sidebar"
               aria-expanded={isMobile ? panels.sidebar : !sidebarCollapsed}
             >
-              {isMobile ? "☰" : sidebarCollapsed ? "»" : "«"}
+              {isMobile ? "Menu" : sidebarCollapsed ? ">>" : "<<"}
             </button>
             <Breadcrumb
               course={course}
               mod={mod}
               lesTitle={les.title}
               showModQuiz={showModQuiz}
+              lessonPosition={lessonPosition}
             />
+            <div className="topbar-status" aria-label="Current learning status">
+              <span className="topbar-greeting">Keep building, {learnerName}.</span>
+              {!showModQuiz && (
+                <span className="topbar-pill" aria-label={`Estimated read time: ${readTime}`}>
+                  {readTime} read
+                </span>
+              )}
+              <span className="topbar-pill" aria-label={`Level ${level}`}>Lv {level}</span>
+              <span className="topbar-pill" aria-label={`Course completion ${coursePct} percent`}>
+                {coursePct}% track
+              </span>
+              {streak > 0 && (
+                <span className="topbar-pill streak" aria-label={`${streak} day streak`}>
+                  🔥 {streak} day streak
+                </span>
+              )}
+              {dailyCount > 0 && (
+                <span className="topbar-pill warm" aria-label={`Lessons done today: ${dailyCount}`}>
+                  {dailyCount} lesson{dailyCount === 1 ? '' : 's'} today
+                </span>
+              )}
+            </div>
             <div className="topbar-actions">
               <button
                 type="button"
-                className="search-trigger"
-                onClick={() => panels.setPanel("search")}
+                className={`search-trigger ui-btn ui-btn-secondary ${panels.panel === "search" ? "active" : ""}`}
+                onClick={() => panels.togglePanel("search")}
                 aria-label="Open lesson search"
+                aria-pressed={panels.panel === "search"}
               >
                 <span>🔍</span>
-                <span>Search</span>
-                <kbd>⌘K</kbd>
+                <span className="search-trigger-label">Search</span>
+                <span className="search-trigger-mobile-hint">Tap to search</span>
+                <kbd>Ctrl+K</kbd>
               </button>
               {!showModQuiz && (
-                <button
+              <button
                   type="button"
                   className={`mark-btn ${isDone ? "dn" : ""}`}
                   onClick={handleMarkDone}
                   disabled={marking}
-                  aria-label={isDone ? "Lesson completed" : "Mark lesson as done"}
+                  aria-label={marking ? "Saving lesson completion" : isDone ? "Mark lesson as not done" : "Mark lesson complete"}
                   aria-pressed={isDone}
                 >
-                  {marking ? "..." : isDone ? "✓ Done" : "Mark Done"}
+                  {marking ? "Saving..." : isDone ? "✓ Done" : "Mark Done"}
                 </button>
               )}
             </div>
           </div>
         </header>
 
-        <div className="lv-wrap">
+        <div className="lesson-container">
           {showModQuiz && moduleQuiz ? (
-            <div className="lv">
-              <div className="lv-head">
-                <span className="lv-emoji">📝</span>
-                <h1 className="lv-title">{mod.title} — Module Quiz</h1>
+            <div className="lesson-surface">
+              <div className="lesson-head">
+                <span className="lesson-emoji">📝</span>
+                <h1 className="lesson-title">{mod.title} - Module Quiz</h1>
               </div>
               <p className="lp">
                 Test your knowledge of <strong>{mod.title}</strong>.
@@ -312,6 +490,40 @@ export function AppLayout() {
             </div>
           ) : (
             <>
+              {showStarterGuide && (
+                <section className="first-run-guide" aria-label="Getting started">
+                  <div className="frg-content">
+                    <p className="frg-kicker">First login</p>
+                    <h2 className="frg-title">
+                      Welcome to your learning path, {learnerName}.
+                    </h2>
+                    <p className="frg-copy">
+                      You are on the first lesson to set your pace. Read this lesson,
+                      complete it, then hit <strong>Mark Done</strong> to unlock the next one.
+                    </p>
+                    <p className="frg-sub">Pick a course track anytime in the lesson sidebar.</p>
+                  </div>
+                  <div className="frg-courses" aria-label="Course options">
+                    {COURSES.map((entry, index) => (
+                      <button
+                        key={entry.id}
+                        type="button"
+                        className={`frg-course ${index === nav.courseIdx ? 'frg-course-active' : ''}`}
+                        onClick={() => {
+                          if (index !== nav.courseIdx) {
+                            nav.switchCourse(index);
+                          }
+                        }}
+                        aria-pressed={index === nav.courseIdx}
+                        aria-label={`Go to ${entry.label} course`}
+                      >
+                        <span aria-hidden="true">{entry.icon}</span>
+                        <span>{entry.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
               <LessonView
                 lesson={les}
                 emoji={mod.emoji}
@@ -321,7 +533,7 @@ export function AppLayout() {
                 moduleTitle={mod.title}
               />
               {lessonQuiz && (
-                <div className="lv-quiz-wrap">
+                <div className="lesson-quiz-wrap">
                   <QuizView
                     quiz={lessonQuiz}
                     accent={course.accent}
@@ -337,33 +549,55 @@ export function AppLayout() {
         <nav className="nav-row" aria-label="Lesson pagination">
           <button
             type="button"
-            className="nav-btn"
+            className="nav-btn ui-btn ui-btn-secondary"
             onClick={nav.prev}
             disabled={isFirst}
+            aria-label={prevTitle ? `Previous lesson: ${prevTitle}` : 'Previous lesson'}
           >
-            ← Previous
+            <span className="nav-btn-dir" aria-hidden="true">←</span>
+            <span className="nav-btn-text">
+              {prevTitle ? (
+                <>
+                  <span className="nav-btn-label">Previous lesson</span>
+                  <span className="nav-btn-title">{prevTitle}</span>
+                </>
+              ) : 'Previous lesson'}
+            </span>
           </button>
           <button
             type="button"
-            className="nav-btn nx"
-            onClick={nav.next}
+            className="nav-btn nx ui-btn ui-btn-primary"
+            onClick={handleNextLesson}
             disabled={isLast}
             style={{ background: course.accent }}
+            aria-label={
+              isLast ? 'Course complete' :
+              nextTitle ? `Next: ${nextTitle}` : 'Next lesson'
+            }
           >
-            {isLast
-              ? "Course Complete! 🎉"
-              : isLastLesson && moduleQuiz && !showModQuiz
-                ? "Module Quiz →"
-                : "Next →"}
+            <span className="nav-btn-text">
+              {isLast ? (
+                'Track complete'
+              ) : nextTitle ? (
+                <>
+                  <span className="nav-btn-label">Up next</span>
+                  <span className="nav-btn-title">{nextTitle}</span>
+                </>
+              ) : 'Next lesson'}
+            </span>
+            <span className="nav-btn-dir" aria-hidden="true">→</span>
           </button>
         </nav>
+        <p className="nav-guidance" role="status" aria-live="polite">
+          {nextStepHint}
+        </p>
       </main>
 
       <ThemeToggle />
       {isMobile ? (
         <LessonNavBar
           onPrev={nav.prev}
-          onNext={nav.next}
+          onNext={handleNextLesson}
           onMarkDone={handleMarkDone}
           isFirst={isFirst}
           isLast={isLast}
@@ -373,9 +607,10 @@ export function AppLayout() {
           showModQuiz={showModQuiz}
           hasModuleQuiz={!!moduleQuiz}
           accent={course.accent}
+          lessonPosition={lessonPosition}
         />
       ) : (
-        <BottomToolbar {...toolbarHandlers} />
+        <BottomToolbar activePanel={panels.panel} {...toolbarHandlers} />
       )}
       <XPPopup />
       <BadgeUnlock />
@@ -393,3 +628,8 @@ export function AppLayout() {
     </div>
   );
 }
+
+
+
+
+

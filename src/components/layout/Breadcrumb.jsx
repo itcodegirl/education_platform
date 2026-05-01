@@ -9,26 +9,33 @@ export const Breadcrumb = memo(function Breadcrumb({
   mod,
   lesTitle,
   showModQuiz,
+  lessonPosition,
 }) {
-  const currentLesson = showModQuiz ? "📝 Module Quiz" : lesTitle;
+  const currentLesson = showModQuiz ? "Module quiz" : lesTitle;
 
   return (
-    <nav className="bc" aria-label="Breadcrumb">
-      <ol className="bc-list">
-        <li
-          className="bc-course"
-          style={{ color: course.accent }}
-          title={`${course.icon} ${course.label}`}
-        >
-          {course.icon} {course.label}
-        </li>
-        <li className="bc-mod" title={`${mod.emoji} ${mod.title}`}>
-          {mod.emoji} {mod.title}
-        </li>
-        <li className="bc-les" title={currentLesson} aria-current="page">
-          {currentLesson}
-        </li>
-      </ol>
+    <nav className="breadcrumb" aria-label="Lesson breadcrumb">
+      <span
+        className="breadcrumb-course"
+        style={{ color: course.accent }}
+        title={`${course.icon} ${course.label}`}
+      >
+        {course.icon} {course.label}
+      </span>
+      <span className="breadcrumb-sep">&gt;</span>
+      <span className="breadcrumb-mod" title={`${mod.emoji} ${mod.title}`}>
+        {mod.emoji} {mod.title}
+      </span>
+      <span className="breadcrumb-sep">&gt;</span>
+      <span className="breadcrumb-les" title={currentLesson} aria-current="page">
+        {currentLesson}
+      </span>
+      {lessonPosition && (
+        <span className="breadcrumb-progress ui-chip" aria-label={lessonPosition}>
+          {lessonPosition}
+        </span>
+      )}
     </nav>
   );
 });
+

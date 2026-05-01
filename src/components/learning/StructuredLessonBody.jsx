@@ -25,11 +25,11 @@ export function StructuredLessonBody({
   onToggleTask,
 }) {
   return (
-    <div className="lv-body">
+    <div className="lesson-body">
       {/* Hook — what you'll accomplish */}
       {lesson.hook?.accomplishments && (
         <div className="box sl-hook">
-          <div className="box-label">🎯 In this lesson you will</div>
+          <div className="box-label">🎯 What you will ship</div>
           <ul className="sl-hook-list">
             {lesson.hook.accomplishments.map((item, i) => (
               <li key={i}>{item}</li>
@@ -42,6 +42,9 @@ export function StructuredLessonBody({
       {lesson.do && (
         <>
           {lesson.do.title && <h3 className="sl-section-title">🛠️ {lesson.do.title}</h3>}
+          <p className="sl-section-intro">
+            Follow the steps, watch the output change, and keep your eyes on what the code is doing as you go.
+          </p>
           {lesson.do.steps && (
             <ol className="sl-steps">
               {lesson.do.steps.map((step, i) => (
@@ -80,6 +83,9 @@ export function StructuredLessonBody({
       {lesson.understand?.concepts && (
         <>
           <h3 className="sl-section-title">💡 Understand</h3>
+          <p className="sl-section-intro">
+            These are the ideas underneath the code so you can reuse the pattern, not just copy it.
+          </p>
           <div className="sl-concepts">
             {lesson.understand.concepts.map((c, i) => (
               <div key={i} className="sl-concept-card">
@@ -109,6 +115,9 @@ export function StructuredLessonBody({
       {lesson.build && (
         <>
           <h3 className="sl-section-title">🔨 Build on it</h3>
+          <p className="sl-section-intro">
+            Push the starter a little further so the lesson becomes something you can actually shape yourself.
+          </p>
           {lesson.build.goal && <p className="lp">{lesson.build.goal}</p>}
           {lesson.build.codeComparison && (
             <div className="sl-comparison">
@@ -137,6 +146,9 @@ export function StructuredLessonBody({
         lesson.challenge.mission && (
           <>
             <h3 className="sl-section-title">🔥 Challenge: {lesson.challenge.title}</h3>
+            <p className="sl-section-intro">
+              This is the rep that turns recognition into recall. Try it before peeking at anything else.
+            </p>
             <p className="lp">{lesson.challenge.mission}</p>
             {lesson.challenge.requirements && (
               <div className="box tasks-box">
@@ -205,3 +217,4 @@ export function StructuredLessonBody({
     </div>
   );
 }
+

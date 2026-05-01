@@ -1,15 +1,36 @@
-const has = (code, str) => code.toLowerCase().includes(str.toLowerCase());
+﻿const has = (code, str) => code.toLowerCase().includes(str.toLowerCase());
 const count = (code, str) => (code.toLowerCase().match(new RegExp(str.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
 
+// Helper for DOM-based tests. Returns the iframe's document or null if
+// the iframe hasn't loaded yet — useChallengeSession.runTests already
+// awaits the iframe's onLoad before grading, so this should normally
+// be non-null. Falsy check returns false (test fails) to be safe.
+const dom = (iframe) => iframe?.contentDocument || null;
+
 export const HTML_CHALLENGES = [
+  // ─── Demonstrated DOM-based grading pattern ─────────────────────
+  // The test checks below run against the live iframe DOM (the
+  // `iframe` arg, plumbed from useChallengeSession.runTests after the
+  // iframe's onLoad). This is harder to game than the source-regex
+  // pattern used by the rest of the file — a learner can no longer
+  // pass "Uses <nav>" by typing `<!-- <nav> -->` because the parser
+  // strips the comment before querySelector runs.
+  //
+  // Migrating the rest of the catalog is purely additive: change
+  // each `check:(c)=>...` to `check:(_, iframe)=>...` and use the
+  // `dom(iframe)` helper. Source-regex tests continue to work as-is
+  // until each is migrated.
   { id:'html-ch-1', title:'Build a Navigation Bar', description:'Create a semantic nav with 4 links.', difficulty:'beginner', courseId:'html',
     starter:'<nav>\n  <!-- Add 4 links -->\n</nav>',
     requirements:['Use a <nav> element','Include exactly 4 links','Each link has href','One link opens in new tab'],
     tests:[
-      { label:'Uses <nav>', check:c=>has(c,'<nav') },
-      { label:'Has 4 links', check:c=>count(c,'<a ')>=4||count(c,'<a>')>=4 },
-      { label:'All have href', check:c=>count(c,'href=')>=4 },
-      { label:'One has target="_blank"', check:c=>has(c,'target="_blank"') },
+      { label:'Uses <nav>', check:(_, iframe)=>!!dom(iframe)?.querySelector('nav') },
+      { label:'Has 4 links', check:(_, iframe)=>(dom(iframe)?.querySelectorAll('nav a, a').length || 0) >= 4 },
+      { label:'All have href', check:(_, iframe)=>{
+        const links = Array.from(dom(iframe)?.querySelectorAll('a') || []);
+        return links.length >= 4 && links.every((a) => a.hasAttribute('href') && a.getAttribute('href').length > 0);
+      } },
+      { label:'One has target="_blank"', check:(_, iframe)=>!!dom(iframe)?.querySelector('a[target="_blank"]') },
     ],
     hint:'Use <a href="..."> for each link. Add target="_blank" to the external one.',
     solution:'<nav>\n  <a href="/">Home</a>\n  <a href="/about">About</a>\n  <a href="/contact">Contact</a>\n  <a href="https://github.com" target="_blank">GitHub</a>\n</nav>' },
@@ -27,16 +48,33 @@ export const HTML_CHALLENGES = [
     hint:'<label for="x"> needs matching <input id="x">.',
     solution:'<form>\n  <fieldset>\n    <legend>Contact Us</legend>\n    <label for="name">Name</label>\n    <input type="text" id="name" name="name" required />\n    <label for="email">Email</label>\n    <input type="email" id="email" name="email" required />\n    <label for="msg">Message</label>\n    <textarea id="msg" name="message" rows="4"></textarea>\n    <button type="submit">Send</button>\n  </fieldset>\n</form>' },
 
-  { id:'html-ch-3', title:'Semantic Page Layout', description:'Build a full page using semantic HTML — no divs.', difficulty:'beginner', courseId:'html',
+  { id:'html-ch-3', title:'Semantic Page Layout', description:'Build a full page using semantic HTML - no divs.', difficulty:'beginner', courseId:'html',
     starter:'<!-- header, nav, main, section, article, aside, footer -->',
     requirements:['Has <header> with <nav>','Has <main>','Has <section> with <article>','Has <aside>','Has <footer>','No <div> elements'],
     tests:[
-      { label:'<header> with <nav>', check:c=>has(c,'<header')&&has(c,'<nav') },
-      { label:'<main>', check:c=>has(c,'<main') },
-      { label:'<section> with <article>', check:c=>has(c,'<section')&&has(c,'<article') },
-      { label:'<aside>', check:c=>has(c,'<aside') },
-      { label:'<footer>', check:c=>has(c,'<footer') },
-      { label:'No divs', check:c=>count(c,'<div')=== 0 },
+      // DOM-based: enforces both presence AND nesting (the source-text
+      // version passed if both substrings appeared anywhere in the
+      // file, even if the <nav> wasn't actually inside the <header>).
+      { label:'<header> with <nav>', check:(_, iframe)=>{
+        const header = dom(iframe)?.querySelector('header');
+        return !!header && !!header.querySelector('nav');
+      } },
+      { label:'<main>', check:(_, iframe)=>!!dom(iframe)?.querySelector('main') },
+      { label:'<section> with <article>', check:(_, iframe)=>{
+        const section = dom(iframe)?.querySelector('section');
+        return !!section && !!section.querySelector('article');
+      } },
+      { label:'<aside>', check:(_, iframe)=>!!dom(iframe)?.querySelector('aside') },
+      { label:'<footer>', check:(_, iframe)=>!!dom(iframe)?.querySelector('footer') },
+      // No-div check now actually inspects the rendered DOM, so an
+      // HTML comment containing the literal '<div' no longer counts.
+      // We only look at body descendants to avoid being tripped up by
+      // any wrapper the iframe boilerplate adds.
+      { label:'No divs', check:(_, iframe)=>{
+        const body = dom(iframe)?.body;
+        if (!body) return false;
+        return body.querySelectorAll('div').length === 0;
+      } },
     ],
     hint:'Think zones: header (top), main (center), aside (sidebar), footer (bottom).',
     solution:'<header>\n  <nav><a href="/">Home</a> <a href="/about">About</a></nav>\n</header>\n<main>\n  <section>\n    <h2>Posts</h2>\n    <article><h3>First Post</h3><p>Content.</p></article>\n  </section>\n  <aside><h3>About</h3><p>Sidebar.</p></aside>\n</main>\n<footer><p>&copy; 2025 CodeHerWay</p></footer>' },
@@ -75,7 +113,7 @@ export const HTML_CHALLENGES = [
       { label:'Wrapped in <section>', check:c=>has(c,'<section') },
     ],
     hint:'<details><summary>Question?</summary><p>Answer.</p></details>',
-    solution:'<section>\n  <h2>FAQ</h2>\n  <details><summary>What is HTML?</summary><p>HyperText Markup Language — structures web content.</p></details>\n  <details><summary>Is HTML a programming language?</summary><p>No, it is a markup language.</p></details>\n  <details><summary>What is semantic HTML?</summary><p>Using tags that describe meaning, like nav, main, article.</p></details>\n  <details><summary>Why is alt text important?</summary><p>Screen readers need it to describe images to visually impaired users.</p></details>\n</section>' },
+    solution:'<section>\n  <h2>FAQ</h2>\n  <details><summary>What is HTML?</summary><p>HyperText Markup Language - structures web content.</p></details>\n  <details><summary>Is HTML a programming language?</summary><p>No, it is a markup language.</p></details>\n  <details><summary>What is semantic HTML?</summary><p>Using tags that describe meaning, like nav, main, article.</p></details>\n  <details><summary>Why is alt text important?</summary><p>Screen readers need it to describe images to visually impaired users.</p></details>\n</section>' },
 
   { id:'html-ch-7', title:'Registration Form', description:'Build a job application form with multiple input types.', difficulty:'intermediate', courseId:'html',
     starter:'<form>\n  <!-- name, email, phone, experience (radio),\n       skills (checkboxes), resume (file), submit -->\n</form>',
@@ -125,9 +163,13 @@ export const HTML_CHALLENGES = [
       { label:'header + main + footer', check:c=>has(c,'<header')&&has(c,'<main')&&has(c,'<footer') },
       { label:'3+ nav links', check:c=>count(c,'<a ')>=3 },
       { label:'One <h1>', check:c=>count(c,'<h1')===1 },
-      { label:'Copyright entity', check:c=>has(c,'&copy;')||has(c,'©') },
+      { label:'Copyright entity', check:c=>has(c,'&copy;')||has(c,'(c)') },
       { label:'Relative paths', check:c=>has(c,'.html') },
     ],
     hint:'Use relative paths: <a href="about.html">About</a>',
     solution:'<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8" />\n  <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n  <title>My Site</title>\n</head>\n<body>\n  <header>\n    <nav>\n      <a href="index.html">Home</a>\n      <a href="about.html">About</a>\n      <a href="projects.html">Projects</a>\n      <a href="contact.html">Contact</a>\n    </nav>\n  </header>\n  <main>\n    <h1>Welcome to My Site</h1>\n    <p>Frontend developer portfolio.</p>\n  </main>\n  <footer>\n    <p>&copy; 2025 My Name</p>\n  </footer>\n</body>\n</html>' },
 ];
+
+
+
+

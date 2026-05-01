@@ -1,4 +1,4 @@
-export const module = { id: 10, emoji: '🧱', title: 'Semantic HTML', tagline: 'This separates beginners from professionals.', difficulty: 'intermediate', lessons: [
+﻿export const module = { id: 10, emoji: '🧱', title: 'Semantic HTML', tagline: 'This separates beginners from professionals.', difficulty: 'intermediate', lessons: [
     { id: 'h10-1', scaffolding: 'starter', title: 'Semantic Elements & Why They Matter',
       prereqs: ['h9-1'],
       difficulty: 'beginner', duration: '14 min',
@@ -22,7 +22,7 @@ export const module = { id: 10, emoji: '🧱', title: 'Semantic HTML', tagline: 
       prereqs: ['h10-1'],
       difficulty: 'beginner', duration: '8 min',
       concepts: [
-        '<details> and <summary> create expandable/collapsible content — no JavaScript needed.',
+        '<details> and <summary> create expandable/collapsible content - no JavaScript needed.',
         '<dialog> creates native modal dialogs.',
         '<time> marks up dates and times in machine-readable format.',
         '<address> marks up contact information.',
@@ -34,6 +34,10 @@ export const module = { id: 10, emoji: '🧱', title: 'Semantic HTML', tagline: 
         'Add a <time> element with a datetime attribute.',
         'Use <address> for your contact information.',
       ],
-      challenge: 'Build a FAQ page with 5 expandable questions using only HTML — no CSS or JS.',
+      challenge: 'Build a FAQ page with 5 expandable questions using only HTML - no CSS or JS.',
       devFession: 'I built a custom accordion with JavaScript. Then someone showed me <details>. Zero lines of JS.' },
   ]};
+
+
+
+

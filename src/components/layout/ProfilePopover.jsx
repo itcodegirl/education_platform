@@ -1,17 +1,12 @@
-// ═══════════════════════════════════════════════
-// PROFILE POPOVER — Glassmorphism stats flyout
-// Opens from the sidebar avatar. Contains all the
-// gamification data (XP, streak, daily goal, progress)
-// that was removed from the sidebar.
-// ═══════════════════════════════════════════════
-
 import { useEffect, useRef, memo } from 'react';
-import { useProgress, useAuth } from '../../providers';
+import { useProgressData, useXP, useAuth } from '../../providers';
 import { getLevel, getXPInLevel, XP_PER_LEVEL, DAILY_GOAL } from '../../utils/helpers';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { navigateTo } from '../../routes/routeUtils';
 
 export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, isMobile }) {
-  const { completed = [], xpTotal = 0, streak = 0, dailyCount = 0 } = useProgress();
+  const { completed = [] } = useProgressData();
+  const { xpTotal = 0, streak = 0, dailyCount = 0 } = useXP();
   const { user, signOut } = useAuth();
   const popoverRef = useRef(null);
 
@@ -20,6 +15,12 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
   const level = getLevel(xpTotal);
   const inLevel = getXPInLevel(xpTotal);
   const xpPct = Math.round((inLevel / XP_PER_LEVEL) * 100);
+  const lessonsToGoal = Math.max(DAILY_GOAL - dailyCount, 0);
+  const momentumMessage = dailyCount >= DAILY_GOAL
+    ? 'Daily goal complete. Keep the streak alive while you have momentum.'
+    : lessonsToGoal === 1
+      ? 'One more lesson locks in today\'s goal.'
+      : `${lessonsToGoal} more lessons to hit today\'s goal.`;
 
   useFocusTrap(popoverRef, { enabled: isOpen, onEscape: onClose });
 
@@ -27,13 +28,12 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
   useEffect(() => {
     if (!isOpen) return undefined;
 
-    const handleClick = (e) => {
-      if (popoverRef.current && !popoverRef.current.contains(e.target)) {
+    const handleClick = (event) => {
+      if (popoverRef.current && !popoverRef.current.contains(event.target)) {
         onClose();
       }
     };
 
-    // Delay listener to avoid catching the opening click
     const timer = setTimeout(() => {
       document.addEventListener('pointerdown', handleClick);
     }, 10);
@@ -54,24 +54,23 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
       aria-label="Your profile and stats"
       tabIndex={-1}
     >
-      {/* Identity */}
       <div className="pp-identity">
         <div className="pp-avatar">{displayName.charAt(0).toUpperCase()}</div>
         <div className="pp-identity-text">
           <span className="pp-name">{displayName}</span>
           <span className="pp-email">{email}</span>
+          <span className="pp-momentum">{momentumMessage}</span>
         </div>
         <span className="pp-level-badge">Lv {level}</span>
       </div>
 
-      {/* Stat grid */}
       <div className="pp-stats">
         <div className="pp-stat">
           <span className="pp-stat-value">{completed.length}</span>
           <span className="pp-stat-label">Lessons</span>
         </div>
         <div className="pp-stat">
-          <span className="pp-stat-value">{streak}{streak > 0 ? '🔥' : ''}</span>
+          <span className="pp-stat-value">{streak}{streak > 0 ? '??' : ''}</span>
           <span className="pp-stat-label">Streak</span>
         </div>
         <div className="pp-stat">
@@ -87,30 +86,31 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
         <div className="pp-stat">
           <span className="pp-stat-value">{dailyCount}/{DAILY_GOAL}</span>
           <div className="pp-goal-dots">
-            {Array.from({ length: DAILY_GOAL }, (_, i) => (
-              <span key={i} className={`pp-goal-dot ${i < dailyCount ? 'filled' : ''}`} />
+            {Array.from({ length: DAILY_GOAL }, (_, index) => (
+              <span key={index} className={`pp-goal-dot ${index < dailyCount ? 'filled' : ''}`} />
             ))}
           </div>
           <span className="pp-stat-label">Today</span>
         </div>
       </div>
 
-      {/* Time estimate */}
       <div className="pp-time">
-        <span>{Math.floor(completed.length * 3 / 60)}h total study time</span>
+        <span>{Math.floor((completed.length * 3) / 60)}h total study time</span>
       </div>
 
-      {/* Actions */}
       <div className="pp-actions">
         <button
           type="button"
           className="pp-profile-btn"
-          onClick={() => { window.location.hash = '#profile'; window.location.reload(); }}
+          onClick={() => {
+            navigateTo('/profile');
+            onClose();
+          }}
         >
-          View Profile
+          Open Profile
         </button>
         <button type="button" className="pp-signout" onClick={signOut}>
-          Sign Out
+          Sign out
         </button>
       </div>
     </div>

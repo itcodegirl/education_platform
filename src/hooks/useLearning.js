@@ -5,17 +5,53 @@
 // ═══════════════════════════════════════════════
 
 import { useMemo } from 'react';
-import { useProgress } from '../providers';
+import { useAuth, useProgressData, useXP } from '../providers';
 import { createLearningEngine } from '../services/learningEngine';
+import { isBackendRewardSyncEnabled } from '../services/rewardEventService';
 
 export function useLearning() {
+  const { user } = useAuth();
   const {
-    toggleLesson, saveQuizScore, awardXP, recordDailyActivity, completedSet,
-  } = useProgress();
+    toggleLesson,
+    saveQuizScore,
+    quizScores,
+    completedSet,
+    hasRewardBeenAwarded,
+    markRewardAwarded,
+    isChallengeCompleted,
+    markChallengeCompleted,
+    markSyncFailed,
+  } = useProgressData();
+  const { awardXP, recordDailyActivity } = useXP();
 
   const engine = useMemo(() => createLearningEngine({
-    toggleLesson, saveQuizScore, awardXP, recordDailyActivity, completedSet,
-  }), [toggleLesson, saveQuizScore, awardXP, recordDailyActivity, completedSet]);
+    toggleLesson,
+    saveQuizScore,
+    quizScores,
+    awardXP,
+    recordDailyActivity,
+    completedSet,
+    hasRewardBeenAwarded,
+    markRewardAwarded,
+    isChallengeCompleted,
+    markChallengeCompleted,
+    learnerKey: user?.id || '',
+    markSyncFailed,
+    backendRewardSyncEnabled: Boolean(user?.id) && isBackendRewardSyncEnabled(),
+  }), [
+    user?.id,
+    toggleLesson,
+    saveQuizScore,
+    quizScores,
+    awardXP,
+    recordDailyActivity,
+    completedSet,
+    hasRewardBeenAwarded,
+    markRewardAwarded,
+    isChallengeCompleted,
+    markChallengeCompleted,
+    markSyncFailed,
+  ]);
 
   return engine;
 }

@@ -1,9 +1,9 @@
-export const module = { id: 6, emoji: '🔗', title: 'Links & Navigation', tagline: 'Connect the web.', difficulty: 'beginner', lessons: [
+﻿export const module = { id: 6, emoji: '🔗', title: 'Links & Navigation', tagline: 'Connect the web.', difficulty: 'beginner', lessons: [
     { id: 'h6-1', scaffolding: 'partial', title: 'Anchor Tags, URLs & Link Types',
       prereqs: ['h5-3'],
       difficulty: 'beginner', duration: '12 min',
       concepts: [
-        '<a href="..."> creates a hyperlink — the foundation of the web.',
+        '<a href="..."> creates a hyperlink - the foundation of the web.',
         'Absolute URLs point to a full address (https://...).',
         'Relative URLs point to files in your own project (./about.html).',
         'target="_blank" opens links in a new tab.',
@@ -21,3 +21,7 @@ export const module = { id: 6, emoji: '🔗', title: 'Links & Navigation', tagli
       challenge: 'Build a simple navigation bar with 4 links: Home, About, Contact (anchor), and an external resource.',
       devFession: 'I forgot target="_blank" and kept navigating away from my own site during testing.' },
   ]};
+
+
+
+

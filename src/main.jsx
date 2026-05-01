@@ -8,19 +8,31 @@ import ReactDOM from 'react-dom/client';
 // ─── Self-hosted fonts ─────────────────────────
 // Bundled via @fontsource(-variable) packages so we can drop
 // fonts.googleapis.com / fonts.gstatic.com from the CSP entirely.
-// Inter ships as a variable font (single file, 100-900), Poppins +
-// Space Mono as discrete weights.
-import '@fontsource-variable/inter';
-import '@fontsource/poppins/400.css';
-import '@fontsource/poppins/500.css';
-import '@fontsource/poppins/600.css';
-import '@fontsource/poppins/700.css';
-import '@fontsource/poppins/800.css';
-import '@fontsource/space-mono/400.css';
-import '@fontsource/space-mono/700.css';
+// Inter ships as a variable font (100-900) but is constrained to
+// latin + latin-ext subsets for faster first load; Poppins + Space
+// Mono remain discrete weights.
+import './styles/font-subsets.css';
+import '@fontsource/poppins/latin-400.css';
+import '@fontsource/poppins/latin-500.css';
+import '@fontsource/poppins/latin-600.css';
+import '@fontsource/poppins/latin-700.css';
+import '@fontsource/poppins/latin-800.css';
+import '@fontsource/space-mono/latin-400.css';
+import '@fontsource/space-mono/latin-700.css';
+
+// ─── Service worker registration ───────────────
+// Moved out of an inline <script> in index.html because the strict
+// CSP blocks inline-script execution. Importing from a module works
+// because Vite serves it from our own origin, matching 'self'.
+import './lib/registerSW';
+import { initSentry } from './lib/sentry';
 
 import App from './App';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
+
+initSentry().catch(() => {
+  // Optional telemetry should never block rendering.
+});
 
 const CHUNK_RELOAD_KEY = 'chw:chunk-reload-at';
 const CHUNK_RELOAD_WINDOW_MS = 15000;

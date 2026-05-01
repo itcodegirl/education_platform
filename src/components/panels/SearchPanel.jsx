@@ -1,90 +1,72 @@
-// ===============================================
-// SEARCH PANEL - Cross-course search (Cmd/Ctrl+K)
-// ===============================================
-
-import { useState, useEffect, useMemo, useRef } from "react";
-import { buildSearchIndex } from "../../data/reference/search-index";
-import { useCourseContent } from "../../providers";
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { buildSearchIndex } from '../../data/reference/search-index';
+import { useCourseContent } from '../../providers';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 export function SearchPanel({ isOpen, onClose, onNavigate }) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef(null);
-
-  // Previously the search index was computed at module init time
-  // (`const searchIndex = buildSearchIndex();` at the top of the file),
-  // which froze the index with whatever COURSES contained the moment
-  // this chunk loaded — typically just the active course. Now that
-  // courses are lazy-loaded, we build the index inside a useMemo
-  // keyed on how many courses are loaded, and we trigger the rest to
-  // load on mount. The search works immediately for the active
-  // course and expands as the others stream in.
+  const modalRef = useRef(null);
   const { ensureAllLoaded, loadedCourseIds, allCoursesLoaded } = useCourseContent();
-  useEffect(() => { ensureAllLoaded(); }, [ensureAllLoaded]);
-  // `loadedCourseIds` is a stable Set reference that changes identity
-  // when new courses load, so useMemo will rebuild the index as each
-  // new course chunk arrives.
+
+  useEffect(() => {
+    ensureAllLoaded();
+  }, [ensureAllLoaded]);
+
   const searchIndex = useMemo(
     () => buildSearchIndex(),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [loadedCourseIds],
   );
 
+  useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
+
   useEffect(() => {
-    if (isOpen) {
-      setQuery("");
-      setActiveIndex(-1);
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
+    if (!isOpen) return undefined;
+
+    setQuery('');
+    setActiveIndex(-1);
+    // Defer focus a tick so the modal has finished its open animation
+    // and the focus call lands on the visible input instead of an
+    // animating element. The cleanup return matters: if the user
+    // closes the panel within 100ms, or the component unmounts, we
+    // would otherwise try to focus a hidden / stale element.
+    const focusTimer = setTimeout(() => inputRef.current?.focus(), 100);
+    return () => clearTimeout(focusTimer);
   }, [isOpen]);
 
-  useEffect(() => {
-    const handler = (event) => {
-      if (event.key === "Escape" && isOpen) onClose();
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [isOpen, onClose]);
-
-  const q = query.toLowerCase();
-  const results =
-    q.length >= 2
-      ? searchIndex
-          .filter(
-            (entry) =>
-              entry.title.toLowerCase().includes(q) ||
-              entry.module.toLowerCase().includes(q) ||
-              entry.course.toLowerCase().includes(q) ||
-              entry.keywords.toLowerCase().includes(q),
-          )
-          .slice(0, 15)
-      : [];
+  const normalizedQuery = query.toLowerCase();
+  const results = normalizedQuery.length >= 2
+    ? searchIndex
+        .filter((entry) =>
+          entry.title.toLowerCase().includes(normalizedQuery)
+          || entry.module.toLowerCase().includes(normalizedQuery)
+          || entry.course.toLowerCase().includes(normalizedQuery)
+          || entry.keywords.toLowerCase().includes(normalizedQuery),
+        )
+        .slice(0, 15)
+    : [];
 
   useEffect(() => {
     setActiveIndex(-1);
   }, [query]);
 
-  // SECURITY: Escape HTML in the source text AND the query before any
-  // regex substitution, then wrap matches in <mark>. Without escaping,
-  // a query like `<img src=x onerror=alert(1)>` (or future user-generated
-  // search entries) would inject live markup into the DOM via
-  // dangerouslySetInnerHTML below.
-  const escapeHtml = (s) =>
-    String(s).replace(/[&<>"']/g, (c) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    })[c]);
+  const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  })[character]);
 
   const highlight = (text) => {
     const safe = escapeHtml(text);
-    if (!q) return safe;
-    const needle = escapeHtml(q).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (!normalizedQuery) return safe;
+    const needle = escapeHtml(normalizedQuery).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     if (!needle) return safe;
-    const regex = new RegExp(`(${needle})`, "gi");
-    return safe.replace(regex, "<mark>$1</mark>");
+    const regex = new RegExp(`(${needle})`, 'gi');
+    return safe.replace(regex, '<mark>$1</mark>');
   };
 
   const handleClick = (entry) => {
@@ -95,21 +77,22 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
   const handleInputKeyDown = (event) => {
     if (!results.length) return;
 
-    if (event.key === "ArrowDown") {
+    if (event.key === 'ArrowDown') {
       event.preventDefault();
-      setActiveIndex((prev) => (prev + 1) % results.length);
+      setActiveIndex((previous) => (previous + 1) % results.length);
       return;
     }
 
-    if (event.key === "ArrowUp") {
+    if (event.key === 'ArrowUp') {
       event.preventDefault();
-      setActiveIndex((prev) => (prev <= 0 ? results.length - 1 : prev - 1));
+      setActiveIndex((previous) => (previous <= 0 ? results.length - 1 : previous - 1));
       return;
     }
 
-    if (event.key === "Enter" && activeIndex >= 0) {
+    if (event.key === 'Enter') {
       event.preventDefault();
-      handleClick(results[activeIndex]);
+      const selected = activeIndex >= 0 ? results[activeIndex] : results[0];
+      if (selected) handleClick(selected);
     }
   };
 
@@ -123,17 +106,31 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
       }}
     >
       <div
+        ref={modalRef}
         className="search-modal"
         role="dialog"
         aria-modal="true"
         aria-label="Search lessons"
+        tabIndex={-1}
       >
+        <div className="search-head">
+          <div className="panel-title-group">
+            <p className="panel-kicker">Jump faster</p>
+            <h2 className="search-title">Search lessons</h2>
+          </div>
+          <button type="button" className="cheatsheet-close" onClick={onClose} aria-label="Close search">
+            ×
+          </button>
+        </div>
+
         <div className="search-input-wrap">
           <span className="search-icon">🔍</span>
           <input
             ref={inputRef}
             className="search-input"
-            placeholder="Search lessons, topics, tags..."
+            placeholder="Search lessons, modules, and concepts..."
+            aria-label="Search lessons"
+            aria-describedby="search-shortcut-hint"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleInputKeyDown}
@@ -144,11 +141,13 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
             role="combobox"
             aria-expanded={results.length > 0}
           />
-          <span className="search-hint">ESC</span>
+          <span id="search-shortcut-hint" className="search-hint">
+            Enter opens the top result, Esc closes this panel
+          </span>
         </div>
 
         <div className="search-results" id="search-results-list" role="listbox" aria-label="Search results">
-          {q.length < 2 ? (
+          {normalizedQuery.length < 2 ? (
             <div className="search-empty">
               {allCoursesLoaded
                 ? 'Start typing to search across all courses'
@@ -164,7 +163,7 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
               </div>
               {results.map((result, index) => (
                 <button
-                  key={index}
+                  key={`${result.course}-${result.module}-${result.title}-${index}`}
                   id={`search-result-${index}`}
                   type="button"
                   role="option"
@@ -182,7 +181,7 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
                       }}
                     />
                     <div className="sr-path">
-                      {result.course} ›{" "}
+                      {result.course} {'>'}{' '}
                       <span
                         dangerouslySetInnerHTML={{
                           __html: highlight(result.module),
@@ -190,16 +189,17 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
                       />
                     </div>
                     {result.keywords && (
-                      <div
-                        className="sr-snippet"
-                        dangerouslySetInnerHTML={{
-                          __html: highlight(result.keywords.slice(0, 80)),
-                        }}
-                      />
-                    )}
-                  </div>
-                </button>
-              ))}
+                        <div
+                          className="sr-snippet"
+                          dangerouslySetInnerHTML={{
+                            __html: highlight(result.keywords.slice(0, 80)),
+                          }}
+                        />
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
             </>
           )}
         </div>

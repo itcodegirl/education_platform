@@ -1,12 +1,12 @@
-// ═══════════════════════════════════════════════
-// STYLEGUIDE — Visual reference for the design
+﻿// ===============================================
+// STYLEGUIDE - Visual reference for the design
 // tokens defined in src/styles/tokens.css.
 //
 // Open at #styleguide (no login required). Useful
 // for design review, CSS audits, and as a portfolio
-// artifact — shows at a glance that the project
+// artifact - shows at a glance that the project
 // has an actual design system, not ad-hoc colors.
-// ═══════════════════════════════════════════════
+// ===============================================
 
 const COLOR_TOKENS = [
   { name: 'bg-deep',     varName: '--bg-deep',     hex: '#0d0d1a' },
@@ -86,7 +86,13 @@ export function Styleguide({ onClose }) {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        // `dvh` handles mobile browser chrome better than `vh`. All
+        // evergreen browsers support it (Safari 15.4+, Chrome 108+,
+        // Firefox 101+). The duplicate `minHeight: '100vh'` fallback
+        // that used to sit here was silently overwritten by this line
+        // in the JS object anyway - in a React style={} object, the
+        // second key just wins, so the fallback was dead code that
+        // also tripped an esbuild duplicate-key warning on every build.
         minHeight: '100dvh',
         background: 'var(--bg-deep)',
         color: 'var(--text)',
@@ -265,7 +271,7 @@ export function Styleguide({ onClose }) {
                   }}
                 />
                 <div style={{ ...tokenLabel, marginTop: 'var(--space-2)' }}>
-                  {r.name} · {r.px === 9999 ? 'pill' : `${r.px}px`}
+                  {r.name}  -  {r.px === 9999 ? 'pill' : `${r.px}px`}
                 </div>
               </div>
             ))}
@@ -361,7 +367,7 @@ export function Styleguide({ onClose }) {
               What HTML actually is
             </div>
             <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-dim)' }}>
-              5 concepts · 3 challenges · ~12 min
+              5 concepts  -  3 challenges  -  ~12 min
             </div>
           </div>
         </section>
@@ -378,7 +384,7 @@ export function Styleguide({ onClose }) {
         >
           Tokens defined in{' '}
           <code style={{ fontFamily: '"Space Mono", monospace' }}>src/styles/tokens.css</code>
-          {' · '}
+          {'  -  '}
           Open this page at any time via{' '}
           <code style={{ fontFamily: '"Space Mono", monospace' }}>#styleguide</code>
         </footer>
@@ -386,3 +392,7 @@ export function Styleguide({ onClose }) {
     </div>
   );
 }
+
+
+
+

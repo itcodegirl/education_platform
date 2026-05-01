@@ -1,41 +1,85 @@
 import { useEffect, useRef } from 'react';
-import { useProgress, useCourseContent } from '../../providers';
+import { useFetcher, useLocation } from 'react-router-dom';
+import { useProgressData, useSR, useCourseContent } from '../../providers';
 import { COURSES } from '../../data';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useFetcherSyncFailure } from '../../hooks/useFetcherSyncFailure';
+import { findLessonByKey } from '../../utils/lessonKeys';
 
-function parseLessonKey(lessonKey) {
-  const [courseLabel = '', moduleTitle = '', lessonTitle = ''] = (lessonKey || '').split('|');
-  return { courseLabel, moduleTitle, lessonTitle };
+function findBookmarkTarget(bookmark, courses) {
+  const byKey = findLessonByKey(bookmark.lesson_key, courses);
+  if (byKey) return byKey;
+
+  const courseIndex = courses.findIndex((course) => course.id === bookmark.course_id);
+  if (courseIndex === -1) return null;
+  const course = courses[courseIndex];
+  if (!bookmark.lesson_title) return null;
+
+  for (let moduleIndex = 0; moduleIndex < course.modules.length; moduleIndex += 1) {
+    const moduleData = course.modules[moduleIndex];
+    const lessonIndex = moduleData.lessons.findIndex((lesson) => lesson.title === bookmark.lesson_title);
+    if (lessonIndex === -1) continue;
+
+    return {
+      course,
+      moduleData,
+      lesson: moduleData.lessons[lessonIndex],
+      courseIndex,
+      moduleIndex,
+      lessonIndex,
+    };
+  }
+
+  return null;
 }
 
 export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
-  const { bookmarks, toggleBookmark } = useProgress();
+  const { bookmarks, toggleBookmark } = useSR();
+  const {
+    markSyncFailed = () => {},
+    enqueuePendingSyncWrite = () => false,
+  } = useProgressData();
+  const bookmarkMutation = useFetcher();
+  const location = useLocation();
   const modalRef = useRef(null);
   useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
   // Bookmarks can point to any course. Trigger a full load so that
   // when the user clicks one, handleClick below can resolve the
   // moduleIndex + lessonIndex synchronously.
-  const { ensureAllLoaded } = useCourseContent();
+  const { ensureAllLoaded, courses = [] } = useCourseContent();
+  const sourceCourses = courses.length > 0 ? courses : COURSES;
+  useFetcherSyncFailure(
+    bookmarkMutation,
+    { markSyncFailed, enqueuePendingSyncWrite },
+    'bookmarks panel',
+  );
   useEffect(() => {
     if (isOpen) ensureAllLoaded();
   }, [isOpen, ensureAllLoaded]);
   if (!isOpen) return null;
 
   const handleClick = (bookmark) => {
-    const courseIndex = COURSES.findIndex((course) => course.id === bookmark.course_id);
-    if (courseIndex === -1) return;
-
-    const course = COURSES[courseIndex];
-    const { moduleTitle, lessonTitle } = parseLessonKey(bookmark.lesson_key);
-    const moduleIndex = course.modules.findIndex((module) => module.title === moduleTitle);
-    if (moduleIndex === -1) return;
-
-    const targetLessonTitle = bookmark.lesson_title || lessonTitle;
-    const lessonIndex = course.modules[moduleIndex].lessons.findIndex((lesson) => lesson.title === targetLessonTitle);
-    if (lessonIndex === -1) return;
-
-    onNavigate(courseIndex, moduleIndex, lessonIndex);
+    const target = findBookmarkTarget(bookmark, sourceCourses);
+    if (!target) return;
+    onNavigate(target.courseIndex, target.moduleIndex, target.lessonIndex);
     onClose();
+  };
+
+  const handleRemoveBookmark = (bookmark) => {
+    toggleBookmark(bookmark.lesson_key, bookmark.course_id, bookmark.lesson_title, { skipRemote: true });
+    bookmarkMutation.submit(
+      {
+        intent: 'toggle-bookmark',
+        mode: 'remove',
+        lessonKey: bookmark.lesson_key,
+        courseId: bookmark.course_id,
+        lessonTitle: bookmark.lesson_title,
+      },
+      {
+        method: 'post',
+        action: location.pathname,
+      },
+    );
   };
 
   return (
@@ -49,22 +93,33 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
         tabIndex={-1}
       >
         <div className="cheatsheet-head">
-          <h2>Bookmarks ({bookmarks.length})</h2>
-          <button type="button" className="cheatsheet-close" onClick={onClose}>x</button>
+          <div className="panel-title-group">
+            <p className="panel-kicker">Saved lessons</p>
+            <h2>Bookmarks ({bookmarks.length})</h2>
+          </div>
+          <button type="button" className="cheatsheet-close" onClick={onClose} aria-label="Close bookmarks">
+            x
+          </button>
         </div>
         <div className="cheatsheet-body">
+          <p className="panel-meta">
+            Save lessons from the lesson header star so you can jump back in quickly.
+          </p>
           {bookmarks.length === 0 ? (
             <div className="sr-empty">
-              <span className="sr-empty-icon">+</span>
+              <span className="sr-empty-icon" aria-hidden="true">*</span>
               <p><strong>No bookmarks yet</strong></p>
               <p className="empty-state-msg">
-                Click the bookmark icon on any lesson to save it here.
+                Mark a lesson as saved from the header star, and it will appear here for one-click return.
               </p>
             </div>
           ) : (
             bookmarks.map((bookmark) => {
-              const { moduleTitle } = parseLessonKey(bookmark.lesson_key);
-              const coursePath = `${bookmark.course_id.toUpperCase()} > ${moduleTitle || 'Saved lesson'}`;
+              const target = findBookmarkTarget(bookmark, sourceCourses);
+              const moduleTitle = target?.moduleData?.title || 'Saved lesson';
+              const courseLabel = target?.course?.label || bookmark.course_id.toUpperCase();
+              const coursePath = `${courseLabel} > ${moduleTitle}`;
+              const isUnavailable = !target;
 
               // Two sibling buttons inside a pure-layout div: the
               // primary "open bookmark" action and the secondary
@@ -79,7 +134,10 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
                     type="button"
                     className="bk-main"
                     onClick={() => handleClick(bookmark)}
-                    aria-label={`Open ${bookmark.lesson_title} (${coursePath})`}
+                    aria-label={isUnavailable
+                      ? `${bookmark.lesson_title} is unavailable in the current course catalog`
+                      : `Open ${bookmark.lesson_title} (${coursePath})`}
+                    disabled={isUnavailable}
                   >
                     <span className="bk-info">
                       <span className="bk-title">{bookmark.lesson_title}</span>
@@ -89,7 +147,7 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
                   <button
                     type="button"
                     className="bk-remove"
-                    onClick={() => toggleBookmark(bookmark.lesson_key, bookmark.course_id, bookmark.lesson_title)}
+                    onClick={() => handleRemoveBookmark(bookmark)}
                     title="Remove bookmark"
                     aria-label={`Remove bookmark for ${bookmark.lesson_title}`}
                   >

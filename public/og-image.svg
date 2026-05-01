@@ -1,4 +1,4 @@
-<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+﻿<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#08080f"/>
@@ -15,5 +15,8 @@
   <text x="600" y="240" text-anchor="middle" font-family="monospace" font-size="72" font-weight="700" fill="url(#accent)">CodeHerWay</text>
   <text x="600" y="320" text-anchor="middle" font-family="sans-serif" font-size="36" fill="#e0e0e8">Learn. Build. Ship.</text>
   <text x="600" y="420" text-anchor="middle" font-family="sans-serif" font-size="24" fill="#8888a8">Where women code, lead, and rewrite the future of tech.</text>
-  <text x="600" y="500" text-anchor="middle" font-family="monospace" font-size="20" fill="#5a5a7a">HTML  ·  CSS  ·  JavaScript  ·  React</text>
+  <text x="600" y="500" text-anchor="middle" font-family="monospace" font-size="20" fill="#5a5a7a">HTML   -   CSS   -   JavaScript   -   React</text>
 </svg>
+
+
+
