@@ -5,7 +5,7 @@
 // the user clicks the ✎ button in LessonHeader.
 // ═══════════════════════════════════════════════
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useProgress } from '../../providers';
 
 const SAVE_DEBOUNCE_MS = 800;
@@ -15,23 +15,13 @@ export function LessonNotesPanel({ lessonKey }) {
   const [noteText, setNoteText] = useState(() => getNote(lessonKey));
   const saveTimer = useRef(null);
   const noteRef = useRef(noteText);
-  const keyRef = useRef(lessonKey);
 
   noteRef.current = noteText;
-  keyRef.current = lessonKey;
 
   // Re-seed when the user navigates to a different lesson.
   useEffect(() => {
     setNoteText(getNote(lessonKey));
   }, [lessonKey, getNote]);
-
-  const flushSave = useCallback(() => {
-    if (saveTimer.current) {
-      clearTimeout(saveTimer.current);
-      saveTimer.current = null;
-      saveNote(keyRef.current, noteRef.current);
-    }
-  }, [saveNote]);
 
   const handleChange = (event) => {
     const value = event.target.value;
@@ -43,11 +33,21 @@ export function LessonNotesPanel({ lessonKey }) {
     }, SAVE_DEBOUNCE_MS);
   };
 
-  // Flush pending save on unmount or when lessonKey changes so we
-  // never lose the last ~800ms of typing.
+  // Flush pending save on unmount or when lessonKey changes.
+  // `lessonKey` is captured by the closure — when the effect
+  // re-runs because lessonKey changed A→B, the cleanup fires
+  // with A (the value from the previous render's closure),
+  // while noteRef.current gives the latest text. This avoids
+  // the race where a ref-based key would already hold B.
   useEffect(() => {
-    return () => flushSave();
-  }, [lessonKey, flushSave]);
+    return () => {
+      if (saveTimer.current) {
+        clearTimeout(saveTimer.current);
+        saveTimer.current = null;
+        saveNote(lessonKey, noteRef.current);
+      }
+    };
+  }, [lessonKey, saveNote]);
 
   const savedText = getNote(lessonKey);
   const isDirty = noteText !== savedText;
