@@ -183,7 +183,10 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
         aria-expanded={isOpen}
         aria-controls="lesson-ai-tutor-panel"
       >
-        <span className="ai-tutor-icon robot-glow" aria-hidden="true">🤖</span>
+        {/* Only animate while the tutor is open. The toggle sits at the
+            bottom of every lesson, so a constantly-pulsing icon there
+            pulls attention away from the content the learner is reading. */}
+        <span className={`ai-tutor-icon ${isOpen ? 'robot-glow' : ''}`} aria-hidden="true">🤖</span>
         <span className="ai-tutor-label">AI Tutor</span>
         <span className="ai-tutor-hint">
           {isOpen ? 'Close' : 'Ask about this lesson'}
