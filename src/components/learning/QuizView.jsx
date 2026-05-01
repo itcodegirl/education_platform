@@ -128,6 +128,7 @@ function FillQuestion({ q, answer, onAnswer, submitted }) {
           onChange={(e) => onAnswer(e.target.value)}
           disabled={submitted}
           placeholder="Type your answer..."
+          aria-label="Your answer"
           autoComplete="off"
           spellCheck={false}
         />
@@ -174,8 +175,8 @@ function OrderQuestion({ q, answer, onAnswer, submitted }) {
               <span className="qq-order-text">{q.items[itemIdx]}</span>
               {!submitted && (
                 <span className="qq-order-btns">
-                  <button type="button" className="qq-order-btn" onClick={() => moveUp(pos)} disabled={pos === 0}>↑</button>
-                  <button type="button" className="qq-order-btn" onClick={() => moveDown(pos)} disabled={pos === items.length - 1}>↓</button>
+                  <button type="button" className="qq-order-btn" onClick={() => moveUp(pos)} disabled={pos === 0} aria-label={`Move ${q.items[itemIdx]} up`}>↑</button>
+                  <button type="button" className="qq-order-btn" onClick={() => moveDown(pos)} disabled={pos === items.length - 1} aria-label={`Move ${q.items[itemIdx]} down`}>↓</button>
                 </span>
               )}
             </div>
@@ -320,7 +321,7 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
           {allAnswered ? 'Submit Answers' : `Answer all ${total} to submit`}
         </button>
       ) : (
-        <div className="quiz-results">
+        <div className="quiz-results" role="status" aria-live="polite">
           <div className="quiz-score" style={{ borderColor: accent }}>
             <div className="quiz-score-num" style={{ color: accent }}>{score}/{total}</div>
             <div className="quiz-score-pct">
