@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState, useCallback } from "react";
 import { useProgress } from "../../providers";
 
 export const BottomToolbar = memo(function BottomToolbar({
@@ -15,15 +15,21 @@ export const BottomToolbar = memo(function BottomToolbar({
   const dueCount = getDueSRCards().length;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  const triggerRef = useRef(null);
+
+  const closeMenu = useCallback((restoreFocus) => {
+    setIsMenuOpen(false);
+    if (restoreFocus) triggerRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     if (!isMenuOpen) return undefined;
     const handlePointerDown = (event) => {
       if (!menuRef.current) return;
-      if (!menuRef.current.contains(event.target)) setIsMenuOpen(false);
+      if (!menuRef.current.contains(event.target)) closeMenu(false);
     };
     const handleEscape = (event) => {
-      if (event.key === "Escape") setIsMenuOpen(false);
+      if (event.key === "Escape") closeMenu(true);
     };
     document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("keydown", handleEscape);
@@ -31,10 +37,10 @@ export const BottomToolbar = memo(function BottomToolbar({
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [isMenuOpen]);
+  }, [isMenuOpen, closeMenu]);
 
   const closeMenuAndRun = (action) => {
-    setIsMenuOpen(false);
+    closeMenu(true);
     action();
   };
 
@@ -59,13 +65,13 @@ export const BottomToolbar = memo(function BottomToolbar({
         type="button"
         className="tool-btn"
         title="Bookmarks"
-        aria-label="Open bookmarks"
+        aria-label={`Open bookmarks${bookmarks.length > 0 ? `, ${bookmarks.length} saved` : ''}`}
         onClick={onBookmarks}
         data-label="Bookmarks"
       >
         ★
         {bookmarks.length > 0 && (
-          <span className="badge-notif bk-notif">{bookmarks.length}</span>
+          <span className="badge-notif bk-notif" aria-hidden="true">{bookmarks.length}</span>
         )}
       </button>
 
@@ -93,11 +99,13 @@ export const BottomToolbar = memo(function BottomToolbar({
 
       <div className="tool-menu-wrap" ref={menuRef}>
         <button
+          ref={triggerRef}
           type="button"
           className={`tool-btn ${isMenuOpen ? "active" : ""}`}
           title="More tools"
-          aria-label="Open more tools"
+          aria-label="More tools"
           aria-expanded={isMenuOpen}
+          aria-haspopup="menu"
           onClick={() => setIsMenuOpen((open) => !open)}
           data-label="More"
         >
@@ -122,7 +130,7 @@ export const BottomToolbar = memo(function BottomToolbar({
             >
               🔄 Review Queue
               {dueCount > 0 && (
-                <span className="tool-menu-count">{dueCount}</span>
+                <span className="tool-menu-count" aria-label={`${dueCount} cards due`}>{dueCount}</span>
               )}
             </button>
             <button

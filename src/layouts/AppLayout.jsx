@@ -98,7 +98,7 @@ export function AppLayout() {
 
   const isDone = completedSet.has(lessonKey);
   const readTime = useMemo(
-    () => estimateReadingTime(les.content + les.code),
+    () => estimateReadingTime((les.content || '') + (les.code || '')),
     [les.content, les.code],
   );
   const [marking, setMarking] = useState(false);
