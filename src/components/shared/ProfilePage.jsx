@@ -199,24 +199,34 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
         <h3 className="pp-section-title">
           Proof of progress ({badgeCount}/{BADGE_DEFS.length})
         </h3>
-        <div className="pp-badge-grid">
+        {/* List semantics + per-badge earned/locked status, mirroring
+            BadgesPanel — without these the screen-reader experience
+            was identical for earned and locked badges (visual-only).
+            Earned date isn't stored here on the profile (the dated
+            record lives in earnedBadges), so we just say earned/locked. */}
+        <ul
+          className="pp-badge-grid"
+          aria-label={`${badgeCount} of ${BADGE_DEFS.length} badges earned`}
+        >
           {BADGE_DEFS.map((badge) => {
             const earned = Boolean(earnedBadges[badge.id]);
+            const status = earned ? 'earned' : 'locked';
 
             return (
-              <div
+              <li
                 key={badge.id}
                 className={`pp-badge-card ${earned ? 'earned' : 'locked'}`}
+                aria-label={`${badge.name}, ${status}. ${badge.desc}`}
               >
-                <div className="pp-badge-icon">{badge.icon}</div>
+                <div className="pp-badge-icon" aria-hidden="true">{badge.icon}</div>
                 <div className={`pp-badge-name ${earned ? 'earned' : ''}`}>
                   {badge.name}
                 </div>
                 <div className="pp-badge-desc">{badge.desc}</div>
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
 
         <h3 className="pp-section-title">Share your public page</h3>
         <div className="pp-public-card">

@@ -1,24 +1,25 @@
 // ═══════════════════════════════════════════════
-// XP POPUP — Shows "+25 XP" with optional level up
+// XP POPUP — Shows "+25 XP" with optional level up.
+// Lifecycle (visible time + fade-out + queue clear)
+// is owned by useAutoDismissReveal.
 // ═══════════════════════════════════════════════
 
-import { useEffect, useState } from 'react';
 import { useXP } from '../../providers';
+import { useAutoDismissReveal } from '../../hooks/useAutoDismissReveal';
+
+const FADE_OUT_MS = 400;
+const VISIBLE_MS_DEFAULT = 1500;
+const VISIBLE_MS_LEVEL_UP = 2500;
 
 export function XPPopup() {
   const { xpPopup, clearXPPopup } = useXP();
-  const [show, setShow] = useState(false);
 
-  useEffect(() => {
-    if (xpPopup) {
-      setShow(true);
-      const timer = setTimeout(() => {
-        setShow(false);
-        setTimeout(clearXPPopup, 400);
-      }, xpPopup.newLevel ? 2500 : 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [xpPopup, clearXPPopup]);
+  const { show } = useAutoDismissReveal({
+    active: xpPopup,
+    visibleMs: xpPopup?.newLevel ? VISIBLE_MS_LEVEL_UP : VISIBLE_MS_DEFAULT,
+    fadeOutMs: FADE_OUT_MS,
+    onClear: clearXPPopup,
+  });
 
   if (!xpPopup) return null;
 

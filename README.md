@@ -91,7 +91,7 @@ Concrete shape of the project at the current commit:
 - A reward system (XP, streaks, badges, bookmarks, spaced-repetition queue) that is event-driven, idempotent (`hasRewardBeenAwarded()` + `markRewardAwarded()`), persisted to Supabase, and reconciles cleanly with the local optimistic state on reload. XP popups and badge-unlock celebrations are queued so back-to-back rewards (e.g. quiz completion + perfect-score bonus) all display in turn instead of overwriting each other.
 - A lazy-loaded Monaco editor split into multiple chunks via Vite manual chunking so it never enters the initial bundle.
 - A top-level `ErrorBoundary` so a provider crash falls back to a visible retry/reload screen, not a blank page.
-- A Vitest unit/component suite of 390+ tests including accessibility integration tests (axe-core).
+- A Vitest unit/component suite of 400+ tests including accessibility integration tests (axe-core).
 - A Playwright public smoke suite plus an opt-in authenticated path.
 
 Files most worth a look from a senior reviewer:
@@ -99,6 +99,7 @@ Files most worth a look from a senior reviewer:
 - `src/context/ProgressContext.jsx` — the dual-layer optimistic + canonical persistence model, with queued XP-popup and badge-unlock state slots.
 - `src/services/badgeRules.js` — pure badge eligibility rules (`evaluateBadgeChecks`, `findNewlyEarnedBadges`) extracted from ProgressContext so they're testable in isolation. Re-exports `BADGE_DEFS` from `src/data/badges.js` (the canonical catalog home).
 - `src/services/srAlgorithm.js` — pure SM-2-style spaced-repetition scheduling (`nextSRCardState`) extracted from `ProgressContext.updateSRCard` for the same reason.
+- `src/hooks/useAutoDismissReveal.js` — drives the visible-time + fade-out + queue-clear lifecycle for `XPPopup` and `BadgeUnlock`, with timer coalescing so a manual dismiss + auto dismiss firing close together can't shift the queue twice (and silently drop a fresh celebration).
 - `src/engine/rewards/` — the reward event ledger and idempotent runtime.
 - `src/components/learning/QuizView.jsx` + `src/hooks/useQuizSession.js` + `src/components/learning/quiz/questionTypes.jsx` — quiz engine split into a renderer registry + session hook.
 - `src/components/learning/CodeChallenge.jsx` + `src/hooks/useChallengeSession.js` + `src/components/learning/challenge/` — challenge engine split into the same shape (session hook + AI panel + preview-builder util). The session hook waits for the iframe's `onLoad` before grading so DOM-based test assertions can land cleanly; `src/data/html/challenges.js` (`html-ch-1`) is the demonstrated migration. Includes an explicit honesty note in the UI about what the auto-grader actually checks (see `KNOWN_LIMITATIONS.md`).
