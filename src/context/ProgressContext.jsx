@@ -229,7 +229,14 @@ export function ProgressProvider({ children }) {
   const [challengeCompletions, setChallengeCompletions] = useState([]);
   const challengeCompletionsRef = useRef(new Set());
   const streakStateRef = useRef({ days: 0, lastDate: '' });
-  const [xpPopup, setXpPopup] = useState(null);
+  // XP popups are queued so back-to-back awards each get their full
+  // dismissal animation. Without this, a perfect-quiz flow that awards
+  // +30 XP (base) then +50 XP (perfect bonus) in the same tick would
+  // overwrite the first popup before the user ever saw it.
+  // The exposed `xpPopup` value is the head of the queue; `clearXPPopup`
+  // shifts the head off so the next award (if any) takes its place.
+  const [xpPopupQueue, setXpPopupQueue] = useState([]);
+  const xpPopup = xpPopupQueue[0] || null;
   const [newBadge, setNewBadge] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [loadError, setLoadError] = useState(null);
@@ -287,7 +294,7 @@ export function ProgressProvider({ children }) {
     setRewardHistory([]);
     challengeCompletionsRef.current = new Set();
     setChallengeCompletions([]);
-    setXpPopup(null);
+    setXpPopupQueue([]);
     setNewBadge(null);
   }, []);
 
@@ -462,18 +469,25 @@ export function ProgressProvider({ children }) {
     const newLevel = getLevel(newTotal);
 
     setXpTotal(newTotal);
-    setXpPopup({
-      amount,
-      reason,
-      newLevel: newLevel > oldLevel ? newLevel : null,
-    });
+    setXpPopupQueue((queue) => [
+      ...queue,
+      {
+        amount,
+        reason,
+        newLevel: newLevel > oldLevel ? newLevel : null,
+      },
+    ]);
 
     if (!skipRemote) {
       dbWrite(progressService.updateXP(user.id, newTotal), 'updateXP');
     }
   }, [user, xpTotal, dbWrite]);
 
-  const clearXPPopup = useCallback(() => setXpPopup(null), []);
+  // Shifts the currently-displayed popup off the queue. If more popups
+  // are queued, the next one becomes the new head and renders next.
+  const clearXPPopup = useCallback(() => {
+    setXpPopupQueue((queue) => (queue.length > 0 ? queue.slice(1) : queue));
+  }, []);
 
   const hasRewardBeenAwarded = useCallback((rewardKey) => {
     return rewardHistoryRef.current.has(rewardKey);
