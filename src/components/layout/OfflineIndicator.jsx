@@ -77,6 +77,8 @@ export function OfflineIndicator() {
       : `${queuedUpdateLabel} ${pendingSyncWrites === 1 ? 'is' : 'are'} queued to retry.`;
     const retryDetail = syncRetryInFlight
       ? 'Keep this tab open while the cloud sync catches up.'
+      : syncFailed > 0
+      ? 'Last retry could not reach the cloud. Your latest in-tab progress is still here.'
       : 'Your latest in-tab progress is still here.';
 
     return (

@@ -87,6 +87,25 @@ describe('OfflineIndicator', () => {
     expect(retryButton).toHaveTextContent(/retrying/i);
   });
 
+  it('surfaces failed retry context while queued progress writes remain pending', () => {
+    mockUseProgressData.mockReturnValue({
+      syncFailed: 1,
+      pendingSyncWrites: 1,
+      syncRetryInFlight: false,
+      clearSyncFailed: vi.fn(),
+      retryPendingSyncWrites: vi.fn(),
+    });
+
+    render(<OfflineIndicator />);
+
+    expect(
+      screen.getByText(/one progress update is queued to retry\./i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/last retry could not reach the cloud\. your latest in-tab progress is still here\./i),
+    ).toBeInTheDocument();
+  });
+
   it('renders a local-session sync warning with only a hide action', () => {
     const clearSyncFailed = vi.fn();
     mockUseProgressData.mockReturnValue({
