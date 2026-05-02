@@ -135,6 +135,14 @@
   color: var(--cyan);
 }
 
+/* Lapsed-streak recovery cue. Intentionally dimmer than .streak
+   so it reads as "yes there's history" without nagging. */
+.topbar-pill.paused {
+  border-color: rgba(180, 74, 255, 0.18);
+  background: rgba(180, 74, 255, 0.06);
+  color: var(--text-dim);
+}
+
 .topbar-actions {
   margin-left: auto;
   display: flex;

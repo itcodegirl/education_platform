@@ -61,7 +61,7 @@ export function AppLayout() {
     dataLoaded,
     lastPosition,
   } = useProgressData();
-  const { xpTotal = 0, streak = 0, dailyCount = 0 } = useXP();
+  const { xpTotal = 0, streak = 0, pausedStreak = null, dailyCount = 0 } = useXP();
 
   const nav = useNavigation();
   const panels = usePanels({ dataLoaded, user: true, lastPosition });
@@ -412,11 +412,24 @@ export function AppLayout() {
                   {coursePct}% track
                 </span>
               )}
-              {streak > 0 && (
+              {streak > 0 ? (
                 <span className="topbar-pill streak" aria-label={`${streak} day streak`}>
                   🔥 {streak} day streak
                 </span>
-              )}
+              ) : pausedStreak ? (
+                /* Streak just lapsed. Surface the prior run as a
+                   subtle recovery cue so the topbar doesn't simply
+                   forget the streak existed. Click goes to the
+                   profile so the learner can see history; intent is
+                   visible signaling, not nagging. */
+                <span
+                  className="topbar-pill paused"
+                  aria-label={`${pausedStreak.days} day streak paused`}
+                  title="Pick up your streak with one more lesson today"
+                >
+                  💤 {pausedStreak.days} day streak paused
+                </span>
+              ) : null}
               {dailyCount > 0 && (
                 <span className="topbar-pill warm" aria-label={`Lessons done today: ${dailyCount}`}>
                   {dailyCount} lesson{dailyCount === 1 ? '' : 's'} today
