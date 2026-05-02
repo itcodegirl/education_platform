@@ -1,6 +1,7 @@
 ﻿import { useState, useRef, useCallback, lazy, Suspense, useEffect } from 'react';
 import { IFRAME_STYLES } from '../../utils/iframeStyles';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { usePrefersReducedData } from '../../hooks/usePrefersReducedData';
 import { defineMonacoTheme, MONACO_THEME_NAME, MONACO_OPTIONS } from '../../utils/monacoTheme';
 import { explainCode as explainCodeRequest } from '../../services/aiService';
 import { buildCodePreviewConsoleScript } from './codePreviewConsoleScript';
@@ -21,6 +22,7 @@ const SCAFFOLDING = {
 
 export function CodePreview({ code, lang, scaffolding = 'full' }) {
   const isMobile = useIsMobile();
+  const prefersReducedData = usePrefersReducedData();
   const level = SCAFFOLDING[scaffolding] || SCAFFOLDING.full;
   const defaultTab = scaffolding === 'starter' || scaffolding === 'requirements' ? 'editor' : 'code';
 
@@ -30,6 +32,12 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
   const [aiExplaining, setAiExplaining] = useState(false);
   const [aiExplanation, setAiExplanation] = useState('');
   const [showExplanation, setShowExplanation] = useState(false);
+  // When Data Saver is on, default to the textarea fallback so we
+  // never download the Monaco chunks. The learner can opt back into
+  // the full editor with a single click via the "Load full editor"
+  // button rendered next to the textarea.
+  const [forceFullEditor, setForceFullEditor] = useState(false);
+  const useTextareaEditor = isMobile || (prefersReducedData && !forceFullEditor);
   const editorRef = useRef(null);
 
   const isCSS = lang === 'css';
@@ -158,18 +166,32 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
 
       {tab === 'editor' && (
         <div className="code-preview-editor-wrap">
-          {isMobile ? (
-            <textarea
-              className="code-preview-mobile-editor"
-              value={editorCode}
-              onChange={(event) => handleEditorChange(event.target.value)}
-              spellCheck={false}
-              autoCapitalize="off"
-              autoCorrect="off"
-              rows={14}
-              aria-label="Code editor"
-              placeholder={scaffolding === 'requirements' ? 'Write your code here...' : undefined}
-            />
+          {useTextareaEditor ? (
+            <>
+              <textarea
+                className="code-preview-mobile-editor"
+                value={editorCode}
+                onChange={(event) => handleEditorChange(event.target.value)}
+                spellCheck={false}
+                autoCapitalize="off"
+                autoCorrect="off"
+                rows={14}
+                aria-label="Code editor"
+                placeholder={scaffolding === 'requirements' ? 'Write your code here...' : undefined}
+              />
+              {/* On desktop with Data Saver on, surface a one-click
+                  override so the learner can opt into the full
+                  editor when they need autocomplete / linting. */}
+              {!isMobile && prefersReducedData && (
+                <button
+                  type="button"
+                  className="code-preview-load-full"
+                  onClick={() => setForceFullEditor(true)}
+                >
+                  Load full editor (downloads ~2 MB)
+                </button>
+              )}
+            </>
           ) : (
             <Suspense fallback={<div className="code-preview-editor-loading"><span className="code-preview-loading-spinner"></span>Loading editor...</div>}>
               <MonacoEditor
@@ -191,6 +213,7 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
               />
             </Suspense>
           )}
+
 
           {showExplanation && (
             <div className="code-preview-explanation">
