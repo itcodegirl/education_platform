@@ -90,7 +90,7 @@ Concrete shape of the project at the current commit:
 - A reward system (XP, streaks, badges, bookmarks, spaced-repetition queue) that is event-driven, idempotent (`hasRewardBeenAwarded()` + `markRewardAwarded()`), persisted to Supabase, and reconciles cleanly with the local optimistic state on reload. XP popups and badge-unlock celebrations are queued so back-to-back rewards (e.g. quiz completion + perfect-score bonus) all display in turn instead of overwriting each other.
 - A lazy-loaded Monaco editor split into multiple chunks via Vite manual chunking so it never enters the initial bundle.
 - A top-level `ErrorBoundary` so a provider crash falls back to a visible retry/reload screen, not a blank page.
-- A Vitest unit/component suite of 420+ tests including accessibility integration tests (axe-core).
+- A Vitest unit/component suite of 460+ tests including accessibility integration tests (axe-core).
 - A Playwright public smoke suite plus an opt-in authenticated path.
 
 Files most worth a look from a senior reviewer:
@@ -104,7 +104,9 @@ Files most worth a look from a senior reviewer:
 - `src/components/learning/CodeChallenge.jsx` + `src/hooks/useChallengeSession.js` + `src/components/learning/challenge/` — challenge engine split into the same shape (session hook + AI panel + preview-builder util). The session hook waits for the iframe's `onLoad` before grading so DOM-based test assertions can land cleanly; `src/data/html/challenges.js` (`html-ch-1`) is the demonstrated migration. Includes an explicit honesty note in the UI about what the auto-grader actually checks (see `KNOWN_LIMITATIONS.md`).
 - `src/components/admin/LessonBuilder.jsx` + `src/hooks/useLessonBuilder.js` + `src/components/admin/lesson-builder/` — admin lesson-authoring tool split into a state hook, a pure codegen util, three view-tab components, and shared `LBField` / `ArrayField` primitives.
 - `src/services/aiService.js` — `AIServiceError` carries a stable `code` from `AI_ERROR_CODES`, so callers switch on the code instead of regex-matching error message strings.
-- `src/hooks/useDocumentTitle.js` + `src/utils/lessonNavCopy.js` — small reusable primitives extracted out of `AppLayout` so the layout component is composition glue rather than inline business logic.
+- `src/hooks/useDocumentTitle.js` + `src/utils/lessonNavCopy.js` + `src/utils/savedPosition.js` + `src/utils/learnerLocalStore.js` — small reusable primitives extracted out of the layout / context layer so the orchestrator components are composition glue rather than inline business logic. Each ships with a focused unit-test file.
+- `src/utils/helpers.js` — `getActiveStreakDays(streakDays, lastDate, today, yesterday)` is a deliberate display-only guard: the persisted streak is the value as of the learner's last activity, but if they then miss a day, the topbar would happily show "5 day streak" until the next activity. The pure helper returns 0 when last activity is older than yesterday so the UI never silently lies, while the DB write path is unchanged so the count resumes cleanly when the learner is back in the today/yesterday window.
+- `src/hooks/usePrefersReducedData.js` — Data Saver / `prefers-reduced-data` aware hook that gates the Monaco editor on desktop the same way `useIsMobile` already gates it on phones.
 - `vite.config.js` — Monaco manual-chunking strategy.
 
 ## Stack
