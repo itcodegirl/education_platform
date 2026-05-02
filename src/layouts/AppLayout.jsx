@@ -447,10 +447,19 @@ export function AppLayout() {
                   {readTime} read
                 </span>
               )}
-              <span className="topbar-pill" aria-label={`Level ${level}`}>Lv {level}</span>
-              <span className="topbar-pill" aria-label={`Course completion ${coursePct} percent`}>
-                {coursePct}% track
-              </span>
+              {/* Hide the level + completion pills entirely until the
+                  learner has earned something. A first-run learner
+                  used to see "Lv 1 · 0% track" before they'd done
+                  anything, which read as "you have achieved
+                  nothing" instead of a status. */}
+              {xpTotal > 0 && (
+                <span className="topbar-pill" aria-label={`Level ${level}`}>Lv {level}</span>
+              )}
+              {coursePct > 0 && (
+                <span className="topbar-pill" aria-label={`Course completion ${coursePct} percent`}>
+                  {coursePct}% track
+                </span>
+              )}
               {streak > 0 && (
                 <span className="topbar-pill streak" aria-label={`${streak} day streak`}>
                   🔥 {streak} day streak

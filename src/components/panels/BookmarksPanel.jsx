@@ -98,7 +98,7 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
             <h2>Bookmarks ({bookmarks.length})</h2>
           </div>
           <button type="button" className="cheatsheet-close" onClick={onClose} aria-label="Close bookmarks">
-            x
+            ×
           </button>
         </div>
         <div className="cheatsheet-body">
@@ -107,7 +107,7 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
           </p>
           {bookmarks.length === 0 ? (
             <div className="sr-empty">
-              <span className="sr-empty-icon" aria-hidden="true">*</span>
+              <span className="sr-empty-icon" aria-hidden="true">★</span>
               <p><strong>No bookmarks yet</strong></p>
               <p className="empty-state-msg">
                 Mark a lesson as saved from the header star, and it will appear here for one-click return.
@@ -151,7 +151,7 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
                     title="Remove bookmark"
                     aria-label={`Remove bookmark for ${bookmark.lesson_title}`}
                   >
-                    x
+                    ×
                   </button>
                 </div>
               );

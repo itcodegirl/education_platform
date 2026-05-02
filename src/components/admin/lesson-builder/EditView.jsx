@@ -88,7 +88,7 @@ export function EditView({
                   onRemoveLesson(i);
                 }}
               >
-                x
+                ×
               </span>
             )}
           </button>

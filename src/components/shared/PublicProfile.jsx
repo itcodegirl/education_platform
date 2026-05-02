@@ -122,7 +122,7 @@ export function PublicProfile({ handle, onClose }) {
             onClick={onClose}
             aria-label="Close public profile"
           >
-            X
+            ×
           </button>
         )}
       </header>
