@@ -61,6 +61,26 @@ function DisabledAccountScreen({ theme, onSignOut }) {
   );
 }
 
+function AccountCheckErrorScreen({ theme, onRetry, onSignOut }) {
+  return (
+    <div className={`loading-screen ${theme}`} role="alert" aria-live="assertive">
+      <div className="disabled-screen">
+        <span className="disabled-icon" aria-hidden="true">!</span>
+        <h2 className="disabled-title">We could not verify your account</h2>
+        <p className="disabled-msg">
+          Your lessons are safe, but CodeHerWay needs to confirm your profile before opening the learning dashboard.
+        </p>
+        <button type="button" className="disabled-logout" onClick={onRetry}>
+          Try Again
+        </button>
+        <button type="button" className="disabled-link" onClick={onSignOut}>
+          Log Out
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function AppDataGate({ theme, dataLoaded, loadError, retryLoad }) {
   if (loadError) {
     return (
@@ -95,7 +115,15 @@ function AppDataGate({ theme, dataLoaded, loadError, retryLoad }) {
 
 export function ProtectedRoute({ children }) {
   const { theme } = useTheme();
-  const { user, profile, loading: authLoading, profileLoading, signOut } = useAuth();
+  const {
+    user,
+    profile,
+    profileError,
+    loading: authLoading,
+    profileLoading,
+    refreshProfile,
+    signOut,
+  } = useAuth();
 
   if (authLoading || (user && profileLoading)) {
     return (
@@ -106,6 +134,9 @@ export function ProtectedRoute({ children }) {
   }
 
   if (!user) return <AuthLayout />;
+  if (profileError) {
+    return <AccountCheckErrorScreen theme={theme} onRetry={refreshProfile} onSignOut={signOut} />;
+  }
   if (profile?.is_disabled) {
     return <DisabledAccountScreen theme={theme} onSignOut={signOut} />;
   }
