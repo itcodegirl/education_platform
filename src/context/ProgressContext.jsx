@@ -25,6 +25,14 @@ import { lessonKeysEquivalent, resolveStableLessonKeyAcrossCourses } from '../ut
 import { LOCAL_STORAGE_SYNC_ERROR_EVENT } from '../hooks/useLocalStorage';
 import { findNewlyEarnedBadges } from '../services/badgeRules';
 import { nextSRCardState } from '../services/srAlgorithm';
+import {
+  normalizeRewardHistory,
+  normalizeStringList as normalizeStringSet,
+  readChallengeCompletions,
+  readRewardHistory,
+  writeChallengeCompletions,
+  writeRewardHistory,
+} from '../utils/learnerLocalStore';
 
 // BADGE_DEFS is imported above from '../data/badges' (the canonical
 // catalog home) and re-exported via providers/ProgressProvider, so
@@ -92,71 +100,9 @@ function normalizeLessonKey(lessonKey) {
   return resolveStableLessonKeyAcrossCourses(lessonKey, COURSES);
 }
 
-function getRewardHistoryStorageKey(userId) {
-  return `chw-reward-history:${userId}`;
-}
-
-function getChallengeCompletionStorageKey(userId) {
-  return `chw-challenge-completions:${userId}`;
-}
-
-function normalizeRewardHistory(keys) {
-  if (!Array.isArray(keys)) return [];
-  return Array.from(new Set(
-    keys
-      .filter((key) => typeof key === 'string' && key.trim())
-      .map((key) => key.trim()),
-  ));
-}
-
-function readRewardHistory(userId) {
-  if (typeof window === 'undefined' || !userId) return [];
-
-  try {
-    const raw = window.localStorage.getItem(getRewardHistoryStorageKey(userId));
-    return normalizeRewardHistory(raw ? JSON.parse(raw) : []);
-  } catch {
-    return [];
-  }
-}
-
-function writeRewardHistory(userId, keys) {
-  if (typeof window === 'undefined' || !userId) return;
-
-  window.localStorage.setItem(
-    getRewardHistoryStorageKey(userId),
-    JSON.stringify(normalizeRewardHistory(keys)),
-  );
-}
-
-function normalizeStringSet(values) {
-  if (!Array.isArray(values)) return [];
-  return Array.from(new Set(
-    values
-      .filter((value) => typeof value === 'string' && value.trim())
-      .map((value) => value.trim()),
-  ));
-}
-
-function readChallengeCompletions(userId) {
-  if (typeof window === 'undefined' || !userId) return [];
-
-  try {
-    const raw = window.localStorage.getItem(getChallengeCompletionStorageKey(userId));
-    return normalizeStringSet(raw ? JSON.parse(raw) : []);
-  } catch {
-    return [];
-  }
-}
-
-function writeChallengeCompletions(userId, challengeIds) {
-  if (typeof window === 'undefined' || !userId) return;
-
-  window.localStorage.setItem(
-    getChallengeCompletionStorageKey(userId),
-    JSON.stringify(normalizeStringSet(challengeIds)),
-  );
-}
+// Per-learner localStorage helpers (reward history, challenge
+// completions, normalization) live in utils/learnerLocalStore so
+// they can be unit-tested independently of the provider.
 
 export function ProgressProvider({ children }) {
   const { user } = useAuth();
