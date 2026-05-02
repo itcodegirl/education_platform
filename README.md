@@ -90,7 +90,7 @@ Concrete shape of the project at the current commit:
 - A reward system (XP, streaks, badges, bookmarks, spaced-repetition queue) that is event-driven, idempotent (`hasRewardBeenAwarded()` + `markRewardAwarded()`), persisted to Supabase, and reconciles cleanly with the local optimistic state on reload. XP popups and badge-unlock celebrations are queued so back-to-back rewards (e.g. quiz completion + perfect-score bonus) all display in turn instead of overwriting each other.
 - A lazy-loaded Monaco editor split into multiple chunks via Vite manual chunking so it never enters the initial bundle.
 - A top-level `ErrorBoundary` so a provider crash falls back to a visible retry/reload screen, not a blank page.
-- A Vitest unit/component suite of 480+ tests including accessibility integration tests (axe-core).
+- A Vitest unit/component suite of 490+ tests including accessibility integration tests (axe-core).
 - A Playwright public smoke suite plus an opt-in authenticated path.
 
 Files most worth a look from a senior reviewer:
@@ -107,7 +107,7 @@ Files most worth a look from a senior reviewer:
 - `src/hooks/useDocumentTitle.js` + `src/utils/lessonNavCopy.js` + `src/utils/savedPosition.js` + `src/utils/learnerLocalStore.js` — small reusable primitives extracted out of the layout / context layer so the orchestrator components are composition glue rather than inline business logic. Each ships with a focused unit-test file.
 - `src/utils/helpers.js` — `getActiveStreakDays(streakDays, lastDate, today, yesterday)` is a deliberate display-only guard: the persisted streak is the value as of the learner's last activity, but if they then miss a day, the topbar would happily show "5 day streak" until the next activity. The pure helper returns 0 when last activity is older than yesterday so the UI never silently lies, while the DB write path is unchanged so the count resumes cleanly when the learner is back in the today/yesterday window. Companion `getPausedStreak()` returns the lapsed streak as a recovery payload so the WelcomeBack overlay can offer "pick it back up" instead of pretending the streak never happened.
 - `src/utils/lessonToggle.js` — `resolveLessonToggle(completedSet, stableKey, legacyKey)` codifies the stable-first-then-legacy preference for the Mark Done toggle. Migration-aware: an old learner whose DB row uses the legacy label-derived key gets that exact key toggled off, while new completions land on the stable key.
-- `src/hooks/useMarkLessonDone.js` — owns the entire mark-done lifecycle (useFetcher mutation, sync-failure plumbing, optimistic toggle, min-feedback duration, completion analytics) so the layout component is composition glue rather than the orchestrator. Tested end-to-end without a full layout render.
+- `src/hooks/useMarkLessonDone.js` + `src/hooks/useToggleBookmark.js` — own the two lesson-level mutation flows (mark complete + bookmark) so AppLayout and LessonView are composition glue rather than orchestrators. Both hooks bundle the useFetcher mutation, sync-failure plumbing, optimistic toggle dispatch, and (for mark-done) the min-feedback duration. Each ships with its own focused unit-test file.
 - `src/hooks/usePrefersReducedData.js` — Data Saver / `prefers-reduced-data` aware hook that gates the Monaco editor on desktop the same way `useIsMobile` already gates it on phones.
 - `vite.config.js` — Monaco manual-chunking strategy.
 
