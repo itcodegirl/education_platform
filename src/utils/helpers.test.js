@@ -7,6 +7,7 @@ import {
   estimateReadingTime,
   getActiveStreakDays,
   getLevel,
+  getPausedStreak,
   getTodayString,
   getXPInLevel,
   getYesterdayString,
@@ -124,5 +125,61 @@ describe('getActiveStreakDays', () => {
     expect(getActiveStreakDays(-3, today, today, yesterday)).toBe(0);
     expect(getActiveStreakDays(Number.NaN, today, today, yesterday)).toBe(0);
     expect(getActiveStreakDays(Infinity, today, today, yesterday)).toBe(0);
+  });
+});
+
+describe('getPausedStreak', () => {
+  const today = '2025-05-10';
+  const yesterday = '2025-05-09';
+
+  it('returns null when the streak is still active today', () => {
+    expect(getPausedStreak(7, today, today, yesterday)).toBeNull();
+  });
+
+  it('returns null when the streak is still active yesterday', () => {
+    expect(getPausedStreak(7, yesterday, today, yesterday)).toBeNull();
+  });
+
+  it('returns the paused payload when last activity is older than yesterday', () => {
+    expect(getPausedStreak(7, '2025-05-07', today, yesterday)).toEqual({
+      days: 7,
+      lastDate: '2025-05-07',
+    });
+  });
+
+  it('returns null when there is no streak history', () => {
+    expect(getPausedStreak(0, '2025-05-07', today, yesterday)).toBeNull();
+    expect(getPausedStreak(7, '', today, yesterday)).toBeNull();
+    expect(getPausedStreak(7, null, today, yesterday)).toBeNull();
+  });
+
+  it('returns null for non-positive or non-finite stored counts', () => {
+    expect(getPausedStreak(-1, '2025-05-07', today, yesterday)).toBeNull();
+    expect(getPausedStreak(Number.NaN, '2025-05-07', today, yesterday)).toBeNull();
+  });
+
+  it('is the complement of getActiveStreakDays — they are never both truthy', () => {
+    // For any (streakDays, lastDate) input, exactly one of these
+    // is true:
+    //   - getActiveStreakDays returns a positive number (streak
+    //     is alive), and getPausedStreak returns null
+    //   - getPausedStreak returns a payload (streak is paused),
+    //     and getActiveStreakDays returns 0
+    //   - both return their "no streak" value (no history at all)
+    // Both helpers are pure so this property test stays
+    // deterministic without time mocking.
+    for (const last of [today, yesterday, '2025-05-01', '']) {
+      const active = getActiveStreakDays(5, last, today, yesterday);
+      const paused = getPausedStreak(5, last, today, yesterday);
+
+      // Never both at the same time.
+      const bothTruthy = active > 0 && paused !== null;
+      expect(bothTruthy).toBe(false);
+
+      // If active, paused must be null.
+      if (active > 0) expect(paused).toBeNull();
+      // If paused, active must be 0.
+      if (paused) expect(active).toBe(0);
+    }
   });
 });

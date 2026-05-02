@@ -9,6 +9,7 @@ import {
   DAILY_GOAL,
   getActiveStreakDays,
   getLevel,
+  getPausedStreak,
   getTodayString,
   getYesterdayString,
 } from '../utils/helpers';
@@ -82,6 +83,9 @@ const XPContext = createContext({
   xpPopup: null,
   clearXPPopup: () => {},
   streak: 0,
+  // pausedStreak is null when there is no lapsed streak to revive.
+  // Shape when present: { days: number, lastDate: 'YYYY-MM-DD' }.
+  pausedStreak: null,
   dailyCount: 0,
   recordDailyActivity: () => {},
   earnedBadges: [],
@@ -946,6 +950,14 @@ export function ProgressProvider({ children }) {
     () => getActiveStreakDays(streak, streakLastDate, getTodayString(), getYesterdayString()),
     [streak, streakLastDate],
   );
+  // Paused-streak payload — non-null only when the learner had a
+  // real streak that has now lapsed. Lets WelcomeBack render a
+  // "pick it back up" cue instead of the silent 0 the active-
+  // streak guard would otherwise produce.
+  const pausedStreak = useMemo(
+    () => getPausedStreak(streak, streakLastDate, getTodayString(), getYesterdayString()),
+    [streak, streakLastDate],
+  );
 
   const xpValue = useMemo(() => ({
     xpTotal,
@@ -953,6 +965,7 @@ export function ProgressProvider({ children }) {
     xpPopup,
     clearXPPopup,
     streak: activeStreak,
+    pausedStreak,
     dailyCount,
     recordDailyActivity,
     earnedBadges,
@@ -964,6 +977,7 @@ export function ProgressProvider({ children }) {
     xpPopup,
     clearXPPopup,
     activeStreak,
+    pausedStreak,
     dailyCount,
     recordDailyActivity,
     earnedBadges,

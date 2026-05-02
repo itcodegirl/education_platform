@@ -66,3 +66,19 @@ export function getActiveStreakDays(streakDays, lastDate, today, yesterday) {
   if (lastDate === today || lastDate === yesterday) return streakDays;
   return 0;
 }
+
+// Companion to getActiveStreakDays. Returns a { days, lastDate }
+// payload describing a paused streak — i.e. the learner had a real
+// streak going, but it's currently inactive (last activity is
+// older than yesterday). Returns null when there's nothing to
+// surface (no prior streak, or the streak is still alive).
+//
+// Used by the WelcomeBack overlay to show a positive "you had a
+// 7-day streak going — pick it back up" cue instead of the silent
+// 0 the active-streak guard would otherwise produce.
+export function getPausedStreak(streakDays, lastDate, today, yesterday) {
+  if (!Number.isFinite(streakDays) || streakDays <= 0) return null;
+  if (!lastDate) return null;
+  if (lastDate === today || lastDate === yesterday) return null;
+  return { days: streakDays, lastDate };
+}
