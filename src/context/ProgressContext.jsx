@@ -5,7 +5,13 @@
 
 import { createContext, useContext, useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useAuth } from './AuthContext';
-import { DAILY_GOAL, getLevel, getTodayString, getYesterdayString } from '../utils/helpers';
+import {
+  DAILY_GOAL,
+  getActiveStreakDays,
+  getLevel,
+  getTodayString,
+  getYesterdayString,
+} from '../utils/helpers';
 import { COURSES } from '../data';
 import * as progressService from '../services/progressService';
 import {
@@ -301,7 +307,7 @@ export function ProgressProvider({ children }) {
   const [quizScores, setQuizScores] = useState({});
   const [xpTotal, setXpTotal] = useState(0);
   const [streak, setStreak] = useState(0);
-  const [_streakLastDate, setStreakLastDate] = useState('');
+  const [streakLastDate, setStreakLastDate] = useState('');
   const [dailyCount, setDailyCount] = useState(0);
   const [dailyDate, setDailyDate] = useState('');
   const [earnedBadges, setEarnedBadges] = useState({});
@@ -931,12 +937,22 @@ export function ProgressProvider({ children }) {
     retryPendingSyncWrites,
   ]);
 
+  // Display the streak only when it's still active. The persisted
+  // value is the streak as of the learner's last activity, so a
+  // learner who skipped two days would otherwise still see the
+  // stale "5 day streak" pill until they did another activity. The
+  // pure helper returns 0 when lastDate < yesterday.
+  const activeStreak = useMemo(
+    () => getActiveStreakDays(streak, streakLastDate, getTodayString(), getYesterdayString()),
+    [streak, streakLastDate],
+  );
+
   const xpValue = useMemo(() => ({
     xpTotal,
     awardXP,
     xpPopup,
     clearXPPopup,
-    streak,
+    streak: activeStreak,
     dailyCount,
     recordDailyActivity,
     earnedBadges,
@@ -947,7 +963,7 @@ export function ProgressProvider({ children }) {
     awardXP,
     xpPopup,
     clearXPPopup,
-    streak,
+    activeStreak,
     dailyCount,
     recordDailyActivity,
     earnedBadges,

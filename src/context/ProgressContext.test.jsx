@@ -311,11 +311,16 @@ describe('ProgressContext — user logged in (happy path)', () => {
   });
 
   it('does not update streak just because progress data loaded', async () => {
+    // last_date must be today (or yesterday) so the active-streak
+    // guard in ProgressContext doesn't dim the loaded value to 0.
+    // Using a hardcoded date here would silently break this test
+    // every day after that date — ask helpers for today's value
+    // so the assertion stays stable.
     mockUseAuth.mockReturnValue({ user: { id: 'uid-abc' } });
     mockFetchAllUserData.mockResolvedValue(
       makeFetchResult({
         streak: {
-          data: { days: 3, last_date: '2026-01-01' },
+          data: { days: 3, last_date: getTodayString() },
           error: null,
         },
       }),

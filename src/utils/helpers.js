@@ -48,3 +48,21 @@ export function getTodayString() {
 export function getYesterdayString() {
   return new Date(Date.now() - TIMING.dayMs).toISOString().slice(0, 10);
 }
+
+// Returns the streak count the UI should actually display, given
+// the persisted streak length and the date of the last recorded
+// activity. The DB stores the raw value from the last time the
+// learner was active — if they then miss a day, that stored value
+// is stale until they do another activity. Without this guard the
+// topbar happily shows "5 day streak" to a learner whose streak
+// silently broke two days ago, which is the kind of soft lie the
+// audit flagged as a trust risk.
+//
+// Pure (no Date.now() call) so it stays trivially testable; the
+// caller passes today / yesterday strings.
+export function getActiveStreakDays(streakDays, lastDate, today, yesterday) {
+  if (!Number.isFinite(streakDays) || streakDays <= 0) return 0;
+  if (!lastDate) return 0;
+  if (lastDate === today || lastDate === yesterday) return streakDays;
+  return 0;
+}
