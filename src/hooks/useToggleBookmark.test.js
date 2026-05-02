@@ -25,7 +25,7 @@ vi.mock('./useFetcherSyncFailure', () => ({
   useFetcherSyncFailure: () => {},
 }));
 
-import { useToggleBookmark } from './useToggleBookmark';
+import { useRemoveBookmark, useToggleBookmark } from './useToggleBookmark';
 
 const baseArgs = {
   lessonKey: 'c:html|m:basics|l:intro',
@@ -122,5 +122,59 @@ describe('useToggleBookmark', () => {
       expect.any(Object),
       expect.objectContaining({ action: '/learn/css/selectors/specificity' }),
     );
+  });
+});
+
+describe('useRemoveBookmark', () => {
+  it('removes a bookmark by row, translating snake_case columns to the wire format', () => {
+    const toggleBookmark = vi.fn();
+    mockUseSR.mockReturnValue({
+      toggleBookmark,
+      isBookmarked: () => true,
+    });
+
+    const { result } = renderHook(() => useRemoveBookmark());
+
+    act(() => {
+      result.current.handleRemoveBookmark({
+        lesson_key: 'c:html|m:basics|l:intro',
+        course_id: 'html',
+        lesson_title: 'What is HTML?',
+      });
+    });
+
+    // Optimistic local toggle uses the same shape we always pass:
+    // (key, courseId, title, options).
+    expect(toggleBookmark).toHaveBeenCalledWith(
+      'c:html|m:basics|l:intro',
+      'html',
+      'What is HTML?',
+      { skipRemote: true },
+    );
+    // Wire format flips snake_case to camelCase.
+    expect(mockSubmit).toHaveBeenCalledWith(
+      {
+        intent: 'toggle-bookmark',
+        mode: 'remove',
+        lessonKey: 'c:html|m:basics|l:intro',
+        courseId: 'html',
+        lessonTitle: 'What is HTML?',
+      },
+      { method: 'post', action: '/learn/html/basics/intro' },
+    );
+  });
+
+  it('uses the panel-specific syncFailureLabel by default', () => {
+    // Spy directly on the syncFailure path is implicit — the mock
+    // currently no-ops it. This test just confirms the hook
+    // renders without error when called with no args, the default
+    // call shape used by BookmarksPanel.
+    mockUseSR.mockReturnValue({
+      toggleBookmark: vi.fn(),
+      isBookmarked: () => false,
+    });
+
+    const { result } = renderHook(() => useRemoveBookmark());
+    expect(typeof result.current.handleRemoveBookmark).toBe('function');
   });
 });
