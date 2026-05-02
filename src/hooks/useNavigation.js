@@ -10,6 +10,7 @@ import { navigateTo, toPathFromLegacyHash } from '../routes/routeUtils';
 import { buildLearnPath, parseLearnPath } from '../routes/routePaths';
 import { getLessonKeyVariants } from '../utils/lessonKeys';
 import { logNavigationDiagnostic } from '../utils/navigationDiagnostics';
+import { resolveSavedPosition } from '../utils/savedPosition';
 
 // Safe empty shells used when a course's modules haven't loaded yet.
 // AppLayout gates the real UI behind isActiveCourseLoaded, so these
@@ -60,50 +61,12 @@ function findPathPosition(pathname) {
 }
 
 // Resolve the persisted (course, module, lesson) labels saved by
-// AppLayout.savePosition back into stable indices. The saved labels
-// include emojis and titles ("⚛️ React" / "🧬 Hooks"), so we try
-// strict-equal labels first and fall back to substring matching only
-// when the strict match misses. This keeps a renamed lesson from
-// silently grabbing an unrelated saved position.
+// AppLayout.savePosition back into stable indices. The detailed
+// matching rules live in utils/savedPosition.js so they can be
+// exercised in isolation; this thin wrapper just binds the global
+// COURSES catalog so the hook's call sites stay readable.
 function findSavedPosition(lastPosition) {
-  if (!lastPosition?.course || !lastPosition?.mod || !lastPosition?.les) {
-    return null;
-  }
-
-  const matchCourse = (course) => {
-    const label = course.label;
-    if (!label) return false;
-    if (lastPosition.course === label) return true;
-    if (lastPosition.course === `${course.icon} ${label}`) return true;
-    return lastPosition.course.includes(label);
-  };
-
-  const courseIndex = COURSES.findIndex(matchCourse);
-  if (courseIndex === -1) return null;
-
-  const course = COURSES[courseIndex];
-  if (!course.modules.length) return null;
-
-  const matchModule = (module) => {
-    const title = module.title;
-    if (!title) return false;
-    if (lastPosition.mod === title) return true;
-    if (lastPosition.mod === `${module.emoji} ${title}`) return true;
-    return lastPosition.mod.includes(title);
-  };
-
-  const moduleIndex = course.modules.findIndex(matchModule);
-  if (moduleIndex === -1) return null;
-
-  const isModuleQuiz = lastPosition.les.toLowerCase().includes('module quiz');
-  const lessons = course.modules[moduleIndex].lessons;
-  const lessonIndex = isModuleQuiz
-    ? lessons.length - 1
-    : lessons.findIndex((lesson) => lesson.title === lastPosition.les);
-
-  if (lessonIndex === -1) return null;
-
-  return { courseIndex, moduleIndex, lessonIndex, isModuleQuiz };
+  return resolveSavedPosition(lastPosition, COURSES);
 }
 
 function getInitialNavigationState() {
