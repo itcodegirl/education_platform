@@ -16,7 +16,12 @@ export function LessonNotesPanel({ lessonKey }) {
   const saveTimer = useRef(null);
   const noteRef = useRef(noteText);
 
-  noteRef.current = noteText;
+  // Keep the ref in sync inside an effect — writing it during render
+  // breaks the react-hooks/refs rule and can be skipped if React
+  // bails out of a render in concurrent mode.
+  useEffect(() => {
+    noteRef.current = noteText;
+  }, [noteText]);
 
   // Re-seed when the user navigates to a different lesson.
   useEffect(() => {

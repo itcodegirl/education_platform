@@ -17,6 +17,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react';
 import { useAuth, useCourseContent } from '../../providers';
 import { useAdminData } from '../../hooks/useAdminData';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { COURSES } from '../../data';
 import { lessonKeyBelongsToCourse, resolveStableLessonKey } from '../../utils/lessonKeys';
 import { AdminOverviewTab } from './AdminOverviewTab';
@@ -101,6 +102,7 @@ export function AdminDashboard({ onClose }) {
     analyticsMeta,
   } = useAdminData(user);
   const [tab, setTab] = useState('overview');
+  useDocumentTitle('Admin');
   // Admin stats span every course, so load them all on mount.
   // Safe: if the courses are already loaded, this is a no-op.
   const { ensureAllLoaded, allCoursesLoaded } = useCourseContent();

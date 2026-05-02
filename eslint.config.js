@@ -13,7 +13,6 @@ export default [
 			'.codex-backup-wrong-local/**',
 			'Cinova/**',
 			'codeherway-ceo-os/**',
-			'codeherway-v2/**',
 			'supabase/.temp/**',
 		],
 	},

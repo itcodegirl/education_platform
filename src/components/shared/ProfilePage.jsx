@@ -3,6 +3,7 @@ import { useAuth, useCourseContent, useProgressData, useXP, useSR, useTheme, BAD
 import { COURSES } from '../../data';
 import { XP_PER_LEVEL, getLevel, getXPInLevel } from '../../utils/helpers';
 import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { supabase } from '../../lib/supabaseClient';
 
 export const ProfilePage = memo(function ProfilePage({ onClose }) {
@@ -12,6 +13,8 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
   const { xpTotal = 0, streak = 0, earnedBadges = {} } = useXP();
   const { bookmarks = [], notes = {} } = useSR();
   const { ensureAllLoaded } = useCourseContent();
+
+  useDocumentTitle('Your profile');
 
   useEffect(() => {
     ensureAllLoaded();

@@ -2,10 +2,6 @@
 
 This project is actively stabilized and is not yet production-grade. The following limitations are known and intentionally documented.
 
-## Repo / Surface
-
-- `codeherway-v2/` is still tracked in-repo as archived/reference-only content.
-
 ## Tooling / Verification
 
 - The local quality gate covers lint, production build, bundle budget, and unit tests through `npm run check`.
@@ -14,6 +10,7 @@ This project is actively stabilized and is not yet production-grade. The followi
 
 ## Learning Integrity
 
+- Saved learning position resolves persisted course/module/lesson labels back to indices via strict-equal match first, then falls back to substring match. The DB column still stores the human-readable label string; if a label is renamed without a paired migration, the lookup may still drop a learner back to the first lesson of the course rather than tracking the renamed lesson.
 - Learning identity/data model hardening is still pending. The local retry/reconciliation reward engine and Supabase backend reward branch have been unified, but production cross-device reward trust still requires applying migrations, validating the RPC/RLS behavior against a real Supabase project, and deciding local import/backfill policy.
 - Active lesson quiz coverage is complete for HTML, CSS, JavaScript, and React.
 - The platform now ships only the four frontend tracks (HTML, CSS, JS, React); the previous Python track was removed to keep product focus tight.

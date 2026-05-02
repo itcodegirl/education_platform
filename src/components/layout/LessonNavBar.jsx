@@ -40,7 +40,7 @@ export const LessonNavBar = memo(function LessonNavBar({
         disabled={isFirst}
         aria-label={isFirst ? 'No previous lesson' : 'Go to previous lesson'}
       >
-        <span className="lesson-nav-icon">&lt;-</span>
+        <span className="lesson-nav-icon" aria-hidden="true">←</span>
         <span className="lesson-nav-label">Previous</span>
       </button>
 
@@ -67,7 +67,7 @@ export const LessonNavBar = memo(function LessonNavBar({
         aria-label={nextAriaLabel}
       >
         <span className="lesson-nav-label">{nextLabel}</span>
-        {!isLast && <span className="lesson-nav-icon">{'->'}</span>}
+        {!isLast && <span className="lesson-nav-icon" aria-hidden="true">→</span>}
       </button>
     </nav>
   );

@@ -31,6 +31,10 @@ function createDeferred() {
 }
 
 function buildDeps(overrides = {}) {
+  // Default each test to its own in-memory storage so the reward
+  // ledger / queue can never leak between cases via globalThis
+  // localStorage. Tests that want to assert ledger contents pass
+  // an explicit storage in their override.
   return {
     toggleLesson: vi.fn(),
     saveQuizScore: vi.fn(),
@@ -43,9 +47,19 @@ function buildDeps(overrides = {}) {
     isChallengeCompleted: vi.fn(() => false),
     markChallengeCompleted: vi.fn(() => true),
     markSyncFailed: vi.fn(),
+    rewardEventStorage: createMemoryStorage(),
     ...overrides,
   };
 }
+
+beforeEach(() => {
+  // Defense in depth: even with isolated rewardEventStorage in
+  // buildDeps, anything that defaults to globalThis.localStorage
+  // (legacy code paths, helpers we add later) starts clean.
+  if (typeof localStorage !== 'undefined' && localStorage?.clear) {
+    localStorage.clear();
+  }
+});
 
 describe('createLearningEngine → completeLesson', () => {
   it('marks a new lesson done, awards XP, and records daily activity', async () => {

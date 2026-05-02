@@ -8,6 +8,8 @@
 // has an actual design system, not ad-hoc colors.
 // ===============================================
 
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+
 const COLOR_TOKENS = [
   { name: 'bg-deep',     varName: '--bg-deep',     hex: '#0d0d1a' },
   { name: 'bg-dark',     varName: '--bg-dark',     hex: '#12122a' },
@@ -83,6 +85,8 @@ const tokenLabel = {
 };
 
 export function Styleguide({ onClose }) {
+  useDocumentTitle('Styleguide');
+
   return (
     <div
       style={{

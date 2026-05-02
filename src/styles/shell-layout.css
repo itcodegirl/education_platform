@@ -154,12 +154,45 @@
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--text);
-  font-size: 20px;
-  width: 42px;
+  font-size: 14px;
+  font-weight: 500;
   height: 42px;
+  min-width: 42px;
+  padding: 0 12px;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.15s;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.ham .ham-glyph {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.ham .ham-label {
+  font-size: 13px;
+  letter-spacing: 0.01em;
+}
+
+@media (max-width: 600px) {
+  .ham .ham-label {
+    /* Visually hidden on narrow screens to keep the topbar compact,
+       but the aria-label still announces the action to assistive
+       tech. */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+  .ham {
+    padding: 0;
+    width: 42px;
+  }
 }
 
 .ham:hover {
