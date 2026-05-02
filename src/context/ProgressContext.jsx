@@ -354,6 +354,8 @@ export function ProgressProvider({ children }) {
   const [completed, setCompleted] = useState([]);
   const [quizScores, setQuizScores] = useState({});
   const [xpTotal, setXpTotal] = useState(0);
+  const xpTotalRef = useRef(0);
+  const xpWriteChainRef = useRef(Promise.resolve());
   const [streak, setStreak] = useState(0);
   const [_streakLastDate, setStreakLastDate] = useState('');
   const [dailyCount, setDailyCount] = useState(0);
@@ -439,6 +441,8 @@ export function ProgressProvider({ children }) {
   const resetUserState = useCallback(() => {
     setCompleted([]);
     setQuizScores({});
+    xpTotalRef.current = 0;
+    xpWriteChainRef.current = Promise.resolve();
     setXpTotal(0);
     setStreak(0);
     setStreakLastDate('');
@@ -522,7 +526,9 @@ export function ProgressProvider({ children }) {
         },
       );
 
-      setXpTotal(xpRes.data?.total || 0);
+      const loadedXpTotal = xpRes.data?.total || 0;
+      xpTotalRef.current = loadedXpTotal;
+      setXpTotal(loadedXpTotal);
 
       const sd = streakRes.data;
       if (sd) {
@@ -625,10 +631,12 @@ export function ProgressProvider({ children }) {
   const awardXP = useCallback(async (amount, reason, options = {}) => {
     if (!user) return;
     const skipRemote = Boolean(options?.skipRemote);
-    const oldLevel = getLevel(xpTotal);
-    const newTotal = xpTotal + amount;
+    const oldTotal = xpTotalRef.current;
+    const oldLevel = getLevel(oldTotal);
+    const newTotal = oldTotal + amount;
     const newLevel = getLevel(newTotal);
 
+    xpTotalRef.current = newTotal;
     setXpTotal(newTotal);
     setXpPopupQueue((queue) => [
       ...queue,
@@ -640,9 +648,13 @@ export function ProgressProvider({ children }) {
     ]);
 
     if (!skipRemote) {
-      dbWrite(createProgressWrite('updateXP', { total: newTotal }), 'updateXP');
+      const write = createProgressWrite('updateXP', { total: newTotal });
+      xpWriteChainRef.current = xpWriteChainRef.current
+        .catch(() => {})
+        .then(() => dbWrite(write, 'updateXP'));
+      await xpWriteChainRef.current;
     }
-  }, [user, xpTotal, dbWrite]);
+  }, [user, dbWrite]);
 
   // Shifts the currently-displayed popup off the queue. If more popups
   // are queued, the next one becomes the new head and renders next.
