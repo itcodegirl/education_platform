@@ -124,11 +124,15 @@ export function AppLayout() {
   const level = useMemo(() => getLevel(xpTotal), [xpTotal]);
   const hasProgress = completed.length > 0 || Number(lastPosition?.time) > 0;
   const showStarterGuide = !hasProgress && !showModQuiz;
+  // "Builder" was the previous fallback. It's well-meaning but
+  // reads as scripted. "there" reads as a normal greeting when no
+  // display name is set ("Keep building, there.") and avoids
+  // gendered or jargon-y framing.
   const learnerName =
     profile?.display_name ||
     user?.user_metadata?.display_name ||
     user?.email?.split("@")[0] ||
-    "Builder";
+    "there";
   const [marking, setMarking] = useState(false);
   const lessonViewStartRef = useRef(Date.now());
   const trackedLessonRef = useRef('');
@@ -422,7 +426,12 @@ export function AppLayout() {
               aria-controls="course-sidebar"
               aria-expanded={isMobile ? panels.sidebar : !sidebarCollapsed}
             >
-              {isMobile ? "Menu" : sidebarCollapsed ? ">>" : "<<"}
+              <span className="ham-glyph" aria-hidden="true">
+                {isMobile ? '☰' : sidebarCollapsed ? '›' : '‹'}
+              </span>
+              <span className="ham-label">
+                {isMobile ? 'Menu' : sidebarCollapsed ? 'Expand' : 'Collapse'}
+              </span>
             </button>
             <Breadcrumb
               course={course}
