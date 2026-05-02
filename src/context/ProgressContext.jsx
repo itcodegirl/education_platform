@@ -31,6 +31,7 @@ import { getProgressWriteFailure } from '../services/progressWriteRuntime';
 import { isPerfectQuizScore, rewardKeys } from '../services/rewardPolicy';
 import { lessonKeysEquivalent, resolveStableLessonKeyAcrossCourses } from '../utils/lessonKeys';
 import { LOCAL_STORAGE_SYNC_ERROR_EVENT } from '../hooks/useLocalStorage';
+import { useTodayKey } from '../hooks/useTodayKey';
 import { findNewlyEarnedBadges } from '../services/badgeRules';
 import { nextSRCardState } from '../services/srAlgorithm';
 import {
@@ -119,6 +120,11 @@ export function ProgressProvider({ children }) {
   const { user } = useAuth();
   const userId = user?.id || '';
   const [loadVersion, setLoadVersion] = useState(0);
+  // Date key (YYYY-MM-DD UTC) that ticks at midnight + on tab
+  // visibility resume. Drives the active-streak / paused-streak /
+  // active-daily-count guards so they recompute when the wall
+  // clock crosses midnight inside an open tab.
+  const todayKey = useTodayKey();
   // Counter for DB writes that have failed since the last successful
   // load. The optimistic state is still the source of truth for the
   // session — this is just so the UI can surface "your progress did
@@ -954,25 +960,27 @@ export function ProgressProvider({ children }) {
   // learner who skipped two days would otherwise still see the
   // stale "5 day streak" pill until they did another activity. The
   // pure helper returns 0 when lastDate < yesterday.
+  //
+  // todayKey drives the memo invalidation so the guards recompute
+  // when wall-clock time crosses UTC midnight inside an open tab.
+  // Using it directly inside the helper call (instead of just as a
+  // dep) keeps the date snapshot the memo captured consistent
+  // through the call chain, and quiets exhaustive-deps.
   const activeStreak = useMemo(
-    () => getActiveStreakDays(streak, streakLastDate, getTodayString(), getYesterdayString()),
-    [streak, streakLastDate],
+    () => getActiveStreakDays(streak, streakLastDate, todayKey, getYesterdayString()),
+    [streak, streakLastDate, todayKey],
   );
-  // Paused-streak payload — non-null only when the learner had a
-  // real streak that has now lapsed. Lets WelcomeBack render a
-  // "pick it back up" cue instead of the silent 0 the active-
-  // streak guard would otherwise produce.
   const pausedStreak = useMemo(
-    () => getPausedStreak(streak, streakLastDate, getTodayString(), getYesterdayString()),
-    [streak, streakLastDate],
+    () => getPausedStreak(streak, streakLastDate, todayKey, getYesterdayString()),
+    [streak, streakLastDate, todayKey],
   );
   // Display the daily count only when it matches today's date.
   // The persisted dailyCount is from the LAST day the learner did
   // activity — yesterday's "3 lessons today" would otherwise leak
   // into today's topbar and lie that the daily goal is met.
   const activeDailyCount = useMemo(
-    () => getActiveDailyCount(dailyCount, dailyDate, getTodayString()),
-    [dailyCount, dailyDate],
+    () => getActiveDailyCount(dailyCount, dailyDate, todayKey),
+    [dailyCount, dailyDate, todayKey],
   );
 
   const xpValue = useMemo(() => ({
