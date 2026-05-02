@@ -3,8 +3,7 @@
 // Sidebar + Topbar + Content + Toolbar + Panels
 // ===============================================
 
-import { useCallback, useMemo, useEffect, useRef, useState } from "react";
-import { useFetcher } from "react-router-dom";
+import { useCallback, useMemo, useEffect, useRef } from "react";
 import { COURSES } from "../data";
 import { useTheme, useAuth, useProgressData, useXP, useCourseContent } from "../providers";
 import { useNavigation } from "../hooks/useNavigation";
@@ -13,8 +12,8 @@ import { useKeyboardNav } from "../hooks/useKeyboardNav";
 import { useLearning } from "../hooks/useLearning";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useLocalStorage } from "../hooks/useLocalStorage";
-import { useFetcherSyncFailure } from "../hooks/useFetcherSyncFailure";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { useMarkLessonDone } from "../hooks/useMarkLessonDone";
 import { estimateReadingTime, getLevel } from "../utils/helpers";
 import { trackEvent } from "../lib/analytics";
 import {
@@ -28,10 +27,6 @@ import {
   getNextStepHint,
   getPrevLessonTitle,
 } from "../utils/lessonNavCopy";
-import {
-  MARK_DONE_MIN_FEEDBACK_MS,
-  resolveLessonToggle,
-} from "../utils/lessonToggle";
 
 // Layout components
 import { Sidebar } from "../components/layout/Sidebar";
@@ -65,13 +60,10 @@ export function AppLayout() {
     trackCourseVisit,
     dataLoaded,
     lastPosition,
-    markSyncFailed,
-    enqueuePendingSyncWrite,
   } = useProgressData();
   const { xpTotal = 0, streak = 0, dailyCount = 0 } = useXP();
 
   const nav = useNavigation();
-  const progressMutation = useFetcher();
   const panels = usePanels({ dataLoaded, user: true, lastPosition });
   const learn = useLearning();
   const isMobile = useIsMobile(901);
@@ -137,16 +129,9 @@ export function AppLayout() {
     user?.user_metadata?.display_name ||
     user?.email?.split("@")[0] ||
     "there";
-  const [marking, setMarking] = useState(false);
   const lessonViewStartRef = useRef(Date.now());
   const trackedLessonRef = useRef('');
   const isSidebarOpen = isMobile ? panels.sidebar : true;
-
-  useFetcherSyncFailure(
-    progressMutation,
-    { markSyncFailed, enqueuePendingSyncWrite },
-    'lesson progress',
-  );
 
   useEffect(() => {
     if (isMobile) {
@@ -254,57 +239,26 @@ export function AppLayout() {
   }, [isCourseComplete, isDone, panels]);
 
   // --- Actions ------------------------------
-  const handleMarkDone = useCallback(async () => {
-    if (marking) return;
-    setMarking(true);
-    const startedAt = Date.now();
-    try {
-      const { keyToToggle, wasDone } = resolveLessonToggle(
-        completedSet,
-        stableLessonKey,
-        legacyLessonKey,
-      );
-      const nextMode = wasDone ? 'uncomplete' : 'complete';
-      learn.toggleLessonDone(keyToToggle, { skipRemote: true });
-      progressMutation.submit(
-        {
-          intent: 'toggle-progress',
-          mode: nextMode,
-          lessonKey: keyToToggle,
-        },
-        {
-          method: 'post',
-          action: mutationActionPath,
-        },
-      );
-      trackEvent('lesson_completion_toggled', {
-        courseId: course.id,
-        moduleId: mod.id,
-        lessonId: les.id,
-        completionState: wasDone ? 'unmarked' : 'marked_complete',
-        secondsOnLesson: Math.round((Date.now() - lessonViewStartRef.current) / 1000),
-      });
-    } finally {
-      const elapsed = Date.now() - startedAt;
-      const remaining = Math.max(MARK_DONE_MIN_FEEDBACK_MS - elapsed, 0);
-      if (remaining > 0) {
-        setTimeout(() => setMarking(false), remaining);
-      } else {
-        setMarking(false);
-      }
-    }
-  }, [
+  // The mark-done flow lives in useMarkLessonDone — owns the
+  // useFetcher mutation, the optimistic toggle, the syncFailure
+  // wiring, and the min-feedback duration.
+  const analyticsContext = useMemo(
+    () => ({
+      courseId: course.id,
+      moduleId: mod.id,
+      lessonId: les.id,
+      lessonViewStartRef,
+    }),
+    [course.id, mod.id, les.id],
+  );
+  const { marking, handleMarkDone } = useMarkLessonDone({
     completedSet,
-    course.id,
-    legacyLessonKey,
-    les.id,
-    marking,
-    mod.id,
-    mutationActionPath,
-    progressMutation,
     stableLessonKey,
-    learn,
-  ]);
+    legacyLessonKey,
+    toggleLessonDone: learn.toggleLessonDone,
+    mutationActionPath,
+    analyticsContext,
+  });
 
   const handleNextLesson = useCallback(() => {
     trackEvent('lesson_next_clicked', {
