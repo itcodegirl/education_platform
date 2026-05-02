@@ -285,7 +285,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
                   disabled={publicSaving}
                   onClick={() => savePublicSettings(true, publicHandle)}
                 >
-                  {publicSaving ? 'Saving...' : 'Publish'}
+                  {publicSaving ? 'Saving…' : 'Publish'}
                 </button>
               </div>
               {publicHandle && !publicError && publicSaved && (

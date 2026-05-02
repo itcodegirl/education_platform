@@ -493,7 +493,7 @@ export function AppLayout() {
                     </h2>
                     <p className="frg-copy">
                       You are on the first lesson to set your pace. Read this lesson,
-                      complete it, then hit <strong>Mark Done</strong> to unlock the next one.
+                      complete it, then hit <strong>Mark done</strong> to unlock the next one.
                     </p>
                     <p className="frg-sub">Pick a course track anytime in the lesson sidebar.</p>
                   </div>
