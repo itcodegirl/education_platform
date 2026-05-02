@@ -293,7 +293,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
                   className="pp-public-link"
                   href={`/u/${publicHandle}`}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                 >
                   Open your public page &rarr;
                 </a>
