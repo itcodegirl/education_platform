@@ -97,6 +97,11 @@ The goal was to keep the existing core vision and architecture intact while maki
 - extended that recovery path to recoverable lesson progress and bookmark route mutations, with route-action test coverage to protect the contract
 - added privacy-safe sync recovery telemetry for queued writes and replay outcomes, while keeping raw learner payloads out of analytics
 - ignored local Playwright auth storage so authenticated test runs do not create commit-risk session files
+- blocks the authenticated app shell when profile verification fails, instead of silently treating an unverified profile as safe
+- removed the unused legacy route tree so the app has one clear data-router architecture for reviewers to follow
+- fixed consecutive XP awards so quiz completion plus perfect-score bonuses accumulate and persist in order
+- changed the public hero CTA from a developer-facing styleguide link to a learner-facing first-lesson preview
+- added desktop and mobile Playwright coverage for the public landing-to-preview learner path
 - maintained small, intentional commits with check-backed verification
 
 ---
@@ -157,7 +162,7 @@ Why: product reliability needs visibility, but portfolio credibility is stronger
 - clearer user path from landing to lesson completion
 - more consistent, premium-feeling UI without sacrificing readability
 - stronger confidence in release quality through explicit checks
-- more believable progress reliability because direct learner saves can now retry after transient failures
+- more believable progress reliability because direct learner saves can retry after transient failures and rapid XP awards no longer race each other down
 - stronger trust in lesson completion and bookmark persistence because recoverable route failures now fall back into the same-browser retry queue
 - cleaner QA hygiene because authenticated Playwright state is ignored instead of appearing as untracked session residue
 - clearer portfolio narrative for both non-technical and technical reviewers
@@ -178,6 +183,7 @@ Why: product reliability needs visibility, but portfolio credibility is stronger
 ## What I would do next
 
 - add final screenshot assets in `docs/screenshots/`
+- configure Supabase test credentials so authenticated Playwright lesson/mobile flows run in CI instead of self-skipping
 - add Lighthouse CI scoring and budget reporting
 - add richer analytics for onboarding drop-off and lesson completion friction
 - continue incremental CSS modularization to reduce global stylesheet surface area

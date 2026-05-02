@@ -19,7 +19,7 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 - Quiz variant groups and legacy orphan quiz inventory are classified and monitored by the audit.
 - Bookmarks and lesson notes in the active app.
 - Certificate export flow.
-- Public Playwright smoke coverage.
+- Public Playwright smoke coverage, including landing, auth, accessibility, visual snapshots, and first-lesson preview entry.
 - Netlify + Vite build/deploy flow.
 
 ## Testing Scope
@@ -31,7 +31,7 @@ Current baseline checks:
 - `npm run lint`
 - `npm run test` (Vitest unit/component suite — passes on a fresh clone with no `.env` configured; the suite stubs the `VITE_SUPABASE_*` placeholders via `vitest.config.js` so client-importing tests can evaluate)
 - `npm run audit:quizzes`
-- `npm run test:e2e` (public smoke path runs by default)
+- `npm run test:e2e` (public smoke and first-lesson preview paths run by default)
 
 Current test boundaries:
 
@@ -87,11 +87,11 @@ This should be presented as a stabilized learning-platform case study, not as a 
 Concrete shape of the project at the current commit:
 
 - Four full courses (HTML, CSS, JavaScript, React).
-- A reward system (XP, streaks, badges, bookmarks, spaced-repetition queue) that is event-driven, idempotent (`hasRewardBeenAwarded()` + `markRewardAwarded()`), persisted to Supabase, and reconciles cleanly with the local optimistic state on reload. XP popups and badge-unlock celebrations are queued so back-to-back rewards (e.g. quiz completion + perfect-score bonus) all display in turn instead of overwriting each other.
+- A reward system (XP, streaks, badges, bookmarks, spaced-repetition queue) with idempotent local reward history, same-browser retry support for direct progress writes, serialized XP saves for back-to-back rewards, and feature-gated Supabase reward-event support. Backend reward sync remains intentionally off until the Supabase migrations and authenticated duplicate-award flows are verified.
 - A lazy-loaded Monaco editor split into multiple chunks via Vite manual chunking so it never enters the initial bundle.
 - A top-level `ErrorBoundary` so a provider crash falls back to a visible retry/reload screen, not a blank page.
-- A Vitest unit/component suite of 420+ tests including accessibility integration tests (axe-core).
-- A Playwright public smoke suite plus an opt-in authenticated path.
+- A Vitest unit/component suite of 430+ tests including accessibility integration tests (axe-core).
+- A Playwright public smoke suite plus opt-in authenticated lesson, mobile, and visual paths.
 
 Files most worth a look from a senior reviewer:
 

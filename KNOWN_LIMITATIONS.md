@@ -6,6 +6,7 @@ This project is actively stabilized and is not yet production-grade. The followi
 
 - The local quality gate covers lint, production build, bundle budget, and unit tests through `npm run check`.
 - Authenticated E2E scenarios are skipped when auth credentials are not configured in environment variables.
+- Public E2E scenarios cover the landing/auth shell, accessibility smoke, visual snapshots, and the first-lesson preview path. Signed-in learner persistence still requires configured Supabase test credentials.
 - Authenticated Playwright storage state is intentionally ignored under `playwright/.auth/` to avoid committing local session files.
 
 ## Learning Integrity
@@ -19,6 +20,7 @@ This project is actively stabilized and is not yet production-grade. The followi
 - Cross-course mixed-type quiz entries previously embedded in React quiz data are intentionally archived as inactive exports and excluded from active React lookup.
 - Renamed HTML Module 102 lesson IDs resolved duplicate identity risk, but existing progress/bookmark keys for those old lesson IDs may need a later targeted compatibility decision.
 - Core same-device reward trust rules are hardened for lesson completion XP, quiz retry rewards, activity-based streaks, and challenge completion dedupe.
+- Consecutive XP awards now accumulate from the latest in-memory total and serialize direct XP saves so a later reward total is not overwritten by an older in-flight save.
 - Lesson, quiz, and challenge XP use a local reward-event ledger/processor with legacy reward history as a compatibility guard.
 - Failed reward events have a local queue/reconciliation foundation for same-device recovery and inspection.
 - Reward engine diagnostics can summarize local ledger/queue health, but they are developer-facing and do not replace backend observability.
