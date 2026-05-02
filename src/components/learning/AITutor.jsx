@@ -274,7 +274,7 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
               disabled={!input.trim() || loading || !isOnline}
               aria-label="Send message to AI tutor"
             >
-              ^
+              <span aria-hidden="true">↑</span>
             </button>
           </form>
           <div id="ai-input-meta" className="ai-input-meta">
