@@ -384,6 +384,25 @@ describe('ProgressContext — user logged in (happy path)', () => {
 
     expect(mockUpdateStreak).not.toHaveBeenCalled();
   });
+
+  it('resets streak React state when the fetch returns no streak row', async () => {
+    // Regression for the asymmetry where the no-row branch only
+    // reset the ref, leaving setStreak/setStreakLastDate untouched.
+    // The active-streak guard alone couldn't catch this — it
+    // depends on the React state values themselves.
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-fresh' } });
+    mockFetchAllUserData.mockResolvedValue(
+      makeFetchResult({
+        streak: { data: null, error: null },
+      }),
+    );
+
+    renderXPWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('activity').dataset.streak).toBe('0');
+    });
+  });
 });
 
 describe('ProgressContext — fetch error', () => {
