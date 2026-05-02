@@ -489,6 +489,13 @@ export function ProgressProvider({ children }) {
         setStreakLastDate(loadedLastDate);
         streakStateRef.current = { days: loadedStreak, lastDate: loadedLastDate };
       } else {
+        // No streak row exists for this user yet. Reset both the
+        // ref AND the React state so a previous load's streak
+        // can't leak into the topbar pill on a retry. The daily
+        // branch below already does this; the streak branch was
+        // missing the React state half.
+        setStreak(0);
+        setStreakLastDate('');
         streakStateRef.current = { days: 0, lastDate: '' };
       }
 
