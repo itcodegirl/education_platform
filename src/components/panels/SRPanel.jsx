@@ -152,7 +152,7 @@ export function SRPanel({ isOpen, onClose }) {
                 aria-label="Concept to practice"
               />
               <button type="submit" className="sr-generate-btn" disabled={genLoading}>
-                {genLoading ? "Generating..." : "Generate"}
+                {genLoading ? "Generating…" : "Generate"}
               </button>
             </div>
             {genError && <div className="sr-generate-error">{genError}</div>}
