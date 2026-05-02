@@ -144,7 +144,7 @@ function HeroPanel({ panel, index }) {
   );
 }
 
-export function LandingHeroIntro({ onStart, compact = false }) {
+export function LandingHeroIntro({ onStart, onPreview, compact = false }) {
   const [introRef, introInView] = useInView({ threshold: 0.1 });
 
   return (
@@ -173,9 +173,16 @@ export function LandingHeroIntro({ onStart, compact = false }) {
             Create free account
           </button>
         )}
-        <a className="lh-cta-ghost ui-btn ui-btn-secondary" href="/styleguide" aria-label="Go to the design system">
-          Browse design system
-        </a>
+        {onPreview && (
+          <button
+            type="button"
+            className="lh-cta-ghost ui-btn ui-btn-secondary"
+            onClick={onPreview}
+            aria-label="Preview the first lesson before creating an account"
+          >
+            Preview first lesson
+          </button>
+        )}
       </div>
       {!compact && (
         <div className="lh-scroll-cue" aria-hidden="true">
