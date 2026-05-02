@@ -359,6 +359,31 @@ describe('ProgressContext — user logged in (happy path)', () => {
     });
     expect(screen.getByTestId('activity').dataset.streak).toBe('4');
   });
+
+  it('hides a stale streak when last activity is older than yesterday', async () => {
+    // Persisted streak says "5 days", but the learner hasn't been
+    // active since 10 days ago. The exposed XP-context streak must
+    // be 0 — the topbar shouldn't lie that the streak is still
+    // alive. Persisted DB state is unchanged either way (this is a
+    // display guard, not a write).
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-stale' } });
+    mockFetchAllUserData.mockResolvedValue(
+      makeFetchResult({
+        streak: {
+          data: { days: 5, last_date: '2024-01-01' },
+          error: null,
+        },
+      }),
+    );
+
+    renderXPWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('activity').dataset.streak).toBe('0');
+    });
+
+    expect(mockUpdateStreak).not.toHaveBeenCalled();
+  });
 });
 
 describe('ProgressContext — fetch error', () => {
