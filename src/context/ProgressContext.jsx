@@ -7,6 +7,7 @@ import { createContext, useContext, useCallback, useEffect, useRef, useState, us
 import { useAuth } from './AuthContext';
 import {
   DAILY_GOAL,
+  getActiveDailyCount,
   getActiveStreakDays,
   getLevel,
   getPausedStreak,
@@ -958,6 +959,14 @@ export function ProgressProvider({ children }) {
     () => getPausedStreak(streak, streakLastDate, getTodayString(), getYesterdayString()),
     [streak, streakLastDate],
   );
+  // Display the daily count only when it matches today's date.
+  // The persisted dailyCount is from the LAST day the learner did
+  // activity — yesterday's "3 lessons today" would otherwise leak
+  // into today's topbar and lie that the daily goal is met.
+  const activeDailyCount = useMemo(
+    () => getActiveDailyCount(dailyCount, dailyDate, getTodayString()),
+    [dailyCount, dailyDate],
+  );
 
   const xpValue = useMemo(() => ({
     xpTotal,
@@ -966,7 +975,7 @@ export function ProgressProvider({ children }) {
     clearXPPopup,
     streak: activeStreak,
     pausedStreak,
-    dailyCount,
+    dailyCount: activeDailyCount,
     recordDailyActivity,
     earnedBadges,
     newBadge,
@@ -978,7 +987,7 @@ export function ProgressProvider({ children }) {
     clearXPPopup,
     activeStreak,
     pausedStreak,
-    dailyCount,
+    activeDailyCount,
     recordDailyActivity,
     earnedBadges,
     newBadge,

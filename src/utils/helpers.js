@@ -82,3 +82,17 @@ export function getPausedStreak(streakDays, lastDate, today, yesterday) {
   if (lastDate === today || lastDate === yesterday) return null;
   return { days: streakDays, lastDate };
 }
+
+// Same shape as getActiveStreakDays but for the today's-lessons
+// counter. Persisted dailyCount + dailyDate reflect the LAST time
+// the learner did activity. If they did 3 lessons yesterday and
+// open the app today without doing anything yet, the stored count
+// is still 3 — so the topbar would lie that today's goal is
+// already met. Returning 0 when dailyDate isn't today keeps the
+// UI honest, and the count rebuilds correctly the moment the
+// learner logs their next activity.
+export function getActiveDailyCount(dailyCount, dailyDate, today) {
+  if (!Number.isFinite(dailyCount) || dailyCount <= 0) return 0;
+  if (!dailyDate || dailyDate !== today) return 0;
+  return dailyCount;
+}

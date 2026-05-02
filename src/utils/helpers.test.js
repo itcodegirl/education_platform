@@ -5,6 +5,7 @@ import {
   DAILY_GOAL,
   MILESTONES,
   estimateReadingTime,
+  getActiveDailyCount,
   getActiveStreakDays,
   getLevel,
   getPausedStreak,
@@ -181,5 +182,32 @@ describe('getPausedStreak', () => {
       // If paused, active must be 0.
       if (paused) expect(active).toBe(0);
     }
+  });
+});
+
+describe('getActiveDailyCount', () => {
+  const today = '2025-05-10';
+
+  it('returns the saved count when dailyDate matches today', () => {
+    expect(getActiveDailyCount(2, today, today)).toBe(2);
+    expect(getActiveDailyCount(3, today, today)).toBe(3);
+  });
+
+  it('returns 0 when dailyDate is from a previous day', () => {
+    expect(getActiveDailyCount(3, '2025-05-09', today)).toBe(0);
+    expect(getActiveDailyCount(3, '2024-12-31', today)).toBe(0);
+  });
+
+  it('returns 0 when dailyDate is missing or empty', () => {
+    expect(getActiveDailyCount(3, '', today)).toBe(0);
+    expect(getActiveDailyCount(3, null, today)).toBe(0);
+    expect(getActiveDailyCount(3, undefined, today)).toBe(0);
+  });
+
+  it('returns 0 for non-positive or non-finite stored counts', () => {
+    expect(getActiveDailyCount(0, today, today)).toBe(0);
+    expect(getActiveDailyCount(-1, today, today)).toBe(0);
+    expect(getActiveDailyCount(Number.NaN, today, today)).toBe(0);
+    expect(getActiveDailyCount(Infinity, today, today)).toBe(0);
   });
 });
