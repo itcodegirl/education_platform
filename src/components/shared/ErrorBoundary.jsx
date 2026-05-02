@@ -48,7 +48,7 @@ export class ErrorBoundary extends Component {
       return (
         <div className="eb-screen">
           <div className="eb-card">
-            <span className="eb-icon" aria-hidden="true">!</span>
+            <span className="eb-icon" aria-hidden="true">⚠︎</span>
             <h2 className="eb-title">Something went wrong</h2>
             <p className="eb-msg">
               The platform hit an unexpected error. This is usually temporary.
