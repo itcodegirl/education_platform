@@ -250,7 +250,3 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
   );
 }
 
-
-
-
-
