@@ -91,6 +91,7 @@ Concrete shape of the project at the current commit:
 - A lazy-loaded Monaco editor split into multiple chunks via Vite manual chunking so it never enters the initial bundle.
 - A top-level `ErrorBoundary` so a provider crash falls back to a visible retry/reload screen, not a blank page.
 - A Vitest unit/component suite of 500+ tests including accessibility integration tests (axe-core).
+- Lesson-chain perf wins from React.memo on the heavy children: CodePreview / RichLessonBody / StructuredLessonBody no longer re-render for unrelated lesson-chain state (notes textarea keystrokes, AI tutor toggles, the bookmark pill).
 - A Playwright public smoke suite plus an opt-in authenticated path.
 
 Files most worth a look from a senior reviewer:
