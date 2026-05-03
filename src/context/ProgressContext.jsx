@@ -332,6 +332,12 @@ export function ProgressProvider({ children }) {
   const [challengeCompletions, setChallengeCompletions] = useState([]);
   const challengeCompletionsRef = useRef(new Set());
   const streakStateRef = useRef({ days: 0, lastDate: '' });
+  // Same ref-mirroring pattern as streakStateRef. Two recordDailyActivity
+  // calls in the same React batch would otherwise both read the stale
+  // closure-captured dailyCount/dailyDate and lose an increment. The ref
+  // updates synchronously so the second call sees the first call's
+  // value.
+  const dailyStateRef = useRef({ count: 0, date: '' });
   // XP popups are queued so back-to-back awards each get their full
   // dismissal animation. Without this, a perfect-quiz flow that awards
   // +30 XP (base) then +50 XP (perfect bonus) in the same tick would
@@ -408,6 +414,7 @@ export function ProgressProvider({ children }) {
     streakStateRef.current = { days: 0, lastDate: '' };
     setDailyCount(0);
     setDailyDate('');
+    dailyStateRef.current = { count: 0, date: '' };
     setEarnedBadges({});
     setSrCards([]);
     setBookmarks([]);
@@ -508,11 +515,14 @@ export function ProgressProvider({ children }) {
       const dd = dailyRes.data;
       const today = getTodayString();
       if (dd && dd.goal_date === today) {
-        setDailyCount(dd.count || 0);
+        const loadedCount = dd.count || 0;
+        setDailyCount(loadedCount);
         setDailyDate(today);
+        dailyStateRef.current = { count: loadedCount, date: today };
       } else {
         setDailyCount(0);
         setDailyDate(today);
+        dailyStateRef.current = { count: 0, date: today };
       }
 
       const badges = {};
@@ -678,7 +688,11 @@ export function ProgressProvider({ children }) {
     if (!user) return;
     const today = getTodayString();
     const yesterday = getYesterdayString();
-    const currentCount = dailyDate === today ? dailyCount : 0;
+    // Read prior daily state from the ref, not the React closure, so two
+    // calls in the same React batch don't both see the stale "before
+    // either ran" value and lose an increment.
+    const dailyState = dailyStateRef.current;
+    const currentCount = dailyState.date === today ? dailyState.count : 0;
     const newCount = Math.min(currentCount + 1, DAILY_GOAL);
     const streakState = streakStateRef.current;
 
@@ -696,6 +710,7 @@ export function ProgressProvider({ children }) {
       );
     }
 
+    dailyStateRef.current = { count: newCount, date: today };
     setDailyCount(newCount);
     setDailyDate(today);
 
@@ -706,7 +721,7 @@ export function ProgressProvider({ children }) {
       }),
       'updateDailyGoal',
     );
-  }, [user, dailyCount, dailyDate, dbWrite]);
+  }, [user, dbWrite]);
 
   // ─── Badges ───────────────────────────────────
   // The pure rules (which conditions earn which badge) live in

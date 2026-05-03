@@ -83,11 +83,19 @@ export function useQuizSession({ quiz, label, quizKey }) {
   const handleSubmit = useCallback(async () => {
     setSubmitted(true);
 
+    const total = quiz.questions.length;
+    // Defensive: a malformed quiz with zero questions would NaN out the
+    // pct math below and silently fire empty reward + activity calls.
+    // Mark submitted so the UI exits the answer state, then bail.
+    if (total === 0) {
+      setLastEarnedXp(0);
+      return;
+    }
+
     const score = quiz.questions.reduce(
       (s, q) => s + (isAnswerCorrect(q, answers.get(q.id)) ? 1 : 0),
       0,
     );
-    const total = quiz.questions.length;
     const pct = Math.round((score / total) * 100);
 
     if (quizKey && isQuizScoreImprovement(quizScores[quizKey], score, total)) {
@@ -181,8 +189,11 @@ export function useQuizSession({ quiz, label, quizKey }) {
     0,
   );
   const total = quiz.questions.length;
-  const allAnswered = answers.size === total;
-  const pct = Math.round((score / total) * 100);
+  const allAnswered = total > 0 && answers.size === total;
+  // total === 0 is an edge that handleSubmit also guards, but the
+  // derived pct is read in the rendered UI on every render — keep it a
+  // finite number so callers don't have to special-case NaN%.
+  const pct = total > 0 ? Math.round((score / total) * 100) : 0;
   const wrongCount = submitted ? total - score : 0;
 
   return {

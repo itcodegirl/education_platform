@@ -101,6 +101,12 @@ export function createLearningEngine({
     score,
     total,
   ) {
+    // Defensive: zero-question quizzes can't be scored — bail without
+    // saving, awarding XP, or bumping streak/dailyCount. The hook path
+    // (useQuizSession.handleSubmit) carries the same guard.
+    if (!Number.isFinite(total) || total <= 0) {
+      return { score, total, pct: 0 };
+    }
     const pct = Math.round((score / total) * 100);
     if (isQuizScoreImprovement(quizScores[quizKey], score, total)) {
       saveQuizScore(quizKey, formatQuizScore(score, total));
