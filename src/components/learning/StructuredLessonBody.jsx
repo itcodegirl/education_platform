@@ -14,9 +14,13 @@
 // onToggleTask so the challenge checklist can persist state.
 // ═══════════════════════════════════════════════
 
+import { memo } from 'react';
 import { CodePreview } from './CodePreview';
 
-export function StructuredLessonBody({
+// Memoized — same rationale as RichLessonBody: skip re-renders
+// driven by sibling state in LessonView (showNotes, AI tutor
+// open/close) when none of this component's props changed.
+export const StructuredLessonBody = memo(function StructuredLessonBody({
   lesson,
   lang,
   scaffolding,
@@ -216,5 +220,5 @@ export function StructuredLessonBody({
       )}
     </div>
   );
-}
+});
 

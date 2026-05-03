@@ -15,7 +15,7 @@
 // audit, which flagged it as one of three god-components.
 // ═══════════════════════════════════════════════
 
-import { useState, useEffect, memo } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useToggleBookmark } from '../../hooks/useToggleBookmark';
 import { AITutor } from './AITutor';
@@ -80,7 +80,11 @@ export const LessonView = memo(function LessonView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonKey]);
 
-  const toggleTask = (index) => {
+  // useCallback so the memoized body components don't see a new
+  // onToggleTask identity on every parent re-render. setCheckedTasks
+  // is stable; lessonKey is the only piece of changing state we
+  // capture in the inner setAllTasks closure.
+  const toggleTask = useCallback((index) => {
     setCheckedTasks((prev) => {
       const next = new Set(prev);
       if (next.has(index)) next.delete(index);
@@ -88,7 +92,12 @@ export const LessonView = memo(function LessonView({
       setAllTasks((all) => ({ ...(all || {}), [lessonKey]: [...next] }));
       return next;
     });
-  };
+  }, [lessonKey, setAllTasks]);
+
+  // Stable callback identity so the memoized RichLessonBody can
+  // skip re-renders when other lesson-chain state changes.
+  const toggleDevFession = useCallback(() => setShowDevFession((value) => !value), []);
+  const toggleNotes = useCallback(() => setShowNotes((value) => !value), []);
 
   return (
     <div className="lesson-surface">
@@ -104,7 +113,7 @@ export const LessonView = memo(function LessonView({
         bookmarked={bookmarked}
         showNotes={showNotes}
         onToggleBookmark={handleToggleBookmark}
-        onToggleNotes={() => setShowNotes((value) => !value)}
+        onToggleNotes={toggleNotes}
       />
 
       {showNotes && <LessonNotesPanel lessonKey={lessonKey} />}
@@ -127,7 +136,7 @@ export const LessonView = memo(function LessonView({
           checkedTasks={checkedTasks}
           onToggleTask={toggleTask}
           showDevFession={showDevFession}
-          onToggleDevFession={() => setShowDevFession((value) => !value)}
+          onToggleDevFession={toggleDevFession}
         />
       )}
 
