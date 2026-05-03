@@ -236,12 +236,6 @@
   text-align: center;
   animation: pulse 1.5s ease-in-out infinite;
 }
-.loading-bolt {
-  font-size: 48px;
-  display: block;
-  margin-bottom: 16px;
-  filter: drop-shadow(0 0 12px var(--pink));
-}
 .loading-screen p {
   color: var(--text-muted);
   font-family: 'Poppins', sans-serif;

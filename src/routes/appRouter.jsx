@@ -51,11 +51,11 @@ function DisabledAccountScreen({ theme, onSignOut }) {
   return (
     <div className={`loading-screen ${theme}`} role="status" aria-live="polite">
       <div className="disabled-screen">
-        <span className="disabled-icon" aria-hidden="true">[ ]</span>
-        <h2 className="disabled-title">Account Disabled</h2>
+        <span className="disabled-icon" aria-hidden="true">⊘</span>
+        <h2 className="disabled-title">Account disabled</h2>
         <p className="disabled-msg">Your account has been disabled. Contact support if this is a mistake.</p>
-        <a href="mailto:hello@codeherway.com" className="disabled-link">Contact Support</a>
-        <button type="button" className="disabled-logout" onClick={onSignOut}>Log Out</button>
+        <a href="mailto:hello@codeherway.com" className="disabled-link">Contact support</a>
+        <button type="button" className="disabled-logout" onClick={onSignOut}>Log out</button>
       </div>
     </div>
   );
