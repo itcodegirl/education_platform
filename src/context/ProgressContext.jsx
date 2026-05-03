@@ -5,7 +5,15 @@
 
 import { createContext, useContext, useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useAuth } from './AuthContext';
-import { DAILY_GOAL, getLevel, getTodayString, getYesterdayString } from '../utils/helpers';
+import {
+  DAILY_GOAL,
+  getActiveDailyCount,
+  getActiveStreakDays,
+  getLevel,
+  getPausedStreak,
+  getTodayString,
+  getYesterdayString,
+} from '../utils/helpers';
 import { COURSES } from '../data';
 import * as progressService from '../services/progressService';
 import {
@@ -23,8 +31,17 @@ import { getProgressWriteFailure } from '../services/progressWriteRuntime';
 import { isPerfectQuizScore, rewardKeys } from '../services/rewardPolicy';
 import { lessonKeysEquivalent, resolveStableLessonKeyAcrossCourses } from '../utils/lessonKeys';
 import { LOCAL_STORAGE_SYNC_ERROR_EVENT } from '../hooks/useLocalStorage';
+import { useTodayKey } from '../hooks/useTodayKey';
 import { findNewlyEarnedBadges } from '../services/badgeRules';
 import { nextSRCardState } from '../services/srAlgorithm';
+import {
+  normalizeRewardHistory,
+  normalizeStringList as normalizeStringSet,
+  readChallengeCompletions,
+  readRewardHistory,
+  writeChallengeCompletions,
+  writeRewardHistory,
+} from '../utils/learnerLocalStore';
 
 // BADGE_DEFS is imported above from '../data/badges' (the canonical
 // catalog home) and re-exported via providers/ProgressProvider, so
@@ -68,6 +85,9 @@ const XPContext = createContext({
   xpPopup: null,
   clearXPPopup: () => {},
   streak: 0,
+  // pausedStreak is null when there is no lapsed streak to revive.
+  // Shape when present: { days: number, lastDate: 'YYYY-MM-DD' }.
+  pausedStreak: null,
   dailyCount: 0,
   recordDailyActivity: () => {},
   earnedBadges: [],
@@ -92,76 +112,19 @@ function normalizeLessonKey(lessonKey) {
   return resolveStableLessonKeyAcrossCourses(lessonKey, COURSES);
 }
 
-function getRewardHistoryStorageKey(userId) {
-  return `chw-reward-history:${userId}`;
-}
-
-function getChallengeCompletionStorageKey(userId) {
-  return `chw-challenge-completions:${userId}`;
-}
-
-function normalizeRewardHistory(keys) {
-  if (!Array.isArray(keys)) return [];
-  return Array.from(new Set(
-    keys
-      .filter((key) => typeof key === 'string' && key.trim())
-      .map((key) => key.trim()),
-  ));
-}
-
-function readRewardHistory(userId) {
-  if (typeof window === 'undefined' || !userId) return [];
-
-  try {
-    const raw = window.localStorage.getItem(getRewardHistoryStorageKey(userId));
-    return normalizeRewardHistory(raw ? JSON.parse(raw) : []);
-  } catch {
-    return [];
-  }
-}
-
-function writeRewardHistory(userId, keys) {
-  if (typeof window === 'undefined' || !userId) return;
-
-  window.localStorage.setItem(
-    getRewardHistoryStorageKey(userId),
-    JSON.stringify(normalizeRewardHistory(keys)),
-  );
-}
-
-function normalizeStringSet(values) {
-  if (!Array.isArray(values)) return [];
-  return Array.from(new Set(
-    values
-      .filter((value) => typeof value === 'string' && value.trim())
-      .map((value) => value.trim()),
-  ));
-}
-
-function readChallengeCompletions(userId) {
-  if (typeof window === 'undefined' || !userId) return [];
-
-  try {
-    const raw = window.localStorage.getItem(getChallengeCompletionStorageKey(userId));
-    return normalizeStringSet(raw ? JSON.parse(raw) : []);
-  } catch {
-    return [];
-  }
-}
-
-function writeChallengeCompletions(userId, challengeIds) {
-  if (typeof window === 'undefined' || !userId) return;
-
-  window.localStorage.setItem(
-    getChallengeCompletionStorageKey(userId),
-    JSON.stringify(normalizeStringSet(challengeIds)),
-  );
-}
+// Per-learner localStorage helpers (reward history, challenge
+// completions, normalization) live in utils/learnerLocalStore so
+// they can be unit-tested independently of the provider.
 
 export function ProgressProvider({ children }) {
   const { user } = useAuth();
   const userId = user?.id || '';
   const [loadVersion, setLoadVersion] = useState(0);
+  // Date key (YYYY-MM-DD UTC) that ticks at midnight + on tab
+  // visibility resume. Drives the active-streak / paused-streak /
+  // active-daily-count guards so they recompute when the wall
+  // clock crosses midnight inside an open tab.
+  const todayKey = useTodayKey();
   // Counter for DB writes that have failed since the last successful
   // load. The optimistic state is still the source of truth for the
   // session — this is just so the UI can surface "your progress did
@@ -355,7 +318,7 @@ export function ProgressProvider({ children }) {
   const [quizScores, setQuizScores] = useState({});
   const [xpTotal, setXpTotal] = useState(0);
   const [streak, setStreak] = useState(0);
-  const [_streakLastDate, setStreakLastDate] = useState('');
+  const [streakLastDate, setStreakLastDate] = useState('');
   const [dailyCount, setDailyCount] = useState(0);
   const [dailyDate, setDailyDate] = useState('');
   const [earnedBadges, setEarnedBadges] = useState({});
@@ -532,6 +495,13 @@ export function ProgressProvider({ children }) {
         setStreakLastDate(loadedLastDate);
         streakStateRef.current = { days: loadedStreak, lastDate: loadedLastDate };
       } else {
+        // No streak row exists for this user yet. Reset both the
+        // ref AND the React state so a previous load's streak
+        // can't leak into the topbar pill on a retry. The daily
+        // branch below already does this; the streak branch was
+        // missing the React state half.
+        setStreak(0);
+        setStreakLastDate('');
         streakStateRef.current = { days: 0, lastDate: '' };
       }
 
@@ -985,13 +955,42 @@ export function ProgressProvider({ children }) {
     retryPendingSyncWrites,
   ]);
 
+  // Display the streak only when it's still active. The persisted
+  // value is the streak as of the learner's last activity, so a
+  // learner who skipped two days would otherwise still see the
+  // stale "5 day streak" pill until they did another activity. The
+  // pure helper returns 0 when lastDate < yesterday.
+  //
+  // todayKey drives the memo invalidation so the guards recompute
+  // when wall-clock time crosses UTC midnight inside an open tab.
+  // Using it directly inside the helper call (instead of just as a
+  // dep) keeps the date snapshot the memo captured consistent
+  // through the call chain, and quiets exhaustive-deps.
+  const activeStreak = useMemo(
+    () => getActiveStreakDays(streak, streakLastDate, todayKey, getYesterdayString()),
+    [streak, streakLastDate, todayKey],
+  );
+  const pausedStreak = useMemo(
+    () => getPausedStreak(streak, streakLastDate, todayKey, getYesterdayString()),
+    [streak, streakLastDate, todayKey],
+  );
+  // Display the daily count only when it matches today's date.
+  // The persisted dailyCount is from the LAST day the learner did
+  // activity — yesterday's "3 lessons today" would otherwise leak
+  // into today's topbar and lie that the daily goal is met.
+  const activeDailyCount = useMemo(
+    () => getActiveDailyCount(dailyCount, dailyDate, todayKey),
+    [dailyCount, dailyDate, todayKey],
+  );
+
   const xpValue = useMemo(() => ({
     xpTotal,
     awardXP,
     xpPopup,
     clearXPPopup,
-    streak,
-    dailyCount,
+    streak: activeStreak,
+    pausedStreak,
+    dailyCount: activeDailyCount,
     recordDailyActivity,
     earnedBadges,
     newBadge,
@@ -1001,8 +1000,9 @@ export function ProgressProvider({ children }) {
     awardXP,
     xpPopup,
     clearXPPopup,
-    streak,
-    dailyCount,
+    activeStreak,
+    pausedStreak,
+    activeDailyCount,
     recordDailyActivity,
     earnedBadges,
     newBadge,

@@ -12,10 +12,15 @@
 // the collapsed/expanded state of the Dev_Fession block.
 // ═══════════════════════════════════════════════
 
+import { memo } from 'react';
 import { renderMarkdown } from '../../utils/markdown';
 import { CodePreview } from './CodePreview';
 
-export function RichLessonBody({
+// Memoized — only re-renders when its props change (lesson,
+// checkedTasks Set ref, showDevFession). Skips re-renders driven
+// by sibling state in LessonView (showNotes, the bookmark pill,
+// the AI tutor open/close).
+export const RichLessonBody = memo(function RichLessonBody({
   lesson,
   lang,
   scaffolding,
@@ -125,5 +130,5 @@ export function RichLessonBody({
       )}
     </>
   );
-}
+});
 

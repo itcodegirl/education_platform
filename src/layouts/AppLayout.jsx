@@ -3,8 +3,7 @@
 // Sidebar + Topbar + Content + Toolbar + Panels
 // ===============================================
 
-import { useCallback, useMemo, useEffect, useRef, useState } from "react";
-import { useFetcher } from "react-router-dom";
+import { useCallback, useMemo, useEffect, useRef } from "react";
 import { COURSES } from "../data";
 import { useTheme, useAuth, useProgressData, useXP, useCourseContent } from "../providers";
 import { useNavigation } from "../hooks/useNavigation";
@@ -13,8 +12,8 @@ import { useKeyboardNav } from "../hooks/useKeyboardNav";
 import { useLearning } from "../hooks/useLearning";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useLocalStorage } from "../hooks/useLocalStorage";
-import { useFetcherSyncFailure } from "../hooks/useFetcherSyncFailure";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { useMarkLessonDone } from "../hooks/useMarkLessonDone";
 import { estimateReadingTime, getLevel } from "../utils/helpers";
 import { trackEvent } from "../lib/analytics";
 import {
@@ -61,13 +60,10 @@ export function AppLayout() {
     trackCourseVisit,
     dataLoaded,
     lastPosition,
-    markSyncFailed,
-    enqueuePendingSyncWrite,
   } = useProgressData();
-  const { xpTotal = 0, streak = 0, dailyCount = 0 } = useXP();
+  const { xpTotal = 0, streak = 0, pausedStreak = null, dailyCount = 0 } = useXP();
 
   const nav = useNavigation();
-  const progressMutation = useFetcher();
   const panels = usePanels({ dataLoaded, user: true, lastPosition });
   const learn = useLearning();
   const isMobile = useIsMobile(901);
@@ -133,16 +129,9 @@ export function AppLayout() {
     user?.user_metadata?.display_name ||
     user?.email?.split("@")[0] ||
     "there";
-  const [marking, setMarking] = useState(false);
   const lessonViewStartRef = useRef(Date.now());
   const trackedLessonRef = useRef('');
   const isSidebarOpen = isMobile ? panels.sidebar : true;
-
-  useFetcherSyncFailure(
-    progressMutation,
-    { markSyncFailed, enqueuePendingSyncWrite },
-    'lesson progress',
-  );
 
   useEffect(() => {
     if (isMobile) {
@@ -250,63 +239,26 @@ export function AppLayout() {
   }, [isCourseComplete, isDone, panels]);
 
   // --- Actions ------------------------------
-  // The optimistic toggle + analytics happen in the same tick, so
-  // without a min-show duration the "Saving..." label flickers by
-  // in well under one frame and learners think the click did
-  // nothing. 350ms reads as deliberate without feeling sluggish.
-  const MARK_DONE_MIN_FEEDBACK_MS = 350;
-  const handleMarkDone = useCallback(async () => {
-    if (marking) return;
-    setMarking(true);
-    const startedAt = Date.now();
-    try {
-      const wasDone = completedSet.has(stableLessonKey) || completedSet.has(legacyLessonKey);
-      const keyToToggle = completedSet.has(stableLessonKey)
-        ? stableLessonKey
-        : completedSet.has(legacyLessonKey)
-          ? legacyLessonKey
-          : stableLessonKey;
-      const nextMode = wasDone ? 'uncomplete' : 'complete';
-      learn.toggleLessonDone(keyToToggle, { skipRemote: true });
-      progressMutation.submit(
-        {
-          intent: 'toggle-progress',
-          mode: nextMode,
-          lessonKey: keyToToggle,
-        },
-        {
-          method: 'post',
-          action: mutationActionPath,
-        },
-      );
-      trackEvent('lesson_completion_toggled', {
-        courseId: course.id,
-        moduleId: mod.id,
-        lessonId: les.id,
-        completionState: wasDone ? 'unmarked' : 'marked_complete',
-        secondsOnLesson: Math.round((Date.now() - lessonViewStartRef.current) / 1000),
-      });
-    } finally {
-      const elapsed = Date.now() - startedAt;
-      const remaining = Math.max(MARK_DONE_MIN_FEEDBACK_MS - elapsed, 0);
-      if (remaining > 0) {
-        setTimeout(() => setMarking(false), remaining);
-      } else {
-        setMarking(false);
-      }
-    }
-  }, [
+  // The mark-done flow lives in useMarkLessonDone — owns the
+  // useFetcher mutation, the optimistic toggle, the syncFailure
+  // wiring, and the min-feedback duration.
+  const analyticsContext = useMemo(
+    () => ({
+      courseId: course.id,
+      moduleId: mod.id,
+      lessonId: les.id,
+      lessonViewStartRef,
+    }),
+    [course.id, mod.id, les.id],
+  );
+  const { marking, handleMarkDone } = useMarkLessonDone({
     completedSet,
-    course.id,
-    legacyLessonKey,
-    les.id,
-    marking,
-    mod.id,
-    mutationActionPath,
-    progressMutation,
     stableLessonKey,
-    learn,
-  ]);
+    legacyLessonKey,
+    toggleLessonDone: learn.toggleLessonDone,
+    mutationActionPath,
+    analyticsContext,
+  });
 
   const handleNextLesson = useCallback(() => {
     trackEvent('lesson_next_clicked', {
@@ -447,15 +399,37 @@ export function AppLayout() {
                   {readTime} read
                 </span>
               )}
-              <span className="topbar-pill" aria-label={`Level ${level}`}>Lv {level}</span>
-              <span className="topbar-pill" aria-label={`Course completion ${coursePct} percent`}>
-                {coursePct}% track
-              </span>
-              {streak > 0 && (
+              {/* Hide the level + completion pills entirely until the
+                  learner has earned something. A first-run learner
+                  used to see "Lv 1 · 0% track" before they'd done
+                  anything, which read as "you have achieved
+                  nothing" instead of a status. */}
+              {xpTotal > 0 && (
+                <span className="topbar-pill" aria-label={`Level ${level}`}>Lv {level}</span>
+              )}
+              {coursePct > 0 && (
+                <span className="topbar-pill" aria-label={`Course completion ${coursePct} percent`}>
+                  {coursePct}% track
+                </span>
+              )}
+              {streak > 0 ? (
                 <span className="topbar-pill streak" aria-label={`${streak} day streak`}>
                   🔥 {streak} day streak
                 </span>
-              )}
+              ) : pausedStreak ? (
+                /* Streak just lapsed. Surface the prior run as a
+                   subtle recovery cue so the topbar doesn't simply
+                   forget the streak existed. Click goes to the
+                   profile so the learner can see history; intent is
+                   visible signaling, not nagging. */
+                <span
+                  className="topbar-pill paused"
+                  aria-label={`${pausedStreak.days} day streak paused`}
+                  title="Pick up your streak with one more lesson today"
+                >
+                  💤 {pausedStreak.days} day streak paused
+                </span>
+              ) : null}
               {dailyCount > 0 && (
                 <span className="topbar-pill warm" aria-label={`Lessons done today: ${dailyCount}`}>
                   {dailyCount} lesson{dailyCount === 1 ? '' : 's'} today
@@ -484,7 +458,7 @@ export function AppLayout() {
                   aria-label={marking ? "Saving lesson completion" : isDone ? "Mark lesson as not done" : "Mark lesson complete"}
                   aria-pressed={isDone}
                 >
-                  {marking ? "Saving..." : isDone ? "✓ Done" : "Mark Done"}
+                  {marking ? "Saving…" : isDone ? "✓ Done" : "Mark done"}
                 </button>
               )}
             </div>
@@ -519,7 +493,7 @@ export function AppLayout() {
                     </h2>
                     <p className="frg-copy">
                       You are on the first lesson to set your pace. Read this lesson,
-                      complete it, then hit <strong>Mark Done</strong> to unlock the next one.
+                      complete it, then hit <strong>Mark done</strong> to unlock the next one.
                     </p>
                     <p className="frg-sub">Pick a course track anytime in the lesson sidebar.</p>
                   </div>

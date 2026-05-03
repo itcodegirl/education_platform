@@ -311,11 +311,16 @@ describe('ProgressContext — user logged in (happy path)', () => {
   });
 
   it('does not update streak just because progress data loaded', async () => {
+    // last_date must be today (or yesterday) so the active-streak
+    // guard in ProgressContext doesn't dim the loaded value to 0.
+    // Using a hardcoded date here would silently break this test
+    // every day after that date — ask helpers for today's value
+    // so the assertion stays stable.
     mockUseAuth.mockReturnValue({ user: { id: 'uid-abc' } });
     mockFetchAllUserData.mockResolvedValue(
       makeFetchResult({
         streak: {
-          data: { days: 3, last_date: '2026-01-01' },
+          data: { days: 3, last_date: getTodayString() },
           error: null,
         },
       }),
@@ -353,6 +358,50 @@ describe('ProgressContext — user logged in (happy path)', () => {
       expect(mockUpdateStreak).toHaveBeenCalledWith('uid-abc', 4, getTodayString());
     });
     expect(screen.getByTestId('activity').dataset.streak).toBe('4');
+  });
+
+  it('hides a stale streak when last activity is older than yesterday', async () => {
+    // Persisted streak says "5 days", but the learner hasn't been
+    // active since 10 days ago. The exposed XP-context streak must
+    // be 0 — the topbar shouldn't lie that the streak is still
+    // alive. Persisted DB state is unchanged either way (this is a
+    // display guard, not a write).
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-stale' } });
+    mockFetchAllUserData.mockResolvedValue(
+      makeFetchResult({
+        streak: {
+          data: { days: 5, last_date: '2024-01-01' },
+          error: null,
+        },
+      }),
+    );
+
+    renderXPWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('activity').dataset.streak).toBe('0');
+    });
+
+    expect(mockUpdateStreak).not.toHaveBeenCalled();
+  });
+
+  it('resets streak React state when the fetch returns no streak row', async () => {
+    // Regression for the asymmetry where the no-row branch only
+    // reset the ref, leaving setStreak/setStreakLastDate untouched.
+    // The active-streak guard alone couldn't catch this — it
+    // depends on the React state values themselves.
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-fresh' } });
+    mockFetchAllUserData.mockResolvedValue(
+      makeFetchResult({
+        streak: { data: null, error: null },
+      }),
+    );
+
+    renderXPWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('activity').dataset.streak).toBe('0');
+    });
   });
 });
 

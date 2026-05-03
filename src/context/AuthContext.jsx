@@ -77,7 +77,11 @@ export function AuthProvider({ children }) {
       } catch (err) {
         if (!active || authInitRequestRef.current !== requestId) return;
         initialSessionResolved = true;
-        console.error('Auth session error:', err.message);
+        // Use optional chaining + String() so a non-Error throw
+        // (e.g. a string thrown by a misbehaving provider) doesn't
+        // crash this catch block and leave the user stuck on the
+        // loading screen.
+        console.error('Auth session error:', err?.message ?? String(err));
         applyAuthUser(null, { markInitialized: true });
       } finally {
         initialSessionResolved = true;

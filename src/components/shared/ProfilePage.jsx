@@ -51,6 +51,16 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
   }, [user?.id]);
 
   const savePublicSettings = async (nextIsPublic, nextHandle) => {
+    // Defense in depth: ProfilePage is mounted behind the
+    // renderProtected guard which redirects when user is null,
+    // but a session that expires between page load and click
+    // would land here with user undefined. Bail out cleanly with
+    // a recoverable error instead of crashing on user.id.
+    if (!user?.id) {
+      setPublicError('Your session has expired. Sign in again to publish your profile.');
+      return;
+    }
+
     setPublicSaving(true);
     setPublicError('');
     setPublicSaved(false);
@@ -285,7 +295,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
                   disabled={publicSaving}
                   onClick={() => savePublicSettings(true, publicHandle)}
                 >
-                  {publicSaving ? 'Saving...' : 'Publish'}
+                  {publicSaving ? 'Saving…' : 'Publish'}
                 </button>
               </div>
               {publicHandle && !publicError && publicSaved && (
@@ -293,7 +303,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
                   className="pp-public-link"
                   href={`/u/${publicHandle}`}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                 >
                   Open your public page &rarr;
                 </a>

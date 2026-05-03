@@ -44,7 +44,14 @@ export const LessonFeedback = memo(function LessonFeedback({ lessonKey }) {
         </button>
       </div>
       {feedback && (
-        <span className="lesson-feedback-thanks">
+        // role=status + aria-live so the confirmation is announced
+        // to screen readers when the learner toggles a thumb,
+        // matching the visual confirmation a sighted user gets.
+        <span
+          className="lesson-feedback-thanks"
+          role="status"
+          aria-live="polite"
+        >
           {feedback === 'up' ? 'Thanks. We will keep building lessons like this.' : 'Thanks. We will tighten this lesson for the next revision.'}
         </span>
       )}

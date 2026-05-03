@@ -39,7 +39,7 @@ export function RouteErrorBoundary() {
   return (
     <div className="eb-screen">
       <div className="eb-card">
-        <span className="eb-icon" aria-hidden="true">!</span>
+        <span className="eb-icon" aria-hidden="true">⚠︎</span>
         <h2 className="eb-title">{title}</h2>
         <p className="eb-msg">{message}</p>
 

@@ -51,10 +51,10 @@ export const InstallPrompt = memo(function InstallPrompt() {
 
   return (
     <div className="install-prompt" role="alert">
-      <span className="install-icon" aria-hidden="true">*</span>
+      <span className="install-icon" aria-hidden="true">↓</span>
       <span className="install-text">Install CodeHerWay for quick access</span>
       <button type="button" className="install-btn" onClick={handleInstall}>Install</button>
-      <button type="button" className="install-dismiss" onClick={handleDismiss} aria-label="Dismiss">X</button>
+      <button type="button" className="install-dismiss" onClick={handleDismiss} aria-label="Dismiss install prompt">×</button>
     </div>
   );
 });

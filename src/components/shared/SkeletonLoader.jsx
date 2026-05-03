@@ -1,11 +1,35 @@
 // SKELETON LOADERS — Animated placeholders
 // Shows while data loads from Supabase
+//
+// Each skeleton sets role=status + aria-busy + a visually-hidden
+// "Loading..." label so screen readers know a region is hydrating
+// even when the parent container hasn't paired its own
+// role/aria-live. The visual placeholders themselves stay
+// aria-hidden to avoid noisy "blank, blank, blank" announcements.
+
+const SR_ONLY_STYLE = {
+  position: 'absolute',
+  width: '1px',
+  height: '1px',
+  padding: 0,
+  margin: '-1px',
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+};
 
 export function SidebarSkeleton() {
   return (
-    <div className="skeleton-sidebar">
+    <div
+      className="skeleton-sidebar"
+      role="status"
+      aria-busy="true"
+      aria-live="polite"
+    >
+      <span style={SR_ONLY_STYLE}>Loading course navigation…</span>
       {/* Brand area */}
-      <div className="skeleton-brand">
+      <div className="skeleton-brand" aria-hidden="true">
         <div className="skeleton-line skeleton-w40 skeleton-h20"></div>
       </div>
       {/* Course tabs */}
@@ -33,9 +57,15 @@ export function SidebarSkeleton() {
 
 export function LessonSkeleton() {
   return (
-    <div className="skeleton-lesson">
+    <div
+      className="skeleton-lesson"
+      role="status"
+      aria-busy="true"
+      aria-live="polite"
+    >
+      <span style={SR_ONLY_STYLE}>Loading lesson…</span>
       {/* Title area */}
-      <div className="skeleton-lesson-head">
+      <div className="skeleton-lesson-head" aria-hidden="true">
         <div className="skeleton-circle"></div>
         <div className="skeleton-lesson-title">
           <div className="skeleton-line skeleton-w70 skeleton-h20"></div>
@@ -87,13 +117,13 @@ export function LessonSkeleton() {
 export function ConnectionError({ onRetry }) {
   return (
     <div className="conn-error" role="alert" aria-live="assertive">
-      <span className="conn-icon" aria-hidden="true">!</span>
-      <h3 className="conn-title">Connection Issue</h3>
+      <span className="conn-icon" aria-hidden="true">⚠︎</span>
+      <h3 className="conn-title">Connection issue</h3>
       <p className="conn-msg">
         Could not connect to the database. Check your internet connection or try again.
       </p>
       <button type="button" className="conn-retry" onClick={onRetry}>
-        Retry Connection
+        Retry connection
       </button>
     </div>
   );

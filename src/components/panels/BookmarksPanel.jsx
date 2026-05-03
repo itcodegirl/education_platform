@@ -1,9 +1,8 @@
 import { useEffect, useRef } from 'react';
-import { useFetcher, useLocation } from 'react-router-dom';
-import { useProgressData, useSR, useCourseContent } from '../../providers';
+import { useSR, useCourseContent } from '../../providers';
 import { COURSES } from '../../data';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
-import { useFetcherSyncFailure } from '../../hooks/useFetcherSyncFailure';
+import { useRemoveBookmark } from '../../hooks/useToggleBookmark';
 import { findLessonByKey } from '../../utils/lessonKeys';
 
 function findBookmarkTarget(bookmark, courses) {
@@ -34,13 +33,8 @@ function findBookmarkTarget(bookmark, courses) {
 }
 
 export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
-  const { bookmarks, toggleBookmark } = useSR();
-  const {
-    markSyncFailed = () => {},
-    enqueuePendingSyncWrite = () => false,
-  } = useProgressData();
-  const bookmarkMutation = useFetcher();
-  const location = useLocation();
+  const { bookmarks } = useSR();
+  const { handleRemoveBookmark } = useRemoveBookmark();
   const modalRef = useRef(null);
   useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
   // Bookmarks can point to any course. Trigger a full load so that
@@ -48,11 +42,6 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
   // moduleIndex + lessonIndex synchronously.
   const { ensureAllLoaded, courses = [] } = useCourseContent();
   const sourceCourses = courses.length > 0 ? courses : COURSES;
-  useFetcherSyncFailure(
-    bookmarkMutation,
-    { markSyncFailed, enqueuePendingSyncWrite },
-    'bookmarks panel',
-  );
   useEffect(() => {
     if (isOpen) ensureAllLoaded();
   }, [isOpen, ensureAllLoaded]);
@@ -63,23 +52,6 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
     if (!target) return;
     onNavigate(target.courseIndex, target.moduleIndex, target.lessonIndex);
     onClose();
-  };
-
-  const handleRemoveBookmark = (bookmark) => {
-    toggleBookmark(bookmark.lesson_key, bookmark.course_id, bookmark.lesson_title, { skipRemote: true });
-    bookmarkMutation.submit(
-      {
-        intent: 'toggle-bookmark',
-        mode: 'remove',
-        lessonKey: bookmark.lesson_key,
-        courseId: bookmark.course_id,
-        lessonTitle: bookmark.lesson_title,
-      },
-      {
-        method: 'post',
-        action: location.pathname,
-      },
-    );
   };
 
   return (
@@ -98,7 +70,7 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
             <h2>Bookmarks ({bookmarks.length})</h2>
           </div>
           <button type="button" className="cheatsheet-close" onClick={onClose} aria-label="Close bookmarks">
-            x
+            ×
           </button>
         </div>
         <div className="cheatsheet-body">
@@ -107,7 +79,7 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
           </p>
           {bookmarks.length === 0 ? (
             <div className="sr-empty">
-              <span className="sr-empty-icon" aria-hidden="true">*</span>
+              <span className="sr-empty-icon" aria-hidden="true">★</span>
               <p><strong>No bookmarks yet</strong></p>
               <p className="empty-state-msg">
                 Mark a lesson as saved from the header star, and it will appear here for one-click return.
@@ -151,7 +123,7 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
                     title="Remove bookmark"
                     aria-label={`Remove bookmark for ${bookmark.lesson_title}`}
                   >
-                    x
+                    ×
                   </button>
                 </div>
               );
