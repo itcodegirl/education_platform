@@ -17,6 +17,7 @@ import {
   REWARD_XP,
   formatQuizScore,
   isQuizScoreImprovement,
+  quizPercent,
   rewardKeys,
 } from '../services/rewardPolicy';
 import { isBackendRewardSyncEnabled } from '../services/rewardEventService';
@@ -96,7 +97,7 @@ export function useQuizSession({ quiz, label, quizKey }) {
       (s, q) => s + (isAnswerCorrect(q, answers.get(q.id)) ? 1 : 0),
       0,
     );
-    const pct = Math.round((score / total) * 100);
+    const pct = quizPercent(score, total);
 
     if (quizKey && isQuizScoreImprovement(quizScores[quizKey], score, total)) {
       saveQuizScore(quizKey, formatQuizScore(score, total));
@@ -190,10 +191,9 @@ export function useQuizSession({ quiz, label, quizKey }) {
   );
   const total = quiz.questions.length;
   const allAnswered = total > 0 && answers.size === total;
-  // total === 0 is an edge that handleSubmit also guards, but the
-  // derived pct is read in the rendered UI on every render — keep it a
-  // finite number so callers don't have to special-case NaN%.
-  const pct = total > 0 ? Math.round((score / total) * 100) : 0;
+  // quizPercent returns 0 for total <= 0, so the rendered "{pct}%" can
+  // never be NaN%.
+  const pct = quizPercent(score, total);
   const wrongCount = submitted ? total - score : 0;
 
   return {

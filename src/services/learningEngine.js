@@ -8,6 +8,7 @@ import {
   REWARD_XP,
   formatQuizScore,
   isQuizScoreImprovement,
+  quizPercent,
   rewardKeys,
 } from './rewardPolicy';
 import { REWARD_EVENT_TYPES } from '../engine/rewards/rewardEventTypes';
@@ -107,7 +108,7 @@ export function createLearningEngine({
     if (!Number.isFinite(total) || total <= 0) {
       return { score, total, pct: 0 };
     }
-    const pct = Math.round((score / total) * 100);
+    const pct = quizPercent(score, total);
     if (isQuizScoreImprovement(quizScores[quizKey], score, total)) {
       saveQuizScore(quizKey, formatQuizScore(score, total));
     }

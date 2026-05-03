@@ -78,6 +78,18 @@ export function formatQuizScore(score, total) {
   return `${score}/${total}`;
 }
 
+// Single source of truth for the score-to-percent calculation. Returns
+// 0 (instead of NaN) for a malformed total so callers can render the
+// derived value without special-casing. Both useQuizSession.handleSubmit
+// and learningEngine.submitQuiz route through this so the two quiz
+// paths can't drift on rounding behaviour.
+export function quizPercent(score, total) {
+  if (!Number.isFinite(score) || !Number.isFinite(total) || total <= 0) {
+    return 0;
+  }
+  return Math.round((score / total) * 100);
+}
+
 export function parseQuizScore(scoreValue) {
   if (typeof scoreValue !== 'string') return null;
   const [scoreRaw, totalRaw] = scoreValue.split('/');

@@ -11,6 +11,7 @@ import {
   isQuizScoreImprovement,
   isStreakQualifyingAction,
   parseQuizScore,
+  quizPercent,
   rewardKeys,
 } from './rewardPolicy';
 
@@ -74,5 +75,22 @@ describe('rewardPolicy', () => {
     expect(isQuizScoreImprovement(undefined, 3, 4)).toBe(true);
     expect(isQuizScoreImprovement('2/4', 3, 4)).toBe(true);
     expect(isQuizScoreImprovement('3/4', 2, 4)).toBe(false);
+  });
+
+  it('quizPercent rounds and returns 0 for malformed totals', () => {
+    expect(quizPercent(7, 10)).toBe(70);
+    expect(quizPercent(2, 3)).toBe(67);
+    expect(quizPercent(1, 3)).toBe(33);
+    expect(quizPercent(10, 10)).toBe(100);
+    expect(quizPercent(0, 10)).toBe(0);
+
+    // Defensive cases — both quiz paths route through this helper
+    // instead of inlining Math.round((score / 0) * 100), so a
+    // malformed quiz can never render NaN%.
+    expect(quizPercent(0, 0)).toBe(0);
+    expect(quizPercent(1, 0)).toBe(0);
+    expect(quizPercent(1, -3)).toBe(0);
+    expect(quizPercent(Number.NaN, 10)).toBe(0);
+    expect(quizPercent(5, Number.POSITIVE_INFINITY)).toBe(0);
   });
 });
