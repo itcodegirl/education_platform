@@ -56,7 +56,7 @@ Compatibility detail:
 ### 3.1 Logged-out visitor
 
 1. Browser loads `index.html` with security headers configured in `netlify.toml`.
-2. React hydrates and `AppRoutes` resolves session state.
+2. React hydrates and the `appRouter` resolves session state.
 3. If no user session exists, `AuthLayout` renders landing + auth entry.
 
 ### 3.2 Sign-in flow
@@ -91,8 +91,10 @@ src/
   App.jsx
   main.jsx
   routes/
-    AppRoutes.jsx
+    appRouter.jsx
     routeUtils.js
+    routePaths.js
+    RouteErrorBoundary.jsx
   layouts/
     AppLayout.jsx
     AuthLayout.jsx
