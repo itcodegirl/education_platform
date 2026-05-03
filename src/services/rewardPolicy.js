@@ -1,5 +1,22 @@
 import { XP_VALUES } from '../utils/helpers';
 
+// Two REWARD_EVENT_TYPES vocabularies exist on purpose:
+//
+//   - this one (lowercase) — drives the LEGACY reward keys persisted in
+//     learner localStorage (`lesson_complete:<lessonKey>`, …). It is
+//     consumed by REWARD_KEY_PREFIX_BY_TYPE / `createRewardKey` /
+//     `rewardKeys.*` below to keep same-device dedup wire-compatible
+//     with progress data already on disk.
+//
+//   - `src/engine/rewards/rewardEventTypes.js` (uppercase) — drives the
+//     RUNTIME reward-event records that flow through the local ledger
+//     and the Supabase `award_reward_event` RPC. Those events use
+//     `LESSON_COMPLETE`, `QUIZ_BASE`, `QUIZ_PERFECT`, `CHALLENGE_COMPLETE`.
+//
+// Same four conceptual events, two naming styles, two stored shapes.
+// Collapsing them is possible but requires migrating already-persisted
+// reward-key strings and is intentionally out of scope. See
+// `docs/learning-engine.md` §8.
 export const REWARD_EVENT_TYPES = Object.freeze({
   lessonComplete: 'lesson_complete',
   quizComplete: 'quiz_complete',
@@ -59,6 +76,18 @@ export function isStreakQualifyingAction(type) {
 
 export function formatQuizScore(score, total) {
   return `${score}/${total}`;
+}
+
+// Single source of truth for the score-to-percent calculation. Returns
+// 0 (instead of NaN) for a malformed total so callers can render the
+// derived value without special-casing. Both useQuizSession.handleSubmit
+// and learningEngine.submitQuiz route through this so the two quiz
+// paths can't drift on rounding behaviour.
+export function quizPercent(score, total) {
+  if (!Number.isFinite(score) || !Number.isFinite(total) || total <= 0) {
+    return 0;
+  }
+  return Math.round((score / total) * 100);
 }
 
 export function parseQuizScore(scoreValue) {

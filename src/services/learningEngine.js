@@ -8,6 +8,7 @@ import {
   REWARD_XP,
   formatQuizScore,
   isQuizScoreImprovement,
+  quizPercent,
   rewardKeys,
 } from './rewardPolicy';
 import { REWARD_EVENT_TYPES } from '../engine/rewards/rewardEventTypes';
@@ -101,7 +102,13 @@ export function createLearningEngine({
     score,
     total,
   ) {
-    const pct = Math.round((score / total) * 100);
+    // Defensive: zero-question quizzes can't be scored — bail without
+    // saving, awarding XP, or bumping streak/dailyCount. The hook path
+    // (useQuizSession.handleSubmit) carries the same guard.
+    if (!Number.isFinite(total) || total <= 0) {
+      return { score, total, pct: 0 };
+    }
+    const pct = quizPercent(score, total);
     if (isQuizScoreImprovement(quizScores[quizKey], score, total)) {
       saveQuizScore(quizKey, formatQuizScore(score, total));
     }

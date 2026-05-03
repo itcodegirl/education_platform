@@ -225,7 +225,7 @@ export function AuthPage({ onPreview }) {
 
         <div className="auth-card" ref={authCardRef} aria-busy={loading || sendingReset ? 'true' : 'false'}>
           <div className="auth-brand">
-            <span className="auth-bolt" aria-hidden="true">*</span>
+            <span className="auth-bolt" aria-hidden="true">&lt;/&gt;</span>
             <p className="auth-title">CodeHerWay</p>
             <p className="auth-sub">Learn. Build. Ship.</p>
           </div>
@@ -378,7 +378,13 @@ export function AuthPage({ onPreview }) {
             )}
 
             <button className="auth-submit ui-btn ui-btn-primary" type="submit" disabled={loading} aria-busy={loading}>
-              {loading ? '...' : mode === 'login' ? 'Log in' : 'Create free account'}
+              {loading
+                ? mode === 'login'
+                  ? 'Signing in…'
+                  : 'Creating account…'
+                : mode === 'login'
+                  ? 'Log in'
+                  : 'Create free account'}
             </button>
           </form>
 

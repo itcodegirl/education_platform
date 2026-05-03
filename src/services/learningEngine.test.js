@@ -349,6 +349,21 @@ describe('createLearningEngine → submitQuiz', () => {
     expect((await engine.submitQuiz('q', 10, 10)).pct).toBe(100);
     expect((await engine.submitQuiz('q', 0, 10)).pct).toBe(0);
   });
+
+  it('bails on a zero-question quiz instead of NaN-ing pct or firing rewards', async () => {
+    // Defensive: a malformed quiz with total=0 used to NaN out
+    // Math.round((score / 0) * 100) and silently call awardXP +
+    // recordDailyActivity with bogus context. The guard now early-
+    // returns with pct=0 and skips the reward + activity work.
+    const engine = createLearningEngine(deps);
+
+    const result = await engine.submitQuiz('empty-quiz', 0, 0);
+
+    expect(result).toEqual({ score: 0, total: 0, pct: 0 });
+    expect(deps.saveQuizScore).not.toHaveBeenCalled();
+    expect(deps.awardXP).not.toHaveBeenCalled();
+    expect(deps.recordDailyActivity).not.toHaveBeenCalled();
+  });
 });
 
 describe('createLearningEngine → completeChallenge', () => {

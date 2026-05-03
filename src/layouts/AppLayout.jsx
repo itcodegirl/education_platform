@@ -321,10 +321,10 @@ export function AppLayout() {
         <main id="main-content" className="main-shell course-skeleton" tabIndex={-1} aria-busy="true" aria-live="polite">
           <div className="course-skeleton-inner">
             <span className="course-skeleton-emoji" aria-hidden="true">
-              {activeCourseMeta?.icon || '[]'}
+              {activeCourseMeta?.icon || '📚'}
             </span>
             <p className="course-skeleton-label">
-              Loading {activeCourseMeta?.label || 'course'}...
+              Loading {activeCourseMeta?.label || 'course'}…
             </p>
           </div>
         </main>

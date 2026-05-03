@@ -403,6 +403,32 @@ describe('ProgressContext — user logged in (happy path)', () => {
       expect(screen.getByTestId('activity').dataset.streak).toBe('0');
     });
   });
+
+  it('advances dailyCount correctly when recordDailyActivity fires twice in the same batch', async () => {
+    // Regression: prior implementation read dailyCount/dailyDate from
+    // the React closure, so two recordDailyActivity() calls in the
+    // same React batch both saw the stale "before either ran" count
+    // and the second increment was lost. The ref-mirroring fix means
+    // back-to-back calls now correctly advance the count.
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-burst' } });
+    mockFetchAllUserData.mockResolvedValue(makeFetchResult());
+
+    renderXPWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('activity').dataset.daily).toBe('0');
+    });
+
+    // Two fireEvent.click calls inside the same synchronous task
+    // queue both invoke recordDailyActivity before React has flushed
+    // the state update from the first one.
+    fireEvent.click(screen.getByTestId('activity'));
+    fireEvent.click(screen.getByTestId('activity'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('activity').dataset.daily).toBe('2');
+    });
+  });
 });
 
 describe('ProgressContext — fetch error', () => {
