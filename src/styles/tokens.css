@@ -46,6 +46,19 @@
   --amber-dim: #ffa72630;
   --red: #ff5c7c;
 
+  /* Semantic state tokens — alias the brand palette to clear intents.
+     Use these (not raw --cyan / --amber / --red) when the meaning is
+     "this succeeded / warned / failed", so a future palette change
+     only updates colors and never breaks state UX. */
+  --state-success: #4ecdc4;
+  --state-success-bg: rgba(78, 205, 196, 0.12);
+  --state-warning: var(--amber);
+  --state-warning-bg: rgba(255, 167, 38, 0.12);
+  --state-error: var(--red);
+  --state-error-bg: rgba(255, 92, 124, 0.12);
+  --state-info: var(--cyan);
+  --state-info-bg: rgba(0, 229, 255, 0.10);
+
   /* Brand gradients */
   --grad-brand: linear-gradient(135deg, #b44aff 0%, #e040a0 50%, #ff6b9d 100%);
   --grad-neon: linear-gradient(135deg, #b44aff, #00e5ff);
