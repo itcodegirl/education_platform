@@ -10,7 +10,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
   const { user, profile, signOut } = useAuth();
   const { theme } = useTheme();
   const { completed = [] } = useProgressData();
-  const { xpTotal = 0, streak = 0, earnedBadges = {} } = useXP();
+  const { xpTotal = 0, streak = 0, pausedStreak = null, earnedBadges = {} } = useXP();
   const { bookmarks = [], notes = {} } = useSR();
   const { ensureAllLoaded } = useCourseContent();
 
@@ -156,9 +156,11 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
             <span className="pp-status-pill warm">
               {completedLessons}/{totalLessons} lessons shipped
             </span>
-            {streak > 0 && (
+            {streak > 0 ? (
               <span className="pp-status-pill accent">{streak} day streak</span>
-            )}
+            ) : pausedStreak ? (
+              <span className="pp-status-pill">{pausedStreak.days}-day streak paused</span>
+            ) : null}
           </div>
         </div>
 
@@ -166,7 +168,10 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
           {[
             { value: level, label: 'Level' },
             { value: xpTotal.toLocaleString(), label: 'XP' },
-            { value: streak, label: 'Streak' },
+            {
+              value: streak > 0 ? streak : pausedStreak?.days || 0,
+              label: streak === 0 && pausedStreak ? 'Streak paused' : 'Streak',
+            },
             { value: completedLessons, label: 'Lessons' },
           ].map((stat) => (
             <div key={stat.label} className="pp-stat-card">
