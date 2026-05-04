@@ -1,5 +1,11 @@
 const has = (code, str) => code.toLowerCase().includes(str.toLowerCase());
-const count = (code, str) => (code.toLowerCase().match(new RegExp(str.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
+
+// Returns the live computed style for a CSS selector inside the preview iframe.
+// Requires `iframe.contentWindow` so it uses the iframe's own style resolution.
+const domStyle = (iframe, sel) => {
+  const el = iframe?.contentDocument?.querySelector(sel);
+  return el ? (iframe?.contentWindow?.getComputedStyle(el) ?? null) : null;
+};
 
 export const CSS_CHALLENGES = [
   { id:'css-ch-1', title:'Flexbox Navigation', description:'Style a nav bar with Flexbox — centered with spacing.', difficulty:'beginner', courseId:'css',
@@ -7,10 +13,17 @@ export const CSS_CHALLENGES = [
     starter:'.navbar {\n  /* flex container, center, gap */\n}\n.navbar a {\n  /* style links */\n}',
     requirements:['display: flex','Centers with justify-content','Gap or spacing','No underlines'],
     tests:[
-      { label:'display: flex', check:c=>has(c,'display: flex')||has(c,'display:flex') },
-      { label:'justify-content', check:c=>has(c,'justify-content') },
-      { label:'Gap or spacing', check:c=>has(c,'gap')||has(c,'padding')||has(c,'margin') },
-      { label:'No underlines', check:c=>has(c,'text-decoration') },
+      { label:'display: flex', check:(_, iframe)=>
+        domStyle(iframe, '.navbar')?.display === 'flex' ||
+        domStyle(iframe, '.navbar')?.display === 'inline-flex' },
+      { label:'justify-content', check:(_, iframe)=>{
+        const jc = domStyle(iframe, '.navbar')?.justifyContent;
+        return !!jc && jc !== 'normal';
+      } },
+      { label:'Gap or spacing', check:(c)=>has(c,'gap')||has(c,'padding')||has(c,'margin') },
+      // :not pseudo-class can't be verified via computed style on a static snapshot —
+      // keep source check to confirm the learner intentionally removed underlines.
+      { label:'No underlines', check:(c)=>has(c,'text-decoration') },
     ],
     hint:'display:flex, justify-content:center, gap:24px',
     solution:'.navbar {\n  display: flex;\n  justify-content: center;\n  gap: 24px;\n  padding: 16px;\n  background: #1a1a2e;\n}\n.navbar a {\n  color: #ff6b9d;\n  text-decoration: none;\n  font-weight: 600;\n}' },
@@ -20,10 +33,19 @@ export const CSS_CHALLENGES = [
     starter:'.grid {\n  /* responsive grid */\n}\n.card {\n  /* style cards */\n}',
     requirements:['display: grid','auto-fill or auto-fit','Cards have padding','Gap between cards'],
     tests:[
-      { label:'display: grid', check:c=>has(c,'display: grid')||has(c,'display:grid') },
-      { label:'auto-fill/auto-fit', check:c=>has(c,'auto-fill')||has(c,'auto-fit') },
-      { label:'Padding', check:c=>has(c,'padding') },
-      { label:'Gap', check:c=>has(c,'gap') },
+      { label:'display: grid', check:(_, iframe)=>
+        domStyle(iframe, '.grid')?.display === 'grid' },
+      // auto-fill/auto-fit live inside grid-template-columns which
+      // getComputedStyle resolves to pixel values — source check is reliable here.
+      { label:'auto-fill/auto-fit', check:(c)=>has(c,'auto-fill')||has(c,'auto-fit') },
+      { label:'Padding', check:(_, iframe)=>{
+        const pad = domStyle(iframe, '.card')?.padding;
+        return !!pad && pad !== '0px';
+      } },
+      { label:'Gap', check:(_, iframe)=>{
+        const gap = domStyle(iframe, '.grid')?.gap;
+        return !!gap && gap !== '0px' && gap !== 'normal';
+      } },
     ],
     hint:'grid-template-columns: repeat(auto-fill, minmax(250px, 1fr))',
     solution:'.grid {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));\n  gap: 20px;\n}\n.card {\n  background: #1a1a2e;\n  padding: 24px;\n  border-radius: 12px;\n  border: 1px solid #2a2a3e;\n}' },
@@ -33,10 +55,23 @@ export const CSS_CHALLENGES = [
     starter:'.wrapper {\n  /* full viewport height */\n  /* center the card */\n}\n.card {\n  /* style the card */\n}',
     requirements:['min-height: 100vh','Uses flex or grid centering','Card has padding and border-radius','Card has a background'],
     tests:[
-      { label:'Full viewport height', check:c=>has(c,'100vh')||has(c,'100dvh') },
-      { label:'Centering method', check:c=>(has(c,'justify-content')&&has(c,'align-items'))||has(c,'place-items')||has(c,'margin: auto')||has(c,'margin:auto') },
-      { label:'Card padding', check:c=>has(c,'padding') },
-      { label:'Border-radius', check:c=>has(c,'border-radius') },
+      { label:'Full viewport height', check:(c)=>has(c,'100vh')||has(c,'100dvh') },
+      { label:'Centering method', check:(_, iframe)=>{
+        const w = domStyle(iframe, '.wrapper');
+        if (!w) return false;
+        const isFlex = w.display === 'flex' && w.justifyContent !== 'normal' && w.alignItems !== 'normal';
+        const isGrid = w.display === 'grid' && w.placeItems !== 'normal';
+        const hasAutoMargin = domStyle(iframe, '.card')?.margin?.includes('auto');
+        return isFlex || isGrid || !!hasAutoMargin;
+      } },
+      { label:'Card padding', check:(_, iframe)=>{
+        const pad = domStyle(iframe, '.card')?.padding;
+        return !!pad && pad !== '0px';
+      } },
+      { label:'Border-radius', check:(_, iframe)=>{
+        const br = domStyle(iframe, '.card')?.borderRadius;
+        return !!br && br !== '0px';
+      } },
     ],
     hint:'Flex: display:flex; justify-content:center; align-items:center. Grid: display:grid; place-items:center.',
     solution:'.wrapper {\n  min-height: 100vh;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n.card {\n  padding: 40px;\n  border-radius: 16px;\n  background: #1a1a2e;\n  border: 1px solid #2a2a3e;\n}' },
@@ -46,10 +81,16 @@ export const CSS_CHALLENGES = [
     starter:'.card {\n  /* base styles */\n  /* add transition */\n}\n.card:hover {\n  /* transform + shadow */\n}',
     requirements:['Has transition property','Uses transform on hover','Has box-shadow on hover','Transition is smooth (0.2s+)'],
     tests:[
-      { label:'transition property', check:c=>has(c,'transition') },
-      { label:'transform on hover', check:c=>has(c,':hover')&&has(c,'transform') },
-      { label:'box-shadow on hover', check:c=>has(c,'box-shadow') },
-      { label:'Smooth timing', check:c=>has(c,'0.2s')||has(c,'0.3s')||has(c,'0.25s')||has(c,'200ms')||has(c,'300ms') },
+      // Transitions and hover states require user interaction; computed
+      // style reflects the non-hovered default state. Source checks are
+      // appropriate for pseudo-selector and transition authoring intent.
+      { label:'transition property', check:(_, iframe)=>{
+        const t = domStyle(iframe, '.card')?.transition;
+        return !!t && t !== 'all 0s ease 0s' && t !== 'none';
+      } },
+      { label:'transform on hover', check:(c)=>has(c,':hover')&&has(c,'transform') },
+      { label:'box-shadow on hover', check:(c)=>has(c,'box-shadow') },
+      { label:'Smooth timing', check:(c)=>has(c,'0.2s')||has(c,'0.3s')||has(c,'0.25s')||has(c,'200ms')||has(c,'300ms') },
     ],
     hint:'transition: all 0.3s ease; then :hover { transform: translateY(-4px); box-shadow: ... }',
     solution:'.card {\n  padding: 24px;\n  background: #1a1a2e;\n  border-radius: 12px;\n  border: 1px solid #2a2a3e;\n  transition: all 0.3s ease;\n}\n.card:hover {\n  transform: translateY(-4px);\n  box-shadow: 0 8px 24px rgba(0,0,0,0.3);\n  border-color: #ff6b9d;\n}' },
@@ -59,10 +100,13 @@ export const CSS_CHALLENGES = [
     starter:':root {\n  /* define variables */\n}\n.themed {\n  /* use variables */\n}\n.themed button {\n  /* use variables */\n}',
     requirements:['Define 3+ CSS variables in :root','Use var() to apply them','Button uses variable colors','Background uses a variable'],
     tests:[
-      { label:'3+ variables in :root', check:c=>has(c,':root')&&count(c,'--')>=3 },
-      { label:'Uses var()', check:c=>count(c,'var(--')>=3 },
-      { label:'Button styled', check:c=>has(c,'button')&&has(c,'var(--') },
-      { label:'Background uses variable', check:c=>has(c,'background')&&has(c,'var(--') },
+      // CSS custom property values don't appear in getComputedStyle in a way
+      // that lets us count them without enumerating property names in advance.
+      // Source checks remain the reliable option here.
+      { label:'3+ variables in :root', check:(c)=>has(c,':root')&&(c.match(/--[\w-]+\s*:/g)||[]).length>=3 },
+      { label:'Uses var()', check:(c)=>(c.match(/var\(--/g)||[]).length>=3 },
+      { label:'Button styled', check:(c)=>has(c,'button')&&has(c,'var(--') },
+      { label:'Background uses variable', check:(c)=>has(c,'background')&&has(c,'var(--') },
     ],
     hint:':root { --bg: #0f0f1a; --text: #e0e0ec; --accent: #ff6b9d; }',
     solution:':root {\n  --bg: #0f0f1a;\n  --text: #e0e0ec;\n  --accent: #ff6b9d;\n  --surface: #1a1a2e;\n}\n.themed {\n  background: var(--bg);\n  color: var(--text);\n  padding: 32px;\n  border-radius: 12px;\n}\n.themed button {\n  background: var(--accent);\n  color: var(--bg);\n  border: none;\n  padding: 10px 24px;\n  border-radius: 8px;\n  cursor: pointer;\n}' },
@@ -72,10 +116,12 @@ export const CSS_CHALLENGES = [
     starter:'.layout {\n  /* mobile: stacked */\n}\n.sidebar {\n  /* mobile styles */\n}\n@media (min-width: 768px) {\n  .layout {\n    /* desktop: side by side */\n  }\n}',
     requirements:['Mobile-first (no media query for mobile)','@media with min-width','Desktop uses flex or grid','Sidebar has a fixed or percentage width'],
     tests:[
-      { label:'Has @media', check:c=>has(c,'@media') },
-      { label:'Uses min-width (mobile-first)', check:c=>has(c,'min-width') },
-      { label:'Desktop flex or grid', check:c=>has(c,'display: flex')||has(c,'display:flex')||has(c,'display: grid')||has(c,'display:grid') },
-      { label:'Sidebar width', check:c=>has(c,'width')&&(has(c,'sidebar')||has(c,'250px')||has(c,'280px')||has(c,'25%')||has(c,'30%')) },
+      // @media queries and viewport-conditional rules can't be exercised in the
+      // single-viewport preview; source checks verify authoring intent reliably.
+      { label:'Has @media', check:(c)=>has(c,'@media') },
+      { label:'Uses min-width (mobile-first)', check:(c)=>has(c,'min-width') },
+      { label:'Desktop flex or grid', check:(c)=>has(c,'display: flex')||has(c,'display:flex')||has(c,'display: grid')||has(c,'display:grid') },
+      { label:'Sidebar width', check:(c)=>has(c,'width')&&(has(c,'sidebar')||has(c,'250px')||has(c,'280px')||has(c,'25%')||has(c,'30%')) },
     ],
     hint:'Start stacked (display:block), then @media(min-width:768px) { display:flex }',
     solution:'.layout {\n  display: block;\n}\n.sidebar {\n  background: #1a1a2e;\n  padding: 20px;\n}\n.main {\n  padding: 20px;\n}\n@media (min-width: 768px) {\n  .layout {\n    display: flex;\n  }\n  .sidebar {\n    width: 250px;\n    flex-shrink: 0;\n  }\n  .main {\n    flex: 1;\n  }\n}' },
@@ -85,10 +131,19 @@ export const CSS_CHALLENGES = [
     starter:'.btn {\n  /* shared styles */\n}\n.primary {\n  /* primary color */\n}\n.secondary {\n  /* outline style */\n}\n.danger {\n  /* red/danger */\n}',
     requirements:['Shared .btn base styles','3 color variants','Has border-radius','Has hover states'],
     tests:[
-      { label:'Shared .btn styles', check:c=>has(c,'.btn')&&has(c,'padding') },
-      { label:'.primary styled', check:c=>has(c,'.primary') },
-      { label:'.secondary styled', check:c=>has(c,'.secondary') },
-      { label:'.danger styled', check:c=>has(c,'.danger') },
+      { label:'Shared .btn styles', check:(_, iframe)=>{
+        const pad = domStyle(iframe, '.btn')?.padding;
+        return !!pad && pad !== '0px';
+      } },
+      { label:'.primary styled', check:(_, iframe)=>{
+        const bg = domStyle(iframe, '.primary')?.backgroundColor;
+        return !!bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent';
+      } },
+      { label:'.secondary styled', check:(c)=>has(c,'.secondary') },
+      { label:'.danger styled', check:(_, iframe)=>{
+        const bg = domStyle(iframe, '.danger')?.backgroundColor;
+        return !!bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent';
+      } },
     ],
     hint:'Shared base: padding, border-radius, font. Variants override background and color.',
     solution:'.btn {\n  padding: 10px 24px;\n  border: 2px solid transparent;\n  border-radius: 8px;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s;\n}\n.primary {\n  background: #ff6b9d;\n  color: #0f0f1a;\n}\n.secondary {\n  background: transparent;\n  border-color: #4ecdc4;\n  color: #4ecdc4;\n}\n.danger {\n  background: #ff4444;\n  color: white;\n}' },
@@ -98,10 +153,18 @@ export const CSS_CHALLENGES = [
     starter:'.glass-bg {\n  /* colorful background */\n  min-height: 100vh;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n.glass-card {\n  /* glassmorphism effect */\n}',
     requirements:['Semi-transparent background (rgba)','backdrop-filter: blur','Border-radius','Has a subtle border'],
     tests:[
-      { label:'rgba or transparent bg', check:c=>has(c,'rgba') },
-      { label:'backdrop-filter: blur', check:c=>has(c,'backdrop-filter')&&has(c,'blur') },
-      { label:'border-radius', check:c=>has(c,'border-radius') },
-      { label:'Subtle border', check:c=>has(c,'border') },
+      // backdrop-filter is not exposed through getComputedStyle in all
+      // environments (jsdom doesn't support it). Source checks remain reliable.
+      { label:'rgba or transparent bg', check:(c)=>has(c,'rgba') },
+      { label:'backdrop-filter: blur', check:(c)=>has(c,'backdrop-filter')&&has(c,'blur') },
+      { label:'border-radius', check:(_, iframe)=>{
+        const br = domStyle(iframe, '.glass-card')?.borderRadius;
+        return !!br && br !== '0px';
+      } },
+      { label:'Subtle border', check:(_, iframe)=>{
+        const bd = domStyle(iframe, '.glass-card')?.border;
+        return !!bd && bd !== '' && bd !== 'none';
+      } },
     ],
     hint:'background: rgba(255,255,255,0.05); backdrop-filter: blur(16px);',
     solution:'.glass-bg {\n  min-height: 100vh;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  background: linear-gradient(135deg, #667eea, #764ba2);\n}\n.glass-card {\n  padding: 40px;\n  border-radius: 16px;\n  background: rgba(255,255,255,0.08);\n  backdrop-filter: blur(16px);\n  border: 1px solid rgba(255,255,255,0.15);\n  color: white;\n}' },
@@ -111,10 +174,17 @@ export const CSS_CHALLENGES = [
     starter:'.glow-btn {\n  /* button styles */\n  /* apply animation */\n}\n@keyframes glow {\n  /* define animation steps */\n}',
     requirements:['@keyframes defined','animation property applied','Uses box-shadow','Infinite loop'],
     tests:[
-      { label:'@keyframes', check:c=>has(c,'@keyframes') },
-      { label:'animation property', check:c=>has(c,'animation:') },
-      { label:'box-shadow', check:c=>has(c,'box-shadow') },
-      { label:'infinite', check:c=>has(c,'infinite') },
+      // @keyframes and animation values are authoring intent tests —
+      // the animation name resolves correctly only after the keyframe is
+      // defined, which source check can verify more directly than parsing
+      // the computed animationName string.
+      { label:'@keyframes', check:(c)=>has(c,'@keyframes') },
+      { label:'animation property', check:(_, iframe)=>{
+        const anim = domStyle(iframe, '.glow-btn')?.animation;
+        return !!anim && anim !== 'none 0s ease 0s 1 normal none running';
+      } },
+      { label:'box-shadow', check:(c)=>has(c,'box-shadow') },
+      { label:'infinite', check:(c)=>has(c,'infinite') },
     ],
     hint:'@keyframes glow { 0%,100% { box-shadow: 0 0 5px } 50% { box-shadow: 0 0 20px } }',
     solution:'.glow-btn {\n  padding: 14px 32px;\n  background: #ff6b9d;\n  color: #0f0f1a;\n  border: none;\n  border-radius: 8px;\n  font-weight: 700;\n  font-size: 16px;\n  cursor: pointer;\n  animation: glow 2s ease-in-out infinite;\n}\n@keyframes glow {\n  0%, 100% { box-shadow: 0 0 8px #ff6b9d40; }\n  50% { box-shadow: 0 0 24px #ff6b9d80; }\n}' },
@@ -124,10 +194,18 @@ export const CSS_CHALLENGES = [
     starter:'.styled-form { /* container */ }\n.styled-form input { /* base input */ }\n.styled-form input:focus { /* focus state */ }\n.styled-form button { /* submit */ }',
     requirements:['Input has border and padding','Focus state changes border color','Uses outline: none with custom focus','Button is fully styled'],
     tests:[
-      { label:'Input padding', check:c=>has(c,'input')&&has(c,'padding') },
-      { label:'Focus state', check:c=>has(c,':focus') },
-      { label:'Outline removed', check:c=>has(c,'outline: none')||has(c,'outline:none') },
-      { label:'Button styled', check:c=>has(c,'button')&&has(c,'background') },
+      { label:'Input padding', check:(_, iframe)=>{
+        const pad = domStyle(iframe, '.styled-form input')?.padding;
+        return !!pad && pad !== '0px';
+      } },
+      // :focus pseudo-state requires simulated focus interaction which
+      // is not available in a static snapshot. Source check is appropriate.
+      { label:'Focus state', check:(c)=>has(c,':focus') },
+      { label:'Outline removed', check:(c)=>has(c,'outline: none')||has(c,'outline:none') },
+      { label:'Button styled', check:(_, iframe)=>{
+        const bg = domStyle(iframe, '.styled-form button')?.backgroundColor;
+        return !!bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent';
+      } },
     ],
     hint:'input:focus { outline: none; border-color: #ff6b9d; }',
     solution:'.styled-form {\n  max-width: 360px;\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n.styled-form input {\n  padding: 12px 16px;\n  border: 1px solid #2a2a3e;\n  border-radius: 8px;\n  background: #0f0f1a;\n  color: #e0e0ec;\n  font-size: 14px;\n  outline: none;\n  transition: border-color 0.2s;\n}\n.styled-form input:focus {\n  border-color: #ff6b9d;\n}\n.styled-form button {\n  padding: 12px;\n  background: #ff6b9d;\n  color: #0f0f1a;\n  border: none;\n  border-radius: 8px;\n  font-weight: 700;\n  cursor: pointer;\n}' },
