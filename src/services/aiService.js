@@ -11,6 +11,7 @@ import { supabase } from '../lib/supabaseClient';
 // the caller just wants to display something.
 export const AI_ERROR_CODES = Object.freeze({
   UNAUTHENTICATED: 'UNAUTHENTICATED',
+  EMAIL_NOT_VERIFIED: 'EMAIL_NOT_VERIFIED',
   PAYLOAD_TOO_LARGE: 'PAYLOAD_TOO_LARGE',
   RATE_LIMITED: 'RATE_LIMITED',
   SERVER_UNAVAILABLE: 'SERVER_UNAVAILABLE',
@@ -20,6 +21,7 @@ export const AI_ERROR_CODES = Object.freeze({
 
 const DEFAULT_USER_MESSAGES = Object.freeze({
   [AI_ERROR_CODES.UNAUTHENTICATED]: 'Your session expired. Sign in again and retry your message.',
+  [AI_ERROR_CODES.EMAIL_NOT_VERIFIED]: 'Verify your email before using the AI tutor. Check your inbox for the link.',
   [AI_ERROR_CODES.PAYLOAD_TOO_LARGE]: 'That message is too long. Shorten it and try again.',
   [AI_ERROR_CODES.RATE_LIMITED]: 'You are sending requests too quickly. Wait a moment and try again.',
   [AI_ERROR_CODES.SERVER_UNAVAILABLE]: 'CodeHerWay AI tutor is temporarily unavailable. Please try again soon.',
@@ -38,8 +40,13 @@ export class AIServiceError extends Error {
   }
 }
 
-function classifyHttpStatus(status) {
-  if (status === 401 || status === 403) return AI_ERROR_CODES.UNAUTHENTICATED;
+function classifyHttpStatus(status, body) {
+  if (status === 401) return AI_ERROR_CODES.UNAUTHENTICATED;
+  if (status === 403) {
+    return body?.code === 'EMAIL_NOT_VERIFIED'
+      ? AI_ERROR_CODES.EMAIL_NOT_VERIFIED
+      : AI_ERROR_CODES.UNAUTHENTICATED;
+  }
   if (status === 413) return AI_ERROR_CODES.PAYLOAD_TOO_LARGE;
   if (status === 429) return AI_ERROR_CODES.RATE_LIMITED;
   if (status >= 500) return AI_ERROR_CODES.SERVER_UNAVAILABLE;
@@ -74,7 +81,7 @@ async function callAI(payload) {
 
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const code = classifyHttpStatus(response.status);
+    const code = classifyHttpStatus(response.status, data);
     throw new AIServiceError({
       code,
       status: response.status,
