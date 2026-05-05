@@ -68,6 +68,7 @@ export function AppLayout() {
   const nav = useNavigation();
   const panels = usePanels({ dataLoaded, user: true, lastPosition });
   const learn = useLearning();
+  const progressMutation = useFetcher();
   const isMobile = useIsMobile(901);
   const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage(
     "chw-sidebar-collapsed",

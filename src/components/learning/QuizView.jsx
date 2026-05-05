@@ -14,6 +14,7 @@ import {
   QUESTION_TYPE_LABELS,
   isAnswerCorrect,
 } from './quiz/questionTypes';
+import { renderMarkdown } from '../../utils/markdown';
 
 export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey }) {
   const session = useQuizSession({ quiz, label, quizKey });
@@ -70,7 +71,7 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
                 {submitted && q.explanation && (
                   <div className={`qq-explain ${correct ? 'right' : 'wrong'}`}>
                     <span className="qq-explain-icon" aria-label={correct ? 'Correct' : 'Incorrect'}>{correct ? '✓' : '✕'}</span>
-                    <span>{q.explanation}</span>
+                    <div className="qq-explain-body">{renderMarkdown(q.explanation)}</div>
                   </div>
                 )}
               </div>

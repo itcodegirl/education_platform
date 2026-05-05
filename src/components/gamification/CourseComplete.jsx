@@ -8,14 +8,23 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
   const [downloading, setDownloading] = useState(false);
   const toast = useToast();
   const modalRef = useRef(null);
+  // Capture the element that had focus when the modal opened so we can
+  // restore it when the modal closes (WCAG 2.4.3 Focus Order).
+  const returnFocusRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
+      returnFocusRef.current = document.activeElement;
       const timer = setTimeout(() => setShow(true), 200);
       return () => clearTimeout(timer);
     }
 
     setShow(false);
+    // Return focus to the element that triggered the modal.
+    if (returnFocusRef.current && typeof returnFocusRef.current.focus === 'function') {
+      returnFocusRef.current.focus();
+      returnFocusRef.current = null;
+    }
     return undefined;
   }, [isOpen]);
 
