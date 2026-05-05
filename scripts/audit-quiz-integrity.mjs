@@ -478,9 +478,9 @@ function strictIssueCount(total) {
   return (
     total.duplicateRawQuizIds +
     total.duplicateActiveLessonIds +
-    total.duplicateScopedLessonKeys +
+    total.suspiciousLessonVariantGroups +
     total.duplicateScopedModuleKeys +
-    total.orphanLessonQuizzes +
+    total.unclassifiedOrphanLessonQuizzes +
     total.orphanModuleQuizzes +
     total.lessonsWithNoQuiz +
     total.modulesWithNoQuiz
