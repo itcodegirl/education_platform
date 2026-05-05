@@ -1,6 +1,7 @@
 // ═══════════════════════════════════════════════
-// PROGRESS CONTEXT — XP, streak, badges, daily goals
-// All data syncs to Supabase (cloud)
+// PROGRESS CONTEXT — lesson completion, quizzes, XP, streaks, badges
+// XPContext definition lives in xpContext.jsx
+// SRContext definition + SR/bookmark/note callbacks live in srContext.jsx
 // ═══════════════════════════════════════════════
 
 import { createContext, useContext, useCallback, useEffect, useRef, useState, useMemo } from 'react';
@@ -14,7 +15,6 @@ import {
   getTodayString,
   getYesterdayString,
 } from '../utils/helpers';
-import { COURSES } from '../data';
 import * as progressService from '../services/progressService';
 import {
   createProgressWrite,
@@ -29,11 +29,9 @@ import {
 } from '../services/progressSyncTelemetry';
 import { getProgressWriteFailure } from '../services/progressWriteRuntime';
 import { isPerfectQuizScore, rewardKeys } from '../services/rewardPolicy';
-import { lessonKeysEquivalent, resolveStableLessonKeyAcrossCourses } from '../utils/lessonKeys';
 import { LOCAL_STORAGE_SYNC_ERROR_EVENT } from '../hooks/useLocalStorage';
 import { useTodayKey } from '../hooks/useTodayKey';
 import { findNewlyEarnedBadges } from '../services/badgeRules';
-import { nextSRCardState } from '../services/srAlgorithm';
 import {
   normalizeRewardHistory,
   normalizeStringList as normalizeStringSet,
@@ -42,11 +40,13 @@ import {
   writeChallengeCompletions,
   writeRewardHistory,
 } from '../utils/learnerLocalStore';
+import { XPContext, useXP } from './xpContext';
+import { SRContext, useSRSlice, useSR } from './srContext';
 
-// BADGE_DEFS is imported above from '../data/badges' (the canonical
-// catalog home) and re-exported via providers/ProgressProvider, so
-// existing `import { BADGE_DEFS } from '../../providers'` call sites
-// keep working without going through this file.
+// Re-export sub-context hooks so all consumers can continue importing
+// from this single file without path changes.
+export { useXP } from './xpContext';
+export { useSR } from './srContext';
 
 const ProgressContext = createContext({
   completed: [],
@@ -67,9 +67,6 @@ const ProgressContext = createContext({
   challengeCompletions: [],
   isChallengeCompleted: () => false,
   markChallengeCompleted: () => false,
-  // Count of DB writes that failed since the last successful read.
-  // Used by the UI to show a "sync failed" banner; the optimistic
-  // state is still the source of truth for the current session.
   syncFailed: 0,
   pendingSyncWrites: 0,
   syncRetryInFlight: false,
@@ -78,43 +75,6 @@ const ProgressContext = createContext({
   enqueuePendingSyncWrite: () => false,
   retryPendingSyncWrites: async () => ({ processed: 0, remaining: 0 }),
 });
-
-const XPContext = createContext({
-  xpTotal: 0,
-  awardXP: () => {},
-  xpPopup: null,
-  clearXPPopup: () => {},
-  streak: 0,
-  // pausedStreak is null when there is no lapsed streak to revive.
-  // Shape when present: { days: number, lastDate: 'YYYY-MM-DD' }.
-  pausedStreak: null,
-  dailyCount: 0,
-  recordDailyActivity: () => {},
-  earnedBadges: [],
-  newBadge: null,
-  clearNewBadge: () => {},
-});
-
-const SRContext = createContext({
-  srCards: [],
-  addToSRQueue: () => {},
-  updateSRCard: () => {},
-  getDueSRCards: () => [],
-  bookmarks: [],
-  toggleBookmark: () => {},
-  isBookmarked: () => false,
-  notes: {},
-  saveNote: () => {},
-  getNote: () => '',
-});
-
-function normalizeLessonKey(lessonKey) {
-  return resolveStableLessonKeyAcrossCourses(lessonKey, COURSES);
-}
-
-// Per-learner localStorage helpers (reward history, challenge
-// completions, normalization) live in utils/learnerLocalStore so
-// they can be unit-tested independently of the provider.
 
 export function ProgressProvider({ children }) {
   const { user } = useAuth();
@@ -125,10 +85,6 @@ export function ProgressProvider({ children }) {
   // active-daily-count guards so they recompute when the wall
   // clock crosses midnight inside an open tab.
   const todayKey = useTodayKey();
-  // Counter for DB writes that have failed since the last successful
-  // load. The optimistic state is still the source of truth for the
-  // session — this is just so the UI can surface "your progress did
-  // not save to the cloud" instead of silently losing writes.
   const [syncFailed, setSyncFailed] = useState(0);
   const [pendingSyncWrites, setPendingSyncWrites] = useState(0);
   const [syncRetryInFlight, setSyncRetryInFlight] = useState(false);
@@ -183,15 +139,6 @@ export function ProgressProvider({ children }) {
 
   // Supabase write helper. Optimistic state is updated BEFORE this is
   // called, so we catch and report failures rather than rollback.
-  // Previously this silently swallowed all errors, which made every
-  // sync failure invisible — a real correctness bug flagged in the
-  // portfolio audit. Now we:
-  //   1. console.warn in dev so the developer sees it immediately
-  //   2. bump the syncFailed counter exposed via context so the UI
-  //      can show a "sync failed, your work is still saved locally"
-  //      banner. Calling retryLoad() will reset the counter.
-  //   3. accept a human-readable label so the warning identifies
-  //      which service call failed.
   const dbWrite = useCallback(async (write, label = 'db-write') => {
     if (!userId) return { queued: false, skipped: true };
 
@@ -313,6 +260,20 @@ export function ProgressProvider({ children }) {
     return () => window.removeEventListener('online', handleOnline);
   }, [retryPendingSyncWrites, userId]);
 
+  // ─── SR slice ─────────────────────────────────
+  // SR/bookmark/note state and callbacks live in srContext.jsx.
+  // Setters are exposed so the load effect and resetUserState can
+  // populate / clear them without coupling the SR module to the
+  // load orchestration logic here.
+  const {
+    srCards, setSrCards,
+    bookmarks, setBookmarks,
+    notes, setNotes,
+    addToSRQueue, updateSRCard, getDueSRCards,
+    toggleBookmark, isBookmarked,
+    saveNote, getNote,
+  } = useSRSlice({ user, dbWrite });
+
   // ─── State ─────────────────────────────────────
   const [completed, setCompleted] = useState([]);
   const [quizScores, setQuizScores] = useState({});
@@ -322,9 +283,6 @@ export function ProgressProvider({ children }) {
   const [dailyCount, setDailyCount] = useState(0);
   const [dailyDate, setDailyDate] = useState('');
   const [earnedBadges, setEarnedBadges] = useState({});
-  const [srCards, setSrCards] = useState([]);
-  const [bookmarks, setBookmarks] = useState([]);
-  const [notes, setNotes] = useState({});
   const [coursesVisited, setCoursesVisited] = useState([]);
   const [lastPosition, setLastPosition] = useState({ course: '', mod: '', les: '', time: 0 });
   const [rewardHistory, setRewardHistory] = useState([]);
@@ -335,22 +293,14 @@ export function ProgressProvider({ children }) {
   // Same ref-mirroring pattern as streakStateRef. Two recordDailyActivity
   // calls in the same React batch would otherwise both read the stale
   // closure-captured dailyCount/dailyDate and lose an increment. The ref
-  // updates synchronously so the second call sees the first call's
-  // value.
+  // updates synchronously so the second call sees the first call's value.
   const dailyStateRef = useRef({ count: 0, date: '' });
   // XP popups are queued so back-to-back awards each get their full
-  // dismissal animation. Without this, a perfect-quiz flow that awards
-  // +30 XP (base) then +50 XP (perfect bonus) in the same tick would
-  // overwrite the first popup before the user ever saw it.
-  // The exposed `xpPopup` value is the head of the queue; `clearXPPopup`
-  // shifts the head off so the next award (if any) takes its place.
+  // dismissal animation.
   const [xpPopupQueue, setXpPopupQueue] = useState([]);
   const xpPopup = xpPopupQueue[0] || null;
-  // Same queue pattern for badge unlock celebrations: a single
-  // checkBadges() call can earn multiple badges (e.g. hitting a streak
-  // milestone and a lesson-count milestone in the same action), and the
-  // BadgeUnlock celebration is a 4.5s full-screen modal — overwriting it
-  // would silently drop a real reward the learner just earned.
+  // Badge unlock queue: a single checkBadges() call can earn multiple
+  // badges, and each celebration is a 4.5s full-screen modal.
   const [newBadgeQueue, setNewBadgeQueue] = useState([]);
   const newBadge = newBadgeQueue[0] || null;
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -427,7 +377,7 @@ export function ProgressProvider({ children }) {
     setChallengeCompletions([]);
     setXpPopupQueue([]);
     setNewBadgeQueue([]);
-  }, []);
+  }, [setSrCards, setBookmarks, setNotes]);
 
   // ─── Load all data from Supabase on login ──────
   useEffect(() => {
@@ -624,8 +574,6 @@ export function ProgressProvider({ children }) {
     }
   }, [user, xpTotal, dbWrite]);
 
-  // Shifts the currently-displayed popup off the queue. If more popups
-  // are queued, the next one becomes the new head and renders next.
   const clearXPPopup = useCallback(() => {
     setXpPopupQueue((queue) => (queue.length > 0 ? queue.slice(1) : queue));
   }, []);
@@ -754,15 +702,10 @@ export function ProgressProvider({ children }) {
     const today = getTodayString();
     for (const badge of newlyEarned) {
       updated[badge.id] = { date: today };
-      // dbWrite expects a createProgressWrite envelope so writes can be
-      // queued + replayed by the same-browser sync queue. Match the
-      // pattern used by every other dbWrite call in this file.
       dbWrite(createProgressWrite('awardBadge', { badgeId: badge.id }), `awardBadge:${badge.id}`);
     }
 
     setEarnedBadges(updated);
-    // Enqueue every newly earned badge so each one gets its own
-    // celebration in turn, instead of all but the first being lost.
     setNewBadgeQueue((queue) => [...queue, ...newlyEarned]);
   }, [user, completed, quizScores, xpTotal, streak, coursesVisited, dailyCount, dailyDate, earnedBadges, bookmarks, notes, dbWrite]);
 
@@ -773,124 +716,6 @@ export function ProgressProvider({ children }) {
   const clearNewBadge = useCallback(() => {
     setNewBadgeQueue((queue) => (queue.length > 0 ? queue.slice(1) : queue));
   }, []);
-
-  // ─── Spaced Repetition ────────────────────────
-  const addToSRQueue = useCallback(async (cards) => {
-    if (!user) return;
-    const existing = new Set(srCards.map(c => c.question));
-    const newCards = cards.filter(c => !existing.has(c.question));
-
-    setSrCards(prev => [...prev, ...newCards]);
-
-    for (const card of newCards) {
-      dbWrite(createProgressWrite('addSRCard', { card }), 'addSRCard');
-    }
-  }, [user, srCards, dbWrite]);
-
-  const updateSRCard = useCallback(async (question, correct) => {
-    if (!user) return;
-
-    const currentCard = srCards.find((c) => c.question === question);
-    if (!currentCard) return;
-
-    // The SM-2-style scheduling math lives in services/srAlgorithm so
-    // it's unit-testable in isolation. This callback only does state +
-    // persistence.
-    const { interval, ease, nextReview } = nextSRCardState({ card: currentCard, correct });
-    const updatedCard = { ...currentCard, interval, ease, nextReview };
-
-    setSrCards((prev) => prev.map((card) => (card.question === question ? updatedCard : card)));
-
-    dbWrite(
-      createProgressWrite('updateSRCard', {
-        question,
-        updates: {
-          next_review: new Date(updatedCard.nextReview).toISOString(),
-          interval_days: updatedCard.interval,
-          ease: updatedCard.ease,
-        },
-      }),
-      'updateSRCard',
-    );
-  }, [user, srCards, dbWrite]);
-
-  const getDueSRCards = useCallback(() => {
-    return srCards.filter(c => c.nextReview <= Date.now());
-  }, [srCards]);
-
-  // ─── Bookmarks (NEW) ─────────────────────────
-  const toggleBookmark = useCallback(async (lessonKey, courseId, lessonTitle, options = {}) => {
-    if (!user) return;
-    const skipRemote = Boolean(options?.skipRemote);
-    const normalizedLessonKey = normalizeLessonKey(lessonKey);
-    const existing = bookmarks.find((bookmark) =>
-      lessonKeysEquivalent(bookmark.lesson_key, normalizedLessonKey, COURSES),
-    );
-
-    if (existing) {
-      setBookmarks((prev) => prev.filter((bookmark) =>
-        !lessonKeysEquivalent(bookmark.lesson_key, normalizedLessonKey, COURSES),
-      ));
-      if (!skipRemote) {
-        const removalKeys = new Set([existing.lesson_key, normalizedLessonKey]);
-        removalKeys.forEach((key) => {
-          dbWrite(createProgressWrite('removeBookmark', { lessonKey: key }), 'removeBookmark');
-        });
-      }
-    } else {
-      const newBookmark = {
-        lesson_key: normalizedLessonKey,
-        course_id: courseId,
-        lesson_title: lessonTitle,
-        created_at: new Date().toISOString(),
-      };
-      setBookmarks(prev => [...prev, newBookmark]);
-      if (!skipRemote) {
-        dbWrite(
-          createProgressWrite('addBookmark', {
-            bookmark: {
-              lessonKey: normalizedLessonKey,
-              courseId,
-              lessonTitle,
-            },
-          }),
-          'addBookmark',
-        );
-      }
-    }
-  }, [user, bookmarks, dbWrite]);
-
-  const isBookmarked = useCallback((lessonKey) => {
-    const normalizedLessonKey = normalizeLessonKey(lessonKey);
-    return bookmarks.some((bookmark) =>
-      lessonKeysEquivalent(bookmark.lesson_key, normalizedLessonKey, COURSES),
-    );
-  }, [bookmarks]);
-
-  // ─── Notes (NEW) ─────────────────────────────
-  const saveNote = useCallback(async (lessonKey, content) => {
-    if (!user) return;
-    const normalizedLessonKey = normalizeLessonKey(lessonKey);
-    setNotes(prev => ({ ...prev, [normalizedLessonKey]: content }));
-    dbWrite(
-      createProgressWrite('saveNote', {
-        lessonKey: normalizedLessonKey,
-        content,
-      }),
-      'saveNote',
-    );
-  }, [user, dbWrite]);
-
-  const getNote = useCallback((lessonKey) => {
-    const normalizedLessonKey = normalizeLessonKey(lessonKey);
-    if (notes[normalizedLessonKey]) return notes[normalizedLessonKey];
-    if (notes[lessonKey]) return notes[lessonKey];
-
-    const equivalentKey = Object.keys(notes).find((storedKey) =>
-      lessonKeysEquivalent(storedKey, normalizedLessonKey, COURSES),
-    );
-    return equivalentKey ? notes[equivalentKey] : '';
-  }, [notes]);
 
   // ─── Position ─────────────────────────────────
   const savePosition = useCallback(async (pos) => {
@@ -910,8 +735,6 @@ export function ProgressProvider({ children }) {
   const retryLoad = useCallback(() => {
     setDataLoaded(false);
     setLoadError(null);
-    // A fresh load replaces optimistic state with canonical DB state,
-    // so any stale "sync failed" counter is irrelevant after this.
     setSyncFailed(0);
     setLoadVersion((version) => version + 1);
   }, []);
@@ -973,14 +796,10 @@ export function ProgressProvider({ children }) {
   // Display the streak only when it's still active. The persisted
   // value is the streak as of the learner's last activity, so a
   // learner who skipped two days would otherwise still see the
-  // stale "5 day streak" pill until they did another activity. The
-  // pure helper returns 0 when lastDate < yesterday.
+  // stale "5 day streak" pill until they did another activity.
   //
   // todayKey drives the memo invalidation so the guards recompute
   // when wall-clock time crosses UTC midnight inside an open tab.
-  // Using it directly inside the helper call (instead of just as a
-  // dep) keeps the date snapshot the memo captured consistent
-  // through the call chain, and quiets exhaustive-deps.
   const activeStreak = useMemo(
     () => getActiveStreakDays(streak, streakLastDate, todayKey, getYesterdayString()),
     [streak, streakLastDate, todayKey],
@@ -990,9 +809,6 @@ export function ProgressProvider({ children }) {
     [streak, streakLastDate, todayKey],
   );
   // Display the daily count only when it matches today's date.
-  // The persisted dailyCount is from the LAST day the learner did
-  // activity — yesterday's "3 lessons today" would otherwise leak
-  // into today's topbar and lie that the daily goal is met.
   const activeDailyCount = useMemo(
     () => getActiveDailyCount(dailyCount, dailyDate, todayKey),
     [dailyCount, dailyDate, todayKey],
@@ -1061,14 +877,6 @@ export function ProgressProvider({ children }) {
 
 export function useProgressData() {
   return useContext(ProgressContext);
-}
-
-export function useXP() {
-  return useContext(XPContext);
-}
-
-export function useSR() {
-  return useContext(SRContext);
 }
 
 // Backward-compatible aggregate hook for older consumers.
