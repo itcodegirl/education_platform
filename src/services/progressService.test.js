@@ -85,15 +85,15 @@ describe('fetchAllUserData', () => {
     await expect(fetchAllUserData(UID)).rejects.toThrow('progress: connection refused');
   });
 
-  it('lists every failed table in the error message', async () => {
+  it('lists every failed critical table in the error message', async () => {
     mockFrom.mockImplementation((table) => {
-      if (table === 'xp' || table === 'badges') {
+      if (table === 'xp' || table === 'quiz_scores') {
         return makeChain(null, { message: `${table} timeout` });
       }
       return makeChain([], null);
     });
 
-    await expect(fetchAllUserData(UID)).rejects.toThrow(/xp.*badges|badges.*xp/);
+    await expect(fetchAllUserData(UID)).rejects.toThrow(/xp.*quiz_scores|quiz_scores.*xp/);
   });
 
   it('includes the source table name in the error details', async () => {
@@ -103,6 +103,23 @@ describe('fetchAllUserData', () => {
     });
 
     await expect(fetchAllUserData(UID)).rejects.toThrow('quiz_scores: bad request');
+  });
+
+  it('does not throw when only non-critical tables fail — returns loadErrors instead', async () => {
+    mockFrom.mockImplementation((table) => {
+      if (table === 'badges' || table === 'sr_cards') {
+        return makeChain(null, { message: `${table} timeout` });
+      }
+      return makeChain([], null);
+    });
+
+    const result = await fetchAllUserData(UID);
+    expect(result.loadErrors).toHaveLength(2);
+    expect(result.loadErrors.some((e) => e.includes('badges'))).toBe(true);
+    expect(result.loadErrors.some((e) => e.includes('sr_cards'))).toBe(true);
+    // Critical data is still present
+    expect(result.progress).toBeDefined();
+    expect(result.xp).toBeDefined();
   });
 });
 

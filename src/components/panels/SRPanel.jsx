@@ -2,6 +2,8 @@ import { useRef, useState } from "react";
 import { useSR } from "../../providers";
 import { generatePracticeCard } from "../../services/practiceService";
 import { useFocusTrap } from "../../hooks/useFocusTrap";
+import { renderMarkdown } from "../../utils/markdown";
+import { EmptyState } from "../shared/EmptyState";
 
 const TOPICS = [
   { id: "html", label: "HTML" },
@@ -160,25 +162,22 @@ export function SRPanel({ isOpen, onClose }) {
           </form>
 
           {due.length === 0 ? (
-            <div className="sr-empty">
-              <span className="sr-empty-icon" aria-hidden="true">✓</span>
-              <p><strong>All caught up.</strong></p>
-              <p className="empty-state-msg">
-                {queue.length > 0
+            <EmptyState
+              icon="✓"
+              headline="All caught up."
+              subtext={
+                queue.length > 0
                   ? `${queue.length} card${queue.length > 1 ? "s are" : " is"} scheduled for later.`
-                  : "Complete quizzes or generate a fresh card to start building your review habit."}
-              </p>
-            </div>
+                  : "Complete quizzes or generate a fresh card to start building your review habit."
+              }
+            />
           ) : currentIdx >= due.length ? (
             <>
-              <div className="sr-empty">
-                <span className="sr-empty-icon" aria-hidden="true">✓</span>
-                <p><strong>Session complete.</strong></p>
-                <p className="empty-state-msg">
-                  Nice work. You cleared today&apos;s due cards and can jump back in
-                  for another round anytime.
-                </p>
-              </div>
+              <EmptyState
+                icon="✓"
+                headline="Session complete."
+                subtext="Nice work. You cleared today's due cards and can jump back in for another round anytime."
+              />
 
               <div className="sr-score-bar">
                 <span>Results:</span>
@@ -223,9 +222,14 @@ export function SRPanel({ isOpen, onClose }) {
 
                 {answered !== null && (
                   <div className={`sr-result ${answered === currentCard?.correct ? "right" : "wrong"}`}>
-                    {answered === currentCard?.correct
-                      ? "Correct. Strong recall."
-                      : "Not quite. Review this explanation:"} {currentCard?.explanation}
+                    <span>
+                      {answered === currentCard?.correct
+                        ? "Correct. Strong recall."
+                        : "Not quite. Review this explanation:"}
+                    </span>
+                    {currentCard?.explanation && (
+                      <div className="sr-explanation">{renderMarkdown(currentCard.explanation)}</div>
+                    )}
                   </div>
                 )}
               </div>

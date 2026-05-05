@@ -2410,6 +2410,49 @@ img {
   filter: brightness(1.15);
 }
 
+/* ═══════════════════════════════════════════════
+   SHARED EMPTY STATE — <EmptyState /> component
+   Used across panels, pages, and lists.
+   ═══════════════════════════════════════════════ */
+
+.empty-state {
+  text-align: center;
+  padding: 28px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.012));
+  color: var(--text-dim);
+}
+
+.empty-state-icon {
+  font-size: 44px;
+  display: block;
+  margin-bottom: 12px;
+  line-height: 1;
+}
+
+.empty-state-headline {
+  font-family: 'Poppins', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.empty-state-subtext {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin: 0 0 16px;
+  line-height: 1.6;
+}
+
+.empty-state-cta {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 
 
 

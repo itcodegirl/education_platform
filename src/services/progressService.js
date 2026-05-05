@@ -130,10 +130,23 @@ export async function fetchAllUserData(uid) {
       .maybeSingle(),
   ]);
 
-  const errors = [
+  // Critical tables — if these fail the app cannot function meaningfully.
+  const criticalErrors = [
     ['progress', progressRes.error],
     ['quiz_scores', quizRes.error],
     ['xp', xpRes.error],
+  ].filter(([, error]) => !!error);
+
+  if (criticalErrors.length > 0) {
+    const details = criticalErrors
+      .map(([source, error]) => `${source}: ${error?.message || 'Unknown error'}`)
+      .join(' | ');
+    throw new Error(`Failed to load user data (${details})`);
+  }
+
+  // Non-critical tables — failures degrade gracefully; callers receive
+  // a `loadErrors` array they can surface as a non-blocking warning.
+  const loadErrors = [
     ['streaks', streakRes.error],
     ['daily_goals', dailyRes.error],
     ['badges', badgesRes.error],
@@ -142,14 +155,9 @@ export async function fetchAllUserData(uid) {
     ['notes', notesRes.error],
     ['courses_visited', visitedRes.error],
     ['last_position', posRes.error],
-        ].filter(([, error]) => !!error);
-
-  if (errors.length > 0) {
-    const details = errors
-      .map(([source, error]) => `${source}: ${error?.message || 'Unknown error'}`)
-      .join(' | ');
-    throw new Error(`Failed to load user data (${details})`);
-  }
+  ]
+    .filter(([, error]) => !!error)
+    .map(([source, error]) => `${source}: ${error?.message || 'Unknown error'}`);
 
   return {
     progress: progressRes,
@@ -163,6 +171,7 @@ export async function fetchAllUserData(uid) {
     notes: notesRes,
     visited: visitedRes,
     position: posRes,
+    loadErrors,
   };
 }
 

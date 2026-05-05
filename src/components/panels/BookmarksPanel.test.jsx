@@ -64,7 +64,7 @@ describe('BookmarksPanel', () => {
     expect(screen.getByRole('heading', { name: /Bookmarks \(0\)/i })).toBeInTheDocument();
     expect(screen.getByText(/No bookmarks yet/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/Mark a lesson as saved from the header star/i),
+      screen.getByText(/Star a lesson from the lesson header/i),
     ).toBeInTheDocument();
   });
 

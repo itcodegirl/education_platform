@@ -454,7 +454,11 @@ export function ProgressProvider({ children }) {
       if (cancelled) return;
       const { progress: progressRes, quiz: quizRes, xp: xpRes, streak: streakRes,
         daily: dailyRes, badges: badgesRes, sr: srRes, bookmarks: bookmarkRes,
-        notes: notesRes, visited: visitedRes, position: posRes } = results;
+        notes: notesRes, visited: visitedRes, position: posRes, loadErrors } = results;
+
+      if (loadErrors?.length > 0) {
+        console.warn('[ProgressContext] Non-critical tables failed to load:', loadErrors.join(' | '));
+      }
 
       const completedLessonKeys = progressRes.data?.map(r => r.lesson_key) || [];
       setCompleted(completedLessonKeys);
