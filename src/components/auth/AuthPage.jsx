@@ -221,7 +221,11 @@ export function AuthPage({ onPreview }) {
           auth card's brand row is intentionally not an extra <h1> so the
           heading outline stays clean. */}
       <div className="auth-top">
-        <LandingHeroIntro compact onStart={() => scrollToAuth('signup')} />
+        <LandingHeroIntro
+          compact
+          onStart={() => scrollToAuth('signup')}
+          onPreview={onPreview}
+        />
 
         <div className="auth-card" ref={authCardRef} aria-busy={loading || sendingReset ? 'true' : 'false'}>
           <div className="auth-brand">

@@ -3,7 +3,8 @@
 // Sidebar + Topbar + Content + Toolbar + Panels
 // ===============================================
 
-import { useCallback, useMemo, useEffect, useRef } from "react";
+import { useCallback, useMemo, useEffect } from "react";
+import { useFetcher } from "react-router-dom";
 import { COURSES } from "../data";
 import { useTheme, useAuth, useProgressData, useXP, useCourseContent } from "../providers";
 import { useNavigation } from "../hooks/useNavigation";
@@ -13,7 +14,8 @@ import { useLearning } from "../hooks/useLearning";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
-import { useMarkLessonDone } from "../hooks/useMarkLessonDone";
+import { useLessonViewTracking } from "../hooks/useLessonViewTracking";
+import { useLessonMarkDone } from "../hooks/useLessonMarkDone";
 import { estimateReadingTime, getLevel } from "../utils/helpers";
 import { trackEvent } from "../lib/analytics";
 import {
@@ -129,8 +131,6 @@ export function AppLayout() {
     user?.user_metadata?.display_name ||
     user?.email?.split("@")[0] ||
     "there";
-  const lessonViewStartRef = useRef(Date.now());
-  const trackedLessonRef = useRef('');
   const isSidebarOpen = isMobile ? panels.sidebar : true;
 
   useEffect(() => {
@@ -207,30 +207,16 @@ export function AppLayout() {
 
   const nextStepHint = getNextStepHint({ isLast, showModQuiz, isDone });
 
-  useEffect(() => {
-    if (showModQuiz || !course.id || !mod.id || !les.id) return;
-    const lessonIdentity = `${course.id}|${mod.id}|${les.id}`;
-    if (trackedLessonRef.current === lessonIdentity) return;
-
-    trackedLessonRef.current = lessonIdentity;
-    lessonViewStartRef.current = Date.now();
-    trackEvent('lesson_viewed', {
-      courseId: course.id,
-      moduleId: mod.id,
-      lessonId: les.id,
-      courseIndex: nav.courseIdx,
-      moduleIndex: nav.modIdx,
-      lessonIndex: nav.lesIdx,
-    });
-  }, [
-    course.id,
-    les.id,
-    mod.id,
-    nav.courseIdx,
-    nav.lesIdx,
-    nav.modIdx,
+  // --- Lesson view analytics ----------------
+  const lessonViewStartRef = useLessonViewTracking({
+    courseId: course.id,
+    moduleId: mod.id,
+    lessonId: les.id,
+    courseIndex: nav.courseIdx,
+    moduleIndex: nav.modIdx,
+    lessonIndex: nav.lesIdx,
     showModQuiz,
-  ]);
+  });
 
   useEffect(() => {
     if (isCourseComplete && isDone) {
@@ -239,25 +225,17 @@ export function AppLayout() {
   }, [isCourseComplete, isDone, panels]);
 
   // --- Actions ------------------------------
-  // The mark-done flow lives in useMarkLessonDone — owns the
-  // useFetcher mutation, the optimistic toggle, the syncFailure
-  // wiring, and the min-feedback duration.
-  const analyticsContext = useMemo(
-    () => ({
-      courseId: course.id,
-      moduleId: mod.id,
-      lessonId: les.id,
-      lessonViewStartRef,
-    }),
-    [course.id, mod.id, les.id],
-  );
-  const { marking, handleMarkDone } = useMarkLessonDone({
+  const { marking, handleMarkDone } = useLessonMarkDone({
     completedSet,
     stableLessonKey,
     legacyLessonKey,
-    toggleLessonDone: learn.toggleLessonDone,
+    courseId: course.id,
+    moduleId: mod.id,
+    lessonId: les.id,
     mutationActionPath,
-    analyticsContext,
+    progressMutation,
+    toggleLessonDone: learn.toggleLessonDone,
+    lessonViewStartRef,
   });
 
   const handleNextLesson = useCallback(() => {

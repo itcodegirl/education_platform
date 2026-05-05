@@ -136,9 +136,10 @@ function XPWriteConsumer() {
 // queue plus actions to enqueue / dismiss so tests can drive the
 // queue without relying on the full reward pipeline.
 function XPPopupQueueConsumer() {
-  const { xpPopup, awardXP, clearXPPopup } = useXP();
+  const { xpTotal, xpPopup, awardXP, clearXPPopup } = useXP();
   return (
     <div data-testid="xp-popup-consumer">
+      <div data-testid="xp-total">{String(xpTotal)}</div>
       <div data-testid="xp-popup-amount">{xpPopup ? String(xpPopup.amount) : ''}</div>
       <div data-testid="xp-popup-reason">{xpPopup ? xpPopup.reason : ''}</div>
       <button type="button" data-testid="award-30" onClick={() => awardXP(30, 'Quiz completed')}>
@@ -146,6 +147,16 @@ function XPPopupQueueConsumer() {
       </button>
       <button type="button" data-testid="award-50" onClick={() => awardXP(50, 'Perfect quiz score!')}>
         +50
+      </button>
+      <button
+        type="button"
+        data-testid="award-combo"
+        onClick={() => {
+          awardXP(30, 'Quiz completed');
+          awardXP(50, 'Perfect quiz score!');
+        }}
+      >
+        Combo
       </button>
       <button type="button" data-testid="dismiss" onClick={clearXPPopup}>
         Dismiss
@@ -568,5 +579,23 @@ describe('ProgressContext — XP popup queue', () => {
     fireEvent.click(screen.getByTestId('dismiss'));
 
     expect(screen.getByTestId('xp-popup-amount').textContent).toBe('');
+  });
+
+  it('adds back-to-back XP awards from the latest in-memory total', async () => {
+    renderXPPopupQueueWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('award-combo')).not.toBeDisabled();
+    });
+
+    fireEvent.click(screen.getByTestId('award-combo'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('xp-total').textContent).toBe('80');
+    });
+    await waitFor(() => {
+      expect(mockUpdateXP).toHaveBeenCalledWith('uid-popup', 30);
+      expect(mockUpdateXP).toHaveBeenCalledWith('uid-popup', 80);
+    });
   });
 });

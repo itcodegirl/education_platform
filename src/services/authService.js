@@ -19,11 +19,12 @@ export function onAuthStateChange(callback) {
 }
 
 export async function loadProfile(userId) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('profiles')
     .select('display_name, avatar_url, is_admin, is_disabled')
     .eq('id', userId)
     .maybeSingle();
+  if (error) throw error;
   return data || null;
 }
 
