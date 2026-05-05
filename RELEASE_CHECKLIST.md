@@ -47,7 +47,7 @@ Use this checklist before Netlify releases or hotfix deploys.
 
 - `npm run test:e2e` always covers public smoke path.
 - Authenticated smoke checks require environment credentials and will otherwise skip.
-- `npm run audit:quizzes` should remain report-only until strict-mode criteria are defined for classified orphan inventory, intentional variants, aliases, and Python policy decisions.
+- `npm run audit:quizzes` runs in strict mode and blocks on unclassified orphan quizzes, suspicious variant groups, missing quizzes, and unresolved duplicates. Classified orphans, intentional variants, and legacy aliases in the registry do not block.
 - Production-grade reliability still requires broader learning/data/a11y regression coverage.
 
 ## Release Sign-Off

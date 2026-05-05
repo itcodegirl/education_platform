@@ -38,7 +38,7 @@ Current test boundaries:
 - Authenticated Playwright smoke checks are skipped when auth env credentials are not provided.
 - Playwright authenticated storage state is generated under `playwright/.auth/` and intentionally ignored by Git.
 - `npm run audit:quizzes` remains the source of truth for quiz integrity drift, including classified orphan quizzes, intentional variant groups, and legacy aliases.
-- Quiz audit strict-mode CI criteria are planned but not enabled yet.
+- `npm run audit:quizzes` runs in strict mode; all classified orphan quizzes, intentional variant groups, and legacy aliases must resolve to 0 unclassified issues before the script exits 0.
 - The local reward-event ledger/queue and Supabase reward backend branches are now unified. The local engine remains the default fallback, and backend reward sync remains disabled until the migrations are applied and authenticated reward flows are validated in a real project.
 - Backend reward details live in [docs/backend-reward-events.md](./docs/backend-reward-events.md), [docs/atomic-reward-award.md](./docs/atomic-reward-award.md), and [docs/reward-sync-strategy.md](./docs/reward-sync-strategy.md).
 - Authenticated smoke checks are enabled in the suite, but they self-skip unless Supabase and learner test credentials are configured.
@@ -149,6 +149,7 @@ VITE_REWARD_BACKEND_SYNC_ENABLED=false
 2. Run [`supabase-schema.sql`](./supabase-schema.sql) in Supabase SQL editor.
 3. For the optional backend reward engine, run the additive SQL files in [`supabase/migrations`](./supabase/migrations) after the base schema.
 4. Keep `VITE_REWARD_BACKEND_SYNC_ENABLED=false` until `reward_events` and `award_reward_event` are applied and verified.
+   > **Reward sync is single-device by default.** XP, streaks, and badges are stored in Supabase but awarded locally per browser session. For cross-device idempotency, enable the backend flag after running the reward migrations — see [docs/backend-reward-events.md](./docs/backend-reward-events.md).
 5. Enable Email auth.
 6. Optionally enable Google/GitHub auth.
 
