@@ -161,10 +161,12 @@ Why: product reliability needs visibility, but portfolio credibility is stronger
 
 - clearer user path from landing to lesson completion
 - more consistent, premium-feeling UI without sacrificing readability
-- stronger confidence in release quality through explicit checks
+- stronger confidence in release quality through explicit checks — quiz integrity audit now runs in strict CI mode with all 14 variant groups locked and 53 orphans classified
+- more tamper-resistant challenge grading: all HTML challenges use live DOM queries instead of source-text substring checks; CSS challenges use `getComputedStyle` for structural property verification
 - more believable progress reliability because direct learner saves can retry after transient failures and rapid XP awards no longer race each other down
 - stronger trust in lesson completion and bookmark persistence because recoverable route failures now fall back into the same-browser retry queue
 - cleaner QA hygiene because authenticated Playwright state is ignored instead of appearing as untracked session residue
+- improved AppLayout modularity: lesson view analytics and mark-done action extracted into independent, testable hooks, shrinking the layout file by 60 lines
 - clearer portfolio narrative for both non-technical and technical reviewers
 
 ---

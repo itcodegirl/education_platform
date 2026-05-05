@@ -37,8 +37,7 @@ Current test boundaries:
 
 - Authenticated Playwright smoke checks are skipped when auth env credentials are not provided.
 - Playwright authenticated storage state is generated under `playwright/.auth/` and intentionally ignored by Git.
-- `npm run audit:quizzes` remains the source of truth for quiz integrity drift, including classified orphan quizzes, intentional variant groups, and legacy aliases.
-- Quiz audit strict-mode CI criteria are planned but not enabled yet.
+- `npm run audit:quizzes` runs in strict mode by default and is the source of truth for quiz integrity drift. It fails on any unclassified orphan quizzes or unreviewed variant groups. All 14 intentional variant groups are locked; 53 legacy orphans are classified and non-blocking.
 - The local reward-event ledger/queue and Supabase reward backend branches are now unified. The local engine remains the default fallback, and backend reward sync remains disabled until the migrations are applied and authenticated reward flows are validated in a real project.
 - Backend reward details live in [docs/backend-reward-events.md](./docs/backend-reward-events.md), [docs/atomic-reward-award.md](./docs/atomic-reward-award.md), and [docs/reward-sync-strategy.md](./docs/reward-sync-strategy.md).
 - Authenticated smoke checks are enabled in the suite, but they self-skip unless Supabase and learner test credentials are configured.
