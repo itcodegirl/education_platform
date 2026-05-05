@@ -1,4 +1,4 @@
-import { EmailVerifyBanner } from './EmailVerifyBanner';
+import { EmailVerifyBanner } from '../shared/EmailVerifyBanner';
 import { OfflineIndicator } from './OfflineIndicator';
 
 export function LoadingSkeleton({ theme, courseId, courseIcon, courseLabel }) {
