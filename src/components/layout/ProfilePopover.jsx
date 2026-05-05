@@ -6,7 +6,7 @@ import { navigateTo } from '../../routes/routeUtils';
 
 export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, isMobile }) {
   const { completed = [] } = useProgressData();
-  const { xpTotal = 0, streak = 0, dailyCount = 0 } = useXP();
+  const { xpTotal = 0, streak = 0, pausedStreak = null, dailyCount = 0 } = useXP();
   const { user, signOut } = useAuth();
   const popoverRef = useRef(null);
 
@@ -70,8 +70,19 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
           <span className="pp-stat-label">Lessons</span>
         </div>
         <div className="pp-stat">
-          <span className="pp-stat-value">{streak}{streak > 0 ? '??' : ''}</span>
-          <span className="pp-stat-label">Streak</span>
+          {/* Active streak wins. If active is 0 but a paused streak
+              exists, show its count with a paused glyph so the
+              popover doesn't pretend the streak history never
+              happened. The literal "??" placeholder that lived
+              here is gone. */}
+          {streak > 0 ? (
+            <span className="pp-stat-value">{streak} <span aria-hidden="true">🔥</span></span>
+          ) : pausedStreak ? (
+            <span className="pp-stat-value">{pausedStreak.days} <span aria-hidden="true">💤</span></span>
+          ) : (
+            <span className="pp-stat-value">0</span>
+          )}
+          <span className="pp-stat-label">{pausedStreak && streak === 0 ? 'Streak paused' : 'Streak'}</span>
         </div>
         <div className="pp-stat">
           <span className="pp-stat-value">

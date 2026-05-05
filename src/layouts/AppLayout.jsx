@@ -13,7 +13,6 @@ import { useKeyboardNav } from "../hooks/useKeyboardNav";
 import { useLearning } from "../hooks/useLearning";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useLocalStorage } from "../hooks/useLocalStorage";
-import { useFetcherSyncFailure } from "../hooks/useFetcherSyncFailure";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useLessonViewTracking } from "../hooks/useLessonViewTracking";
 import { useLessonMarkDone } from "../hooks/useLessonMarkDone";
@@ -63,13 +62,10 @@ export function AppLayout() {
     trackCourseVisit,
     dataLoaded,
     lastPosition,
-    markSyncFailed,
-    enqueuePendingSyncWrite,
   } = useProgressData();
-  const { xpTotal = 0, streak = 0, dailyCount = 0 } = useXP();
+  const { xpTotal = 0, streak = 0, pausedStreak = null, dailyCount = 0 } = useXP();
 
   const nav = useNavigation();
-  const progressMutation = useFetcher();
   const panels = usePanels({ dataLoaded, user: true, lastPosition });
   const learn = useLearning();
   const isMobile = useIsMobile(901);
@@ -136,12 +132,6 @@ export function AppLayout() {
     user?.email?.split("@")[0] ||
     "there";
   const isSidebarOpen = isMobile ? panels.sidebar : true;
-
-  useFetcherSyncFailure(
-    progressMutation,
-    { markSyncFailed, enqueuePendingSyncWrite },
-    'lesson progress',
-  );
 
   useEffect(() => {
     if (isMobile) {
@@ -309,10 +299,10 @@ export function AppLayout() {
         <main id="main-content" className="main-shell course-skeleton" tabIndex={-1} aria-busy="true" aria-live="polite">
           <div className="course-skeleton-inner">
             <span className="course-skeleton-emoji" aria-hidden="true">
-              {activeCourseMeta?.icon || '[]'}
+              {activeCourseMeta?.icon || '📚'}
             </span>
             <p className="course-skeleton-label">
-              Loading {activeCourseMeta?.label || 'course'}...
+              Loading {activeCourseMeta?.label || 'course'}…
             </p>
           </div>
         </main>
@@ -387,15 +377,37 @@ export function AppLayout() {
                   {readTime} read
                 </span>
               )}
-              <span className="topbar-pill" aria-label={`Level ${level}`}>Lv {level}</span>
-              <span className="topbar-pill" aria-label={`Course completion ${coursePct} percent`}>
-                {coursePct}% track
-              </span>
-              {streak > 0 && (
+              {/* Hide the level + completion pills entirely until the
+                  learner has earned something. A first-run learner
+                  used to see "Lv 1 · 0% track" before they'd done
+                  anything, which read as "you have achieved
+                  nothing" instead of a status. */}
+              {xpTotal > 0 && (
+                <span className="topbar-pill" aria-label={`Level ${level}`}>Lv {level}</span>
+              )}
+              {coursePct > 0 && (
+                <span className="topbar-pill" aria-label={`Course completion ${coursePct} percent`}>
+                  {coursePct}% track
+                </span>
+              )}
+              {streak > 0 ? (
                 <span className="topbar-pill streak" aria-label={`${streak} day streak`}>
                   🔥 {streak} day streak
                 </span>
-              )}
+              ) : pausedStreak ? (
+                /* Streak just lapsed. Surface the prior run as a
+                   subtle recovery cue so the topbar doesn't simply
+                   forget the streak existed. Click goes to the
+                   profile so the learner can see history; intent is
+                   visible signaling, not nagging. */
+                <span
+                  className="topbar-pill paused"
+                  aria-label={`${pausedStreak.days} day streak paused`}
+                  title="Pick up your streak with one more lesson today"
+                >
+                  💤 {pausedStreak.days} day streak paused
+                </span>
+              ) : null}
               {dailyCount > 0 && (
                 <span className="topbar-pill warm" aria-label={`Lessons done today: ${dailyCount}`}>
                   {dailyCount} lesson{dailyCount === 1 ? '' : 's'} today
@@ -424,7 +436,7 @@ export function AppLayout() {
                   aria-label={marking ? "Saving lesson completion" : isDone ? "Mark lesson as not done" : "Mark lesson complete"}
                   aria-pressed={isDone}
                 >
-                  {marking ? "Saving..." : isDone ? "✓ Done" : "Mark Done"}
+                  {marking ? "Saving…" : isDone ? "✓ Done" : "Mark done"}
                 </button>
               )}
             </div>
@@ -459,7 +471,7 @@ export function AppLayout() {
                     </h2>
                     <p className="frg-copy">
                       You are on the first lesson to set your pace. Read this lesson,
-                      complete it, then hit <strong>Mark Done</strong> to unlock the next one.
+                      complete it, then hit <strong>Mark done</strong> to unlock the next one.
                     </p>
                     <p className="frg-sub">Pick a course track anytime in the lesson sidebar.</p>
                   </div>

@@ -66,7 +66,7 @@ export function LessonNotesPanel({ lessonKey }) {
           <span className="notes-sub">Capture the part you do not want to forget five minutes from now.</span>
         </div>
         <span className="notes-saved" aria-live="polite" aria-atomic="true">
-          {isDirty ? 'Saving...' : noteText ? '✓ Saved' : ''}
+          {isDirty ? 'Saving…' : noteText ? '✓ Saved' : ''}
         </span>
       </div>
       <textarea

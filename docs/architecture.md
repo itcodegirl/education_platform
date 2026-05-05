@@ -95,6 +95,8 @@ src/
     learnRouteRecovery.js
     routePaths.js
     routeUtils.js
+    routePaths.js
+    RouteErrorBoundary.jsx
   layouts/
     AppLayout.jsx
     AuthLayout.jsx

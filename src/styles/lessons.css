@@ -70,6 +70,15 @@
 .lesson-action-btn:hover { border-color: var(--purple); color: var(--purple); transform: translateY(-1px); }
 .lesson-action-btn.active { background: rgba(180,74,255,0.12); border-color: var(--purple); color: var(--purple); }
 .lesson-body { margin-bottom: 32px; position: relative; z-index: 1; }
+/* Cap prose at a readable measure (~72ch) so a 1920px monitor doesn't
+   spread sentences across 120+ characters. Code preview blocks,
+   challenge requirements, and concept cards stay full-width inside
+   the 920px lesson container — only narrative text is constrained. */
+.lp,
+.sl-section-intro,
+.lesson-body > p {
+  max-width: 72ch;
+}
 .lp { margin-bottom: 16px; font-size: 16px; line-height: 1.8; }
 .lp strong { color: var(--cyan); font-weight: 600; }
 .lp em { color: var(--cyan); font-style: italic; }

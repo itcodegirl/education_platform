@@ -10,7 +10,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
   const { user, profile, signOut } = useAuth();
   const { theme } = useTheme();
   const { completed = [] } = useProgressData();
-  const { xpTotal = 0, streak = 0, earnedBadges = {} } = useXP();
+  const { xpTotal = 0, streak = 0, pausedStreak = null, earnedBadges = {} } = useXP();
   const { bookmarks = [], notes = {} } = useSR();
   const { ensureAllLoaded } = useCourseContent();
 
@@ -51,6 +51,16 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
   }, [user?.id]);
 
   const savePublicSettings = async (nextIsPublic, nextHandle) => {
+    // Defense in depth: ProfilePage is mounted behind the
+    // renderProtected guard which redirects when user is null,
+    // but a session that expires between page load and click
+    // would land here with user undefined. Bail out cleanly with
+    // a recoverable error instead of crashing on user.id.
+    if (!user?.id) {
+      setPublicError('Your session has expired. Sign in again to publish your profile.');
+      return;
+    }
+
     setPublicSaving(true);
     setPublicError('');
     setPublicSaved(false);
@@ -146,9 +156,11 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
             <span className="pp-status-pill warm">
               {completedLessons}/{totalLessons} lessons shipped
             </span>
-            {streak > 0 && (
+            {streak > 0 ? (
               <span className="pp-status-pill accent">{streak} day streak</span>
-            )}
+            ) : pausedStreak ? (
+              <span className="pp-status-pill">{pausedStreak.days}-day streak paused</span>
+            ) : null}
           </div>
         </div>
 
@@ -156,7 +168,10 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
           {[
             { value: level, label: 'Level' },
             { value: xpTotal.toLocaleString(), label: 'XP' },
-            { value: streak, label: 'Streak' },
+            {
+              value: streak > 0 ? streak : pausedStreak?.days || 0,
+              label: streak === 0 && pausedStreak ? 'Streak paused' : 'Streak',
+            },
             { value: completedLessons, label: 'Lessons' },
           ].map((stat) => (
             <div key={stat.label} className="pp-stat-card">
@@ -285,7 +300,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
                   disabled={publicSaving}
                   onClick={() => savePublicSettings(true, publicHandle)}
                 >
-                  {publicSaving ? 'Saving...' : 'Publish'}
+                  {publicSaving ? 'Saving…' : 'Publish'}
                 </button>
               </div>
               {publicHandle && !publicError && publicSaved && (
@@ -293,7 +308,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
                   className="pp-public-link"
                   href={`/u/${publicHandle}`}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                 >
                   Open your public page &rarr;
                 </a>

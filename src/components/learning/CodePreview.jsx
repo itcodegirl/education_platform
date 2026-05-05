@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useCallback, lazy, Suspense, useEffect } from 'react';
+﻿import { useState, useRef, useCallback, lazy, Suspense, useEffect, memo } from 'react';
 import { IFRAME_STYLES } from '../../utils/iframeStyles';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { usePrefersReducedData } from '../../hooks/usePrefersReducedData';
@@ -20,7 +20,12 @@ const SCAFFOLDING = {
   requirements: { icon: '📋', label: 'Requirements Only',   hint: 'No code given! Open the Editor tab and write it from scratch.' },
 };
 
-export function CodePreview({ code, lang, scaffolding = 'full' }) {
+// Memoized — CodePreview takes only primitive props (code, lang,
+// scaffolding) so it can safely skip re-renders that come from
+// unrelated lesson-chain state (showNotes, checkedTasks, AI tutor
+// open/close). Without memo, every keystroke in the lesson notes
+// textarea re-rendered Monaco / its iframe sibling.
+export const CodePreview = memo(function CodePreview({ code, lang, scaffolding = 'full' }) {
   const isMobile = useIsMobile();
   const prefersReducedData = usePrefersReducedData();
   const level = SCAFFOLDING[scaffolding] || SCAFFOLDING.full;
@@ -248,9 +253,5 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
       )}
     </div>
   );
-}
-
-
-
-
+});
 

@@ -67,9 +67,14 @@ export function PublicProfile({ handle, onClose }) {
   if (state.loading) {
     return (
       <div className="pub-profile">
-        <div className="pub-card pub-card-center">
+        <div
+          className="pub-card pub-card-center"
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+        >
           <Logo size="sm" />
-          <p className="pub-loading">Loading profile...</p>
+          <p className="pub-loading">Loading profile…</p>
         </div>
       </div>
     );
@@ -78,8 +83,8 @@ export function PublicProfile({ handle, onClose }) {
   if (state.error || !state.profile) {
     return (
       <div className="pub-profile">
-        <div className="pub-card pub-card-center">
-          <div className="pub-notfound-icon">🌙</div>
+        <div className="pub-card pub-card-center" role="alert">
+          <div className="pub-notfound-icon" aria-hidden="true">🌙</div>
           <h1 className="pub-notfound-title">Profile not found</h1>
           <p className="pub-notfound-msg">
             {state.error === 'Profile not found'
@@ -122,7 +127,7 @@ export function PublicProfile({ handle, onClose }) {
             onClick={onClose}
             aria-label="Close public profile"
           >
-            X
+            ×
           </button>
         )}
       </header>

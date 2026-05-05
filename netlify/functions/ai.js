@@ -94,6 +94,17 @@ export async function handler(event) {
     return json(401, { error: 'Invalid or expired session' });
   }
 
+  // Block unverified accounts from spending AI quota / OpenAI credits.
+  // OAuth providers stamp email_confirmed_at on first login so social
+  // sign-in still works; only email/password signups that haven't
+  // clicked the verification link are rejected here.
+  if (!user.email_confirmed_at && !user.confirmed_at) {
+    return json(403, {
+      error: 'Verify your email before using the AI tutor.',
+      code: 'EMAIL_NOT_VERIFIED',
+    });
+  }
+
   // 3a. Hot-instance rate limit (defense in depth - best-effort).
   if (!checkRateLimit(user.id)) {
     return json(429, { error: 'Too many requests. Please wait a moment and try again.' });

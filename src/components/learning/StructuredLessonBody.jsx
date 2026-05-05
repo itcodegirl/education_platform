@@ -14,9 +14,13 @@
 // onToggleTask so the challenge checklist can persist state.
 // ═══════════════════════════════════════════════
 
+import { memo } from 'react';
 import { CodePreview } from './CodePreview';
 
-export function StructuredLessonBody({
+// Memoized — same rationale as RichLessonBody: skip re-renders
+// driven by sibling state in LessonView (showNotes, AI tutor
+// open/close) when none of this component's props changed.
+export const StructuredLessonBody = memo(function StructuredLessonBody({
   lesson,
   lang,
   scaffolding,
@@ -29,7 +33,7 @@ export function StructuredLessonBody({
       {/* Hook — what you'll accomplish */}
       {lesson.hook?.accomplishments && (
         <div className="box sl-hook">
-          <div className="box-label">🎯 What you will ship</div>
+          <div className="box-label"><span aria-hidden="true">🎯 </span>What you will ship</div>
           <ul className="sl-hook-list">
             {lesson.hook.accomplishments.map((item, i) => (
               <li key={i}>{item}</li>
@@ -41,7 +45,12 @@ export function StructuredLessonBody({
       {/* Do — step-by-step instructions */}
       {lesson.do && (
         <>
-          {lesson.do.title && <h3 className="sl-section-title">🛠️ {lesson.do.title}</h3>}
+          {lesson.do.title && (
+            <h2 className="sl-section-title">
+              <span aria-hidden="true">🛠️ </span>
+              {lesson.do.title}
+            </h2>
+          )}
           <p className="sl-section-intro">
             Follow the steps, watch the output change, and keep your eyes on what the code is doing as you go.
           </p>
@@ -82,7 +91,10 @@ export function StructuredLessonBody({
       {/* Understand — concepts with definitions + analogies */}
       {lesson.understand?.concepts && (
         <>
-          <h3 className="sl-section-title">💡 Understand</h3>
+          <h2 className="sl-section-title">
+            <span aria-hidden="true">💡 </span>
+            Understand
+          </h2>
           <p className="sl-section-intro">
             These are the ideas underneath the code so you can reuse the pattern, not just copy it.
           </p>
@@ -104,7 +116,7 @@ export function StructuredLessonBody({
           </div>
           {lesson.understand.keyTakeaway && (
             <div className="box tip">
-              <div className="box-label">🔑 Key Takeaway</div>
+              <div className="box-label"><span aria-hidden="true">🔑 </span>Key Takeaway</div>
               <p>{lesson.understand.keyTakeaway}</p>
             </div>
           )}
@@ -114,7 +126,10 @@ export function StructuredLessonBody({
       {/* Build — extend the code */}
       {lesson.build && (
         <>
-          <h3 className="sl-section-title">🔨 Build on it</h3>
+          <h2 className="sl-section-title">
+            <span aria-hidden="true">🔨 </span>
+            Build on it
+          </h2>
           <p className="sl-section-intro">
             Push the starter a little further so the lesson becomes something you can actually shape yourself.
           </p>
@@ -133,7 +148,7 @@ export function StructuredLessonBody({
           )}
           {lesson.build.hint && (
             <div className="box tip">
-              <div className="box-label">💡 Hint</div>
+              <div className="box-label"><span aria-hidden="true">💡 </span>Hint</div>
               <p>{lesson.build.hint}</p>
             </div>
           )}
@@ -145,14 +160,17 @@ export function StructuredLessonBody({
         typeof lesson.challenge === 'object' &&
         lesson.challenge.mission && (
           <>
-            <h3 className="sl-section-title">🔥 Challenge: {lesson.challenge.title}</h3>
+            <h2 className="sl-section-title">
+              <span aria-hidden="true">🔥 </span>
+              Challenge: {lesson.challenge.title}
+            </h2>
             <p className="sl-section-intro">
               This is the rep that turns recognition into recall. Try it before peeking at anything else.
             </p>
             <p className="lp">{lesson.challenge.mission}</p>
             {lesson.challenge.requirements && (
               <div className="box tasks-box">
-                <div className="box-label">✅ Requirements</div>
+                <div className="box-label"><span aria-hidden="true">✅ </span>Requirements</div>
                 <div className="tasks-list">
                   {lesson.challenge.requirements.map((req, i) => {
                     const key = `ch-${i}`;
@@ -185,7 +203,7 @@ export function StructuredLessonBody({
             )}
             {lesson.challenge.bonusChallenge && (
               <div className="box chal">
-                <div className="box-label">⭐ Bonus</div>
+                <div className="box-label"><span aria-hidden="true">⭐ </span>Bonus</div>
                 <p>{lesson.challenge.bonusChallenge}</p>
               </div>
             )}
@@ -195,7 +213,7 @@ export function StructuredLessonBody({
       {/* Summary — what you can now do */}
       {lesson.summary?.capabilities && (
         <div className="sl-summary">
-          <div className="sl-summary-title">🏁 You can now</div>
+          <div className="sl-summary-title"><span aria-hidden="true">🏁 </span>You can now</div>
           <ul className="sl-summary-list">
             {lesson.summary.capabilities.map((cap, i) => (
               <li key={i}>
@@ -216,5 +234,5 @@ export function StructuredLessonBody({
       )}
     </div>
   );
-}
+});
 

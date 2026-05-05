@@ -130,7 +130,9 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
               ? 'You are sending requests too quickly. Wait a moment and try again.'
               : effectiveCode === AI_ERROR_CODES.UNAUTHENTICATED
                 ? 'Your session expired. Sign in again and retry your message.'
-                : error?.userMessage || 'AI tutor is temporarily unavailable. Please try again in a moment.';
+                : effectiveCode === AI_ERROR_CODES.EMAIL_NOT_VERIFIED
+                  ? 'Verify your email to use the AI tutor. Check your inbox for the link we sent when you signed up.'
+                  : error?.userMessage || 'AI tutor is temporarily unavailable. Please try again in a moment.';
       setSubmitError(fallback);
       setMessages(prev => [...prev, {
         role: 'assistant',
@@ -274,7 +276,7 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
               disabled={!input.trim() || loading || !isOnline}
               aria-label="Send message to AI tutor"
             >
-              ^
+              <span aria-hidden="true">↑</span>
             </button>
           </form>
           <div id="ai-input-meta" className="ai-input-meta">

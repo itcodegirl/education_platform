@@ -73,7 +73,7 @@ export function WelcomeBack({
   courseLessonsDone,
   courseLessonsTotal,
 }) {
-  const { xpTotal = 0, streak = 0, dailyCount = 0 } = useXP();
+  const { xpTotal = 0, streak = 0, pausedStreak = null, dailyCount = 0 } = useXP();
   const [show, setShow] = useState(false);
   const [motivation] = useState(() => getMotivation(streak, completedCount));
   const modalRef = useRef(null);
@@ -220,6 +220,14 @@ export function WelcomeBack({
           {streak > 0 ? (
             <span className="wb-pill wb-pill-accent">
               {streak} day streak {streak >= 3 ? '🔥' : ''}
+            </span>
+          ) : pausedStreak ? (
+            // Streak just lapsed. Surface the previous run as a
+            // recovery target instead of pretending the streak
+            // never happened. Sentence is intentionally short so
+            // the pill row stays visually balanced.
+            <span className="wb-pill wb-pill-warm">
+              {pausedStreak.days} day streak paused — pick it back up
             </span>
           ) : (
             <span className="wb-pill">Start your first streak today</span>

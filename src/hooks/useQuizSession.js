@@ -17,6 +17,7 @@ import {
   REWARD_XP,
   formatQuizScore,
   isQuizScoreImprovement,
+  quizPercent,
   rewardKeys,
 } from '../services/rewardPolicy';
 import { isBackendRewardSyncEnabled } from '../services/rewardEventService';
@@ -83,12 +84,20 @@ export function useQuizSession({ quiz, label, quizKey }) {
   const handleSubmit = useCallback(async () => {
     setSubmitted(true);
 
+    const total = quiz.questions.length;
+    // Defensive: a malformed quiz with zero questions would NaN out the
+    // pct math below and silently fire empty reward + activity calls.
+    // Mark submitted so the UI exits the answer state, then bail.
+    if (total === 0) {
+      setLastEarnedXp(0);
+      return;
+    }
+
     const score = quiz.questions.reduce(
       (s, q) => s + (isAnswerCorrect(q, answers.get(q.id)) ? 1 : 0),
       0,
     );
-    const total = quiz.questions.length;
-    const pct = Math.round((score / total) * 100);
+    const pct = quizPercent(score, total);
 
     if (quizKey && isQuizScoreImprovement(quizScores[quizKey], score, total)) {
       saveQuizScore(quizKey, formatQuizScore(score, total));
@@ -181,8 +190,10 @@ export function useQuizSession({ quiz, label, quizKey }) {
     0,
   );
   const total = quiz.questions.length;
-  const allAnswered = answers.size === total;
-  const pct = Math.round((score / total) * 100);
+  const allAnswered = total > 0 && answers.size === total;
+  // quizPercent returns 0 for total <= 0, so the rendered "{pct}%" can
+  // never be NaN%.
+  const pct = quizPercent(score, total);
   const wrongCount = submitted ? total - score : 0;
 
   return {

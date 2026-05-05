@@ -110,16 +110,27 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
             disabled={downloading}
             aria-busy={downloading}
           >
-            {downloading ? 'Generating...' : 'Download certificate (PDF)'}
+            {downloading ? 'Generating…' : 'Download certificate (PDF)'}
           </button>
 
           <button type="button" className="cc-share-btn" onClick={async () => {
             const text = `I just completed the ${course.label} course on CodeHerWay! 🎉 ${lessonCount} lessons done. #CodeHerWay #WomenInTech #LearnToCode`;
+            // Each path silently swallows its own failure mode:
+            //   - navigator.share rejects when the user cancels the sheet
+            //   - clipboard.writeText can reject without a user gesture
+            //     or when the document is not focused (notably in Safari)
+            // We do NOT want either to bubble as an unhandled rejection.
             if (navigator.share) {
               try { await navigator.share({ title: 'CodeHerWay Certificate', text }); } catch { /* user cancelled */ }
-            } else if (navigator.clipboard) {
-              await navigator.clipboard.writeText(text);
-              toast.show('Copied to clipboard!');
+              return;
+            }
+            if (navigator.clipboard) {
+              try {
+                await navigator.clipboard.writeText(text);
+                toast.show('Copied to clipboard!');
+              } catch {
+                toast.show('Could not copy. Try the Download button instead.');
+              }
             }
           }}>
             📤 Share Achievement

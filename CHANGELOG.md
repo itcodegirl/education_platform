@@ -4,6 +4,35 @@ All notable changes to CodeHerWay. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 semantic versioning.
 
+## [Unreleased] — `claude/audit-improve-platform-cb4PI`
+
+Small portfolio-polish sweep on top of the prior stabilized baseline.
+Lint clean, build green, 509 unit tests still passing.
+
+### Fixed
+
+- **Auth card brand glyph** — replaced the literal `*` (rendered as a
+  44px glowing brand icon) with the `</>` brand mark. Reads as part of
+  the wordmark instead of a debug placeholder.
+- **Auth submit button** — loading state now announces
+  `Signing in…` / `Creating account…` instead of an opaque `'...'`,
+  so screen-reader and visual users both know what's in flight.
+- **Disabled-account screen** — `[ ]` placeholder icon replaced with
+  the ⊘ glyph already used elsewhere in the route chrome; copy
+  realigned to sentence case (`Account disabled`, `Log out`,
+  `Contact support`) to match the rest of the app.
+- **Course-skeleton fallback** — the unknown-course icon fallback in
+  `AppLayout` swapped from the literal `'[]'` to a books emoji;
+  trailing `...` swapped for a real `…`.
+
+### Removed
+
+- **Dead route module** — `src/routes/AppRoutes.jsx` (the old
+  `useRoutes`-based router) had no remaining importer; the live
+  router has been `appRouter.jsx` (`createBrowserRouter`) for some
+  time. Removed alongside the unused `.loading-bolt` rule that lived
+  in both `auth.css` and the `index.html` critical CSS block.
+
 ## [Unreleased] — `claude/security-audit-frontend-VYk6d`
 
 Portfolio polish + security hardening sweep. Ready to merge to `main`.

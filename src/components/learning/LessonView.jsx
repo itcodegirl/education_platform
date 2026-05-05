@@ -15,11 +15,9 @@
 // audit, which flagged it as one of three god-components.
 // ═══════════════════════════════════════════════
 
-import { useState, useEffect, memo } from 'react';
-import { useFetcher, useLocation } from 'react-router-dom';
-import { useProgressData, useSR } from '../../providers';
+import { useState, useEffect, useCallback, memo } from 'react';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
-import { useFetcherSyncFailure } from '../../hooks/useFetcherSyncFailure';
+import { useToggleBookmark } from '../../hooks/useToggleBookmark';
 import { AITutor } from './AITutor';
 import { LessonFeedback } from './LessonFeedback';
 import { LessonHeader } from './LessonHeader';
@@ -35,13 +33,11 @@ export const LessonView = memo(function LessonView({
   courseId,
   moduleTitle,
 }) {
-  const { toggleBookmark, isBookmarked } = useSR();
-  const {
-    markSyncFailed = () => {},
-    enqueuePendingSyncWrite = () => false,
-  } = useProgressData();
-  const bookmarkMutation = useFetcher();
-  const location = useLocation();
+  const { bookmarked, handleToggleBookmark } = useToggleBookmark({
+    lessonKey,
+    courseId,
+    lessonTitle: lesson.title,
+  });
   const [showNotes, setShowNotes] = useState(false);
   const [showDevFession, setShowDevFession] = useState(false);
 
@@ -53,13 +49,7 @@ export const LessonView = memo(function LessonView({
     () => new Set(allTasks?.[lessonKey] || []),
   );
 
-  const bookmarked = isBookmarked(lessonKey);
   const isStructured = !!(lesson.hook || lesson.do || lesson.understand);
-  useFetcherSyncFailure(
-    bookmarkMutation,
-    { markSyncFailed, enqueuePendingSyncWrite },
-    'lesson bookmark',
-  );
 
   // Derived counts surfaced in the header metadata chips.
   const conceptCount = isStructured
@@ -90,7 +80,11 @@ export const LessonView = memo(function LessonView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonKey]);
 
-  const toggleTask = (index) => {
+  // useCallback so the memoized body components don't see a new
+  // onToggleTask identity on every parent re-render. setCheckedTasks
+  // is stable; lessonKey is the only piece of changing state we
+  // capture in the inner setAllTasks closure.
+  const toggleTask = useCallback((index) => {
     setCheckedTasks((prev) => {
       const next = new Set(prev);
       if (next.has(index)) next.delete(index);
@@ -98,25 +92,12 @@ export const LessonView = memo(function LessonView({
       setAllTasks((all) => ({ ...(all || {}), [lessonKey]: [...next] }));
       return next;
     });
-  };
+  }, [lessonKey, setAllTasks]);
 
-  const handleToggleBookmark = () => {
-    const nextMode = bookmarked ? 'remove' : 'save';
-    toggleBookmark(lessonKey, courseId, lesson.title, { skipRemote: true });
-    bookmarkMutation.submit(
-      {
-        intent: 'toggle-bookmark',
-        mode: nextMode,
-        lessonKey,
-        courseId,
-        lessonTitle: lesson.title,
-      },
-      {
-        method: 'post',
-        action: location.pathname,
-      },
-    );
-  };
+  // Stable callback identity so the memoized RichLessonBody can
+  // skip re-renders when other lesson-chain state changes.
+  const toggleDevFession = useCallback(() => setShowDevFession((value) => !value), []);
+  const toggleNotes = useCallback(() => setShowNotes((value) => !value), []);
 
   return (
     <div className="lesson-surface">
@@ -132,7 +113,7 @@ export const LessonView = memo(function LessonView({
         bookmarked={bookmarked}
         showNotes={showNotes}
         onToggleBookmark={handleToggleBookmark}
-        onToggleNotes={() => setShowNotes((value) => !value)}
+        onToggleNotes={toggleNotes}
       />
 
       {showNotes && <LessonNotesPanel lessonKey={lessonKey} />}
@@ -155,7 +136,7 @@ export const LessonView = memo(function LessonView({
           checkedTasks={checkedTasks}
           onToggleTask={toggleTask}
           showDevFession={showDevFession}
-          onToggleDevFession={() => setShowDevFession((value) => !value)}
+          onToggleDevFession={toggleDevFession}
         />
       )}
 
