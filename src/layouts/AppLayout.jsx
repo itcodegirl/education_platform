@@ -35,10 +35,8 @@ import { ThemeToggle } from "../components/layout/ThemeToggle";
 import { BottomToolbar } from "../components/layout/BottomToolbar";
 import { LessonNavBar } from "../components/layout/LessonNavBar";
 import { OfflineIndicator } from "../components/layout/OfflineIndicator";
-
-// Learning components
-import { LessonView } from "../components/learning/LessonView";
-import { QuizView } from "../components/learning/QuizView";
+import { LoadingSkeleton } from "../components/layout/LoadingSkeleton";
+import { ContentPane } from "../components/layout/ContentPane";
 
 // Gamification (small, always visible)
 import { XPPopup } from "../components/gamification/XPPopup";
@@ -314,21 +312,12 @@ export function AppLayout() {
   // prevents the hot path from rendering empty lesson data.
   if (!activeCourseReady) {
     return (
-      <div className={`shell ${theme}`} data-course={activeCourseMeta?.id || 'html'}>
-        <a className="skip-link" href="#main-content">Skip to main content</a>
-        <EmailVerifyBanner />
-        <OfflineIndicator />
-        <main id="main-content" className="main-shell course-skeleton" tabIndex={-1} aria-busy="true" aria-live="polite">
-          <div className="course-skeleton-inner">
-            <span className="course-skeleton-emoji" aria-hidden="true">
-              {activeCourseMeta?.icon || '📚'}
-            </span>
-            <p className="course-skeleton-label">
-              Loading {activeCourseMeta?.label || 'course'}…
-            </p>
-          </div>
-        </main>
-      </div>
+      <LoadingSkeleton
+        theme={theme}
+        courseId={activeCourseMeta?.id}
+        courseIcon={activeCourseMeta?.icon}
+        courseLabel={activeCourseMeta?.label}
+      />
     );
   }
 
@@ -465,126 +454,27 @@ export function AppLayout() {
           </div>
         </header>
 
-        <div className="lesson-container">
-          {showModQuiz && moduleQuiz ? (
-            <div className="lesson-surface">
-              <div className="lesson-head">
-                <span className="lesson-emoji">📝</span>
-                <h1 className="lesson-title">{mod.title} - Module Quiz</h1>
-              </div>
-              <p className="lp">
-                Test your knowledge of <strong>{mod.title}</strong>.
-              </p>
-              <QuizView
-                quiz={moduleQuiz}
-                accent={course.accent}
-                label={`${mod.title} Quiz`}
-                quizKey={`m:${mod.id}`}
-              />
-            </div>
-          ) : (
-            <>
-              {showStarterGuide && (
-                <section className="first-run-guide" aria-label="Getting started">
-                  <div className="frg-content">
-                    <p className="frg-kicker">First login</p>
-                    <h2 className="frg-title">
-                      Welcome to your learning path, {learnerName}.
-                    </h2>
-                    <p className="frg-copy">
-                      You are on the first lesson to set your pace. Read this lesson,
-                      complete it, then hit <strong>Mark done</strong> to unlock the next one.
-                    </p>
-                    <p className="frg-sub">Pick a course track anytime in the lesson sidebar.</p>
-                  </div>
-                  <div className="frg-courses" aria-label="Course options">
-                    {COURSES.map((entry, index) => (
-                      <button
-                        key={entry.id}
-                        type="button"
-                        className={`frg-course ${index === nav.courseIdx ? 'frg-course-active' : ''}`}
-                        onClick={() => {
-                          if (index !== nav.courseIdx) {
-                            nav.switchCourse(index);
-                          }
-                        }}
-                        aria-pressed={index === nav.courseIdx}
-                        aria-label={`Go to ${entry.label} course`}
-                      >
-                        <span aria-hidden="true">{entry.icon}</span>
-                        <span>{entry.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </section>
-              )}
-              <LessonView
-                lesson={les}
-                emoji={mod.emoji}
-                lang={course.id}
-                lessonKey={lessonKey}
-                courseId={course.id}
-                moduleTitle={mod.title}
-              />
-              {lessonQuiz && (
-                <div className="lesson-quiz-wrap">
-                  <QuizView
-                    quiz={lessonQuiz}
-                    accent={course.accent}
-                    label="Quick Check"
-                    quizKey={`l:${les.id}`}
-                  />
-                </div>
-              )}
-            </>
-          )}
-        </div>
-
-        <nav className="nav-row" aria-label="Lesson pagination">
-          <button
-            type="button"
-            className="nav-btn ui-btn ui-btn-secondary"
-            onClick={nav.prev}
-            disabled={isFirst}
-            aria-label={prevTitle ? `Previous lesson: ${prevTitle}` : 'Previous lesson'}
-          >
-            <span className="nav-btn-dir" aria-hidden="true">←</span>
-            <span className="nav-btn-text">
-              {prevTitle ? (
-                <>
-                  <span className="nav-btn-label">Previous lesson</span>
-                  <span className="nav-btn-title">{prevTitle}</span>
-                </>
-              ) : 'Previous lesson'}
-            </span>
-          </button>
-          <button
-            type="button"
-            className="nav-btn nx ui-btn ui-btn-primary"
-            onClick={handleNextLesson}
-            disabled={isLast}
-            style={{ background: course.accent }}
-            aria-label={
-              isLast ? 'Course complete' :
-              nextTitle ? `Next: ${nextTitle}` : 'Next lesson'
-            }
-          >
-            <span className="nav-btn-text">
-              {isLast ? (
-                'Track complete'
-              ) : nextTitle ? (
-                <>
-                  <span className="nav-btn-label">Up next</span>
-                  <span className="nav-btn-title">{nextTitle}</span>
-                </>
-              ) : 'Next lesson'}
-            </span>
-            <span className="nav-btn-dir" aria-hidden="true">→</span>
-          </button>
-        </nav>
-        <p className="nav-guidance" role="status" aria-live="polite">
-          {nextStepHint}
-        </p>
+        <ContentPane
+          showModQuiz={showModQuiz}
+          moduleQuiz={moduleQuiz}
+          mod={mod}
+          course={course}
+          les={les}
+          lessonKey={lessonKey}
+          lessonQuiz={lessonQuiz}
+          learnerName={learnerName}
+          showStarterGuide={showStarterGuide}
+          courses={COURSES}
+          courseIdx={nav.courseIdx}
+          onSwitchCourse={nav.switchCourse}
+          isFirst={isFirst}
+          isLast={isLast}
+          prevTitle={prevTitle}
+          nextTitle={nextTitle}
+          onPrev={nav.prev}
+          onNext={handleNextLesson}
+          nextStepHint={nextStepHint}
+        />
       </main>
 
       <ThemeToggle />
