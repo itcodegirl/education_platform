@@ -5,6 +5,8 @@
 // ═══════════════════════════════════════════════
 
 import { createContext, useContext, useCallback, useEffect, useRef, useState, useMemo } from 'react';
+
+const PROGRESS_BROADCAST_CHANNEL = 'codeherway:progress';
 import { useAuth } from './AuthContext';
 import {
   DAILY_GOAL,
@@ -527,6 +529,30 @@ export function ProgressProvider({ children }) {
   // ─── Progress ─────────────────────────────────
   const completedSet = useMemo(() => new Set(completed), [completed]);
 
+  // Cross-tab sync: broadcast lesson toggles to sibling tabs so the sidebar
+  // stays in sync without a full reload. XP/streak are intentionally excluded —
+  // awarding XP twice across tabs is worse than a stale count.
+  const broadcastChannel = useRef(null);
+  useEffect(() => {
+    if (typeof BroadcastChannel === 'undefined') return undefined;
+    broadcastChannel.current = new BroadcastChannel(PROGRESS_BROADCAST_CHANNEL);
+    broadcastChannel.current.onmessage = (e) => {
+      if (e.data?.type === 'lesson_toggled') {
+        const { lessonKey: remoteKey, completed: remoteCompleted } = e.data;
+        setCompleted(prev => {
+          const has = prev.includes(remoteKey);
+          if (remoteCompleted && !has) return [...prev, remoteKey];
+          if (!remoteCompleted && has) return prev.filter(k => k !== remoteKey);
+          return prev;
+        });
+      }
+    };
+    return () => {
+      broadcastChannel.current?.close();
+      broadcastChannel.current = null;
+    };
+  }, []);
+
   const toggleLesson = useCallback(async (lessonKey, options = {}) => {
     if (!user) return;
     const skipRemote = Boolean(options?.skipRemote);
@@ -543,6 +569,7 @@ export function ProgressProvider({ children }) {
         dbWrite(createProgressWrite('addLesson', { lessonKey }), 'addLesson');
       }
     }
+    broadcastChannel.current?.postMessage({ type: 'lesson_toggled', lessonKey, completed: !has });
   }, [user, completedSet, dbWrite]);
 
   const saveQuizScore = useCallback(async (quizKey, score) => {
