@@ -1,16 +1,14 @@
 # CodeHerWay Learning Platform
 
+> **Canonical repository notice:** This repository is the active canonical CodeHerWay learning platform application for portfolio review. Archived/older repositories are historical references only and should not be treated as the current product.
+
 CodeHerWay is an active frontend learning platform project and portfolio product focused on beginner-friendly coding education.
 
-This repository is the active canonical CodeHerWay learning platform app. It is demo/portfolio-ready for recruiter and case-study review, but it is not production-grade yet. Older or archived CodeHerWay repos are historical snapshots and should not be treated as the current product.
+## Repository identity
 
-## Repository Identity
-
-- Canonical app repo: `itcodegirl/education_platform`.
-- Portfolio-facing product name: CodeHerWay.
-- Current status: demo/portfolio-ready, still intentionally documented as not production-grade.
-- Archived or older repositories should point reviewers back to this repo and the current live demo.
-- GitHub repo settings, pinned repo ordering, and archived-repo redirect language are tracked in [docs/repository-canonicalization-checklist.md](./docs/repository-canonicalization-checklist.md).
+- **Canonical active app:** `itcodegirl/education_platform`
+- **Portfolio posture:** Demo/portfolio-ready today, not production-grade yet
+- **Archived repos:** Historical context only; do not evaluate them as the current CodeHerWay product
 
 ## Current Project Status
 

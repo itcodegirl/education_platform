@@ -82,13 +82,14 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
           <div className="cc-cert-inner">
             <div className="cc-cert-border" style={{ borderColor: course.accent }} />
             <div className="cc-cert-icon">{course.icon}</div>
-            <div className="cc-cert-label">Portfolio completion certificate</div>
+            <div className="cc-cert-label">Learner export of completion</div>
             <div className="cc-cert-course" style={{ color: course.accent }}>
               {course.label}
             </div>
             <div className="cc-cert-name">{displayName || 'Learner'}</div>
             <div className="cc-cert-detail">Completed all {lessonCount} lessons in current app progress</div>
             <div className="cc-cert-date">{today}</div>
+            <div className="cc-cert-note">Not a verified credential</div>
             <div className="cc-cert-brand">
               {'<Code>'}
               <span
@@ -114,7 +115,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
             disabled={downloading}
             aria-busy={downloading}
           >
-            {downloading ? 'Generating…' : 'Download completion certificate (PDF)'}
+            {downloading ? 'Generating…' : 'Download learner export (PDF)'}
           </button>
 
           <button type="button" className="cc-share-btn" onClick={async () => {
@@ -148,7 +149,6 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
     </div>
   );
 }
-
 
 
 

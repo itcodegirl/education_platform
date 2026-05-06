@@ -36,6 +36,7 @@ describe('OfflineIndicator', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllEnvs();
   });
 
   it('renders a retry banner when queued progress writes are pending', () => {
@@ -66,6 +67,27 @@ describe('OfflineIndicator', () => {
 
     fireEvent.click(retryButton);
     expect(retryPendingSyncWrites).toHaveBeenCalledTimes(1);
+  });
+
+  it('copy.single-device-warning-visible-when-backend-sync-disabled', () => {
+    vi.stubEnv('VITE_REWARD_BACKEND_SYNC_ENABLED', 'false');
+    mockUseProgressData.mockReturnValue({
+      syncFailed: 0,
+      pendingSyncWrites: 1,
+      syncRetryInFlight: false,
+      clearSyncFailed: vi.fn(),
+      retryPendingSyncWrites: vi.fn(),
+    });
+
+    render(<OfflineIndicator />);
+
+    expect(
+      screen.getByText(/one progress update is queued to retry\./i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/your latest in-tab progress is still here\./i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/cross-device/i)).not.toBeInTheDocument();
   });
 
   it('announces when queued progress writes are actively retrying', () => {

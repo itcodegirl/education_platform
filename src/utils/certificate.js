@@ -85,11 +85,11 @@ export async function generateCertificate({ studentName, courseName, courseId, l
   doc.setFont('courier', 'bold');
   doc.text('<Code>Her</Way>', W / 2 + 1, 38, { align: 'center' });
 
-  // --- Portfolio Completion Certificate -------
+  // --- Learner export title -------------------
   doc.setFontSize(11);
   doc.setTextColor(...COLORS.textMuted);
   doc.setFont('helvetica', 'normal');
-  doc.text('PORTFOLIO COMPLETION CERTIFICATE', W / 2, 52, { align: 'center' });
+  doc.text('LEARNER EXPORT OF COMPLETION', W / 2, 52, { align: 'center' });
 
   // Decorative line under title
   doc.setDrawColor(...accent);
@@ -168,6 +168,10 @@ export async function generateCertificate({ studentName, courseName, courseId, l
   doc.setTextColor(...COLORS.textMuted);
   doc.setFont('helvetica', 'normal');
   doc.text(
+    'Learner export based on current app completion state. Not a verified credential.',
+    W / 2, H - 34, { align: 'center' }
+  );
+  doc.text(
     'CodeHerWay.com  *  Where women code, lead, and rewrite the future of tech',
     W / 2, H - 28, { align: 'center' }
   );
@@ -215,6 +219,5 @@ function getSkillsSummary(courseId) {
       return 'Skills: Web Development Fundamentals';
   }
 }
-
 
 

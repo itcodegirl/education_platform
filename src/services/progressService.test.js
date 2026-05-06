@@ -132,6 +132,28 @@ describe('fetchAllUserData', () => {
       detail: 'bad request',
     });
   });
+
+  it('partial-progress-load.notes-failure-does-not-block-lessons', async () => {
+    mockFrom.mockImplementation((table) => {
+      if (table === 'progress') {
+        return makeChain([{ lesson_key: 'html|intro|welcome' }], null);
+      }
+      if (table === 'notes') {
+        return makeChain(null, { message: 'notes table unavailable' });
+      }
+      return makeChain([], null);
+    });
+
+    const result = await fetchAllUserData(UID);
+
+    expect(result.data.progress).toEqual([{ lesson_key: 'html|intro|welcome' }]);
+    expect(result.data.notes).toEqual([]);
+    expect(result.recoverableErrors.notes).toMatchObject({
+      domain: 'notes',
+      message: 'Notes failed to load.',
+      detail: 'notes table unavailable',
+    });
+  });
 });
 
 // ─── Write functions ─────────────────────────────

@@ -10,7 +10,7 @@
 // off this hook.
 // ═══════════════════════════════════════════════
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useAuth, useProgressData, useXP, useSR } from '../providers';
 import { TIMING } from '../utils/helpers';
 import {
@@ -59,6 +59,7 @@ export function useQuizSession({ quiz, label, quizKey }) {
   const [answers, setAnswers] = useState(new Map());
   const [submitted, setSubmitted] = useState(false);
   const [lastEarnedXp, setLastEarnedXp] = useState(0);
+  const submitLockedRef = useRef(false);
 
   const backendRewardSyncEnabled = Boolean(user?.id) && isBackendRewardSyncEnabled();
 
@@ -76,12 +77,15 @@ export function useQuizSession({ quiz, label, quizKey }) {
   }, []);
 
   const reset = useCallback(() => {
+    submitLockedRef.current = false;
     setAnswers(new Map());
     setSubmitted(false);
     setLastEarnedXp(0);
   }, []);
 
   const handleSubmit = useCallback(async () => {
+    if (submitted || submitLockedRef.current) return;
+    submitLockedRef.current = true;
     setSubmitted(true);
 
     const total = quiz.questions.length;
@@ -170,6 +174,7 @@ export function useQuizSession({ quiz, label, quizKey }) {
   }, [
     quiz,
     answers,
+    submitted,
     quizKey,
     label,
     user?.id,

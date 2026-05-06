@@ -1,24 +1,32 @@
-# Repository Canonicalization Checklist
+# Repository Canonicalization Checklist (CodeHerWay)
 
-This checklist covers portfolio and GitHub account settings that cannot be completed from code in this branch.
+This checklist covers portfolio-facing updates that require GitHub/profile settings outside the codebase.
 
-## Recommendation
+## 1) Canonical repository naming and positioning
 
-- Keep `itcodegirl/education_platform` as the active canonical CodeHerWay learning platform repository, or rename it to a CodeHerWay-forward slug if the GitHub account owner wants the repository name and product name to match exactly.
-- Reposition this active repo ahead of archived or experimental CodeHerWay repos anywhere recruiters may browse first.
-- Keep archived repos archived and clearly marked as historical work.
+- Keep `itcodegirl/education_platform` as the active canonical CodeHerWay app repository, or rename it to a clearer canonical name (for example `codeherway-platform`) when convenient.
+- Ensure the active repository description explicitly says this is the live CodeHerWay portfolio app.
+- Mark older/archived repositories as archival references only.
 
-## Account And Portfolio Tasks
+## 2) Portfolio and external link alignment
 
-- Update portfolio links so the live demo, case study, and source-code buttons all point to this active repository.
-- Update GitHub pinned repositories so this active CodeHerWay repo appears before archived, abandoned, or experiment repos.
-- Ensure the live demo URL, portfolio case study, README, and GitHub profile all reference the same canonical repo.
-- Add redirect language manually to archived repo READMEs, such as: "This repository is archived and no longer represents the current CodeHerWay platform. See `itcodegirl/education_platform` for the active app."
-- Confirm any LinkedIn, resume, and portfolio project links use the active repo and not the archived repo.
+- Update portfolio project cards so every "CodeHerWay" source link points to this active repository.
+- Update any resume/case-study links that still reference archived repos.
+- Verify live demo CTA buttons, case study pages, and README links all resolve to the same active repository.
 
-## Review Before Sharing
+## 3) GitHub profile pinning
 
-- README first screen identifies this repo as the active canonical CodeHerWay app.
-- README and known limitations are clear that the app is demo/portfolio-ready but not production-grade.
-- Archived repos are not pinned above the active app.
-- The live demo, portfolio case study, README, and portfolio project card all tell the same project story.
+- Pin this active CodeHerWay repository in the top row of GitHub pinned repositories.
+- Move archived predecessors lower (or unpin) so reviewers encounter the active app first.
+
+## 4) Archived repository redirect copy
+
+- Add a clear banner at the top of archived repository READMEs:
+  - "This repository is archived and not the active CodeHerWay product."
+  - "Active canonical app: https://github.com/itcodegirl/education_platform".
+- Lock stale roadmap/issues in archived repos where appropriate to reduce confusion.
+
+## 5) Final consistency pass
+
+- Confirm the active repo README, live demo, portfolio case study, and GitHub profile all refer to the same canonical source.
+- Re-run this checklist whenever repo names, portfolio URLs, or deploy targets change.

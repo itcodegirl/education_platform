@@ -474,27 +474,13 @@ export function AppLayout() {
                       You are on the first lesson to set your pace. Read this lesson,
                       complete it, then hit <strong>Mark done</strong> to unlock the next one.
                     </p>
-                    <p className="frg-sub">Pick a course track anytime in the lesson sidebar.</p>
+                    <p className="frg-sub">Course switching is in the sidebar when you are ready.</p>
                   </div>
-                  <div className="frg-courses" aria-label="Course options">
-                    {COURSES.map((entry, index) => (
-                      <button
-                        key={entry.id}
-                        type="button"
-                        className={`frg-course ${index === nav.courseIdx ? 'frg-course-active' : ''}`}
-                        onClick={() => {
-                          if (index !== nav.courseIdx) {
-                            nav.switchCourse(index);
-                          }
-                        }}
-                        aria-pressed={index === nav.courseIdx}
-                        aria-label={`Go to ${entry.label} course`}
-                      >
-                        <span aria-hidden="true">{entry.icon}</span>
-                        <span>{entry.label}</span>
-                      </button>
-                    ))}
-                  </div>
+                  <ol className="frg-steps" aria-label="First session steps">
+                    <li>Read the learning frame.</li>
+                    <li>Build the example and check the result.</li>
+                    <li>Mark complete, then take the quick check.</li>
+                  </ol>
                 </section>
               )}
               <LessonView
@@ -504,6 +490,7 @@ export function AppLayout() {
                 lessonKey={lessonKey}
                 courseId={course.id}
                 moduleTitle={mod.title}
+                nextTitle={nextTitle}
               />
               {lessonQuiz && (
                 <div className="lesson-quiz-wrap">

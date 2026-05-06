@@ -114,6 +114,27 @@ describe('createLearningEngine → completeLesson', () => {
     expect(deps.recordDailyActivity).not.toHaveBeenCalled();
   });
 
+  it('reward-engine.double-click-does-not-duplicate-xp for lesson completion', async () => {
+    const awarded = new Set();
+    const deps = buildDeps({
+      hasRewardBeenAwarded: vi.fn((rewardKey) => awarded.has(rewardKey)),
+      markRewardAwarded: vi.fn((rewardKey) => {
+        if (awarded.has(rewardKey)) return false;
+        awarded.add(rewardKey);
+        return true;
+      }),
+    });
+    const engine = createLearningEngine(deps);
+
+    await engine.completeLesson('html|intro|first');
+    await engine.completeLesson('html|intro|first');
+
+    await waitFor(() => {
+      expect(deps.awardXP).toHaveBeenCalledTimes(1);
+      expect(deps.awardXP).toHaveBeenCalledWith(25, 'Lesson completed');
+    });
+  });
+
   it('records a learner-scoped reward event when completing a new lesson', async () => {
     const rewardEventStorage = createMemoryStorage();
     const deps = buildDeps({

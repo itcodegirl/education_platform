@@ -125,6 +125,7 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
                 </button>
               )}
             </>
+
           ) : (
           <Suspense fallback={
             <div className="cc-editor-loading">Loading editor...</div>

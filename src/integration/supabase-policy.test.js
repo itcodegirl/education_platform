@@ -99,14 +99,36 @@ describePolicy('supabase rls and admin escalation policies', () => {
     }
   });
 
-  it('prevents non-admins from toggling is_admin through direct profile updates', async () => {
-    const { error } = await userClient
+  it('profile-policy.blocks-user-editing-admin-fields', async () => {
+    const adminUpdate = await userClient
       .from('profiles')
       .update({ is_admin: true })
       .eq('id', regularUserId);
 
-    expect(error).toBeTruthy();
-    expect(error.message).toMatch(/is_admin can only be changed|permission denied/i);
+    expect(adminUpdate.error).toBeTruthy();
+    expect(adminUpdate.error.message).toMatch(/is_admin can only be changed|permission denied/i);
+
+    const disabledUpdate = await userClient
+      .from('profiles')
+      .update({ is_disabled: true })
+      .eq('id', regularUserId);
+
+    expect(disabledUpdate.error).toBeTruthy();
+    expect(disabledUpdate.error.message).toMatch(/is_disabled can only be changed|permission denied/i);
+  });
+
+  it('allows admins to disable and re-enable another user through direct profile updates', async () => {
+    const disableResult = await adminClient
+      .from('profiles')
+      .update({ is_disabled: true })
+      .eq('id', regularUserId);
+    expect(disableResult.error).toBeNull();
+
+    const enableResult = await adminClient
+      .from('profiles')
+      .update({ is_disabled: false })
+      .eq('id', regularUserId);
+    expect(enableResult.error).toBeNull();
   });
 
   it('allows learners to update safe self-editable profile fields', async () => {

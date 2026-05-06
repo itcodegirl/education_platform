@@ -197,6 +197,7 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
                 </button>
               )}
             </>
+
           ) : (
             <Suspense fallback={<div className="code-preview-editor-loading"><span className="code-preview-loading-spinner"></span>Loading editor...</div>}>
               <MonacoEditor
