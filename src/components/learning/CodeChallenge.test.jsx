@@ -87,5 +87,13 @@ describe('CodeChallenge', () => {
       screen.queryByRole('button', { name: /load full editor/i }),
     ).not.toBeInTheDocument();
   });
+
+  it('renders the challenge preview iframe with the hardened sandbox', () => {
+    render(<CodeChallenge challenge={baseChallenge} lang="html" />);
+
+    const iframe = screen.getByTitle(/challenge preview/i);
+    expect(iframe).toHaveAttribute('sandbox');
+    expect(iframe.getAttribute('sandbox')).toBe('allow-scripts');
+  });
 });
 

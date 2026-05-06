@@ -1,5 +1,15 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
+
+const { mockCreateChallengePreviewTestFrame } = vi.hoisted(() => ({
+  mockCreateChallengePreviewTestFrame: vi.fn(async (iframeEl) => iframeEl),
+}));
+
+vi.mock('../components/learning/challenge/challengePreviewBridge', () => ({
+  createChallengePreviewTestFrame: (iframeEl, options) =>
+    mockCreateChallengePreviewTestFrame(iframeEl, options),
+}));
+
 import { useChallengeSession } from './useChallengeSession';
 
 const baseChallenge = {
@@ -13,6 +23,11 @@ const baseChallenge = {
 };
 
 describe('useChallengeSession', () => {
+  beforeEach(() => {
+    mockCreateChallengePreviewTestFrame.mockReset();
+    mockCreateChallengePreviewTestFrame.mockImplementation(async (iframeEl) => iframeEl);
+  });
+
   it('initializes from challenge.starter and derives totalTests from tests.length', () => {
     const { result } = renderHook(() => useChallengeSession({ challenge: baseChallenge }));
 
@@ -121,6 +136,30 @@ describe('useChallengeSession', () => {
 
     expect(result.current.results).toEqual([{ label: 'throws', passed: false }]);
     expect(result.current.allPassed).toBe(false);
+  });
+
+  it('awaits async checks and passes the sanitized preview frame to DOM-based tests', async () => {
+    const previewFrame = {
+      contentDocument: {
+        querySelector: vi.fn(() => ({ tagName: 'NAV' })),
+      },
+    };
+    const check = vi.fn(async (_, iframe) => !!iframe?.contentDocument?.querySelector('nav'));
+    const challenge = {
+      ...baseChallenge,
+      tests: [{ label: 'async dom check', check }],
+    };
+    mockCreateChallengePreviewTestFrame.mockResolvedValue(previewFrame);
+
+    const { result } = renderHook(() => useChallengeSession({ challenge }));
+
+    await act(async () => {
+      await result.current.runTests({ contentWindow: { postMessage: vi.fn() } });
+    });
+
+    expect(mockCreateChallengePreviewTestFrame).toHaveBeenCalledTimes(1);
+    expect(check).toHaveBeenCalledWith('<h1>Start</h1>', previewFrame);
+    expect(result.current.results).toEqual([{ label: 'async dom check', passed: true }]);
   });
 
   it('clearing the solution-reveal confirmation flag is idempotent on re-runs', async () => {
