@@ -166,7 +166,7 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
       </div>
 
       {tab === 'code' && (
-        <pre className="code-preview-code"><code>{code}</code></pre>
+        <pre className="code-preview-code" tabIndex={0} aria-label="Lesson code sample"><code>{code}</code></pre>
       )}
 
       {tab === 'editor' && (

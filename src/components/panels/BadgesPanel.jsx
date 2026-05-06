@@ -37,6 +37,9 @@ export function BadgesPanel({ isOpen, onClose }) {
             Badges make your momentum visible. Earn them by finishing lessons, holding streaks, and pushing through practice.
           </p>
           <p className="panel-meta">{PROGRESS_SYNC_COPY}</p>
+          <p className="panel-meta panel-meta-trust">
+            Badges are CodeHerWay in-app milestones, not external credentials. XP and streaks are motivational signals.
+          </p>
           {/* List semantics + per-badge aria-label so screen-reader users
               can tell earned from locked badges. Without this, the
               earned/locked distinction was visual only — the emoji,
@@ -54,7 +57,7 @@ export function BadgesPanel({ isOpen, onClose }) {
                   <span className="badge-icon" aria-hidden="true">{badge.icon}</span>
                   <div className="badge-name">{badge.name}</div>
                   <div className="badge-desc">{badge.desc}</div>
-                  {earned && <div className="badge-date">Earned {earned.date}</div>}
+                  {earned && <div className="badge-date">Earned here {earned.date}</div>}
                 </li>
               );
             })}

@@ -124,9 +124,9 @@
 }
 
 .topbar-pill.streak {
-  border-color: rgba(255, 107, 157, 0.2);
-  background: rgba(255, 107, 157, 0.08);
-  color: var(--pink);
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--text-dim);
 }
 
 .topbar-pill.warm {
@@ -627,26 +627,30 @@
 /* ─── 19. XP Popup & Badge Unlock ──────────────── */
 .xp-popup {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0);
+  top: 82px;
+  right: 24px;
+  transform: translateY(-8px) scale(0.98);
   z-index: 600;
+  width: min(320px, calc(100vw - 32px));
   background: var(--bg-dark);
-  border: 2px solid var(--purple);
-  border-radius: 20px;
-  padding: 32px 48px;
+  border: 1px solid var(--border-bright);
+  border-radius: 14px;
+  padding: 16px 20px;
   text-align: center;
-  box-shadow: 0 20px 60px rgba(255, 107, 157, 0.2);
-  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .xp-popup.show {
-  transform: translate(-50%, -50%) scale(1);
+  transform: translateY(0) scale(1);
+  opacity: 1;
 }
 
 .xp-gain {
   font-family: 'Poppins', sans-serif;
-  font-size: 36px;
+  font-size: 24px;
   font-weight: 700;
   background: linear-gradient(90deg, #ff6b9d, #a78bfa);
   -webkit-background-clip: text;
@@ -670,61 +674,68 @@
 }
 
 .xp-lvlup {
-  font-size: 16px;
+  font-size: 13px;
   color: var(--amber);
-  margin-top: 12px;
+  margin-top: 10px;
   font-weight: 700;
-  animation: float 2s ease-in-out infinite;
 }
 
 .badge-unlock-overlay {
   position: fixed;
   inset: 0;
   z-index: 700;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(8, 8, 15, 0.68);
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(8px);
-  animation: fadeIn 0.3s ease;
+  padding: 16px;
+  backdrop-filter: blur(3px);
+  animation: fadeIn 0.2s ease;
 }
 
 .badge-unlock {
   text-align: center;
   transform: scale(0);
-  transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.28s ease, opacity 0.28s ease;
   position: relative;
-  padding: 48px 40px 36px;
+  width: min(360px, 100%);
+  padding: 28px 28px 24px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border-bright);
+  border-radius: 16px;
+  box-shadow: 0 20px 52px rgba(0, 0, 0, 0.32);
+  opacity: 0;
 }
 
 .badge-unlock.show {
   transform: scale(1);
+  opacity: 1;
 }
 
 .bu-icon {
-  font-size: 96px;
+  font-size: 56px;
   display: block;
-  margin-bottom: 16px;
-  filter: drop-shadow(0 0 30px rgba(255, 107, 157, 0.6));
-  animation: buBounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 0 16px rgba(255, 107, 157, 0.24));
+  animation: buBounce 0.5s ease 0.1s both;
 }
 
 .bu-label {
   font-size: 12px;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 3px;
+  letter-spacing: 0;
   font-family: 'Poppins', sans-serif;
-  animation: fadeIn 0.4s ease 0.5s both;
+  animation: fadeIn 0.25s ease 0.2s both;
 }
 
 .bu-name {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--cyan);
   font-family: 'Poppins', sans-serif;
   margin: 8px 0;
-  animation: fadeIn 0.4s ease 0.6s both;
+  animation: fadeIn 0.25s ease 0.25s both;
 }
 
 .bu-desc {
@@ -732,22 +743,22 @@
   color: var(--text-dim);
   max-width: 300px;
   margin: 0 auto;
-  animation: fadeIn 0.4s ease 0.7s both;
+  animation: fadeIn 0.25s ease 0.3s both;
 }
 
 .bu-dismiss {
-  margin-top: 24px;
-  padding: 10px 32px;
+  margin-top: 20px;
+  padding: 9px 22px;
   background: var(--grad-brand);
   color: #fff;
   border: none;
-  border-radius: var(--radius-full);
-  font-size: 16px;
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 700;
   font-family: 'Inter', system-ui, sans-serif;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
-  animation: fadeIn 0.4s ease 0.9s both;
+  animation: fadeIn 0.25s ease 0.35s both;
 }
 
 .bu-dismiss:hover {
@@ -760,11 +771,11 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 140px;
-  height: 140px;
+  width: 96px;
+  height: 96px;
   transform: translate(-50%, -65%);
   border-radius: 50%;
-  box-shadow: 0 0 60px 20px rgba(255, 107, 157, 0.2), 0 0 120px 40px rgba(167, 139, 250, 0.1);
+  box-shadow: 0 0 42px 14px rgba(255, 107, 157, 0.12), 0 0 80px 24px rgba(167, 139, 250, 0.08);
   animation: buGlowPulse 2s ease-in-out infinite;
   pointer-events: none;
 }
@@ -794,7 +805,7 @@
   }
 
   60% {
-    transform: scale(1.2) rotate(5deg);
+    transform: scale(1.08) rotate(2deg);
     opacity: 1;
   }
 
@@ -820,11 +831,20 @@
 
   0%,
   100% {
-    box-shadow: 0 0 60px 20px rgba(255, 107, 157, 0.2), 0 0 120px 40px rgba(167, 139, 250, 0.1);
+    box-shadow: 0 0 42px 14px rgba(255, 107, 157, 0.12), 0 0 80px 24px rgba(167, 139, 250, 0.08);
   }
 
   50% {
-    box-shadow: 0 0 80px 30px rgba(255, 107, 157, 0.3), 0 0 160px 50px rgba(167, 139, 250, 0.15);
+    box-shadow: 0 0 54px 18px rgba(255, 107, 157, 0.18), 0 0 96px 28px rgba(167, 139, 250, 0.1);
+  }
+}
+
+@media (max-width: 600px) {
+  .xp-popup {
+    top: 74px;
+    right: 16px;
+    left: 16px;
+    width: auto;
   }
 }
 

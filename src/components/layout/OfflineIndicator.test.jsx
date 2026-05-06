@@ -58,7 +58,7 @@ describe('OfflineIndicator', () => {
       screen.getByText(/2 progress updates are queued to retry\./i),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/your latest in-tab progress is still here\./i),
+      screen.getByText(/your latest progress is queued in this browser\./i),
     ).toBeInTheDocument();
 
     const retryButton = screen.getByRole('button', { name: /retry queued progress updates now/i });
@@ -85,7 +85,7 @@ describe('OfflineIndicator', () => {
       screen.getByText(/one progress update is queued to retry\./i),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/your latest in-tab progress is still here\./i),
+      screen.getByText(/your latest progress is queued in this browser\./i),
     ).toBeInTheDocument();
     expect(screen.queryByText(/cross-device/i)).not.toBeInTheDocument();
   });
@@ -136,7 +136,7 @@ describe('OfflineIndicator', () => {
       screen.getByText(/one progress update is queued to retry\./i),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/last retry could not reach the cloud\. your latest in-tab progress is still here\./i),
+      screen.getByText(/last retry could not reach the cloud\. your latest progress is queued in this browser\./i),
     ).toBeInTheDocument();
   });
 
@@ -159,7 +159,7 @@ describe('OfflineIndicator', () => {
       screen.getByText(/2 progress updates could not be confirmed in the cloud\./i),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/your latest local state is still visible in this browser session\./i),
+      screen.getByText(/your latest local state is still visible in this browser\./i),
     ).toBeInTheDocument();
 
     const hideButton = screen.getByRole('button', { name: /hide sync warning/i });

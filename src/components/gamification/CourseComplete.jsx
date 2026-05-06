@@ -41,7 +41,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
         completionDate: today,
       });
     } catch {
-      toast.show('Completion certificate export failed — try again in a moment.');
+      toast.show('Learner export failed — try again in a moment.');
     } finally {
       setTimeout(() => setDownloading(false), 1000);
     }
@@ -60,21 +60,21 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
         tabIndex={-1}
       >
         <div className="cc-badge-row">
-          <span className="cc-trophy">🏆</span>
+          <span className="cc-trophy" aria-hidden="true">{course.icon}</span>
         </div>
 
         <div className="cc-header">
-          <span className="cc-overline">Milestone unlocked</span>
-          <h2 id="cc-course-title" className="cc-title">Course complete</h2>
+          <span className="cc-overline">Completion noted</span>
+          <h2 id="cc-course-title" className="cc-title">Course lessons complete</h2>
           <p id="cc-course-desc" className="cc-sub">
-            You finished <strong>{course.label}</strong> and shipped all {lessonCount} lessons.
+            You marked all {lessonCount} lessons in <strong>{course.label}</strong> as done.
           </p>
           <p id="cc-course-kicker" className="cc-kicker">
             This completion milestone shows that you stayed with the work long enough
             to turn effort into visible progress.
           </p>
           <p id="cc-progress-sync" className="cc-kicker">
-            {PROGRESS_SYNC_COPY} {COMPLETION_EXPORT_COPY}
+            {PROGRESS_SYNC_COPY} {COMPLETION_EXPORT_COPY} This is learner progress, not a third-party certificate.
           </p>
         </div>
 
@@ -126,29 +126,27 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
             //     or when the document is not focused (notably in Safari)
             // We do NOT want either to bubble as an unhandled rejection.
             if (navigator.share) {
-              try { await navigator.share({ title: 'CodeHerWay Completion Certificate', text }); } catch { /* user cancelled */ }
+              try { await navigator.share({ title: 'CodeHerWay learner progress', text }); } catch { /* user cancelled */ }
               return;
             }
             if (navigator.clipboard) {
               try {
                 await navigator.clipboard.writeText(text);
-                toast.show('Copied to clipboard!');
+                toast.show('Copied progress update to clipboard.');
               } catch {
                 toast.show('Could not copy. Try the Download button instead.');
               }
             }
           }}>
-            📤 Share Achievement
+            Share progress
           </button>
 
           <button type="button" className="cc-close-btn" onClick={onClose}>
-            Keep building →
+            Continue learning
           </button>
         </div>
       </div>
     </div>
   );
 }
-
-
 

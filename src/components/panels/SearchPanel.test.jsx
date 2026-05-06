@@ -44,8 +44,9 @@ describe('SearchPanel', () => {
     render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
 
     expect(
-      screen.getByText(/Start typing to search across all courses/i),
+      screen.getByText(/Search all lessons/i),
     ).toBeInTheDocument();
+    expect(screen.getByText(/Type at least two letters/i)).toBeInTheDocument();
   });
 
   it('shows a clear no-results message when query has no matches', () => {
@@ -58,6 +59,7 @@ describe('SearchPanel', () => {
     expect(
       screen.getByText(/No results for/i),
     ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /clear search/i })).toBeInTheDocument();
   });
 
   it('opens the top search result from the keyboard', () => {

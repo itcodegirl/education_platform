@@ -33,7 +33,7 @@ describe('SRPanel', () => {
 
     expect(screen.getByText(/All caught up\./i)).toBeInTheDocument();
     expect(
-      screen.getByText(/Complete quizzes or generate a fresh card/i),
+      screen.getByText(/No review cards are due yet/i),
     ).toBeInTheDocument();
   });
 
@@ -47,7 +47,7 @@ describe('SRPanel', () => {
 
     render(<SRPanel isOpen onClose={vi.fn()} />);
 
-    expect(screen.getByText(/2 cards are scheduled for later\./i)).toBeInTheDocument();
+    expect(screen.getByText(/2 cards are scheduled for later\. Nothing needs attention right now\./i)).toBeInTheDocument();
   });
 
   it('shows the local-first progress sync scope', () => {

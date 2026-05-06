@@ -37,8 +37,10 @@ describe('CourseComplete', () => {
     expect(screen.getByText(/Progress sync: saved on this device/i)).toBeInTheDocument();
     expect(screen.getByText(/not server-authoritative yet/i)).toBeInTheDocument();
     expect(screen.getByText(/not a verified credential/i)).toBeInTheDocument();
+    expect(screen.getByText(/not a third-party certificate/i)).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /download learner export/i }),
     ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /share progress/i })).toBeInTheDocument();
   });
 });

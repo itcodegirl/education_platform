@@ -12,7 +12,7 @@ import { useAutoDismissReveal } from '../../hooks/useAutoDismissReveal';
 
 const BURST_COLORS = ['#ff6b9d', '#4ecdc4', '#ffa726', '#a78bfa', '#ff8fab', '#66d9e8', '#ffd93d'];
 
-const VISIBLE_MS = 4500;
+const VISIBLE_MS = 3200;
 const FADE_OUT_MS = 500;
 
 export function BadgeUnlock() {
@@ -26,14 +26,15 @@ export function BadgeUnlock() {
     onClear: clearNewBadge,
   });
 
-  // Generate burst particles when badge changes
+  // Generate a small burst when badge changes.
   const particles = useMemo(() => {
     if (!newBadge) return [];
-    return Array.from({ length: 20 }, (_, i) => ({
-      angle: (i / 20) * 360,
-      delay: Math.random() * 0.3,
-      dist: 70 + Math.random() * 50,
-      size: 4 + Math.random() * 5,
+    const particleCount = 12;
+    return Array.from({ length: particleCount }, (_, i) => ({
+      angle: (i / particleCount) * 360,
+      delay: Math.random() * 0.2,
+      dist: 42 + Math.random() * 30,
+      size: 3 + Math.random() * 3,
       color: BURST_COLORS[i % BURST_COLORS.length],
     }));
   }, [newBadge]);
@@ -57,10 +58,10 @@ export function BadgeUnlock() {
         onClick={(e) => e.stopPropagation()}
         role="alertdialog"
         aria-modal="true"
-        aria-label={`Badge unlocked: ${newBadge.name}`}
+        aria-label={`Badge earned: ${newBadge.name}`}
         tabIndex={-1}
       >
-        {/* Particle burst */}
+        {/* Small celebratory burst */}
         <div className="bu-particles" aria-hidden="true">
           {particles.map((p, i) => (
             <span
@@ -78,10 +79,10 @@ export function BadgeUnlock() {
         </div>
         <div className="bu-glow" aria-hidden="true" />
         <span className="bu-icon" aria-hidden="true">{newBadge.icon}</span>
-        <div className="bu-label">Badge Unlocked!</div>
+        <div className="bu-label">Badge earned</div>
         <div className="bu-name">{newBadge.name}</div>
         <div className="bu-desc">{newBadge.desc}</div>
-        <button type="button" className="bu-dismiss" onClick={dismiss}>Nice!</button>
+        <button type="button" className="bu-dismiss" onClick={dismiss}>Close</button>
       </div>
     </div>
   );

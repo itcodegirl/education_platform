@@ -167,8 +167,8 @@ export function SRPanel({ isOpen, onClose }) {
               <p><strong>All caught up.</strong></p>
               <p className="empty-state-msg">
                 {queue.length > 0
-                  ? `${queue.length} card${queue.length > 1 ? "s are" : " is"} scheduled for later.`
-                  : "Complete quizzes or generate a fresh card to start building your review habit."}
+                  ? `${queue.length} card${queue.length > 1 ? "s are" : " is"} scheduled for later. Nothing needs attention right now.`
+                  : "No review cards are due yet. Complete quizzes or use the form above to create one focused card."}
               </p>
             </div>
           ) : currentIdx >= due.length ? (

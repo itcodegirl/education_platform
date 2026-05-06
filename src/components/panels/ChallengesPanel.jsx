@@ -52,6 +52,9 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
               Work through the prompt, run the tests, and keep iterating until the challenge clicks.
             </p>
             <p className="panel-meta">{PROGRESS_SYNC_COPY}</p>
+            <p className="panel-meta panel-meta-trust">
+              Completion is CodeHerWay app progress in this browser, not external verification.
+            </p>
             <CodeChallenge
               challenge={activeChallenge}
               lang={lang}
@@ -104,40 +107,54 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
             Pick a challenge when you want to turn a lesson into something tangible and testable.
           </p>
           <p className="panel-meta">{PROGRESS_SYNC_COPY}</p>
+          <p className="panel-meta panel-meta-trust">
+            Completed labels reflect same-browser CodeHerWay progress. XP and badges stay motivational unless backend reward sync is enabled and verified.
+          </p>
 
           {challenges.length === 0 ? (
             <div className="challenges-empty">
-              <p>No challenges are live for this course yet.</p>
+              <p><strong>No challenges are live for this course yet.</strong></p>
               <p className="challenges-empty-sub">
-                Keep moving through lessons for now and check back when the next practice drop lands.
+                Keep moving through the lessons for now. When a challenge is available,
+                it will appear here without changing your current progress.
               </p>
             </div>
           ) : (
-            <div className="challenges-list">
-              {challenges.map((challenge) => (
-                <button
-                  type="button"
-                  key={challenge.id}
-                  className={`challenge-card ${completed.has(challenge.id) ? 'done' : ''}`}
-                  onClick={() => setActiveChallenge(challenge)}
-                >
-                  <div className="challenge-card-top">
-                    <span className="challenge-card-icon">
-                      {completed.has(challenge.id) ? '✓' : '🏆'}
-                    </span>
-                    <span className={`cc-diff cc-diff-${challenge.difficulty}`}>
-                      {challenge.difficulty}
-                    </span>
-                  </div>
-                  <h4 className="challenge-card-title">{challenge.title}</h4>
-                  <p className="challenge-card-desc">{challenge.description}</p>
-                  <div className="challenge-card-meta">
-                    <span>{challenge.tests?.length || 0} tests</span>
-                    <span>{completed.has(challenge.id) ? 'Completed' : 'Open challenge'}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
+            <>
+              {completed.size === 0 && (
+                <div className="challenges-empty challenges-empty-compact">
+                  <p><strong>No completed challenges yet.</strong></p>
+                  <p className="challenges-empty-sub">
+                    Start with one beginner challenge when you want practice beyond the lesson.
+                  </p>
+                </div>
+              )}
+              <div className="challenges-list">
+                {challenges.map((challenge) => (
+                  <button
+                    type="button"
+                    key={challenge.id}
+                    className={`challenge-card ${completed.has(challenge.id) ? 'done' : ''}`}
+                    onClick={() => setActiveChallenge(challenge)}
+                  >
+                    <div className="challenge-card-top">
+                      <span className={`challenge-card-icon ${completed.has(challenge.id) ? 'is-done' : 'is-open'}`}>
+                        {completed.has(challenge.id) ? '✓' : 'Start'}
+                      </span>
+                      <span className={`cc-diff cc-diff-${challenge.difficulty}`}>
+                        {challenge.difficulty}
+                      </span>
+                    </div>
+                    <h4 className="challenge-card-title">{challenge.title}</h4>
+                    <p className="challenge-card-desc">{challenge.description}</p>
+                    <div className="challenge-card-meta">
+                      <span>{challenge.tests?.length || 0} tests</span>
+                      <span>{completed.has(challenge.id) ? 'Completed here' : 'Open challenge'}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </div>

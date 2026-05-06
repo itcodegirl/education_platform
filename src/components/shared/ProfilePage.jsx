@@ -149,8 +149,8 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
           <p className="pp-email">{user?.email}</p>
           {joined && <p className="pp-joined">Joined {joined}</p>}
           <p className="pp-hero-copy">
-            This is your proof-of-progress page: streaks, shipped lessons, motivational
-            XP, and the momentum you are building one session at a time.
+            This is your progress page: saved lessons, motivational XP, streaks,
+            and the momentum you are building one session at a time.
           </p>
           <p className="pp-hero-copy">{PROGRESS_SYNC_COPY}</p>
           <div className="pp-status-row" aria-label="Current learning status">
@@ -217,7 +217,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
         </div>
 
         <h3 className="pp-section-title">
-          Proof of progress ({badgeCount}/{BADGE_DEFS.length})
+          CodeHerWay progress ({badgeCount}/{BADGE_DEFS.length})
         </h3>
         {/* List semantics + per-badge earned/locked status, mirroring
             BadgesPanel — without these the screen-reader experience
