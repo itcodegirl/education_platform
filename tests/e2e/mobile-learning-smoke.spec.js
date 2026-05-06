@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { loginWithCredentials } from './authHelpers';
+import { dismissWelcomeOverlay, loginWithCredentials, waitForLearningShell } from './authHelpers';
 
 const requiredEnv = [
   'VITE_SUPABASE_URL',
@@ -20,12 +20,12 @@ test.describe('mobile learning smoke', () => {
 
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(
-      testInfo.project.name !== 'mobile-chrome',
-      'This smoke test is scoped to mobile-chrome only.',
+      testInfo.project.name !== 'mobile-authenticated-chrome' && testInfo.project.name !== 'mobile-chrome',
+      'This smoke test is scoped to mobile Chrome projects only.',
     );
 
     await page.goto('/');
-    await page.waitForSelector('.auth-form, .shell, .welcome-overlay', { timeout: 30000 });
+    await page.waitForSelector('.auth-form, .main-shell, .welcome-overlay', { timeout: 30000 });
 
     const onAuthPage = await page.locator('.auth-form').isVisible().catch(() => false);
     if (onAuthPage) {
@@ -33,17 +33,13 @@ test.describe('mobile learning smoke', () => {
         email: process.env.E2E_EMAIL,
         password: process.env.E2E_PASSWORD,
       });
-      await page.waitForSelector('.shell, .welcome-overlay', { timeout: 30000 });
+      await waitForLearningShell(page);
     }
 
-    const welcomeVisible = await page.locator('.welcome-overlay').isVisible().catch(() => false);
-    if (welcomeVisible) {
-      await page.click('.welcome-dismiss, .welcome-resume-btn');
-      await page.waitForSelector('.shell', { timeout: 10000 });
-    }
+    await dismissWelcomeOverlay(page);
 
     await page.keyboard.press('Escape').catch(() => {});
-    await expect(page.locator('.shell')).toBeVisible({ timeout: 30000 });
+    await expect(page.locator('.main-shell')).toBeVisible({ timeout: 30000 });
   });
 
   async function answerQuizQuestions(page) {

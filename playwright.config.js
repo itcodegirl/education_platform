@@ -41,6 +41,24 @@ export default defineConfig({
         storageState: 'playwright/.auth/user.json',
       },
     },
+    {
+      name: 'lesson-authenticated-chromium',
+      testMatch: /.*lesson-flow\.spec\.js/,
+      dependencies: ['setup-auth'],
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/user.json',
+      },
+    },
+    {
+      name: 'mobile-authenticated-chrome',
+      testMatch: /.*mobile-learning-smoke\.spec\.js/,
+      dependencies: ['setup-auth'],
+      use: {
+        ...devices['Pixel 7'],
+        storageState: 'playwright/.auth/user.json',
+      },
+    },
   ],
   webServer: useManagedDevServer
     ? {

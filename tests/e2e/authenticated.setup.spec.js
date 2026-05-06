@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
-import { loginWithCredentials } from './authHelpers';
+import { loginWithCredentials, throwIfAuthTerminalState } from './authHelpers';
 
 const authDir = path.join(process.cwd(), 'playwright', '.auth');
 const authFile = path.join(authDir, 'user.json');
@@ -47,17 +47,27 @@ test('capture authenticated storage state', async ({ page }) => {
 });
 
 async function waitForAuthenticatedShell(page) {
-	await page.waitForFunction(() => {
-		const isVisible = (selector) => {
-			const element = document.querySelector(selector);
-			return Boolean(element && (element.offsetWidth || element.offsetHeight || element.getClientRects().length));
-		};
+	try {
+		await page.waitForFunction(() => {
+			const isVisible = (selector) => {
+				const element = document.querySelector(selector);
+				return Boolean(element && (element.offsetWidth || element.offsetHeight || element.getClientRects().length));
+			};
 
-		return isVisible('.topbar') &&
-			isVisible('#course-sidebar') &&
-			isVisible('.main-shell') &&
-			!isVisible('.auth-card');
-	}, null, { timeout: 30000 });
+			const terminalState = ['.auth-error', '.conn-error', '.disabled-screen', '.eb-screen'].some(isVisible);
+			const shellReady = isVisible('.topbar') &&
+				isVisible('#course-sidebar') &&
+				isVisible('.main-shell') &&
+				!isVisible('.auth-card');
+
+			return terminalState || shellReady;
+		}, null, { timeout: 30000 });
+	} catch (error) {
+		await throwIfAuthTerminalState(page);
+		throw error;
+	}
+
+	await throwIfAuthTerminalState(page);
 
 	await expect(page.locator('.topbar')).toBeVisible({ timeout: 30000 });
 	await expect(page.locator('#course-sidebar')).toBeVisible({ timeout: 30000 });

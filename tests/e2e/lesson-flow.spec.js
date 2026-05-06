@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { loginWithCredentials } from './authHelpers';
+import { dismissWelcomeOverlay, loginWithCredentials, waitForLearningShell } from './authHelpers';
 
 const requiredEnv = [
   'VITE_SUPABASE_URL',
@@ -20,7 +20,7 @@ test.describe('lesson flow', () => {
 
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForSelector('.auth-form, .shell, .welcome-overlay', { timeout: 30000 });
+    await page.waitForSelector('.auth-form, .main-shell, .welcome-overlay', { timeout: 30000 });
 
     // Login if on auth page
     const onAuthPage = await page.locator('.auth-form').isVisible().catch(() => false);
@@ -29,15 +29,11 @@ test.describe('lesson flow', () => {
         email: process.env.E2E_EMAIL,
         password: process.env.E2E_PASSWORD,
       });
-      await page.waitForSelector('.shell, .welcome-overlay', { timeout: 30000 });
+      await waitForLearningShell(page);
     }
 
     // Dismiss welcome-back if present
-    const welcomeVisible = await page.locator('.welcome-overlay').isVisible().catch(() => false);
-    if (welcomeVisible) {
-      await page.click('.welcome-dismiss, .welcome-resume-btn');
-      await page.waitForSelector('.shell', { timeout: 10000 });
-    }
+    await dismissWelcomeOverlay(page);
 
     // Dismiss what's new if present
     const whatsNewVisible = await page.locator('.search-overlay').isVisible().catch(() => false);
