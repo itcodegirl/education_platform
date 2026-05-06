@@ -78,8 +78,8 @@ export function OfflineIndicator() {
     const retryDetail = syncRetryInFlight
       ? 'Keep this tab open while the cloud sync catches up.'
       : syncFailed > 0
-      ? 'Last retry could not reach the cloud. Your latest in-tab progress is still here.'
-      : 'Your latest in-tab progress is still here.';
+      ? 'Last retry could not reach the cloud. Your latest progress is queued in this browser.'
+      : 'Your latest progress is queued in this browser.';
 
     return (
       <div
@@ -117,7 +117,7 @@ export function OfflineIndicator() {
           {syncFailed === 1
             ? 'One progress update could not be confirmed in the cloud.'
             : `${syncFailed} progress updates could not be confirmed in the cloud.`}
-          {' '}Your latest local state is still visible in this browser session.
+          {' '}Your latest local state is still visible in this browser.
         </span>
         <button
           type="button"

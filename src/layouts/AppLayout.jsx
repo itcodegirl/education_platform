@@ -3,7 +3,7 @@
 // Sidebar + Topbar + Content + Toolbar + Panels
 // ===============================================
 
-import { useCallback, useMemo, useEffect } from "react";
+import { useCallback, useMemo, useEffect, useState } from "react";
 import { useFetcher } from "react-router-dom";
 import { COURSES } from "../data";
 import { useTheme, useAuth, useProgressData, useXP, useCourseContent } from "../providers";
@@ -14,6 +14,7 @@ import { useLearning } from "../hooks/useLearning";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { useFetcherSyncFailure } from "../hooks/useFetcherSyncFailure";
 import { useLessonViewTracking } from "../hooks/useLessonViewTracking";
 import { useLessonMarkDone } from "../hooks/useLessonMarkDone";
 import { estimateReadingTime, getLevel } from "../utils/helpers";
@@ -29,6 +30,7 @@ import {
   getNextStepHint,
   getPrevLessonTitle,
 } from "../utils/lessonNavCopy";
+import { getSyncStatusCopy } from "../utils/syncStatusCopy";
 
 // Layout components
 import { Sidebar } from "../components/layout/Sidebar";
@@ -36,6 +38,7 @@ import { Breadcrumb } from "../components/layout/Breadcrumb";
 import { ThemeToggle } from "../components/layout/ThemeToggle";
 import { BottomToolbar } from "../components/layout/BottomToolbar";
 import { LessonNavBar } from "../components/layout/LessonNavBar";
+import { MobileToolsSheet } from "../components/layout/MobileToolsSheet";
 import { OfflineIndicator } from "../components/layout/OfflineIndicator";
 
 // Learning components
@@ -62,6 +65,12 @@ export function AppLayout() {
     trackCourseVisit,
     dataLoaded,
     lastPosition,
+    loadError,
+    syncFailed = 0,
+    pendingSyncWrites = 0,
+    syncRetryInFlight = false,
+    markSyncFailed = () => {},
+    enqueuePendingSyncWrite = () => false,
   } = useProgressData();
   const { xpTotal = 0, streak = 0, pausedStreak = null, dailyCount = 0 } = useXP();
 
@@ -73,6 +82,7 @@ export function AppLayout() {
     "chw-sidebar-collapsed",
     false,
   );
+  const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
 
   // Lazy-load the currently-selected course's lesson content. The
   // CourseContentProvider caches loads and auto-fetches the default
@@ -139,6 +149,12 @@ export function AppLayout() {
     }
   }, [isMobile, setSidebarCollapsed]);
 
+  useEffect(() => {
+    if (!isMobile) {
+      setMobileToolsOpen(false);
+    }
+  }, [isMobile]);
+
   // --- Dynamic page title -------------------
   useDocumentTitle(showModQuiz ? `${mod.title} Quiz` : les.title);
 
@@ -148,7 +164,7 @@ export function AppLayout() {
       savePosition({
         course: `${course.icon} ${course.label}`,
         mod: `${mod.emoji} ${mod.title}`,
-        les: showModQuiz ? "📝 Module Quiz" : les.title,
+        les: showModQuiz ? "Module Quiz" : les.title,
       });
       trackCourseVisit(course.id);
     }
@@ -206,6 +222,18 @@ export function AppLayout() {
   )}/${encodeURIComponent(showModQuiz ? 'quiz' : les.id)}`;
 
   const nextStepHint = getNextStepHint({ isLast, showModQuiz, isDone });
+  const currentStepTitle = showModQuiz
+    ? 'Take the module quiz'
+    : isDone
+      ? 'Continue when ready'
+      : 'Read, then mark done';
+  const currentStepCopy = showModQuiz
+    ? 'Answer the questions, then move into the next lesson when you are ready.'
+    : isDone
+      ? nextTitle
+        ? `Marked done here. Up next: ${nextTitle}.`
+        : 'Marked done here. Pick another course or revisit lessons that need another pass.'
+      : 'Focus on the lesson first. When the idea clicks, use Mark done to save this step.';
 
   // --- Lesson view analytics ----------------
   const lessonViewStartRef = useLessonViewTracking({
@@ -226,6 +254,11 @@ export function AppLayout() {
 
   // --- Actions ------------------------------
   const progressMutation = useFetcher();
+  useFetcherSyncFailure(
+    progressMutation,
+    { markSyncFailed, enqueuePendingSyncWrite },
+    'lesson progress',
+  );
   const { marking, handleMarkDone } = useLessonMarkDone({
     completedSet,
     stableLessonKey,
@@ -237,6 +270,16 @@ export function AppLayout() {
     progressMutation,
     toggleLessonDone: learn.toggleLessonDone,
     lessonViewStartRef,
+  });
+  const syncStatus = getSyncStatusCopy({
+    user,
+    dataLoaded,
+    loadError,
+    pendingSyncWrites,
+    syncFailed,
+    syncRetryInFlight,
+    marking,
+    mutationState: progressMutation.state,
   });
 
   const handleNextLesson = useCallback(() => {
@@ -269,6 +312,69 @@ export function AppLayout() {
     }),
     [panels],
   );
+  const mobileTools = useMemo(
+    () => [
+      {
+        key: "search",
+        label: "Search",
+        helper: "Find a lesson",
+        onSelect: () => panels.togglePanel("search"),
+      },
+      {
+        key: "bookmarks",
+        label: "Saved",
+        helper: "Saved lessons",
+        onSelect: toolbarHandlers.onBookmarks,
+      },
+      {
+        key: "stats",
+        label: "Progress",
+        helper: "Course status",
+        onSelect: toolbarHandlers.onStats,
+      },
+      {
+        key: "sr",
+        label: "Review",
+        helper: "Spaced practice",
+        onSelect: toolbarHandlers.onSR,
+      },
+      {
+        key: "challenges",
+        label: "Challenges",
+        helper: "Hands-on builds",
+        onSelect: toolbarHandlers.onChallenges,
+      },
+      {
+        key: "cheatsheet",
+        label: "Cheat sheets",
+        helper: "Quick references",
+        onSelect: toolbarHandlers.onCheatsheet,
+      },
+      {
+        key: "glossary",
+        label: "Glossary",
+        helper: "Term lookup",
+        onSelect: toolbarHandlers.onGlossary,
+      },
+      {
+        key: "projects",
+        label: "Projects",
+        helper: "Build ideas",
+        onSelect: toolbarHandlers.onProjects,
+      },
+      {
+        key: "badges",
+        label: "Badges",
+        helper: "In-app milestones",
+        onSelect: toolbarHandlers.onBadges,
+      },
+    ],
+    [panels, toolbarHandlers],
+  );
+
+  useEffect(() => {
+    setMobileToolsOpen(false);
+  }, [panels.panel]);
 
   // --- Keyboard -----------------------------
   useKeyboardNav({
@@ -393,7 +499,7 @@ export function AppLayout() {
               )}
               {streak > 0 ? (
                 <span className="topbar-pill streak" aria-label={`${streak} day streak`}>
-                  🔥 {streak} day streak
+                  Streak: {streak} day{streak === 1 ? '' : 's'}
                 </span>
               ) : pausedStreak ? (
                 /* Streak just lapsed. Surface the prior run as a
@@ -406,7 +512,7 @@ export function AppLayout() {
                   aria-label={`${pausedStreak.days} day streak paused`}
                   title="Pick up your streak with one more lesson today"
                 >
-                  💤 {pausedStreak.days} day streak paused
+                  Streak paused: {pausedStreak.days} day{pausedStreak.days === 1 ? '' : 's'}
                 </span>
               ) : null}
               {dailyCount > 0 && (
@@ -423,7 +529,6 @@ export function AppLayout() {
                 aria-label="Open lesson search"
                 aria-pressed={panels.panel === "search"}
               >
-                <span>🔍</span>
                 <span className="search-trigger-label">Search</span>
                 <span className="search-trigger-mobile-hint">Tap to search</span>
                 <kbd>Ctrl+K</kbd>
@@ -434,7 +539,7 @@ export function AppLayout() {
                   className={`mark-btn ${isDone ? "dn" : ""}`}
                   onClick={handleMarkDone}
                   disabled={marking}
-                  aria-label={marking ? "Saving lesson completion" : isDone ? "Mark lesson as not done" : "Mark lesson complete"}
+                  aria-label={marking ? "Saving lesson progress" : isDone ? "Mark lesson as not done" : "Mark lesson done and save progress"}
                   aria-pressed={isDone}
                 >
                   {marking ? "Saving…" : isDone ? "✓ Done" : "Mark done"}
@@ -448,7 +553,7 @@ export function AppLayout() {
           {showModQuiz && moduleQuiz ? (
             <div className="lesson-surface">
               <div className="lesson-head">
-                <span className="lesson-emoji">📝</span>
+                <span className="lesson-emoji" aria-hidden="true">Q</span>
                 <h1 className="lesson-title">{mod.title} - Module Quiz</h1>
               </div>
               <p className="lp">
@@ -483,6 +588,23 @@ export function AppLayout() {
                   </ol>
                 </section>
               )}
+              <section className="lesson-focus-strip" aria-label="Current lesson step">
+                <span className="lesson-focus-eyebrow">{lessonPosition}</span>
+                <strong>{currentStepTitle}</strong>
+                <span>{currentStepCopy}</span>
+                <span
+                  className={`lesson-sync-status lesson-sync-status-${syncStatus.tone}`}
+                  role="status"
+                  aria-live="polite"
+                  aria-atomic="true"
+                >
+                  <span className="lesson-sync-dot" aria-hidden="true" />
+                  <span className="lesson-sync-copy">
+                    <span className="lesson-sync-label">{syncStatus.label}</span>
+                    <span className="lesson-sync-detail">{syncStatus.detail}</span>
+                  </span>
+                </span>
+              </section>
               <LessonView
                 lesson={les}
                 emoji={mod.emoji}
@@ -568,10 +690,18 @@ export function AppLayout() {
           hasModuleQuiz={!!moduleQuiz}
           accent={course.accent}
           lessonPosition={lessonPosition}
+          onOpenTools={() => setMobileToolsOpen((open) => !open)}
+          toolsOpen={mobileToolsOpen}
         />
       ) : (
         <BottomToolbar activePanel={panels.panel} {...toolbarHandlers} />
       )}
+      <MobileToolsSheet
+        isOpen={isMobile && mobileToolsOpen}
+        onClose={() => setMobileToolsOpen(false)}
+        tools={mobileTools}
+        activePanel={panels.panel}
+      />
       <XPPopup />
       <BadgeUnlock />
       <PanelManager

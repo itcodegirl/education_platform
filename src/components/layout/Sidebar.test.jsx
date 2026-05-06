@@ -134,22 +134,22 @@ describe('Sidebar', () => {
     expect(screen.getByRole('button', { name: /foundations module/i })).toBeInTheDocument();
   });
 
-  it('switches from Courses to Resources as the active sidebar tab', () => {
+  it('switches from Courses to Tools as the active sidebar tab', () => {
     renderSidebar();
 
     const coursesTab = screen.getByRole('button', { name: /courses/i });
-    const resourcesTab = screen.getByRole('button', { name: /resources/i });
+    const toolsTab = screen.getByRole('button', { name: /tools/i });
 
     fireEvent.click(coursesTab);
     expect(coursesTab).toHaveAttribute('aria-expanded', 'true');
 
-    fireEvent.click(resourcesTab);
+    fireEvent.click(toolsTab);
 
     expect(coursesTab).toHaveAttribute('aria-expanded', 'false');
-    expect(resourcesTab).toHaveAttribute('aria-expanded', 'true');
-    expect(resourcesTab).toHaveClass('active');
-    expect(screen.getByRole('menu', { name: /resources/i })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: /open cheat sheets panel/i })).toBeInTheDocument();
+    expect(toolsTab).toHaveAttribute('aria-expanded', 'true');
+    expect(toolsTab).toHaveClass('active');
+    expect(screen.getByRole('menu', { name: /tools/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /open cheat sheets/i })).toBeInTheDocument();
   });
 
   it('keeps tab switching and lesson navigation working together', () => {
@@ -157,7 +157,7 @@ describe('Sidebar', () => {
     mockUseLocalStorage.mockReturnValue([false, vi.fn()]);
     renderSidebar({ onSelectLesson });
 
-    fireEvent.click(screen.getByRole('button', { name: /resources/i }));
+    fireEvent.click(screen.getByRole('button', { name: /tools/i }));
     fireEvent.click(screen.getByRole('button', { name: /courses/i }));
     fireEvent.click(screen.getByRole('button', { name: /lesson two/i }));
 
@@ -172,11 +172,11 @@ describe('Sidebar', () => {
     document.body.appendChild(hiddenToolbar);
     renderSidebar();
 
-    const resourcesTab = screen.getByRole('button', { name: /resources/i });
-    fireEvent.click(resourcesTab);
+    const toolsTab = screen.getByRole('button', { name: /tools/i });
+    fireEvent.click(toolsTab);
 
-    expect(resourcesTab).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByRole('menu', { name: /resources/i })).toBeInTheDocument();
+    expect(toolsTab).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('menu', { name: /tools/i })).toBeInTheDocument();
   });
 
   it('logs gated navigation diagnostics when a lesson click fires', () => {
@@ -236,11 +236,11 @@ describe('Sidebar', () => {
     expect(overlay).toHaveClass('overlay-open');
   });
 
-  it('opens Resources popout and triggers selected tool', () => {
+  it('opens Tools popout and triggers selected tool', () => {
     const onOpenTool = vi.fn();
     renderSidebar({ onOpenTool });
 
-    fireEvent.click(screen.getByRole('button', { name: /resources/i }));
+    fireEvent.click(screen.getByRole('button', { name: /tools/i }));
     fireEvent.click(screen.getByRole('menuitem', { name: /cheat sheets/i }));
 
     expect(onOpenTool).toHaveBeenCalledWith('cheatsheet');
@@ -255,16 +255,16 @@ describe('Sidebar', () => {
     expect(nav).toHaveAttribute('inert');
   });
 
-  it('supports keyboard navigation for menu-style resources popout', async () => {
+  it('supports keyboard navigation for menu-style tools popout', async () => {
     renderSidebar();
-    const resourcesTab = screen.getByRole('button', { name: /resources/i });
+    const toolsTab = screen.getByRole('button', { name: /tools/i });
 
-    resourcesTab.focus();
-    fireEvent.keyDown(resourcesTab, { key: 'ArrowDown' });
+    toolsTab.focus();
+    fireEvent.keyDown(toolsTab, { key: 'ArrowDown' });
 
     const menu = await screen.findByRole('menu');
-    const firstItem = await screen.findByRole('menuitem', { name: /open cheat sheets panel/i });
-    const lastItem = await screen.findByRole('menuitem', { name: /open badges panel/i });
+    const firstItem = await screen.findByRole('menuitem', { name: /open saved lessons/i });
+    const lastItem = await screen.findByRole('menuitem', { name: /open badges/i });
 
     await waitFor(() => expect(firstItem).toHaveFocus());
 
@@ -276,6 +276,6 @@ describe('Sidebar', () => {
 
     fireEvent.keyDown(menu, { key: 'Escape' });
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
-    await waitFor(() => expect(resourcesTab).toHaveFocus());
+    await waitFor(() => expect(toolsTab).toHaveFocus());
   });
 });

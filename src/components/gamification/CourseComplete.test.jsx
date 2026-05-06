@@ -31,8 +31,10 @@ describe('CourseComplete', () => {
 
     expect(screen.getAllByText(/learner export/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/not a verified credential/i)).toBeInTheDocument();
+    expect(screen.getByText(/not a third-party certificate/i)).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /download learner export/i }),
     ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /share progress/i })).toBeInTheDocument();
   });
 });

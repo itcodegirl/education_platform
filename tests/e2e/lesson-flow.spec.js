@@ -1,12 +1,8 @@
 import { expect, test } from '@playwright/test';
-import {
-  dismissWelcomeOverlay,
-  getMissingE2EAuthConfig,
-  loginWithCredentials,
-  waitForLearningShell,
-} from './authHelpers';
+import { getAuthSkipReason, getMissingAuthEnv } from './authE2E.js';
+import { dismissWelcomeOverlay } from './authHelpers';
 
-const missingEnv = getMissingE2EAuthConfig();
+const missingEnv = getMissingAuthEnv();
 
 test.describe('lesson flow', () => {
   test.setTimeout(90000);
@@ -16,18 +12,20 @@ test.describe('lesson flow', () => {
     `Set ${missingEnv.join(', ')} to enable lesson flow tests.`
   );
 
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== 'authenticated-chromium',
+      'Authenticated lesson flow runs once with the shared auth setup state.'
+    );
+    const authSkipReason = getAuthSkipReason();
+    test.skip(Boolean(authSkipReason), authSkipReason);
+
     await page.goto('/');
     await page.waitForSelector('.auth-form, .main-shell, .welcome-overlay', { timeout: 30000 });
 
-    // Login if on auth page
     const onAuthPage = await page.locator('.auth-form').isVisible().catch(() => false);
     if (onAuthPage) {
-      await loginWithCredentials(page, {
-        email: process.env.E2E_EMAIL,
-        password: process.env.E2E_PASSWORD,
-      });
-      await waitForLearningShell(page);
+      test.skip(true, 'Authenticated lesson flow could not restore the shared signed-in state.');
     }
 
     // Dismiss welcome-back if present

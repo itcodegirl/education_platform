@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
-import { getMissingE2EAuthConfig, loginWithCredentials } from './authHelpers';
+import { getAuthSkipReason, getMissingAuthEnv } from './authE2E.js';
 
-const missingEnv = getMissingE2EAuthConfig();
+const missingEnv = getMissingAuthEnv();
 
 test.describe('authenticated smoke', () => {
   test.setTimeout(90000);
@@ -13,9 +13,11 @@ test.describe('authenticated smoke', () => {
 
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(
-      testInfo.project.name === 'mobile-chrome',
+      testInfo.project.name !== 'authenticated-chromium',
       'Authenticated smoke currently runs on desktop Chromium only.'
     );
+    const authSkipReason = getAuthSkipReason();
+    test.skip(Boolean(authSkipReason), authSkipReason);
 
     const diagnostics = {
       consoleErrors: [],
@@ -40,10 +42,14 @@ test.describe('authenticated smoke', () => {
     await page.goto('/');
 
     if (await page.getByLabel('Email').isVisible().catch(() => false)) {
-      await loginWithCredentials(page, {
-        email: process.env.E2E_EMAIL,
-        password: process.env.E2E_PASSWORD,
-      });
+      const loginTab = page.getByRole('tab', { name: /login/i });
+      if (await loginTab.isVisible().catch(() => false)) {
+        await loginTab.click();
+      }
+
+      await page.getByLabel('Email').fill(process.env.E2E_EMAIL);
+      await page.getByLabel('Password').fill(process.env.E2E_PASSWORD);
+      await page.getByRole('button', { name: /log in/i }).last().click();
     }
 
     await waitForAuthenticatedShell(page, diagnostics);

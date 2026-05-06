@@ -1,6 +1,6 @@
 ﻿// ===============================================
-// CERTIFICATE GENERATOR - Downloadable PDF
-// Creates a branded CodeHerWay completion certificate
+// LEARNER EXPORT GENERATOR - Downloadable PDF
+// Creates a branded CodeHerWay completion progress export
 // Uses jsPDF (client-side, no server needed)
 // ===============================================
 
@@ -102,11 +102,11 @@ export async function generateCertificate({ studentName, courseName, courseId, l
   doc.setFont('courier', 'bold');
   doc.text(courseName, W / 2, 74, { align: 'center' });
 
-  // --- "Awarded to" ---------------------------
+  // --- Learner label --------------------------
   doc.setFontSize(10);
   doc.setTextColor(...COLORS.textDim);
   doc.setFont('helvetica', 'normal');
-  doc.text('Awarded to', W / 2, 88, { align: 'center' });
+  doc.text('Prepared for', W / 2, 88, { align: 'center' });
 
   // --- Student Name ---------------------------
   doc.setFontSize(24);
@@ -125,7 +125,7 @@ export async function generateCertificate({ studentName, courseName, courseId, l
   doc.setTextColor(...COLORS.textDim);
   doc.setFont('helvetica', 'normal');
   doc.text(
-    `has successfully completed all ${lessonCount} lessons`,
+    `records current app completion of all ${lessonCount} lessons`,
     W / 2, 118, { align: 'center' }
   );
   doc.text(
@@ -144,7 +144,7 @@ export async function generateCertificate({ studentName, courseName, courseId, l
   doc.setFontSize(10);
   doc.setTextColor(...COLORS.textDim);
   doc.setFont('helvetica', 'normal');
-  doc.text('Date of Completion', W / 2 - 55, 158, { align: 'center' });
+  doc.text('Export date', W / 2 - 55, 158, { align: 'center' });
   doc.setTextColor(...COLORS.white);
   doc.setFont('courier', 'bold');
   doc.text(completionDate, W / 2 - 55, 166, { align: 'center' });
@@ -180,7 +180,7 @@ export async function generateCertificate({ studentName, courseName, courseId, l
   doc.circle(W / 2 + 30, 148, 0.8, 'F');
 
   // --- Save -----------------------------------
-  const fileName = `CodeHerWay-${courseName.replace(/\s+/g, '-')}-Certificate.pdf`;
+  const fileName = `CodeHerWay-${courseName.replace(/\s+/g, '-')}-Learner-Export.pdf`;
   doc.save(fileName);
 }
 

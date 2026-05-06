@@ -80,10 +80,14 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
           {bookmarks.length === 0 ? (
             <div className="sr-empty">
               <span className="sr-empty-icon" aria-hidden="true">★</span>
-              <p><strong>No bookmarks yet</strong></p>
+              <p><strong>No saved lessons yet</strong></p>
               <p className="empty-state-msg">
-                Mark a lesson as saved from the header star, and it will appear here for one-click return.
+                Use the Save button in a lesson header when you find a page worth returning to.
+                Saved lessons sync to your account when cloud sync is available.
               </p>
+              <button type="button" className="empty-state-action" onClick={onClose}>
+                Back to lesson
+              </button>
             </div>
           ) : (
             bookmarks.map((bookmark) => {

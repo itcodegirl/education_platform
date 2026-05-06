@@ -12,6 +12,11 @@ const budgets = [
     maxKb: 550,
   },
   {
+    label: 'monaco editor api lazy chunk',
+    match: (file) => /^vendor-monaco-editor-api-.*\.js$/i.test(file),
+    maxKb: 1900,
+  },
+  {
     label: 'monaco/editor chunk',
     match: (file) => /^vendor-monaco-.*\.js$/i.test(file),
     maxKb: 1900,

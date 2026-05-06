@@ -2,6 +2,11 @@ import { defineConfig, devices } from '@playwright/test';
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:4319';
 const useManagedDevServer = !process.env.PLAYWRIGHT_BASE_URL;
+const publicProjectIgnore = [
+  /.*authenticated\..*\.spec\.js/,
+  /.*lesson-flow\.spec\.js/,
+  /.*mobile-learning-smoke\.spec\.js/,
+];
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -24,17 +29,20 @@ export default defineConfig({
     },
     {
       name: 'chromium',
-      testIgnore: /.*authenticated\..*\.spec\.js/,
+      testIgnore: publicProjectIgnore,
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'mobile-chrome',
-      testIgnore: /.*authenticated\..*\.spec\.js/,
+      testIgnore: publicProjectIgnore,
       use: { ...devices['Pixel 7'] },
     },
     {
       name: 'authenticated-chromium',
-      testMatch: /.*authenticated\..*\.spec\.js/,
+      testMatch: [
+        /.*authenticated\.(smoke|visual)\.spec\.js/,
+        /.*lesson-flow\.spec\.js/,
+      ],
       dependencies: ['setup-auth'],
       use: {
         ...devices['Desktop Chrome'],
@@ -42,16 +50,7 @@ export default defineConfig({
       },
     },
     {
-      name: 'lesson-authenticated-chromium',
-      testMatch: /.*lesson-flow\.spec\.js/,
-      dependencies: ['setup-auth'],
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: 'playwright/.auth/user.json',
-      },
-    },
-    {
-      name: 'mobile-authenticated-chrome',
+      name: 'authenticated-mobile-chrome',
       testMatch: /.*mobile-learning-smoke\.spec\.js/,
       dependencies: ['setup-auth'],
       use: {

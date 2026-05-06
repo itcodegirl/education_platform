@@ -1,105 +1,84 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { test } from '@playwright/test';
-import { getMissingE2EAuthConfig } from './authHelpers';
+import { expect, test } from '@playwright/test';
+import {
+	authFile,
+	getMissingAuthEnv,
+	markAuthReady,
+	markAuthUnavailable,
+} from './authE2E.js';
 
-const authDir = path.join(process.cwd(), 'playwright', '.auth');
-const authFile = path.join(authDir, 'user.json');
+test('capture authenticated storage state', async ({ page }) => {
+	const missingEnv = getMissingAuthEnv();
+	if (missingEnv.length > 0) {
+		const reason = `Set ${missingEnv.join(', ')} to generate authenticated storage state.`;
+		markAuthUnavailable(reason);
+		test.skip(true, reason);
+	}
 
-function writeEmptyState() {
-	fs.mkdirSync(authDir, { recursive: true });
-	fs.writeFileSync(authFile, JSON.stringify({ cookies: [], origins: [] }, null, 2));
-}
-
-function getAppOrigin(testInfo) {
-	const baseURL =
-		testInfo.project.use?.baseURL ||
-		process.env.PLAYWRIGHT_BASE_URL ||
-		'http://127.0.0.1:4319';
-
-	return new URL(baseURL).origin;
-}
-
-function getSupabaseUrl() {
-	return process.env.VITE_SUPABASE_URL.trim().replace(/\/+$/, '');
-}
-
-function getSupabaseStorageKey() {
-	const { hostname } = new URL(getSupabaseUrl());
-	const projectRef = hostname.split('.')[0];
-	return `sb-${projectRef}-auth-token`;
-}
-
-function normalizeSession(session) {
-	const expiresIn = Number(session.expires_in) || 3600;
-
-	return {
-		...session,
-		expires_at: session.expires_at || Math.floor(Date.now() / 1000) + expiresIn,
-	};
-}
-
-function writeAuthenticatedState(session, appOrigin) {
-	fs.mkdirSync(authDir, { recursive: true });
-	fs.writeFileSync(
-		authFile,
-		JSON.stringify(
-			{
-				cookies: [],
-				origins: [
-					{
-						origin: appOrigin,
-						localStorage: [
-							{ name: 'chw-onboarded', value: 'true' },
-							{
-								name: getSupabaseStorageKey(),
-								value: JSON.stringify(normalizeSession(session)),
-							},
-						],
-					},
-				],
-			},
-			null,
-			2,
-		),
-	);
-}
-
-async function signInWithSupabase(request) {
-	const supabaseUrl = getSupabaseUrl();
-	const anonKey = process.env.VITE_SUPABASE_ANON_KEY.trim();
-	const response = await request.post(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
-		data: {
-			email: process.env.E2E_EMAIL,
-			password: process.env.E2E_PASSWORD,
-		},
-		headers: {
-			apikey: anonKey,
-			authorization: `Bearer ${anonKey}`,
-		},
-		timeout: 30000,
+	await page.addInitScript(() => {
+		window.localStorage.setItem('chw-onboarded', 'true');
+		window.localStorage.removeItem('chw-lock-mode');
 	});
 
-	if (!response.ok()) {
-		const body = await response.text();
-		throw new Error(`E2E Supabase sign-in failed (${response.status()}): ${body.slice(0, 300)}`);
+	await page.goto('/');
+
+	const emailInput = page.getByLabel('Email');
+	if (await emailInput.isVisible().catch(() => false)) {
+		const loginTab = page.getByRole('tab', { name: /login/i });
+		if (await loginTab.isVisible().catch(() => false)) {
+			await loginTab.click();
+		}
+
+		await emailInput.fill(process.env.E2E_EMAIL);
+		await page.getByLabel('Password').fill(process.env.E2E_PASSWORD);
+		await page.getByRole('button', { name: /log in/i }).last().click();
 	}
 
-	const session = await response.json();
-	if (!session.access_token || !session.refresh_token || !session.user) {
-		throw new Error('E2E Supabase sign-in returned an incomplete session.');
+	const authReady = await waitForAuthenticatedShell(page);
+	if (!authReady.ok) {
+		markAuthUnavailable(authReady.reason);
+		test.skip(true, authReady.reason);
 	}
 
-	return session;
-}
-
-test('capture authenticated storage state', async ({ request }, testInfo) => {
-	const missingEnv = getMissingE2EAuthConfig();
-	if (missingEnv.length > 0) {
-		writeEmptyState();
-		test.skip(true, `Set ${missingEnv.join(', ')} to generate authenticated storage state.`);
+	const startFreshButton = page.getByRole('button', { name: /start fresh/i });
+	if (await startFreshButton.isVisible().catch(() => false)) {
+		await startFreshButton.click();
 	}
 
-	const session = await signInWithSupabase(request);
-	writeAuthenticatedState(session, getAppOrigin(testInfo));
+	await page.context().storageState({ path: authFile });
+	markAuthReady();
 });
+
+async function waitForAuthenticatedShell(page) {
+	const result = await page.waitForFunction(() => {
+		const isVisible = (selector) => {
+			const element = document.querySelector(selector);
+			return Boolean(element && (element.offsetWidth || element.offsetHeight || element.getClientRects().length));
+		};
+
+		const authError = document.querySelector('.auth-error');
+		const authErrorText = authError?.textContent?.trim();
+		if (isVisible('.auth-error') && authErrorText) {
+			return { ok: false, reason: `Configured E2E test account could not sign in: ${authErrorText}` };
+		}
+
+		const hasAuthenticatedShell = isVisible('.topbar') &&
+			isVisible('#course-sidebar') &&
+			isVisible('.main-shell') &&
+			!isVisible('.auth-card');
+
+		return hasAuthenticatedShell ? { ok: true, reason: null } : null;
+	}, null, { timeout: 20000 }).then((handle) => handle.jsonValue()).catch(() => ({
+		ok: false,
+		reason: 'Configured E2E test account could not reach the authenticated shell.',
+	}));
+
+	if (!result.ok) {
+		return result;
+	}
+
+	await expect(page.locator('.topbar')).toBeVisible({ timeout: 30000 });
+	await expect(page.locator('#course-sidebar')).toBeVisible({ timeout: 30000 });
+	await expect(page.locator('.main-shell')).toBeVisible({ timeout: 30000 });
+
+	return result;
+}
