@@ -133,6 +133,30 @@ describe('QuizView', () => {
     expect(saveQuizScore).not.toHaveBeenCalled();
   });
 
+  it('quiz.a11y.selected-answer-announced', async () => {
+    render(
+      <QuizView
+        quiz={quiz}
+        accent="#4ecdc4"
+        label="Module Quiz"
+        quizKey="html-foundations-quiz"
+      />,
+    );
+
+    const wrongAnswer = screen.getByRole('button', { name: /B: <p>/i });
+    fireEvent.click(wrongAnswer);
+    expect(wrongAnswer).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /A: <h1>, correct answer/i })).toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: /B: <p>, selected, incorrect answer/i }),
+      ).toBeDisabled();
+    });
+  });
+
   it('does not award quiz XP again on retry after both quiz rewards are earned', async () => {
     const awarded = new Set();
     const awardXP = vi.fn();
@@ -183,6 +207,54 @@ describe('QuizView', () => {
       );
       expect(screen.getByText(/XP already earned/i)).toBeInTheDocument();
     });
+  });
+
+  it('reward-engine.double-click-does-not-duplicate-xp for quiz submissions', async () => {
+    const awarded = new Set();
+    const awardXP = vi.fn();
+    const markRewardAwarded = vi.fn((rewardKey) => {
+      if (awarded.has(rewardKey)) return false;
+      awarded.add(rewardKey);
+      return true;
+    });
+
+    mockUseProgressData.mockReturnValue({
+      quizScores: {},
+      saveQuizScore: vi.fn(),
+      hasRewardBeenAwarded: vi.fn((rewardKey) => awarded.has(rewardKey)),
+      markRewardAwarded,
+      markSyncFailed: vi.fn(),
+    });
+    mockUseXP.mockReturnValue({
+      awardXP,
+      recordDailyActivity: vi.fn(),
+    });
+
+    render(
+      <QuizView
+        quiz={quiz}
+        accent="#4ecdc4"
+        label="Module Quiz"
+        quizKey="html-foundations-quiz"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /<h1>/i }));
+    const submitButton = screen.getByRole('button', { name: /submit answers/i });
+    fireEvent.click(submitButton);
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(awardXP).toHaveBeenCalledTimes(2);
+      expect(awardXP).toHaveBeenCalledWith(40, 'Quiz completed');
+      expect(awardXP).toHaveBeenCalledWith(60, 'Perfect quiz score!');
+    });
+    expect(markRewardAwarded).toHaveBeenCalledWith(
+      rewardKeys.quizComplete('html-foundations-quiz'),
+    );
+    expect(markRewardAwarded).toHaveBeenCalledWith(
+      rewardKeys.quizPerfect('html-foundations-quiz'),
+    );
   });
 
   it('passes the backend reward sync flag into direct quiz reward calls', async () => {
