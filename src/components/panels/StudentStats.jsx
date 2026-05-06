@@ -155,6 +155,7 @@ export function StudentStats({ isOpen, onClose }) {
           ) : (
           <p className="panel-meta">
             Track motivational XP, quiz confidence, review load, and the parts of the curriculum that need the next rep.
+            Lessons, bookmarks, notes, XP, and streaks sync to your account when the cloud is reachable.
           </p>
           )}
 
@@ -311,6 +312,7 @@ export function StudentStats({ isOpen, onClose }) {
 
           <p className="panel-meta">
             Daily pace: {stats.dailyCount} lesson{stats.dailyCount === 1 ? '' : 's'} today.
+            If sync is interrupted, queued updates stay in this browser until retry.
           </p>
         </div>
       </div>

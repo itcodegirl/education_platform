@@ -29,6 +29,58 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+.lesson-sync-status {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.lesson-sync-dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: 999px;
+  background: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(78,205,196,0.12);
+  flex-shrink: 0;
+}
+.lesson-sync-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.lesson-sync-label {
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+}
+.lesson-sync-detail {
+  color: var(--text-muted);
+}
+.lesson-sync-status-warning .lesson-sync-dot,
+.lesson-sync-status-queued .lesson-sync-dot {
+  background: var(--amber);
+  box-shadow: 0 0 0 3px rgba(255,167,38,0.12);
+}
+.lesson-sync-status-local .lesson-sync-dot,
+.lesson-sync-status-checking .lesson-sync-dot {
+  background: var(--text-muted);
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.08);
+}
+.lesson-sync-status-saving .lesson-sync-dot {
+  background: var(--purple);
+  box-shadow: 0 0 0 3px rgba(180,74,255,0.12);
+}
 .lesson-surface {
   position: relative;
   padding: clamp(18px, 2.5vw, 32px);

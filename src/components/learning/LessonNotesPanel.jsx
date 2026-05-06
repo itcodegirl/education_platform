@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════
 // LESSON NOTES PANEL — Debounced textarea that saves
 // the learner's notes for the current lesson to the
-// cloud (via ProgressContext.saveNote). Appears when
+// account sync layer (via ProgressContext.saveNote). Appears when
 // the user clicks the ✎ button in LessonHeader.
 // ═══════════════════════════════════════════════
 
@@ -62,11 +62,13 @@ export function LessonNotesPanel({ lessonKey }) {
       <div className="notes-head">
         <span className="notes-icon" aria-hidden="true">✎</span>
         <div className="notes-head-copy">
-          <span className="notes-title">Your Notes</span>
-          <span className="notes-sub">Capture the part you do not want to forget five minutes from now.</span>
+          <span className="notes-title">Lesson notes</span>
+          <span className="notes-sub">
+            Saves to your account when cloud sync is available; queued changes stay in this browser until confirmed.
+          </span>
         </div>
         <span className="notes-saved" aria-live="polite" aria-atomic="true">
-          {isDirty ? 'Saving…' : noteText ? '✓ Saved' : ''}
+          {isDirty ? 'Saving...' : noteText ? 'Saved here' : ''}
         </span>
       </div>
       <textarea

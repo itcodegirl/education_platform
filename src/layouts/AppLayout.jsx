@@ -14,6 +14,7 @@ import { useLearning } from "../hooks/useLearning";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { useFetcherSyncFailure } from "../hooks/useFetcherSyncFailure";
 import { useLessonViewTracking } from "../hooks/useLessonViewTracking";
 import { useLessonMarkDone } from "../hooks/useLessonMarkDone";
 import { estimateReadingTime, getLevel } from "../utils/helpers";
@@ -29,6 +30,7 @@ import {
   getNextStepHint,
   getPrevLessonTitle,
 } from "../utils/lessonNavCopy";
+import { getSyncStatusCopy } from "../utils/syncStatusCopy";
 
 // Layout components
 import { Sidebar } from "../components/layout/Sidebar";
@@ -62,6 +64,12 @@ export function AppLayout() {
     trackCourseVisit,
     dataLoaded,
     lastPosition,
+    loadError,
+    syncFailed = 0,
+    pendingSyncWrites = 0,
+    syncRetryInFlight = false,
+    markSyncFailed = () => {},
+    enqueuePendingSyncWrite = () => false,
   } = useProgressData();
   const { xpTotal = 0, streak = 0, pausedStreak = null, dailyCount = 0 } = useXP();
 
@@ -215,8 +223,8 @@ export function AppLayout() {
     ? 'Answer the questions, then move into the next lesson when you are ready.'
     : isDone
       ? nextTitle
-        ? `Saved here. Up next: ${nextTitle}.`
-        : 'Saved here. Pick another course or revisit lessons that need another pass.'
+        ? `Marked done here. Up next: ${nextTitle}.`
+        : 'Marked done here. Pick another course or revisit lessons that need another pass.'
       : 'Focus on the lesson first. When the idea clicks, use Mark done to save this step.';
 
   // --- Lesson view analytics ----------------
@@ -238,6 +246,11 @@ export function AppLayout() {
 
   // --- Actions ------------------------------
   const progressMutation = useFetcher();
+  useFetcherSyncFailure(
+    progressMutation,
+    { markSyncFailed, enqueuePendingSyncWrite },
+    'lesson progress',
+  );
   const { marking, handleMarkDone } = useLessonMarkDone({
     completedSet,
     stableLessonKey,
@@ -249,6 +262,16 @@ export function AppLayout() {
     progressMutation,
     toggleLessonDone: learn.toggleLessonDone,
     lessonViewStartRef,
+  });
+  const syncStatus = getSyncStatusCopy({
+    user,
+    dataLoaded,
+    loadError,
+    pendingSyncWrites,
+    syncFailed,
+    syncRetryInFlight,
+    marking,
+    mutationState: progressMutation.state,
   });
 
   const handleNextLesson = useCallback(() => {
@@ -446,7 +469,7 @@ export function AppLayout() {
                   className={`mark-btn ${isDone ? "dn" : ""}`}
                   onClick={handleMarkDone}
                   disabled={marking}
-                  aria-label={marking ? "Saving lesson completion" : isDone ? "Mark lesson as not done" : "Mark lesson complete"}
+                  aria-label={marking ? "Saving lesson progress" : isDone ? "Mark lesson as not done" : "Mark lesson done and save progress"}
                   aria-pressed={isDone}
                 >
                   {marking ? "Saving…" : isDone ? "✓ Done" : "Mark done"}
@@ -499,6 +522,18 @@ export function AppLayout() {
                 <span className="lesson-focus-eyebrow">{lessonPosition}</span>
                 <strong>{currentStepTitle}</strong>
                 <span>{currentStepCopy}</span>
+                <span
+                  className={`lesson-sync-status lesson-sync-status-${syncStatus.tone}`}
+                  role="status"
+                  aria-live="polite"
+                  aria-atomic="true"
+                >
+                  <span className="lesson-sync-dot" aria-hidden="true" />
+                  <span className="lesson-sync-copy">
+                    <span className="lesson-sync-label">{syncStatus.label}</span>
+                    <span className="lesson-sync-detail">{syncStatus.detail}</span>
+                  </span>
+                </span>
               </section>
               <LessonView
                 lesson={les}
