@@ -8,6 +8,11 @@ async function openPreviewLesson(page) {
 }
 
 test.describe('public visual regression', () => {
+	test.skip(
+		Boolean(process.env.CI),
+		'Visual snapshots use platform-specific baselines; run locally when updating snapshots.'
+	);
+
 	test('landing at 390 width', async ({ page }) => {
 		await page.setViewportSize({ width: 390, height: 844 });
 		await page.goto('/');

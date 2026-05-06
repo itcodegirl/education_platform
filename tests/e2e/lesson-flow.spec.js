@@ -24,6 +24,11 @@ test.describe('lesson flow', () => {
     // Login if on auth page
     const onAuthPage = await page.locator('.auth-form').isVisible().catch(() => false);
     if (onAuthPage) {
+      const loginTab = page.getByRole('tab', { name: /login/i });
+      if (await loginTab.isVisible().catch(() => false)) {
+        await loginTab.click();
+      }
+
       await page.fill('input[type="email"]', process.env.E2E_EMAIL);
       await page.fill('input[type="password"]', process.env.E2E_PASSWORD);
       await page.click('button[type="submit"]');

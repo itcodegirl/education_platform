@@ -28,6 +28,11 @@ test('capture authenticated storage state', async ({ page }) => {
 
 	const emailInput = page.getByLabel('Email');
 	if (await emailInput.isVisible().catch(() => false)) {
+		const loginTab = page.getByRole('tab', { name: /login/i });
+		if (await loginTab.isVisible().catch(() => false)) {
+			await loginTab.click();
+		}
+
 		await emailInput.fill(process.env.E2E_EMAIL);
 		await page.getByLabel('Password').fill(process.env.E2E_PASSWORD);
 		await page.getByRole('button', { name: /log in/i }).last().click();
