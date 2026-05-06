@@ -59,9 +59,14 @@ export default defineConfig({
           if (id.includes('node_modules/monaco-editor/')) {
             if (id.includes('/basic-languages/')) return 'vendor-monaco-languages';
             if (id.includes('/editor/contrib/')) return 'vendor-monaco-editor-contrib';
+            if (id.includes('/editor/internal/')) return 'vendor-monaco-editor-internal';
             if (id.includes('/editor/browser/')) return 'vendor-monaco-editor-browser';
             if (id.includes('/editor/common/')) return 'vendor-monaco-editor-common';
             if (id.includes('/editor/standalone/')) return 'vendor-monaco-editor-standalone';
+            if (id.includes('/editor/editor.api')) return 'vendor-monaco-editor-api';
+            if (id.includes('/editor/editor.all')) return 'vendor-monaco-editor-all';
+            if (id.includes('/editor/editor.main')) return 'vendor-monaco-editor-main';
+            if (id.includes('/editor/edcore.main')) return 'vendor-monaco-editor-core';
             if (id.includes('/editor/')) return 'vendor-monaco-editor';
             if (id.includes('/base/')) return 'vendor-monaco-base';
             if (id.includes('/platform/')) return 'vendor-monaco-platform';

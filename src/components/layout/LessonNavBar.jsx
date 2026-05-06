@@ -13,6 +13,8 @@ export const LessonNavBar = memo(function LessonNavBar({
   hasModuleQuiz,
   accent,
   lessonPosition,
+  onOpenTools,
+  toolsOpen = false,
 }) {
   const nextLabel = isLast
     ? 'Track complete'
@@ -26,7 +28,7 @@ export const LessonNavBar = memo(function LessonNavBar({
       ? 'Go to module quiz'
       : 'Go to next lesson';
 
-  const doneAriaLabel = isDone ? 'Unmark lesson as complete' : 'Mark this lesson complete';
+  const doneAriaLabel = isDone ? 'Unmark lesson as complete' : 'Mark this lesson done and save progress';
 
   return (
     <nav className="lesson-nav" aria-label="Lesson navigation">
@@ -56,7 +58,21 @@ export const LessonNavBar = memo(function LessonNavBar({
           <span className="lesson-nav-icon" aria-hidden="true">
             {marking ? '…' : isDone ? '✓' : '◌'}
           </span>
-          <span className="lesson-nav-label">{marking ? 'Saving' : isDone ? 'Completed' : 'Mark complete'}</span>
+          <span className="lesson-nav-label">{marking ? 'Saving' : isDone ? 'Done' : 'Mark done'}</span>
+        </button>
+      )}
+
+      {onOpenTools && (
+        <button
+          type="button"
+          className={`lesson-nav-btn lesson-nav-tools ui-btn ui-btn-secondary ${toolsOpen ? 'is-open' : ''}`}
+          onClick={onOpenTools}
+          aria-label="Open learning tools"
+          aria-expanded={toolsOpen}
+          aria-haspopup="dialog"
+          aria-controls="mobile-tools-sheet"
+        >
+          <span className="lesson-nav-label">Tools</span>
         </button>
       )}
 

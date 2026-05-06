@@ -35,6 +35,8 @@ describe('CodePreview', () => {
   it('copies source code from code tab', () => {
     render(<CodePreview code="console.log('hi')" lang="js" scaffolding="full" />);
 
+    expect(screen.getByLabelText(/lesson code sample/i)).toHaveAttribute('tabIndex', '0');
+
     fireEvent.click(screen.getByRole('button', { name: /copy code to clipboard/i }));
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith("console.log('hi')");

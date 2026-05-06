@@ -14,7 +14,12 @@
 // controller change so the user always sees the latest version.
 // ═══════════════════════════════════════════════
 
-if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+const shouldRegisterServiceWorker =
+  typeof window !== 'undefined' &&
+  'serviceWorker' in navigator &&
+  import.meta.env.PROD;
+
+if (shouldRegisterServiceWorker) {
   const SW_SCRIPT_URL = '/sw.js?v=9';
 
   async function unregisterLegacySw(registrationUrl) {

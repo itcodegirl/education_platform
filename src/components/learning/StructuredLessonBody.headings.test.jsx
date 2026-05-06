@@ -66,7 +66,7 @@ describe('StructuredLessonBody heading hierarchy', () => {
     );
   });
 
-  it('hides decorative emoji from assistive tech', () => {
+  it('keeps section and box labels calm without decorative emoji wrappers', () => {
     const { container } = render(
       <StructuredLessonBody
         lesson={lesson}
@@ -78,14 +78,9 @@ describe('StructuredLessonBody heading hierarchy', () => {
       />,
     );
 
-    // Every emoji used as a section / box decoration must be wrapped
-    // in a span with aria-hidden so screen readers do not announce
-    // "lightbulb Understand" or "fire Challenge: Form challenge".
-    const ariaHiddenSpans = container.querySelectorAll('span[aria-hidden="true"]');
-    const decorativeText = Array.from(ariaHiddenSpans)
-      .map((node) => node.textContent || '')
-      .join('');
-
-    expect(decorativeText).toMatch(/💡|🛠️|🔨|🔥/);
+    // Section and box labels should stand on text alone so lesson
+    // hierarchy stays calm and screen-reader output stays direct.
+    expect(container.querySelectorAll('.sl-section-title span[aria-hidden="true"]')).toHaveLength(0);
+    expect(container.querySelectorAll('.box-label span[aria-hidden="true"]')).toHaveLength(0);
   });
 });

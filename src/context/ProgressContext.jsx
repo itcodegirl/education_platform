@@ -1,6 +1,7 @@
 // ═══════════════════════════════════════════════
 // PROGRESS CONTEXT — XP, streak, badges, daily goals
-// All data syncs to Supabase (cloud)
+// Account progress syncs to Supabase when reachable; a same-browser
+// retry queue preserves optimistic writes until cloud confirmation.
 // ═══════════════════════════════════════════════
 
 import { createContext, useContext, useCallback, useEffect, useRef, useState, useMemo } from 'react';
