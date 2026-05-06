@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 const { mockUseIsMobile, mockUsePrefersReducedData } = vi.hoisted(() => ({
   mockUseIsMobile: vi.fn(),
@@ -17,6 +17,14 @@ vi.mock('../../hooks/usePrefersReducedData', () => ({
 vi.mock('../../services/aiService', () => ({
   askChallengeTutor: vi.fn(),
 }));
+
+vi.mock('./challenge/challengePreviewBridge', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    createChallengePreviewTestFrame: vi.fn(async (iframeEl) => iframeEl),
+  };
+});
 
 import { CodeChallenge } from './CodeChallenge';
 
@@ -94,6 +102,19 @@ describe('CodeChallenge', () => {
     const iframe = screen.getByTitle(/challenge preview/i);
     expect(iframe).toHaveAttribute('sandbox');
     expect(iframe.getAttribute('sandbox')).toBe('allow-scripts');
+  });
+
+  it('runs the challenge checks from the action button and shows the passing result state', async () => {
+    const onComplete = vi.fn();
+    render(<CodeChallenge challenge={baseChallenge} lang="html" onComplete={onComplete} />);
+
+    fireEvent.load(screen.getByTitle(/challenge preview/i));
+    fireEvent.click(screen.getByRole('button', { name: /run tests/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/All tests passed! You nailed it./i)).toBeInTheDocument();
+    });
+    expect(onComplete).toHaveBeenCalledTimes(1);
   });
 });
 
