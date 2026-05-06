@@ -1,47 +1,132 @@
-// ═══════════════════════════════════════════════
-// DATA INDEX — Public API for course data
+// DATA INDEX - Public API for course data
 //
-// COURSES and QUIZ_MAP are now MUTABLE, lazy-filled containers.
-// They start with metadata only (empty modules, empty map) and get
-// populated by CourseContentProvider as courses are loaded on
-// demand. That's how we keep ~900 KB of course content out of the
-// initial module preload list.
-//
-// Important: components that read COURSES or QUIZ_MAP at module
-// init time (or in the body of a static import) will see the EMPTY
-// state. Only components that read them from a live render (after
-// CourseContentProvider has loaded the active course) see populated
-// data. The provider triggers a re-render when new data lands, so
-// React's natural reactivity handles the update.
-//
-// If you need a guaranteed-loaded set of courses (e.g. search,
-// roadmap, admin dashboard), call ensureAllLoaded() from the
-// useCourseContent() hook before rendering.
-// ═══════════════════════════════════════════════
+// The exported COURSES / QUIZ_MAP / QUIZ_VARIANTS containers are
+// still mutable for backward compatibility, but direct reads from
+// those globals are now legacy-only. Prefer the selector helpers
+// below so course loading and quiz lookup stay centralized.
 
 import { COURSE_METADATA } from './metadata';
+import { resolveQuizLessonId } from './quizLessonIdResolver';
 
 export { COURSE_METADATA } from './metadata';
 export { loadCourse, COURSE_LOADER_IDS } from './loaders';
 export { BADGE_DEFS } from './badges';
 
-// Mutable! CourseContentProvider writes to `modules` as courses load.
-// Components should prefer reading via useCourseContent() so React
-// re-renders them when new data arrives.
-export const COURSES = COURSE_METADATA.map((m) => ({
-  ...m,
+// Mutable compatibility shell. CourseContentProvider fills modules
+// in as content is loaded. New code should prefer getLoadedCourse()
+// over reading this array directly at module init time.
+export const COURSES = COURSE_METADATA.map((metadata) => ({
+  ...metadata,
   modules: [],
 }));
 
-// Mutable map of scoped quiz keys -> canonical quiz.
-// Keys are course-scoped to avoid cross-course collisions:
-//   l:<courseId>:<lessonId>
-//   m:<courseId>:<moduleId>
-// Starts empty and is filled by CourseContentProvider as courses load.
+// Mutable compatibility maps. New code should prefer getQuiz(),
+// hasQuiz(), and getQuizVariants() rather than touching the maps
+// directly from consumers.
 export const QUIZ_MAP = new Map();
-
-// Optional index of scoped quiz relationships:
-// key -> { primary: quiz, bonus: quiz[] }.
-// Policy: the first valid quiz for a scoped key is canonical `primary`;
-// later duplicates for the same key are tracked as `bonus`.
 export const QUIZ_VARIANTS = new Map();
+
+const scopedQuizKeysByCourse = new Map();
+
+export function buildScopedQuizKey(type, courseId, entityId) {
+  if (!type || !courseId || !entityId) return '';
+  return `${type}:${courseId}:${entityId}`;
+}
+
+function collectCourseEntityIds(modules = []) {
+  const lessonIds = new Set();
+  const moduleIds = new Set();
+
+  modules.forEach((moduleData) => {
+    moduleIds.add(moduleData.id);
+    (moduleData.lessons || []).forEach((lesson) => {
+      lessonIds.add(lesson.id);
+    });
+  });
+
+  return { lessonIds, moduleIds };
+}
+
+function clearCourseQuizIndexes(courseId) {
+  const existingKeys = scopedQuizKeysByCourse.get(courseId);
+  if (!existingKeys) return;
+
+  existingKeys.forEach((scopedKey) => {
+    QUIZ_MAP.delete(scopedKey);
+    QUIZ_VARIANTS.delete(scopedKey);
+  });
+
+  scopedQuizKeysByCourse.delete(courseId);
+}
+
+function registerScopedQuiz({ scopedKey, quiz, nextScopedKeys }) {
+  const variant = QUIZ_VARIANTS.get(scopedKey);
+
+  if (!variant) {
+    QUIZ_MAP.set(scopedKey, quiz);
+    QUIZ_VARIANTS.set(scopedKey, { primary: quiz, bonus: [] });
+  } else {
+    variant.bonus.push(quiz);
+  }
+
+  nextScopedKeys.add(scopedKey);
+}
+
+export function hydrateLoadedCourse(courseId, { modules = [], quizzes = [] } = {}) {
+  const targetCourse = COURSES.find((course) => course.id === courseId);
+  if (!targetCourse) return null;
+
+  const nextModules = Array.isArray(modules) ? modules : [];
+  targetCourse.modules = nextModules;
+
+  clearCourseQuizIndexes(courseId);
+
+  const { lessonIds, moduleIds } = collectCourseEntityIds(nextModules);
+  const nextScopedKeys = new Set();
+
+  (Array.isArray(quizzes) ? quizzes : []).forEach((quiz) => {
+    const lessonResolution = resolveQuizLessonId(courseId, quiz.lessonId, lessonIds);
+
+    if (lessonResolution.resolvedLessonId) {
+      registerScopedQuiz({
+        scopedKey: buildScopedQuizKey('l', courseId, lessonResolution.resolvedLessonId),
+        quiz,
+        nextScopedKeys,
+      });
+    }
+
+    if (quiz.moduleId && moduleIds.has(quiz.moduleId)) {
+      registerScopedQuiz({
+        scopedKey: buildScopedQuizKey('m', courseId, quiz.moduleId),
+        quiz,
+        nextScopedKeys,
+      });
+    }
+  });
+
+  scopedQuizKeysByCourse.set(courseId, nextScopedKeys);
+  return targetCourse;
+}
+
+export function getLoadedCourse(courseId) {
+  const course = COURSES.find((entry) => entry.id === courseId);
+  if (!course || !Array.isArray(course.modules) || course.modules.length === 0) {
+    return null;
+  }
+  return course;
+}
+
+export function getQuiz(courseId, type, entityId) {
+  const scopedKey = buildScopedQuizKey(type, courseId, entityId);
+  return scopedKey ? QUIZ_MAP.get(scopedKey) : undefined;
+}
+
+export function hasQuiz(courseId, type, entityId) {
+  const scopedKey = buildScopedQuizKey(type, courseId, entityId);
+  return scopedKey ? QUIZ_MAP.has(scopedKey) : false;
+}
+
+export function getQuizVariants(courseId, type, entityId) {
+  const scopedKey = buildScopedQuizKey(type, courseId, entityId);
+  return scopedKey ? (QUIZ_VARIANTS.get(scopedKey) || null) : null;
+}

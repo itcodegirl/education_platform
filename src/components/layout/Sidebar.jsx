@@ -7,7 +7,7 @@ import { useState, memo, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useProgressData, useAuth } from '../../providers';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
-import { QUIZ_MAP } from '../../data';
+import { hasQuiz } from '../../data';
 import { ProfilePopover } from './ProfilePopover';
 import { Logo } from '../shared/Logo';
 import { getCourseCompletedLessonCount, hasLessonCompletion } from '../../utils/lessonKeys';
@@ -565,7 +565,7 @@ export const Sidebar = memo(function Sidebar({
                           </button>
                         );
                       })}
-                      {QUIZ_MAP.has(`m:${course.id}:${module.id}`) && (
+                      {hasQuiz(course.id, 'm', module.id) && (
                         <button
                           type="button"
                           className={`lesson-list-btn lesson-list-quiz ${showModQuiz && mi === modIdx ? 'act' : ''}`}

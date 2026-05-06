@@ -58,7 +58,7 @@ const { MOCK_COURSES, MOCK_QUIZ_MAP } = vi.hoisted(() => {
 
 vi.mock('../data', () => ({
   COURSES: MOCK_COURSES,
-  QUIZ_MAP: MOCK_QUIZ_MAP,
+  getQuiz: (courseId, type, entityId) => MOCK_QUIZ_MAP.get(`${type}:${courseId}:${entityId}`),
 }));
 
 import { useNavigation } from './useNavigation';

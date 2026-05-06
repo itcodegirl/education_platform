@@ -4,7 +4,7 @@
 // ===============================================================
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { COURSES, QUIZ_MAP } from '../data';
+import { COURSES, getQuiz } from '../data';
 import { useCourseContent } from '../providers';
 import { navigateTo, toPathFromLegacyHash } from '../routes/routeUtils';
 import { buildLearnPath, parseLearnPath } from '../routes/routePaths';
@@ -23,7 +23,7 @@ const EMPTY_COURSE = { id: '', label: '', icon: '', accent: '', modules: [EMPTY_
 
 function getScopedQuiz(type, courseId, entityId) {
   if (!courseId || !entityId) return undefined;
-  return QUIZ_MAP.get(`${type}:${courseId}:${entityId}`);
+  return getQuiz(courseId, type, entityId);
 }
 
 function findPathPosition(pathname) {

@@ -23,7 +23,7 @@ vi.mock('../../hooks/useFocusTrap', () => ({
 }));
 
 vi.mock('../../data', () => ({
-  QUIZ_MAP: new Map(),
+  hasQuiz: () => false,
 }));
 
 vi.mock('./ProfilePopover', () => ({
