@@ -111,7 +111,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
             disabled={downloading}
             aria-busy={downloading}
           >
-            {downloading ? 'Generating…' : 'Download certificate (PDF)'}
+            {downloading ? 'Generating…' : 'Download learner export (PDF)'}
           </button>
 
           <button type="button" className="cc-share-btn" onClick={async () => {

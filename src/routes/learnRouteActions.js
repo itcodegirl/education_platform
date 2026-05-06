@@ -1,4 +1,3 @@
-import { json } from 'react-router-dom';
 import { COURSES } from '../data';
 import { supabase } from '../lib/supabaseClient';
 import { resolveStableLessonKeyAcrossCourses } from '../utils/lessonKeys';
@@ -26,7 +25,7 @@ async function requireAuthenticatedUser() {
   } = await supabase.auth.getUser();
 
   if (error || !user?.id) {
-    return { user: null, response: json({ ok: false, error: 'Authentication required' }, { status: 401 }) };
+    return { user: null, response: Response.json({ ok: false, error: 'Authentication required' }, { status: 401 }) };
   }
 
   return { user, response: null };
@@ -49,7 +48,7 @@ function resolveBooleanMode(mode, truthyValue, falseyValue) {
 async function handleProgressAction({ payload, mode, intent, user }) {
   const rawLessonKey = typeof payload.lessonKey === 'string' ? payload.lessonKey.trim() : '';
   if (!rawLessonKey) {
-    return json({ ok: false, error: 'Missing lesson key' }, { status: 400 });
+    return Response.json({ ok: false, error: 'Missing lesson key' }, { status: 400 });
   }
 
   const recoverableWrite = createRecoverableLearnActionWrite(intent, payload);
@@ -62,7 +61,7 @@ async function handleProgressAction({ payload, mode, intent, user }) {
     .eq('user_id', user.id)
     .in('lesson_key', candidateKeys);
   if (existingError) {
-    return json({ ok: false, intent, error: existingError.message, recoverableWrite }, { status: 500 });
+    return Response.json({ ok: false, intent, error: existingError.message, recoverableWrite }, { status: 500 });
   }
 
   const hasCompletion = Array.isArray(existing) && existing.length > 0;
@@ -72,17 +71,17 @@ async function handleProgressAction({ payload, mode, intent, user }) {
     const { error } = await supabase
       .from('progress')
       .upsert({ user_id: user.id, lesson_key: lessonKey, completed_at: new Date().toISOString() });
-    if (error) return json({ ok: false, intent, error: error.message, recoverableWrite }, { status: 500 });
+    if (error) return Response.json({ ok: false, intent, error: error.message, recoverableWrite }, { status: 500 });
   } else {
     const { error } = await supabase
       .from('progress')
       .delete()
       .eq('user_id', user.id)
       .in('lesson_key', candidateKeys);
-    if (error) return json({ ok: false, intent, error: error.message, recoverableWrite }, { status: 500 });
+    if (error) return Response.json({ ok: false, intent, error: error.message, recoverableWrite }, { status: 500 });
   }
 
-  return json({
+  return Response.json({
     ok: true,
     intent,
     lessonKey,
@@ -95,7 +94,7 @@ async function handleBookmarkAction({ payload, mode, intent, user }) {
   const courseId = typeof payload.courseId === 'string' ? payload.courseId : '';
   const lessonTitle = typeof payload.lessonTitle === 'string' ? payload.lessonTitle : '';
   if (!rawLessonKey || !courseId || !lessonTitle) {
-    return json({ ok: false, error: 'Missing bookmark fields' }, { status: 400 });
+    return Response.json({ ok: false, error: 'Missing bookmark fields' }, { status: 400 });
   }
 
   const recoverableWrite = createRecoverableLearnActionWrite(intent, payload);
@@ -108,7 +107,7 @@ async function handleBookmarkAction({ payload, mode, intent, user }) {
     .eq('user_id', user.id)
     .in('lesson_key', candidateKeys);
   if (existingError) {
-    return json({ ok: false, intent, error: existingError.message, recoverableWrite }, { status: 500 });
+    return Response.json({ ok: false, intent, error: existingError.message, recoverableWrite }, { status: 500 });
   }
 
   const hasBookmark = Array.isArray(existing) && existing.length > 0;
@@ -121,17 +120,17 @@ async function handleBookmarkAction({ payload, mode, intent, user }) {
       course_id: courseId,
       lesson_title: lessonTitle,
     });
-    if (error) return json({ ok: false, intent, error: error.message, recoverableWrite }, { status: 500 });
+    if (error) return Response.json({ ok: false, intent, error: error.message, recoverableWrite }, { status: 500 });
   } else {
     const { error } = await supabase
       .from('bookmarks')
       .delete()
       .eq('user_id', user.id)
       .in('lesson_key', candidateKeys);
-    if (error) return json({ ok: false, intent, error: error.message, recoverableWrite }, { status: 500 });
+    if (error) return Response.json({ ok: false, intent, error: error.message, recoverableWrite }, { status: 500 });
   }
 
-  return json({
+  return Response.json({
     ok: true,
     intent,
     lessonKey,
@@ -142,7 +141,7 @@ async function handleBookmarkAction({ payload, mode, intent, user }) {
 export async function learnRouteAction({ request }) {
   const { payload, error: payloadError } = await parseActionPayload(request);
   if (payloadError) {
-    return json({ ok: false, error: payloadError }, { status: 400 });
+    return Response.json({ ok: false, error: payloadError }, { status: 400 });
   }
 
   const intent = typeof payload.intent === 'string' ? payload.intent : '';
@@ -158,5 +157,5 @@ export async function learnRouteAction({ request }) {
     return handleBookmarkAction({ payload, mode, intent, user });
   }
 
-  return json({ ok: false, error: 'Unknown action intent' }, { status: 400 });
+  return Response.json({ ok: false, error: 'Unknown action intent' }, { status: 400 });
 }
