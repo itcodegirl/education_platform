@@ -1,12 +1,7 @@
 import { expect, test } from '@playwright/test';
+import { getMissingE2EAuthConfig } from './authHelpers';
 
-const requiredEnv = [
-	'VITE_SUPABASE_URL',
-	'VITE_SUPABASE_ANON_KEY',
-	'E2E_EMAIL',
-	'E2E_PASSWORD',
-];
-const missingEnv = requiredEnv.filter((name) => !process.env[name]);
+const missingEnv = getMissingE2EAuthConfig();
 
 async function closeTransientOverlays(page) {
 	const startFreshButton = page.getByRole('button', { name: /start fresh/i });

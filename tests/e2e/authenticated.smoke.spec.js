@@ -1,14 +1,7 @@
 import { expect, test } from '@playwright/test';
-import { loginWithCredentials } from './authHelpers';
+import { getMissingE2EAuthConfig, loginWithCredentials } from './authHelpers';
 
-const requiredEnv = [
-  'VITE_SUPABASE_URL',
-  'VITE_SUPABASE_ANON_KEY',
-  'E2E_EMAIL',
-  'E2E_PASSWORD',
-];
-
-const missingEnv = requiredEnv.filter((name) => !process.env[name]);
+const missingEnv = getMissingE2EAuthConfig();
 
 test.describe('authenticated smoke', () => {
   test.setTimeout(90000);

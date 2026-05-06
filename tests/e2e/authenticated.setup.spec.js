@@ -1,17 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
-import { loginWithCredentials, throwIfAuthTerminalState } from './authHelpers';
+import { getMissingE2EAuthConfig, loginWithCredentials, throwIfAuthTerminalState } from './authHelpers';
 
 const authDir = path.join(process.cwd(), 'playwright', '.auth');
 const authFile = path.join(authDir, 'user.json');
-
-const requiredEnv = [
-	'VITE_SUPABASE_URL',
-	'VITE_SUPABASE_ANON_KEY',
-	'E2E_EMAIL',
-	'E2E_PASSWORD',
-];
 
 function writeEmptyState() {
 	fs.mkdirSync(authDir, { recursive: true });
@@ -21,7 +14,7 @@ function writeEmptyState() {
 test('capture authenticated storage state', async ({ page }) => {
 	test.setTimeout(90000);
 
-	const missingEnv = requiredEnv.filter((name) => !process.env[name]);
+	const missingEnv = getMissingE2EAuthConfig();
 	if (missingEnv.length > 0) {
 		writeEmptyState();
 		test.skip(true, `Set ${missingEnv.join(', ')} to generate authenticated storage state.`);

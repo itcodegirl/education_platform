@@ -1,5 +1,33 @@
 import { expect } from '@playwright/test';
 
+const REQUIRED_AUTH_ENV = [
+  'VITE_SUPABASE_URL',
+  'VITE_SUPABASE_ANON_KEY',
+  'E2E_EMAIL',
+  'E2E_PASSWORD',
+];
+
+const LOCAL_SUPABASE_URL = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i;
+const PLACEHOLDER_SUPABASE_ANON_KEY = 'example-anon-key';
+
+export function getMissingE2EAuthConfig(env = process.env) {
+  const missing = REQUIRED_AUTH_ENV.filter((name) => !env[name]);
+  const isCi = env.CI === 'true';
+  const allowLocalSupabase = env.E2E_ALLOW_LOCAL_SUPABASE === 'true';
+  const supabaseUrl = env.VITE_SUPABASE_URL?.trim() || '';
+  const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY?.trim() || '';
+
+  if (isCi && !allowLocalSupabase && LOCAL_SUPABASE_URL.test(supabaseUrl)) {
+    missing.push('VITE_SUPABASE_URL');
+  }
+
+  if (isCi && supabaseAnonKey === PLACEHOLDER_SUPABASE_ANON_KEY) {
+    missing.push('VITE_SUPABASE_ANON_KEY');
+  }
+
+  return [...new Set(missing)];
+}
+
 export async function loginWithCredentials(page, { email, password }) {
   const loginTab = page.getByRole('tab', { name: /^login$/i });
   if (await loginTab.isVisible().catch(() => false)) {
