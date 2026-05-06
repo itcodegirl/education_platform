@@ -1178,17 +1178,17 @@
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 1px;
-  margin: 0 0 28px;
+  margin: 0 0 32px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .lesson-product-frame-item {
   min-width: 0;
-  padding: 14px;
-  background: rgba(8, 8, 15, 0.72);
+  padding: 12px 14px;
+  background: rgba(8, 8, 15, 0.56);
 }
 
 .lesson-product-frame-label {
@@ -1606,19 +1606,19 @@
 
 /* ─── 32. Lesson transition ───────────────────── */
 .lesson-surface {
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.22s ease-out;
 }
 
 .lesson-head {
-  animation: slideInLeft 0.3s ease-out;
+  animation: fadeIn 0.2s ease-out;
 }
 
 .lesson-body {
-  animation: fadeIn 0.4s ease-out 0.1s both;
+  animation: fadeIn 0.24s ease-out 0.05s both;
 }
 
 .box {
-  animation: slideInLeft 0.35s ease-out 0.2s both;
+  animation: fadeIn 0.22s ease-out 0.08s both;
 }
 
 /* ─── Modal mobile additions ─────────────────── */

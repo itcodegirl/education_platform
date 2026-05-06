@@ -156,7 +156,7 @@ export function AppLayout() {
       savePosition({
         course: `${course.icon} ${course.label}`,
         mod: `${mod.emoji} ${mod.title}`,
-        les: showModQuiz ? "📝 Module Quiz" : les.title,
+        les: showModQuiz ? "Module Quiz" : les.title,
       });
       trackCourseVisit(course.id);
     }
@@ -428,7 +428,7 @@ export function AppLayout() {
               )}
               {streak > 0 ? (
                 <span className="topbar-pill streak" aria-label={`${streak} day streak`}>
-                  🔥 {streak} day streak
+                  Streak: {streak} day{streak === 1 ? '' : 's'}
                 </span>
               ) : pausedStreak ? (
                 /* Streak just lapsed. Surface the prior run as a
@@ -441,7 +441,7 @@ export function AppLayout() {
                   aria-label={`${pausedStreak.days} day streak paused`}
                   title="Pick up your streak with one more lesson today"
                 >
-                  💤 {pausedStreak.days} day streak paused
+                  Streak paused: {pausedStreak.days} day{pausedStreak.days === 1 ? '' : 's'}
                 </span>
               ) : null}
               {dailyCount > 0 && (
@@ -458,7 +458,6 @@ export function AppLayout() {
                 aria-label="Open lesson search"
                 aria-pressed={panels.panel === "search"}
               >
-                <span>🔍</span>
                 <span className="search-trigger-label">Search</span>
                 <span className="search-trigger-mobile-hint">Tap to search</span>
                 <kbd>Ctrl+K</kbd>
@@ -483,7 +482,7 @@ export function AppLayout() {
           {showModQuiz && moduleQuiz ? (
             <div className="lesson-surface">
               <div className="lesson-head">
-                <span className="lesson-emoji">📝</span>
+                <span className="lesson-emoji" aria-hidden="true">Q</span>
                 <h1 className="lesson-title">{mod.title} - Module Quiz</h1>
               </div>
               <p className="lp">

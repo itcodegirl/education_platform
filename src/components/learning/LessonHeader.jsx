@@ -69,7 +69,7 @@ export function LessonHeader({
         </button>
         <button
           type="button"
-          className={`lesson-action-btn ui-btn ui-btn-secondary ${showNotes ? 'active' : ''}`}
+          className={`lesson-action-btn lesson-notes-btn ui-btn ui-btn-secondary ${showNotes ? 'active' : ''}`}
           onClick={onToggleNotes}
           title="Notes"
           aria-expanded={showNotes}

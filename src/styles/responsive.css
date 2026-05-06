@@ -100,7 +100,7 @@
   .lesson-head { flex-direction: column; align-items: flex-start; }
   .lesson-actions { width: 100%; }
   .lesson-action-btn::after { display: none; }
-  .lesson-emoji { font-size: 32px; }
+  .lesson-emoji { font-size: 26px; }
   .lp { font-size: 15px; line-height: 1.75; }
   .box { padding: 16px 18px; border-radius: 14px; }
   .quiz-header { padding: 14px var(--quiz-inline-pad); }
