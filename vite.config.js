@@ -77,7 +77,6 @@ export default defineConfig({
           if (id.includes('/src/data/css/')) return 'data-css';
           if (id.includes('/src/data/js/')) return 'data-js';
           if (id.includes('/src/data/react/')) return 'data-react';
-          if (id.includes('/src/data/python/')) return 'data-python';
           // NOTE: data-reference is intentionally NOT assigned to a
           // named chunk. Each reference file (cheatsheets, glossary,
           // projects) is imported by exactly one lazy panel chunk,

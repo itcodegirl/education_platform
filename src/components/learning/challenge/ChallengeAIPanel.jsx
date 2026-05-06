@@ -86,7 +86,9 @@ export function ChallengeAIPanel({ challenge, monacoLang, code, results, isOpen 
               ? 'You are sending requests too quickly. Wait a moment and try again.'
               : code === AI_ERROR_CODES.UNAUTHENTICATED
                 ? 'Your session expired. Sign in again and retry your question.'
-                : error?.userMessage || 'AI tutor is temporarily unavailable. Please try again in a moment.';
+                : code === AI_ERROR_CODES.EMAIL_NOT_VERIFIED
+                  ? 'Verify your email to use the AI tutor. Check your inbox for the link.'
+                  : error?.userMessage || 'AI tutor is temporarily unavailable. Please try again in a moment.';
       setReply(message);
     } finally {
       setLoading(false);

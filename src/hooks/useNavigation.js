@@ -10,6 +10,7 @@ import { navigateTo, toPathFromLegacyHash } from '../routes/routeUtils';
 import { buildLearnPath, parseLearnPath } from '../routes/routePaths';
 import { getLessonKeyVariants } from '../utils/lessonKeys';
 import { logNavigationDiagnostic } from '../utils/navigationDiagnostics';
+import { resolveSavedPosition } from '../utils/savedPosition';
 
 // Safe empty shells used when a course's modules haven't loaded yet.
 // AppLayout gates the real UI behind isActiveCourseLoaded, so these
@@ -59,27 +60,13 @@ function findPathPosition(pathname) {
   return { courseIndex, moduleIndex, lessonIndex, isModuleQuiz: false };
 }
 
+// Resolve the persisted (course, module, lesson) labels saved by
+// AppLayout.savePosition back into stable indices. The detailed
+// matching rules live in utils/savedPosition.js so they can be
+// exercised in isolation; this thin wrapper just binds the global
+// COURSES catalog so the hook's call sites stay readable.
 function findSavedPosition(lastPosition) {
-  if (!lastPosition?.course || !lastPosition?.mod || !lastPosition?.les) {
-    return null;
-  }
-
-  const courseIndex = COURSES.findIndex((course) => lastPosition.course.includes(course.label));
-  if (courseIndex === -1) return null;
-
-  const course = COURSES[courseIndex];
-  if (!course.modules.length) return null;
-  const moduleIndex = course.modules.findIndex((module) => lastPosition.mod.includes(module.title));
-  if (moduleIndex === -1) return null;
-
-  const isModuleQuiz = lastPosition.les.toLowerCase().includes('module quiz');
-  const lessonIndex = isModuleQuiz
-    ? course.modules[moduleIndex].lessons.length - 1
-    : course.modules[moduleIndex].lessons.findIndex((lesson) => lesson.title === lastPosition.les);
-
-  if (lessonIndex === -1) return null;
-
-  return { courseIndex, moduleIndex, lessonIndex, isModuleQuiz };
+  return resolveSavedPosition(lastPosition, COURSES);
 }
 
 function getInitialNavigationState() {

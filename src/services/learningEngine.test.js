@@ -31,6 +31,10 @@ function createDeferred() {
 }
 
 function buildDeps(overrides = {}) {
+  // Default each test to its own in-memory storage so the reward
+  // ledger / queue can never leak between cases via globalThis
+  // localStorage. Tests that want to assert ledger contents pass
+  // an explicit storage in their override.
   return {
     toggleLesson: vi.fn(),
     saveQuizScore: vi.fn(),
@@ -43,9 +47,19 @@ function buildDeps(overrides = {}) {
     isChallengeCompleted: vi.fn(() => false),
     markChallengeCompleted: vi.fn(() => true),
     markSyncFailed: vi.fn(),
+    rewardEventStorage: createMemoryStorage(),
     ...overrides,
   };
 }
+
+beforeEach(() => {
+  // Defense in depth: even with isolated rewardEventStorage in
+  // buildDeps, anything that defaults to globalThis.localStorage
+  // (legacy code paths, helpers we add later) starts clean.
+  if (typeof localStorage !== 'undefined' && localStorage?.clear) {
+    localStorage.clear();
+  }
+});
 
 describe('createLearningEngine → completeLesson', () => {
   it('marks a new lesson done, awards XP, and records daily activity', async () => {
@@ -355,6 +369,21 @@ describe('createLearningEngine → submitQuiz', () => {
     expect((await engine.submitQuiz('q', 2, 3)).pct).toBe(67);
     expect((await engine.submitQuiz('q', 10, 10)).pct).toBe(100);
     expect((await engine.submitQuiz('q', 0, 10)).pct).toBe(0);
+  });
+
+  it('bails on a zero-question quiz instead of NaN-ing pct or firing rewards', async () => {
+    // Defensive: a malformed quiz with total=0 used to NaN out
+    // Math.round((score / 0) * 100) and silently call awardXP +
+    // recordDailyActivity with bogus context. The guard now early-
+    // returns with pct=0 and skips the reward + activity work.
+    const engine = createLearningEngine(deps);
+
+    const result = await engine.submitQuiz('empty-quiz', 0, 0);
+
+    expect(result).toEqual({ score: 0, total: 0, pct: 0 });
+    expect(deps.saveQuizScore).not.toHaveBeenCalled();
+    expect(deps.awardXP).not.toHaveBeenCalled();
+    expect(deps.recordDailyActivity).not.toHaveBeenCalled();
   });
 });
 

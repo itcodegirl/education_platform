@@ -105,7 +105,7 @@ Configured in `netlify.toml`:
 - Same auth + rate-limit + fail-closed posture as the AI proxy.
 - The `system` prompt is **pinned server-side** — the client only
   sends `{ topic, concept }`. The topic is checked against a small
-  allowlist (`html`, `css`, `js`, `react`, `python`) and the concept
+  allowlist (`html`, `css`, `js`, `react`) and the concept
   is capped at 200 chars.
 - Model output is parsed, code-fence-stripped, and validated against a
   strict schema (`question` / `code?` / `options[4]` / `correct 0..3`

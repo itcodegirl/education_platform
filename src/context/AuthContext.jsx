@@ -9,8 +9,10 @@ import * as authService from '../services/authService';
 const AuthContext = createContext({
   user: null,
   profile: null,
+  profileError: '',
   loading: true,
   profileLoading: false,
+  refreshProfile: async () => null,
   signUp: async () => ({ data: null, error: null }),
   signIn: async () => ({ data: null, error: null }),
   signInWithGithub: async () => ({ data: null, error: null }),
@@ -22,6 +24,7 @@ const AuthContext = createContext({
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [profileError, setProfileError] = useState('');
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
   const authInitRequestRef = useRef(0);
@@ -34,17 +37,21 @@ export function AuthProvider({ children }) {
 
     if (!userId) {
       setProfile(null);
+      setProfileError('');
       setProfileLoading(false);
       return;
     }
     setProfileLoading(true);
+    setProfileError('');
     try {
       const data = await authService.loadProfile(userId);
       if (profileRequestRef.current !== requestId) return;
       setProfile(data);
-    } catch {
+      setProfileError('');
+    } catch (err) {
       if (profileRequestRef.current !== requestId) return;
       setProfile(null);
+      setProfileError(err?.message || 'Unable to verify your account profile.');
     } finally {
       if (profileRequestRef.current === requestId) {
         setProfileLoading(false);
@@ -77,7 +84,11 @@ export function AuthProvider({ children }) {
       } catch (err) {
         if (!active || authInitRequestRef.current !== requestId) return;
         initialSessionResolved = true;
-        console.error('Auth session error:', err.message);
+        // Use optional chaining + String() so a non-Error throw
+        // (e.g. a string thrown by a misbehaving provider) doesn't
+        // crash this catch block and leave the user stuck on the
+        // loading screen.
+        console.error('Auth session error:', err?.message ?? String(err));
         applyAuthUser(null, { markInitialized: true });
       } finally {
         initialSessionResolved = true;
@@ -147,6 +158,7 @@ export function AuthProvider({ children }) {
 
   const handleSignOut = async () => {
     setProfile(null);
+    setProfileError('');
     setProfileLoading(false);
     try {
       const { error } = await authService.signOut();
@@ -157,15 +169,21 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const refreshProfile = useCallback(async () => {
+    if (!user?.id) return null;
+    return handleLoadProfile(user.id);
+  }, [handleLoadProfile, user]);
+
   // ─── Memoized value ──────────────────────
   const value = useMemo(() => ({
-    user, profile, loading, profileLoading,
+    user, profile, profileError, loading, profileLoading,
+    refreshProfile,
     signUp, signIn,
     signInWithGithub: handleGithub,
     signInWithGoogle: handleGoogle,
     forgotPassword,
     signOut: handleSignOut,
-  }), [user, profile, loading, profileLoading]);
+  }), [user, profile, profileError, loading, profileLoading, refreshProfile]);
 
   return (
     <AuthContext.Provider value={value}>

@@ -389,6 +389,26 @@
   transition: all 0.15s;
 }
 
+.code-preview-load-full {
+  margin-top: 8px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: var(--bg-card);
+  border: 1px dashed var(--border);
+  color: var(--text-dim);
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  align-self: flex-start;
+}
+
+.code-preview-load-full:hover {
+  border-style: solid;
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
 .code-preview-reset:hover {
   border-color: var(--amber);
   color: var(--amber);

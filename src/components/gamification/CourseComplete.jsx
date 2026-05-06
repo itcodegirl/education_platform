@@ -40,7 +40,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
         completionDate: today,
       });
     } catch {
-      // Certificate generation is non-critical.
+      toast.show('Certificate failed — try again in a moment.');
     } finally {
       setTimeout(() => setDownloading(false), 1000);
     }
@@ -109,24 +109,32 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
             className="cc-download-btn"
             onClick={handleDownload}
             disabled={downloading}
+            aria-busy={downloading}
           >
-            {downloading ? 'Generating...' : 'Download learner export (PDF)'}
+            {downloading ? 'Generating…' : 'Download certificate (PDF)'}
           </button>
 
-          <button
-            type="button"
-            className="cc-share-btn"
-            onClick={() => {
-              const text = `I just completed the ${course.label} course on CodeHerWay! ${lessonCount} lessons done. #CodeHerWay #WomenInTech #LearnToCode`;
-              if (navigator.share) {
-                navigator.share({ title: 'CodeHerWay Certificate', text });
-              } else {
-                navigator.clipboard.writeText(text);
+          <button type="button" className="cc-share-btn" onClick={async () => {
+            const text = `I just completed the ${course.label} course on CodeHerWay! 🎉 ${lessonCount} lessons done. #CodeHerWay #WomenInTech #LearnToCode`;
+            // Each path silently swallows its own failure mode:
+            //   - navigator.share rejects when the user cancels the sheet
+            //   - clipboard.writeText can reject without a user gesture
+            //     or when the document is not focused (notably in Safari)
+            // We do NOT want either to bubble as an unhandled rejection.
+            if (navigator.share) {
+              try { await navigator.share({ title: 'CodeHerWay Certificate', text }); } catch { /* user cancelled */ }
+              return;
+            }
+            if (navigator.clipboard) {
+              try {
+                await navigator.clipboard.writeText(text);
                 toast.show('Copied to clipboard!');
+              } catch {
+                toast.show('Could not copy. Try the Download button instead.');
               }
-            }}
-          >
-            Share achievement
+            }
+          }}>
+            📤 Share Achievement
           </button>
 
           <button type="button" className="cc-close-btn" onClick={onClose}>

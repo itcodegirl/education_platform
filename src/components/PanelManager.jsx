@@ -5,7 +5,7 @@ import { getCourseCompletedLessonCount, hasLessonCompletion } from '../utils/les
 function PanelError({ retry }) {
   return (
     <div className="panel-error-fallback" role="alert">
-      <span aria-hidden="true">??</span>
+      <span aria-hidden="true">⚠︎</span>
       <p>This panel ran into a problem.</p>
       <button type="button" className="ui-btn ui-btn-secondary ui-btn-compact" onClick={retry}>
         Try again

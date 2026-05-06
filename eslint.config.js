@@ -15,7 +15,6 @@ export default [
 			'aura-weather/**',
 			'Cinova/**',
 			'codeherway-ceo-os/**',
-			'codeherway-v2/**',
 			'supabase/.temp/**',
 		],
 	},

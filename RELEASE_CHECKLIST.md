@@ -32,7 +32,7 @@ Use this checklist before Netlify releases or hotfix deploys.
   - bookmark a lesson
 - Validate quiz path for an active HTML/CSS/JS/React lesson quiz.
 - If backend reward sync is enabled, validate one authenticated reward event is awarded once and repeated completion returns a skipped/duplicate result without extra XP.
-- Confirm any `npm run audit:quizzes` findings are expected and documented, especially classified orphan quizzes, intentional variant groups, legacy aliases, and deferred Python quiz coverage.
+- Confirm any `npm run audit:quizzes` findings are expected and documented, especially classified orphan quizzes, intentional variant groups, legacy aliases, and archived inactive quiz coverage.
 - If touching HTML Module 102 lesson identity, verify the targeted progress/bookmark compatibility decision before release.
 
 ## PWA / Cache Validation
@@ -45,9 +45,9 @@ Use this checklist before Netlify releases or hotfix deploys.
 
 ## Test Scope Reminder
 
-- `npm run test:e2e` always covers public smoke path.
+- `npm run test:e2e` always covers public smoke, accessibility, visual, and first-lesson preview paths.
 - Authenticated smoke checks require environment credentials and will otherwise skip.
-- `npm run audit:quizzes` should remain report-only until strict-mode criteria are defined for classified orphan inventory, intentional variants, aliases, and Python policy decisions.
+- `npm run audit:quizzes` should remain report-only until strict-mode criteria are defined for classified orphan inventory, intentional variants, aliases, and archived inactive quiz coverage.
 - Production-grade reliability still requires broader learning/data/a11y regression coverage.
 
 ## Release Sign-Off

@@ -35,19 +35,28 @@ export function BadgesPanel({ isOpen, onClose }) {
           <p className="panel-meta">
             Badges make your momentum visible. Earn them by finishing lessons, holding streaks, and pushing through practice.
           </p>
-          <div className="badges-grid">
+          {/* List semantics + per-badge aria-label so screen-reader users
+              can tell earned from locked badges. Without this, the
+              earned/locked distinction was visual only — the emoji,
+              name, and description sounded identical for both states. */}
+          <ul className="badges-grid" aria-label={`${earnedCount} of ${BADGE_DEFS.length} badges earned`}>
             {BADGE_DEFS.map((badge) => {
               const earned = earnedBadges[badge.id];
+              const status = earned ? `earned on ${earned.date}` : 'locked';
               return (
-                <div key={badge.id} className={`badge-card ${earned ? 'earned' : 'locked'}`}>
-                  <span className="badge-icon">{badge.icon}</span>
+                <li
+                  key={badge.id}
+                  className={`badge-card ${earned ? 'earned' : 'locked'}`}
+                  aria-label={`${badge.name}, ${status}. ${badge.desc}`}
+                >
+                  <span className="badge-icon" aria-hidden="true">{badge.icon}</span>
                   <div className="badge-name">{badge.name}</div>
                   <div className="badge-desc">{badge.desc}</div>
                   {earned && <div className="badge-date">Earned {earned.date}</div>}
-                </div>
+                </li>
               );
             })}
-          </div>
+          </ul>
         </div>
       </div>
     </div>

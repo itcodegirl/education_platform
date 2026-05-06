@@ -41,6 +41,9 @@ jobs:
       - name: Run accessibility smoke gate (axe)
         run: npm run test:a11y
 
+      - name: Run quiz integrity audit (strict gate)
+        run: npm run audit:quizzes
+
       - name: Run check:ci (lint, build, bundle budget, unit, e2e)
         run: npm run check:ci
 

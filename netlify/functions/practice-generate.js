@@ -37,12 +37,12 @@ const MAX_CONCEPT_CHARS = 200;
 const MAX_OUTPUT_TOKENS = 600;
 
 // --- Allowed topics (must match data/*/course.js ids) -
-const ALLOWED_TOPICS = new Set(['html', 'css', 'js', 'react', 'python']);
+const ALLOWED_TOPICS = new Set(['html', 'css', 'js', 'react']);
 
 // --- System prompt (SERVER-SIDE, never client-controlled) -
 const SYSTEM_PROMPT = [
   'You are the CodeHerWay practice card generator.',
-  'You only generate short, beginner-friendly multiple-choice questions about web development and Python, in the voice of a supportive mentor for women learning to code.',
+  'You only generate short, beginner-friendly multiple-choice questions about web development (HTML, CSS, JavaScript, React), in the voice of a supportive mentor for women learning to code.',
   'You must respond with a SINGLE JSON object and nothing else - no prose, no markdown fences, no leading "Here is". Just the object.',
   'The object MUST have exactly these fields:',
   '  - question: string, a concise multiple-choice question (max 200 chars)',
@@ -136,7 +136,7 @@ export async function handler(event) {
   }
 
   if (!ALLOWED_TOPICS.has(topic)) {
-    return json(400, { error: 'Topic must be one of: html, css, js, react, python' });
+    return json(400, { error: 'Topic must be one of: html, css, js, react' });
   }
   if (topic.length > MAX_TOPIC_CHARS) {
     return json(413, { error: 'Topic too long' });

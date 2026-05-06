@@ -56,7 +56,7 @@ export function OfflineIndicator() {
   if (offline) {
     return (
       <div className="offline-banner is-offline" role="status" aria-live="polite" aria-atomic="true">
-        <span className="offline-icon" aria-hidden="true">!</span>
+        <span className="offline-icon" aria-hidden="true">⚠︎</span>
         <span className="offline-text">
           {pendingSyncWrites > 0
             ? pendingSyncWrites === 1
@@ -89,7 +89,7 @@ export function OfflineIndicator() {
         aria-atomic="true"
         aria-busy={syncRetryInFlight ? 'true' : undefined}
       >
-        <span className="offline-icon" aria-hidden="true">!</span>
+        <span className="offline-icon" aria-hidden="true">↻</span>
         <span className="offline-copy">
           <span className="offline-text">{retrySummary}</span>
           <span className="offline-note">{retryDetail}</span>
@@ -112,7 +112,7 @@ export function OfflineIndicator() {
   if (syncFailed > 0) {
     return (
       <div className="offline-banner is-sync-failed" role="alert" aria-live="assertive" aria-atomic="true">
-        <span className="offline-icon" aria-hidden="true">!</span>
+        <span className="offline-icon" aria-hidden="true">⚠︎</span>
         <span className="offline-text">
           {syncFailed === 1
             ? 'One progress update could not be confirmed in the cloud.'
@@ -134,7 +134,7 @@ export function OfflineIndicator() {
   if (showOnlineToast) {
     return (
       <div className="offline-banner is-online" role="status" aria-live="polite" aria-atomic="true">
-        <span className="offline-icon" aria-hidden="true">+</span>
+        <span className="offline-icon" aria-hidden="true">✓</span>
         <span className="offline-text">
           {pendingSyncWrites > 0
             ? 'Back online. Queued progress updates can retry now.'

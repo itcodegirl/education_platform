@@ -12,10 +12,15 @@
 // the collapsed/expanded state of the Dev_Fession block.
 // ═══════════════════════════════════════════════
 
+import { memo } from 'react';
 import { renderMarkdown } from '../../utils/markdown';
 import { CodePreview } from './CodePreview';
 
-export function RichLessonBody({
+// Memoized — only re-renders when its props change (lesson,
+// checkedTasks Set ref, showDevFession). Skips re-renders driven
+// by sibling state in LessonView (showNotes, the bookmark pill,
+// the AI tutor open/close).
+export const RichLessonBody = memo(function RichLessonBody({
   lesson,
   lang,
   scaffolding,
@@ -33,7 +38,10 @@ export function RichLessonBody({
         {lesson.content && renderMarkdown(lesson.content)}
         {isRichFormat && lesson.concepts && (
           <>
-            <h3 className="sl-section-title">💡 Core ideas</h3>
+            <h2 className="sl-section-title">
+              <span aria-hidden="true">💡 </span>
+              Core ideas
+            </h2>
             <p className="sl-section-intro">
               Keep these in your head while you read the example and try the practice below.
             </p>
@@ -62,7 +70,7 @@ export function RichLessonBody({
 
       {isRichFormat && lesson.tasks && lesson.tasks.length > 0 && (
         <div className="box tasks-box">
-          <div className="box-label">✅ Your turn</div>
+          <div className="box-label"><span aria-hidden="true">✅ </span>Your turn</div>
           <div className="tasks-list">
             {lesson.tasks.map((task, index) => {
               const isChecked = checkedTasks.has(index);
@@ -88,14 +96,14 @@ export function RichLessonBody({
 
       {lesson.tip && (
         <div className="box tip">
-          <div className="box-label">💡 Pro Tip</div>
+          <div className="box-label"><span aria-hidden="true">💡 </span>Pro Tip</div>
           <p>{lesson.tip}</p>
         </div>
       )}
 
       {lesson.challenge && typeof lesson.challenge === 'string' && (
         <div className="box chal">
-          <div className="box-label">🔥 Stretch challenge</div>
+          <div className="box-label"><span aria-hidden="true">🔥 </span>Stretch challenge</div>
           <p>{lesson.challenge}</p>
         </div>
       )}
@@ -125,5 +133,5 @@ export function RichLessonBody({
       )}
     </>
   );
-}
+});
 

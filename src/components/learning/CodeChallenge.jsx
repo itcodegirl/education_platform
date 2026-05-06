@@ -9,7 +9,7 @@
 
 import { useRef, useState, lazy, Suspense } from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { useReducedData } from '../../hooks/useReducedData';
+import { usePrefersReducedData } from '../../hooks/usePrefersReducedData';
 import { useChallengeSession } from '../../hooks/useChallengeSession';
 import { buildChallengePreview } from './challenge/buildChallengePreview';
 import { ChallengeAIPanel } from './challenge/ChallengeAIPanel';
@@ -24,8 +24,12 @@ const MonacoEditor = lazy(() =>
 
 export function CodeChallenge({ challenge, lang, onComplete }) {
   const isMobile = useIsMobile();
-  const reducedData = useReducedData();
-  const usePlainEditor = isMobile || reducedData;
+  const prefersReducedData = usePrefersReducedData();
+  const [forceFullEditor, setForceFullEditor] = useState(false);
+  // Lightweight editor when the learner is on a phone OR has signaled
+  // Data Saver / prefers-reduced-data. Skips the ~2 MB Monaco chunk.
+  // On desktop with reduced-data, the learner can opt back in.
+  const useLightEditor = isMobile || (prefersReducedData && !forceFullEditor);
   const iframeRef = useRef(null);
   const [showAiHelp, setShowAiHelp] = useState(false);
 
@@ -39,6 +43,7 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
     handleEditorChange,
     reset,
     runTests,
+    handleIframeLoad,
     toggleHint,
     toggleSolution,
     cancelRevealSolution,
@@ -98,16 +103,29 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
               Retry Reset
             </button>
           </div>
-          {usePlainEditor ? (
-            <textarea
-              className="code-preview-mobile-editor"
-              value={code}
-              onChange={(e) => handleEditorChange(e.target.value)}
-              spellCheck={false}
-              autoCapitalize="off"
-              autoCorrect="off"
-              rows={12}
-            />
+          {useLightEditor ? (
+            <>
+              <textarea
+                className="code-preview-mobile-editor"
+                value={code}
+                onChange={(e) => handleEditorChange(e.target.value)}
+                spellCheck={false}
+                autoCapitalize="off"
+                autoCorrect="off"
+                rows={12}
+                aria-label="Code editor"
+              />
+              {!isMobile && prefersReducedData && (
+                <button
+                  type="button"
+                  className="code-preview-load-full"
+                  onClick={() => setForceFullEditor(true)}
+                >
+                  Load full editor (downloads ~2 MB)
+                </button>
+              )}
+            </>
+
           ) : (
           <Suspense fallback={
             <div className="cc-editor-loading">Loading editor...</div>
@@ -137,6 +155,10 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
               lang,
               previewHTML: challenge.previewHTML,
             })}
+            // useChallengeSession.runTests waits on this to fire before
+            // grading any DOM-based tests, so the test never inspects
+            // an iframe document that's still loading the previous code.
+            onLoad={handleIframeLoad}
             title="Challenge Preview"
             sandbox="allow-scripts"
           />
