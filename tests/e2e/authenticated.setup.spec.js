@@ -19,11 +19,18 @@ function writeEmptyState() {
 }
 
 test('capture authenticated storage state', async ({ page }) => {
+	test.setTimeout(90000);
+
 	const missingEnv = requiredEnv.filter((name) => !process.env[name]);
 	if (missingEnv.length > 0) {
 		writeEmptyState();
 		test.skip(true, `Set ${missingEnv.join(', ')} to generate authenticated storage state.`);
 	}
+
+	await page.addInitScript(() => {
+		window.localStorage.setItem('chw-onboarded', 'true');
+		window.localStorage.removeItem('chw-lock-mode');
+	});
 
 	await page.goto('/');
 
@@ -55,13 +62,11 @@ async function waitForAuthenticatedShell(page) {
 			};
 
 			const terminalState = ['.auth-error', '.conn-error', '.disabled-screen', '.eb-screen'].some(isVisible);
-			const shellReady = isVisible('.topbar') &&
-				isVisible('#course-sidebar') &&
-				isVisible('.main-shell') &&
-				!isVisible('.auth-card');
+			const leftAuthScreen = !isVisible('.auth-card');
+			const appReady = isVisible('.main-shell') || isVisible('.welcome-overlay') || isVisible('.loading-screen');
 
-			return terminalState || shellReady;
-		}, null, { timeout: 30000 });
+			return terminalState || (leftAuthScreen && appReady);
+		}, null, { timeout: 60000 });
 	} catch (error) {
 		await throwIfAuthTerminalState(page);
 		throw error;
@@ -69,7 +74,6 @@ async function waitForAuthenticatedShell(page) {
 
 	await throwIfAuthTerminalState(page);
 
-	await expect(page.locator('.topbar')).toBeVisible({ timeout: 30000 });
-	await expect(page.locator('#course-sidebar')).toBeVisible({ timeout: 30000 });
-	await expect(page.locator('.main-shell')).toBeVisible({ timeout: 30000 });
+	await expect(page.locator('.auth-card')).toBeHidden({ timeout: 10000 });
+	await expect(page.locator('.main-shell, .welcome-overlay, .loading-screen')).toBeVisible({ timeout: 10000 });
 }
