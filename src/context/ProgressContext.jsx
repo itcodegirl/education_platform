@@ -1083,9 +1083,13 @@ export function useSR() {
   return useContext(SRContext);
 }
 
-// Backward-compatible aggregate hook for older consumers.
-// Prefer useProgressData/useXP/useSR in new code to avoid
-// cross-domain re-renders.
+/**
+ * @deprecated Aggregate hook kept as a migration alias for callers that
+ *   pre-date the three-context split. New code should import the
+ *   narrower `useProgressData`, `useXP`, or `useSR` hook so a streak
+ *   tick doesn't re-render a screen that only reads completion data.
+ *   See docs/progress-context-split-plan.md for the migration plan.
+ */
 export function useProgress() {
   const progress = useProgressData();
   const xp = useXP();

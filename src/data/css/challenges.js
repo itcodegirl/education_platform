@@ -20,9 +20,18 @@ export const CSS_CHALLENGES = [
         const jc = domStyle(iframe, '.navbar')?.justifyContent;
         return !!jc && jc !== 'normal';
       } },
-      { label:'Gap or spacing', check:(c)=>has(c,'gap')||has(c,'padding')||has(c,'margin') },
-      // :not pseudo-class can't be verified via computed style on a static snapshot —
-      // keep source check to confirm the learner intentionally removed underlines.
+      { label:'Gap or spacing', check:(_, iframe)=>{
+        const s = domStyle(iframe, '.navbar');
+        if (!s) return false;
+        const gap = s.gap;
+        const pad = s.padding;
+        const mar = s.margin;
+        const nonZero = (v) => !!v && v !== '0px' && v !== 'normal' && v !== '0px 0px 0px 0px';
+        return nonZero(gap) || nonZero(pad) || nonZero(mar);
+      } },
+      // The iframe's default stylesheet declares `nav a { text-decoration: none }`,
+      // so the visual outcome is "no underline" even if the learner doesn't author it.
+      // Source check confirms the learner intentionally addressed underline styling.
       { label:'No underlines', check:(c)=>has(c,'text-decoration') },
     ],
     hint:'display:flex, justify-content:center, gap:24px',
@@ -55,7 +64,15 @@ export const CSS_CHALLENGES = [
     starter:'.wrapper {\n  /* full viewport height */\n  /* center the card */\n}\n.card {\n  /* style the card */\n}',
     requirements:['min-height: 100vh','Uses flex or grid centering','Card has padding and border-radius','Card has a background'],
     tests:[
-      { label:'Full viewport height', check:(c)=>has(c,'100vh')||has(c,'100dvh') },
+      { label:'Full viewport height', check:(_, iframe)=>{
+        const s = domStyle(iframe, '.wrapper');
+        if (!s) return false;
+        const minH = parseFloat(s.minHeight);
+        const viewportH = iframe?.contentWindow?.innerHeight || 0;
+        if (!Number.isFinite(minH) || !viewportH) return false;
+        // Tolerate a 2px rounding gap; 100dvh resolves identically here.
+        return minH >= viewportH - 2;
+      } },
       { label:'Centering method', check:(_, iframe)=>{
         const w = domStyle(iframe, '.wrapper');
         if (!w) return false;
@@ -184,7 +201,8 @@ export const CSS_CHALLENGES = [
         return !!anim && anim !== 'none 0s ease 0s 1 normal none running';
       } },
       { label:'box-shadow', check:(c)=>has(c,'box-shadow') },
-      { label:'infinite', check:(c)=>has(c,'infinite') },
+      { label:'infinite', check:(_, iframe)=>
+        domStyle(iframe, '.glow-btn')?.animationIterationCount === 'infinite' },
     ],
     hint:'@keyframes glow { 0%,100% { box-shadow: 0 0 5px } 50% { box-shadow: 0 0 20px } }',
     solution:'.glow-btn {\n  padding: 14px 32px;\n  background: #ff6b9d;\n  color: #0f0f1a;\n  border: none;\n  border-radius: 8px;\n  font-weight: 700;\n  font-size: 16px;\n  cursor: pointer;\n  animation: glow 2s ease-in-out infinite;\n}\n@keyframes glow {\n  0%, 100% { box-shadow: 0 0 8px #ff6b9d40; }\n  50% { box-shadow: 0 0 24px #ff6b9d80; }\n}' },
