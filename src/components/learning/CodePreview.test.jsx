@@ -40,6 +40,14 @@ describe('CodePreview', () => {
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith("console.log('hi')");
   });
 
+  it('makes the scrollable source code pane keyboard focusable', () => {
+    render(<CodePreview code="<h1>Hello</h1>" lang="html" scaffolding="full" />);
+
+    const codePane = screen.getByLabelText('HTML code sample');
+    expect(codePane.tagName).toBe('PRE');
+    expect(codePane).toHaveAttribute('tabindex', '0');
+  });
+
   it('renders iframe preview when Preview tab is selected', () => {
     render(<CodePreview code="<main>Preview Me</main>" lang="html" scaffolding="full" />);
 
