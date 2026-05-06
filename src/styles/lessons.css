@@ -6,6 +6,29 @@
 
 /* ─── 9. Lesson View ───────────────────────────── */
 .lesson-container { max-width: var(--content-max); margin: 0 auto; padding: clamp(16px, 2vw, 32px) clamp(14px, 2vw, 24px) 24px; animation: fadeIn 0.3s ease-out; }
+.lesson-focus-strip {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--cyan);
+  border-radius: var(--radius-md);
+  background: rgba(78, 205, 196, 0.07);
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.lesson-focus-strip strong {
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: 15px;
+}
+.lesson-focus-eyebrow {
+  color: var(--cyan);
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 .lesson-surface {
   position: relative;
   padding: clamp(18px, 2.5vw, 32px);

@@ -348,7 +348,7 @@
 .lesson-list-quiz { color: var(--text-muted) !important; font-style: italic; }
 .lesson-list-quiz.act { color: var(--text) !important; font-style: normal; font-weight: 600; }
 
-/* ─── Sidebar tab bar (Courses + Resources) ─── */
+/* ─── Sidebar tab bar (Courses + Tools) ─── */
 /* Replaces the old course switcher at the top of the sidebar. Two
    symmetric pill buttons side-by-side; each opens a small popout card
    below. Only one popout can be open at a time. The active-course
@@ -483,10 +483,10 @@
   to   { opacity: 1; transform: translateX(0); }
 }
 
-/* Resources tool row — parallel to .cs-option but for tool actions. */
+/* Tools row — parallel to .cs-option but for tool actions. */
 .sidebar-tab-opt {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   padding: 10px 12px;
   background: transparent;
@@ -519,6 +519,18 @@
 .sidebar-tab-opt-label {
   font-weight: 600;
 }
+.sidebar-tab-opt-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.sidebar-tab-opt-hint {
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.35;
+  font-weight: 400;
+}
 
 /* ─── Collapsed sidebar: icons only ─── */
 .sidebar.collapsed .sidebar-tabs {
@@ -539,12 +551,18 @@
 }
 
 .lock-label {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: flex-start; gap: 8px;
   padding: 6px 10px;
   cursor: pointer; font-size: 11px; color: var(--text-muted); user-select: none;
 }
+.lock-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 .lock-label input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--cyan); cursor: pointer; }
-.lock-text { font-family: 'Inter', sans-serif; }
+.lock-text { font-family: 'Inter', sans-serif; color: var(--text-dim); font-weight: 600; }
+.lock-help { line-height: 1.35; }
 
 /* ─── Collapsed sidebar ─── */
 @media (min-width: 901px) {

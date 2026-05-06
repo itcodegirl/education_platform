@@ -206,6 +206,18 @@ export function AppLayout() {
   )}/${encodeURIComponent(showModQuiz ? 'quiz' : les.id)}`;
 
   const nextStepHint = getNextStepHint({ isLast, showModQuiz, isDone });
+  const currentStepTitle = showModQuiz
+    ? 'Take the module quiz'
+    : isDone
+      ? 'Continue when ready'
+      : 'Read, then mark done';
+  const currentStepCopy = showModQuiz
+    ? 'Answer the questions, then move into the next lesson when you are ready.'
+    : isDone
+      ? nextTitle
+        ? `Saved here. Up next: ${nextTitle}.`
+        : 'Saved here. Pick another course or revisit lessons that need another pass.'
+      : 'Focus on the lesson first. When the idea clicks, use Mark done to save this step.';
 
   // --- Lesson view analytics ----------------
   const lessonViewStartRef = useLessonViewTracking({
@@ -483,6 +495,11 @@ export function AppLayout() {
                   </ol>
                 </section>
               )}
+              <section className="lesson-focus-strip" aria-label="Current lesson step">
+                <span className="lesson-focus-eyebrow">{lessonPosition}</span>
+                <strong>{currentStepTitle}</strong>
+                <span>{currentStepCopy}</span>
+              </section>
               <LessonView
                 lesson={les}
                 emoji={mod.emoji}
