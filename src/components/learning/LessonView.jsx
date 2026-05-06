@@ -24,6 +24,7 @@ import { AITutor } from './AITutor';
 import { LessonFeedback } from './LessonFeedback';
 import { LessonHeader } from './LessonHeader';
 import { LessonNotesPanel } from './LessonNotesPanel';
+import { LessonProductFrame } from './LessonProductFrame';
 import { StructuredLessonBody } from './StructuredLessonBody';
 import { RichLessonBody } from './RichLessonBody';
 
@@ -34,6 +35,7 @@ export const LessonView = memo(function LessonView({
   lessonKey,
   courseId,
   moduleTitle,
+  nextTitle,
 }) {
   const { toggleBookmark, isBookmarked } = useSR();
   const {
@@ -136,6 +138,8 @@ export const LessonView = memo(function LessonView({
       />
 
       {showNotes && <LessonNotesPanel lessonKey={lessonKey} />}
+
+      <LessonProductFrame lesson={lesson} nextTitle={nextTitle} />
 
       {isStructured ? (
         <StructuredLessonBody

@@ -531,6 +531,7 @@ export function AppLayout() {
                 lessonKey={lessonKey}
                 courseId={course.id}
                 moduleTitle={mod.title}
+                nextTitle={nextTitle}
               />
               {lessonQuiz && (
                 <div className="lesson-quiz-wrap">
