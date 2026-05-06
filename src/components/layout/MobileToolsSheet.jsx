@@ -1,4 +1,5 @@
-import { memo, useEffect } from 'react';
+import { memo, useRef } from 'react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 export const MobileToolsSheet = memo(function MobileToolsSheet({
   isOpen,
@@ -6,16 +7,13 @@ export const MobileToolsSheet = memo(function MobileToolsSheet({
   tools = [],
   activePanel = null,
 }) {
-  useEffect(() => {
-    if (!isOpen) return undefined;
+  const sheetRef = useRef(null);
 
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') onClose();
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  useFocusTrap(sheetRef, {
+    enabled: isOpen,
+    onEscape: onClose,
+    initialFocus: 'first-tabbable',
+  });
 
   if (!isOpen) return null;
 
@@ -28,10 +26,13 @@ export const MobileToolsSheet = memo(function MobileToolsSheet({
         onClick={onClose}
       />
       <section
+        ref={sheetRef}
         id="mobile-tools-sheet"
         className="mobile-tools-sheet"
         role="dialog"
+        aria-modal="true"
         aria-labelledby="mobile-tools-title"
+        tabIndex={-1}
       >
         <div className="mobile-tools-head">
           <h2 id="mobile-tools-title" className="mobile-tools-title">Learning tools</h2>

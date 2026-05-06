@@ -31,7 +31,8 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 - Active lesson quiz coverage for HTML, CSS, JavaScript, and React tracks is complete.
 - Quiz variant groups and legacy orphan quiz inventory are classified and monitored by the audit.
 - Bookmarks and lesson notes in the active app.
-- Certificate export flow.
+- Learner progress export flow that is explicitly not a verified credential.
+- Mobile learning flow with sticky lesson navigation, topbar search, and a compact tools sheet.
 - Public Playwright smoke coverage, including landing, auth, accessibility, visual snapshots, and first-lesson preview entry.
 - Netlify + Vite build/deploy flow.
 
@@ -111,6 +112,7 @@ This project is intended to demonstrate:
 Reviewer shortcuts:
 
 - Product story: [docs/portfolio-case-study.md](./docs/portfolio-case-study.md)
+- UX trust/calmness notes: [docs/ux-trust-calmness-notes.md](./docs/ux-trust-calmness-notes.md)
 - Progress sync recovery: [docs/progress-sync-recovery.md](./docs/progress-sync-recovery.md)
 - Architecture overview: [docs/architecture.md](./docs/architecture.md)
 - Release checklist: [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md)

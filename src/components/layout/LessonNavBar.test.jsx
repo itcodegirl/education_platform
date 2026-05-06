@@ -33,6 +33,7 @@ describe('LessonNavBar', () => {
 
     const tools = screen.getByRole('button', { name: /open learning tools/i });
     expect(tools).toHaveAttribute('aria-expanded', 'false');
+    expect(tools).toHaveAttribute('aria-haspopup', 'dialog');
 
     fireEvent.click(tools);
     expect(onOpenTools).toHaveBeenCalledTimes(1);

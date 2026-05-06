@@ -69,6 +69,7 @@ export const LessonNavBar = memo(function LessonNavBar({
           onClick={onOpenTools}
           aria-label="Open learning tools"
           aria-expanded={toolsOpen}
+          aria-haspopup="dialog"
           aria-controls="mobile-tools-sheet"
         >
           <span className="lesson-nav-label">Tools</span>

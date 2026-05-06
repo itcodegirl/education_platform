@@ -1,6 +1,14 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MobileToolsSheet } from './MobileToolsSheet';
+
+const { mockUseFocusTrap } = vi.hoisted(() => ({
+  mockUseFocusTrap: vi.fn(),
+}));
+
+vi.mock('../../hooks/useFocusTrap', () => ({
+  useFocusTrap: mockUseFocusTrap,
+}));
 
 function renderSheet(overrides = {}) {
   const onClose = vi.fn();
@@ -25,12 +33,20 @@ function renderSheet(overrides = {}) {
 }
 
 describe('MobileToolsSheet', () => {
+  beforeEach(() => {
+    mockUseFocusTrap.mockClear();
+  });
+
   it('renders a compact learning tools dialog', () => {
     renderSheet();
 
     expect(screen.getByRole('dialog', { name: /learning tools/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /search/i })).toHaveTextContent('Find a lesson');
     expect(screen.getByRole('button', { name: /progress/i })).toHaveTextContent('Course status');
+    expect(mockUseFocusTrap).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ enabled: true, initialFocus: 'first-tabbable' }),
+    );
   });
 
   it('closes and runs the selected tool', () => {
@@ -42,10 +58,10 @@ describe('MobileToolsSheet', () => {
     expect(onSearch).toHaveBeenCalledTimes(1);
   });
 
-  it('closes on Escape', () => {
+  it('closes from the sheet close button', () => {
     const { onClose } = renderSheet();
 
-    fireEvent.keyDown(document, { key: 'Escape' });
+    fireEvent.click(screen.getByRole('button', { name: /^close$/i }));
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
