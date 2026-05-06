@@ -11,10 +11,15 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 
 ## What Is Currently Working
 
+> **Persistence scope today: single-device.** The reward engine, challenge
+> completion ledger, and progress sync queue are designed around the
+> learner's current browser. Backend cross-device sync is scaffolded but
+> intentionally disabled (see [Cross-device persistence](#cross-device-persistence)).
+
 - Course browsing and lesson viewing UI for HTML, CSS, JavaScript, and React tracks.
-- Progress save/reload behavior for core learning flow.
+- Single-device progress save/reload for the core learning flow, with same-browser retry/replay for failed writes.
 - Unified reward-engine hardening for lesson completion XP, quiz retry XP, activity-based streaks, challenge completion dedupe, local reward-event processing, local retry/reconciliation evidence, diagnostics, sync-failure visibility, and feature-gated Supabase backend awards.
-- Supabase reward backend scaffolding for future cross-device idempotency, including reward-event migrations, an atomic award RPC, and a frontend service wrapper that preserves local fallback behavior.
+- Supabase reward backend scaffolding for future cross-device idempotency, including reward-event migrations, an atomic award RPC, and a frontend service wrapper that preserves local fallback behavior. The flag stays off until migrations run and authenticated duplicate-award flows are verified.
 - Active lesson quiz coverage for HTML, CSS, JavaScript, and React tracks is complete.
 - Quiz variant groups and legacy orphan quiz inventory are classified and monitored by the audit.
 - Bookmarks and lesson notes in the active app.
@@ -46,6 +51,29 @@ Current test boundaries:
 - Progress sync queue and replay outcomes emit privacy-safe analytics events when analytics is configured; event payloads avoid learner IDs, lesson keys, note content, and raw database messages.
 - Backend reward sync and non-recoverable route failures still surface advisory warnings where full replay/import is not implemented yet.
 - Progress sync recovery details live in [docs/progress-sync-recovery.md](./docs/progress-sync-recovery.md).
+
+## Cross-device persistence
+
+The runtime today targets a single device. A learner who signs in from a
+second browser will see their server-stored lessons and bookmarks, but XP,
+streaks, badges, the spaced-repetition queue, and challenge completions
+are computed against the local reward ledger and `localStorage` mirror.
+
+This is a deliberate scope decision rather than a roadmap promise:
+
+- `VITE_REWARD_BACKEND_SYNC_ENABLED` defaults to `false` in `.env.example`.
+- The backend reward path (`reward_events` + `award_reward_event`) is
+  shipped as additive Supabase migrations under `supabase/migrations/`.
+  It is not wired into production traffic yet.
+- Flipping the flag without first applying the migrations and verifying
+  authenticated duplicate-award behavior on a real Supabase project is
+  unsupported and will surface advisory sync warnings.
+
+Until the migration + verification pass lands, marketing and onboarding
+copy should describe the experience as "single-device today" rather than
+"cross-device cloud sync." The reward sync strategy doc in
+[docs/reward-sync-strategy.md](./docs/reward-sync-strategy.md) tracks the
+remaining work to flip this default.
 
 ## Known Limitations
 

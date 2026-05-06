@@ -225,6 +225,7 @@ export function AppLayout() {
   }, [isCourseComplete, isDone, panels]);
 
   // --- Actions ------------------------------
+  const progressMutation = useFetcher();
   const { marking, handleMarkDone } = useLessonMarkDone({
     completedSet,
     stableLessonKey,
