@@ -1,6 +1,7 @@
 ﻿import { useState, useRef, useCallback, lazy, Suspense, useEffect } from 'react';
 import { IFRAME_STYLES } from '../../utils/iframeStyles';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { useReducedData } from '../../hooks/useReducedData';
 import { defineMonacoTheme, MONACO_THEME_NAME, MONACO_OPTIONS } from '../../utils/monacoTheme';
 import { explainCode as explainCodeRequest } from '../../services/aiService';
 import { buildCodePreviewConsoleScript } from './codePreviewConsoleScript';
@@ -21,6 +22,8 @@ const SCAFFOLDING = {
 
 export function CodePreview({ code, lang, scaffolding = 'full' }) {
   const isMobile = useIsMobile();
+  const reducedData = useReducedData();
+  const usePlainEditor = isMobile || reducedData;
   const level = SCAFFOLDING[scaffolding] || SCAFFOLDING.full;
   const defaultTab = scaffolding === 'starter' || scaffolding === 'requirements' ? 'editor' : 'code';
 
@@ -155,7 +158,7 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
 
       {tab === 'editor' && (
         <div className="code-preview-editor-wrap">
-          {isMobile ? (
+          {usePlainEditor ? (
             <textarea
               className="code-preview-mobile-editor"
               value={editorCode}

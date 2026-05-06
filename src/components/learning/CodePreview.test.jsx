@@ -6,6 +6,10 @@ vi.mock('../../hooks/useIsMobile', () => ({
   useIsMobile: () => true,
 }));
 
+vi.mock('../../hooks/useReducedData', () => ({
+  useReducedData: () => false,
+}));
+
 vi.mock('../../services/aiService', () => ({
   explainCode: vi.fn(),
 }));

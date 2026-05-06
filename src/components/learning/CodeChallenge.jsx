@@ -9,6 +9,7 @@
 
 import { useRef, useState, lazy, Suspense } from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { useReducedData } from '../../hooks/useReducedData';
 import { useChallengeSession } from '../../hooks/useChallengeSession';
 import { buildChallengePreview } from './challenge/buildChallengePreview';
 import { ChallengeAIPanel } from './challenge/ChallengeAIPanel';
@@ -23,6 +24,8 @@ const MonacoEditor = lazy(() =>
 
 export function CodeChallenge({ challenge, lang, onComplete }) {
   const isMobile = useIsMobile();
+  const reducedData = useReducedData();
+  const usePlainEditor = isMobile || reducedData;
   const iframeRef = useRef(null);
   const [showAiHelp, setShowAiHelp] = useState(false);
 
@@ -95,7 +98,7 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
               Retry Reset
             </button>
           </div>
-          {isMobile ? (
+          {usePlainEditor ? (
             <textarea
               className="code-preview-mobile-editor"
               value={code}

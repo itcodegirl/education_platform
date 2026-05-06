@@ -1,9 +1,18 @@
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { CodeChallenge } from './CodeChallenge';
 
+const { mockUseIsMobile, mockUseReducedData } = vi.hoisted(() => ({
+  mockUseIsMobile: vi.fn(),
+  mockUseReducedData: vi.fn(),
+}));
+
 vi.mock('../../hooks/useIsMobile', () => ({
-  useIsMobile: () => true,
+  useIsMobile: () => mockUseIsMobile(),
+}));
+
+vi.mock('../../hooks/useReducedData', () => ({
+  useReducedData: () => mockUseReducedData(),
 }));
 
 vi.mock('../../services/aiService', () => ({
@@ -26,6 +35,11 @@ const baseChallenge = {
 };
 
 describe('CodeChallenge', () => {
+  beforeEach(() => {
+    mockUseIsMobile.mockReturnValue(true);
+    mockUseReducedData.mockReturnValue(false);
+  });
+
   it('challenge-sandbox.cannot-access-parent-window', () => {
     render(
       <CodeChallenge
@@ -62,6 +76,16 @@ describe('CodeChallenge', () => {
     fireEvent.click(screen.getByRole('button', { name: /reveal anyway/i }));
 
     expect(screen.getByText('<h1>Hello</h1>')).toBeInTheDocument();
+  });
+
+  it('reduced-data.uses-textarea-not-monaco', () => {
+    mockUseIsMobile.mockReturnValue(false);
+    mockUseReducedData.mockReturnValue(true);
+
+    render(<CodeChallenge challenge={baseChallenge} lang="html" />);
+
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
+    expect(screen.queryByText(/loading editor/i)).not.toBeInTheDocument();
   });
 });
 
