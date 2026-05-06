@@ -135,7 +135,7 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
               previewHTML: challenge.previewHTML,
             })}
             title="Challenge Preview"
-            sandbox="allow-scripts allow-same-origin"
+            sandbox="allow-scripts"
           />
         </div>
       </div>

@@ -26,6 +26,24 @@ const baseChallenge = {
 };
 
 describe('CodeChallenge', () => {
+  it('challenge-sandbox.cannot-access-parent-window', () => {
+    render(
+      <CodeChallenge
+        challenge={{
+          ...baseChallenge,
+          starter: '<script>parent.document.body.dataset.pwned = "1"; localStorage.setItem("x", "1");</script>',
+        }}
+        lang="html"
+      />,
+    );
+
+    const iframe = screen.getByTitle('Challenge Preview');
+
+    expect(iframe).toHaveAttribute('sandbox', 'allow-scripts');
+    expect(iframe.getAttribute('sandbox')).not.toContain('allow-same-origin');
+    expect(iframe.getAttribute('srcdoc')).toContain('parent.document.body');
+  });
+
   it('shows a soft warning before revealing solution when tests were not attempted', () => {
     render(<CodeChallenge challenge={baseChallenge} lang="html" />);
 
