@@ -2,6 +2,7 @@
 import { generateCertificate } from '../../utils/certificate';
 import { useToast } from '../shared/Toast';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { COMPLETION_EXPORT_COPY, PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 
 export function CourseComplete({ isOpen, onClose, course, displayName, lessonCount }) {
   const [show, setShow] = useState(false);
@@ -40,7 +41,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
         completionDate: today,
       });
     } catch {
-      toast.show('Learner export failed - try again in a moment.');
+      toast.show('Learner export failed — try again in a moment.');
     } finally {
       setTimeout(() => setDownloading(false), 1000);
     }
@@ -55,7 +56,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
         role="dialog"
         aria-modal="true"
         aria-labelledby="cc-course-title"
-        aria-describedby="cc-course-desc cc-course-kicker"
+        aria-describedby="cc-course-desc cc-course-kicker cc-progress-sync"
         tabIndex={-1}
       >
         <div className="cc-badge-row">
@@ -69,8 +70,11 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
             You marked all {lessonCount} lessons in <strong>{course.label}</strong> as done.
           </p>
           <p id="cc-course-kicker" className="cc-kicker">
-            This learner export reflects the app progress currently saved for you. It is
-            not a third-party certificate or verified credential.
+            This completion milestone shows that you stayed with the work long enough
+            to turn effort into visible progress.
+          </p>
+          <p id="cc-progress-sync" className="cc-kicker">
+            {PROGRESS_SYNC_COPY} {COMPLETION_EXPORT_COPY} This is learner progress, not a third-party certificate.
           </p>
         </div>
 
@@ -83,7 +87,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
               {course.label}
             </div>
             <div className="cc-cert-name">{displayName || 'Learner'}</div>
-            <div className="cc-cert-detail">All {lessonCount} lessons marked done</div>
+            <div className="cc-cert-detail">Completed all {lessonCount} lessons in current app progress</div>
             <div className="cc-cert-date">{today}</div>
             <div className="cc-cert-note">Not a verified credential</div>
             <div className="cc-cert-brand">
@@ -115,7 +119,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
           </button>
 
           <button type="button" className="cc-share-btn" onClick={async () => {
-            const text = `I marked all ${lessonCount} ${course.label} lessons done on CodeHerWay. This is learner progress, not a verified credential. #CodeHerWay #WomenInTech #LearnToCode`;
+            const text = `I just completed the ${course.label} course on CodeHerWay! ${lessonCount} lessons done. #CodeHerWay #WomenInTech #LearnToCode`;
             // Each path silently swallows its own failure mode:
             //   - navigator.share rejects when the user cancels the sheet
             //   - clipboard.writeText can reject without a user gesture
@@ -145,7 +149,4 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
     </div>
   );
 }
-
-
-
 

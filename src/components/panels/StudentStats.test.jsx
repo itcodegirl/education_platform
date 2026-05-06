@@ -93,4 +93,19 @@ describe('StudentStats streak card', () => {
     expect(card).toHaveTextContent('0');
     expect(card).not.toHaveTextContent(/streak paused/i);
   });
+
+  it('shows the local-first progress sync scope', () => {
+    mockUseXP.mockReturnValue({
+      xpTotal: 0,
+      streak: 0,
+      pausedStreak: null,
+      dailyCount: 0,
+      earnedBadges: {},
+    });
+
+    render(<StudentStats isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText(/Progress sync: saved on this device/i)).toBeInTheDocument();
+    expect(screen.getByText(/XP, streaks, badges, review queue, and challenges are single-device today/i)).toBeInTheDocument();
+  });
 });

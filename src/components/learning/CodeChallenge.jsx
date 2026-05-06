@@ -160,6 +160,9 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
             // an iframe document that's still loading the previous code.
             onLoad={handleIframeLoad}
             title="Challenge Preview"
+            // Intentionally exclude allow-same-origin: learner-authored
+            // code runs in an opaque-origin sandbox and grading uses a
+            // read-only postMessage snapshot bridge instead.
             sandbox="allow-scripts"
           />
         </div>

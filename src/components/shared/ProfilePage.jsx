@@ -5,6 +5,7 @@ import { XP_PER_LEVEL, getLevel, getXPInLevel } from '../../utils/helpers';
 import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { supabase } from '../../lib/supabaseClient';
+import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 
 export const ProfilePage = memo(function ProfilePage({ onClose }) {
   const { user, profile, signOut } = useAuth();
@@ -151,6 +152,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
             This is your progress page: saved lessons, motivational XP, streaks,
             and the momentum you are building one session at a time.
           </p>
+          <p className="pp-hero-copy">{PROGRESS_SYNC_COPY}</p>
           <div className="pp-status-row" aria-label="Current learning status">
             <span className="pp-status-pill">Level {level}</span>
             <span className="pp-status-pill warm">

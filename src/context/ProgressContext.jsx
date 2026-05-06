@@ -7,6 +7,15 @@
 import { createContext, useContext, useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useAuth } from './AuthContext';
 import {
+  buildNotesMap,
+  findExistingBookmark,
+  getSavedNote,
+  isBookmarkedLesson,
+  normalizeProgressLessonKey,
+  removeEquivalentBookmarks,
+} from './progressSavedLessonHelpers';
+import { collectRecoverableLoadWarnings } from './progressSyncWarningHelpers';
+import {
   DAILY_GOAL,
   getActiveDailyCount,
   getActiveStreakDays,
@@ -15,7 +24,6 @@ import {
   getTodayString,
   getYesterdayString,
 } from '../utils/helpers';
-import { COURSES } from '../data';
 import * as progressService from '../services/progressService';
 import {
   createProgressWrite,
@@ -30,7 +38,6 @@ import {
 } from '../services/progressSyncTelemetry';
 import { getProgressWriteFailure } from '../services/progressWriteRuntime';
 import { isPerfectQuizScore, rewardKeys } from '../services/rewardPolicy';
-import { lessonKeysEquivalent, resolveStableLessonKeyAcrossCourses } from '../utils/lessonKeys';
 import { LOCAL_STORAGE_SYNC_ERROR_EVENT } from '../hooks/useLocalStorage';
 import { useTodayKey } from '../hooks/useTodayKey';
 import { findNewlyEarnedBadges } from '../services/badgeRules';
@@ -61,7 +68,9 @@ const ProgressContext = createContext({
   trackCourseVisit: () => {},
   dataLoaded: false,
   loadError: null,
+  loadWarnings: [],
   retryLoad: () => {},
+  clearLoadWarnings: () => {},
   rewardHistory: [],
   hasRewardBeenAwarded: () => false,
   markRewardAwarded: () => false,
@@ -108,10 +117,6 @@ const SRContext = createContext({
   saveNote: () => {},
   getNote: () => '',
 });
-
-function normalizeLessonKey(lessonKey) {
-  return resolveStableLessonKeyAcrossCourses(lessonKey, COURSES);
-}
 
 // Per-learner localStorage helpers (reward history, challenge
 // completions, normalization) live in utils/learnerLocalStore so
@@ -358,6 +363,8 @@ export function ProgressProvider({ children }) {
   const newBadge = newBadgeQueue[0] || null;
   const [dataLoaded, setDataLoaded] = useState(false);
   const [loadError, setLoadError] = useState(null);
+  const [loadWarnings, setLoadWarnings] = useState([]);
+  const clearLoadWarnings = useCallback(() => setLoadWarnings([]), [setLoadWarnings]);
 
   useEffect(() => {
     if (!userId || !dataLoaded || loadError) return;
@@ -440,6 +447,7 @@ export function ProgressProvider({ children }) {
       resetUserState();
       setDataLoaded(false);
       setLoadError(null);
+      setLoadWarnings([]);
       return;
     }
 
@@ -448,20 +456,26 @@ export function ProgressProvider({ children }) {
     const loadAll = async () => {
       const uid = user.id;
       setLoadError(null);
+      setLoadWarnings([]);
 
       try {
       // Parallel fetch all tables
       const results = await progressService.fetchAllUserData(uid);
       if (cancelled) return;
-      const { progress: progressRes, quiz: quizRes, xp: xpRes, streak: streakRes,
-        daily: dailyRes, badges: badgesRes, sr: srRes, bookmarks: bookmarkRes,
-        notes: notesRes, visited: visitedRes, position: posRes } = results;
+      if (results.criticalError) {
+        throw new Error(results.criticalError.message);
+      }
 
-      const completedLessonKeys = progressRes.data?.map(r => r.lesson_key) || [];
+      setLoadWarnings(collectRecoverableLoadWarnings(results.recoverableErrors));
+
+      const { progress, quiz, xp, streak, daily, badges: badgeRows, sr, bookmarks: bookmarkRows,
+        notes: noteRows, visited, position } = results.data;
+
+      const completedLessonKeys = progress.map(r => r.lesson_key);
       setCompleted(completedLessonKeys);
 
       const scores = {};
-      quizRes.data?.forEach(r => { scores[r.quiz_key] = r.score; });
+      quiz.forEach(r => { scores[r.quiz_key] = r.score; });
       setQuizScores(scores);
 
       const storedRewardHistory = readRewardHistory(uid);
@@ -497,11 +511,11 @@ export function ProgressProvider({ children }) {
         },
       );
 
-      const loadedXpTotal = xpRes.data?.total || 0;
+      const loadedXpTotal = xp?.total || 0;
       xpTotalRef.current = loadedXpTotal;
       setXpTotal(loadedXpTotal);
 
-      const sd = streakRes.data;
+      const sd = streak;
       if (sd) {
         const loadedStreak = sd.days || 0;
         const loadedLastDate = sd.last_date || '';
@@ -519,7 +533,7 @@ export function ProgressProvider({ children }) {
         streakStateRef.current = { days: 0, lastDate: '' };
       }
 
-      const dd = dailyRes.data;
+      const dd = daily;
       const today = getTodayString();
       if (dd && dd.goal_date === today) {
         const loadedCount = dd.count || 0;
@@ -532,11 +546,11 @@ export function ProgressProvider({ children }) {
         dailyStateRef.current = { count: 0, date: today };
       }
 
-      const badges = {};
-      badgesRes.data?.forEach(r => { badges[r.badge_id] = { date: r.earned_at?.slice(0, 10) }; });
-      setEarnedBadges(badges);
+      const loadedBadges = {};
+      badgeRows.forEach(r => { loadedBadges[r.badge_id] = { date: r.earned_at?.slice(0, 10) }; });
+      setEarnedBadges(loadedBadges);
 
-      setSrCards(srRes.data?.map(r => ({
+      setSrCards(sr.map(r => ({
         question: r.question,
         code: r.code,
         options: r.options,
@@ -547,29 +561,30 @@ export function ProgressProvider({ children }) {
         nextReview: new Date(r.next_review).getTime(),
         interval: r.interval_days,
         ease: r.ease,
-      })) || []);
+      })));
 
-      setBookmarks(bookmarkRes.data || []);
+      setBookmarks(bookmarkRows);
 
-      const notesMap = {};
-      notesRes.data?.forEach(r => { notesMap[r.lesson_key] = r.content; });
-      setNotes(notesMap);
+      setNotes(buildNotesMap(noteRows));
 
-      setCoursesVisited(visitedRes.data?.map(r => r.course_id) || []);
+      setCoursesVisited(visited.map(r => r.course_id));
 
-      if (posRes.data) {
+      if (position) {
         setLastPosition({
-          course: posRes.data.course || '',
-          mod: posRes.data.mod || '',
-          les: posRes.data.les || '',
-          time: posRes.data.updated_at ? new Date(posRes.data.updated_at).getTime() : 0,
+          course: position.course || '',
+          mod: position.mod || '',
+          les: position.les || '',
+          time: position.updated_at ? new Date(position.updated_at).getTime() : 0,
         });
+      } else {
+        setLastPosition({ course: '', mod: '', les: '', time: 0 });
       }
 
       setDataLoaded(true);
       } catch (err) {
         if (cancelled) return;
         console.error('Failed to load data:', err);
+        setLoadWarnings([]);
         setLoadError(err.message || 'Could not connect to database');
         setDataLoaded(true); // still mark loaded so UI isn't stuck
       }
@@ -835,15 +850,11 @@ export function ProgressProvider({ children }) {
   const toggleBookmark = useCallback(async (lessonKey, courseId, lessonTitle, options = {}) => {
     if (!user) return;
     const skipRemote = Boolean(options?.skipRemote);
-    const normalizedLessonKey = normalizeLessonKey(lessonKey);
-    const existing = bookmarks.find((bookmark) =>
-      lessonKeysEquivalent(bookmark.lesson_key, normalizedLessonKey, COURSES),
-    );
+    const normalizedLessonKey = normalizeProgressLessonKey(lessonKey);
+    const existing = findExistingBookmark(bookmarks, normalizedLessonKey);
 
     if (existing) {
-      setBookmarks((prev) => prev.filter((bookmark) =>
-        !lessonKeysEquivalent(bookmark.lesson_key, normalizedLessonKey, COURSES),
-      ));
+      setBookmarks((prev) => removeEquivalentBookmarks(prev, normalizedLessonKey));
       if (!skipRemote) {
         const removalKeys = new Set([existing.lesson_key, normalizedLessonKey]);
         removalKeys.forEach((key) => {
@@ -874,16 +885,14 @@ export function ProgressProvider({ children }) {
   }, [user, bookmarks, dbWrite]);
 
   const isBookmarked = useCallback((lessonKey) => {
-    const normalizedLessonKey = normalizeLessonKey(lessonKey);
-    return bookmarks.some((bookmark) =>
-      lessonKeysEquivalent(bookmark.lesson_key, normalizedLessonKey, COURSES),
-    );
+    const normalizedLessonKey = normalizeProgressLessonKey(lessonKey);
+    return isBookmarkedLesson(bookmarks, normalizedLessonKey);
   }, [bookmarks]);
 
   // ─── Notes (NEW) ─────────────────────────────
   const saveNote = useCallback(async (lessonKey, content) => {
     if (!user) return;
-    const normalizedLessonKey = normalizeLessonKey(lessonKey);
+    const normalizedLessonKey = normalizeProgressLessonKey(lessonKey);
     setNotes(prev => ({ ...prev, [normalizedLessonKey]: content }));
     dbWrite(
       createProgressWrite('saveNote', {
@@ -895,14 +904,8 @@ export function ProgressProvider({ children }) {
   }, [user, dbWrite]);
 
   const getNote = useCallback((lessonKey) => {
-    const normalizedLessonKey = normalizeLessonKey(lessonKey);
-    if (notes[normalizedLessonKey]) return notes[normalizedLessonKey];
-    if (notes[lessonKey]) return notes[lessonKey];
-
-    const equivalentKey = Object.keys(notes).find((storedKey) =>
-      lessonKeysEquivalent(storedKey, normalizedLessonKey, COURSES),
-    );
-    return equivalentKey ? notes[equivalentKey] : '';
+    const normalizedLessonKey = normalizeProgressLessonKey(lessonKey);
+    return getSavedNote(notes, lessonKey, normalizedLessonKey);
   }, [notes]);
 
   // ─── Position ─────────────────────────────────
@@ -923,11 +926,12 @@ export function ProgressProvider({ children }) {
   const retryLoad = useCallback(() => {
     setDataLoaded(false);
     setLoadError(null);
+    setLoadWarnings([]);
     // A fresh load replaces optimistic state with canonical DB state,
     // so any stale "sync failed" counter is irrelevant after this.
     setSyncFailed(0);
     setLoadVersion((version) => version + 1);
-  }, []);
+  }, [setLoadWarnings]);
 
   const progressValue = useMemo(() => ({
     completed,
@@ -941,7 +945,9 @@ export function ProgressProvider({ children }) {
     trackCourseVisit,
     dataLoaded,
     loadError,
+    loadWarnings,
     retryLoad,
+    clearLoadWarnings,
     rewardHistory,
     hasRewardBeenAwarded,
     markRewardAwarded,
@@ -967,7 +973,9 @@ export function ProgressProvider({ children }) {
     trackCourseVisit,
     dataLoaded,
     loadError,
+    loadWarnings,
     retryLoad,
+    clearLoadWarnings,
     rewardHistory,
     hasRewardBeenAwarded,
     markRewardAwarded,
@@ -1089,7 +1097,7 @@ export function useSR() {
  *   pre-date the three-context split. New code should import the
  *   narrower `useProgressData`, `useXP`, or `useSR` hook so a streak
  *   tick doesn't re-render a screen that only reads completion data.
- *   See docs/progress-context-split-plan.md for the migration plan.
+ *   See docs/progress-context-decomposition-plan.md for the migration plan.
  */
 export function useProgress() {
   const progress = useProgressData();

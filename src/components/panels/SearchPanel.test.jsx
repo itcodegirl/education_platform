@@ -61,4 +61,20 @@ describe('SearchPanel', () => {
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /clear search/i })).toBeInTheDocument();
   });
+
+  it('opens the top search result from the keyboard', () => {
+    const onNavigate = vi.fn();
+    const onClose = vi.fn();
+
+    render(<SearchPanel isOpen onClose={onClose} onNavigate={onNavigate} />);
+
+    const input = screen.getByRole('combobox', { name: /Search lessons/i });
+    fireEvent.change(input, {
+      target: { value: 'flexbox' },
+    });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(onNavigate).toHaveBeenCalledWith(1, 0, 2);
+    expect(onClose).toHaveBeenCalled();
+  });
 });

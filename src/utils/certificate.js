@@ -1,4 +1,4 @@
-﻿// ===============================================
+// ===============================================
 // LEARNER EXPORT GENERATOR - Downloadable PDF
 // Creates a branded CodeHerWay completion progress export
 // Uses jsPDF (client-side, no server needed)
@@ -132,12 +132,16 @@ export async function generateCertificate({ studentName, courseName, courseId, l
     `in the ${courseName} course on CodeHerWay.`,
     W / 2, 125, { align: 'center' }
   );
+  doc.text(
+    'Reflects current app progress; not server-authoritative.',
+    W / 2, 132, { align: 'center' }
+  );
 
   // --- Skills summary line --------------------
   const skillsText = getSkillsSummary(courseId);
   doc.setFontSize(9);
   doc.setTextColor(...COLORS.textMuted);
-  doc.text(skillsText, W / 2, 135, { align: 'center' });
+  doc.text(skillsText, W / 2, 140, { align: 'center' });
 
   // --- Bottom section -------------------------
   // Date
@@ -154,7 +158,7 @@ export async function generateCertificate({ studentName, courseName, courseId, l
   doc.setFontSize(10);
   doc.setTextColor(...COLORS.textDim);
   doc.setFont('helvetica', 'normal');
-  doc.text('Export ID', W / 2 + 55, 158, { align: 'center' });
+  doc.text('Completion Export ID', W / 2 + 55, 158, { align: 'center' });
   doc.setTextColor(...COLORS.white);
   doc.setFont('courier', 'bold');
   doc.text(exportId, W / 2 + 55, 166, { align: 'center' });
@@ -215,6 +219,4 @@ function getSkillsSummary(courseId) {
       return 'Skills: Web Development Fundamentals';
   }
 }
-
-
 

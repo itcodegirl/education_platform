@@ -91,4 +91,11 @@ describe('BadgesPanel', () => {
     // Programmatic list label — same numbers, screen-reader-friendly phrasing.
     expect(screen.getByRole('list', { name: /2 of 18 badges earned/i })).toBeInTheDocument();
   });
+
+  it('shows the local-first progress sync scope', () => {
+    render(<BadgesPanel isOpen onClose={() => {}} />);
+
+    expect(screen.getByText(/Progress sync: saved on this device/i)).toBeInTheDocument();
+    expect(screen.getByText(/badges, review queue, and challenges are single-device today/i)).toBeInTheDocument();
+  });
 });

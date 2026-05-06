@@ -1,7 +1,8 @@
 const has = (code, str) => code.toLowerCase().includes(str.toLowerCase());
 
-// Returns the live computed style for a CSS selector inside the preview iframe.
-// Requires `iframe.contentWindow` so it uses the iframe's own style resolution.
+// Returns the computed style for a CSS selector inside the preview snapshot.
+// The snapshot is collected from the sandboxed iframe over postMessage so
+// the parent never needs same-origin access to learner-authored code.
 const domStyle = (iframe, sel) => {
   const el = iframe?.contentDocument?.querySelector(sel);
   return el ? (iframe?.contentWindow?.getComputedStyle(el) ?? null) : null;

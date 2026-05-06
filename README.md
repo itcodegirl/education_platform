@@ -12,16 +12,16 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 
 ## Current Project Status
 
-- This repository root is the active canonical app.
+- This repository root is the active canonical app for CodeHerWay.
 - The project is usable for demos and portfolio review.
 - The project is not yet production-grade.
 - The quality baseline currently includes lint, production build, bundle budget, unit tests, quiz audit reporting, and Playwright smoke coverage.
 
 ## What Is Currently Working
 
-> **Persistence scope today: single-device.** The reward engine, challenge
-> completion ledger, and progress sync queue are designed around the
-> learner's current browser. Backend cross-device sync is scaffolded but
+> **Progress sync: saved on this device.** Lesson completions and bookmarks
+> may sync when connected; XP, streaks, badges, review queue, and challenges
+> are single-device today. Backend cross-device reward sync is scaffolded but
 > intentionally disabled (see [Cross-device persistence](#cross-device-persistence)).
 
 - Course browsing and lesson viewing UI for HTML, CSS, JavaScript, and React tracks.
@@ -63,10 +63,12 @@ Current test boundaries:
 
 ## Cross-device persistence
 
-The runtime today targets a single device. A learner who signs in from a
-second browser will see their server-stored lessons and bookmarks, but XP,
-streaks, badges, the spaced-repetition queue, and challenge completions
-are computed against the local reward ledger and `localStorage` mirror.
+The runtime today targets a single device. Progress sync is saved on this
+device. A learner who signs in from a second browser may see their
+server-stored lesson completions and bookmarks when connected, but XP,
+streaks, badges, the spaced-repetition review queue, and challenge
+completions are computed against the local reward ledger and `localStorage`
+mirror.
 
 This is a deliberate scope decision rather than a roadmap promise:
 

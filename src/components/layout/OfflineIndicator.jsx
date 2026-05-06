@@ -14,8 +14,11 @@ export function OfflineIndicator() {
     syncFailed,
     pendingSyncWrites,
     syncRetryInFlight,
+    loadWarnings = [],
     clearSyncFailed,
+    clearLoadWarnings,
     retryPendingSyncWrites,
+    retryLoad,
   } = useProgressData();
   const onlineToastTimerRef = useRef(null);
 
@@ -127,6 +130,40 @@ export function OfflineIndicator() {
         >
           Hide
         </button>
+      </div>
+    );
+  }
+
+  if (loadWarnings.length > 0) {
+    const warningSummary = loadWarnings.join(' ');
+
+    return (
+      <div className="offline-banner is-load-warning" role="alert" aria-live="assertive" aria-atomic="true">
+        <span className="offline-icon" aria-hidden="true">!</span>
+        <span className="offline-copy">
+          <span className="offline-text">{warningSummary}</span>
+          <span className="offline-note">
+            Core lessons still loaded in this browser. Retry to fill in the missing extras.
+          </span>
+        </span>
+        <div className="offline-actions">
+          <button
+            type="button"
+            className="offline-retry"
+            onClick={retryLoad}
+            aria-label="Retry progress load"
+          >
+            Retry load
+          </button>
+          <button
+            type="button"
+            className="offline-dismiss"
+            onClick={clearLoadWarnings}
+            aria-label="Hide load warnings"
+          >
+            Hide
+          </button>
+        </div>
       </div>
     );
   }

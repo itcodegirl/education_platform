@@ -26,8 +26,11 @@ describe('OfflineIndicator', () => {
       syncFailed: 0,
       pendingSyncWrites: 0,
       syncRetryInFlight: false,
+      loadWarnings: [],
       clearSyncFailed: vi.fn(),
+      clearLoadWarnings: vi.fn(),
       retryPendingSyncWrites: vi.fn(),
+      retryLoad: vi.fn(),
     });
   });
 
@@ -42,8 +45,11 @@ describe('OfflineIndicator', () => {
       syncFailed: 0,
       pendingSyncWrites: 2,
       syncRetryInFlight: false,
+      loadWarnings: [],
       clearSyncFailed: vi.fn(),
+      clearLoadWarnings: vi.fn(),
       retryPendingSyncWrites,
+      retryLoad: vi.fn(),
     });
 
     render(<OfflineIndicator />);
@@ -89,8 +95,11 @@ describe('OfflineIndicator', () => {
       syncFailed: 0,
       pendingSyncWrites: 1,
       syncRetryInFlight: true,
+      loadWarnings: [],
       clearSyncFailed: vi.fn(),
+      clearLoadWarnings: vi.fn(),
       retryPendingSyncWrites: vi.fn(),
+      retryLoad: vi.fn(),
     });
 
     render(<OfflineIndicator />);
@@ -114,8 +123,11 @@ describe('OfflineIndicator', () => {
       syncFailed: 1,
       pendingSyncWrites: 1,
       syncRetryInFlight: false,
+      loadWarnings: [],
       clearSyncFailed: vi.fn(),
+      clearLoadWarnings: vi.fn(),
       retryPendingSyncWrites: vi.fn(),
+      retryLoad: vi.fn(),
     });
 
     render(<OfflineIndicator />);
@@ -134,8 +146,11 @@ describe('OfflineIndicator', () => {
       syncFailed: 2,
       pendingSyncWrites: 0,
       syncRetryInFlight: false,
+      loadWarnings: [],
       clearSyncFailed,
+      clearLoadWarnings: vi.fn(),
       retryPendingSyncWrites: vi.fn(),
+      retryLoad: vi.fn(),
     });
 
     render(<OfflineIndicator />);
@@ -155,14 +170,47 @@ describe('OfflineIndicator', () => {
     expect(clearSyncFailed).toHaveBeenCalledTimes(1);
   });
 
+  it('renders scoped recoverable load warnings without blocking the app shell', () => {
+    const clearLoadWarnings = vi.fn();
+    const retryLoad = vi.fn();
+    mockUseProgressData.mockReturnValue({
+      syncFailed: 0,
+      pendingSyncWrites: 0,
+      syncRetryInFlight: false,
+      loadWarnings: ['Notes failed to load.', 'Badges failed to load.'],
+      clearSyncFailed: vi.fn(),
+      clearLoadWarnings,
+      retryPendingSyncWrites: vi.fn(),
+      retryLoad,
+    });
+
+    render(<OfflineIndicator />);
+
+    expect(
+      screen.getByText(/notes failed to load\. badges failed to load\./i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/core lessons still loaded in this browser\./i),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /retry progress load/i }));
+    fireEvent.click(screen.getByRole('button', { name: /hide load warnings/i }));
+
+    expect(retryLoad).toHaveBeenCalledTimes(1);
+    expect(clearLoadWarnings).toHaveBeenCalledTimes(1);
+  });
+
   it('renders the offline banner from the initial browser state', () => {
     setNavigatorOnline(false);
     mockUseProgressData.mockReturnValue({
       syncFailed: 0,
       pendingSyncWrites: 1,
       syncRetryInFlight: false,
+      loadWarnings: [],
       clearSyncFailed: vi.fn(),
+      clearLoadWarnings: vi.fn(),
       retryPendingSyncWrites: vi.fn(),
+      retryLoad: vi.fn(),
     });
 
     render(<OfflineIndicator />);

@@ -70,6 +70,9 @@ describe('AuthPage accessibility', () => {
   it('has no detectable accessibility violations on the default auth state', async () => {
     const { container } = render(<AuthPage onPreview={vi.fn()} />);
     await screen.findByRole('tab', { name: /login/i });
+    // Keep color-contrast in real-browser Playwright coverage. JSDOM
+    // does not compute rendered contrast reliably enough for this unit
+    // check to be authoritative.
     const results = await axe(container, {
       rules: {
         'color-contrast': { enabled: false },

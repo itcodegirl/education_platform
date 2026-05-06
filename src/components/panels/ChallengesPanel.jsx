@@ -4,6 +4,7 @@ import { CodeChallenge } from '../learning/CodeChallenge';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useProgressData } from '../../providers';
 import { useLearning } from '../../hooks/useLearning';
+import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 
 export function ChallengesPanel({ courseId, lang, onClose }) {
   const challenges = getChallengesForCourse(courseId);
@@ -50,6 +51,7 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
             <p className="panel-meta">
               Work through the prompt, run the tests, and keep iterating until the challenge clicks.
             </p>
+            <p className="panel-meta">{PROGRESS_SYNC_COPY}</p>
             <p className="panel-meta panel-meta-trust">
               Completion is CodeHerWay app progress in this browser, not external verification.
             </p>
@@ -104,6 +106,7 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
           <p className="panel-meta">
             Pick a challenge when you want to turn a lesson into something tangible and testable.
           </p>
+          <p className="panel-meta">{PROGRESS_SYNC_COPY}</p>
           <p className="panel-meta panel-meta-trust">
             Completed labels reflect same-browser CodeHerWay progress. XP and badges stay motivational unless backend reward sync is enabled and verified.
           </p>

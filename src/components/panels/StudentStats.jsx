@@ -4,6 +4,7 @@ import { COURSES } from '../../data';
 import { getLevel, getXPInLevel, XP_PER_LEVEL } from '../../utils/helpers';
 import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 
 export function StudentStats({ isOpen, onClose }) {
   const { completed, quizScores } = useProgressData();
@@ -158,6 +159,7 @@ export function StudentStats({ isOpen, onClose }) {
             Lessons, bookmarks, notes, XP, and streaks sync to your account when the cloud is reachable.
           </p>
           )}
+          <p className="panel-meta">{PROGRESS_SYNC_COPY}</p>
 
           <div className="ss-cards" style={stats.totalDone === 0 ? { opacity: 0.4, pointerEvents: 'none' } : undefined}>
             <div className="ss-card">
