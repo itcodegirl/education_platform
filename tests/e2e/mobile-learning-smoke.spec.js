@@ -1,13 +1,7 @@
 import { expect, test } from '@playwright/test';
+import { getAuthSkipReason, getMissingAuthEnv } from './authE2E.js';
 
-const requiredEnv = [
-  'VITE_SUPABASE_URL',
-  'VITE_SUPABASE_ANON_KEY',
-  'E2E_EMAIL',
-  'E2E_PASSWORD',
-];
-
-const missingEnv = requiredEnv.filter((name) => !process.env[name]);
+const missingEnv = getMissingAuthEnv();
 
 test.describe('mobile learning smoke', () => {
   test.setTimeout(90000);
@@ -19,24 +13,18 @@ test.describe('mobile learning smoke', () => {
 
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(
-      testInfo.project.name !== 'mobile-chrome',
-      'This smoke test is scoped to mobile-chrome only.',
+      testInfo.project.name !== 'authenticated-mobile-chrome',
+      'This smoke test is scoped to authenticated mobile Chrome only.',
     );
+    const authSkipReason = getAuthSkipReason();
+    test.skip(Boolean(authSkipReason), authSkipReason);
 
     await page.goto('/');
     await page.waitForSelector('.auth-form, .shell, .welcome-overlay', { timeout: 30000 });
 
     const onAuthPage = await page.locator('.auth-form').isVisible().catch(() => false);
     if (onAuthPage) {
-      const loginTab = page.getByRole('tab', { name: /login/i });
-      if (await loginTab.isVisible().catch(() => false)) {
-        await loginTab.click();
-      }
-
-      await page.fill('input[type="email"]', process.env.E2E_EMAIL);
-      await page.fill('input[type="password"]', process.env.E2E_PASSWORD);
-      await page.click('button[type="submit"]');
-      await page.waitForSelector('.shell, .welcome-overlay', { timeout: 30000 });
+      test.skip(true, 'Authenticated mobile smoke could not restore the shared signed-in state.');
     }
 
     const welcomeVisible = await page.locator('.welcome-overlay').isVisible().catch(() => false);

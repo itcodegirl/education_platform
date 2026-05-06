@@ -1,13 +1,7 @@
 import { expect, test } from '@playwright/test';
+import { getAuthSkipReason, getMissingAuthEnv } from './authE2E.js';
 
-const requiredEnv = [
-  'VITE_SUPABASE_URL',
-  'VITE_SUPABASE_ANON_KEY',
-  'E2E_EMAIL',
-  'E2E_PASSWORD',
-];
-
-const missingEnv = requiredEnv.filter((name) => !process.env[name]);
+const missingEnv = getMissingAuthEnv();
 
 test.describe('authenticated smoke', () => {
   test.setTimeout(90000);
@@ -19,9 +13,11 @@ test.describe('authenticated smoke', () => {
 
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(
-      testInfo.project.name === 'mobile-chrome',
+      testInfo.project.name !== 'authenticated-chromium',
       'Authenticated smoke currently runs on desktop Chromium only.'
     );
+    const authSkipReason = getAuthSkipReason();
+    test.skip(Boolean(authSkipReason), authSkipReason);
 
     const diagnostics = {
       consoleErrors: [],

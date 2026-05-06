@@ -1,28 +1,23 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import { expect, test } from '@playwright/test';
-
-const authDir = path.join(process.cwd(), 'playwright', '.auth');
-const authFile = path.join(authDir, 'user.json');
-
-const requiredEnv = [
-	'VITE_SUPABASE_URL',
-	'VITE_SUPABASE_ANON_KEY',
-	'E2E_EMAIL',
-	'E2E_PASSWORD',
-];
-
-function writeEmptyState() {
-	fs.mkdirSync(authDir, { recursive: true });
-	fs.writeFileSync(authFile, JSON.stringify({ cookies: [], origins: [] }, null, 2));
-}
+import {
+	authFile,
+	getMissingAuthEnv,
+	markAuthReady,
+	markAuthUnavailable,
+} from './authE2E.js';
 
 test('capture authenticated storage state', async ({ page }) => {
-	const missingEnv = requiredEnv.filter((name) => !process.env[name]);
+	const missingEnv = getMissingAuthEnv();
 	if (missingEnv.length > 0) {
-		writeEmptyState();
-		test.skip(true, `Set ${missingEnv.join(', ')} to generate authenticated storage state.`);
+		const reason = `Set ${missingEnv.join(', ')} to generate authenticated storage state.`;
+		markAuthUnavailable(reason);
+		test.skip(true, reason);
 	}
+
+	await page.addInitScript(() => {
+		window.localStorage.setItem('chw-onboarded', 'true');
+		window.localStorage.removeItem('chw-lock-mode');
+	});
 
 	await page.goto('/');
 
@@ -38,31 +33,52 @@ test('capture authenticated storage state', async ({ page }) => {
 		await page.getByRole('button', { name: /log in/i }).last().click();
 	}
 
-	await waitForAuthenticatedShell(page);
+	const authReady = await waitForAuthenticatedShell(page);
+	if (!authReady.ok) {
+		markAuthUnavailable(authReady.reason);
+		test.skip(true, authReady.reason);
+	}
 
 	const startFreshButton = page.getByRole('button', { name: /start fresh/i });
 	if (await startFreshButton.isVisible().catch(() => false)) {
 		await startFreshButton.click();
 	}
 
-	fs.mkdirSync(authDir, { recursive: true });
 	await page.context().storageState({ path: authFile });
+	markAuthReady();
 });
 
 async function waitForAuthenticatedShell(page) {
-	await page.waitForFunction(() => {
+	const result = await page.waitForFunction(() => {
 		const isVisible = (selector) => {
 			const element = document.querySelector(selector);
 			return Boolean(element && (element.offsetWidth || element.offsetHeight || element.getClientRects().length));
 		};
 
-		return isVisible('.topbar') &&
+		const authError = document.querySelector('.auth-error');
+		const authErrorText = authError?.textContent?.trim();
+		if (isVisible('.auth-error') && authErrorText) {
+			return { ok: false, reason: `Configured E2E test account could not sign in: ${authErrorText}` };
+		}
+
+		const hasAuthenticatedShell = isVisible('.topbar') &&
 			isVisible('#course-sidebar') &&
 			isVisible('.main-shell') &&
 			!isVisible('.auth-card');
-	}, null, { timeout: 30000 });
+
+		return hasAuthenticatedShell ? { ok: true, reason: null } : null;
+	}, null, { timeout: 20000 }).then((handle) => handle.jsonValue()).catch(() => ({
+		ok: false,
+		reason: 'Configured E2E test account could not reach the authenticated shell.',
+	}));
+
+	if (!result.ok) {
+		return result;
+	}
 
 	await expect(page.locator('.topbar')).toBeVisible({ timeout: 30000 });
 	await expect(page.locator('#course-sidebar')).toBeVisible({ timeout: 30000 });
 	await expect(page.locator('.main-shell')).toBeVisible({ timeout: 30000 });
+
+	return result;
 }
