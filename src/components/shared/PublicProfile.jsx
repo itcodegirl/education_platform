@@ -138,7 +138,7 @@ export function PublicProfile({ handle, onClose }) {
           <div className="pub-level-row">
             <span>Level {level}</span>
             <span>
-              {xpInLevel}/{XP_PER_LEVEL} XP to Level {level + 1}
+              {xpInLevel}/{XP_PER_LEVEL} motivational XP to Level {level + 1}
             </span>
           </div>
           <div className="pub-level-track">
@@ -149,7 +149,7 @@ export function PublicProfile({ handle, onClose }) {
         <div className="pub-stats">
           <div className="pub-stat">
             <div className="pub-stat-value">{(xp_total || 0).toLocaleString()}</div>
-            <div className="pub-stat-label">Total XP</div>
+            <div className="pub-stat-label">Motivational XP</div>
           </div>
           <div className="pub-stat">
             <div className="pub-stat-value">

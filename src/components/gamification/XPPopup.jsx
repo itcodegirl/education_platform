@@ -26,6 +26,7 @@ export function XPPopup() {
     <div className={`xp-popup ${show ? 'show' : ''}`}>
       <div className="xp-gain">+{xpPopup.amount} XP</div>
       <div className="xp-reason">{xpPopup.reason}</div>
+      <div className="xp-scope">Motivational progress</div>
       {xpPopup.newLevel && (
         <div className="xp-lvlup">🎉 Level Up! Level {xpPopup.newLevel}</div>
       )}

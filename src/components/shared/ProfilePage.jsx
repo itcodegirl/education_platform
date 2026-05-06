@@ -135,8 +135,8 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
           <p className="pp-email">{user?.email}</p>
           {joined && <p className="pp-joined">Joined {joined}</p>}
           <p className="pp-hero-copy">
-            This is your proof-of-progress page: streaks, shipped lessons, and the
-            momentum you are building one session at a time.
+            This is your proof-of-progress page: streaks, shipped lessons, motivational
+            XP, and the momentum you are building one session at a time.
           </p>
           <div className="pp-status-row" aria-label="Current learning status">
             <span className="pp-status-pill">Level {level}</span>
@@ -152,7 +152,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
         <div className="pp-stats-grid">
           {[
             { value: level, label: 'Level' },
-            { value: xpTotal.toLocaleString(), label: 'XP' },
+            { value: xpTotal.toLocaleString(), label: 'Motivational XP' },
             { value: streak, label: 'Streak' },
             { value: completedLessons, label: 'Lessons' },
           ].map((stat) => (
@@ -167,7 +167,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
           <div className="pp-xp-info">
             <span>Level {level}</span>
             <span>
-              {xpInLevel}/{XP_PER_LEVEL} XP to Level {level + 1}
+              {xpInLevel}/{XP_PER_LEVEL} motivational XP to Level {level + 1}
             </span>
           </div>
           <div className="pp-xp-track">
@@ -225,8 +225,8 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
               <div className="pp-public-title">Let your progress speak for itself</div>
               <div className="pp-public-sub">
                 Create a read-only page at <code>/u/your-handle</code> that shows your
-                level, XP, streak, lessons shipped, and badge count. No email, notes, or
-                private progress details are exposed.
+                level, motivational XP, streak, lessons shipped, and badge count. No
+                email, notes, or private progress details are exposed.
               </div>
             </div>
             <label className="pp-public-switch">
