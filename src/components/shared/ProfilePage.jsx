@@ -3,15 +3,18 @@ import { useAuth, useCourseContent, useProgressData, useXP, useSR, useTheme, BAD
 import { COURSES } from '../../data';
 import { XP_PER_LEVEL, getLevel, getXPInLevel } from '../../utils/helpers';
 import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { supabase } from '../../lib/supabaseClient';
 
 export const ProfilePage = memo(function ProfilePage({ onClose }) {
   const { user, profile, signOut } = useAuth();
   const { theme } = useTheme();
   const { completed = [] } = useProgressData();
-  const { xpTotal = 0, streak = 0, earnedBadges = {} } = useXP();
+  const { xpTotal = 0, streak = 0, pausedStreak = null, earnedBadges = {} } = useXP();
   const { bookmarks = [], notes = {} } = useSR();
   const { ensureAllLoaded } = useCourseContent();
+
+  useDocumentTitle('Your profile');
 
   useEffect(() => {
     ensureAllLoaded();
@@ -48,6 +51,16 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
   }, [user?.id]);
 
   const savePublicSettings = async (nextIsPublic, nextHandle) => {
+    // Defense in depth: ProfilePage is mounted behind the
+    // renderProtected guard which redirects when user is null,
+    // but a session that expires between page load and click
+    // would land here with user undefined. Bail out cleanly with
+    // a recoverable error instead of crashing on user.id.
+    if (!user?.id) {
+      setPublicError('Your session has expired. Sign in again to publish your profile.');
+      return;
+    }
+
     setPublicSaving(true);
     setPublicError('');
     setPublicSaved(false);
@@ -135,17 +148,19 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
           <p className="pp-email">{user?.email}</p>
           {joined && <p className="pp-joined">Joined {joined}</p>}
           <p className="pp-hero-copy">
-            This is your proof-of-progress page: streaks, shipped lessons, and the
-            momentum you are building one session at a time.
+            This is your proof-of-progress page: streaks, shipped lessons, motivational
+            XP, and the momentum you are building one session at a time.
           </p>
           <div className="pp-status-row" aria-label="Current learning status">
             <span className="pp-status-pill">Level {level}</span>
             <span className="pp-status-pill warm">
               {completedLessons}/{totalLessons} lessons shipped
             </span>
-            {streak > 0 && (
+            {streak > 0 ? (
               <span className="pp-status-pill accent">{streak} day streak</span>
-            )}
+            ) : pausedStreak ? (
+              <span className="pp-status-pill">{pausedStreak.days}-day streak paused</span>
+            ) : null}
           </div>
         </div>
 
@@ -153,7 +168,10 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
           {[
             { value: level, label: 'Level' },
             { value: xpTotal.toLocaleString(), label: 'XP' },
-            { value: streak, label: 'Streak' },
+            {
+              value: streak > 0 ? streak : pausedStreak?.days || 0,
+              label: streak === 0 && pausedStreak ? 'Streak paused' : 'Streak',
+            },
             { value: completedLessons, label: 'Lessons' },
           ].map((stat) => (
             <div key={stat.label} className="pp-stat-card">
@@ -167,7 +185,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
           <div className="pp-xp-info">
             <span>Level {level}</span>
             <span>
-              {xpInLevel}/{XP_PER_LEVEL} XP to Level {level + 1}
+              {xpInLevel}/{XP_PER_LEVEL} motivational XP to Level {level + 1}
             </span>
           </div>
           <div className="pp-xp-track">
@@ -199,24 +217,34 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
         <h3 className="pp-section-title">
           Proof of progress ({badgeCount}/{BADGE_DEFS.length})
         </h3>
-        <div className="pp-badge-grid">
+        {/* List semantics + per-badge earned/locked status, mirroring
+            BadgesPanel — without these the screen-reader experience
+            was identical for earned and locked badges (visual-only).
+            Earned date isn't stored here on the profile (the dated
+            record lives in earnedBadges), so we just say earned/locked. */}
+        <ul
+          className="pp-badge-grid"
+          aria-label={`${badgeCount} of ${BADGE_DEFS.length} badges earned`}
+        >
           {BADGE_DEFS.map((badge) => {
             const earned = Boolean(earnedBadges[badge.id]);
+            const status = earned ? 'earned' : 'locked';
 
             return (
-              <div
+              <li
                 key={badge.id}
                 className={`pp-badge-card ${earned ? 'earned' : 'locked'}`}
+                aria-label={`${badge.name}, ${status}. ${badge.desc}`}
               >
-                <div className="pp-badge-icon">{badge.icon}</div>
+                <div className="pp-badge-icon" aria-hidden="true">{badge.icon}</div>
                 <div className={`pp-badge-name ${earned ? 'earned' : ''}`}>
                   {badge.name}
                 </div>
                 <div className="pp-badge-desc">{badge.desc}</div>
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
 
         <h3 className="pp-section-title">Share your public page</h3>
         <div className="pp-public-card">
@@ -225,8 +253,8 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
               <div className="pp-public-title">Let your progress speak for itself</div>
               <div className="pp-public-sub">
                 Create a read-only page at <code>/u/your-handle</code> that shows your
-                level, XP, streak, lessons shipped, and badge count. No email, notes, or
-                private progress details are exposed.
+                level, motivational XP, streak, lessons shipped, and badge count. No
+                email, notes, or private progress details are exposed.
               </div>
             </div>
             <label className="pp-public-switch">
@@ -272,7 +300,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
                   disabled={publicSaving}
                   onClick={() => savePublicSettings(true, publicHandle)}
                 >
-                  {publicSaving ? 'Saving...' : 'Publish'}
+                  {publicSaving ? 'Saving…' : 'Publish'}
                 </button>
               </div>
               {publicHandle && !publicError && publicSaved && (
@@ -280,7 +308,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
                   className="pp-public-link"
                   href={`/u/${publicHandle}`}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                 >
                   Open your public page &rarr;
                 </a>

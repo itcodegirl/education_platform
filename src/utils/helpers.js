@@ -48,3 +48,51 @@ export function getTodayString() {
 export function getYesterdayString() {
   return new Date(Date.now() - TIMING.dayMs).toISOString().slice(0, 10);
 }
+
+// Returns the streak count the UI should actually display, given
+// the persisted streak length and the date of the last recorded
+// activity. The DB stores the raw value from the last time the
+// learner was active — if they then miss a day, that stored value
+// is stale until they do another activity. Without this guard the
+// topbar happily shows "5 day streak" to a learner whose streak
+// silently broke two days ago, which is the kind of soft lie the
+// audit flagged as a trust risk.
+//
+// Pure (no Date.now() call) so it stays trivially testable; the
+// caller passes today / yesterday strings.
+export function getActiveStreakDays(streakDays, lastDate, today, yesterday) {
+  if (!Number.isFinite(streakDays) || streakDays <= 0) return 0;
+  if (!lastDate) return 0;
+  if (lastDate === today || lastDate === yesterday) return streakDays;
+  return 0;
+}
+
+// Companion to getActiveStreakDays. Returns a { days, lastDate }
+// payload describing a paused streak — i.e. the learner had a real
+// streak going, but it's currently inactive (last activity is
+// older than yesterday). Returns null when there's nothing to
+// surface (no prior streak, or the streak is still alive).
+//
+// Used by the WelcomeBack overlay to show a positive "you had a
+// 7-day streak going — pick it back up" cue instead of the silent
+// 0 the active-streak guard would otherwise produce.
+export function getPausedStreak(streakDays, lastDate, today, yesterday) {
+  if (!Number.isFinite(streakDays) || streakDays <= 0) return null;
+  if (!lastDate) return null;
+  if (lastDate === today || lastDate === yesterday) return null;
+  return { days: streakDays, lastDate };
+}
+
+// Same shape as getActiveStreakDays but for the today's-lessons
+// counter. Persisted dailyCount + dailyDate reflect the LAST time
+// the learner did activity. If they did 3 lessons yesterday and
+// open the app today without doing anything yet, the stored count
+// is still 3 — so the topbar would lie that today's goal is
+// already met. Returning 0 when dailyDate isn't today keeps the
+// UI honest, and the count rebuilds correctly the moment the
+// learner logs their next activity.
+export function getActiveDailyCount(dailyCount, dailyDate, today) {
+  if (!Number.isFinite(dailyCount) || dailyCount <= 0) return 0;
+  if (!dailyDate || dailyDate !== today) return 0;
+  return dailyCount;
+}

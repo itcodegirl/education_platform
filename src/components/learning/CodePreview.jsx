@@ -1,6 +1,7 @@
-﻿import { useState, useRef, useCallback, lazy, Suspense, useEffect } from 'react';
+﻿import { useState, useRef, useCallback, lazy, Suspense, useEffect, memo } from 'react';
 import { IFRAME_STYLES } from '../../utils/iframeStyles';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { usePrefersReducedData } from '../../hooks/usePrefersReducedData';
 import { defineMonacoTheme, MONACO_THEME_NAME, MONACO_OPTIONS } from '../../utils/monacoTheme';
 import { explainCode as explainCodeRequest } from '../../services/aiService';
 import { buildCodePreviewConsoleScript } from './codePreviewConsoleScript';
@@ -19,8 +20,14 @@ const SCAFFOLDING = {
   requirements: { icon: '📋', label: 'Requirements Only',   hint: 'No code given! Open the Editor tab and write it from scratch.' },
 };
 
-export function CodePreview({ code, lang, scaffolding = 'full' }) {
+// Memoized — CodePreview takes only primitive props (code, lang,
+// scaffolding) so it can safely skip re-renders that come from
+// unrelated lesson-chain state (showNotes, checkedTasks, AI tutor
+// open/close). Without memo, every keystroke in the lesson notes
+// textarea re-rendered Monaco / its iframe sibling.
+export const CodePreview = memo(function CodePreview({ code, lang, scaffolding = 'full' }) {
   const isMobile = useIsMobile();
+  const prefersReducedData = usePrefersReducedData();
   const level = SCAFFOLDING[scaffolding] || SCAFFOLDING.full;
   const defaultTab = scaffolding === 'starter' || scaffolding === 'requirements' ? 'editor' : 'code';
 
@@ -30,6 +37,12 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
   const [aiExplaining, setAiExplaining] = useState(false);
   const [aiExplanation, setAiExplanation] = useState('');
   const [showExplanation, setShowExplanation] = useState(false);
+  // When Data Saver is on, default to the textarea fallback so we
+  // never download the Monaco chunks. The learner can opt back into
+  // the full editor with a single click via the "Load full editor"
+  // button rendered next to the textarea.
+  const [forceFullEditor, setForceFullEditor] = useState(false);
+  const useTextareaEditor = isMobile || (prefersReducedData && !forceFullEditor);
   const editorRef = useRef(null);
 
   const isCSS = lang === 'css';
@@ -44,11 +57,13 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
     setTab(scaffolding === 'starter' || scaffolding === 'requirements' ? 'editor' : 'code');
   }, [code, scaffolding]);
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     const textToCopy = tab === 'editor' ? editorCode : code;
-    navigator.clipboard.writeText(textToCopy);
-    setCopied(true);
-    setTimeout(() => setCopied(false), COPY_FEEDBACK_MS);
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(textToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), COPY_FEEDBACK_MS);
+    }
   };
 
   const handleReset = () => {
@@ -128,7 +143,7 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
 
         <div className="code-preview-actions">
           {tab === 'editor' && editorCode !== code && (
-            <button type="button" className="code-preview-reset" onClick={handleReset} title="Reset to original">
+            <button type="button" className="code-preview-reset" onClick={handleReset} aria-label="Reset code to original" title="Reset to original">
               Reset
             </button>
           )}
@@ -138,12 +153,13 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
               className={`code-preview-explain ${aiExplaining ? 'loading' : ''}`}
               onClick={explainCode}
               disabled={aiExplaining}
-              title="AI explains your code"
+              aria-label={aiExplaining ? 'AI is analyzing your code' : 'AI explains your code'}
+              aria-busy={aiExplaining}
             >
               {aiExplaining ? '⏳ Thinking...' : '🤖 Explain'}
             </button>
           )}
-          <button type="button" className="code-preview-copy" onClick={handleCopy}>
+          <button type="button" className="code-preview-copy" onClick={handleCopy} aria-label={copied ? 'Code copied to clipboard' : 'Copy code to clipboard'}>
             {copied ? 'Copied' : 'Copy'}
           </button>
         </div>
@@ -155,17 +171,33 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
 
       {tab === 'editor' && (
         <div className="code-preview-editor-wrap">
-          {isMobile ? (
-            <textarea
-              className="code-preview-mobile-editor"
-              value={editorCode}
-              onChange={(event) => handleEditorChange(event.target.value)}
-              spellCheck={false}
-              autoCapitalize="off"
-              autoCorrect="off"
-              rows={14}
-              placeholder={scaffolding === 'requirements' ? 'Write your code here...' : undefined}
-            />
+          {useTextareaEditor ? (
+            <>
+              <textarea
+                className="code-preview-mobile-editor"
+                value={editorCode}
+                onChange={(event) => handleEditorChange(event.target.value)}
+                spellCheck={false}
+                autoCapitalize="off"
+                autoCorrect="off"
+                rows={14}
+                aria-label="Code editor"
+                placeholder={scaffolding === 'requirements' ? 'Write your code here...' : undefined}
+              />
+              {/* On desktop with Data Saver on, surface a one-click
+                  override so the learner can opt into the full
+                  editor when they need autocomplete / linting. */}
+              {!isMobile && prefersReducedData && (
+                <button
+                  type="button"
+                  className="code-preview-load-full"
+                  onClick={() => setForceFullEditor(true)}
+                >
+                  Load full editor (downloads ~2 MB)
+                </button>
+              )}
+            </>
+
           ) : (
             <Suspense fallback={<div className="code-preview-editor-loading"><span className="code-preview-loading-spinner"></span>Loading editor...</div>}>
               <MonacoEditor
@@ -187,6 +219,7 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
               />
             </Suspense>
           )}
+
 
           {showExplanation && (
             <div className="code-preview-explanation">
@@ -215,15 +248,11 @@ export function CodePreview({ code, lang, scaffolding = 'full' }) {
         <iframe
           className="code-preview-iframe"
           srcDoc={buildPreview(previewSource)}
-          title="Preview"
+          title={isJS ? 'Code output' : isCSS ? 'CSS preview' : 'HTML preview'}
           sandbox="allow-scripts"
         />
       )}
     </div>
   );
-}
-
-
-
-
+});
 

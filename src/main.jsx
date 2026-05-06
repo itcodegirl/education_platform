@@ -25,7 +25,7 @@ import '@fontsource/space-mono/latin-700.css';
 // CSP blocks inline-script execution. Importing from a module works
 // because Vite serves it from our own origin, matching 'self'.
 import './lib/registerSW';
-import { initSentry } from './lib/sentry';
+import { initSentry, reportException } from './lib/sentry';
 
 import App from './App';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
@@ -74,13 +74,25 @@ function recoverFromChunkLoad(errorLike) {
 }
 
 window.addEventListener('error', (event) => {
-  recoverFromChunkLoad(event.error || event.message || event);
+  const errorLike = event.error || event.message || event;
+  if (recoverFromChunkLoad(errorLike)) return;
+  // Forward genuine runtime errors to Sentry (no-op when telemetry is off).
+  // Without this, only React render errors caught by the ErrorBoundary
+  // reach Sentry; raw runtime errors would land only in the browser console.
+  reportException(errorLike instanceof Error ? errorLike : new Error(String(errorLike)), {
+    source: 'window.error',
+  });
 });
 
 window.addEventListener('unhandledrejection', (event) => {
-  if (recoverFromChunkLoad(event.reason || event)) {
+  const reason = event.reason || event;
+  if (recoverFromChunkLoad(reason)) {
     event.preventDefault();
+    return;
   }
+  reportException(reason instanceof Error ? reason : new Error(String(reason?.message || reason)), {
+    source: 'window.unhandledrejection',
+  });
 });
 
 ReactDOM.createRoot(document.getElementById('root')).render(

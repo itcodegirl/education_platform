@@ -4,6 +4,88 @@ All notable changes to CodeHerWay. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 semantic versioning.
 
+## [Unreleased] — `claude/audit-quiz-improvements-OeLYb`
+
+Audit + improvement cycle covering deferred items C2, C5, C6, and C7.
+
+### Added
+
+- **Lesson label guard** — new `npm run audit:lesson-labels` script
+  captures a snapshot of every active courseId/moduleId/lessonId →
+  title triple and fails on any title rename for an existing lesson
+  (and on lesson removal). Persisted progress today is keyed by lesson
+  title strings, so renaming a lesson silently breaks lookups for
+  learners whose row was written under the old title; this guard
+  blocks that drift until the stable lesson ID migration (C2) lands.
+  Snapshot lives at `scripts/lesson-label-snapshot.json`. To
+  intentionally rename a lesson, ship a paired progress migration and
+  refresh the snapshot in the same PR via
+  `node scripts/check-lesson-labels.mjs --update`. Wired into
+  `npm run check:quality` so it runs in the local + CI quality gate.
+- **Cross-device persistence section in README** — explicit
+  "single-device today" framing so onboarding copy matches the
+  runtime. Documents that `VITE_REWARD_BACKEND_SYNC_ENABLED` defaults
+  to `false`, that the backend reward path ships as additive Supabase
+  migrations only, and that flipping the flag without applying the
+  migrations is unsupported.
+- **C5 split plan doc** — `docs/progress-context-split-plan.md`
+  captures the staged split of `ProgressContext.jsx` (~1,100 lines)
+  into `src/context/progress/`, the deprecation alias strategy for
+  `useProgress`, and the acceptance checklist. The aggregated
+  `useProgress` hook now carries an `@deprecated` JSDoc tag so the
+  alias is discoverable in tooling.
+
+### Changed
+
+- **Quiz integrity audit promoted to a real CI gate** — the CI Smoke
+  check no longer runs `npm run audit:quizzes` with
+  `continue-on-error: true`. Recent PRs have shown clean output for
+  multiple cycles; the script already runs in `--strict` mode by
+  default, so removing the `continue-on-error` flag is the one-line
+  promotion.
+- **CSS challenge graders, partial DOM migration (C6)** —
+  `css-ch-1` "Gap or spacing" now inspects computed `.navbar` style
+  for non-zero `gap`/`padding`/`margin` instead of regex-matching the
+  source. `css-ch-3` "Full viewport height" compares `.wrapper`
+  computed `min-height` against the iframe's `innerHeight` instead of
+  searching the source for `100vh`/`100dvh`. `css-ch-9` "infinite"
+  reads `animationIterationCount` from the live element. The
+  remaining source-regex checks are intentional: pseudo-state,
+  `@keyframes`, `@media`, and CSS custom property introspection are
+  not observable from a static iframe snapshot, and that's documented
+  in `KNOWN_LIMITATIONS.md`. The `css-ch-1` "No underlines" check
+  stays source-based because the iframe's default stylesheet already
+  removes underlines for `nav a`.
+
+## [Unreleased] — `claude/audit-improve-platform-cb4PI`
+
+Small portfolio-polish sweep on top of the prior stabilized baseline.
+Lint clean, build green, 509 unit tests still passing.
+
+### Fixed
+
+- **Auth card brand glyph** — replaced the literal `*` (rendered as a
+  44px glowing brand icon) with the `</>` brand mark. Reads as part of
+  the wordmark instead of a debug placeholder.
+- **Auth submit button** — loading state now announces
+  `Signing in…` / `Creating account…` instead of an opaque `'...'`,
+  so screen-reader and visual users both know what's in flight.
+- **Disabled-account screen** — `[ ]` placeholder icon replaced with
+  the ⊘ glyph already used elsewhere in the route chrome; copy
+  realigned to sentence case (`Account disabled`, `Log out`,
+  `Contact support`) to match the rest of the app.
+- **Course-skeleton fallback** — the unknown-course icon fallback in
+  `AppLayout` swapped from the literal `'[]'` to a books emoji;
+  trailing `...` swapped for a real `…`.
+
+### Removed
+
+- **Dead route module** — `src/routes/AppRoutes.jsx` (the old
+  `useRoutes`-based router) had no remaining importer; the live
+  router has been `appRouter.jsx` (`createBrowserRouter`) for some
+  time. Removed alongside the unused `.loading-bolt` rule that lived
+  in both `auth.css` and the `index.html` critical CSS block.
+
 ## [Unreleased] — `claude/security-audit-frontend-VYk6d`
 
 Portfolio polish + security hardening sweep. Ready to merge to `main`.

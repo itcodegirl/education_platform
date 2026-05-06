@@ -2,9 +2,18 @@
 import { supabase } from '../../lib/supabaseClient';
 import { Logo } from './Logo';
 import { XP_PER_LEVEL, getLevel, getXPInLevel } from '../../utils/helpers';
+import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 
 export function PublicProfile({ handle, onClose }) {
   const [state, setState] = useState({ loading: true, error: null, profile: null });
+
+  useDocumentTitle(
+    state.profile?.display_name
+      ? `${state.profile.display_name}'s profile`
+      : handle
+        ? `@${handle}`
+        : 'Public profile',
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -58,9 +67,14 @@ export function PublicProfile({ handle, onClose }) {
   if (state.loading) {
     return (
       <div className="pub-profile">
-        <div className="pub-card pub-card-center">
+        <div
+          className="pub-card pub-card-center"
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+        >
           <Logo size="sm" />
-          <p className="pub-loading">Loading profile...</p>
+          <p className="pub-loading">Loading profile…</p>
         </div>
       </div>
     );
@@ -69,8 +83,8 @@ export function PublicProfile({ handle, onClose }) {
   if (state.error || !state.profile) {
     return (
       <div className="pub-profile">
-        <div className="pub-card pub-card-center">
-          <div className="pub-notfound-icon">🌙</div>
+        <div className="pub-card pub-card-center" role="alert">
+          <div className="pub-notfound-icon" aria-hidden="true">🌙</div>
           <h1 className="pub-notfound-title">Profile not found</h1>
           <p className="pub-notfound-msg">
             {state.error === 'Profile not found'
@@ -113,7 +127,7 @@ export function PublicProfile({ handle, onClose }) {
             onClick={onClose}
             aria-label="Close public profile"
           >
-            X
+            ×
           </button>
         )}
       </header>
@@ -138,7 +152,7 @@ export function PublicProfile({ handle, onClose }) {
           <div className="pub-level-row">
             <span>Level {level}</span>
             <span>
-              {xpInLevel}/{XP_PER_LEVEL} XP to Level {level + 1}
+              {xpInLevel}/{XP_PER_LEVEL} motivational XP to Level {level + 1}
             </span>
           </div>
           <div className="pub-level-track">
@@ -149,7 +163,7 @@ export function PublicProfile({ handle, onClose }) {
         <div className="pub-stats">
           <div className="pub-stat">
             <div className="pub-stat-value">{(xp_total || 0).toLocaleString()}</div>
-            <div className="pub-stat-label">Total XP</div>
+            <div className="pub-stat-label">Motivational XP</div>
           </div>
           <div className="pub-stat">
             <div className="pub-stat-value">

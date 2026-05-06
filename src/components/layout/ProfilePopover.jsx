@@ -1,11 +1,12 @@
 import { useEffect, useRef, memo } from 'react';
 import { useProgressData, useXP, useAuth } from '../../providers';
 import { getLevel, getXPInLevel, XP_PER_LEVEL, DAILY_GOAL } from '../../utils/helpers';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { navigateTo } from '../../routes/routeUtils';
 
 export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, isMobile }) {
   const { completed = [] } = useProgressData();
-  const { xpTotal = 0, streak = 0, dailyCount = 0 } = useXP();
+  const { xpTotal = 0, streak = 0, pausedStreak = null, dailyCount = 0 } = useXP();
   const { user, signOut } = useAuth();
   const popoverRef = useRef(null);
 
@@ -21,6 +22,9 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
       ? 'One more lesson locks in today\'s goal.'
       : `${lessonsToGoal} more lessons to hit today\'s goal.`;
 
+  useFocusTrap(popoverRef, { enabled: isOpen, onEscape: onClose });
+
+  // Close on click-outside
   useEffect(() => {
     if (!isOpen) return undefined;
 
@@ -30,19 +34,13 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
       }
     };
 
-    const handleKey = (event) => {
-      if (event.key === 'Escape') onClose();
-    };
-
     const timer = setTimeout(() => {
       document.addEventListener('pointerdown', handleClick);
-      document.addEventListener('keydown', handleKey);
     }, 10);
 
     return () => {
       clearTimeout(timer);
       document.removeEventListener('pointerdown', handleClick);
-      document.removeEventListener('keydown', handleKey);
     };
   }, [isOpen, onClose]);
 
@@ -54,6 +52,7 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
       className={`pp ${isMobile ? 'pp-mobile' : ''}`}
       role="dialog"
       aria-label="Your profile and stats"
+      tabIndex={-1}
     >
       <div className="pp-identity">
         <div className="pp-avatar">{displayName.charAt(0).toUpperCase()}</div>
@@ -71,8 +70,19 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
           <span className="pp-stat-label">Lessons</span>
         </div>
         <div className="pp-stat">
-          <span className="pp-stat-value">{streak}{streak > 0 ? '??' : ''}</span>
-          <span className="pp-stat-label">Streak</span>
+          {/* Active streak wins. If active is 0 but a paused streak
+              exists, show its count with a paused glyph so the
+              popover doesn't pretend the streak history never
+              happened. The literal "??" placeholder that lived
+              here is gone. */}
+          {streak > 0 ? (
+            <span className="pp-stat-value">{streak} <span aria-hidden="true">🔥</span></span>
+          ) : pausedStreak ? (
+            <span className="pp-stat-value">{pausedStreak.days} <span aria-hidden="true">💤</span></span>
+          ) : (
+            <span className="pp-stat-value">0</span>
+          )}
+          <span className="pp-stat-label">{pausedStreak && streak === 0 ? 'Streak paused' : 'Streak'}</span>
         </div>
         <div className="pp-stat">
           <span className="pp-stat-value">

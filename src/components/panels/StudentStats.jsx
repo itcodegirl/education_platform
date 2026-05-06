@@ -7,7 +7,7 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 export function StudentStats({ isOpen, onClose }) {
   const { completed, quizScores } = useProgressData();
-  const { xpTotal, streak, dailyCount, earnedBadges } = useXP();
+  const { xpTotal, streak, pausedStreak = null, dailyCount, earnedBadges } = useXP();
   const { srCards, bookmarks, notes } = useSR();
   const { ensureAllLoaded } = useCourseContent();
   const modalRef = useRef(null);
@@ -85,6 +85,7 @@ export function StudentStats({ isOpen, onClose }) {
       strongest,
       weakest,
       streak,
+      pausedStreak,
       dailyCount,
       badgeCount: Object.keys(earnedBadges).length,
       totalBadges: BADGE_DEFS.length,
@@ -93,7 +94,7 @@ export function StudentStats({ isOpen, onClose }) {
       bookmarkCount: bookmarks.length,
       noteCount: Object.keys(notes).length,
     };
-  }, [bookmarks, completed, earnedBadges, notes, quizScores, srCards, streak, dailyCount, xpTotal]);
+  }, [bookmarks, completed, earnedBadges, notes, quizScores, srCards, streak, pausedStreak, dailyCount, xpTotal]);
 
   useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
 
@@ -145,7 +146,7 @@ export function StudentStats({ isOpen, onClose }) {
               <h3 className="ss-empty-title">Your journey starts now</h3>
               <p className="ss-empty-body">
                 Complete your first lesson to unlock your personal progress dashboard —
-                XP, streaks, quiz accuracy, and a full learning heatmap.
+                motivational XP, streaks, quiz accuracy, and a full learning heatmap.
               </p>
               <button type="button" className="ss-empty-cta" onClick={onClose}>
                 Go to first lesson →
@@ -153,7 +154,7 @@ export function StudentStats({ isOpen, onClose }) {
             </div>
           ) : (
           <p className="panel-meta">
-            Track XP, quiz confidence, review load, and the parts of the curriculum that need the next rep.
+            Track motivational XP, quiz confidence, review load, and the parts of the curriculum that need the next rep.
           </p>
           )}
 
@@ -164,18 +165,34 @@ export function StudentStats({ isOpen, onClose }) {
               <div className="ss-mini-bar">
                 <div className="ss-mini-fill" style={{ width: `${stats.xpPercent}%` }} />
               </div>
-              <span className="ss-card-sub">{stats.xpInLevel}/{XP_PER_LEVEL} XP to next</span>
+              <span className="ss-card-sub">{stats.xpInLevel}/{XP_PER_LEVEL} motivational XP to next</span>
             </div>
             <div className="ss-card">
               <span className="ss-card-value">{stats.xpTotal.toLocaleString()}</span>
-              <span className="ss-card-label">Total XP</span>
+              <span className="ss-card-label">Motivational XP</span>
             </div>
             <div className="ss-card">
-              <span className="ss-card-value">{stats.streak}</span>
-              <span className="ss-card-label">Day Streak</span>
-              <span className="ss-card-sub">
-                {stats.streak >= 7 ? 'On fire this week.' : stats.streak >= 3 ? 'Momentum is building.' : 'Stack one more win today.'}
-              </span>
+              {stats.streak > 0 ? (
+                <>
+                  <span className="ss-card-value">{stats.streak}</span>
+                  <span className="ss-card-label">Day Streak</span>
+                  <span className="ss-card-sub">
+                    {stats.streak >= 7 ? 'On fire this week.' : stats.streak >= 3 ? 'Momentum is building.' : 'Stack one more win today.'}
+                  </span>
+                </>
+              ) : stats.pausedStreak ? (
+                <>
+                  <span className="ss-card-value">{stats.pausedStreak.days}</span>
+                  <span className="ss-card-label">Streak paused</span>
+                  <span className="ss-card-sub">Pick it back up — one lesson today resumes it.</span>
+                </>
+              ) : (
+                <>
+                  <span className="ss-card-value">0</span>
+                  <span className="ss-card-label">Day Streak</span>
+                  <span className="ss-card-sub">Stack one more win today.</span>
+                </>
+              )}
             </div>
             <div className="ss-card">
               <span className="ss-card-value">{stats.totalPercent}%</span>

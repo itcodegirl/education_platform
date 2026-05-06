@@ -576,8 +576,9 @@
 .proj-skills { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
 .proj-skill { font-size:11px; padding:3px 10px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text-dim); font-family:'Poppins', sans-serif; }
 
-/* Badges Grid */
-.badges-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; }
+/* Badges Grid — rendered as a real <ul>/<li> for screen readers, so
+   reset the default list styles to keep the grid layout unchanged. */
+.badges-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; list-style:none; padding:0; margin:0; }
 .badge-card {
   text-align: center;
   padding: 16px 10px;

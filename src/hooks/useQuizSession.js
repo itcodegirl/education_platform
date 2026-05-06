@@ -10,13 +10,14 @@
 // off this hook.
 // ═══════════════════════════════════════════════
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useAuth, useProgressData, useXP, useSR } from '../providers';
 import { TIMING } from '../utils/helpers';
 import {
   REWARD_XP,
   formatQuizScore,
   isQuizScoreImprovement,
+  quizPercent,
   rewardKeys,
 } from '../services/rewardPolicy';
 import { isBackendRewardSyncEnabled } from '../services/rewardEventService';
@@ -58,6 +59,7 @@ export function useQuizSession({ quiz, label, quizKey }) {
   const [answers, setAnswers] = useState(new Map());
   const [submitted, setSubmitted] = useState(false);
   const [lastEarnedXp, setLastEarnedXp] = useState(0);
+  const submitLockedRef = useRef(false);
 
   const backendRewardSyncEnabled = Boolean(user?.id) && isBackendRewardSyncEnabled();
 
@@ -75,20 +77,31 @@ export function useQuizSession({ quiz, label, quizKey }) {
   }, []);
 
   const reset = useCallback(() => {
+    submitLockedRef.current = false;
     setAnswers(new Map());
     setSubmitted(false);
     setLastEarnedXp(0);
   }, []);
 
   const handleSubmit = useCallback(async () => {
+    if (submitted || submitLockedRef.current) return;
+    submitLockedRef.current = true;
     setSubmitted(true);
+
+    const total = quiz.questions.length;
+    // Defensive: a malformed quiz with zero questions would NaN out the
+    // pct math below and silently fire empty reward + activity calls.
+    // Mark submitted so the UI exits the answer state, then bail.
+    if (total === 0) {
+      setLastEarnedXp(0);
+      return;
+    }
 
     const score = quiz.questions.reduce(
       (s, q) => s + (isAnswerCorrect(q, answers.get(q.id)) ? 1 : 0),
       0,
     );
-    const total = quiz.questions.length;
-    const pct = Math.round((score / total) * 100);
+    const pct = quizPercent(score, total);
 
     if (quizKey && isQuizScoreImprovement(quizScores[quizKey], score, total)) {
       saveQuizScore(quizKey, formatQuizScore(score, total));
@@ -161,6 +174,7 @@ export function useQuizSession({ quiz, label, quizKey }) {
   }, [
     quiz,
     answers,
+    submitted,
     quizKey,
     label,
     user?.id,
@@ -181,8 +195,10 @@ export function useQuizSession({ quiz, label, quizKey }) {
     0,
   );
   const total = quiz.questions.length;
-  const allAnswered = answers.size === total;
-  const pct = Math.round((score / total) * 100);
+  const allAnswered = total > 0 && answers.size === total;
+  // quizPercent returns 0 for total <= 0, so the rendered "{pct}%" can
+  // never be NaN%.
+  const pct = quizPercent(score, total);
   const wrongCount = submitted ? total - score : 0;
 
   return {

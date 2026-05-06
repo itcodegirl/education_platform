@@ -23,6 +23,7 @@ import { getTodayString, getYesterdayString } from '../utils/helpers';
 const {
   mockUseAuth,
   mockFetchAllUserData,
+  mockAddLesson,
   mockUpdateStreak,
   mockUpdateDailyGoal,
   mockUpdateXP,
@@ -31,6 +32,7 @@ const {
 } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
   mockFetchAllUserData: vi.fn(),
+  mockAddLesson: vi.fn(),
   mockUpdateStreak: vi.fn(),
   mockUpdateDailyGoal: vi.fn(),
   mockUpdateXP: vi.fn(),
@@ -47,7 +49,7 @@ vi.mock('./AuthContext', () => ({
 vi.mock('../services/progressService', () => ({
   fetchAllUserData: (...args) => mockFetchAllUserData(...args),
   // Write functions — not triggered by load, but imported by the module
-  addLesson: vi.fn(),
+  addLesson: (...args) => mockAddLesson(...args),
   removeLesson: vi.fn(),
   saveQuizScore: vi.fn(),
   updateXP: (...args) => mockUpdateXP(...args),
@@ -132,13 +134,46 @@ function XPWriteConsumer() {
   );
 }
 
+function LessonWriteConsumer() {
+  const {
+    completed,
+    toggleLesson,
+    pendingSyncWrites,
+    syncRetryInFlight,
+    retryPendingSyncWrites,
+  } = useProgressData();
+
+  return (
+    <>
+      <button
+        type="button"
+        data-testid="toggle-lesson"
+        data-completed={completed.join(',')}
+        data-pending-sync={String(pendingSyncWrites)}
+        data-retrying={String(syncRetryInFlight)}
+        onClick={() => toggleLesson('html|intro|welcome')}
+      >
+        Toggle lesson
+      </button>
+      <button
+        type="button"
+        data-testid="retry-lesson"
+        onClick={() => retryPendingSyncWrites()}
+      >
+        Retry lesson
+      </button>
+    </>
+  );
+}
+
 // Consumer for the XP-popup queue tests below. Exposes the head of the
 // queue plus actions to enqueue / dismiss so tests can drive the
 // queue without relying on the full reward pipeline.
 function XPPopupQueueConsumer() {
-  const { xpPopup, awardXP, clearXPPopup } = useXP();
+  const { xpTotal, xpPopup, awardXP, clearXPPopup } = useXP();
   return (
     <div data-testid="xp-popup-consumer">
+      <div data-testid="xp-total">{String(xpTotal)}</div>
       <div data-testid="xp-popup-amount">{xpPopup ? String(xpPopup.amount) : ''}</div>
       <div data-testid="xp-popup-reason">{xpPopup ? xpPopup.reason : ''}</div>
       <button type="button" data-testid="award-30" onClick={() => awardXP(30, 'Quiz completed')}>
@@ -146,6 +181,16 @@ function XPPopupQueueConsumer() {
       </button>
       <button type="button" data-testid="award-50" onClick={() => awardXP(50, 'Perfect quiz score!')}>
         +50
+      </button>
+      <button
+        type="button"
+        data-testid="award-combo"
+        onClick={() => {
+          awardXP(30, 'Quiz completed');
+          awardXP(50, 'Perfect quiz score!');
+        }}
+      >
+        Combo
       </button>
       <button type="button" data-testid="dismiss" onClick={clearXPPopup}>
         Dismiss
@@ -174,6 +219,14 @@ function renderXPWriteWithProvider() {
   return render(
     <ProgressProvider>
       <XPWriteConsumer />
+    </ProgressProvider>,
+  );
+}
+
+function renderLessonWriteWithProvider() {
+  return render(
+    <ProgressProvider>
+      <LessonWriteConsumer />
     </ProgressProvider>,
   );
 }
@@ -230,10 +283,11 @@ beforeEach(() => {
     configurable: true,
     value: storage,
   });
-  ['uid-write', 'uid-retry'].forEach((userId) => {
+  ['uid-write', 'uid-retry', 'uid-lesson'].forEach((userId) => {
     window.localStorage.removeItem(getProgressWriteQueueStorageKey(userId));
   });
   mockUpdateXP.mockResolvedValue({ error: null });
+  mockAddLesson.mockResolvedValue({ error: null });
   mockUpdateStreak.mockResolvedValue({});
   mockUpdateDailyGoal.mockResolvedValue({});
   mockTrackProgressSyncQueued.mockReset();
@@ -310,12 +364,37 @@ describe('ProgressContext — user logged in (happy path)', () => {
     });
   });
 
+  it('lesson-progress.reload-persists-completion', async () => {
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-abc' } });
+    mockFetchAllUserData.mockResolvedValue(
+      makeFetchResult({
+        progress: {
+          data: [{ lesson_key: 'html|intro|welcome' }],
+          error: null,
+        },
+      }),
+    );
+
+    renderWithProvider();
+
+    await waitFor(() => {
+      const el = screen.getByTestId('consumer');
+      expect(el.dataset.loaded).toBe('true');
+      expect(el.dataset.completed).toBe('html|intro|welcome');
+    });
+  });
+
   it('does not update streak just because progress data loaded', async () => {
+    // last_date must be today (or yesterday) so the active-streak
+    // guard in ProgressContext doesn't dim the loaded value to 0.
+    // Using a hardcoded date here would silently break this test
+    // every day after that date — ask helpers for today's value
+    // so the assertion stays stable.
     mockUseAuth.mockReturnValue({ user: { id: 'uid-abc' } });
     mockFetchAllUserData.mockResolvedValue(
       makeFetchResult({
         streak: {
-          data: { days: 3, last_date: '2026-01-01' },
+          data: { days: 3, last_date: getTodayString() },
           error: null,
         },
       }),
@@ -354,6 +433,76 @@ describe('ProgressContext — user logged in (happy path)', () => {
     });
     expect(screen.getByTestId('activity').dataset.streak).toBe('4');
   });
+
+  it('hides a stale streak when last activity is older than yesterday', async () => {
+    // Persisted streak says "5 days", but the learner hasn't been
+    // active since 10 days ago. The exposed XP-context streak must
+    // be 0 — the topbar shouldn't lie that the streak is still
+    // alive. Persisted DB state is unchanged either way (this is a
+    // display guard, not a write).
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-stale' } });
+    mockFetchAllUserData.mockResolvedValue(
+      makeFetchResult({
+        streak: {
+          data: { days: 5, last_date: '2024-01-01' },
+          error: null,
+        },
+      }),
+    );
+
+    renderXPWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('activity').dataset.streak).toBe('0');
+    });
+
+    expect(mockUpdateStreak).not.toHaveBeenCalled();
+  });
+
+  it('resets streak React state when the fetch returns no streak row', async () => {
+    // Regression for the asymmetry where the no-row branch only
+    // reset the ref, leaving setStreak/setStreakLastDate untouched.
+    // The active-streak guard alone couldn't catch this — it
+    // depends on the React state values themselves.
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-fresh' } });
+    mockFetchAllUserData.mockResolvedValue(
+      makeFetchResult({
+        streak: { data: null, error: null },
+      }),
+    );
+
+    renderXPWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('activity').dataset.streak).toBe('0');
+    });
+  });
+
+  it('advances dailyCount correctly when recordDailyActivity fires twice in the same batch', async () => {
+    // Regression: prior implementation read dailyCount/dailyDate from
+    // the React closure, so two recordDailyActivity() calls in the
+    // same React batch both saw the stale "before either ran" count
+    // and the second increment was lost. The ref-mirroring fix means
+    // back-to-back calls now correctly advance the count.
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-burst' } });
+    mockFetchAllUserData.mockResolvedValue(makeFetchResult());
+
+    renderXPWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('activity').dataset.daily).toBe('0');
+    });
+
+    // Two fireEvent.click calls inside the same synchronous task
+    // queue both invoke recordDailyActivity before React has flushed
+    // the state update from the first one.
+    fireEvent.click(screen.getByTestId('activity'));
+    fireEvent.click(screen.getByTestId('activity'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('activity').dataset.daily).toBe('2');
+    });
+  });
 });
 
 describe('ProgressContext — fetch error', () => {
@@ -381,6 +530,46 @@ describe('ProgressContext — fetch error', () => {
 });
 
 describe('ProgressContext write failure detection', () => {
+  it('lesson-progress.failed-write-queues-and-retries', async () => {
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-lesson' } });
+    mockFetchAllUserData.mockResolvedValue(makeFetchResult());
+    mockAddLesson
+      .mockResolvedValueOnce({
+        data: null,
+        error: { message: 'lesson write timeout' },
+      })
+      .mockResolvedValue({ error: null });
+
+    renderLessonWriteWithProvider();
+
+    await waitFor(() => {
+      expect(mockFetchAllUserData).toHaveBeenCalledWith('uid-lesson');
+    });
+
+    fireEvent.click(screen.getByTestId('toggle-lesson'));
+
+    await waitFor(() => {
+      const toggle = screen.getByTestId('toggle-lesson');
+      expect(toggle.dataset.completed).toBe('html|intro|welcome');
+      expect(toggle.dataset.pendingSync).toBe('1');
+    });
+
+    expect(readProgressWriteQueue('uid-lesson')[0]).toMatchObject({
+      operation: 'addLesson',
+      payload: { lessonKey: 'html|intro|welcome' },
+    });
+
+    fireEvent.click(screen.getByTestId('retry-lesson'));
+
+    await waitFor(() => {
+      const toggle = screen.getByTestId('toggle-lesson');
+      expect(toggle.dataset.completed).toBe('html|intro|welcome');
+      expect(toggle.dataset.pendingSync).toBe('0');
+    });
+    expect(mockAddLesson).toHaveBeenCalledTimes(2);
+    expect(readProgressWriteQueue('uid-lesson')).toEqual([]);
+  });
+
   it('queues Supabase result errors returned by optimistic writes', async () => {
     mockUseAuth.mockReturnValue({ user: { id: 'uid-write' } });
     mockFetchAllUserData.mockResolvedValue(makeFetchResult());
@@ -493,5 +682,23 @@ describe('ProgressContext — XP popup queue', () => {
     fireEvent.click(screen.getByTestId('dismiss'));
 
     expect(screen.getByTestId('xp-popup-amount').textContent).toBe('');
+  });
+
+  it('adds back-to-back XP awards from the latest in-memory total', async () => {
+    renderXPPopupQueueWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('award-combo')).not.toBeDisabled();
+    });
+
+    fireEvent.click(screen.getByTestId('award-combo'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('xp-total').textContent).toBe('80');
+    });
+    await waitFor(() => {
+      expect(mockUpdateXP).toHaveBeenCalledWith('uid-popup', 30);
+      expect(mockUpdateXP).toHaveBeenCalledWith('uid-popup', 80);
+    });
   });
 });

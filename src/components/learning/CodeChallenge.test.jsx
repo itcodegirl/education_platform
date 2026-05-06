@@ -1,14 +1,29 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { CodeChallenge } from './CodeChallenge';
+
+const { mockUseIsMobile, mockUsePrefersReducedData } = vi.hoisted(() => ({
+  mockUseIsMobile: vi.fn(),
+  mockUsePrefersReducedData: vi.fn(),
+}));
 
 vi.mock('../../hooks/useIsMobile', () => ({
-  useIsMobile: () => true,
+  useIsMobile: () => mockUseIsMobile(),
+}));
+
+vi.mock('../../hooks/usePrefersReducedData', () => ({
+  usePrefersReducedData: () => mockUsePrefersReducedData(),
 }));
 
 vi.mock('../../services/aiService', () => ({
   askChallengeTutor: vi.fn(),
 }));
+
+import { CodeChallenge } from './CodeChallenge';
+
+beforeEach(() => {
+  mockUseIsMobile.mockReturnValue(true);
+  mockUsePrefersReducedData.mockReturnValue(false);
+});
 
 const baseChallenge = {
   title: 'Render a heading',
@@ -26,6 +41,24 @@ const baseChallenge = {
 };
 
 describe('CodeChallenge', () => {
+  it('challenge-sandbox.cannot-access-parent-window', () => {
+    render(
+      <CodeChallenge
+        challenge={{
+          ...baseChallenge,
+          starter: '<script>parent.document.body.dataset.pwned = "1"; localStorage.setItem("x", "1");</script>',
+        }}
+        lang="html"
+      />,
+    );
+
+    const iframe = screen.getByTitle('Challenge Preview');
+
+    expect(iframe).toHaveAttribute('sandbox', 'allow-scripts');
+    expect(iframe.getAttribute('sandbox')).not.toContain('allow-same-origin');
+    expect(iframe.getAttribute('srcdoc')).toContain('parent.document.body');
+  });
+
   it('shows a soft warning before revealing solution when tests were not attempted', () => {
     render(<CodeChallenge challenge={baseChallenge} lang="html" />);
 
@@ -45,5 +78,31 @@ describe('CodeChallenge', () => {
 
     expect(screen.getByText('<h1>Hello</h1>')).toBeInTheDocument();
   });
-});
 
+  it('uses the lightweight textarea editor when prefers-reduced-data is set on desktop', () => {
+    mockUseIsMobile.mockReturnValue(false);
+    mockUsePrefersReducedData.mockReturnValue(true);
+
+    render(<CodeChallenge challenge={baseChallenge} lang="html" />);
+
+    // Textarea fallback (Code editor) is rendered, not the Monaco
+    // "Loading editor..." Suspense fallback.
+    expect(screen.getByLabelText(/code editor/i)).toHaveProperty('tagName', 'TEXTAREA');
+    // The opt-in escape hatch is offered on desktop.
+    expect(
+      screen.getByRole('button', { name: /load full editor/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('does not show the load-full override on mobile', () => {
+    mockUseIsMobile.mockReturnValue(true);
+    mockUsePrefersReducedData.mockReturnValue(false);
+
+    render(<CodeChallenge challenge={baseChallenge} lang="html" />);
+
+    expect(screen.getByLabelText(/code editor/i)).toHaveProperty('tagName', 'TEXTAREA');
+    expect(
+      screen.queryByRole('button', { name: /load full editor/i }),
+    ).not.toBeInTheDocument();
+  });
+});

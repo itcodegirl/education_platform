@@ -74,6 +74,32 @@ describe('callAI error classification', () => {
     });
   });
 
+  it('throws EMAIL_NOT_VERIFIED when the server returns 403 with the EMAIL_NOT_VERIFIED code', async () => {
+    globalThis.fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 403,
+      json: async () => ({ code: 'EMAIL_NOT_VERIFIED', error: 'Verify your email before using the AI tutor.' }),
+    });
+
+    await expect(askLessonTutor({ system: 's', history: [], question: 'q' })).rejects.toMatchObject({
+      code: AI_ERROR_CODES.EMAIL_NOT_VERIFIED,
+      status: 403,
+    });
+  });
+
+  it('falls back to UNAUTHENTICATED on a generic 403 response', async () => {
+    globalThis.fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 403,
+      json: async () => ({ error: 'Forbidden' }),
+    });
+
+    await expect(askLessonTutor({ system: 's', history: [], question: 'q' })).rejects.toMatchObject({
+      code: AI_ERROR_CODES.UNAUTHENTICATED,
+      status: 403,
+    });
+  });
+
   it('throws PAYLOAD_TOO_LARGE on a 413 response', async () => {
     globalThis.fetch.mockResolvedValueOnce({
       ok: false,

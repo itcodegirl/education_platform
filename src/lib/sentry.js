@@ -2,9 +2,10 @@
 
 let captureExceptionFn = null;
 
-function parseSampleRate(raw) {
+function parseSampleRate(raw, fallback = 0) {
+  if (raw == null || raw === '') return fallback;
   const parsed = Number(raw);
-  if (!Number.isFinite(parsed)) return 0;
+  if (!Number.isFinite(parsed)) return fallback;
   if (parsed < 0) return 0;
   if (parsed > 1) return 1;
   return parsed;
@@ -27,11 +28,18 @@ export async function initSentry() {
   if (!shouldEnableSentry()) return;
 
   const Sentry = await import('@sentry/react');
+  // Default to 10% trace sampling in production so slow-write or
+  // failed-sync regressions are visible without paying for full
+  // capture. Operators can override with VITE_SENTRY_TRACES_SAMPLE_RATE.
+  const tracesDefault = import.meta.env.PROD ? 0.1 : 0;
   Sentry.init({
     dsn: import.meta.env.VITE_SENTRY_DSN,
     environment: import.meta.env.VITE_SENTRY_ENVIRONMENT || import.meta.env.MODE,
     release: import.meta.env.VITE_SENTRY_RELEASE,
-    tracesSampleRate: parseSampleRate(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE),
+    tracesSampleRate: parseSampleRate(
+      import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE,
+      tracesDefault,
+    ),
   });
 
   captureExceptionFn = Sentry.captureException;

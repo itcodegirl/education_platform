@@ -135,6 +135,14 @@
   color: var(--cyan);
 }
 
+/* Lapsed-streak recovery cue. Intentionally dimmer than .streak
+   so it reads as "yes there's history" without nagging. */
+.topbar-pill.paused {
+  border-color: rgba(180, 74, 255, 0.18);
+  background: rgba(180, 74, 255, 0.06);
+  color: var(--text-dim);
+}
+
 .topbar-actions {
   margin-left: auto;
   display: flex;
@@ -154,12 +162,45 @@
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--text);
-  font-size: 20px;
-  width: 42px;
+  font-size: 14px;
+  font-weight: 500;
   height: 42px;
+  min-width: 42px;
+  padding: 0 12px;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.15s;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.ham .ham-glyph {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.ham .ham-label {
+  font-size: 13px;
+  letter-spacing: 0.01em;
+}
+
+@media (max-width: 600px) {
+  .ham .ham-label {
+    /* Visually hidden on narrow screens to keep the topbar compact,
+       but the aria-label still announces the action to assistive
+       tech. */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+  .ham {
+    padding: 0;
+    width: 42px;
+  }
 }
 
 .ham:hover {
@@ -214,6 +255,44 @@
   margin-top: 10px;
 }
 
+.frg-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: first-run-step;
+}
+
+.frg-steps li {
+  counter-increment: first-run-step;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.frg-steps li::before {
+  content: counter(first-run-step);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-right: 8px;
+  border-radius: 7px;
+  background: rgba(78, 205, 196, 0.16);
+  color: var(--cyan);
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .frg-courses {
   display: flex;
   flex-wrap: wrap;
@@ -247,6 +326,12 @@
 .frg-course-active {
   border-color: var(--purple);
   background: rgba(180, 74, 255, 0.16);
+}
+
+@media (max-width: 700px) {
+  .frg-steps {
+    grid-template-columns: 1fr;
+  }
 }
 
 .breadcrumb {
@@ -573,6 +658,15 @@
   font-size: 14px;
   color: var(--text-dim);
   margin-top: 4px;
+}
+
+.xp-scope {
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .xp-lvlup {

@@ -38,7 +38,7 @@ function createDeferred() {
 }
 
 function AuthProbe() {
-  const { user, profile, loading, profileLoading } = useAuth();
+  const { user, profile, profileError, loading, profileLoading } = useAuth();
 
   return (
     <div>
@@ -46,6 +46,7 @@ function AuthProbe() {
       <div data-testid="profile-loading">{profileLoading ? 'profile-loading' : 'profile-ready'}</div>
       <div data-testid="user">{user?.id || 'no-user'}</div>
       <div data-testid="profile">{profile?.display_name || 'no-profile'}</div>
+      <div data-testid="profile-error">{profileError || 'no-profile-error'}</div>
     </div>
   );
 }
@@ -148,5 +149,19 @@ describe('AuthProvider', () => {
 
     expect(screen.getByTestId('user')).toHaveTextContent('user-new');
     expect(screen.getByTestId('profile')).toHaveTextContent('New User');
+  });
+
+  it('exposes profile load failures instead of silently treating the user as verified', async () => {
+    mockGetInitialSession.mockResolvedValue({ id: 'user-1' });
+    mockLoadProfile.mockRejectedValue(new Error('profile lookup failed'));
+
+    renderAuthProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('loading')).toHaveTextContent('ready');
+      expect(screen.getByTestId('user')).toHaveTextContent('user-1');
+      expect(screen.getByTestId('profile')).toHaveTextContent('no-profile');
+      expect(screen.getByTestId('profile-error')).toHaveTextContent('profile lookup failed');
+    });
   });
 });

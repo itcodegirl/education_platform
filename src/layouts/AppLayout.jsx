@@ -3,7 +3,7 @@
 // Sidebar + Topbar + Content + Toolbar + Panels
 // ===============================================
 
-import { useCallback, useMemo, useEffect, useRef, useState } from "react";
+import { useCallback, useMemo, useEffect } from "react";
 import { useFetcher } from "react-router-dom";
 import { COURSES } from "../data";
 import { useTheme, useAuth, useProgressData, useXP, useCourseContent } from "../providers";
@@ -13,7 +13,9 @@ import { useKeyboardNav } from "../hooks/useKeyboardNav";
 import { useLearning } from "../hooks/useLearning";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useLocalStorage } from "../hooks/useLocalStorage";
-import { useFetcherSyncFailure } from "../hooks/useFetcherSyncFailure";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { useLessonViewTracking } from "../hooks/useLessonViewTracking";
+import { useLessonMarkDone } from "../hooks/useLessonMarkDone";
 import { estimateReadingTime, getLevel } from "../utils/helpers";
 import { trackEvent } from "../lib/analytics";
 import {
@@ -21,6 +23,12 @@ import {
   getLessonKeyVariants,
   hasLessonCompletion,
 } from "../utils/lessonKeys";
+import {
+  getLessonPositionLabel,
+  getNextLessonTitle,
+  getNextStepHint,
+  getPrevLessonTitle,
+} from "../utils/lessonNavCopy";
 
 // Layout components
 import { Sidebar } from "../components/layout/Sidebar";
@@ -54,13 +62,10 @@ export function AppLayout() {
     trackCourseVisit,
     dataLoaded,
     lastPosition,
-    markSyncFailed,
-    enqueuePendingSyncWrite,
   } = useProgressData();
-  const { xpTotal = 0, streak = 0, dailyCount = 0 } = useXP();
+  const { xpTotal = 0, streak = 0, pausedStreak = null, dailyCount = 0 } = useXP();
 
   const nav = useNavigation();
-  const progressMutation = useFetcher();
   const panels = usePanels({ dataLoaded, user: true, lastPosition });
   const learn = useLearning();
   const isMobile = useIsMobile(901);
@@ -111,27 +116,22 @@ export function AppLayout() {
   const { stable: stableLessonKey, legacy: legacyLessonKey } = getLessonKeyVariants(course, mod, les);
   const isDone = hasLessonCompletion(completedSet, course, mod, les);
   const readTime = useMemo(
-    () => estimateReadingTime(les.content + les.code),
+    () => estimateReadingTime((les.content || '') + (les.code || '')),
     [les.content, les.code],
   );
   const level = useMemo(() => getLevel(xpTotal), [xpTotal]);
   const hasProgress = completed.length > 0 || Number(lastPosition?.time) > 0;
   const showStarterGuide = !hasProgress && !showModQuiz;
+  // "Builder" was the previous fallback. It's well-meaning but
+  // reads as scripted. "there" reads as a normal greeting when no
+  // display name is set ("Keep building, there.") and avoids
+  // gendered or jargon-y framing.
   const learnerName =
     profile?.display_name ||
     user?.user_metadata?.display_name ||
     user?.email?.split("@")[0] ||
-    "Builder";
-  const [marking, setMarking] = useState(false);
-  const lessonViewStartRef = useRef(Date.now());
-  const trackedLessonRef = useRef('');
+    "there";
   const isSidebarOpen = isMobile ? panels.sidebar : true;
-
-  useFetcherSyncFailure(
-    progressMutation,
-    { markSyncFailed, enqueuePendingSyncWrite },
-    'lesson progress',
-  );
 
   useEffect(() => {
     if (isMobile) {
@@ -140,13 +140,7 @@ export function AppLayout() {
   }, [isMobile, setSidebarCollapsed]);
 
   // --- Dynamic page title -------------------
-  useEffect(() => {
-    const title = showModQuiz
-      ? `${mod.title} Quiz - CodeHerWay`
-      : `${les.title} - CodeHerWay`;
-    document.title = title;
-    return () => { document.title = 'CodeHerWay - Learn. Build. Ship.'; };
-  }, [les.title, mod.title, showModQuiz]);
+  useDocumentTitle(showModQuiz ? `${mod.title} Quiz` : les.title);
 
   // --- Save position on navigation ----------
   useEffect(() => {
@@ -180,68 +174,49 @@ export function AppLayout() {
   const coursePct = courseTotal > 0 ? Math.round((courseDone / courseTotal) * 100) : 0;
   const isCourseComplete = courseDone === courseTotal && courseTotal > 0;
 
-  // Prev/next lesson title previews for the nav buttons.
-  const prevTitle = (() => {
-    if (isFirst || showModQuiz) return null;
-    if (nav.lesIdx > 0) return nav.mod.lessons[nav.lesIdx - 1]?.title || null;
-    if (nav.modIdx > 0) {
-      const prevMod = nav.modules[nav.modIdx - 1];
-      const lastLesson = prevMod?.lessons?.[prevMod.lessons.length - 1];
-      return lastLesson?.title || null;
-    }
-    return null;
-  })();
-
-  const nextTitle = (() => {
-    if (nav.isLast) return null;
-    if (nav.isLastLesson && nav.moduleQuiz && !showModQuiz) return `${nav.mod.title} Quiz`;
-    if (showModQuiz) {
-      const nextMod = nav.modules[nav.modIdx + 1];
-      return nextMod?.lessons?.[0]?.title || null;
-    }
-    if (nav.lesIdx < nav.mod.lessons.length - 1) return nav.mod.lessons[nav.lesIdx + 1]?.title || null;
-    const nextMod = nav.modules[nav.modIdx + 1];
-    return nextMod?.lessons?.[0]?.title || null;
-  })();
-
-  const lessonPosition = showModQuiz
-    ? `Module quiz for ${mod.title}`
-    : `Lesson ${nav.lesIdx + 1} of ${mod.lessons.length}`;
+  // Prev/next lesson title previews for the nav buttons. The
+  // pure helpers in utils/lessonNavCopy.js own the gnarly
+  // boundary conditions so this layout file stays readable.
+  const prevTitle = getPrevLessonTitle({
+    isFirst,
+    showModQuiz,
+    modIdx: nav.modIdx,
+    lesIdx: nav.lesIdx,
+    mod: nav.mod,
+    modules: nav.modules,
+  });
+  const nextTitle = getNextLessonTitle({
+    isLast,
+    isLastLesson: nav.isLastLesson,
+    moduleQuiz: nav.moduleQuiz,
+    showModQuiz,
+    modIdx: nav.modIdx,
+    lesIdx: nav.lesIdx,
+    mod: nav.mod,
+    modules: nav.modules,
+  });
+  const lessonPosition = getLessonPositionLabel({
+    showModQuiz,
+    modTitle: mod.title,
+    lesIdx: nav.lesIdx,
+    lessonsLength: mod.lessons.length,
+  });
   const mutationActionPath = `/learn/${encodeURIComponent(course.id)}/${encodeURIComponent(
     mod.id,
   )}/${encodeURIComponent(showModQuiz ? 'quiz' : les.id)}`;
 
-  const nextStepHint = (() => {
-    if (isLast) return "Track complete. Pick another course or review key lessons.";
-    if (showModQuiz) return "Finish this quiz to move into the next module.";
-    if (!isDone) return "Mark this lesson done, then continue to the next lesson.";
-    return "Nice progress. Continue when you are ready.";
-  })();
+  const nextStepHint = getNextStepHint({ isLast, showModQuiz, isDone });
 
-  useEffect(() => {
-    if (showModQuiz || !course.id || !mod.id || !les.id) return;
-    const lessonIdentity = `${course.id}|${mod.id}|${les.id}`;
-    if (trackedLessonRef.current === lessonIdentity) return;
-
-    trackedLessonRef.current = lessonIdentity;
-    lessonViewStartRef.current = Date.now();
-    trackEvent('lesson_viewed', {
-      courseId: course.id,
-      moduleId: mod.id,
-      lessonId: les.id,
-      courseIndex: nav.courseIdx,
-      moduleIndex: nav.modIdx,
-      lessonIndex: nav.lesIdx,
-    });
-  }, [
-    course.id,
-    les.id,
-    mod.id,
-    nav.courseIdx,
-    nav.lesIdx,
-    nav.modIdx,
+  // --- Lesson view analytics ----------------
+  const lessonViewStartRef = useLessonViewTracking({
+    courseId: course.id,
+    moduleId: mod.id,
+    lessonId: les.id,
+    courseIndex: nav.courseIdx,
+    moduleIndex: nav.modIdx,
+    lessonIndex: nav.lesIdx,
     showModQuiz,
-  ]);
+  });
 
   useEffect(() => {
     if (isCourseComplete && isDone) {
@@ -250,51 +225,19 @@ export function AppLayout() {
   }, [isCourseComplete, isDone, panels]);
 
   // --- Actions ------------------------------
-  const handleMarkDone = useCallback(async () => {
-    if (marking) return;
-    setMarking(true);
-    try {
-      const wasDone = completedSet.has(stableLessonKey) || completedSet.has(legacyLessonKey);
-      const keyToToggle = completedSet.has(stableLessonKey)
-        ? stableLessonKey
-        : completedSet.has(legacyLessonKey)
-          ? legacyLessonKey
-          : stableLessonKey;
-      const nextMode = wasDone ? 'uncomplete' : 'complete';
-      learn.toggleLessonDone(keyToToggle, { skipRemote: true });
-      progressMutation.submit(
-        {
-          intent: 'toggle-progress',
-          mode: nextMode,
-          lessonKey: keyToToggle,
-        },
-        {
-          method: 'post',
-          action: mutationActionPath,
-        },
-      );
-      trackEvent('lesson_completion_toggled', {
-        courseId: course.id,
-        moduleId: mod.id,
-        lessonId: les.id,
-        completionState: wasDone ? 'unmarked' : 'marked_complete',
-        secondsOnLesson: Math.round((Date.now() - lessonViewStartRef.current) / 1000),
-      });
-    } finally {
-      setMarking(false);
-    }
-  }, [
+  const progressMutation = useFetcher();
+  const { marking, handleMarkDone } = useLessonMarkDone({
     completedSet,
-    course.id,
+    stableLessonKey,
     legacyLessonKey,
-    les.id,
-    marking,
-    mod.id,
+    courseId: course.id,
+    moduleId: mod.id,
+    lessonId: les.id,
     mutationActionPath,
     progressMutation,
-    stableLessonKey,
-    learn,
-  ]);
+    toggleLessonDone: learn.toggleLessonDone,
+    lessonViewStartRef,
+  });
 
   const handleNextLesson = useCallback(() => {
     trackEvent('lesson_next_clicked', {
@@ -357,10 +300,10 @@ export function AppLayout() {
         <main id="main-content" className="main-shell course-skeleton" tabIndex={-1} aria-busy="true" aria-live="polite">
           <div className="course-skeleton-inner">
             <span className="course-skeleton-emoji" aria-hidden="true">
-              {activeCourseMeta?.icon || '[]'}
+              {activeCourseMeta?.icon || '📚'}
             </span>
             <p className="course-skeleton-label">
-              Loading {activeCourseMeta?.label || 'course'}...
+              Loading {activeCourseMeta?.label || 'course'}…
             </p>
           </div>
         </main>
@@ -385,7 +328,10 @@ export function AppLayout() {
         onClose={() => panels.setSidebar(false)}
         onToggleCollapse={() => setSidebarCollapsed((value) => !value)}
         onSelectCourse={nav.switchCourse}
-        onSelectLesson={nav.go}
+        onSelectLesson={(mi, li) => {
+          nav.go(mi, li);
+          if (isMobile) panels.setSidebar(false);
+        }}
         onSelectModQuiz={(mi) => {
           nav.goToModQuiz(mi);
           panels.setSidebar(false);
@@ -411,7 +357,12 @@ export function AppLayout() {
               aria-controls="course-sidebar"
               aria-expanded={isMobile ? panels.sidebar : !sidebarCollapsed}
             >
-              {isMobile ? "Menu" : sidebarCollapsed ? ">>" : "<<"}
+              <span className="ham-glyph" aria-hidden="true">
+                {isMobile ? '☰' : sidebarCollapsed ? '›' : '‹'}
+              </span>
+              <span className="ham-label">
+                {isMobile ? 'Menu' : sidebarCollapsed ? 'Expand' : 'Collapse'}
+              </span>
             </button>
             <Breadcrumb
               course={course}
@@ -427,15 +378,37 @@ export function AppLayout() {
                   {readTime} read
                 </span>
               )}
-              <span className="topbar-pill" aria-label={`Level ${level}`}>Lv {level}</span>
-              <span className="topbar-pill" aria-label={`Course completion ${coursePct} percent`}>
-                {coursePct}% track
-              </span>
-              {streak > 0 && (
+              {/* Hide the level + completion pills entirely until the
+                  learner has earned something. A first-run learner
+                  used to see "Lv 1 · 0% track" before they'd done
+                  anything, which read as "you have achieved
+                  nothing" instead of a status. */}
+              {xpTotal > 0 && (
+                <span className="topbar-pill" aria-label={`Level ${level}`}>Lv {level}</span>
+              )}
+              {coursePct > 0 && (
+                <span className="topbar-pill" aria-label={`Course completion ${coursePct} percent`}>
+                  {coursePct}% track
+                </span>
+              )}
+              {streak > 0 ? (
                 <span className="topbar-pill streak" aria-label={`${streak} day streak`}>
                   🔥 {streak} day streak
                 </span>
-              )}
+              ) : pausedStreak ? (
+                /* Streak just lapsed. Surface the prior run as a
+                   subtle recovery cue so the topbar doesn't simply
+                   forget the streak existed. Click goes to the
+                   profile so the learner can see history; intent is
+                   visible signaling, not nagging. */
+                <span
+                  className="topbar-pill paused"
+                  aria-label={`${pausedStreak.days} day streak paused`}
+                  title="Pick up your streak with one more lesson today"
+                >
+                  💤 {pausedStreak.days} day streak paused
+                </span>
+              ) : null}
               {dailyCount > 0 && (
                 <span className="topbar-pill warm" aria-label={`Lessons done today: ${dailyCount}`}>
                   {dailyCount} lesson{dailyCount === 1 ? '' : 's'} today
@@ -457,15 +430,15 @@ export function AppLayout() {
               </button>
               {!showModQuiz && (
               <button
-                type="button"
-                className={`mark-btn ui-btn ui-btn-secondary ${isDone ? "dn" : ""}`}
-                onClick={handleMarkDone}
-                disabled={marking}
-                aria-label={marking ? "Saving lesson completion" : isDone ? "Mark lesson as not done" : "Mark lesson complete"}
-                aria-pressed={isDone}
-              >
-                {marking ? "Saving..." : isDone ? "Completed" : "Mark complete"}
-              </button>
+                  type="button"
+                  className={`mark-btn ${isDone ? "dn" : ""}`}
+                  onClick={handleMarkDone}
+                  disabled={marking}
+                  aria-label={marking ? "Saving lesson completion" : isDone ? "Mark lesson as not done" : "Mark lesson complete"}
+                  aria-pressed={isDone}
+                >
+                  {marking ? "Saving…" : isDone ? "✓ Done" : "Mark done"}
+                </button>
               )}
             </div>
           </div>
@@ -499,29 +472,15 @@ export function AppLayout() {
                     </h2>
                     <p className="frg-copy">
                       You are on the first lesson to set your pace. Read this lesson,
-                      complete it, then hit <strong>Mark Done</strong> to unlock the next one.
+                      complete it, then hit <strong>Mark done</strong> to unlock the next one.
                     </p>
-                    <p className="frg-sub">Pick a course track anytime in the lesson sidebar.</p>
+                    <p className="frg-sub">Course switching is in the sidebar when you are ready.</p>
                   </div>
-                  <div className="frg-courses" aria-label="Course options">
-                    {COURSES.map((entry, index) => (
-                      <button
-                        key={entry.id}
-                        type="button"
-                        className={`frg-course ${index === nav.courseIdx ? 'frg-course-active' : ''}`}
-                        onClick={() => {
-                          if (index !== nav.courseIdx) {
-                            nav.switchCourse(index);
-                          }
-                        }}
-                        aria-pressed={index === nav.courseIdx}
-                        aria-label={`Go to ${entry.label} course`}
-                      >
-                        <span aria-hidden="true">{entry.icon}</span>
-                        <span>{entry.label}</span>
-                      </button>
-                    ))}
-                  </div>
+                  <ol className="frg-steps" aria-label="First session steps">
+                    <li>Read the learning frame.</li>
+                    <li>Build the example and check the result.</li>
+                    <li>Mark complete, then take the quick check.</li>
+                  </ol>
                 </section>
               )}
               <LessonView
@@ -531,6 +490,7 @@ export function AppLayout() {
                 lessonKey={lessonKey}
                 courseId={course.id}
                 moduleTitle={mod.title}
+                nextTitle={nextTitle}
               />
               {lessonQuiz && (
                 <div className="lesson-quiz-wrap">

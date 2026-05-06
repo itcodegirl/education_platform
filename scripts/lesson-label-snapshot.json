@@ -1,0 +1,158 @@
+{
+  "html": {
+    "101": {
+      "lesson-01": "Make Your Name Appear in a Browser",
+      "lesson-02": "Connect Pages with Links",
+      "lesson-03": "Add Images to Your Pages",
+      "lesson-08": "Format Text Like a Pro"
+    },
+    "102": {
+      "lesson-10": "Decode the Secret Language Browsers Speak",
+      "lesson-11": "Watch a Browser Build Your Page Step-by-Step"
+    },
+    "103": {
+      "lesson-04": "Organize Information with Lists",
+      "lesson-06": "Display Data in Tables",
+      "lesson-05": "Collect Information with Forms",
+      "lesson-09": "Add Media to Your Pages"
+    },
+    "104": {
+      "lesson-07": "Build Pages Like a Professional (Semantic HTML)",
+      "lesson-12": "Build a Real Portfolio Website You Can Share"
+    }
+  },
+  "css": {
+    "201": {
+      "css-1-1": "Paint Your First Webpage",
+      "css-1-2": "Control Text Size and Weight",
+      "css-1-3": "Add Space Around Things",
+      "css-1-4": "Draw Borders and Understand the Box Model",
+      "css-1-5": "Center Everything",
+      "css-1-6": "Add Background Images"
+    },
+    "202": {
+      "css-2-1": "Line Things Up with Flexbox",
+      "css-2-2": "Space Things Out with Justify and Align",
+      "css-2-3": "Create Grids That Actually Work",
+      "css-2-4": "Position Things Exactly Where You Want",
+      "css-2-5": "Understanding Display Properties",
+      "css-2-6": "Build a Complete Navigation Bar"
+    },
+    "203": {
+      "css-3-1": "Make It Work on Phones",
+      "css-3-2": "Mobile-First Design",
+      "css-3-3": "Responsive Images and Media",
+      "css-3-4": "Build a Responsive Card Gallery",
+      "css-3-5": "Responsive Typography and Spacing",
+      "css-3-6": "Build Your Responsive Portfolio Page"
+    },
+    "204": {
+      "css-4-1": "Add Smooth Transitions",
+      "css-4-2": "Create CSS Animations",
+      "css-4-3": "Master CSS Custom Properties",
+      "css-4-4": "Transforms and Advanced Effects",
+      "css-4-5": "Shadows, Filters, and Visual Effects",
+      "css-4-6": "Build Your Final Portfolio Website"
+    }
+  },
+  "js": {
+    "301": {
+      "js-1-1": "Make a Button Talk",
+      "js-1-2": "Make Text Change Instantly",
+      "js-1-3": "Control Colors and Styles",
+      "js-1-4": "Store and Remember Information"
+    },
+    "302": {
+      "js-2-1": "Create and Control Lists",
+      "js-2-2": "Transform and Filter Lists",
+      "js-2-3": "Organize Data with Objects",
+      "js-2-4": "Build a Data Dashboard"
+    },
+    "303": {
+      "js-3-1": "Master Form Input and Validation",
+      "js-3-2": "Handle Events Like a Pro",
+      "js-3-3": "Make Smart Decisions with Logic"
+    },
+    "304": {
+      "js-4-1": "Transform Data with Map",
+      "js-4-2": "Master Scope and Closures",
+      "js-4-3": "Arrow Functions and Callbacks",
+      "js-4-4": "Organize Code Like a Pro"
+    },
+    "305": {
+      "js-5-1": "Fetch Data from APIs",
+      "js-5-2": "Master Async/Await",
+      "js-5-3": "Handle Loading States and Errors",
+      "js-5-4": "Build a Complete API-Powered App"
+    },
+    "306": {
+      "js-6-1": "Create Elements Dynamically",
+      "js-6-2": "Manipulate the DOM Like a Pro",
+      "js-6-3": "Animate Elements with JavaScript",
+      "js-6-4": "Build Interactive Components"
+    }
+  },
+  "react": {
+    "301": {
+      "r1-1": "What is React?",
+      "r1-2": "JSX Basics",
+      "r1-3": "Components Introduction",
+      "r1-4": "Props Basics",
+      "r1-5": "State Basics with useState"
+    },
+    "302": {
+      "r2-1": "Event Handling",
+      "r2-2": "Conditional Rendering",
+      "r2-3": "Lists and Keys",
+      "r2-4": "Controlled Forms",
+      "r2-5": "Weather Dashboard Project",
+      "r2-6": "Task Manager Project",
+      "r2-7": "Module 1 Summary"
+    },
+    "308": {
+      "r8-1": "Advanced Form Patterns",
+      "r8-2": "React Hook Form & Yup",
+      "r8-3": "Multi-Step Forms"
+    },
+    "309": {
+      "r9-1": "useEffect Deep Dive",
+      "r9-2": "Fetching Data from APIs",
+      "r9-3": "Custom Hooks"
+    },
+    "313": {
+      "r13-1": "React Router Basics",
+      "r13-2": "Protected Routes & Advanced Routing"
+    },
+    "315": {
+      "r15-1": "useReducer — Complex State Logic",
+      "r15-2": "Context API — Global State",
+      "r15-3": "Context + useReducer Pattern"
+    },
+    "316": {
+      "r16-1": "React.memo, useMemo, useCallback",
+      "r16-2": "Code Splitting & Lazy Loading",
+      "r16-3": "List Virtualization & Advanced Performance"
+    },
+    "319": {
+      "r19-1": "Component Composition",
+      "r19-2": "The Children Prop",
+      "r19-3": "Lifting State Up",
+      "r19-4": "Prop Drilling Problem",
+      "r19-5": "Component Patterns",
+      "r19-6": "Component Lifecycle with useEffect",
+      "r19-7": "Project 1: Real-Time Chat Interface",
+      "r19-8": "Project 2: Blog Platform",
+      "r19-9": "Module 2 Completion & Next Steps"
+    },
+    "320": {
+      "r20-1": "Testing Basics — Jest & RTL",
+      "r20-2": "Testing Async & API Calls",
+      "r20-3": "Testing Hooks, Context & Integration"
+    },
+    "323": {
+      "r23-1": "Vite & Modern Build Tools",
+      "r23-2": "Production Optimization",
+      "r23-3": "Deployment & CI/CD"
+    }
+  }
+}
