@@ -6,6 +6,15 @@
 import { createContext, useContext, useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useAuth } from './AuthContext';
 import {
+  buildNotesMap,
+  findExistingBookmark,
+  getSavedNote,
+  isBookmarkedLesson,
+  normalizeProgressLessonKey,
+  removeEquivalentBookmarks,
+} from './progressSavedLessonHelpers';
+import { collectRecoverableLoadWarnings } from './progressSyncWarningHelpers';
+import {
   DAILY_GOAL,
   getActiveDailyCount,
   getActiveStreakDays,
@@ -14,7 +23,6 @@ import {
   getTodayString,
   getYesterdayString,
 } from '../utils/helpers';
-import { COURSES } from '../data';
 import * as progressService from '../services/progressService';
 import {
   createProgressWrite,
@@ -29,7 +37,6 @@ import {
 } from '../services/progressSyncTelemetry';
 import { getProgressWriteFailure } from '../services/progressWriteRuntime';
 import { isPerfectQuizScore, rewardKeys } from '../services/rewardPolicy';
-import { lessonKeysEquivalent, resolveStableLessonKeyAcrossCourses } from '../utils/lessonKeys';
 import { LOCAL_STORAGE_SYNC_ERROR_EVENT } from '../hooks/useLocalStorage';
 import { useTodayKey } from '../hooks/useTodayKey';
 import { findNewlyEarnedBadges } from '../services/badgeRules';
@@ -109,10 +116,6 @@ const SRContext = createContext({
   saveNote: () => {},
   getNote: () => '',
 });
-
-function normalizeLessonKey(lessonKey) {
-  return resolveStableLessonKeyAcrossCourses(lessonKey, COURSES);
-}
 
 // Per-learner localStorage helpers (reward history, challenge
 // completions, normalization) live in utils/learnerLocalStore so
@@ -462,10 +465,7 @@ export function ProgressProvider({ children }) {
         throw new Error(results.criticalError.message);
       }
 
-      const warningMessages = Object.values(results.recoverableErrors || {})
-        .map((warning) => warning?.message)
-        .filter((message) => typeof message === 'string' && message.trim());
-      setLoadWarnings(warningMessages);
+      setLoadWarnings(collectRecoverableLoadWarnings(results.recoverableErrors));
 
       const { progress, quiz, xp, streak, daily, badges: badgeRows, sr, bookmarks: bookmarkRows,
         notes: noteRows, visited, position } = results.data;
@@ -564,9 +564,7 @@ export function ProgressProvider({ children }) {
 
       setBookmarks(bookmarkRows);
 
-      const notesMap = {};
-      noteRows.forEach(r => { notesMap[r.lesson_key] = r.content; });
-      setNotes(notesMap);
+      setNotes(buildNotesMap(noteRows));
 
       setCoursesVisited(visited.map(r => r.course_id));
 
@@ -851,15 +849,11 @@ export function ProgressProvider({ children }) {
   const toggleBookmark = useCallback(async (lessonKey, courseId, lessonTitle, options = {}) => {
     if (!user) return;
     const skipRemote = Boolean(options?.skipRemote);
-    const normalizedLessonKey = normalizeLessonKey(lessonKey);
-    const existing = bookmarks.find((bookmark) =>
-      lessonKeysEquivalent(bookmark.lesson_key, normalizedLessonKey, COURSES),
-    );
+    const normalizedLessonKey = normalizeProgressLessonKey(lessonKey);
+    const existing = findExistingBookmark(bookmarks, normalizedLessonKey);
 
     if (existing) {
-      setBookmarks((prev) => prev.filter((bookmark) =>
-        !lessonKeysEquivalent(bookmark.lesson_key, normalizedLessonKey, COURSES),
-      ));
+      setBookmarks((prev) => removeEquivalentBookmarks(prev, normalizedLessonKey));
       if (!skipRemote) {
         const removalKeys = new Set([existing.lesson_key, normalizedLessonKey]);
         removalKeys.forEach((key) => {
@@ -890,16 +884,14 @@ export function ProgressProvider({ children }) {
   }, [user, bookmarks, dbWrite]);
 
   const isBookmarked = useCallback((lessonKey) => {
-    const normalizedLessonKey = normalizeLessonKey(lessonKey);
-    return bookmarks.some((bookmark) =>
-      lessonKeysEquivalent(bookmark.lesson_key, normalizedLessonKey, COURSES),
-    );
+    const normalizedLessonKey = normalizeProgressLessonKey(lessonKey);
+    return isBookmarkedLesson(bookmarks, normalizedLessonKey);
   }, [bookmarks]);
 
   // ─── Notes (NEW) ─────────────────────────────
   const saveNote = useCallback(async (lessonKey, content) => {
     if (!user) return;
-    const normalizedLessonKey = normalizeLessonKey(lessonKey);
+    const normalizedLessonKey = normalizeProgressLessonKey(lessonKey);
     setNotes(prev => ({ ...prev, [normalizedLessonKey]: content }));
     dbWrite(
       createProgressWrite('saveNote', {
@@ -911,14 +903,8 @@ export function ProgressProvider({ children }) {
   }, [user, dbWrite]);
 
   const getNote = useCallback((lessonKey) => {
-    const normalizedLessonKey = normalizeLessonKey(lessonKey);
-    if (notes[normalizedLessonKey]) return notes[normalizedLessonKey];
-    if (notes[lessonKey]) return notes[lessonKey];
-
-    const equivalentKey = Object.keys(notes).find((storedKey) =>
-      lessonKeysEquivalent(storedKey, normalizedLessonKey, COURSES),
-    );
-    return equivalentKey ? notes[equivalentKey] : '';
+    const normalizedLessonKey = normalizeProgressLessonKey(lessonKey);
+    return getSavedNote(notes, lessonKey, normalizedLessonKey);
   }, [notes]);
 
   // ─── Position ─────────────────────────────────
@@ -1110,7 +1096,7 @@ export function useSR() {
  *   pre-date the three-context split. New code should import the
  *   narrower `useProgressData`, `useXP`, or `useSR` hook so a streak
  *   tick doesn't re-render a screen that only reads completion data.
- *   See docs/progress-context-split-plan.md for the migration plan.
+ *   See docs/progress-context-decomposition-plan.md for the migration plan.
  */
 export function useProgress() {
   const progress = useProgressData();
