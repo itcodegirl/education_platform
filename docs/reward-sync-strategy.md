@@ -69,11 +69,11 @@ Existing localStorage data must stay readable:
 
 ## Scaffold
 
-`src/services/rewardSyncService.js` builds a sync plan from local ledger, local queue, and backend event snapshots. The runtime now performs feature-gated single-event backend awards, but it still does not run an automatic background queue replay loop.
+`src/services/rewardSyncService.js` builds a sync plan from local ledger, local queue, and backend event snapshots. The runtime performs feature-gated single-event backend awards, and `ProgressContext` now replays retryable local reward queue entries on authenticated load when backend sync is enabled.
 
 ## Non-Goals
 
-- No automatic background sync in this checkpoint.
+- No historical ledger-only backfill in this checkpoint.
 - No direct table inserts from browser code.
 - No XP amount changes.
 - No streak, quiz retry, or UI behavior changes.
