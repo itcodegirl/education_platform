@@ -4,6 +4,7 @@ import { COURSES } from '../../data';
 import { getLevel, getXPInLevel, XP_PER_LEVEL } from '../../utils/helpers';
 import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 
 export function StudentStats({ isOpen, onClose }) {
   const { completed, quizScores } = useProgressData();
@@ -157,6 +158,7 @@ export function StudentStats({ isOpen, onClose }) {
             Track XP, quiz confidence, review load, and the parts of the curriculum that need the next rep.
           </p>
           )}
+          <p className="panel-meta">{PROGRESS_SYNC_COPY}</p>
 
           <div className="ss-cards" style={stats.totalDone === 0 ? { opacity: 0.4, pointerEvents: 'none' } : undefined}>
             <div className="ss-card">

@@ -49,5 +49,12 @@ describe('SRPanel', () => {
 
     expect(screen.getByText(/2 cards are scheduled for later\./i)).toBeInTheDocument();
   });
+
+  it('shows the local-first progress sync scope', () => {
+    render(<SRPanel isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText(/Progress sync: saved on this device/i)).toBeInTheDocument();
+    expect(screen.getByText(/review queue, and challenges are single-device today/i)).toBeInTheDocument();
+  });
 });
 

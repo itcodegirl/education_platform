@@ -65,4 +65,11 @@ describe('ChallengesPanel', () => {
 
     expect(completeChallenge).toHaveBeenCalledWith('challenge-1');
   });
+
+  it('shows the local-first progress sync scope in the challenge list', () => {
+    render(<ChallengesPanel courseId="html" lang="html" onClose={vi.fn()} />);
+
+    expect(screen.getByText(/Progress sync: saved on this device/i)).toBeInTheDocument();
+    expect(screen.getByText(/challenges are single-device today/i)).toBeInTheDocument();
+  });
 });

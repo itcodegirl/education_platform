@@ -21,9 +21,9 @@ This repository is the active canonical CodeHerWay learning platform app. It is 
 
 ## What Is Currently Working
 
-> **Persistence scope today: single-device.** The reward engine, challenge
-> completion ledger, and progress sync queue are designed around the
-> learner's current browser. Backend cross-device sync is scaffolded but
+> **Progress sync: saved on this device.** Lesson completions and bookmarks
+> may sync when connected; XP, streaks, badges, review queue, and challenges
+> are single-device today. Backend cross-device reward sync is scaffolded but
 > intentionally disabled (see [Cross-device persistence](#cross-device-persistence)).
 
 - Course browsing and lesson viewing UI for HTML, CSS, JavaScript, and React tracks.
@@ -33,7 +33,7 @@ This repository is the active canonical CodeHerWay learning platform app. It is 
 - Active lesson quiz coverage for HTML, CSS, JavaScript, and React tracks is complete.
 - Quiz variant groups and legacy orphan quiz inventory are classified and monitored by the audit.
 - Bookmarks and lesson notes in the active app.
-- Certificate export flow.
+- Portfolio completion certificate export flow. The export reflects current app progress and is not server-authoritative yet.
 - Public Playwright smoke coverage, including landing, auth, accessibility, visual snapshots, and first-lesson preview entry.
 - Netlify + Vite build/deploy flow.
 
@@ -64,10 +64,12 @@ Current test boundaries:
 
 ## Cross-device persistence
 
-The runtime today targets a single device. A learner who signs in from a
-second browser will see their server-stored lessons and bookmarks, but XP,
-streaks, badges, the spaced-repetition queue, and challenge completions
-are computed against the local reward ledger and `localStorage` mirror.
+The runtime today targets a single device. Progress sync is saved on this
+device. A learner who signs in from a second browser may see their
+server-stored lesson completions and bookmarks when connected, but XP,
+streaks, badges, the spaced-repetition review queue, and challenge
+completions are computed against the local reward ledger and `localStorage`
+mirror.
 
 This is a deliberate scope decision rather than a roadmap promise:
 

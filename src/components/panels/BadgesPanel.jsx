@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { useXP, BADGE_DEFS } from '../../providers';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 
 export function BadgesPanel({ isOpen, onClose }) {
   const { earnedBadges } = useXP();
@@ -35,6 +36,7 @@ export function BadgesPanel({ isOpen, onClose }) {
           <p className="panel-meta">
             Badges make your momentum visible. Earn them by finishing lessons, holding streaks, and pushing through practice.
           </p>
+          <p className="panel-meta">{PROGRESS_SYNC_COPY}</p>
           {/* List semantics + per-badge aria-label so screen-reader users
               can tell earned from locked badges. Without this, the
               earned/locked distinction was visual only — the emoji,
