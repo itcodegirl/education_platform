@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { loginWithCredentials } from './authHelpers';
 
 const requiredEnv = [
   'VITE_SUPABASE_URL',
@@ -24,9 +25,10 @@ test.describe('lesson flow', () => {
     // Login if on auth page
     const onAuthPage = await page.locator('.auth-form').isVisible().catch(() => false);
     if (onAuthPage) {
-      await page.fill('input[type="email"]', process.env.E2E_EMAIL);
-      await page.fill('input[type="password"]', process.env.E2E_PASSWORD);
-      await page.click('button[type="submit"]');
+      await loginWithCredentials(page, {
+        email: process.env.E2E_EMAIL,
+        password: process.env.E2E_PASSWORD,
+      });
       await page.waitForSelector('.shell, .welcome-overlay', { timeout: 30000 });
     }
 

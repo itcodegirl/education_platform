@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
+import { loginWithCredentials } from './authHelpers';
 
 const authDir = path.join(process.cwd(), 'playwright', '.auth');
 const authFile = path.join(authDir, 'user.json');
@@ -28,9 +29,10 @@ test('capture authenticated storage state', async ({ page }) => {
 
 	const emailInput = page.getByLabel('Email');
 	if (await emailInput.isVisible().catch(() => false)) {
-		await emailInput.fill(process.env.E2E_EMAIL);
-		await page.getByLabel('Password').fill(process.env.E2E_PASSWORD);
-		await page.getByRole('button', { name: /log in/i }).last().click();
+		await loginWithCredentials(page, {
+			email: process.env.E2E_EMAIL,
+			password: process.env.E2E_PASSWORD,
+		});
 	}
 
 	await waitForAuthenticatedShell(page);

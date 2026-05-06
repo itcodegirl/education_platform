@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { loginWithCredentials } from './authHelpers';
 
 const requiredEnv = [
   'VITE_SUPABASE_URL',
@@ -46,9 +47,10 @@ test.describe('authenticated smoke', () => {
     await page.goto('/');
 
     if (await page.getByLabel('Email').isVisible().catch(() => false)) {
-      await page.getByLabel('Email').fill(process.env.E2E_EMAIL);
-      await page.getByLabel('Password').fill(process.env.E2E_PASSWORD);
-      await page.getByRole('button', { name: /log in/i }).last().click();
+      await loginWithCredentials(page, {
+        email: process.env.E2E_EMAIL,
+        password: process.env.E2E_PASSWORD,
+      });
     }
 
     await waitForAuthenticatedShell(page, diagnostics);
