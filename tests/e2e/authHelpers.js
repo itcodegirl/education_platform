@@ -29,11 +29,10 @@ export function getMissingE2EAuthConfig(env = process.env) {
 }
 
 export async function loginWithCredentials(page, { email, password }) {
-  const loginTab = page.getByRole('tab', { name: /^login$/i });
-  if (await loginTab.isVisible().catch(() => false)) {
-    await loginTab.click();
-    await expect(loginTab).toHaveAttribute('aria-selected', 'true', { timeout: 10000 });
-  }
+  const loginTab = page.locator('.auth-tabs [role="tab"]').filter({ hasText: /^Login$/i }).first();
+  await expect(loginTab).toBeVisible({ timeout: 10000 });
+  await loginTab.click();
+  await expect(loginTab).toHaveAttribute('aria-selected', 'true', { timeout: 10000 });
 
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Password').fill(password);
