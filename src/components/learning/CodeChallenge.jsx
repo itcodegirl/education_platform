@@ -125,6 +125,7 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
                 </button>
               )}
             </>
+
           ) : (
           <Suspense fallback={
             <div className="cc-editor-loading">Loading editor...</div>
@@ -159,7 +160,7 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
             // an iframe document that's still loading the previous code.
             onLoad={handleIframeLoad}
             title="Challenge Preview"
-            sandbox="allow-scripts allow-same-origin"
+            sandbox="allow-scripts"
           />
         </div>
       </div>

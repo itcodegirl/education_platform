@@ -467,10 +467,9 @@ grant execute on function public.get_analytics_daily_funnel(integer) to authenti
 alter table public.profiles add column if not exists is_disabled boolean default false;
 
 -- Admins can update profiles (to disable/enable users). The trigger
--- defined below blocks any UPDATE that would change is_admin via this
--- broad policy — so admins can flip is_disabled freely but cannot
--- escalate themselves or anyone else without going through the
--- set_user_admin() RPC.
+-- defined below blocks direct browser updates to protected profile flags:
+-- is_admin changes must go through set_user_admin(), while is_disabled
+-- can only be changed by an admin.
 create policy "Admins update all profiles" on public.profiles for update using (is_admin());
 
 -- ═══════════════════════════════════════════════
@@ -499,10 +498,11 @@ alter table public.admin_audit_log enable row level security;
 create policy "Admins read audit log" on public.admin_audit_log
   for select using (is_admin());
 
--- Trigger: refuse any UPDATE that flips is_admin unless the change is
+-- Trigger: refuse any UPDATE that flips protected admin fields unless the change is
 -- explicitly sanctioned by set_user_admin() (which sets a session flag)
 -- or comes from a database superuser running raw SQL (migrations,
--- bootstrap, the initial admin).
+-- bootstrap, the initial admin). Normal users can still update their
+-- editable profile fields through the self-profile policy.
 create or replace function public.guard_profile_admin_changes()
 returns trigger
 language plpgsql
@@ -519,13 +519,24 @@ begin
     end if;
     raise exception 'is_admin can only be changed via public.set_user_admin()';
   end if;
+
+  if new.is_disabled is distinct from old.is_disabled then
+    -- Allow superuser / migrations (Supabase SQL Editor).
+    if current_user in ('postgres', 'supabase_admin') then
+      return new;
+    end if;
+    if not public.is_admin() then
+      raise exception 'is_disabled can only be changed by an admin';
+    end if;
+  end if;
+
   return new;
 end;
 $$;
 
 drop trigger if exists trg_guard_profile_admin_changes on public.profiles;
 create trigger trg_guard_profile_admin_changes
-  before update of is_admin on public.profiles
+  before update of is_admin, is_disabled on public.profiles
   for each row execute function public.guard_profile_admin_changes();
 
 -- Sanctioned RPC for promoting/demoting admins. Refuses self-edits.

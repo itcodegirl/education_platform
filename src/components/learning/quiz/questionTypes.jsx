@@ -42,6 +42,19 @@ export function isAnswerCorrect(q, answer) {
   }
 }
 
+function getChoiceStateLabel({ isSelected, submitted, isCorrectChoice, isWrongSelected }) {
+  const states = [];
+  if (isSelected) states.push('selected');
+  if (submitted && isCorrectChoice) states.push('correct answer');
+  if (submitted && isWrongSelected) states.push('incorrect answer');
+  return states.join(', ');
+}
+
+function getChoiceAriaLabel({ prefix, text, stateLabel }) {
+  const label = prefix ? `${prefix}: ${text}` : text;
+  return stateLabel ? `${label}, ${stateLabel}` : label;
+}
+
 function MCQuestion({ q, answer, onAnswer, submitted }) {
   const isCorrect = isAnswerCorrect(q, answer);
   return (
@@ -51,11 +64,32 @@ function MCQuestion({ q, answer, onAnswer, submitted }) {
       <div className="qq-opts">
         {q.options.map((opt, oi) => {
           let cls = 'qq-opt';
-          if (answer === oi) cls += ' picked';
+          const isSelected = answer === oi;
+          const isCorrectChoice = submitted && oi === q.correct;
+          const isWrongSelected = submitted && isSelected && !isCorrect;
+          if (isSelected) cls += ' picked';
           if (submitted && oi === q.correct) cls += ' is-correct';
-          if (submitted && answer === oi && !isCorrect) cls += ' is-wrong';
+          if (isWrongSelected) cls += ' is-wrong';
+          const stateLabel = getChoiceStateLabel({
+            isSelected,
+            submitted,
+            isCorrectChoice,
+            isWrongSelected,
+          });
           return (
-            <button key={oi} type="button" className={cls} onClick={() => onAnswer(oi)} disabled={submitted}>
+            <button
+              key={oi}
+              type="button"
+              className={cls}
+              onClick={() => onAnswer(oi)}
+              disabled={submitted}
+              aria-pressed={isSelected}
+              aria-label={getChoiceAriaLabel({
+                prefix: String.fromCharCode(65 + oi),
+                text: opt,
+                stateLabel,
+              })}
+            >
               <span className="qq-opt-letter">{String.fromCharCode(65 + oi)}</span>
               <span>{opt}</span>
             </button>
@@ -75,11 +109,32 @@ function CodeQuestion({ q, answer, onAnswer, submitted }) {
       <div className="qq-opts">
         {q.options.map((opt, oi) => {
           let cls = 'qq-opt';
-          if (answer === oi) cls += ' picked';
+          const isSelected = answer === oi;
+          const isCorrectChoice = submitted && oi === q.correct;
+          const isWrongSelected = submitted && isSelected && !isCorrect;
+          if (isSelected) cls += ' picked';
           if (submitted && oi === q.correct) cls += ' is-correct';
-          if (submitted && answer === oi && !isCorrect) cls += ' is-wrong';
+          if (isWrongSelected) cls += ' is-wrong';
+          const stateLabel = getChoiceStateLabel({
+            isSelected,
+            submitted,
+            isCorrectChoice,
+            isWrongSelected,
+          });
           return (
-            <button key={oi} type="button" className={cls} onClick={() => onAnswer(oi)} disabled={submitted}>
+            <button
+              key={oi}
+              type="button"
+              className={cls}
+              onClick={() => onAnswer(oi)}
+              disabled={submitted}
+              aria-pressed={isSelected}
+              aria-label={getChoiceAriaLabel({
+                prefix: String.fromCharCode(65 + oi),
+                text: opt,
+                stateLabel,
+              })}
+            >
               <span className="qq-opt-letter">{String.fromCharCode(65 + oi)}</span>
               <code className="qq-opt-code">{opt}</code>
             </button>
@@ -98,11 +153,32 @@ function BugQuestion({ q, answer, onAnswer, submitted }) {
       <div className="qq-bug-lines">
         {q.lines.map((line, li) => {
           let cls = 'qq-bug-line';
-          if (answer === li) cls += ' picked';
+          const isSelected = answer === li;
+          const isCorrectChoice = submitted && li === q.correct;
+          const isWrongSelected = submitted && isSelected && !isCorrect;
+          if (isSelected) cls += ' picked';
           if (submitted && li === q.correct) cls += ' is-correct';
-          if (submitted && answer === li && !isCorrect) cls += ' is-wrong';
+          if (isWrongSelected) cls += ' is-wrong';
+          const stateLabel = getChoiceStateLabel({
+            isSelected,
+            submitted,
+            isCorrectChoice,
+            isWrongSelected,
+          });
           return (
-            <button key={li} type="button" className={cls} onClick={() => onAnswer(li)} disabled={submitted}>
+            <button
+              key={li}
+              type="button"
+              className={cls}
+              onClick={() => onAnswer(li)}
+              disabled={submitted}
+              aria-pressed={isSelected}
+              aria-label={getChoiceAriaLabel({
+                prefix: `Line ${li + 1}`,
+                text: line,
+                stateLabel,
+              })}
+            >
               <span className="qq-line-num">{li + 1}</span>
               <code>{line}</code>
             </button>

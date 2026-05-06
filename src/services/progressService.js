@@ -11,6 +11,7 @@ const QUIZ_SCORE_DEBUG_KEYS = Object.freeze([
   'debug-quiz-score-save',
   'debug-reward-sync',
 ]);
+const RECOVERABLE_FETCH_TABLES = new Set(['notes']);
 
 function isQuizScoreDebugEnabled(storage = globalThis.localStorage) {
   try {
@@ -90,6 +91,17 @@ function createQuizScorePayload(uid, quizKey, score) {
   };
 }
 
+function makeRecoverableFetchResult(result, fallbackData = []) {
+  if (!result?.error) return result;
+
+  return {
+    ...result,
+    data: fallbackData,
+    error: null,
+    recoverableError: result.error,
+  };
+}
+
 // ─── Fetch all user data on login ───────────
 export async function fetchAllUserData(uid) {
   const [
@@ -144,12 +156,20 @@ export async function fetchAllUserData(uid) {
     ['last_position', posRes.error],
         ].filter(([, error]) => !!error);
 
-  if (errors.length > 0) {
-    const details = errors
+  const blockingErrors = errors.filter(([source]) => !RECOVERABLE_FETCH_TABLES.has(source));
+
+  if (blockingErrors.length > 0) {
+    const details = blockingErrors
       .map(([source, error]) => `${source}: ${error?.message || 'Unknown error'}`)
       .join(' | ');
     throw new Error(`Failed to load user data (${details})`);
   }
+
+  const recoverableErrors = Object.fromEntries(
+    errors
+      .filter(([source]) => RECOVERABLE_FETCH_TABLES.has(source))
+      .map(([source, error]) => [source, error?.message || 'Unknown error']),
+  );
 
   return {
     progress: progressRes,
@@ -160,9 +180,10 @@ export async function fetchAllUserData(uid) {
     badges: badgesRes,
     sr: srRes,
     bookmarks: bookmarksRes,
-    notes: notesRes,
+    notes: makeRecoverableFetchResult(notesRes, []),
     visited: visitedRes,
     position: posRes,
+    recoverableErrors,
   };
 }
 

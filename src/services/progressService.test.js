@@ -104,6 +104,30 @@ describe('fetchAllUserData', () => {
 
     await expect(fetchAllUserData(UID)).rejects.toThrow('quiz_scores: bad request');
   });
+
+  it('partial-progress-load.notes-failure-does-not-block-lessons', async () => {
+    mockFrom.mockImplementation((table) => {
+      if (table === 'progress') {
+        return makeChain([{ lesson_key: 'html|intro|welcome' }], null);
+      }
+      if (table === 'notes') {
+        return makeChain(null, { message: 'notes table unavailable' });
+      }
+      return makeChain([], null);
+    });
+
+    const result = await fetchAllUserData(UID);
+
+    expect(result.progress.data).toEqual([{ lesson_key: 'html|intro|welcome' }]);
+    expect(result.notes).toMatchObject({
+      data: [],
+      error: null,
+      recoverableError: { message: 'notes table unavailable' },
+    });
+    expect(result.recoverableErrors).toEqual({
+      notes: 'notes table unavailable',
+    });
+  });
 });
 
 // ─── Write functions ─────────────────────────────

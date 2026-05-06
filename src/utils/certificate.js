@@ -85,11 +85,11 @@ export async function generateCertificate({ studentName, courseName, courseId, l
   doc.setFont('courier', 'bold');
   doc.text('<Code>Her</Way>', W / 2 + 1, 38, { align: 'center' });
 
-  // --- Certificate of Completion --------------
+  // --- Learner export title -------------------
   doc.setFontSize(11);
   doc.setTextColor(...COLORS.textMuted);
   doc.setFont('helvetica', 'normal');
-  doc.text('CERTIFICATE OF COMPLETION', W / 2, 52, { align: 'center' });
+  doc.text('LEARNER EXPORT OF COMPLETION', W / 2, 52, { align: 'center' });
 
   // Decorative line under title
   doc.setDrawColor(...accent);
@@ -149,20 +149,24 @@ export async function generateCertificate({ studentName, courseName, courseId, l
   doc.setFont('courier', 'bold');
   doc.text(completionDate, W / 2 - 55, 166, { align: 'center' });
 
-  // Verification ID
-  const verifyId = generateVerifyId(studentName, courseId);
+  // Export ID
+  const exportId = generateExportId(studentName, courseId);
   doc.setFontSize(10);
   doc.setTextColor(...COLORS.textDim);
   doc.setFont('helvetica', 'normal');
-  doc.text('Certificate ID', W / 2 + 55, 158, { align: 'center' });
+  doc.text('Export ID', W / 2 + 55, 158, { align: 'center' });
   doc.setTextColor(...COLORS.white);
   doc.setFont('courier', 'bold');
-  doc.text(verifyId, W / 2 + 55, 166, { align: 'center' });
+  doc.text(exportId, W / 2 + 55, 166, { align: 'center' });
 
   // --- Footer ---------------------------------
   doc.setFontSize(8);
   doc.setTextColor(...COLORS.textMuted);
   doc.setFont('helvetica', 'normal');
+  doc.text(
+    'Learner export based on current app completion state. Not a verified credential.',
+    W / 2, H - 34, { align: 'center' }
+  );
   doc.text(
     'CodeHerWay.com  *  Where women code, lead, and rewrite the future of tech',
     W / 2, H - 28, { align: 'center' }
@@ -190,7 +194,7 @@ function roundedRectStroke(doc, x, y, w, h, r) {
   doc.roundedRect(x, y, w, h, r, r, 'S');
 }
 
-function generateVerifyId(name, courseId) {
+function generateExportId(name, courseId) {
   const hash = (name || 'user').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
   const now = Date.now().toString(36).slice(-4).toUpperCase();
   const prefix = courseId?.toUpperCase().slice(0, 3) || 'CHW';

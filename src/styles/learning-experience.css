@@ -1041,6 +1041,16 @@
   margin-top: 12px;
 }
 
+.cc-cert-note {
+  margin-top: 10px;
+  color: var(--amber);
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
 .cc-cert-brand {
   font-family: 'Poppins', sans-serif;
   font-size: 12px;
@@ -1159,6 +1169,41 @@
 }
 
 /* ─── Structured Lesson Format ────────────────── */
+.lesson-product-frame {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0 0 28px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.lesson-product-frame-item {
+  min-width: 0;
+  padding: 14px;
+  background: rgba(8, 8, 15, 0.72);
+}
+
+.lesson-product-frame-label {
+  margin: 0 0 8px;
+  color: var(--cyan);
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.lesson-product-frame-copy {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 .sl-section-title {
   font-family: 'Poppins', sans-serif;
   font-size: clamp(16px, 1rem + 0.3vw, 18px);
@@ -1428,6 +1473,10 @@
 }
 
 @media (max-width: 600px) {
+  .lesson-product-frame {
+    grid-template-columns: 1fr;
+  }
+
   .sl-comparison {
     grid-template-columns: 1fr;
   }
