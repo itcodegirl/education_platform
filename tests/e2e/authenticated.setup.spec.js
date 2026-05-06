@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { expect, test } from '@playwright/test';
-import { getMissingE2EAuthConfig, loginWithCredentials, throwIfAuthTerminalState } from './authHelpers';
+import { test } from '@playwright/test';
+import { getMissingE2EAuthConfig } from './authHelpers';
 
 const authDir = path.join(process.cwd(), 'playwright', '.auth');
 const authFile = path.join(authDir, 'user.json');
@@ -11,62 +11,95 @@ function writeEmptyState() {
 	fs.writeFileSync(authFile, JSON.stringify({ cookies: [], origins: [] }, null, 2));
 }
 
-test('capture authenticated storage state', async ({ page }) => {
-	test.setTimeout(90000);
+function getAppOrigin(testInfo) {
+	const baseURL =
+		testInfo.project.use?.baseURL ||
+		process.env.PLAYWRIGHT_BASE_URL ||
+		'http://127.0.0.1:4319';
 
+	return new URL(baseURL).origin;
+}
+
+function getSupabaseUrl() {
+	return process.env.VITE_SUPABASE_URL.trim().replace(/\/+$/, '');
+}
+
+function getSupabaseStorageKey() {
+	const { hostname } = new URL(getSupabaseUrl());
+	const projectRef = hostname.split('.')[0];
+	return `sb-${projectRef}-auth-token`;
+}
+
+function normalizeSession(session) {
+	const expiresIn = Number(session.expires_in) || 3600;
+
+	return {
+		...session,
+		expires_at: session.expires_at || Math.floor(Date.now() / 1000) + expiresIn,
+	};
+}
+
+function writeAuthenticatedState(session, appOrigin) {
+	fs.mkdirSync(authDir, { recursive: true });
+	fs.writeFileSync(
+		authFile,
+		JSON.stringify(
+			{
+				cookies: [],
+				origins: [
+					{
+						origin: appOrigin,
+						localStorage: [
+							{ name: 'chw-onboarded', value: 'true' },
+							{
+								name: getSupabaseStorageKey(),
+								value: JSON.stringify(normalizeSession(session)),
+							},
+						],
+					},
+				],
+			},
+			null,
+			2,
+		),
+	);
+}
+
+async function signInWithSupabase(request) {
+	const supabaseUrl = getSupabaseUrl();
+	const anonKey = process.env.VITE_SUPABASE_ANON_KEY.trim();
+	const response = await request.post(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+		data: {
+			email: process.env.E2E_EMAIL,
+			password: process.env.E2E_PASSWORD,
+		},
+		headers: {
+			apikey: anonKey,
+			authorization: `Bearer ${anonKey}`,
+		},
+		timeout: 30000,
+	});
+
+	if (!response.ok()) {
+		const body = await response.text();
+		throw new Error(`E2E Supabase sign-in failed (${response.status()}): ${body.slice(0, 300)}`);
+	}
+
+	const session = await response.json();
+	if (!session.access_token || !session.refresh_token || !session.user) {
+		throw new Error('E2E Supabase sign-in returned an incomplete session.');
+	}
+
+	return session;
+}
+
+test('capture authenticated storage state', async ({ request }, testInfo) => {
 	const missingEnv = getMissingE2EAuthConfig();
 	if (missingEnv.length > 0) {
 		writeEmptyState();
 		test.skip(true, `Set ${missingEnv.join(', ')} to generate authenticated storage state.`);
 	}
 
-	await page.addInitScript(() => {
-		window.localStorage.setItem('chw-onboarded', 'true');
-		window.localStorage.removeItem('chw-lock-mode');
-	});
-
-	await page.goto('/');
-
-	const emailInput = page.getByLabel('Email');
-	if (await emailInput.isVisible().catch(() => false)) {
-		await loginWithCredentials(page, {
-			email: process.env.E2E_EMAIL,
-			password: process.env.E2E_PASSWORD,
-		});
-	}
-
-	await waitForAuthenticatedShell(page);
-
-	const startFreshButton = page.getByRole('button', { name: /start fresh/i });
-	if (await startFreshButton.isVisible().catch(() => false)) {
-		await startFreshButton.click();
-	}
-
-	fs.mkdirSync(authDir, { recursive: true });
-	await page.context().storageState({ path: authFile });
+	const session = await signInWithSupabase(request);
+	writeAuthenticatedState(session, getAppOrigin(testInfo));
 });
-
-async function waitForAuthenticatedShell(page) {
-	try {
-		await page.waitForFunction(() => {
-			const isVisible = (selector) => {
-				const element = document.querySelector(selector);
-				return Boolean(element && (element.offsetWidth || element.offsetHeight || element.getClientRects().length));
-			};
-
-			const terminalState = ['.auth-error', '.conn-error', '.disabled-screen', '.eb-screen'].some(isVisible);
-			const leftAuthScreen = !isVisible('.auth-card');
-			const appReady = isVisible('.main-shell') || isVisible('.welcome-overlay') || isVisible('.loading-screen');
-
-			return terminalState || (leftAuthScreen && appReady);
-		}, null, { timeout: 60000 });
-	} catch (error) {
-		await throwIfAuthTerminalState(page);
-		throw error;
-	}
-
-	await throwIfAuthTerminalState(page);
-
-	await expect(page.locator('.auth-card')).toBeHidden({ timeout: 10000 });
-	await expect(page.locator('.main-shell, .welcome-overlay, .loading-screen')).toBeVisible({ timeout: 10000 });
-}
