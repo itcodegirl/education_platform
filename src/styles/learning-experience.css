@@ -1041,6 +1041,16 @@
   margin-top: 12px;
 }
 
+.cc-cert-note {
+  margin-top: 10px;
+  color: var(--amber);
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .cc-cert-brand {
   font-family: 'Poppins', sans-serif;
   font-size: 12px;
@@ -1166,7 +1176,7 @@
   margin: 0 0 28px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.08);
 }
 
@@ -1182,7 +1192,7 @@
   font-family: 'Poppins', sans-serif;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
   line-height: 1.35;
   text-transform: uppercase;
 }
