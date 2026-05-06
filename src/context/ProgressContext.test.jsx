@@ -73,12 +73,13 @@ import { ProgressProvider, useProgressData, useXP } from './ProgressContext';
 // ─── Test consumer ───────────────────────────────
 // Renders a div with data attributes we can query in tests.
 function TestConsumer() {
-  const { dataLoaded, loadError, completed, syncFailed } = useProgressData();
+  const { dataLoaded, loadError, loadWarnings, completed, syncFailed } = useProgressData();
   return (
     <div
       data-testid="consumer"
       data-loaded={String(dataLoaded)}
       data-error={loadError ?? ''}
+      data-load-warnings={loadWarnings.join('|')}
       data-completed={completed.join(',')}
       data-sync-failed={String(syncFailed)}
     />
@@ -197,21 +198,29 @@ function renderXPPopupQueueWithProvider() {
   );
 }
 
-// Helper: build a minimal successful fetchAllUserData response
-function makeFetchResult(overrides = {}) {
+// Helper: build the structured progressService.fetchAllUserData response.
+function makeFetchResult({
+  data = {},
+  recoverableErrors = {},
+  criticalError = null,
+} = {}) {
   return {
-    progress:  { data: [], error: null },
-    quiz:      { data: [], error: null },
-    xp:        { data: null, error: null },
-    streak:    { data: null, error: null },
-    daily:     { data: null, error: null },
-    badges:    { data: [], error: null },
-    sr:        { data: [], error: null },
-    bookmarks: { data: [], error: null },
-    notes:     { data: [], error: null },
-    visited:   { data: [], error: null },
-    position:  { data: null, error: null },
-    ...overrides,
+    data: {
+      progress: [],
+      quiz: [],
+      xp: null,
+      streak: null,
+      daily: null,
+      badges: [],
+      sr: [],
+      bookmarks: [],
+      notes: [],
+      visited: [],
+      position: null,
+      ...data,
+    },
+    recoverableErrors,
+    criticalError,
   };
 }
 
@@ -306,9 +315,8 @@ describe('ProgressContext — user logged in (happy path)', () => {
     mockUseAuth.mockReturnValue({ user: { id: 'uid-abc' } });
     mockFetchAllUserData.mockResolvedValue(
       makeFetchResult({
-        progress: {
-          data: [{ lesson_key: 'HTML|Basics|Intro' }, { lesson_key: 'HTML|Basics|Tags' }],
-          error: null,
+        data: {
+          progress: [{ lesson_key: 'HTML|Basics|Intro' }, { lesson_key: 'HTML|Basics|Tags' }],
         },
       }),
     );
@@ -330,9 +338,8 @@ describe('ProgressContext — user logged in (happy path)', () => {
     mockUseAuth.mockReturnValue({ user: { id: 'uid-abc' } });
     mockFetchAllUserData.mockResolvedValue(
       makeFetchResult({
-        streak: {
-          data: { days: 3, last_date: getTodayString() },
-          error: null,
+        data: {
+          streak: { days: 3, last_date: getTodayString() },
         },
       }),
     );
@@ -350,9 +357,8 @@ describe('ProgressContext — user logged in (happy path)', () => {
     mockUseAuth.mockReturnValue({ user: { id: 'uid-abc' } });
     mockFetchAllUserData.mockResolvedValue(
       makeFetchResult({
-        streak: {
-          data: { days: 3, last_date: getYesterdayString() },
-          error: null,
+        data: {
+          streak: { days: 3, last_date: getYesterdayString() },
         },
       }),
     );
@@ -380,9 +386,8 @@ describe('ProgressContext — user logged in (happy path)', () => {
     mockUseAuth.mockReturnValue({ user: { id: 'uid-stale' } });
     mockFetchAllUserData.mockResolvedValue(
       makeFetchResult({
-        streak: {
-          data: { days: 5, last_date: '2024-01-01' },
-          error: null,
+        data: {
+          streak: { days: 5, last_date: '2024-01-01' },
         },
       }),
     );
@@ -404,7 +409,9 @@ describe('ProgressContext — user logged in (happy path)', () => {
     mockUseAuth.mockReturnValue({ user: { id: 'uid-fresh' } });
     mockFetchAllUserData.mockResolvedValue(
       makeFetchResult({
-        streak: { data: null, error: null },
+        data: {
+          streak: null,
+        },
       }),
     );
 
@@ -443,6 +450,65 @@ describe('ProgressContext — user logged in (happy path)', () => {
 });
 
 describe('ProgressContext — fetch error', () => {
+  it('keeps core progress loaded when optional domains fail and surfaces scoped warnings', async () => {
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-soft-fail' } });
+    mockFetchAllUserData.mockResolvedValue(
+      makeFetchResult({
+        data: {
+          progress: [{ lesson_key: 'HTML|Basics|Intro' }],
+        },
+        recoverableErrors: {
+          notes: {
+            domain: 'notes',
+            message: 'Notes failed to load.',
+            detail: 'timeout',
+          },
+          badges: {
+            domain: 'badges',
+            message: 'Badges failed to load.',
+            detail: 'timeout',
+          },
+        },
+      }),
+    );
+
+    renderWithProvider();
+
+    await waitFor(() => {
+      const el = screen.getByTestId('consumer');
+      expect(el.dataset.loaded).toBe('true');
+      expect(el.dataset.error).toBe('');
+      expect(el.dataset.completed).toBe('HTML|Basics|Intro');
+      expect(el.dataset.loadWarnings).toBe('Notes failed to load.|Badges failed to load.');
+    });
+  });
+
+  it('treats critical load failures as blocking errors', async () => {
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-critical' } });
+    mockFetchAllUserData.mockResolvedValue(
+      makeFetchResult({
+        criticalError: {
+          message: 'Lesson progress failed to load. (progress: connection refused)',
+          domains: {
+            progress: {
+              domain: 'progress',
+              message: 'Lesson progress failed to load.',
+              detail: 'connection refused',
+            },
+          },
+        },
+      }),
+    );
+
+    renderWithProvider();
+
+    await waitFor(() => {
+      const el = screen.getByTestId('consumer');
+      expect(el.dataset.error).toBe('Lesson progress failed to load. (progress: connection refused)');
+      expect(el.dataset.loadWarnings).toBe('');
+    });
+  });
+
   it('sets loadError when fetchAllUserData rejects', async () => {
     mockUseAuth.mockReturnValue({ user: { id: 'uid-xyz' } });
     mockFetchAllUserData.mockRejectedValue(new Error('DB unavailable'));
