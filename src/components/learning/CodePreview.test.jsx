@@ -6,8 +6,8 @@ vi.mock('../../hooks/useIsMobile', () => ({
   useIsMobile: () => true,
 }));
 
-vi.mock('../../hooks/useReducedData', () => ({
-  useReducedData: () => false,
+vi.mock('../../hooks/usePrefersReducedData', () => ({
+  usePrefersReducedData: () => false,
 }));
 
 vi.mock('../../services/aiService', () => ({
