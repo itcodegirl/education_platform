@@ -51,7 +51,13 @@ describe('ChallengesPanel', () => {
 
     render(<ChallengesPanel courseId="html" lang="html" onClose={vi.fn()} />);
 
-    expect(screen.getByText('Completed')).toBeInTheDocument();
+    expect(screen.getByText('Completed here')).toBeInTheDocument();
+  });
+
+  it('reassures learners when no challenges have been completed yet', () => {
+    render(<ChallengesPanel courseId="html" lang="html" onClose={vi.fn()} />);
+
+    expect(screen.getByText(/No completed challenges yet/i)).toBeInTheDocument();
   });
 
   it('routes challenge completion through the learning engine', () => {

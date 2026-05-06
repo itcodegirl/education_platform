@@ -308,6 +308,31 @@ img {
   color: var(--text-dim);
 }
 
+.empty-state-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  margin-top: var(--space-4);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+
+.empty-state-action:hover,
+.empty-state-action:focus-visible {
+  border-color: var(--cyan);
+  background: rgba(78, 205, 196, 0.08);
+  transform: translateY(-1px);
+}
+
 .no-match-msg {
   color: var(--text-dim);
   text-align: center;

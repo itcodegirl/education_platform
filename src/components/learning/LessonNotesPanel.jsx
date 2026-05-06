@@ -71,6 +71,11 @@ export function LessonNotesPanel({ lessonKey }) {
           {isDirty ? 'Saving...' : noteText ? 'Saved here' : ''}
         </span>
       </div>
+      {!noteText && (
+        <p className="notes-empty">
+          No note yet. Write the question, gotcha, or next step you want future-you to see first.
+        </p>
+      )}
       <textarea
         className="notes-input"
         value={noteText}
