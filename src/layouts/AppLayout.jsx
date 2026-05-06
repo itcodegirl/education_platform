@@ -498,30 +498,16 @@ export function AppLayout() {
                       Welcome to your learning path, {learnerName}.
                     </h2>
                     <p className="frg-copy">
-                      You are on the first lesson to set your pace. Read this lesson,
-                      complete it, then hit <strong>Mark Done</strong> to unlock the next one.
+                      Start with this lesson. Read the learning frame, build the example,
+                      then use <strong>Mark complete</strong> when you can explain what changed.
                     </p>
-                    <p className="frg-sub">Pick a course track anytime in the lesson sidebar.</p>
+                    <p className="frg-sub">Course switching is in the sidebar when you are ready.</p>
                   </div>
-                  <div className="frg-courses" aria-label="Course options">
-                    {COURSES.map((entry, index) => (
-                      <button
-                        key={entry.id}
-                        type="button"
-                        className={`frg-course ${index === nav.courseIdx ? 'frg-course-active' : ''}`}
-                        onClick={() => {
-                          if (index !== nav.courseIdx) {
-                            nav.switchCourse(index);
-                          }
-                        }}
-                        aria-pressed={index === nav.courseIdx}
-                        aria-label={`Go to ${entry.label} course`}
-                      >
-                        <span aria-hidden="true">{entry.icon}</span>
-                        <span>{entry.label}</span>
-                      </button>
-                    ))}
-                  </div>
+                  <ol className="frg-steps" aria-label="First session steps">
+                    <li>Read the learning frame.</li>
+                    <li>Build the example and check the result.</li>
+                    <li>Mark complete, then take the quick check.</li>
+                  </ol>
                 </section>
               )}
               <LessonView
