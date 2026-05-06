@@ -908,8 +908,8 @@
   max-width: 480px;
   background: var(--bg-dark);
   border: 1px solid var(--border);
-  border-radius: 24px;
-  padding: 40px 32px;
+  border-radius: 18px;
+  padding: 32px 28px;
   text-align: center;
   transform: scale(0.85);
   opacity: 0;
@@ -926,10 +926,15 @@
 }
 
 .cc-trophy {
-  font-size: 64px;
-  display: inline-block;
-  filter: drop-shadow(0 0 24px rgba(255, 167, 38, 0.4));
-  animation: float 2s ease-in-out infinite;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--border-bright);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 28px;
 }
 
 .cc-header {
@@ -954,7 +959,7 @@
 
 .cc-title {
   font-family: 'Poppins', sans-serif;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   background: linear-gradient(90deg, var(--pink), var(--amber));
   -webkit-background-clip: text;
@@ -987,7 +992,7 @@
   position: relative;
   background: var(--bg-surface);
   border: 2px solid var(--border);
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 28px 24px;
   overflow: hidden;
 }
@@ -1002,14 +1007,14 @@
 }
 
 .cc-cert-icon {
-  font-size: 36px;
+  font-size: 30px;
   margin-bottom: 8px;
 }
 
 .cc-cert-label {
   font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 3px;
+  letter-spacing: 0;
   color: var(--text-muted);
   font-family: 'Poppins', sans-serif;
   margin-bottom: 4px;
@@ -1017,7 +1022,7 @@
 
 .cc-cert-course {
   font-family: 'Poppins', sans-serif;
-  font-size: 24px;
+  font-size: 21px;
   font-weight: 700;
   margin-bottom: 12px;
 }
@@ -1110,10 +1115,10 @@
 
 .cc-close-btn {
   padding: 14px 24px;
-  border: none;
+  border: 1px solid var(--border);
   border-radius: 10px;
-  background: var(--pink);
-  color: var(--bg-deep);
+  background: var(--bg-surface);
+  color: var(--text);
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
@@ -1122,8 +1127,8 @@
 }
 
 .cc-close-btn:hover {
-  filter: brightness(1.15);
-  box-shadow: 0 4px 20px var(--pink-dim);
+  border-color: var(--border-bright);
+  color: var(--pink);
   transform: translateY(-1px);
 }
 

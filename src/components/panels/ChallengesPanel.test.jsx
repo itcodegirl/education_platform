@@ -58,6 +58,7 @@ describe('ChallengesPanel', () => {
     render(<ChallengesPanel courseId="html" lang="html" onClose={vi.fn()} />);
 
     expect(screen.getByText(/No completed challenges yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/same-browser CodeHerWay progress/i)).toBeInTheDocument();
   });
 
   it('routes challenge completion through the learning engine', () => {
@@ -67,6 +68,7 @@ describe('ChallengesPanel', () => {
     render(<ChallengesPanel courseId="html" lang="html" onClose={vi.fn()} />);
 
     fireEvent.click(screen.getByRole('button', { name: /build a card/i }));
+    expect(screen.getByText(/not external verification/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /complete build a card/i }));
 
     expect(completeChallenge).toHaveBeenCalledWith('challenge-1');

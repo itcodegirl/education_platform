@@ -31,6 +31,8 @@ describe('BadgesPanel', () => {
   it('renders the badges grid with list semantics so screen readers can navigate it', () => {
     render(<BadgesPanel isOpen onClose={() => {}} />);
 
+    expect(screen.getByText(/in-app milestones, not external credentials/i)).toBeInTheDocument();
+
     // The grid is a real <ul> announced as a list, with an aria-label
     // summarizing total earned vs total available.
     const list = screen.getByRole('list', { name: /badges earned/i });
@@ -51,6 +53,7 @@ describe('BadgesPanel', () => {
     const earnedBadge = screen.getByRole('listitem', { name: /First Steps, earned on 2026-04-30/i });
     expect(earnedBadge).toBeInTheDocument();
     expect(earnedBadge.className).toContain('earned');
+    expect(screen.getByText(/Earned here 2026-04-30/i)).toBeInTheDocument();
   });
 
   it('marks an unearned badge as locked in the aria-label', () => {

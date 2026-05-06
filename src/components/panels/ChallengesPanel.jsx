@@ -50,6 +50,9 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
             <p className="panel-meta">
               Work through the prompt, run the tests, and keep iterating until the challenge clicks.
             </p>
+            <p className="panel-meta panel-meta-trust">
+              Completion is CodeHerWay app progress in this browser, not external verification.
+            </p>
             <CodeChallenge
               challenge={activeChallenge}
               lang={lang}
@@ -100,6 +103,9 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
         <div className="panel-body">
           <p className="panel-meta">
             Pick a challenge when you want to turn a lesson into something tangible and testable.
+          </p>
+          <p className="panel-meta panel-meta-trust">
+            Completed labels reflect same-browser CodeHerWay progress. XP and badges stay motivational unless backend reward sync is enabled and verified.
           </p>
 
           {challenges.length === 0 ? (
