@@ -76,7 +76,7 @@ test.describe('mobile learning smoke', () => {
     }
   }
 
-  test('opens resources from sidebar and search from topbar', async ({ page }) => {
+  test('opens resources, search, and the mobile tools sheet', async ({ page }) => {
     await page.getByLabel('Open course navigation').click();
     await expect(page.locator('#course-sidebar.open')).toBeVisible();
 
@@ -89,20 +89,34 @@ test.describe('mobile learning smoke', () => {
 
     await page.getByLabel('Open lesson search').click();
     await expect(page.locator('.search-input')).toBeVisible();
+    await page.keyboard.press('Escape');
+
+    await page.getByLabel('Open learning tools').click();
+    const toolsSheet = page.getByRole('dialog', { name: /learning tools/i });
+    await expect(toolsSheet).toBeVisible();
+
+    await toolsSheet.getByRole('button', { name: /challenges/i }).click();
+    await expect(page.locator('.challenges-panel')).toBeVisible();
   });
 
   test('navigates lessons, toggles completion, and submits a quiz', async ({ page }) => {
     await expect(page.locator('.lesson-title')).toBeVisible();
     const initialTitle = await page.locator('.lesson-title').textContent();
 
+    await page.getByLabel('Toggle lesson notes').click();
+    await expect(page.locator('.notes-panel')).toBeVisible();
+    await page.getByLabel('Toggle lesson notes').click();
+    await expect(page.locator('.notes-panel')).toHaveCount(0);
+
+    const doneButton = page.locator('.lesson-nav-done');
     const getDoneState = async () =>
-      page.locator('.mark-btn').evaluate((node) => node.classList.contains('dn'));
+      (await doneButton.getAttribute('aria-pressed')) === 'true';
 
     const previousDoneState = await getDoneState();
-    await page.locator('.mark-btn').click();
+    await doneButton.click();
     await expect.poll(getDoneState).toBe(!previousDoneState);
 
-    await page.locator('.nav-btn.nx').click();
+    await page.locator('.lesson-nav-next').click();
     await expect(page.locator('.lesson-title')).not.toHaveText(initialTitle || '', { timeout: 10000 });
 
     await page.getByLabel('Open course navigation').click();

@@ -3,7 +3,7 @@
 // Sidebar + Topbar + Content + Toolbar + Panels
 // ===============================================
 
-import { useCallback, useMemo, useEffect } from "react";
+import { useCallback, useMemo, useEffect, useState } from "react";
 import { useFetcher } from "react-router-dom";
 import { COURSES } from "../data";
 import { useTheme, useAuth, useProgressData, useXP, useCourseContent } from "../providers";
@@ -38,6 +38,7 @@ import { Breadcrumb } from "../components/layout/Breadcrumb";
 import { ThemeToggle } from "../components/layout/ThemeToggle";
 import { BottomToolbar } from "../components/layout/BottomToolbar";
 import { LessonNavBar } from "../components/layout/LessonNavBar";
+import { MobileToolsSheet } from "../components/layout/MobileToolsSheet";
 import { OfflineIndicator } from "../components/layout/OfflineIndicator";
 
 // Learning components
@@ -81,6 +82,7 @@ export function AppLayout() {
     "chw-sidebar-collapsed",
     false,
   );
+  const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
 
   // Lazy-load the currently-selected course's lesson content. The
   // CourseContentProvider caches loads and auto-fetches the default
@@ -146,6 +148,12 @@ export function AppLayout() {
       setSidebarCollapsed(false);
     }
   }, [isMobile, setSidebarCollapsed]);
+
+  useEffect(() => {
+    if (!isMobile) {
+      setMobileToolsOpen(false);
+    }
+  }, [isMobile]);
 
   // --- Dynamic page title -------------------
   useDocumentTitle(showModQuiz ? `${mod.title} Quiz` : les.title);
@@ -304,6 +312,69 @@ export function AppLayout() {
     }),
     [panels],
   );
+  const mobileTools = useMemo(
+    () => [
+      {
+        key: "search",
+        label: "Search",
+        helper: "Find a lesson",
+        onSelect: () => panels.togglePanel("search"),
+      },
+      {
+        key: "bookmarks",
+        label: "Saved",
+        helper: "Saved lessons",
+        onSelect: toolbarHandlers.onBookmarks,
+      },
+      {
+        key: "stats",
+        label: "Progress",
+        helper: "Course status",
+        onSelect: toolbarHandlers.onStats,
+      },
+      {
+        key: "sr",
+        label: "Review",
+        helper: "Spaced practice",
+        onSelect: toolbarHandlers.onSR,
+      },
+      {
+        key: "challenges",
+        label: "Challenges",
+        helper: "Hands-on builds",
+        onSelect: toolbarHandlers.onChallenges,
+      },
+      {
+        key: "cheatsheet",
+        label: "Cheat sheets",
+        helper: "Quick references",
+        onSelect: toolbarHandlers.onCheatsheet,
+      },
+      {
+        key: "glossary",
+        label: "Glossary",
+        helper: "Term lookup",
+        onSelect: toolbarHandlers.onGlossary,
+      },
+      {
+        key: "projects",
+        label: "Projects",
+        helper: "Build ideas",
+        onSelect: toolbarHandlers.onProjects,
+      },
+      {
+        key: "badges",
+        label: "Badges",
+        helper: "In-app milestones",
+        onSelect: toolbarHandlers.onBadges,
+      },
+    ],
+    [panels, toolbarHandlers],
+  );
+
+  useEffect(() => {
+    setMobileToolsOpen(false);
+  }, [panels.panel]);
 
   // --- Keyboard -----------------------------
   useKeyboardNav({
@@ -619,10 +690,18 @@ export function AppLayout() {
           hasModuleQuiz={!!moduleQuiz}
           accent={course.accent}
           lessonPosition={lessonPosition}
+          onOpenTools={() => setMobileToolsOpen((open) => !open)}
+          toolsOpen={mobileToolsOpen}
         />
       ) : (
         <BottomToolbar activePanel={panels.panel} {...toolbarHandlers} />
       )}
+      <MobileToolsSheet
+        isOpen={isMobile && mobileToolsOpen}
+        onClose={() => setMobileToolsOpen(false)}
+        tools={mobileTools}
+        activePanel={panels.panel}
+      />
       <XPPopup />
       <BadgeUnlock />
       <PanelManager
