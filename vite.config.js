@@ -2,10 +2,12 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
-const MONACO_CHUNK_BUDGET_BYTES = 1100 * 1024;
-
 function normalizeModuleId(id) {
   return id.replace(/\\/g, '/');
+}
+
+function isMonacoChunk(filename) {
+  return /vendor-monaco-.*\.js$/i.test(filename);
 }
 
 function getMonacoChunkName(moduleId) {
@@ -38,9 +40,9 @@ function getManualChunkName(id) {
     return 'vendor-supabase';
   }
 
-  // Monaco is intentionally lazy, but large. Vite 8 uses Rolldown's
-  // codeSplitting path; the Rollup-compatible fallback below keeps older
-  // installs on the same chunk names.
+  // Monaco is intentionally lazy, but large. Keep it out of the initial
+  // graph; scripts/check-bundle-size.mjs guards against accidental
+  // modulepreload regressions on the app shell.
   if (moduleId.includes('node_modules/monaco-editor/')) {
     return getMonacoChunkName(moduleId);
   }
@@ -62,17 +64,14 @@ export default defineConfig({
     },
   },
   build: {
-    chunkSizeWarningLimit: 1100,
-    rolldownOptions: {
-      output: {
-        codeSplitting: {
-          groups: [
-            {
-              name: getManualChunkName,
-              maxSize: MONACO_CHUNK_BUDGET_BYTES,
-            },
-          ],
-        },
+    chunkSizeWarningLimit: 1900,
+    modulePreload: {
+      resolveDependencies(_filename, deps, { hostType }) {
+        if (hostType === 'html') {
+          return deps.filter((dep) => !isMonacoChunk(dep));
+        }
+
+        return deps;
       },
     },
     rollupOptions: {

@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const assetsDir = path.resolve(process.cwd(), 'dist', 'assets');
+const indexHtmlPath = path.resolve(process.cwd(), 'dist', 'index.html');
 
 const budgets = [
   {
@@ -13,7 +14,7 @@ const budgets = [
   {
     label: 'monaco/editor chunk',
     match: (file) => /^vendor-monaco-.*\.js$/i.test(file),
-    maxKb: 1100,
+    maxKb: 1900,
   },
   {
     label: 'general chunk',
@@ -26,6 +27,25 @@ const formatKb = (bytes) => `${(bytes / 1024).toFixed(2)} kB`;
 
 if (!fs.existsSync(assetsDir)) {
   console.error('Bundle budget check failed: dist/assets not found. Run `npm run build` first.');
+  process.exit(1);
+}
+
+if (!fs.existsSync(indexHtmlPath)) {
+  console.error('Bundle budget check failed: dist/index.html not found. Run `npm run build` first.');
+  process.exit(1);
+}
+
+const indexHtml = fs.readFileSync(indexHtmlPath, 'utf8');
+const preloadedMonacoChunks = Array.from(
+  indexHtml.matchAll(/<link\b[^>]*\brel=["']modulepreload["'][^>]*\bhref=["'][^"']*vendor-monaco-[^"']+\.js["'][^>]*>/gi),
+  (match) => match[0],
+);
+
+if (preloadedMonacoChunks.length > 0) {
+  console.error('Bundle budget check failed: Monaco editor chunks must stay lazy.');
+  preloadedMonacoChunks.forEach((tag) => {
+    console.error(`- Unexpected initial Monaco preload: ${tag}`);
+  });
   process.exit(1);
 }
 
