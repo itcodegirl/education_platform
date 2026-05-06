@@ -10,8 +10,9 @@ export async function loginWithCredentials(page, { email, password }) {
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Password').fill(password);
 
-  const loginButton = page.getByRole('button', { name: /^log in$/i });
+  const loginButton = page.locator('form.auth-form button[type="submit"]').first();
   await expect(loginButton).toBeVisible({ timeout: 10000 });
+  await expect(loginButton).toContainText(/log in/i, { timeout: 10000 });
   await loginButton.click();
 }
 
