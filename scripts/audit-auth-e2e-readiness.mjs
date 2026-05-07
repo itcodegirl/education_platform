@@ -38,6 +38,24 @@ function workflowHasSecretGate(workflowText, envName) {
   return workflowText.includes(`secrets.${envName}`);
 }
 
+function getObjectScopeText(sourceText, scopeName) {
+  const scopeIndex = sourceText.indexOf(`${scopeName}:`);
+  if (scopeIndex < 0) return '';
+
+  const openBraceIndex = sourceText.indexOf('{', scopeIndex);
+  if (openBraceIndex < 0) return '';
+
+  let depth = 0;
+  for (let index = openBraceIndex; index < sourceText.length; index += 1) {
+    const char = sourceText[index];
+    if (char === '{') depth += 1;
+    if (char === '}') depth -= 1;
+    if (depth === 0) return sourceText.slice(openBraceIndex, index + 1);
+  }
+
+  return sourceText.slice(openBraceIndex);
+}
+
 export function auditAuthE2EReadiness({
   rootDir = process.cwd(),
   packageJsonText = readText(path.join(rootDir, 'package.json')),
@@ -77,8 +95,17 @@ export function auditAuthE2EReadiness({
     }
   });
 
+  const learningSmokeScopeText = getObjectScopeText(authSmokeScriptText, 'learning');
+  if (!learningSmokeScopeText) {
+    addIssue(
+      issues,
+      'scripts/run-auth-e2e-smoke.mjs',
+      'Authenticated smoke runner must define a learning scope.',
+    );
+  }
+
   REQUIRED_AUTH_SMOKE_SPECS.forEach((specPath) => {
-    if (!authSmokeScriptText.includes(specPath)) {
+    if (!learningSmokeScopeText.includes(specPath)) {
       addIssue(
         issues,
         'scripts/run-auth-e2e-smoke.mjs',
@@ -88,7 +115,7 @@ export function auditAuthE2EReadiness({
   });
 
   REQUIRED_AUTH_SMOKE_PROJECTS.forEach((projectName) => {
-    if (!authSmokeScriptText.includes(projectName)) {
+    if (!learningSmokeScopeText.includes(projectName)) {
       addIssue(
         issues,
         'scripts/run-auth-e2e-smoke.mjs',

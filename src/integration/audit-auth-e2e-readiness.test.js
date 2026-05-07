@@ -87,10 +87,7 @@ describe('authenticated E2E readiness audit', () => {
   it('guards the authenticated smoke runner from losing critical signed-in specs', () => {
     const result = auditAuthE2EReadiness({
       packageJsonText: packageJsonText(),
-      authSmokeScriptText: validAuthSmokeScript.replace(
-        "'tests/e2e/mobile-learning-smoke.spec.js',",
-        '',
-      ),
+      authSmokeScriptText: validAuthSmokeScript.replaceAll("'tests/e2e/mobile-learning-smoke.spec.js'", ''),
       workflowFiles: [{ filePath: '.github/workflows/e2e-smoke.yml', text: validWorkflow }],
     });
 
