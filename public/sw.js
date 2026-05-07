@@ -144,23 +144,6 @@ async function cacheFirst(request, cacheName, options = {}) {
   return response;
 }
 
-async function networkFirst(request, cacheName, options = {}) {
-  const { cacheableResponse = (_req, response) => Boolean(response?.ok) } = options;
-  const cache = await caches.open(cacheName);
-
-  try {
-    const response = await fetch(request);
-    if (cacheableResponse(request, response)) {
-      await cache.put(request, response.clone());
-    }
-    return response;
-  } catch (error) {
-    const cached = await cache.match(request);
-    if (cached) return cached;
-    throw error;
-  }
-}
-
 async function staleWhileRevalidate(request, cacheName, options = {}) {
   const { cacheableResponse = (_req, response) => Boolean(response?.ok) } = options;
   const cache = await caches.open(cacheName);
