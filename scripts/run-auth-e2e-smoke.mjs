@@ -9,8 +9,7 @@ const playwrightArgs = [
   'tests/e2e/lesson-flow.spec.js',
   'tests/e2e/mobile-learning-smoke.spec.js',
   '--project=authenticated-chromium',
-  '--project=lesson-authenticated-chromium',
-  '--project=mobile-authenticated-chrome',
+  '--project=authenticated-mobile-chrome',
 ];
 
 function runPlaywright() {

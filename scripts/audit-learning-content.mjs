@@ -72,6 +72,29 @@ function hasDurationSignal(lesson) {
   return isNonEmptyString(lesson.duration) || Number.isFinite(Number(lesson.metadata?.estimatedTime));
 }
 
+function buildLessonIndexes(loaded) {
+  const courseIds = new Set();
+  const lessonsByCourse = new Map();
+
+  loaded.forEach(({ courseMeta, data }) => {
+    const courseId = courseMeta.id;
+    const lessonIds = new Set();
+    courseIds.add(courseId);
+
+    (data?.modules || []).forEach((moduleData) => {
+      (moduleData.lessons || []).forEach((lesson) => {
+        if (isNonEmptyString(lesson?.id)) {
+          lessonIds.add(String(lesson.id));
+        }
+      });
+    });
+
+    lessonsByCourse.set(courseId, lessonIds);
+  });
+
+  return { courseIds, lessonsByCourse };
+}
+
 function analyzeMetadata(courseMetadata, issues, warnings) {
   const ids = new Set();
   const actualIds = courseMetadata.map((course) => course.id);
@@ -101,7 +124,7 @@ function analyzeMetadata(courseMetadata, issues, warnings) {
   }
 }
 
-function analyzeLessons(courseId, modules, issues, warnings) {
+function analyzeLessons(courseId, modules, lessonIndexes, issues, warnings) {
   const moduleIds = new Set();
   const lessonIds = new Set();
   const lessonEntries = [];
@@ -173,13 +196,40 @@ function analyzeLessons(courseId, modules, issues, warnings) {
   for (const { lesson, lessonPath } of lessonEntries) {
     (lesson.prereqs || []).forEach((prereqId) => {
       if (!lessonIds.has(String(prereqId))) {
-        addWarning(warnings, lessonPath, `Prerequisite "${prereqId}" does not match an active lesson id.`);
+        addIssue(issues, lessonPath, `Prerequisite "${prereqId}" does not match an active lesson in ${courseId}.`);
       }
     });
 
-    const nextLessonId = lesson.bridge?.nextLessonId;
-    if (nextLessonId && !lessonIds.has(String(nextLessonId))) {
-      addWarning(warnings, lessonPath, `Bridge nextLessonId "${nextLessonId}" does not match an active lesson id.`);
+    const bridge = lesson.bridge || {};
+    const nextLessonId = bridge.nextLessonId;
+    const nextCourseId = bridge.nextCourseId || courseId;
+
+    if (bridge.nextCourseId && !lessonIndexes.courseIds.has(String(bridge.nextCourseId))) {
+      addIssue(issues, lessonPath, `Bridge nextCourseId "${bridge.nextCourseId}" does not match an active course.`);
+    }
+
+    if (bridge.nextCourseId && !nextLessonId) {
+      addIssue(issues, lessonPath, 'Bridge declares nextCourseId but is missing nextLessonId.');
+    }
+
+    if (nextLessonId) {
+      const targetLessonIds = lessonIndexes.lessonsByCourse.get(String(nextCourseId)) || new Set();
+      const existsInAnotherCourse = [...lessonIndexes.lessonsByCourse.entries()].some(
+        ([candidateCourseId, candidateLessonIds]) =>
+          candidateCourseId !== courseId && candidateLessonIds.has(String(nextLessonId)),
+      );
+
+      if (!targetLessonIds.has(String(nextLessonId))) {
+        if (!bridge.nextCourseId && existsInAnotherCourse) {
+          addIssue(
+            issues,
+            lessonPath,
+            `Bridge nextLessonId "${nextLessonId}" points outside ${courseId}; add nextCourseId for an explicit cross-course handoff.`,
+          );
+        } else {
+          addIssue(issues, lessonPath, `Bridge target "${nextCourseId}/${nextLessonId}" does not match an active lesson.`);
+        }
+      }
     }
   }
 
@@ -305,6 +355,7 @@ async function main() {
   const issues = [];
   const warnings = [];
   const { courseMetadata, loaded } = await loadAllCourseData();
+  const lessonIndexes = buildLessonIndexes(loaded);
 
   analyzeMetadata(courseMetadata, issues, warnings);
 
@@ -321,7 +372,7 @@ async function main() {
     quizCount += (data?.quizzes || []).length;
     challengeCount += (data?.challenges || []).length;
 
-    analyzeLessons(courseId, modules, issues, warnings);
+    analyzeLessons(courseId, modules, lessonIndexes, issues, warnings);
     analyzeQuizzes(courseId, data?.quizzes || [], issues);
     analyzeChallenges(courseId, data?.challenges || [], issues, warnings);
   }
