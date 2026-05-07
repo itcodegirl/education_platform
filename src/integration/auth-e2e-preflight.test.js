@@ -1,0 +1,94 @@
+import { describe, expect, it, vi } from 'vitest';
+import {
+  runAuthE2EPreflight,
+  validateAuthE2EEnv,
+} from '../../scripts/auth-e2e-preflight.mjs';
+
+const validEnv = {
+  VITE_SUPABASE_URL: 'https://secret-project-ref.supabase.co',
+  VITE_SUPABASE_ANON_KEY: 'secret-anon-key',
+  E2E_EMAIL: 'learner@example.test',
+  E2E_PASSWORD: 'secret-password',
+};
+
+describe('authenticated E2E preflight', () => {
+  it('reports missing config without requiring local runs to fail', () => {
+    const result = validateAuthE2EEnv({});
+
+    expect(result.ok).toBe(false);
+    expect(result.required).toBe(false);
+    expect(result.missing).toEqual([
+      'VITE_SUPABASE_URL',
+      'VITE_SUPABASE_ANON_KEY',
+      'E2E_EMAIL',
+      'E2E_PASSWORD',
+    ]);
+  });
+
+  it('rejects localhost and placeholder Supabase config when auth E2E is required', () => {
+    const result = validateAuthE2EEnv({
+      ...validEnv,
+      E2E_AUTH_REQUIRED: 'true',
+      VITE_SUPABASE_URL: 'http://127.0.0.1:54321',
+      VITE_SUPABASE_ANON_KEY: 'example-anon-key',
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.problems.map((problem) => problem.code)).toEqual([
+      'local_supabase_in_ci',
+      'placeholder_anon_key',
+    ]);
+  });
+
+  it('rejects invalid Supabase URLs before any reachability check', () => {
+    const result = validateAuthE2EEnv({
+      ...validEnv,
+      E2E_AUTH_REQUIRED: 'true',
+      VITE_SUPABASE_URL: 'not a url',
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.problems.map((problem) => problem.code)).toContain('invalid_url');
+  });
+
+  it('redacts configured values in successful diagnostics', async () => {
+    const checkReachability = vi.fn(async () => ({ status: 200 }));
+
+    const result = await runAuthE2EPreflight({
+      ...validEnv,
+      E2E_AUTH_REQUIRED: 'true',
+    }, {
+      checkReachability,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.message).toContain('Authenticated E2E preflight passed');
+    expect(result.message).toContain('https://[redacted-host]');
+    expect(result.message).not.toContain('secret-project-ref');
+    expect(result.message).not.toContain(validEnv.VITE_SUPABASE_ANON_KEY);
+    expect(result.message).not.toContain(validEnv.E2E_EMAIL);
+    expect(result.message).not.toContain(validEnv.E2E_PASSWORD);
+  });
+
+  it('fails required preflight with redacted unreachable-host diagnostics', async () => {
+    const checkReachability = vi.fn(async () => {
+      const error = new Error('getaddrinfo ENOTFOUND secret-project-ref.supabase.co');
+      error.code = 'ENOTFOUND';
+      throw error;
+    });
+
+    const result = await runAuthE2EPreflight({
+      ...validEnv,
+      E2E_AUTH_REQUIRED: 'true',
+    }, {
+      checkReachability,
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.required).toBe(true);
+    expect(result.message).toContain('Supabase host is unreachable');
+    expect(result.message).toContain('Reason: ENOTFOUND');
+    expect(result.message).not.toContain('secret-project-ref');
+    expect(result.message).not.toContain(validEnv.VITE_SUPABASE_ANON_KEY);
+  });
+});

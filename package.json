@@ -25,6 +25,13 @@
     "test:a11y:unit": "vitest run src/components/auth/AuthPage.a11y.test.jsx src/components/layout/Sidebar.a11y.test.jsx",
     "test:a11y:e2e": "playwright test tests/e2e/accessibility.smoke.spec.js",
     "test:e2e": "npm run test:integration",
+    "test:e2e:smoke": "npm run test:e2e:smoke:public && npm run test:e2e:smoke:learning",
+    "test:e2e:smoke:public": "playwright test tests/e2e/accessibility.smoke.spec.js tests/e2e/auth.smoke.spec.js tests/e2e/public-learning-entry.spec.js --project=chromium --project=mobile-chrome",
+    "test:e2e:smoke:learning": "node scripts/run-auth-e2e-smoke.mjs",
+    "test:e2e:smoke:lesson": "playwright test tests/e2e/lesson-flow.spec.js --project=lesson-authenticated-chromium",
+    "test:e2e:smoke:mobile": "playwright test tests/e2e/mobile-learning-smoke.spec.js --project=mobile-authenticated-chrome",
+    "test:e2e:smoke:authenticated": "playwright test tests/e2e/authenticated.smoke.spec.js --project=authenticated-chromium",
+    "test:e2e:auth:preflight": "node scripts/auth-e2e-preflight.mjs",
     "test:e2e:update-snapshots": "playwright test --update-snapshots",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:ui": "playwright test --ui",
@@ -63,6 +70,6 @@
     "vitest-axe": "^0.1.0"
   },
   "overrides": {
-    "dompurify": "^3.3.3"
+    "dompurify": "^3.4.2"
   }
 }
