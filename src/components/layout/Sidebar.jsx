@@ -5,7 +5,7 @@
 
 import { useState, memo, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useProgressData, useAuth } from '../../providers';
-import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { useLearnerLocalStorage } from '../../hooks/useLearnerLocalStorage';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { hasQuiz } from '../../data';
 import { ProfilePopover } from './ProfilePopover';
@@ -53,7 +53,7 @@ export const Sidebar = memo(function Sidebar({
   const isDesktopCollapsed = !isMobile && isCollapsed;
   const { completed = [] } = useProgressData();
   const { user } = useAuth();
-  const [lockMode, setLockMode] = useLocalStorage('chw-lock-mode', false);
+  const [lockMode, setLockMode] = useLearnerLocalStorage('chw-lock-mode', false);
   const [popoverOpen, setPopoverOpen] = useState(false);
   // `activePopout` replaces the old `courseDropdownOpen` — a single
   // state for the Courses + Tools tab bar. Only one popout can be

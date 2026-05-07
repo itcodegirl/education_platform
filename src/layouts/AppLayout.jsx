@@ -75,7 +75,7 @@ export function AppLayout() {
   const { xpTotal = 0, streak = 0, pausedStreak = null, dailyCount = 0 } = useXP();
 
   const nav = useNavigation();
-  const panels = usePanels({ dataLoaded, user: true, lastPosition });
+  const panels = usePanels({ dataLoaded, user, lastPosition });
   const learn = useLearning();
   const isMobile = useIsMobile(901);
   const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage(
@@ -165,6 +165,10 @@ export function AppLayout() {
         course: `${course.icon} ${course.label}`,
         mod: `${mod.emoji} ${mod.title}`,
         les: showModQuiz ? "Module Quiz" : les.title,
+        courseId: course.id,
+        moduleId: mod.id,
+        lessonId: les.id,
+        isModuleQuiz: showModQuiz,
       });
       trackCourseVisit(course.id);
     }
@@ -173,8 +177,10 @@ export function AppLayout() {
     course.id,
     course.label,
     dataLoaded,
+    les.id,
     les.title,
     mod.emoji,
+    mod.id,
     mod.title,
     savePosition,
     showModQuiz,

@@ -37,4 +37,20 @@ describe('supabase policy sql static checks', () => {
     expect(awardRpcMigration).toMatch(/on conflict\s*\(\s*user_id\s*,\s*event_key\s*\)\s*do nothing/i);
     expect(awardRpcMigration).toMatch(/grant execute on function public\.award_reward_event[\s\S]*to authenticated/i);
   });
+
+  it('publicProfileDoesNotExposeRawProgressRows', () => {
+    const schema = readText('../../supabase-schema.sql')
+      .split('-- PUBLIC PROFILE PAGES')[1] || '';
+    const migration = readText('../../supabase/migrations/202605070002_harden_public_profile_privacy.sql');
+
+    [schema, migration].forEach((sql) => {
+      expect(sql).toMatch(/create or replace view public\.public_profiles/i);
+      expect(sql).toMatch(/count\(\*\)::int as n[\s\S]*from public\.progress/i);
+      expect(sql).toMatch(/grant select on public\.public_profiles to anon,\s*authenticated/i);
+      expect(sql).toMatch(/drop policy if exists "Public progress count readable" on public\.progress/i);
+      expect(sql).toMatch(/revoke select on table public\.progress from anon/i);
+      expect(sql).not.toMatch(/lesson_key/i);
+      expect(sql).not.toMatch(/create policy "Public progress count readable"[\s\S]*on public\.progress/i);
+    });
+  });
 });

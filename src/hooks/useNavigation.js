@@ -343,6 +343,41 @@ export function useNavigation() {
     selectLessonPosition(ci, 0, 0, false);
   }, [scrollTop, selectLessonPosition]);
 
+  const goToCourseModule = useCallback(async (ci, mi, li = 0) => {
+    if (ci < 0 || ci >= COURSES.length) return false;
+
+    const targetCourse = COURSES[ci];
+    if (!targetCourse) return false;
+
+    if (!targetCourse.modules?.length) {
+      try {
+        await ensureLoaded(targetCourse.id);
+      } catch (error) {
+        logNavigationDiagnostic('selection-course-load-failed', {
+          selectedCourseId: targetCourse.id,
+          errorMessage: error?.message || 'Course failed to load',
+        });
+        return false;
+      }
+    }
+
+    const loadedCourse = COURSES[ci];
+    const targetModule = loadedCourse?.modules?.[mi];
+    const targetLessonIndex = Number.isInteger(li) ? li : 0;
+    const targetLesson = targetModule?.lessons?.[targetLessonIndex];
+    if (!loadedCourse || !targetModule || !targetLesson) {
+      logNavigationDiagnostic('selection-skipped', {
+        reason: 'missing-loaded-target',
+        targetCourseIndex: ci,
+        targetModuleIndex: mi,
+        targetLessonIndex,
+      });
+      return false;
+    }
+
+    return selectLessonPosition(ci, mi, targetLessonIndex, false);
+  }, [ensureLoaded, selectLessonPosition]);
+
   const next = useCallback(() => {
     if (showModQuiz) {
       setShowModQuiz(false);
@@ -406,7 +441,7 @@ export function useNavigation() {
     lessonKey, lessonQuiz, moduleQuiz,
     courseTotal, isFirst, isLast, isLastLesson,
     mainRef,
-    go, next, prev, switchCourse, goToSearch, goToModQuiz, resumeFromPosition,
+    go, next, prev, switchCourse, goToCourseModule, goToSearch, goToModQuiz, resumeFromPosition,
     setShowModQuiz,
   };
 }

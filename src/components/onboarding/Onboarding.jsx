@@ -1,5 +1,5 @@
 ﻿import { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { useLearnerLocalStorage } from '../../hooks/useLearnerLocalStorage';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { trackEvent } from '../../lib/analytics';
 
@@ -42,7 +42,7 @@ const STEPS = [
 export function Onboarding({ isOpen, onClose, displayName }) {
   const [step, setStep] = useState(0);
   const [show, setShow] = useState(false);
-  const [, setOnboarded] = useLocalStorage('chw-onboarded', false);
+  const [, setOnboarded] = useLearnerLocalStorage('chw-onboarded', false);
   const dialogRef = useRef(null);
   const headingRef = useRef(null);
   const headingId = useId();

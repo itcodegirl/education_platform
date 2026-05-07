@@ -97,10 +97,7 @@ export function PanelManager({
           <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
             <RoadmapPanel
               onClose={panels.closePanel}
-              onNavigate={(ci, mi) => {
-                nav.switchCourse(ci);
-                nav.go(mi, 0);
-              }}
+              onNavigate={(ci, mi) => nav.goToCourseModule(ci, mi, 0)}
               currentCourseIdx={nav.courseIdx}
             />
           </ErrorBoundary>
