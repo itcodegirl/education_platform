@@ -24,6 +24,7 @@ import {
   getLessonKeyVariants,
   hasLessonCompletion,
 } from "../utils/lessonKeys";
+import { buildLegacyQuizKey, buildStableQuizKey } from "../utils/quizKeys";
 import {
   getLessonPositionLabel,
   getNextLessonTitle,
@@ -237,6 +238,10 @@ export function AppLayout() {
   )}/${encodeURIComponent(showModQuiz ? 'quiz' : les.id)}`;
 
   const nextStepHint = getNextStepHint({ isLast, showModQuiz, isDone });
+  const moduleQuizKey = buildStableQuizKey('m', course.id, mod.id);
+  const legacyModuleQuizKey = buildLegacyQuizKey('m', mod.id);
+  const lessonQuizKey = buildStableQuizKey('l', course.id, les.id);
+  const legacyLessonQuizKey = buildLegacyQuizKey('l', les.id);
   const currentStepTitle = showModQuiz
     ? 'Take the module quiz'
     : isDone
@@ -505,7 +510,8 @@ export function AppLayout() {
                 quiz={moduleQuiz}
                 accent={course.accent}
                 label={`${mod.title} Quiz`}
-                quizKey={`m:${mod.id}`}
+                quizKey={moduleQuizKey}
+                legacyQuizKeys={[legacyModuleQuizKey]}
               />
             </div>
           ) : (
@@ -532,7 +538,8 @@ export function AppLayout() {
                     quiz={lessonQuiz}
                     accent={course.accent}
                     label="Quick Check"
-                    quizKey={`l:${les.id}`}
+                    quizKey={lessonQuizKey}
+                    legacyQuizKeys={[legacyLessonQuizKey]}
                   />
                 </div>
               )}

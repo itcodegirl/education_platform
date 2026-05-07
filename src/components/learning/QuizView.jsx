@@ -15,8 +15,8 @@ import {
   isAnswerCorrect,
 } from './quiz/questionTypes';
 
-export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey }) {
-  const session = useQuizSession({ quiz, label, quizKey });
+export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey, legacyQuizKeys = [] }) {
+  const session = useQuizSession({ quiz, label, quizKey, legacyQuizKeys });
   const {
     answers,
     submitted,

@@ -3,6 +3,7 @@ import { useProgressData, useXP, useSR, BADGE_DEFS, useCourseContent } from '../
 import { COURSES } from '../../data';
 import { getLevel, getXPInLevel, XP_PER_LEVEL } from '../../utils/helpers';
 import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
+import { parseQuizKey } from '../../utils/quizKeys';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 
@@ -29,8 +30,9 @@ export function StudentStats({ isOpen, onClose }) {
       const percent = totalLessons > 0 ? Math.round((done / totalLessons) * 100) : 0;
 
       const courseQuizKeys = Object.keys(quizScores).filter((key) => {
-        const lessonId = key.replace('l:', '').replace('m:', '');
-        return lessonId.startsWith(course.id.charAt(0));
+        const parsed = parseQuizKey(key);
+        if (parsed.courseId) return parsed.courseId === course.id;
+        return parsed.entityId.startsWith(course.id.charAt(0));
       });
 
       const quizResults = courseQuizKeys.map((key) => {
@@ -108,12 +110,13 @@ export function StudentStats({ isOpen, onClose }) {
   };
 
   const findLessonTitle = (quizKey) => {
-    const id = quizKey.replace('l:', '').replace('m:', '');
+    const parsed = parseQuizKey(quizKey);
     for (const course of COURSES) {
+      if (parsed.courseId && parsed.courseId !== course.id) continue;
       for (const module of course.modules) {
-        if (quizKey.startsWith('m:') && String(module.id) === id) return `${module.title} (Quiz)`;
+        if (parsed.type === 'm' && String(module.id) === parsed.entityId) return `${module.title} (Quiz)`;
         for (const lesson of module.lessons) {
-          if (lesson.id === id) return lesson.title;
+          if (lesson.id === parsed.entityId) return lesson.title;
         }
       }
     }
