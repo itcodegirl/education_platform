@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { getAuthSkipReason, getMissingAuthEnv } from './authE2E.js';
+import { dismissWelcomeOverlay } from './authHelpers';
 
 const missingEnv = getMissingAuthEnv();
 
@@ -20,21 +21,17 @@ test.describe('mobile learning smoke', () => {
     test.skip(Boolean(authSkipReason), authSkipReason);
 
     await page.goto('/');
-    await page.waitForSelector('.auth-form, .shell, .welcome-overlay', { timeout: 30000 });
+    await page.waitForSelector('.auth-form, .main-shell, .welcome-overlay', { timeout: 30000 });
 
     const onAuthPage = await page.locator('.auth-form').isVisible().catch(() => false);
     if (onAuthPage) {
       test.skip(true, 'Authenticated mobile smoke could not restore the shared signed-in state.');
     }
 
-    const welcomeVisible = await page.locator('.welcome-overlay').isVisible().catch(() => false);
-    if (welcomeVisible) {
-      await page.click('.welcome-dismiss, .welcome-resume-btn');
-      await page.waitForSelector('.shell', { timeout: 10000 });
-    }
+    await dismissWelcomeOverlay(page);
 
     await page.keyboard.press('Escape').catch(() => {});
-    await expect(page.locator('.shell')).toBeVisible({ timeout: 30000 });
+    await expect(page.locator('.main-shell')).toBeVisible({ timeout: 30000 });
   });
 
   async function answerQuizQuestions(page) {

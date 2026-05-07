@@ -35,11 +35,19 @@ describe('CodePreview', () => {
   it('copies source code from code tab', () => {
     render(<CodePreview code="console.log('hi')" lang="js" scaffolding="full" />);
 
-    expect(screen.getByLabelText(/lesson code sample/i)).toHaveAttribute('tabIndex', '0');
+    expect(screen.getByLabelText(/javascript code sample/i)).toHaveAttribute('tabIndex', '0');
 
     fireEvent.click(screen.getByRole('button', { name: /copy code to clipboard/i }));
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith("console.log('hi')");
+  });
+
+  it('makes the scrollable source code pane keyboard focusable', () => {
+    render(<CodePreview code="<h1>Hello</h1>" lang="html" scaffolding="full" />);
+
+    const codePane = screen.getByLabelText('HTML code sample');
+    expect(codePane.tagName).toBe('PRE');
+    expect(codePane).toHaveAttribute('tabindex', '0');
   });
 
   it('renders iframe preview when Preview tab is selected', () => {

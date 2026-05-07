@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { getAuthSkipReason, getMissingAuthEnv } from './authE2E.js';
+import { dismissWelcomeOverlay } from './authHelpers';
 
 const missingEnv = getMissingAuthEnv();
 
@@ -20,7 +21,7 @@ test.describe('lesson flow', () => {
     test.skip(Boolean(authSkipReason), authSkipReason);
 
     await page.goto('/');
-    await page.waitForSelector('.auth-form, .shell, .welcome-overlay', { timeout: 30000 });
+    await page.waitForSelector('.auth-form, .main-shell, .welcome-overlay', { timeout: 30000 });
 
     const onAuthPage = await page.locator('.auth-form').isVisible().catch(() => false);
     if (onAuthPage) {
@@ -28,11 +29,7 @@ test.describe('lesson flow', () => {
     }
 
     // Dismiss welcome-back if present
-    const welcomeVisible = await page.locator('.welcome-overlay').isVisible().catch(() => false);
-    if (welcomeVisible) {
-      await page.click('.welcome-dismiss, .welcome-resume-btn');
-      await page.waitForSelector('.shell', { timeout: 10000 });
-    }
+    await dismissWelcomeOverlay(page);
 
     // Dismiss what's new if present
     const whatsNewVisible = await page.locator('.search-overlay').isVisible().catch(() => false);
