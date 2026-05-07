@@ -135,6 +135,13 @@ describe('CodeChallenge', () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
+  it('explains what the challenge grader checks before running tests', () => {
+    render(<CodeChallenge challenge={baseChallenge} lang="html" />);
+
+    expect(screen.getByText(/This grader checks specific requirements/i)).toBeInTheDocument();
+    expect(screen.getByText(/matched the expected checks/i)).toBeInTheDocument();
+  });
+
   it('explains challenge grader limits without overstating mastery', async () => {
     render(<CodeChallenge challenge={baseChallenge} lang="html" />);
 

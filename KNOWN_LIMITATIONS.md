@@ -13,7 +13,7 @@ This project is actively stabilized and is not yet production-grade. The followi
 ## Learning Integrity
 
 - Progress sync: saved on this device. Lesson completions, bookmarks, and notes may sync when connected; XP, streaks, badges, review queue, and challenges are single-device today.
-- Saved learning position resolves persisted course/module/lesson labels back to indices via strict-equal match first, then falls back to substring match. The DB column still stores the human-readable label string; if a label is renamed without a paired migration, the lookup may still drop a learner back to the first lesson of the course rather than tracking the renamed lesson. `npm run audit:lesson-labels` (wired into `npm run check:quality`) now snapshots every active lesson title and blocks PRs that rename or remove an existing `(courseId, moduleId, lessonId)` triple until the C2 stable-ID migration lands. Intentional renames must ship with a paired progress migration and `node scripts/check-lesson-labels.mjs --update` in the same PR.
+- Saved learning position now writes stable `courseId`, `moduleId`, `lessonId`, and `isModuleQuiz` fields while preserving the older human-readable labels for compatibility. Resume prefers the stable identifiers, loads the saved course before resolving if needed, and only falls back to label matching for legacy rows.
 - Streak count: the persisted streak in the DB is the value as of the learner's most recent activity. The UI applies an active-streak guard (`getActiveStreakDays` in `src/utils/helpers.js`) so a learner who has missed more than one day sees `0` instead of the stale value. The DB write path is unchanged; the next activity inside the today/yesterday window resumes the saved count cleanly. Companion `getPausedStreak` surfaces the lapsed value as a positive recovery cue across all three streak-display surfaces: the WelcomeBack overlay pill, the always-visible topbar pill, and the ProfilePopover stat block. `useTodayKey` re-evaluates these guards when the wall clock crosses UTC midnight inside an open tab.
 - Daily count: same shape as the streak guard. Persisted `dailyCount` + `dailyDate` reflect the LAST day the learner did activity. `getActiveDailyCount` returns 0 when `dailyDate` isn't today so the topbar / profile-popover don't lie that the daily goal is already met when the learner returns the next day. Persisted state is unchanged so `recordDailyActivity` rebuilds the count correctly the moment the next activity lands.
 - Learning identity/data model hardening is still pending. The local retry/reconciliation reward engine and Supabase backend reward branch have been unified, but production cross-device reward trust still requires applying migrations, validating the RPC/RLS behavior against a real Supabase project, and deciding local import/backfill policy.
@@ -42,7 +42,7 @@ This project is actively stabilized and is not yet production-grade. The followi
 
 ## Search / Content
 
-- Search indexing may not yet cover every structured lesson field.
+- Search indexing covers structured lesson content, including hooks, steps, concepts, definitions, analogies, challenge requirements, summaries, bridge text, quiz explanations, and glossary terms. It is still a lightweight in-browser index rather than a ranked search service.
 - Content is source-file based and does not yet use a full CMS workflow.
 
 ## Security / Production Hardening

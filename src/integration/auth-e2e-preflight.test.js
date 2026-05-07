@@ -104,7 +104,6 @@ describe('authenticated E2E preflight', () => {
     expect(result.message).toContain('Authenticated E2E preflight passed');
     expect(result.message).not.toContain('secret-project-ref');
   });
-
   it('reports missing config without requiring local runs to fail', () => {
     const result = validateAuthE2EEnv({});
 

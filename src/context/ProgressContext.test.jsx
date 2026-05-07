@@ -400,6 +400,48 @@ describe('ProgressContext — user logged in (happy path)', () => {
     });
   });
 
+  it('authenticatedProgressDoesNotLeakBetweenLearners', async () => {
+    let currentUser = { id: 'uid-primary' };
+    mockUseAuth.mockImplementation(() => ({ user: currentUser }));
+    mockFetchAllUserData.mockImplementation((uid) =>
+      Promise.resolve(
+        makeFetchResult({
+          data: {
+            progress:
+              uid === 'uid-primary'
+                ? [{ lesson_key: 'c:html|m:m1|l:l1' }]
+                : [],
+          },
+        }),
+      ),
+    );
+
+    const { rerender } = render(
+      <ProgressProvider>
+        <TestConsumer />
+      </ProgressProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('consumer').dataset.completed).toBe('c:html|m:m1|l:l1');
+    });
+
+    currentUser = { id: 'uid-secondary' };
+    rerender(
+      <ProgressProvider>
+        <TestConsumer />
+      </ProgressProvider>,
+    );
+
+    await waitFor(() => {
+      const el = screen.getByTestId('consumer');
+      expect(el.dataset.completed).toBe('');
+      expect(el.dataset.loaded).toBe('true');
+    });
+    expect(mockFetchAllUserData).toHaveBeenCalledWith('uid-primary');
+    expect(mockFetchAllUserData).toHaveBeenCalledWith('uid-secondary');
+  });
+
   it('does not update streak just because progress data loaded', async () => {
     // last_date must be today (or yesterday) so the active-streak
     // guard in ProgressContext doesn't dim the loaded value to 0.
@@ -642,6 +684,49 @@ describe('ProgressContext write failure detection', () => {
     });
     expect(mockAddLesson).toHaveBeenCalledTimes(2);
     expect(readProgressWriteQueue('uid-lesson')).toEqual([]);
+  });
+
+  it('pendingProgressWritesStayScopedToTheAuthenticatedLearner', async () => {
+    let currentUser = { id: 'uid-queue-a' };
+    mockUseAuth.mockImplementation(() => ({ user: currentUser }));
+    mockFetchAllUserData.mockResolvedValue(makeFetchResult());
+    mockAddLesson.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'lesson write timeout' },
+    });
+
+    const { rerender } = render(
+      <ProgressProvider>
+        <LessonWriteConsumer />
+      </ProgressProvider>,
+    );
+
+    await waitFor(() => {
+      expect(mockFetchAllUserData).toHaveBeenCalledWith('uid-queue-a');
+    });
+
+    fireEvent.click(screen.getByTestId('toggle-lesson'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('toggle-lesson').dataset.pendingSync).toBe('1');
+    });
+    expect(readProgressWriteQueue('uid-queue-a')).toHaveLength(1);
+    expect(readProgressWriteQueue('uid-queue-b')).toEqual([]);
+
+    currentUser = { id: 'uid-queue-b' };
+    rerender(
+      <ProgressProvider>
+        <LessonWriteConsumer />
+      </ProgressProvider>,
+    );
+
+    await waitFor(() => {
+      const toggle = screen.getByTestId('toggle-lesson');
+      expect(toggle.dataset.completed).toBe('');
+      expect(toggle.dataset.pendingSync).toBe('0');
+    });
+    expect(readProgressWriteQueue('uid-queue-a')).toHaveLength(1);
+    expect(readProgressWriteQueue('uid-queue-b')).toEqual([]);
   });
 
   it('queues Supabase result errors returned by optimistic writes', async () => {

@@ -41,4 +41,11 @@ describe('lessonProductFrame', () => {
     expect(frame.do).toMatch(/profile card/i);
     expect(frame.next).toBe('Continue with Components Introduction.');
   });
+
+  it('keeps completion semantics tied to reading progress in fallback copy', () => {
+    const frame = getLessonProductFrame({ title: 'CSS spacing' });
+
+    expect(frame.next).toMatch(/save reading progress/i);
+    expect(frame.next).toMatch(/quick check/i);
+  });
 });

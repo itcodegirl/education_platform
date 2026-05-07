@@ -92,11 +92,69 @@ export const BOTTOM_SECONDARY_TOOL_KEYS = Object.freeze([
   'projects',
 ]);
 
+export const LEARNING_TOOL_ICONS = Object.freeze({
+  search: 'S',
+  bookmarks: '*',
+  stats: '%',
+  sr: 'R',
+  glossary: 'Aa',
+  cheatsheet: '{}',
+  projects: '<>',
+  challenges: 'OK',
+  badges: '#',
+});
+
+const LEARNING_TOOL_HANDLER_KEYS = Object.freeze({
+  search: 'onSearch',
+  bookmarks: 'onBookmarks',
+  stats: 'onStats',
+  sr: 'onSR',
+  glossary: 'onGlossary',
+  cheatsheet: 'onCheatsheet',
+  projects: 'onProjects',
+  challenges: 'onChallenges',
+  badges: 'onBadges',
+});
+
 export function getLearningToolCopy(key) {
   return LEARNING_TOOL_COPY[key] || { label: key, helper: '' };
 }
 
 export function isLearningToolAvailable(key, hasCompletedProgress = true) {
   return hasCompletedProgress || FIRST_SESSION_TOOL_KEYS.includes(key);
+}
+
+export function getLearningToolHandlerName(key) {
+  return LEARNING_TOOL_HANDLER_KEYS[key] || '';
+}
+
+export function getSidebarResourceTools(hasCompletedProgress = true) {
+  return SIDEBAR_RESOURCE_TOOL_KEYS
+    .filter((key) => isLearningToolAvailable(key, hasCompletedProgress))
+    .map((key) => {
+      const copy = getLearningToolCopy(key);
+      return {
+        key,
+        icon: LEARNING_TOOL_ICONS[key] || '',
+        label: copy.label,
+        hint: copy.sidebarHint || copy.helper,
+      };
+    });
+}
+
+export function getMobileLearningTools(hasCompletedProgress = true, handlers = {}) {
+  return MOBILE_TOOL_KEYS
+    .filter((key) => isLearningToolAvailable(key, hasCompletedProgress))
+    .map((key) => {
+      const copy = getLearningToolCopy(key);
+      const handlerName = getLearningToolHandlerName(key);
+      return {
+        key,
+        icon: LEARNING_TOOL_ICONS[key] || '',
+        label: copy.shortLabel || copy.label,
+        helper: copy.helper,
+        onSelect: handlers[handlerName],
+      };
+    });
 }
 

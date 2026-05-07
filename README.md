@@ -18,6 +18,7 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 - The project is usable for demos and portfolio review.
 - The project is not yet production-grade.
 - The quality baseline currently includes lint, JS-source policy, Playwright script validation, Supabase static policy readiness, production build, bundle budget, lesson-label audit, strict quiz audit, learning-content flow audit, unit tests, and Playwright smoke coverage.
+- Recent audit hardening added stable resume coverage, learner-scoped local state, authenticated persistence boundary tests, clearer lesson/quiz/challenge semantics, mobile tool-sheet polish, and Supabase live-deployment readiness notes.
 
 ## What Is Currently Working
 

@@ -40,7 +40,7 @@ export function getNextLessonTitle({
 export function getNextStepHint({ isLast, showModQuiz, isDone }) {
   if (isLast) return 'Track complete. Pick another course or review a lesson that deserves another pass.';
   if (showModQuiz) return 'Finish the quiz to save this checkpoint, then continue into the next module.';
-  if (!isDone) return 'Complete the lesson when the idea clicks. Your next step stays saved here.';
+  if (!isDone) return 'Complete the lesson when the idea clicks. This saves reading progress; quizzes and challenges stay separate.';
   return 'Saved. Continue to the next lesson when you are ready.';
 }
 
@@ -77,6 +77,6 @@ export function getCurrentStepCopy({ isLast, showModQuiz, isDone, nextTitle }) {
 
   return {
     title: 'Continue learning',
-    copy: 'Read this lesson, try the build, then use Complete lesson to save progress.',
+    copy: 'Read this lesson, try the build, then use Complete lesson to save reading progress.',
   };
 }
