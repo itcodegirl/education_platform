@@ -1,8 +1,8 @@
 ﻿import { useEffect, useRef, useState } from 'react';
-import { generateCertificate } from '../../utils/certificate';
+import { generateProgressSummary } from '../../utils/progressSummary';
 import { useToast } from '../shared/Toast';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
-import { COMPLETION_EXPORT_COPY, PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
+import { PROGRESS_SUMMARY_COPY, PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 
 export function CourseComplete({ isOpen, onClose, course, displayName, lessonCount }) {
   const [show, setShow] = useState(false);
@@ -33,7 +33,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
   const handleDownload = async () => {
     setDownloading(true);
     try {
-      await generateCertificate({
+      await generateProgressSummary({
         studentName: displayName || 'Learner',
         courseName: course.label,
         courseId: course.id,
@@ -41,7 +41,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
         completionDate: today,
       });
     } catch {
-      toast.show('Learner export failed — try again in a moment.');
+      toast.show('Progress Summary failed — try again in a moment.');
     } finally {
       setTimeout(() => setDownloading(false), 1000);
     }
@@ -74,7 +74,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
             to turn effort into visible progress.
           </p>
           <p id="cc-progress-sync" className="cc-kicker">
-            {PROGRESS_SYNC_COPY} {COMPLETION_EXPORT_COPY} This is learner progress, not a third-party certificate.
+            {PROGRESS_SYNC_COPY} {PROGRESS_SUMMARY_COPY} This is learner progress, not a third-party certificate.
           </p>
         </div>
 
@@ -82,7 +82,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
           <div className="cc-cert-inner">
             <div className="cc-cert-border" style={{ borderColor: course.accent }} />
             <div className="cc-cert-icon">{course.icon}</div>
-            <div className="cc-cert-label">Learner export of completion</div>
+            <div className="cc-cert-label">Progress Summary</div>
             <div className="cc-cert-course" style={{ color: course.accent }}>
               {course.label}
             </div>
@@ -115,7 +115,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
             disabled={downloading}
             aria-busy={downloading}
           >
-            {downloading ? 'Generating…' : 'Download learner export (PDF)'}
+            {downloading ? 'Generating…' : 'Download Progress Summary (PDF)'}
           </button>
 
           <button type="button" className="cc-share-btn" onClick={async () => {
