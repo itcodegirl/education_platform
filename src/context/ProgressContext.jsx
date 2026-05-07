@@ -15,12 +15,6 @@ import {
   removeEquivalentBookmarks,
 } from './progressSavedLessonHelpers';
 import { createEmptyLastPosition, mapLastPositionRow } from './lastPositionState';
-import {
-  buildSkippedRetryResult,
-  getLocalStorageSyncFailureLabel,
-  hasPendingSyncWrites,
-  shouldReplayHydratedQueue,
-} from './progressSyncState';
 import { collectRecoverableLoadWarnings } from './progressSyncWarningHelpers';
 import {
   DAILY_GOAL,
@@ -32,22 +26,10 @@ import {
   getYesterdayString,
 } from '../utils/helpers';
 import * as progressService from '../services/progressService';
-import {
-  createProgressWrite,
-  enqueueProgressWrite,
-  executeProgressWrite,
-  readProgressWriteQueue,
-  replayProgressWriteQueue,
-} from '../services/progressWriteQueue';
-import {
-  trackProgressSyncFailure,
-  trackProgressSyncQueued,
-  trackProgressSyncReplay,
-} from '../services/progressSyncTelemetry';
-import { getProgressWriteFailure } from '../services/progressWriteRuntime';
+import { createProgressWrite } from '../services/progressWriteQueue';
 import { isPerfectQuizScore, isQuizScoreValueImprovement, rewardKeys } from '../services/rewardPolicy';
-import { LOCAL_STORAGE_SYNC_ERROR_EVENT } from '../hooks/useLocalStorage';
 import { useTodayKey } from '../hooks/useTodayKey';
+import { useProgressSync } from '../hooks/useProgressSync';
 import { findNewlyEarnedBadges } from '../services/badgeRules';
 import { nextSRCardState } from '../services/srAlgorithm';
 import {
@@ -139,233 +121,6 @@ export function ProgressProvider({ children }) {
   // active-daily-count guards so they recompute when the wall
   // clock crosses midnight inside an open tab.
   const todayKey = useTodayKey();
-  // Counter for DB writes that have failed since the last successful
-  // load. The optimistic state is still the source of truth for the
-  // session — this is just so the UI can surface "your progress did
-  // not save to the cloud" instead of silently losing writes.
-  const [syncFailed, setSyncFailed] = useState(0);
-  const [pendingSyncWrites, setPendingSyncWrites] = useState(0);
-  const [syncRetryInFlight, setSyncRetryInFlight] = useState(false);
-  const pendingSyncWritesRef = useRef(0);
-  const hydratePendingQueueRef = useRef(false);
-
-  const markSyncFailed = useCallback((label = 'sync-write') => {
-    trackProgressSyncFailure({
-      label,
-      pendingCount: pendingSyncWritesRef.current,
-    });
-    setSyncFailed((count) => count + 1);
-  }, []);
-
-  const syncPendingQueueCount = useCallback((targetUserId = userId) => {
-    if (!targetUserId) {
-      pendingSyncWritesRef.current = 0;
-      setPendingSyncWrites(0);
-      return 0;
-    }
-
-    const queueCount = readProgressWriteQueue(targetUserId).length;
-    pendingSyncWritesRef.current = queueCount;
-    setPendingSyncWrites(queueCount);
-    return queueCount;
-  }, [userId]);
-
-  const enqueuePendingSyncWrite = useCallback((writeLike, label = 'sync-write') => {
-    if (!userId || !writeLike?.operation) return false;
-
-    try {
-      const queueItem = writeLike.id
-        ? writeLike
-        : createProgressWrite(writeLike.operation, writeLike.payload, { label });
-
-      const queue = enqueueProgressWrite(userId, queueItem);
-      trackProgressSyncQueued({
-        operation: queueItem.operation,
-        label: queueItem.label,
-        queueSize: queue.length,
-      });
-      hydratePendingQueueRef.current = false;
-      syncPendingQueueCount(userId);
-      return true;
-    } catch (queueErr) {
-      if (import.meta.env.DEV) {
-        console.warn(
-          `[ProgressContext] ${label} could not be added to the retry queue:`,
-          queueErr,
-        );
-      }
-      markSyncFailed(label);
-      return false;
-    }
-  }, [markSyncFailed, syncPendingQueueCount, userId]);
-
-  // Per-resource write chain map. Writes that share a resourceKey
-  // are serialized so a rapid toggle (addLesson → removeLesson →
-  // addLesson on the same lessonKey) lands in submit order on the
-  // server. Writes with different resourceKeys still run in parallel.
-  // The XP path uses its own xpWriteChainRef and stays unchanged so
-  // its serialize-then-resolve semantics are preserved.
-  const writeChainsRef = useRef(new Map());
-
-  // Reset chains when the active learner changes — a chain captured
-  // the old userId and would otherwise resolve a write against a
-  // stale identity.
-  useEffect(() => {
-    writeChainsRef.current = new Map();
-  }, [userId]);
-
-  // Supabase write helper. Optimistic state is updated BEFORE this is
-  // called, so we catch and report failures rather than rollback.
-  // Previously this silently swallowed all errors, which made every
-  // sync failure invisible — a real correctness bug flagged in the
-  // portfolio audit. Now we:
-  //   1. console.warn in dev so the developer sees it immediately
-  //   2. bump the syncFailed counter exposed via context so the UI
-  //      can show a "sync failed, your work is still saved locally"
-  //      banner. Calling retryLoad() will reset the counter.
-  //   3. accept a human-readable label so the warning identifies
-  //      which service call failed.
-  //   4. accept an optional resourceKey to serialize concurrent
-  //      writes against the same resource without blocking writes
-  //      against unrelated resources.
-  const dbWrite = useCallback(async (write, label = 'db-write', options = {}) => {
-    if (!userId) return { queued: false, skipped: true };
-
-    const performWrite = async () => {
-      try {
-        const result = await executeProgressWrite(userId, write);
-        const failure = getProgressWriteFailure(result);
-        if (failure) throw failure;
-        return { queued: false, skipped: false };
-      } catch (err) {
-        if (import.meta.env.DEV) {
-          console.warn(
-            `[ProgressContext] ${label} failed — optimistic state kept:`,
-            err,
-          );
-        }
-        const queued = enqueuePendingSyncWrite(write, label);
-        return { queued, skipped: false };
-      }
-    };
-
-    const resourceKey = options?.resourceKey;
-    if (!resourceKey) {
-      return performWrite();
-    }
-
-    const chains = writeChainsRef.current;
-    const previous = chains.get(resourceKey) || Promise.resolve();
-    const next = previous.catch(() => {}).then(performWrite);
-    chains.set(resourceKey, next);
-    // Drop the entry only when we're still the tail of the chain so
-    // a follow-up enqueue can append to the in-flight tail rather
-    // than starting a fresh chain in parallel with an in-progress
-    // write for the same resource.
-    next.finally(() => {
-      if (chains.get(resourceKey) === next) {
-        chains.delete(resourceKey);
-      }
-    });
-    return next;
-  }, [enqueuePendingSyncWrite, userId]);
-
-  const clearSyncFailed = useCallback(() => setSyncFailed(0), []);
-
-  const retryPendingSyncWrites = useCallback(async ({
-    reloadAfterSuccess = false,
-    trigger = 'manual',
-  } = {}) => {
-    if (!userId || syncRetryInFlight || !hasPendingSyncWrites(pendingSyncWritesRef.current)) {
-      return buildSkippedRetryResult({
-        userId,
-        pendingCount: pendingSyncWritesRef.current,
-        readQueue: readProgressWriteQueue,
-      });
-    }
-
-    setSyncRetryInFlight(true);
-    try {
-      const result = await replayProgressWriteQueue(userId);
-      pendingSyncWritesRef.current = result.remaining;
-      setPendingSyncWrites(result.remaining);
-      trackProgressSyncReplay({
-        trigger,
-        processed: result.processed,
-        remaining: result.remaining,
-        failedItem: result.failedItem,
-        error: result.error,
-      });
-
-      if (result.error) {
-        markSyncFailed('retryPendingSyncWrites');
-      } else if (result.remaining === 0) {
-        hydratePendingQueueRef.current = false;
-        if (reloadAfterSuccess) {
-          setLoadVersion((version) => version + 1);
-        }
-      }
-
-      return result;
-    } catch (err) {
-      if (import.meta.env.DEV) {
-        console.warn('[ProgressContext] retryPendingSyncWrites failed:', err);
-      }
-      trackProgressSyncReplay({
-        trigger,
-        processed: 0,
-        remaining: pendingSyncWritesRef.current,
-        error: err,
-      });
-      markSyncFailed('retryPendingSyncWrites');
-      return {
-        processed: 0,
-        remaining: pendingSyncWritesRef.current,
-        queue: readProgressWriteQueue(userId),
-        failedItem: null,
-        error: err,
-      };
-    } finally {
-      setSyncRetryInFlight(false);
-    }
-  }, [markSyncFailed, syncRetryInFlight, userId]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const handleLocalStorageFailure = (event) => {
-      markSyncFailed(getLocalStorageSyncFailureLabel(event.detail));
-    };
-
-    window.addEventListener(LOCAL_STORAGE_SYNC_ERROR_EVENT, handleLocalStorageFailure);
-    return () => window.removeEventListener(LOCAL_STORAGE_SYNC_ERROR_EVENT, handleLocalStorageFailure);
-  }, [markSyncFailed]);
-
-  useEffect(() => {
-    if (!userId) {
-      hydratePendingQueueRef.current = false;
-      pendingSyncWritesRef.current = 0;
-      setPendingSyncWrites(0);
-      setSyncRetryInFlight(false);
-      return;
-    }
-
-    const queueCount = syncPendingQueueCount(userId);
-    hydratePendingQueueRef.current = queueCount > 0;
-  }, [syncPendingQueueCount, userId]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !userId) return undefined;
-
-    const handleOnline = () => {
-      if (hasPendingSyncWrites(pendingSyncWritesRef.current)) {
-        retryPendingSyncWrites({ trigger: 'online' });
-      }
-    };
-
-    window.addEventListener('online', handleOnline);
-    return () => window.removeEventListener('online', handleOnline);
-  }, [retryPendingSyncWrites, userId]);
 
   // ─── State ─────────────────────────────────────
   const [completed, setCompleted] = useState([]);
@@ -415,28 +170,31 @@ export function ProgressProvider({ children }) {
   const [loadWarnings, setLoadWarnings] = useState([]);
   const clearLoadWarnings = useCallback(() => setLoadWarnings([]), [setLoadWarnings]);
 
-  useEffect(() => {
-    const isOnline = typeof navigator === 'undefined' || navigator.onLine;
-    const shouldReplay = shouldReplayHydratedQueue({
-      userId,
-      dataLoaded,
-      loadError,
-      hydratePendingQueue: hydratePendingQueueRef.current,
-      pendingSyncWrites,
-      isOnline,
-    });
+  // Cloud-write retry surface lives in useProgressSync — pendingSyncWrites,
+  // syncFailed, dbWrite, queue replay, online-listener, etc. The hook
+  // also owns the session-replay-on-load lifecycle; we hand it a
+  // callback so a successful retry can bump the data-loader version
+  // and re-hydrate canonical state.
+  const handleReloadAfterRetry = useCallback(() => {
+    setLoadVersion((version) => version + 1);
+  }, []);
 
-    if (!shouldReplay) return;
-
-    hydratePendingQueueRef.current = false;
-    retryPendingSyncWrites({ reloadAfterSuccess: true, trigger: 'session-replay' });
-  }, [
+  const {
+    syncFailed,
+    pendingSyncWrites,
+    syncRetryInFlight,
+    markSyncFailed,
+    clearSyncFailed,
+    enqueuePendingSyncWrite,
+    dbWrite,
+    retryPendingSyncWrites,
+    setSyncFailed,
+  } = useProgressSync({
+    userId,
     dataLoaded,
     loadError,
-    pendingSyncWrites,
-    retryPendingSyncWrites,
-    userId,
-  ]);
+    onReloadAfterRetry: handleReloadAfterRetry,
+  });
 
   const replaceRewardHistory = useCallback((userId, keys, { persist = false } = {}) => {
     const normalizedKeys = normalizeRewardHistory(keys);
@@ -1065,7 +823,7 @@ export function ProgressProvider({ children }) {
     // so any stale "sync failed" counter is irrelevant after this.
     setSyncFailed(0);
     setLoadVersion((version) => version + 1);
-  }, [setLoadWarnings]);
+  }, [setLoadWarnings, setSyncFailed]);
 
   const progressValue = useMemo(() => ({
     completed,
