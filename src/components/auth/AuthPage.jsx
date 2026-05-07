@@ -395,17 +395,37 @@ export function AuthPage({ onPreview }) {
             )}
 
             {error && (
-              <div className="auth-error ui-status ui-status-error" role="alert" aria-live="assertive">
+              <div
+                id="auth-form-error"
+                className="auth-error ui-status ui-status-error"
+                role="alert"
+                aria-live="assertive"
+              >
                 {error}
               </div>
             )}
             {info && (
-              <div className="auth-success ui-status ui-status-success" role="status" aria-live="polite">
+              <div
+                id="auth-form-info"
+                className="auth-success ui-status ui-status-success"
+                role="status"
+                aria-live="polite"
+              >
                 {info}
               </div>
             )}
 
-            <button className="auth-submit ui-btn ui-btn-primary" type="submit" disabled={isAuthBusy} aria-busy={loading}>
+            <button
+              className="auth-submit ui-btn ui-btn-primary"
+              type="submit"
+              disabled={isAuthBusy}
+              aria-busy={loading}
+              aria-describedby={
+                [error ? 'auth-form-error' : null, info ? 'auth-form-info' : null]
+                  .filter(Boolean)
+                  .join(' ') || undefined
+              }
+            >
               {loading
                 ? mode === 'login'
                   ? 'Signing in…'
