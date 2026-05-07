@@ -15,6 +15,12 @@ import {
   removeEquivalentBookmarks,
 } from './progressSavedLessonHelpers';
 import { createEmptyLastPosition, mapLastPositionRow } from './lastPositionState';
+import {
+  buildSkippedRetryResult,
+  getLocalStorageSyncFailureLabel,
+  hasPendingSyncWrites,
+  shouldReplayHydratedQueue,
+} from './progressSyncState';
 import { collectRecoverableLoadWarnings } from './progressSyncWarningHelpers';
 import {
   DAILY_GOAL,
@@ -225,14 +231,12 @@ export function ProgressProvider({ children }) {
     reloadAfterSuccess = false,
     trigger = 'manual',
   } = {}) => {
-    if (!userId || syncRetryInFlight || pendingSyncWritesRef.current === 0) {
-      return {
-        processed: 0,
-        remaining: pendingSyncWritesRef.current,
-        queue: readProgressWriteQueue(userId),
-        failedItem: null,
-        error: null,
-      };
+    if (!userId || syncRetryInFlight || !hasPendingSyncWrites(pendingSyncWritesRef.current)) {
+      return buildSkippedRetryResult({
+        userId,
+        pendingCount: pendingSyncWritesRef.current,
+        readQueue: readProgressWriteQueue,
+      });
     }
 
     setSyncRetryInFlight(true);
@@ -285,9 +289,7 @@ export function ProgressProvider({ children }) {
     if (typeof window === 'undefined') return;
 
     const handleLocalStorageFailure = (event) => {
-      const key = typeof event.detail?.key === 'string' ? event.detail.key : 'unknown-key';
-      const phase = typeof event.detail?.phase === 'string' ? event.detail.phase : 'unknown';
-      markSyncFailed(`localStorage ${phase}:${key}`);
+      markSyncFailed(getLocalStorageSyncFailureLabel(event.detail));
     };
 
     window.addEventListener(LOCAL_STORAGE_SYNC_ERROR_EVENT, handleLocalStorageFailure);
@@ -311,7 +313,7 @@ export function ProgressProvider({ children }) {
     if (typeof window === 'undefined' || !userId) return undefined;
 
     const handleOnline = () => {
-      if (pendingSyncWritesRef.current > 0) {
+      if (hasPendingSyncWrites(pendingSyncWritesRef.current)) {
         retryPendingSyncWrites({ trigger: 'online' });
       }
     };
@@ -368,9 +370,17 @@ export function ProgressProvider({ children }) {
   const clearLoadWarnings = useCallback(() => setLoadWarnings([]), [setLoadWarnings]);
 
   useEffect(() => {
-    if (!userId || !dataLoaded || loadError) return;
-    if (!hydratePendingQueueRef.current || pendingSyncWrites === 0) return;
-    if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+    const isOnline = typeof navigator === 'undefined' || navigator.onLine;
+    const shouldReplay = shouldReplayHydratedQueue({
+      userId,
+      dataLoaded,
+      loadError,
+      hydratePendingQueue: hydratePendingQueueRef.current,
+      pendingSyncWrites,
+      isOnline,
+    });
+
+    if (!shouldReplay) return;
 
     hydratePendingQueueRef.current = false;
     retryPendingSyncWrites({ reloadAfterSuccess: true, trigger: 'session-replay' });
@@ -394,10 +404,10 @@ export function ProgressProvider({ children }) {
         if (import.meta.env.DEV) {
           console.warn('[ProgressContext] reward history write failed:', err);
         }
-        setSyncFailed((count) => count + 1);
+        markSyncFailed('reward-history-local');
       }
     }
-  }, []);
+  }, [markSyncFailed]);
 
   const replaceChallengeCompletions = useCallback((userId, challengeIds, { persist = false } = {}) => {
     const normalizedChallengeIds = normalizeStringSet(challengeIds);
@@ -411,10 +421,10 @@ export function ProgressProvider({ children }) {
         if (import.meta.env.DEV) {
           console.warn('[ProgressContext] challenge completion write failed:', err);
         }
-        setSyncFailed((count) => count + 1);
+        markSyncFailed('challenge-completions-local');
       }
     }
-  }, []);
+  }, [markSyncFailed]);
 
   const resetUserState = useCallback(() => {
     setCompleted([]);
@@ -670,11 +680,11 @@ export function ProgressProvider({ children }) {
       if (import.meta.env.DEV) {
         console.warn('[ProgressContext] reward history write failed:', err);
       }
-      setSyncFailed((count) => count + 1);
+      markSyncFailed('reward-history-local');
     }
 
     return true;
-  }, [user]);
+  }, [markSyncFailed, user]);
 
   const isChallengeCompleted = useCallback((challengeId) => {
     if (typeof challengeId !== 'string' || !challengeId.trim()) return false;
@@ -697,11 +707,11 @@ export function ProgressProvider({ children }) {
       if (import.meta.env.DEV) {
         console.warn('[ProgressContext] challenge completion write failed:', err);
       }
-      setSyncFailed((count) => count + 1);
+      markSyncFailed('challenge-completions-local');
     }
 
     return true;
-  }, [user]);
+  }, [markSyncFailed, user]);
 
   // ─── Daily Goal ───────────────────────────────
   const recordDailyActivity = useCallback(async () => {

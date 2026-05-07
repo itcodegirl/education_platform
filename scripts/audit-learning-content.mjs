@@ -1,5 +1,6 @@
 /* global console */
 import process from 'node:process';
+import { pathToFileURL } from 'node:url';
 import { createServer } from 'vite';
 
 const EXPECTED_COURSE_IDS = Object.freeze(['html', 'css', 'js', 'react']);
@@ -349,12 +350,9 @@ function printEntries(title, entries, limit = 30) {
   }
 }
 
-async function main() {
-  console.log('Learning Content Audit');
-
+export function analyzeLearningContent({ courseMetadata, loaded }) {
   const issues = [];
   const warnings = [];
-  const { courseMetadata, loaded } = await loadAllCourseData();
   const lessonIndexes = buildLessonIndexes(loaded);
 
   analyzeMetadata(courseMetadata, issues, warnings);
@@ -377,16 +375,35 @@ async function main() {
     analyzeChallenges(courseId, data?.challenges || [], issues, warnings);
   }
 
-  console.log(`  courses: ${loaded.length}`);
-  console.log(`  modules: ${moduleCount}`);
-  console.log(`  lessons: ${lessonCount}`);
-  console.log(`  quizzes: ${quizCount}`);
-  console.log(`  challenges: ${challengeCount}`);
+  return {
+    issues,
+    warnings,
+    counts: {
+      courses: loaded.length,
+      modules: moduleCount,
+      lessons: lessonCount,
+      quizzes: quizCount,
+      challenges: challengeCount,
+    },
+  };
+}
 
-  printEntries('Warnings', warnings);
-  printEntries('Blocking issues', issues);
+async function main() {
+  console.log('Learning Content Audit');
 
-  if (issues.length > 0) {
+  const { courseMetadata, loaded } = await loadAllCourseData();
+  const result = analyzeLearningContent({ courseMetadata, loaded });
+
+  console.log(`  courses: ${result.counts.courses}`);
+  console.log(`  modules: ${result.counts.modules}`);
+  console.log(`  lessons: ${result.counts.lessons}`);
+  console.log(`  quizzes: ${result.counts.quizzes}`);
+  console.log(`  challenges: ${result.counts.challenges}`);
+
+  printEntries('Warnings', result.warnings);
+  printEntries('Blocking issues', result.issues);
+
+  if (result.issues.length > 0) {
     process.exitCode = 1;
     return;
   }
@@ -394,7 +411,9 @@ async function main() {
   console.log('\n  no blocking content integrity issues.');
 }
 
-main().catch((err) => {
-  console.error('Learning content audit failed:', err);
-  process.exitCode = 1;
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((err) => {
+    console.error('Learning content audit failed:', err);
+    process.exitCode = 1;
+  });
+}
