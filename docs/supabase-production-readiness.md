@@ -18,8 +18,24 @@ The command verifies that the repo still contains:
 - Explicit anon `select` revokes for raw profile/progress/reward-adjacent tables.
 - Reward event ledger migrations and the `award_reward_event(...)` RPC that derives ownership from `auth.uid()`.
 - The idempotency guard for `(user_id, event_key)` reward events.
+- Unique Supabase migration timestamp prefixes, so no migration is skipped
+  or mis-reconciled by version.
 
 This is a source-control guard. Passing it means the schema and migration artifacts are present; it does not mean the live Supabase project has applied them.
+
+## Live Deployment Checklist
+
+Use this checklist before pointing a public preview or production build at a Supabase project. Record the project ref, deploy SHA, tester, and date in the release notes.
+
+- Run `npm run check:supabase-readiness` on the exact commit being deployed.
+- Apply missing migrations in timestamp order and record which files were applied.
+- Confirm `public.last_position` includes the stable resume columns before testing resume behavior.
+- Confirm raw learner tables do not grant anon `SELECT`; public sharing should read from `public.public_profiles` only.
+- Run the RLS smoke checks below with one authenticated learner and one second learner id.
+- Run `npm run test:e2e:auth:preflight` with the same secrets that CI or the hosted preview will use.
+- Run authenticated smoke tests only when the four required E2E secrets are present. Do not mark signed-in persistence as verified from public smoke tests alone.
+- Keep `VITE_REWARD_BACKEND_SYNC_ENABLED=false` outside staging until `docs/staging-supabase-validation.md` has a completed live validation record.
+- Store rollback notes for the deployed environment before enabling any backend reward sync flags.
 
 ## Migration Order
 
@@ -28,8 +44,8 @@ For a fresh Supabase project, apply `supabase-schema.sql` first, then apply the 
 1. `supabase/migrations/202604250001_create_reward_events.sql`
 2. `supabase/migrations/202604250002_add_award_reward_event_rpc.sql`
 3. `supabase/migrations/202605060001_guard_profile_disabled_updates.sql`
-4. `supabase/migrations/202605060001_harden_profile_updates.sql`
-5. `supabase/migrations/202605060002_guard_reward_event_idempotency.sql`
+4. `supabase/migrations/202605060002_guard_reward_event_idempotency.sql`
+5. `supabase/migrations/202605060003_harden_profile_updates.sql`
 6. `supabase/migrations/202605070001_add_stable_last_position_columns.sql`
 7. `supabase/migrations/202605070002_harden_public_profile_privacy.sql`
 
@@ -67,6 +83,33 @@ having count(*) > 1;
 ```
 
 Expected: zero duplicate event keys per learner after staging reward tests. Use a learner-scoped version of this query during manual validation.
+
+### RLS Smoke Checks
+
+Use an authenticated SQL session or API client for the test learner. Replace placeholders with real ids from the staging project.
+
+```sql
+select *
+from public.progress
+where user_id = '<other-learner-user-id>';
+```
+
+Expected: zero rows for a different learner.
+
+```sql
+select *
+from public.public_profiles
+where id = '<public-profile-id>';
+```
+
+Expected: aggregate profile fields only. Raw lesson keys, quiz keys, and reward event rows should not appear through this view.
+
+```sql
+insert into public.reward_events (user_id, event_type, event_key, xp_amount, source)
+values ('<other-learner-user-id>', 'lesson_complete', 'manual-test', 25, 'rls-smoke');
+```
+
+Expected: rejected unless executed through an approved server/RPC path that derives ownership from `auth.uid()`.
 
 ## Authenticated E2E Secrets
 

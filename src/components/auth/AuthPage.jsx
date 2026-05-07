@@ -4,7 +4,7 @@ import { ThemeToggle } from '../layout/ThemeToggle';
 import { Logo } from '../shared/Logo';
 import { LandingHeroIntro, LandingHeroStory } from './LandingHero';
 
-const PASSWORD_MIN_LENGTH = 6;
+const PASSWORD_MIN_LENGTH = 8;
 const DISPLAY_NAME_MAX_LENGTH = 60;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -48,6 +48,7 @@ export function AuthPage({ onPreview }) {
     displayName: false,
   });
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState('');
   const [sendingReset, setSendingReset] = useState(false);
   const [confirmSent, setConfirmSent] = useState(false);
   const authCardRef = useRef(null);
@@ -167,6 +168,28 @@ export function AuthPage({ onPreview }) {
     }
   };
 
+  const handleSocialSignIn = async (providerName, signInWithProvider) => {
+    setError('');
+    setInfo('');
+    setSocialLoading(providerName);
+
+    try {
+      const { error: err } = await signInWithProvider();
+      if (err) {
+        setError(getFriendlyAuthError(
+          err.message,
+          `Unable to continue with ${providerName} right now. Try email sign-in or try again in a moment.`
+        ));
+      } else {
+        setInfo(`Opening ${providerName} sign-in...`);
+      }
+    } catch {
+      setError(`Unable to continue with ${providerName} right now. Try email sign-in or try again in a moment.`);
+    } finally {
+      setSocialLoading('');
+    }
+  };
+
   const emailInlineError = (touched.email || email.trim().length >= 3) && email.trim() && !EMAIL_PATTERN.test(email.trim())
     ? 'Enter a valid email format (example: you@example.com).'
     : '';
@@ -177,6 +200,7 @@ export function AuthPage({ onPreview }) {
   const displayNameInlineError = mode === 'signup' && touched.displayName && !displayName.trim()
     ? 'Display name is required.'
     : '';
+  const isAuthBusy = loading || sendingReset || Boolean(socialLoading);
 
   if (confirmSent) {
     return (
@@ -227,7 +251,7 @@ export function AuthPage({ onPreview }) {
           onPreview={onPreview}
         />
 
-        <div className="auth-card" ref={authCardRef} aria-busy={loading || sendingReset ? 'true' : 'false'}>
+        <div className="auth-card" ref={authCardRef} aria-busy={isAuthBusy ? 'true' : 'false'}>
           <div className="auth-brand">
             <span className="auth-bolt" aria-hidden="true">&lt;/&gt;</span>
             <p className="auth-title">CodeHerWay</p>
@@ -242,7 +266,7 @@ export function AuthPage({ onPreview }) {
               aria-controls="auth-form-panel"
               className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
               onClick={() => setModeAndClearError('login')}
-              disabled={loading}
+              disabled={isAuthBusy}
             >
               Login
             </button>
@@ -253,7 +277,7 @@ export function AuthPage({ onPreview }) {
               aria-controls="auth-form-panel"
               className={`auth-tab ${mode === 'signup' ? 'active' : ''}`}
               onClick={() => setModeAndClearError('signup')}
-              disabled={loading}
+              disabled={isAuthBusy}
             >
               Create account
             </button>
@@ -268,7 +292,7 @@ export function AuthPage({ onPreview }) {
             id="auth-form-panel"
             className="auth-form"
             onSubmit={handleSubmit}
-            aria-busy={loading || sendingReset}
+            aria-busy={isAuthBusy}
             noValidate
           >
             {mode === 'signup' && (
@@ -286,7 +310,7 @@ export function AuthPage({ onPreview }) {
                   onBlur={() => setTouched((prev) => ({ ...prev, displayName: true }))}
                   required
                   maxLength={DISPLAY_NAME_MAX_LENGTH}
-                  disabled={loading}
+                  disabled={isAuthBusy}
                   aria-describedby="auth-display-name-help"
                   aria-invalid={Boolean(displayNameInlineError)}
                 />
@@ -313,7 +337,7 @@ export function AuthPage({ onPreview }) {
                 onChange={(e) => setEmail(e.target.value)}
                 onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
                 required
-                disabled={loading}
+                disabled={isAuthBusy}
                 aria-describedby="auth-email-help"
                 aria-invalid={Boolean(emailInlineError)}
               />
@@ -339,7 +363,7 @@ export function AuthPage({ onPreview }) {
                 onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
                 required
                 minLength={PASSWORD_MIN_LENGTH}
-                disabled={loading}
+                disabled={isAuthBusy}
                 aria-describedby="auth-password-help"
                 aria-invalid={Boolean(passwordInlineError)}
               />
@@ -359,7 +383,7 @@ export function AuthPage({ onPreview }) {
                     type="button"
                     className="auth-reset-link"
                     onClick={handleForgotPassword}
-                    disabled={loading || sendingReset}
+                    disabled={isAuthBusy}
                   >
                     {sendingReset ? 'Sending reset link...' : 'Forgot password?'}
                   </button>
@@ -381,7 +405,7 @@ export function AuthPage({ onPreview }) {
               </div>
             )}
 
-            <button className="auth-submit ui-btn ui-btn-primary" type="submit" disabled={loading} aria-busy={loading}>
+            <button className="auth-submit ui-btn ui-btn-primary" type="submit" disabled={isAuthBusy} aria-busy={loading}>
               {loading
                 ? mode === 'login'
                   ? 'Signing in…'
@@ -400,21 +424,23 @@ export function AuthPage({ onPreview }) {
             <button
               type="button"
               className="auth-social-btn ui-btn ui-btn-secondary"
-              onClick={signInWithGithub}
+              onClick={() => handleSocialSignIn('GitHub', signInWithGithub)}
               aria-label="Continue with GitHub"
-              disabled={loading}
+              disabled={isAuthBusy}
+              aria-busy={socialLoading === 'GitHub'}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.39.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.74.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5 1 .1-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6.02 0c2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.24 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.8 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.82.58C20.56 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z" />
               </svg>
-              Continue with GitHub
+              {socialLoading === 'GitHub' ? 'Opening GitHub...' : 'Continue with GitHub'}
             </button>
             <button
               type="button"
               className="auth-social-btn ui-btn ui-btn-secondary"
-              onClick={signInWithGoogle}
+              onClick={() => handleSocialSignIn('Google', signInWithGoogle)}
               aria-label="Continue with Google"
-              disabled={loading}
+              disabled={isAuthBusy}
+              aria-busy={socialLoading === 'Google'}
             >
               <svg width="18" height="18" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
@@ -422,7 +448,7 @@ export function AuthPage({ onPreview }) {
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
               </svg>
-              Continue with Google
+              {socialLoading === 'Google' ? 'Opening Google...' : 'Continue with Google'}
             </button>
           </div>
 

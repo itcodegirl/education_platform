@@ -8,14 +8,22 @@ function readText(path) {
 describe('supabase policy sql static checks', () => {
   it('profile-policy.blocks-user-editing-admin-fields statically', () => {
     const schema = readText('../../supabase-schema.sql');
-    const migration = readText('../../supabase/migrations/202605060001_guard_profile_disabled_updates.sql');
+    const adminGuardMigration = readText('../../supabase/migrations/202605060001_guard_profile_disabled_updates.sql');
+    const safeFieldMigration = readText('../../supabase/migrations/202605060003_harden_profile_updates.sql');
 
-    [schema, migration].forEach((sql) => {
+    [schema, adminGuardMigration].forEach((sql) => {
       expect(sql).toMatch(/new\.is_admin is distinct from old\.is_admin/i);
       expect(sql).toMatch(/new\.is_disabled is distinct from old\.is_disabled/i);
       expect(sql).toMatch(/is_disabled can only be changed by an admin/i);
       expect(sql).toMatch(/before update of is_admin,\s*is_disabled on public\.profiles/i);
     });
+
+    expect(safeFieldMigration).toMatch(/revoke insert,\s*update on table public\.profiles from authenticated/i);
+    expect(safeFieldMigration).toMatch(/grant update\s*\(\s*display_name,\s*avatar_url,\s*is_public,\s*public_handle\s*\)/i);
+    expect(safeFieldMigration).not.toMatch(/grant update\s*\([^)]*is_admin/i);
+    expect(safeFieldMigration).not.toMatch(/grant update\s*\([^)]*is_disabled/i);
+    expect(safeFieldMigration).toMatch(/create or replace function public\.set_user_disabled/i);
+    expect(safeFieldMigration).toMatch(/grant execute on function public\.set_user_disabled[\s\S]*to authenticated/i);
   });
 
   it('reward-backend.enforces-idempotency-and-auth-owned-awards statically', () => {

@@ -23,6 +23,6 @@ describe('Onboarding', () => {
 
     expect(screen.getByRole('heading', { name: /your first session has one path/i })).toBeInTheDocument();
     expect(screen.getByText(/read the learning frame/i)).toBeInTheDocument();
-    expect(screen.getByText(/mark the lesson complete/i)).toBeInTheDocument();
+    expect(screen.getByText(/save lesson reading progress/i)).toBeInTheDocument();
   });
 });

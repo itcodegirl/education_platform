@@ -2,10 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Sidebar } from './Sidebar';
 
-const { mockUseProgressData, mockUseAuth, mockUseLocalStorage } = vi.hoisted(() => ({
+const { mockUseProgressData, mockUseAuth, mockUseLocalStorage, mockUseFocusTrap } = vi.hoisted(() => ({
   mockUseProgressData: vi.fn(),
   mockUseAuth: vi.fn(),
   mockUseLocalStorage: vi.fn(),
+  mockUseFocusTrap: vi.fn(),
 }));
 
 vi.mock('../../providers', () => ({
@@ -18,7 +19,7 @@ vi.mock('../../hooks/useLocalStorage', () => ({
 }));
 
 vi.mock('../../hooks/useFocusTrap', () => ({
-  useFocusTrap: () => {},
+  useFocusTrap: (...args) => mockUseFocusTrap(...args),
 }));
 
 vi.mock('../../data', () => ({
@@ -102,6 +103,7 @@ describe('Sidebar', () => {
     mockUseProgressData.mockReturnValue({ completed: [] });
     mockUseAuth.mockReturnValue({ user: { email: 'jenna@example.com', user_metadata: {} } });
     mockUseLocalStorage.mockReturnValue([true, vi.fn()]);
+    mockUseFocusTrap.mockClear();
   });
 
   it('locks sequential lessons when lock mode is enabled', () => {
@@ -109,6 +111,15 @@ describe('Sidebar', () => {
 
     const secondLesson = screen.getByRole('button', { name: /lesson two/i });
     expect(secondLesson).toBeDisabled();
+  });
+
+  it('shows visible lesson readiness states', () => {
+    renderSidebar();
+
+    expect(screen.getByRole('button', { name: /lesson one lesson, ready/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /lesson two lesson, locked/i })).toBeDisabled();
+    expect(screen.getByText('Ready')).toBeInTheDocument();
+    expect(screen.getByText('Locked')).toBeInTheDocument();
   });
 
   it('fires lesson navigation clicks when free-roam mode is enabled', () => {
@@ -248,6 +259,35 @@ describe('Sidebar', () => {
     expect(overlay).toHaveClass('overlay-open');
   });
 
+  it('keeps the closed mobile drawer hidden and removed from tab order', () => {
+    renderSidebar({ isMobile: true, isOpen: false });
+
+    const shell = document.querySelector('.sidebar-shell');
+    const nav = document.getElementById('course-sidebar');
+    const firstButton = nav.querySelector('button');
+
+    expect(shell).toHaveAttribute('aria-hidden', 'true');
+    expect(shell).toHaveAttribute('inert');
+    expect(nav).toHaveAttribute('aria-hidden', 'true');
+    expect(nav).toHaveAttribute('inert');
+    expect(firstButton).toHaveAttribute('tabindex', '-1');
+  });
+
+  it('mobileSidebarSupportsKeyboardNavigation', () => {
+    const onClose = vi.fn();
+    renderSidebar({ isMobile: true, isOpen: true, onClose });
+
+    expect(mockUseFocusTrap).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({
+        enabled: true,
+        onEscape: onClose,
+        lockBodyScroll: true,
+        initialFocus: 'first-tabbable',
+      }),
+    );
+  });
+
   it('opens Tools popout and triggers selected tool', () => {
     const onOpenTool = vi.fn();
     renderSidebar({ onOpenTool });
@@ -256,6 +296,30 @@ describe('Sidebar', () => {
     fireEvent.click(screen.getByRole('menuitem', { name: /cheat sheets/i }));
 
     expect(onOpenTool).toHaveBeenCalledWith('cheatsheet');
+  });
+
+  it('closes the mobile drawer after selecting a tool', () => {
+    const onOpenTool = vi.fn();
+    const onClose = vi.fn();
+    renderSidebar({ isMobile: true, isOpen: true, onOpenTool, onClose });
+
+    fireEvent.click(screen.getByRole('button', { name: /tools/i }));
+    fireEvent.click(screen.getByRole('menuitem', { name: /cheat sheets/i }));
+
+    expect(onOpenTool).toHaveBeenCalledWith('cheatsheet');
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('closes the mobile drawer after selecting a course', () => {
+    const onSelectCourse = vi.fn();
+    const onClose = vi.fn();
+    renderSidebar({ isMobile: true, isOpen: true, onSelectCourse, onClose });
+
+    fireEvent.click(screen.getByRole('button', { name: /courses/i }));
+    fireEvent.click(screen.getByRole('menuitem', { name: /switch to html course/i }));
+
+    expect(onSelectCourse).toHaveBeenCalledWith(0);
+    expect(onClose).toHaveBeenCalled();
   });
 
   it('marks desktop-collapsed sidebar as hidden and inert', () => {

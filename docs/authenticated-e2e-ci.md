@@ -34,9 +34,47 @@ gh secret set E2E_PASSWORD
 - Invalid Supabase URLs fail before Playwright runs.
 - Localhost Supabase URLs and the placeholder anon key fail in CI unless a job explicitly sets `E2E_ALLOW_LOCAL_SUPABASE=true`.
 - Unreachable Supabase hosts fail with a redacted reason.
+- Local `.env.e2e.local` values are never loaded automatically in CI.
 - Authenticated tests may still skip locally when credentials are absent.
+- `npm run test:e2e:smoke:learning` runs the signed-in learner smoke, lesson flow, and mobile learning smoke specs across authenticated desktop and mobile projects.
 
 Treat a skipped authenticated E2E run as a known limitation, not as a signed-in test pass.
+
+## Static Coverage Guard
+
+`npm run audit:auth-e2e` checks that CI still runs the auth preflight and that the authenticated smoke runner still includes:
+
+- `tests/e2e/authenticated.smoke.spec.js`
+- `tests/e2e/lesson-flow.spec.js`
+- `tests/e2e/mobile-learning-smoke.spec.js`
+- `--project=authenticated-chromium`
+- `--project=authenticated-mobile-chrome`
+
+It also checks that scoped smoke commands (`lesson`, `mobile`, and
+`authenticated`) still go through `scripts/run-auth-e2e-smoke.mjs`, so local
+env-file loading and CI preflight behavior stay consistent. If those paths or
+scopes change, update the audit and this document in the same PR so reviewer
+expectations stay honest.
+
+## Local Authenticated Smoke Setup
+
+For local signed-in smoke runs, duplicate the tracked template:
+
+```bash
+cp .env.e2e.example .env.e2e.local
+```
+
+Fill in the local file with the same four values used in CI. The local
+file is ignored by git. `npm run test:e2e:auth:preflight`,
+`npm run test:e2e:smoke:learning`, `npm run test:e2e:smoke:lesson`,
+`npm run test:e2e:smoke:mobile`, and
+`npm run test:e2e:smoke:authenticated` load `.env.e2e.local`
+automatically when it exists, without printing secret values. Values
+already set in the shell win over local file values.
+
+Leave `E2E_AUTH_REQUIRED=false` for normal local development if you want
+missing credentials to self-skip. Set it to `true` when validating that
+the authenticated setup is complete.
 
 ## Artifact Inspection
 

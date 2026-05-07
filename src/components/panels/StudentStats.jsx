@@ -3,8 +3,21 @@ import { useProgressData, useXP, useSR, BADGE_DEFS, useCourseContent } from '../
 import { COURSES } from '../../data';
 import { getLevel, getXPInLevel, XP_PER_LEVEL } from '../../utils/helpers';
 import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
+import { findQuizEntityTitle, quizKeyBelongsToCourse } from '../../utils/quizCourseOwnership';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
+import { parseQuizScore } from '../../services/rewardPolicy';
+
+function toQuizResult([key, scoreValue]) {
+  const parsed = parseQuizScore(scoreValue);
+  if (!parsed) return null;
+  return {
+    key,
+    got: parsed.score,
+    total: parsed.total,
+    percent: parsed.pct,
+  };
+}
 
 export function StudentStats({ isOpen, onClose }) {
   const { completed, quizScores } = useProgressData();
@@ -22,21 +35,17 @@ export function StudentStats({ isOpen, onClose }) {
     const xpInLevel = getXPInLevel(xpTotal);
     const xpPercent = Math.round((xpInLevel / XP_PER_LEVEL) * 100);
     const completedSet = new Set(completed);
+    const quizEntries = Object.entries(quizScores || {});
 
     const courseStats = COURSES.map((course) => {
       const totalLessons = course.modules.reduce((sum, module) => sum + module.lessons.length, 0);
       const done = getCourseCompletedLessonCount(completedSet, course);
       const percent = totalLessons > 0 ? Math.round((done / totalLessons) * 100) : 0;
 
-      const courseQuizKeys = Object.keys(quizScores).filter((key) => {
-        const lessonId = key.replace('l:', '').replace('m:', '');
-        return lessonId.startsWith(course.id.charAt(0));
-      });
-
-      const quizResults = courseQuizKeys.map((key) => {
-        const [got, total] = quizScores[key].split('/').map(Number);
-        return { got, total, percent: total > 0 ? Math.round((got / total) * 100) : 0 };
-      });
+      const quizResults = quizEntries
+        .filter(([key]) => quizKeyBelongsToCourse(key, course))
+        .map(toQuizResult)
+        .filter(Boolean);
 
       const averageQuizPercent = quizResults.length > 0
         ? Math.round(quizResults.reduce((sum, result) => sum + result.percent, 0) / quizResults.length)
@@ -55,10 +64,7 @@ export function StudentStats({ isOpen, onClose }) {
       };
     });
 
-    const allResults = Object.keys(quizScores).map((key) => {
-      const [got, total] = quizScores[key].split('/').map(Number);
-      return { key, got, total, percent: total > 0 ? Math.round((got / total) * 100) : 0 };
-    });
+    const allResults = quizEntries.map(toQuizResult).filter(Boolean);
 
     const overallQuizPercent = allResults.length > 0
       ? Math.round(allResults.reduce((sum, result) => sum + result.percent, 0) / allResults.length)
@@ -107,18 +113,7 @@ export function StudentStats({ isOpen, onClose }) {
     return '#ef4444';
   };
 
-  const findLessonTitle = (quizKey) => {
-    const id = quizKey.replace('l:', '').replace('m:', '');
-    for (const course of COURSES) {
-      for (const module of course.modules) {
-        if (quizKey.startsWith('m:') && String(module.id) === id) return `${module.title} (Quiz)`;
-        for (const lesson of module.lessons) {
-          if (lesson.id === id) return lesson.title;
-        }
-      }
-    }
-    return quizKey;
-  };
+  const findLessonTitle = (quizKey) => findQuizEntityTitle(quizKey, COURSES);
 
   return (
     <div className="search-overlay" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
@@ -199,7 +194,7 @@ export function StudentStats({ isOpen, onClose }) {
             </div>
             <div className="ss-card">
               <span className="ss-card-value">{stats.totalPercent}%</span>
-              <span className="ss-card-label">Complete</span>
+              <span className="ss-card-label">Lessons complete</span>
               <span className="ss-card-sub">{stats.totalDone}/{stats.totalLessons} lessons</span>
             </div>
           </div>
