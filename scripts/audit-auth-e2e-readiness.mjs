@@ -10,6 +10,16 @@ const WORKFLOW_FILES = Object.freeze([
 ]);
 
 const AUTH_PREFLIGHT_SCRIPT = 'npm run test:e2e:auth:preflight';
+const AUTH_SMOKE_SCRIPT = 'node scripts/run-auth-e2e-smoke.mjs';
+const REQUIRED_AUTH_SMOKE_SPECS = Object.freeze([
+  'tests/e2e/authenticated.smoke.spec.js',
+  'tests/e2e/lesson-flow.spec.js',
+  'tests/e2e/mobile-learning-smoke.spec.js',
+]);
+const REQUIRED_AUTH_SMOKE_PROJECTS = Object.freeze([
+  '--project=authenticated-chromium',
+  '--project=authenticated-mobile-chrome',
+]);
 
 function readText(filePath) {
   return readFileSync(filePath, 'utf8');
@@ -22,6 +32,7 @@ function addIssue(issues, source, message) {
 export function auditAuthE2EReadiness({
   rootDir = process.cwd(),
   packageJsonText = readText(path.join(rootDir, 'package.json')),
+  authSmokeScriptText = readText(path.join(rootDir, 'scripts/run-auth-e2e-smoke.mjs')),
   workflowFiles = WORKFLOW_FILES.map((filePath) => ({
     filePath,
     text: readText(path.join(rootDir, filePath)),
@@ -36,6 +47,34 @@ export function auditAuthE2EReadiness({
       'package.json scripts.test:e2e:auth:preflight',
       'Authenticated E2E preflight script must run scripts/auth-e2e-preflight.mjs.',
     );
+  }
+
+  if (packageJson.scripts?.['test:e2e:smoke:learning'] !== AUTH_SMOKE_SCRIPT) {
+    addIssue(
+      issues,
+      'package.json scripts.test:e2e:smoke:learning',
+      `Authenticated learning smoke script must run ${AUTH_SMOKE_SCRIPT}.`,
+    );
+  }
+
+  for (const specPath of REQUIRED_AUTH_SMOKE_SPECS) {
+    if (!authSmokeScriptText.includes(specPath)) {
+      addIssue(
+        issues,
+        'scripts/run-auth-e2e-smoke.mjs',
+        `Authenticated smoke runner must include ${specPath}.`,
+      );
+    }
+  }
+
+  for (const projectName of REQUIRED_AUTH_SMOKE_PROJECTS) {
+    if (!authSmokeScriptText.includes(projectName)) {
+      addIssue(
+        issues,
+        'scripts/run-auth-e2e-smoke.mjs',
+        `Authenticated smoke runner must include ${projectName}.`,
+      );
+    }
   }
 
   for (const { filePath, text } of workflowFiles) {

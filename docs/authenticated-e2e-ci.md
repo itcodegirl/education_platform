@@ -35,8 +35,21 @@ gh secret set E2E_PASSWORD
 - Localhost Supabase URLs and the placeholder anon key fail in CI unless a job explicitly sets `E2E_ALLOW_LOCAL_SUPABASE=true`.
 - Unreachable Supabase hosts fail with a redacted reason.
 - Authenticated tests may still skip locally when credentials are absent.
+- `npm run test:e2e:smoke:learning` runs the signed-in learner smoke, lesson flow, and mobile learning smoke specs across authenticated desktop and mobile projects.
 
 Treat a skipped authenticated E2E run as a known limitation, not as a signed-in test pass.
+
+## Static Coverage Guard
+
+`npm run audit:auth-e2e` checks that CI still runs the auth preflight and that the authenticated smoke runner still includes:
+
+- `tests/e2e/authenticated.smoke.spec.js`
+- `tests/e2e/lesson-flow.spec.js`
+- `tests/e2e/mobile-learning-smoke.spec.js`
+- `--project=authenticated-chromium`
+- `--project=authenticated-mobile-chrome`
+
+If those paths change, update the audit and this document in the same PR so reviewer expectations stay honest.
 
 ## Artifact Inspection
 

@@ -4,6 +4,7 @@ import { auditAuthE2EReadiness } from '../../scripts/audit-auth-e2e-readiness.mj
 const packageJsonText = JSON.stringify({
   scripts: {
     'test:e2e:auth:preflight': 'node scripts/auth-e2e-preflight.mjs',
+    'test:e2e:smoke:learning': 'node scripts/run-auth-e2e-smoke.mjs',
   },
 });
 
@@ -19,10 +20,22 @@ steps:
     run: npm run test:e2e:auth:preflight
 `;
 
+const validAuthSmokeScript = `
+const playwrightArgs = [
+  'test',
+  'tests/e2e/authenticated.smoke.spec.js',
+  'tests/e2e/lesson-flow.spec.js',
+  'tests/e2e/mobile-learning-smoke.spec.js',
+  '--project=authenticated-chromium',
+  '--project=authenticated-mobile-chrome',
+];
+`;
+
 describe('authenticated E2E readiness audit', () => {
   it('flags workflows that do not run the auth preflight', () => {
     const result = auditAuthE2EReadiness({
       packageJsonText,
+      authSmokeScriptText: validAuthSmokeScript,
       workflowFiles: [
         {
           filePath: '.github/workflows/e2e-smoke.yml',
@@ -42,5 +55,23 @@ describe('authenticated E2E readiness audit', () => {
   it('keeps current auth smoke workflows aligned with the preflight contract', () => {
     const result = auditAuthE2EReadiness();
     expect(result.issues).toEqual([]);
+  });
+
+  it('guards the authenticated smoke runner from losing critical signed-in specs', () => {
+    const result = auditAuthE2EReadiness({
+      packageJsonText,
+      authSmokeScriptText: validAuthSmokeScript.replace(
+        "'tests/e2e/mobile-learning-smoke.spec.js',",
+        '',
+      ),
+      workflowFiles: [{ filePath: '.github/workflows/e2e-smoke.yml', text: validWorkflow }],
+    });
+
+    expect(result.issues).toEqual([
+      {
+        source: 'scripts/run-auth-e2e-smoke.mjs',
+        message: 'Authenticated smoke runner must include tests/e2e/mobile-learning-smoke.spec.js.',
+      },
+    ]);
   });
 });
