@@ -55,20 +55,27 @@ function readInitial(key, initialValue, options = {}) {
 }
 
 export function useLocalStorage(key, initialValue, options = {}) {
-  const optionsRef = useRef(options);
-  optionsRef.current = options;
+  const {
+    fallbackKey = null,
+    migrateFallback = false,
+    removeFallbackAfterMigration = false,
+  } = options;
   const previousKeyRef = useRef(key);
   const [value, setValue] = useState(() => readInitial(key, initialValue, options));
 
   useEffect(() => {
     if (previousKeyRef.current === key) return;
     previousKeyRef.current = key;
-    setValue(readInitial(key, initialValue, optionsRef.current));
+    setValue(readInitial(key, initialValue, {
+      fallbackKey,
+      migrateFallback,
+      removeFallbackAfterMigration,
+    }));
     // initialValue is intentionally not a dependency: callers often
     // pass object literals, and key changes are the only moment when
     // this hook should reseed from storage.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [fallbackKey, key, migrateFallback, removeFallbackAfterMigration]);
 
   // Keep tabs in sync when the same key changes in another tab.
   useEffect(() => {
