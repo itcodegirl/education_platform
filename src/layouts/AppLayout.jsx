@@ -133,23 +133,29 @@ export function AppLayout() {
 
   const { stable: stableLessonKey, legacy: legacyLessonKey } = getLessonKeyVariants(course, mod, les);
   const isDone = hasLessonCompletion(completedSet, course, mod, les);
+  // Reading-time estimate is the prose path only. Including the
+  // code block would inflate the figure (~200 wpm reading prose is
+  // not the same as scanning code) and surface a misleading number
+  // in the topbar pill.
   const readTime = useMemo(
-    () => estimateReadingTime((les.content || '') + (les.code || '')),
-    [les.content, les.code],
+    () => estimateReadingTime(les.content || ''),
+    [les.content],
   );
   const level = useMemo(() => getLevel(xpTotal), [xpTotal]);
   const hasProgress = completed.length > 0 || Number(lastPosition?.time) > 0;
   const hasCompletedProgress = completed.length > 0;
   const showStarterGuide = !hasProgress && !showModQuiz;
-  // "Builder" was the previous fallback. It's well-meaning but
-  // reads as scripted. "there" reads as a normal greeting when no
-  // display name is set ("Keep building, there.") and avoids
-  // gendered or jargon-y framing.
+  // Resolved display name when one exists; null otherwise. Surfaces
+  // that need a textual fallback ("Continue learning, there." reads
+  // cold) decide locally how to handle the null case — the topbar
+  // drops the salutation entirely; FirstRunGuide uses an open-form
+  // sentence that doesn't require a name. This avoids cycling through
+  // awkward placeholders ("Builder" / "there") that read as scripted.
   const learnerName =
-    profile?.display_name ||
-    user?.user_metadata?.display_name ||
+    profile?.display_name?.trim() ||
+    user?.user_metadata?.display_name?.trim() ||
     user?.email?.split("@")[0] ||
-    "there";
+    null;
   const isSidebarOpen = isMobile ? panels.sidebar : true;
 
   useEffect(() => {

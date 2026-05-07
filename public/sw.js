@@ -1,7 +1,7 @@
 ﻿// Service worker for CodeHerWay.
 // Keep navigation network-first so deploys pick up the latest HTML shell.
 
-const CACHE_VERSION = 'v9';
+const CACHE_VERSION = 'v10';
 const CACHE_PREFIX = 'chw-';
 const SHELL_CACHE = `${CACHE_PREFIX}shell-${CACHE_VERSION}`;
 const DATA_CACHE = `${CACHE_PREFIX}data-${CACHE_VERSION}`;
@@ -74,15 +74,15 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Supabase Auth endpoints carry session identity and refresh state.
-  // Let them bypass the service worker entirely so deploy/cache updates
-  // cannot replay stale auth responses or interfere with token refresh.
-  if (url.hostname.includes('supabase') && url.pathname.includes('/auth/v1/')) {
-    return;
-  }
-
+  // All Supabase requests bypass the service worker. The Cache API
+  // keys responses by request URL, but Supabase REST/RLS responses
+  // vary by Authorization header — two learners on the same browser
+  // hitting the same RLS-filtered endpoint would otherwise risk
+  // serving each other's cached data on a flaky connection. Auth
+  // endpoints additionally need fresh refresh-token responses.
+  // Offline read-fallback is intentionally given up here; the
+  // progress write path already has its own localStorage retry queue.
   if (url.hostname.includes('supabase')) {
-    event.respondWith(networkFirst(request, DATA_CACHE));
     return;
   }
 

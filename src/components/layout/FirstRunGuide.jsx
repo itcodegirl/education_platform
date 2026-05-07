@@ -6,7 +6,7 @@ export const FirstRunGuide = memo(function FirstRunGuide({ learnerName }) {
       <div className="frg-content">
         <p className="frg-kicker">Start here</p>
         <h2 className="frg-title">
-          Start with this lesson, {learnerName}.
+          {learnerName ? `Start with this lesson, ${learnerName}.` : 'Start with this lesson.'}
         </h2>
         <p className="frg-copy">
           Read the frame, try the build, then press <strong>Complete lesson</strong>.

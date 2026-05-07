@@ -784,29 +784,50 @@ export function ProgressProvider({ children }) {
   // services/badgeRules.js. This callback's only job is to build a
   // context snapshot from current state, ask findNewlyEarnedBadges
   // what's freshly earned, and then persist + celebrate it.
+  //
+  // Primitives are derived once per state change so the callback +
+  // effect deps never touch unstable object identities (quizScores,
+  // notes, bookmarks, earnedBadges). Without this guard, a single
+  // note save creates a new `notes` object → effect refires →
+  // checkBadges reruns even when no badge-relevant input moved.
+  const completedCount = completed.length;
+  const quizCount = useMemo(() => Object.keys(quizScores).length, [quizScores]);
+  const hasPerfectQuiz = useMemo(
+    () => Object.values(quizScores).some((v) => {
+      const [a, b] = typeof v === 'string' ? v.split('/') : [];
+      return a === b && parseInt(a, 10) > 0;
+    }),
+    [quizScores],
+  );
+  const coursesVisitedCount = coursesVisited.length;
+  const bookmarkCount = bookmarks.length;
+  const noteCount = useMemo(() => Object.keys(notes).length, [notes]);
+  const earnedBadgesRef = useRef(earnedBadges);
+  useEffect(() => {
+    earnedBadgesRef.current = earnedBadges;
+  }, [earnedBadges]);
+
   const checkBadges = useCallback(async () => {
     if (!user) return;
 
     const ctx = {
-      completedCount: completed.length,
-      quizCount: Object.keys(quizScores).length,
-      hasPerfect: Object.values(quizScores).some((v) => {
-        const [a, b] = v.split('/');
-        return a === b && parseInt(a) > 0;
-      }),
+      completedCount,
+      quizCount,
+      hasPerfect: hasPerfectQuiz,
       xpTotal,
       streak,
-      coursesVisitedCount: coursesVisited.length,
+      coursesVisitedCount,
       dailyCount: dailyDate === getTodayString() ? dailyCount : 0,
       hour: new Date().getHours(),
-      bookmarkCount: bookmarks.length,
-      noteCount: Object.keys(notes).length,
+      bookmarkCount,
+      noteCount,
     };
 
-    const newlyEarned = findNewlyEarnedBadges(ctx, earnedBadges);
+    const currentEarnedBadges = earnedBadgesRef.current;
+    const newlyEarned = findNewlyEarnedBadges(ctx, currentEarnedBadges);
     if (newlyEarned.length === 0) return;
 
-    const updated = { ...earnedBadges };
+    const updated = { ...currentEarnedBadges };
     const today = getTodayString();
     for (const badge of newlyEarned) {
       updated[badge.id] = { date: today };
@@ -820,11 +841,24 @@ export function ProgressProvider({ children }) {
     // Enqueue every newly earned badge so each one gets its own
     // celebration in turn, instead of all but the first being lost.
     setNewBadgeQueue((queue) => [...queue, ...newlyEarned]);
-  }, [user, completed, quizScores, xpTotal, streak, coursesVisited, dailyCount, dailyDate, earnedBadges, bookmarks, notes, dbWrite]);
+  }, [
+    user,
+    completedCount,
+    quizCount,
+    hasPerfectQuiz,
+    xpTotal,
+    streak,
+    coursesVisitedCount,
+    dailyCount,
+    dailyDate,
+    bookmarkCount,
+    noteCount,
+    dbWrite,
+  ]);
 
   useEffect(() => {
     if (dataLoaded) checkBadges();
-  }, [dataLoaded, checkBadges, completed.length, quizScores, xpTotal, dailyCount, bookmarks.length, notes]);
+  }, [dataLoaded, checkBadges]);
 
   const clearNewBadge = useCallback(() => {
     setNewBadgeQueue((queue) => (queue.length > 0 ? queue.slice(1) : queue));
