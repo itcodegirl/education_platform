@@ -560,6 +560,7 @@
       },
       "bridge": {
         "preview": "Congratulations — you've completed the entire CSS curriculum! You're now ready to learn JavaScript and make your websites interactive, or dive into React to build complex applications.",
+        "nextCourseId": "js",
         "nextLessonId": "js-1-1"
       }
     }

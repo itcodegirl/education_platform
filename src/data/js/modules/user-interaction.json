@@ -341,8 +341,8 @@
         ]
       },
       "bridge": {
-        "preview": "In the next lesson, you'll learn about LOOPS in depth — while loops, for...of loops, and how to iterate through data efficiently.",
-        "nextLessonId": "js-3-4"
+        "preview": "In the next module, you'll learn advanced array methods like map, filter, and reduce so you can transform data more cleanly.",
+        "nextLessonId": "js-4-1"
       }
     }
   ]

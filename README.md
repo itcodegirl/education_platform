@@ -17,7 +17,7 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 - This repository root is the active canonical app for CodeHerWay.
 - The project is usable for demos and portfolio review.
 - The project is not yet production-grade.
-- The quality baseline currently includes lint, production build, bundle budget, unit tests, quiz audit reporting, and Playwright smoke coverage.
+- The quality baseline currently includes lint, JS-source policy, Playwright script validation, Supabase static policy readiness, production build, bundle budget, lesson-label audit, strict quiz audit, learning-content flow audit, unit tests, and Playwright smoke coverage.
 
 ## What Is Currently Working
 
@@ -42,12 +42,13 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 
 Current baseline checks:
 
-- `npm run check` (lint, production build, bundle budget, unit tests)
+- `npm run check` (lint, JS-source policy, Playwright project-reference audit, Supabase static policy readiness, production build, bundle budget, lesson-label audit, strict quiz audit, learning-content flow audit, and unit tests)
 - `npm run build`
 - `npm run lint`
 - `npm run check:js-source` (JS-only source policy; this project does not run TypeScript type checking)
 - `npm run check:supabase-readiness` (static migration/privacy/reward-ledger readiness gate)
 - `npm run audit:content` (course/module/lesson/quiz/challenge content integrity guard)
+- `npm run audit:e2e-scripts` (Playwright project-reference guard)
 - `npm run test` (Vitest unit/component suite — passes on a fresh clone with no `.env` configured; the suite stubs the `VITE_SUPABASE_*` placeholders via `vitest.config.js` so client-importing tests can evaluate)
 - `npm run audit:quizzes`
 - `npm run test:e2e` (public smoke and first-lesson preview paths run by default)
@@ -57,6 +58,8 @@ Current test boundaries:
 - Authenticated Playwright smoke checks are skipped locally when auth env credentials are not provided. CI runs authenticated learner coverage only when the full E2E Supabase secret set is configured; see [Authenticated E2E CI setup](./docs/authenticated-e2e-ci.md) and [PR admin readiness](./docs/pr-admin-readiness.md).
 - Playwright authenticated storage state is generated under `playwright/.auth/` and intentionally ignored by Git.
 - `npm run audit:quizzes` runs in strict mode by default and is the source of truth for quiz integrity drift. It fails on any unclassified orphan quizzes or unreviewed variant groups. All 14 intentional variant groups are locked; 53 legacy orphans are classified and non-blocking.
+- `npm run audit:content` fails on stale prerequisite IDs, missing bridge lesson IDs, and implicit cross-course lesson handoffs.
+- `npm run audit:e2e-scripts` fails when package scripts or smoke runners reference Playwright projects that do not exist in `playwright.config.js`.
 - The local reward-event ledger/queue and Supabase reward backend branches are now unified. The local engine remains the default fallback, and backend reward sync remains disabled until the migrations are applied and authenticated reward flows are validated in a real project.
 - Backend reward details live in [docs/backend-reward-events.md](./docs/backend-reward-events.md), [docs/atomic-reward-award.md](./docs/atomic-reward-award.md), and [docs/reward-sync-strategy.md](./docs/reward-sync-strategy.md).
 - Supabase migration and privacy readiness details live in [docs/supabase-production-readiness.md](./docs/supabase-production-readiness.md).
