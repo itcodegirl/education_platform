@@ -112,6 +112,22 @@ The goal was to keep the existing core vision and architecture intact while maki
 - exposed a visible "Retry now" recovery action when progress writes are queued after a transient save failure
 - guarded authenticated smoke coverage so lesson-flow and mobile-learning specs stay wired into CI when credentials are present
 - added named critical tests for lesson persistence, duplicate XP prevention, quiz retry, challenge retry, save failure recovery, and mobile sidebar keyboard support
+- added account-switching and learner-scoped retry-queue tests so signed-in progress cannot silently bleed between learners in the unit harness
+- added a Supabase live-deployment checklist and RLS smoke-check boundary to keep portfolio claims aligned with actual hosted setup work
+- clarified lesson completion as saved reading progress, with quizzes and challenges presented as separate checks rather than hidden graduation rules
+- polished the mobile tools sheet with shared-registry icons, safer disabled states, and constrained labels for narrow screens
+
+---
+
+## Before / After hardening
+
+| Area | Before | After |
+| --- | --- | --- |
+| Reviewer entry | Multiple branches and historical repos made the canonical project harder to identify. | Root reviewer guide, branch triage, README status, and roadmap now point reviewers to the current product and its limits. |
+| Learner flow | New learners could see many tools before the first meaningful action was obvious. | First-session copy, lesson navigation, empty states, and progress surfaces now emphasize the next learning step. |
+| Reward trust | Quiz/challenge retries and fragile display labels could overstate progress reliability. | Stable quiz ownership, one-time local reward ledgers, retry-safe copy, and explicit backend-sync gating keep claims honest. |
+| Recovery | Save failures were mostly advisory. | Covered progress writes can queue, replay, and expose a visible retry action without claiming universal cloud durability. |
+| Quality signal | Tests existed, but release confidence depended on remembering several separate commands. | Local and CI quality gates now include content, quiz, Playwright project, authenticated E2E readiness, Supabase readiness, build, bundle, and unit checks. |
 
 ---
 
@@ -185,6 +201,8 @@ Why: product reliability needs visibility, but portfolio credibility is stronger
 - stronger CI hygiene because authenticated smoke readiness now audits the signed-in, lesson-flow, and mobile-learning specs before credentials are required
 - cleaner QA hygiene because authenticated Playwright state is ignored instead of appearing as untracked session residue
 - improved AppLayout modularity: lesson view analytics and mark-done action extracted into independent, testable hooks, shrinking the layout file by 60 lines
+- hardened trust semantics: progress exports are framed as learning records, resume uses stable course/module/lesson IDs, public profiles expose aggregate fields only, and challenge grading is described as exercise-specific checks rather than credential verification
+- simplified learning-tool maintenance by moving mobile tool wiring and shared tool copy into a single registry
 - clearer portfolio narrative for both non-technical and technical reviewers
 
 ---

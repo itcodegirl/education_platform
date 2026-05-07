@@ -73,6 +73,16 @@ const REQUIRED_ARTIFACTS = [
       ['admin status RPC grant', /grant\s+execute\s+on\s+function\s+public\.set_user_disabled[\s\S]+to\s+authenticated/i],
     ],
   },
+  {
+    path: 'docs/supabase-production-readiness.md',
+    label: 'Supabase production readiness docs',
+    checks: [
+      ['live deployment checklist', /##\s+Live Deployment Checklist/i],
+      ['RLS smoke checks', /RLS smoke checks/i],
+      ['authenticated E2E secrets boundary', /Authenticated E2E Secrets/i],
+      ['backend reward sync boundary', /Backend Reward Sync Boundary/i],
+    ],
+  },
 ];
 
 async function findDuplicateMigrationVersions(rootDir) {
