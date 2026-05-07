@@ -17,6 +17,7 @@ import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useFetcherSyncFailure } from "../hooks/useFetcherSyncFailure";
 import { useLessonViewTracking } from "../hooks/useLessonViewTracking";
 import { useLessonMarkDone } from "../hooks/useLessonMarkDone";
+import { useLearningToolActions } from "../hooks/useLearningToolActions";
 import { estimateReadingTime, getLevel } from "../utils/helpers";
 import { trackEvent } from "../lib/analytics";
 import {
@@ -34,9 +35,6 @@ import {
 } from "../utils/lessonNavCopy";
 import { getLessonCompletionActionCopy } from "../utils/lessonCompletionCopy";
 import { getSyncStatusCopy } from "../utils/syncStatusCopy";
-import {
-  getMobileLearningTools,
-} from "../constants/learningTools";
 
 // Layout components
 import { Sidebar } from "../components/layout/Sidebar";
@@ -317,29 +315,10 @@ export function AppLayout() {
     goNextLesson();
   }, [course.id, goNextLesson, isLastLesson, les.id, mod.id, moduleQuiz, showModQuiz]);
 
-  const handleOpenTool = useCallback(
-    (tool) => panels.togglePanel(tool),
-    [panels],
-  );
-
-  const toolbarHandlers = useMemo(
-    () => ({
-      onSearch: () => panels.togglePanel("search"),
-      onCheatsheet: () => panels.togglePanel("cheatsheet"),
-      onGlossary: () => panels.togglePanel("glossary"),
-      onProjects: () => panels.togglePanel("projects"),
-      onBadges: () => panels.togglePanel("badges"),
-      onSR: () => panels.togglePanel("sr"),
-      onBookmarks: () => panels.togglePanel("bookmarks"),
-      onChallenges: () => panels.togglePanel("challenges"),
-      onStats: () => panels.togglePanel("stats"),
-    }),
-    [panels],
-  );
-  const mobileTools = useMemo(
-    () => getMobileLearningTools(hasCompletedProgress, toolbarHandlers),
-    [hasCompletedProgress, toolbarHandlers],
-  );
+  const { handleOpenTool, toolbarHandlers, mobileTools } = useLearningToolActions({
+    panels,
+    hasCompletedProgress,
+  });
 
   useEffect(() => {
     setMobileToolsOpen(false);
