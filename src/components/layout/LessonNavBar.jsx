@@ -1,5 +1,7 @@
 ﻿import { memo } from 'react';
 
+import { getLessonCompletionActionCopy } from '../../utils/lessonCompletionCopy';
+
 export const LessonNavBar = memo(function LessonNavBar({
   onPrev,
   onNext,
@@ -31,7 +33,7 @@ export const LessonNavBar = memo(function LessonNavBar({
         ? `Continue to next lesson: ${nextTitle}`
         : 'Continue to next lesson';
 
-  const doneAriaLabel = isDone ? 'Mark lesson as incomplete' : 'Complete this lesson and save progress';
+  const doneCopy = getLessonCompletionActionCopy({ isDone, marking, surface: 'nav' });
 
   return (
     <nav className="lesson-nav" aria-label="Lesson navigation">
@@ -55,13 +57,13 @@ export const LessonNavBar = memo(function LessonNavBar({
           className={`lesson-nav-btn lesson-nav-done ui-btn ui-btn-secondary ${isDone ? 'is-done' : ''}`}
           onClick={onMarkDone}
           disabled={marking}
-          aria-label={doneAriaLabel}
+          aria-label={doneCopy.ariaLabel}
           aria-pressed={isDone}
         >
           <span className="lesson-nav-icon" aria-hidden="true">
             {marking ? '…' : isDone ? '✓' : '◌'}
           </span>
-          <span className="lesson-nav-label">{marking ? 'Saving' : isDone ? 'Lesson saved' : 'Complete lesson'}</span>
+          <span className="lesson-nav-label">{doneCopy.label}</span>
         </button>
       )}
 

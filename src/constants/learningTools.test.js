@@ -50,11 +50,13 @@ describe('learning tool availability', () => {
     const tools = getMobileLearningTools(true, { onSearch, onSR });
 
     expect(tools.find((tool) => tool.key === 'search')).toMatchObject({
+      icon: 'S',
       label: 'Search',
       helper: 'Find a lesson',
       onSelect: onSearch,
     });
     expect(tools.find((tool) => tool.key === 'sr')).toMatchObject({
+      icon: 'R',
       label: 'Review',
       onSelect: onSR,
     });

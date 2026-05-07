@@ -50,14 +50,23 @@ export const MobileToolsSheet = memo(function MobileToolsSheet({
               key={tool.key}
               type="button"
               className={`mobile-tools-item ${activePanel === tool.key ? 'active' : ''}`}
+              aria-label={`${tool.label}${tool.helper ? `: ${tool.helper}` : ''}`}
               aria-pressed={activePanel === tool.key}
+              disabled={typeof tool.onSelect !== 'function'}
               onClick={() => {
                 onClose();
-                tool.onSelect();
+                tool.onSelect?.();
               }}
             >
-              <span className="mobile-tools-item-label">{tool.label}</span>
-              {tool.helper && <span className="mobile-tools-item-helper">{tool.helper}</span>}
+              {tool.icon && (
+                <span className="mobile-tools-item-icon" aria-hidden="true">
+                  {tool.icon}
+                </span>
+              )}
+              <span className="mobile-tools-item-copy">
+                <span className="mobile-tools-item-label">{tool.label}</span>
+                {tool.helper && <span className="mobile-tools-item-helper">{tool.helper}</span>}
+              </span>
             </button>
           ))}
         </div>

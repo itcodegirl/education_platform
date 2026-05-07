@@ -150,6 +150,7 @@ export function getMobileLearningTools(hasCompletedProgress = true, handlers = {
       const handlerName = getLearningToolHandlerName(key);
       return {
         key,
+        icon: LEARNING_TOOL_ICONS[key] || '',
         label: copy.shortLabel || copy.label,
         helper: copy.helper,
         onSelect: handlers[handlerName],

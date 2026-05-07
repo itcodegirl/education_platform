@@ -32,6 +32,7 @@ import {
   getNextStepHint,
   getPrevLessonTitle,
 } from "../utils/lessonNavCopy";
+import { getLessonCompletionActionCopy } from "../utils/lessonCompletionCopy";
 import { getSyncStatusCopy } from "../utils/syncStatusCopy";
 import {
   getMobileLearningTools,
@@ -285,6 +286,11 @@ export function AppLayout() {
     toggleLessonDone: learn.toggleLessonDone,
     lessonViewStartRef,
   });
+  const topbarCompletionCopy = getLessonCompletionActionCopy({
+    isDone,
+    marking,
+    surface: 'topbar',
+  });
   const syncStatus = getSyncStatusCopy({
     user,
     dataLoaded,
@@ -470,10 +476,11 @@ export function AppLayout() {
                   className={`mark-btn ${isDone ? "dn" : ""}`}
                   onClick={handleMarkDone}
                   disabled={marking}
-                  aria-label={marking ? "Saving lesson progress" : isDone ? "Mark lesson as incomplete" : "Complete lesson and save progress"}
+                  aria-label={topbarCompletionCopy.ariaLabel}
                   aria-pressed={isDone}
                 >
-                  {marking ? "Saving…" : isDone ? "✓ Lesson complete" : "Complete lesson"}
+                  {isDone && !marking ? "✓ " : ""}
+                  {topbarCompletionCopy.label}
                 </button>
               )}
             </div>

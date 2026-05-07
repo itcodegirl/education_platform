@@ -14,6 +14,11 @@ This PR hardens CodeHerWay as a portfolio-ready learning platform demo. It does 
 - Challenge grading copy explains that tests check exercise-specific requirements, not full skill verification.
 - Progress stats derive quiz averages from stable lesson/module IDs instead of display labels or course-name prefixes.
 - Learning tool labels and mobile tool wiring are centralized in the shared tool registry.
+- Authenticated persistence tests now cover account switching and learner-scoped pending write queues.
+- Supabase production readiness docs are part of the static gate, including live deployment, RLS smoke checks, and authenticated E2E secret boundaries.
+- Mobile tools render from the shared registry with compact icons and constrained labels for narrow screens.
+- Lesson completion copy now consistently means saved reading progress; quizzes and challenges remain separate checks.
+- Lesson completion button labels are derived from a shared helper so topbar and mobile nav semantics cannot drift.
 
 ## Honest Limits
 
@@ -25,7 +30,7 @@ This PR hardens CodeHerWay as a portfolio-ready learning platform demo. It does 
 ## Follow-Up
 
 - Run authenticated Playwright flows in CI with real Supabase test credentials.
-- Run `npm run check:supabase-readiness` before persistence-related releases, then apply the listed migrations to the target Supabase project.
+- Run `npm run check:supabase-readiness` before persistence-related releases, then apply the listed migrations and live RLS smoke checks to the target Supabase project.
 - Apply the additive Supabase migrations before enabling backend reward sync.
 - Continue decomposing `ProgressContext` and `AppLayout` in small, behavior-preserving steps.
 
