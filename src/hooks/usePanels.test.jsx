@@ -3,16 +3,21 @@ import { act, renderHook } from '@testing-library/react';
 import { usePanels } from './usePanels';
 
 describe('usePanels history sync', () => {
-  const localStorageMock = {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn(),
-  };
+  let storageValues;
+  let localStorageMock;
 
   beforeEach(() => {
     window.history.replaceState(null, '', '/');
-    localStorageMock.getItem.mockReturnValue('1');
+    storageValues = new Map([
+      ['chw-onboarded:guest', 'true'],
+      ['chw-onboarded:learner-a', 'true'],
+    ]);
+    localStorageMock = {
+      getItem: vi.fn((key) => (storageValues.has(key) ? storageValues.get(key) : null)),
+      setItem: vi.fn((key, value) => storageValues.set(key, String(value))),
+      removeItem: vi.fn((key) => storageValues.delete(key)),
+      clear: vi.fn(() => storageValues.clear()),
+    };
     Object.defineProperty(window, 'localStorage', {
       value: localStorageMock,
       configurable: true,
@@ -98,5 +103,36 @@ describe('usePanels history sync', () => {
     });
 
     expect(result.current.panel).toBe('badges');
+  });
+
+  it('does not treat a scoped false onboarding flag as completed', () => {
+    storageValues.set('chw-onboarded:learner-a', 'false');
+
+    const { result } = renderHook(() =>
+      usePanels({
+        dataLoaded: true,
+        user: { id: 'learner-a' },
+        lastPosition: null,
+      }),
+    );
+
+    expect(result.current.showOnboarding).toBe(true);
+  });
+
+  it('migrates legacy onboarded flags without treating false as true', () => {
+    storageValues.delete('chw-onboarded:learner-a');
+    storageValues.set('chw-onboarded', JSON.stringify(false));
+
+    const { result } = renderHook(() =>
+      usePanels({
+        dataLoaded: true,
+        user: { id: 'learner-a' },
+        lastPosition: null,
+      }),
+    );
+
+    expect(result.current.showOnboarding).toBe(true);
+    expect(localStorageMock.setItem).toHaveBeenCalledWith('chw-onboarded:learner-a', 'false');
+    expect(localStorageMock.removeItem).toHaveBeenCalledWith('chw-onboarded');
   });
 });
