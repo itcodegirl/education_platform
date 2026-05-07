@@ -34,7 +34,8 @@ describe('usePanels history sync', () => {
     });
 
     expect(result.current.panel).toBe('search');
-    expect(window.history.state?.cinovaPanel).toBe('search');
+    expect(window.history.state?.chwPanel).toBe('search');
+    expect(window.history.state?.cinovaPanel).toBeUndefined();
   });
 
   it('closes via browser back when closing an opened panel', () => {
@@ -80,5 +81,22 @@ describe('usePanels history sync', () => {
     });
 
     expect(result.current.panel).toBe(null);
+  });
+
+  it('syncs the renamed CodeHerWay panel history key', () => {
+    const { result } = renderHook(() =>
+      usePanels({
+        dataLoaded: true,
+        user: true,
+        lastPosition: null,
+      }),
+    );
+
+    act(() => {
+      window.history.pushState({ chwPanel: 'badges' }, '', '/');
+      window.dispatchEvent(new PopStateEvent('popstate', { state: { chwPanel: 'badges' } }));
+    });
+
+    expect(result.current.panel).toBe('badges');
   });
 });

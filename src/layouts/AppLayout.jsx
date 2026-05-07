@@ -31,6 +31,7 @@ import {
   getPrevLessonTitle,
 } from "../utils/lessonNavCopy";
 import { getSyncStatusCopy } from "../utils/syncStatusCopy";
+import { getLearningToolCopy, MOBILE_TOOL_KEYS } from "../constants/learningTools";
 
 // Layout components
 import { Sidebar } from "../components/layout/Sidebar";
@@ -40,6 +41,9 @@ import { BottomToolbar } from "../components/layout/BottomToolbar";
 import { LessonNavBar } from "../components/layout/LessonNavBar";
 import { MobileToolsSheet } from "../components/layout/MobileToolsSheet";
 import { OfflineIndicator } from "../components/layout/OfflineIndicator";
+import { FirstRunGuide } from "../components/layout/FirstRunGuide";
+import { LessonFocusStrip } from "../components/layout/LessonFocusStrip";
+import { TopbarLearnerStatus } from "../components/layout/TopbarLearnerStatus";
 
 // Learning components
 import { LessonView } from "../components/learning/LessonView";
@@ -307,6 +311,7 @@ export function AppLayout() {
 
   const toolbarHandlers = useMemo(
     () => ({
+      onSearch: () => panels.togglePanel("search"),
       onCheatsheet: () => panels.togglePanel("cheatsheet"),
       onGlossary: () => panels.togglePanel("glossary"),
       onProjects: () => panels.togglePanel("projects"),
@@ -319,63 +324,19 @@ export function AppLayout() {
     [panels],
   );
   const mobileTools = useMemo(
-    () => [
-      {
-        key: "search",
-        label: "Search",
-        helper: "Find a lesson",
-        onSelect: () => panels.togglePanel("search"),
-      },
-      {
-        key: "bookmarks",
-        label: "Saved",
-        helper: "Saved lessons",
-        onSelect: toolbarHandlers.onBookmarks,
-      },
-      {
-        key: "stats",
-        label: "Progress",
-        helper: "Course status",
-        onSelect: toolbarHandlers.onStats,
-      },
-      {
-        key: "sr",
-        label: "Review",
-        helper: "Spaced practice",
-        onSelect: toolbarHandlers.onSR,
-      },
-      {
-        key: "challenges",
-        label: "Challenges",
-        helper: "Hands-on builds",
-        onSelect: toolbarHandlers.onChallenges,
-      },
-      {
-        key: "cheatsheet",
-        label: "Cheat sheets",
-        helper: "Quick references",
-        onSelect: toolbarHandlers.onCheatsheet,
-      },
-      {
-        key: "glossary",
-        label: "Glossary",
-        helper: "Term lookup",
-        onSelect: toolbarHandlers.onGlossary,
-      },
-      {
-        key: "projects",
-        label: "Projects",
-        helper: "Build ideas",
-        onSelect: toolbarHandlers.onProjects,
-      },
-      {
-        key: "badges",
-        label: "Badges",
-        helper: "In-app milestones",
-        onSelect: toolbarHandlers.onBadges,
-      },
-    ],
-    [panels, toolbarHandlers],
+    () => MOBILE_TOOL_KEYS.map((key) => {
+      const copy = getLearningToolCopy(key);
+      const handlerName = key === 'sr'
+        ? 'onSR'
+        : `on${key.charAt(0).toUpperCase()}${key.slice(1)}`;
+      return {
+        key,
+        label: copy.shortLabel || copy.label,
+        helper: copy.helper,
+        onSelect: toolbarHandlers[handlerName],
+      };
+    }),
+    [toolbarHandlers],
   );
 
   useEffect(() => {
@@ -483,50 +444,17 @@ export function AppLayout() {
               showModQuiz={showModQuiz}
               lessonPosition={lessonPosition}
             />
-            <div className="topbar-status" aria-label="Current learning status">
-              <span className="topbar-greeting">Keep building, {learnerName}.</span>
-              {!showModQuiz && (
-                <span className="topbar-pill" aria-label={`Estimated read time: ${readTime}`}>
-                  {readTime} read
-                </span>
-              )}
-              {/* Hide the level + completion pills entirely until the
-                  learner has earned something. A first-run learner
-                  used to see "Lv 1 · 0% track" before they'd done
-                  anything, which read as "you have achieved
-                  nothing" instead of a status. */}
-              {xpTotal > 0 && (
-                <span className="topbar-pill" aria-label={`Level ${level}`}>Lv {level}</span>
-              )}
-              {coursePct > 0 && (
-                <span className="topbar-pill" aria-label={`Course completion ${coursePct} percent`}>
-                  {coursePct}% track
-                </span>
-              )}
-              {streak > 0 ? (
-                <span className="topbar-pill streak" aria-label={`${streak} day streak`}>
-                  Streak: {streak} day{streak === 1 ? '' : 's'}
-                </span>
-              ) : pausedStreak ? (
-                /* Streak just lapsed. Surface the prior run as a
-                   subtle recovery cue so the topbar doesn't simply
-                   forget the streak existed. Click goes to the
-                   profile so the learner can see history; intent is
-                   visible signaling, not nagging. */
-                <span
-                  className="topbar-pill paused"
-                  aria-label={`${pausedStreak.days} day streak paused`}
-                  title="Pick up your streak with one more lesson today"
-                >
-                  Streak paused: {pausedStreak.days} day{pausedStreak.days === 1 ? '' : 's'}
-                </span>
-              ) : null}
-              {dailyCount > 0 && (
-                <span className="topbar-pill warm" aria-label={`Lessons done today: ${dailyCount}`}>
-                  {dailyCount} lesson{dailyCount === 1 ? '' : 's'} today
-                </span>
-              )}
-            </div>
+            <TopbarLearnerStatus
+              learnerName={learnerName}
+              readTime={readTime}
+              showModQuiz={showModQuiz}
+              xpTotal={xpTotal}
+              level={level}
+              coursePct={coursePct}
+              streak={streak}
+              pausedStreak={pausedStreak}
+              dailyCount={dailyCount}
+            />
             <div className="topbar-actions">
               <button
                 type="button"
@@ -574,43 +502,13 @@ export function AppLayout() {
             </div>
           ) : (
             <>
-              {showStarterGuide && (
-                <section className="first-run-guide" aria-label="Getting started">
-                  <div className="frg-content">
-                    <p className="frg-kicker">First login</p>
-                    <h2 className="frg-title">
-                      Welcome to your learning path, {learnerName}.
-                    </h2>
-                    <p className="frg-copy">
-                      You are on the first lesson to set your pace. Read this lesson,
-                      complete it, then use <strong>Complete lesson</strong> to save this step.
-                    </p>
-                    <p className="frg-sub">Course switching is in the sidebar when you are ready.</p>
-                  </div>
-                  <ol className="frg-steps" aria-label="First session steps">
-                    <li>Read the learning frame.</li>
-                    <li>Build the example and check the result.</li>
-                    <li>Mark complete, then take the quick check.</li>
-                  </ol>
-                </section>
-              )}
-              <section className="lesson-focus-strip" aria-label="Current lesson step">
-                <span className="lesson-focus-eyebrow">{lessonPosition}</span>
-                <strong>{currentStepTitle}</strong>
-                <span>{currentStepCopy}</span>
-                <span
-                  className={`lesson-sync-status lesson-sync-status-${syncStatus.tone}`}
-                  role="status"
-                  aria-live="polite"
-                  aria-atomic="true"
-                >
-                  <span className="lesson-sync-dot" aria-hidden="true" />
-                  <span className="lesson-sync-copy">
-                    <span className="lesson-sync-label">{syncStatus.label}</span>
-                    <span className="lesson-sync-detail">{syncStatus.detail}</span>
-                  </span>
-                </span>
-              </section>
+              {showStarterGuide && <FirstRunGuide learnerName={learnerName} />}
+              <LessonFocusStrip
+                lessonPosition={lessonPosition}
+                currentStepTitle={currentStepTitle}
+                currentStepCopy={currentStepCopy}
+                syncStatus={syncStatus}
+              />
               <LessonView
                 lesson={les}
                 emoji={mod.emoji}

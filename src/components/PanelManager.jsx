@@ -38,70 +38,66 @@ const CourseComplete = lazy(() => import('./gamification/CourseComplete').then((
 const Confetti = lazy(() => import('./gamification/Confetti').then((m) => ({ default: m.Confetti })));
 const RoadmapPanel = lazy(() => import('./panels/RoadmapPanel').then((m) => ({ default: m.RoadmapPanel })));
 
+const PANEL_REGISTRY = {
+  search: ({ panels, nav }) => (
+    <SearchPanel isOpen onClose={panels.closePanel} onNavigate={nav.goToSearch} />
+  ),
+  cheatsheet: ({ panels, course }) => (
+    <CheatsheetPanel isOpen onClose={panels.closePanel} currentCourse={course.id} />
+  ),
+  glossary: ({ panels }) => (
+    <GlossaryPanel isOpen onClose={panels.closePanel} />
+  ),
+  projects: ({ panels, course }) => (
+    <ProjectsPanel isOpen onClose={panels.closePanel} currentCourse={course.id} />
+  ),
+  badges: ({ panels }) => (
+    <BadgesPanel isOpen onClose={panels.closePanel} />
+  ),
+  sr: ({ panels }) => (
+    <SRPanel isOpen onClose={panels.closePanel} />
+  ),
+  bookmarks: ({ panels, nav }) => (
+    <BookmarksPanel isOpen onClose={panels.closePanel} onNavigate={nav.goToSearch} />
+  ),
+  challenges: ({ panels, course }) => (
+    <ChallengesPanel courseId={course.id} lang={course.id} onClose={panels.closePanel} />
+  ),
+  stats: ({ panels }) => (
+    <StudentStats isOpen onClose={panels.closePanel} />
+  ),
+  roadmap: ({ panels, nav }) => (
+    <RoadmapPanel
+      onClose={panels.closePanel}
+      onNavigate={(ci, mi) => nav.goToCourseModule(ci, mi, 0)}
+      currentCourseIdx={nav.courseIdx}
+    />
+  ),
+};
+
+function ActivePanelBoundary({ panelName, context }) {
+  const renderPanel = PANEL_REGISTRY[panelName];
+  if (!renderPanel) return null;
+
+  return (
+    <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
+      {renderPanel(context)}
+    </ErrorBoundary>
+  );
+}
+
 export function PanelManager({
   panels, nav, course, profile, completed, lastPosition, courseTotal,
 }) {
   const moduleProgress = computeModuleProgress(course, lastPosition, completed);
+  const panelContext = { panels, nav, course };
 
   return (
     <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
       <Suspense fallback={<PanelLoading />}>
         {panels.confetti && <Confetti />}
 
-        {panels.panel === 'search' && (
-          <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
-            <SearchPanel isOpen onClose={panels.closePanel} onNavigate={nav.goToSearch} />
-          </ErrorBoundary>
-        )}
-        {panels.panel === 'cheatsheet' && (
-          <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
-            <CheatsheetPanel isOpen onClose={panels.closePanel} currentCourse={course.id} />
-          </ErrorBoundary>
-        )}
-        {panels.panel === 'glossary' && (
-          <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
-            <GlossaryPanel isOpen onClose={panels.closePanel} />
-          </ErrorBoundary>
-        )}
-        {panels.panel === 'projects' && (
-          <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
-            <ProjectsPanel isOpen onClose={panels.closePanel} currentCourse={course.id} />
-          </ErrorBoundary>
-        )}
-        {panels.panel === 'badges' && (
-          <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
-            <BadgesPanel isOpen onClose={panels.closePanel} />
-          </ErrorBoundary>
-        )}
-        {panels.panel === 'sr' && (
-          <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
-            <SRPanel isOpen onClose={panels.closePanel} />
-          </ErrorBoundary>
-        )}
-        {panels.panel === 'bookmarks' && (
-          <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
-            <BookmarksPanel isOpen onClose={panels.closePanel} onNavigate={nav.goToSearch} />
-          </ErrorBoundary>
-        )}
-        {panels.panel === 'challenges' && (
-          <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
-            <ChallengesPanel courseId={course.id} lang={course.id} onClose={panels.closePanel} />
-          </ErrorBoundary>
-        )}
-        {panels.panel === 'stats' && (
-          <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
-            <StudentStats isOpen onClose={panels.closePanel} />
-          </ErrorBoundary>
-        )}
-        {panels.panel === 'roadmap' && (
-          <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
-            <RoadmapPanel
-              onClose={panels.closePanel}
-              onNavigate={(ci, mi) => nav.goToCourseModule(ci, mi, 0)}
-              currentCourseIdx={nav.courseIdx}
-            />
-          </ErrorBoundary>
-        )}
+        <ActivePanelBoundary panelName={panels.panel} context={panelContext} />
 
         {panels.showWelcome && (
           <WelcomeBack

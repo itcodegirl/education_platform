@@ -12,6 +12,7 @@ import { ProfilePopover } from './ProfilePopover';
 import { Logo } from '../shared/Logo';
 import { getCourseCompletedLessonCount, hasLessonCompletion } from '../../utils/lessonKeys';
 import { logNavigationDiagnostic } from '../../utils/navigationDiagnostics';
+import { getLearningToolCopy } from '../../constants/learningTools';
 
 const POPUP_MENU_ITEM_SELECTOR = '[role="menuitem"]';
 
@@ -512,7 +513,11 @@ export const Sidebar = memo(function Sidebar({
                   label: 'Badges',
                   hint: 'Milestones earned inside CodeHerWay.',
                 },
-              ].map((t) => (
+              ].map((t) => {
+                const copy = getLearningToolCopy(t.key);
+                const label = copy.label || t.label;
+                const hint = copy.sidebarHint || t.hint;
+                return (
                 <button
                   key={t.key}
                   type="button"
@@ -524,15 +529,16 @@ export const Sidebar = memo(function Sidebar({
                     setActivePopout(null);
                     setPopoutPos(null);
                   }}
-                  aria-label={`Open ${t.label}`}
+                  aria-label={`Open ${label}`}
                 >
                   <span className="sidebar-tab-opt-icon" aria-hidden="true">{t.icon}</span>
                   <span className="sidebar-tab-opt-copy">
-                    <span className="sidebar-tab-opt-label">{t.label}</span>
-                    <span className="sidebar-tab-opt-hint">{t.hint}</span>
+                    <span className="sidebar-tab-opt-label">{label}</span>
+                    <span className="sidebar-tab-opt-hint">{hint}</span>
                   </span>
                 </button>
-              ))}
+                );
+              })}
           </div>
         )}
 

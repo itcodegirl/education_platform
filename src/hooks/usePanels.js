@@ -7,6 +7,19 @@ import { useState, useRef, useEffect } from 'react';
 import { TIMING, MILESTONES } from '../utils/helpers';
 import { getLearnerStorageKey, getLegacyStorageKey } from '../utils/learnerStorageKeys';
 
+const PANEL_HISTORY_KEY = 'chwPanel';
+const LEGACY_PANEL_HISTORY_KEY = 'cinovaPanel';
+
+function getPanelFromHistoryState(state) {
+  return state?.[PANEL_HISTORY_KEY] || state?.[LEGACY_PANEL_HISTORY_KEY] || null;
+}
+
+function createPanelHistoryState(name) {
+  const currentState = { ...(window.history.state || {}) };
+  delete currentState[LEGACY_PANEL_HISTORY_KEY];
+  return { ...currentState, [PANEL_HISTORY_KEY]: name };
+}
+
 function hasCompletedOnboarding(user) {
   if (typeof window === 'undefined') return false;
   const userId = user?.id || '';
@@ -73,7 +86,7 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
     if (typeof window === 'undefined') return undefined;
 
     const syncPanelFromHistory = () => {
-      const nextPanel = window.history.state?.cinovaPanel || null;
+      const nextPanel = getPanelFromHistoryState(window.history.state);
       if (panelRef.current !== nextPanel) {
         setPanel(nextPanel);
       }
@@ -102,7 +115,7 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
   };
 
   const closePanel = () => {
-    if (typeof window !== 'undefined' && window.history.state?.cinovaPanel) {
+    if (typeof window !== 'undefined' && getPanelFromHistoryState(window.history.state)) {
       window.history.back();
       return;
     }
@@ -115,7 +128,7 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
       return;
     }
 
-    const nextState = { ...(window.history.state || {}), cinovaPanel: name };
+    const nextState = createPanelHistoryState(name);
     window.history.pushState(nextState, '', window.location.href);
     setPanel(name);
   };
