@@ -43,7 +43,6 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 
 Current baseline checks:
 
-- `npm run check` (lint, JS-source policy, Playwright project-reference audit, Supabase static policy readiness, production build, bundle budget, lesson-label audit, strict quiz audit, learning-content flow audit, and unit tests)
 - `npm run check` (lint, JS-source policy, Playwright project-reference audit, Supabase static policy readiness, staging runbook audit, production build, bundle budget, lesson-label audit, strict quiz audit, learning-content flow audit, and unit tests)
 - `npm run build`
 - `npm run lint`
