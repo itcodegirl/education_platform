@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  getCurrentStepCopy,
   getLessonPositionLabel,
   getNextLessonTitle,
   getNextStepHint,
@@ -112,9 +113,9 @@ describe('getNextLessonTitle', () => {
 describe('getNextStepHint', () => {
   it('matches the four user-facing states', () => {
     expect(getNextStepHint({ isLast: true, showModQuiz: false, isDone: true })).toMatch(/Track complete/);
-    expect(getNextStepHint({ isLast: false, showModQuiz: true, isDone: false })).toMatch(/Finish the quiz/);
-    expect(getNextStepHint({ isLast: false, showModQuiz: false, isDone: false })).toMatch(/Complete the lesson/);
-    expect(getNextStepHint({ isLast: false, showModQuiz: false, isDone: true })).toMatch(/lesson is complete/);
+    expect(getNextStepHint({ isLast: false, showModQuiz: true, isDone: false })).toMatch(/save this checkpoint/);
+    expect(getNextStepHint({ isLast: false, showModQuiz: false, isDone: false })).toMatch(/saves reading progress/i);
+    expect(getNextStepHint({ isLast: false, showModQuiz: false, isDone: true })).toMatch(/Saved/);
   });
 });
 
@@ -129,5 +130,49 @@ describe('getLessonPositionLabel', () => {
     expect(getLessonPositionLabel({ showModQuiz: true, modTitle: 'A', lesIdx: 0, lessonsLength: 3 })).toBe(
       'Module quiz for A',
     );
+  });
+});
+
+describe('getCurrentStepCopy', () => {
+  it('prioritizes continue learning for an incomplete lesson', () => {
+    expect(
+      getCurrentStepCopy({
+        isLast: false,
+        showModQuiz: false,
+        isDone: false,
+        nextTitle: 'Next Topic',
+      }),
+    ).toEqual({
+      title: 'Continue learning',
+      copy: 'Read this lesson, try the build, then use Complete lesson to save reading progress.',
+    });
+  });
+
+  it('points completed lessons at the next lesson', () => {
+    expect(
+      getCurrentStepCopy({
+        isLast: false,
+        showModQuiz: false,
+        isDone: true,
+        nextTitle: 'CSS Selectors',
+      }),
+    ).toEqual({
+      title: 'Continue learning',
+      copy: 'Progress is saved. Continue to CSS Selectors.',
+    });
+  });
+
+  it('uses a checkpoint copy for module quizzes', () => {
+    expect(
+      getCurrentStepCopy({
+        isLast: false,
+        showModQuiz: true,
+        isDone: false,
+        nextTitle: 'Responsive Layouts',
+      }),
+    ).toEqual({
+      title: 'Module quiz',
+      copy: 'Finish this quiz to save the checkpoint. Then continue to Responsive Layouts.',
+    });
   });
 });

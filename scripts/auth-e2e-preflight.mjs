@@ -93,21 +93,36 @@ export async function loadAuthE2EEnvFile({
   env = process.env,
   fileName = DEFAULT_AUTH_E2E_ENV_FILE,
   override = false,
+  allowInCi = false,
+  envFileText,
 } = {}) {
   const filePath = path.resolve(cwd, fileName);
 
+  if (isCi(env) && !allowInCi) {
+    return {
+      loaded: false,
+      filePath,
+      keys: [],
+      skipped: 'ci',
+    };
+  }
+
   let content = '';
-  try {
-    content = await readFile(filePath, 'utf8');
-  } catch (error) {
-    if (error?.code === 'ENOENT') {
-      return {
-        loaded: false,
-        filePath,
-        keys: [],
-      };
+  if (typeof envFileText === 'string') {
+    content = envFileText;
+  } else {
+    try {
+      content = await readFile(filePath, 'utf8');
+    } catch (error) {
+      if (error?.code === 'ENOENT') {
+        return {
+          loaded: false,
+          filePath,
+          keys: [],
+        };
+      }
+      throw error;
     }
-    throw error;
   }
 
   const parsed = parseAuthE2EEnvFile(content);
@@ -251,7 +266,7 @@ export async function runAuthE2EPreflight(env = process.env, options = {}) {
   }
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const envFile = await loadAuthE2EEnvFile();
   if (envFile.loaded) {
     console.log(`Loaded authenticated E2E env from ${path.basename(envFile.filePath)} (${envFile.keys.length} keys).`);

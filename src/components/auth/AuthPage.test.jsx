@@ -53,6 +53,8 @@ describe('AuthPage', () => {
 
     signInMock.mockResolvedValue({ error: null });
     signUpMock.mockResolvedValue({ error: null });
+    signInWithGithubMock.mockResolvedValue({ error: null });
+    signInWithGoogleMock.mockResolvedValue({ error: null });
     forgotPasswordMock.mockResolvedValue({ error: null });
 
     Object.defineProperty(window, 'requestAnimationFrame', {
@@ -73,7 +75,7 @@ describe('AuthPage', () => {
     fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'abc' } });
 
     expect(
-      screen.getByText(/3\/6 characters\. Add 3 more to continue\./i),
+      screen.getByText(/3\/8 characters\. Add 5 more to continue\./i),
     ).toBeInTheDocument();
   });
 
@@ -102,6 +104,21 @@ describe('AuthPage', () => {
     });
     expect(
       screen.getByText(/Password reset link sent to learner@example.com\./i),
+    ).toBeInTheDocument();
+  });
+
+  it('shows a friendly social sign-in error when OAuth cannot start', async () => {
+    signInWithGithubMock.mockRejectedValueOnce(new Error('provider unavailable'));
+
+    render(<AuthPage onPreview={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /continue with github/i }));
+
+    await waitFor(() => {
+      expect(signInWithGithubMock).toHaveBeenCalled();
+    });
+    expect(
+      screen.getByText(/Unable to continue with GitHub right now/i),
     ).toBeInTheDocument();
   });
 });
