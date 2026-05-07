@@ -373,6 +373,30 @@
 .lesson-list-btn.act { color: var(--cyan); font-weight: 600; }
 .lesson-list-btn.dn .lesson-list-chk { color: var(--cyan); }
 .lesson-list-chk { font-size: 12px; width: 14px; flex-shrink: 0; transition: color 0.2s; color: var(--text-muted); }
+.lesson-list-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lesson-list-state {
+  margin-left: auto;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.lesson-list-btn.act .lesson-list-state,
+.lesson-list-btn.dn .lesson-list-state {
+  color: var(--cyan);
+  background: rgba(0, 229, 255, 0.1);
+}
 .lesson-list-btn.locked { opacity: 0.3; pointer-events: none; }
 .lesson-list-quiz { color: var(--text-muted) !important; font-style: italic; }
 .lesson-list-quiz.act { color: var(--text) !important; font-style: normal; font-weight: 600; }

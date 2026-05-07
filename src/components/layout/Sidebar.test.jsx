@@ -113,6 +113,15 @@ describe('Sidebar', () => {
     expect(secondLesson).toBeDisabled();
   });
 
+  it('shows visible lesson readiness states', () => {
+    renderSidebar();
+
+    expect(screen.getByRole('button', { name: /lesson one lesson, ready/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /lesson two lesson, locked/i })).toBeDisabled();
+    expect(screen.getByText('Ready')).toBeInTheDocument();
+    expect(screen.getByText('Locked')).toBeInTheDocument();
+  });
+
   it('fires lesson navigation clicks when free-roam mode is enabled', () => {
     const onSelectLesson = vi.fn();
     mockUseLocalStorage.mockReturnValue([false, vi.fn()]);

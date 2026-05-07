@@ -13,20 +13,23 @@ export const LessonNavBar = memo(function LessonNavBar({
   hasModuleQuiz,
   accent,
   lessonPosition,
+  nextTitle,
   onOpenTools,
   toolsOpen = false,
 }) {
   const nextLabel = isLast
     ? 'Track complete'
     : isLastLesson && hasModuleQuiz && !showModQuiz
-      ? 'Module quiz'
-      : 'Next lesson';
+      ? 'Take quiz'
+      : 'Continue';
 
   const nextAriaLabel = isLast
     ? 'Finish this lesson flow'
     : isLastLesson && hasModuleQuiz && !showModQuiz
       ? 'Go to module quiz'
-      : 'Go to next lesson';
+      : nextTitle
+        ? `Continue to next lesson: ${nextTitle}`
+        : 'Continue to next lesson';
 
   const doneAriaLabel = isDone ? 'Mark lesson as incomplete' : 'Complete this lesson and save progress';
 

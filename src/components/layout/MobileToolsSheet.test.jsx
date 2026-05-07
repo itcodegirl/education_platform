@@ -66,6 +66,12 @@ describe('MobileToolsSheet', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('shows a clear empty state when no tools are available', () => {
+    renderSheet({ tools: [] });
+
+    expect(screen.getByText(/Complete the current lesson to unlock more learning tools/i)).toBeInTheDocument();
+  });
+
   it('does not render while closed', () => {
     render(<MobileToolsSheet isOpen={false} onClose={() => {}} tools={[]} />);
 

@@ -26,6 +26,7 @@ import {
 } from "../utils/lessonKeys";
 import { buildLegacyQuizKey, buildStableQuizKey } from "../utils/quizKeys";
 import {
+  getCurrentStepCopy,
   getLessonPositionLabel,
   getNextLessonTitle,
   getNextStepHint,
@@ -242,18 +243,12 @@ export function AppLayout() {
   const legacyModuleQuizKey = buildLegacyQuizKey('m', mod.id);
   const lessonQuizKey = buildStableQuizKey('l', course.id, les.id);
   const legacyLessonQuizKey = buildLegacyQuizKey('l', les.id);
-  const currentStepTitle = showModQuiz
-    ? 'Take the module quiz'
-    : isDone
-      ? 'Continue when ready'
-      : 'Read, then complete lesson';
-  const currentStepCopy = showModQuiz
-    ? 'Answer the questions, then move into the next lesson when you are ready.'
-    : isDone
-      ? nextTitle
-        ? `Lesson complete here. Up next: ${nextTitle}.`
-        : 'Lesson complete here. Pick another course or revisit lessons that need another pass.'
-      : 'Focus on the lesson first. When the idea clicks, use Complete lesson to save this step.';
+  const { title: currentStepTitle, copy: currentStepCopy } = getCurrentStepCopy({
+    isLast,
+    showModQuiz,
+    isDone,
+    nextTitle,
+  });
 
   // --- Lesson view analytics ----------------
   const lessonViewStartRef = useLessonViewTracking({
@@ -581,7 +576,7 @@ export function AppLayout() {
                 'Track complete'
               ) : nextTitle ? (
                 <>
-                  <span className="nav-btn-label">Up next</span>
+                  <span className="nav-btn-label">Continue to</span>
                   <span className="nav-btn-title">{nextTitle}</span>
                 </>
               ) : 'Next lesson'}
@@ -609,6 +604,7 @@ export function AppLayout() {
           hasModuleQuiz={!!moduleQuiz}
           accent={course.accent}
           lessonPosition={lessonPosition}
+          nextTitle={nextTitle}
           onOpenTools={() => setMobileToolsOpen((open) => !open)}
           toolsOpen={mobileToolsOpen}
         />

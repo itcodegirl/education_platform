@@ -598,12 +598,14 @@ export const Sidebar = memo(function Sidebar({
                     }}
                     disabled={!isModUnlocked}
                     aria-expanded={isExpanded}
-                  aria-label={`${module.title} module${isModUnlocked ? `, ${modDone}/${module.lessons.length} lessons completed` : ', locked by sequence mode'}`}
+                    aria-label={`${module.title} module${isModUnlocked ? `, ${modDone}/${module.lessons.length} lessons completed` : ', locked until the previous module is complete'}`}
                   >
                     <span className="module-group-emoji" aria-hidden="true">{isModUnlocked ? module.emoji : '🔒'}</span>
                     <div className="module-group-info">
                       <span className="module-group-name">{module.title}</span>
-                      <span className="module-group-sub">{modDone}/{module.lessons.length}</span>
+                      <span className="module-group-sub">
+                        {isModUnlocked ? `${modDone}/${module.lessons.length}` : 'Locked'}
+                      </span>
                     </div>
                   </button>
 
@@ -612,6 +614,7 @@ export const Sidebar = memo(function Sidebar({
                       {module.lessons.map((lesson, li) => {
                         const isDone = hasLessonCompletion(completedSet, course, module, lesson);
                         const unlocked = !lockMode || isLessonUnlocked(course, modules, mi, li, completedSet);
+                        const lessonState = isDone ? 'Done' : unlocked ? 'Ready' : 'Locked';
                         return (
                           <button
                             key={lesson.id}
@@ -619,11 +622,12 @@ export const Sidebar = memo(function Sidebar({
                             className={`lesson-list-btn ${mi === modIdx && li === lesIdx && !showModQuiz ? 'act' : ''} ${isDone ? 'dn' : ''} ${!unlocked ? 'locked' : ''}`}
                             onClick={() => handleLessonSelect(module, lesson, mi, li, unlocked)}
                             disabled={!unlocked}
-                            aria-label={`${lesson.title} lesson${isDone ? ', completed' : ''}${!unlocked ? ', locked' : ''}`}
+                            aria-label={`${lesson.title} lesson, ${lessonState.toLowerCase()}${!unlocked ? ' until the previous lesson is complete' : ''}`}
                             aria-current={mi === modIdx && li === lesIdx && !showModQuiz ? 'page' : undefined}
                           >
                             <span className="lesson-list-chk" aria-hidden="true">{isDone ? '✓' : unlocked ? '○' : '🔒'}</span>
-                            <span>{lesson.title}</span>
+                            <span className="lesson-list-title">{lesson.title}</span>
+                            <span className="lesson-list-state">{lessonState}</span>
                             {mi === modIdx && li === lesIdx && !showModQuiz && <span className="lesson-list-robot" aria-hidden="true">🤖</span>}
                           </button>
                         );
