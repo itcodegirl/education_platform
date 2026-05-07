@@ -1,5 +1,7 @@
 /* global AbortController, clearTimeout, console, fetch, process, setTimeout, URL */
 import { promises as dns } from 'node:dns';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 export const REQUIRED_AUTH_ENV = [
@@ -9,6 +11,7 @@ export const REQUIRED_AUTH_ENV = [
   'E2E_PASSWORD',
 ];
 
+const DEFAULT_AUTH_E2E_ENV_FILE = '.env.e2e.local';
 const LOCAL_SUPABASE_URL = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i;
 const PLACEHOLDER_SUPABASE_ANON_KEY = 'example-anon-key';
 const REACHABILITY_TIMEOUT_MS = 10000;
@@ -38,6 +41,89 @@ function redactUrl(url) {
   if (!url) return '[not configured]';
 
   return `${url.protocol}//[redacted-host]`;
+}
+
+function stripMatchingQuotes(value) {
+  if (value.length < 2) return value;
+  const first = value[0];
+  const last = value[value.length - 1];
+  if (!((first === '"' && last === '"') || (first === '\'' && last === '\''))) {
+    return value;
+  }
+
+  const inner = value.slice(1, -1);
+  if (first === '\'') return inner;
+
+  return inner
+    .replace(/\\n/g, '\n')
+    .replace(/\\"/g, '"')
+    .replace(/\\\\/g, '\\');
+}
+
+export function parseAuthE2EEnvFile(content) {
+  const parsed = {};
+  const lines = String(content || '').replace(/^\uFEFF/, '').split(/\r?\n/);
+
+  lines.forEach((rawLine, index) => {
+    const trimmed = rawLine.trim();
+    if (!trimmed || trimmed.startsWith('#')) return;
+
+    const assignment = trimmed.startsWith('export ')
+      ? trimmed.slice('export '.length).trim()
+      : trimmed;
+    const separatorIndex = assignment.indexOf('=');
+    if (separatorIndex === -1) {
+      throw new Error(`Invalid .env.e2e.local line ${index + 1}: missing "=".`);
+    }
+
+    const key = assignment.slice(0, separatorIndex).trim();
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) {
+      throw new Error(`Invalid .env.e2e.local line ${index + 1}: invalid key.`);
+    }
+
+    const value = assignment.slice(separatorIndex + 1).trim();
+    parsed[key] = stripMatchingQuotes(value);
+  });
+
+  return parsed;
+}
+
+export async function loadAuthE2EEnvFile({
+  cwd = process.cwd(),
+  env = process.env,
+  fileName = DEFAULT_AUTH_E2E_ENV_FILE,
+  override = false,
+} = {}) {
+  const filePath = path.resolve(cwd, fileName);
+
+  let content = '';
+  try {
+    content = await readFile(filePath, 'utf8');
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      return {
+        loaded: false,
+        filePath,
+        keys: [],
+      };
+    }
+    throw error;
+  }
+
+  const parsed = parseAuthE2EEnvFile(content);
+  const loadedKeys = [];
+
+  Object.entries(parsed).forEach(([key, value]) => {
+    if (!override && typeof env[key] === 'string' && env[key].trim()) return;
+    env[key] = value;
+    loadedKeys.push(key);
+  });
+
+  return {
+    loaded: true,
+    filePath,
+    keys: loadedKeys,
+  };
 }
 
 export function validateAuthE2EEnv(env = process.env) {
@@ -166,6 +252,11 @@ export async function runAuthE2EPreflight(env = process.env, options = {}) {
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const envFile = await loadAuthE2EEnvFile();
+  if (envFile.loaded) {
+    console.log(`Loaded authenticated E2E env from ${path.basename(envFile.filePath)} (${envFile.keys.length} keys).`);
+  }
+
   const result = await runAuthE2EPreflight();
 
   if (result.ok) {

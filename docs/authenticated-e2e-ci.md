@@ -38,6 +38,23 @@ gh secret set E2E_PASSWORD
 
 Treat a skipped authenticated E2E run as a known limitation, not as a signed-in test pass.
 
+## Local Authenticated Smoke Setup
+
+For local signed-in smoke runs, duplicate the tracked template:
+
+```bash
+cp .env.e2e.example .env.e2e.local
+```
+
+Fill in the local file with the same four values used in CI. The local
+file is ignored by git. `npm run test:e2e:auth:preflight` and
+`npm run test:e2e:smoke:learning` load `.env.e2e.local` automatically
+when it exists, without printing secret values.
+
+Leave `E2E_AUTH_REQUIRED=false` for normal local development if you want
+missing credentials to self-skip. Set it to `true` when validating that
+the authenticated setup is complete.
+
 ## Artifact Inspection
 
 On failed E2E runs, download the workflow artifact named one of:
