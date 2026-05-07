@@ -112,6 +112,10 @@ The goal was to keep the existing core vision and architecture intact while maki
 - exposed a visible "Retry now" recovery action when progress writes are queued after a transient save failure
 - guarded authenticated smoke coverage so lesson-flow and mobile-learning specs stay wired into CI when credentials are present
 - added named critical tests for lesson persistence, duplicate XP prevention, quiz retry, challenge retry, save failure recovery, and mobile sidebar keyboard support
+- added account-switching and learner-scoped retry-queue tests so signed-in progress cannot silently bleed between learners in the unit harness
+- added a Supabase live-deployment checklist and RLS smoke-check boundary to keep portfolio claims aligned with actual hosted setup work
+- clarified lesson completion as saved reading progress, with quizzes and challenges presented as separate checks rather than hidden graduation rules
+- polished the mobile tools sheet with shared-registry icons, safer disabled states, and constrained labels for narrow screens
 
 ---
 
@@ -197,6 +201,8 @@ Why: product reliability needs visibility, but portfolio credibility is stronger
 - stronger CI hygiene because authenticated smoke readiness now audits the signed-in, lesson-flow, and mobile-learning specs before credentials are required
 - cleaner QA hygiene because authenticated Playwright state is ignored instead of appearing as untracked session residue
 - improved AppLayout modularity: lesson view analytics and mark-done action extracted into independent, testable hooks, shrinking the layout file by 60 lines
+- hardened trust semantics: progress exports are framed as learning records, resume uses stable course/module/lesson IDs, public profiles expose aggregate fields only, and challenge grading is described as exercise-specific checks rather than credential verification
+- simplified learning-tool maintenance by moving mobile tool wiring and shared tool copy into a single registry
 - clearer portfolio narrative for both non-technical and technical reviewers
 
 ---

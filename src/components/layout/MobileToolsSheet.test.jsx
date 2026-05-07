@@ -15,8 +15,8 @@ function renderSheet(overrides = {}) {
   const onSearch = vi.fn();
   const onProgress = vi.fn();
   const tools = [
-    { key: 'search', label: 'Search', helper: 'Find a lesson', onSelect: onSearch },
-    { key: 'stats', label: 'Progress', helper: 'Course status', onSelect: onProgress },
+    { key: 'search', icon: 'S', label: 'Search', helper: 'Find a lesson', onSelect: onSearch },
+    { key: 'stats', icon: '%', label: 'Progress', helper: 'Course status', onSelect: onProgress },
   ];
 
   render(
@@ -41,8 +41,9 @@ describe('MobileToolsSheet', () => {
     renderSheet();
 
     expect(screen.getByRole('dialog', { name: /learning tools/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /search/i })).toHaveTextContent('Find a lesson');
-    expect(screen.getByRole('button', { name: /progress/i })).toHaveTextContent('Course status');
+    expect(screen.getByRole('button', { name: /search: find a lesson/i })).toHaveTextContent('Find a lesson');
+    expect(screen.getByRole('button', { name: /progress: course status/i })).toHaveTextContent('Course status');
+    expect(screen.getByRole('button', { name: /search: find a lesson/i })).toHaveTextContent('S');
     expect(mockUseFocusTrap).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({ enabled: true, initialFocus: 'first-tabbable' }),
@@ -76,5 +77,13 @@ describe('MobileToolsSheet', () => {
     render(<MobileToolsSheet isOpen={false} onClose={() => {}} tools={[]} />);
 
     expect(screen.queryByRole('dialog', { name: /learning tools/i })).not.toBeInTheDocument();
+  });
+
+  it('keeps a tool visible but disabled when its handler is missing', () => {
+    renderSheet({
+      tools: [{ key: 'projects', icon: '<>', label: 'Projects', helper: 'Build ideas' }],
+    });
+
+    expect(screen.getByRole('button', { name: /projects: build ideas/i })).toBeDisabled();
   });
 });

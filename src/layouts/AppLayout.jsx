@@ -32,11 +32,10 @@ import {
   getNextStepHint,
   getPrevLessonTitle,
 } from "../utils/lessonNavCopy";
+import { getLessonCompletionActionCopy } from "../utils/lessonCompletionCopy";
 import { getSyncStatusCopy } from "../utils/syncStatusCopy";
 import {
-  getLearningToolCopy,
-  isLearningToolAvailable,
-  MOBILE_TOOL_KEYS,
+  getMobileLearningTools,
 } from "../constants/learningTools";
 
 // Layout components
@@ -287,6 +286,11 @@ export function AppLayout() {
     toggleLessonDone: learn.toggleLessonDone,
     lessonViewStartRef,
   });
+  const topbarCompletionCopy = getLessonCompletionActionCopy({
+    isDone,
+    marking,
+    surface: 'topbar',
+  });
   const syncStatus = getSyncStatusCopy({
     user,
     dataLoaded,
@@ -333,20 +337,7 @@ export function AppLayout() {
     [panels],
   );
   const mobileTools = useMemo(
-    () => MOBILE_TOOL_KEYS.filter((key) =>
-      isLearningToolAvailable(key, hasCompletedProgress),
-    ).map((key) => {
-      const copy = getLearningToolCopy(key);
-      const handlerName = key === 'sr'
-        ? 'onSR'
-        : `on${key.charAt(0).toUpperCase()}${key.slice(1)}`;
-      return {
-        key,
-        label: copy.shortLabel || copy.label,
-        helper: copy.helper,
-        onSelect: toolbarHandlers[handlerName],
-      };
-    }),
+    () => getMobileLearningTools(hasCompletedProgress, toolbarHandlers),
     [hasCompletedProgress, toolbarHandlers],
   );
 
@@ -485,10 +476,11 @@ export function AppLayout() {
                   className={`mark-btn ${isDone ? "dn" : ""}`}
                   onClick={handleMarkDone}
                   disabled={marking}
-                  aria-label={marking ? "Saving lesson progress" : isDone ? "Mark lesson as incomplete" : "Complete lesson and save progress"}
+                  aria-label={topbarCompletionCopy.ariaLabel}
                   aria-pressed={isDone}
                 >
-                  {marking ? "Saving…" : isDone ? "✓ Complete" : "Complete lesson"}
+                  {isDone && !marking ? "✓ " : ""}
+                  {topbarCompletionCopy.label}
                 </button>
               )}
             </div>

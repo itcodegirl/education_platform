@@ -23,7 +23,7 @@ describe('LessonNavBar', () => {
     render(<LessonNavBar {...baseProps} />);
 
     expect(screen.getByRole('button', { name: /go to previous lesson/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /complete this lesson and save progress/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /complete lesson and save reading progress/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /continue to next lesson: lesson two/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /continue to next lesson/i })).toHaveTextContent('Continue');
   });
@@ -39,5 +39,13 @@ describe('LessonNavBar', () => {
 
     fireEvent.click(tools);
     expect(onOpenTools).toHaveBeenCalledTimes(1);
+  });
+
+  it('clarifies that completed state belongs to the lesson only', () => {
+    render(<LessonNavBar {...baseProps} isDone />);
+
+    const lessonButton = screen.getByRole('button', { name: /mark lesson reading progress as incomplete/i });
+    expect(lessonButton).toHaveTextContent(/lesson saved/i);
+    expect(lessonButton).not.toHaveTextContent(/^complete$/i);
   });
 });

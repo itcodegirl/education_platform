@@ -118,6 +118,13 @@
   font-weight: 700;
 }
 
+.cc-grader-note {
+  margin: -4px 24px 16px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 /* Workspace (editor + preview) */
 .cc-workspace {
   display: grid;

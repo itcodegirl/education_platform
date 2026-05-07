@@ -6,6 +6,18 @@ import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
 import { findQuizEntityTitle, quizKeyBelongsToCourse } from '../../utils/quizCourseOwnership';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
+import { parseQuizScore } from '../../services/rewardPolicy';
+
+function toQuizResult([key, scoreValue]) {
+  const parsed = parseQuizScore(scoreValue);
+  if (!parsed) return null;
+  return {
+    key,
+    got: parsed.score,
+    total: parsed.total,
+    percent: parsed.pct,
+  };
+}
 
 export function StudentStats({ isOpen, onClose }) {
   const { completed, quizScores } = useProgressData();
@@ -24,18 +36,6 @@ export function StudentStats({ isOpen, onClose }) {
     const xpPercent = Math.round((xpInLevel / XP_PER_LEVEL) * 100);
     const completedSet = new Set(completed);
     const quizEntries = Object.entries(quizScores || {});
-    const toQuizResult = ([key, scoreValue]) => {
-      const [got, total] = String(scoreValue || '0/0').split('/').map(Number);
-      const safeGot = Number.isFinite(got) ? got : 0;
-      const safeTotal = Number.isFinite(total) ? total : 0;
-
-      return {
-        key,
-        got: safeGot,
-        total: safeTotal,
-        percent: safeTotal > 0 ? Math.round((safeGot / safeTotal) * 100) : 0,
-      };
-    };
 
     const courseStats = COURSES.map((course) => {
       const totalLessons = course.modules.reduce((sum, module) => sum + module.lessons.length, 0);
@@ -44,7 +44,8 @@ export function StudentStats({ isOpen, onClose }) {
 
       const quizResults = quizEntries
         .filter(([key]) => quizKeyBelongsToCourse(key, course))
-        .map(toQuizResult);
+        .map(toQuizResult)
+        .filter(Boolean);
 
       const averageQuizPercent = quizResults.length > 0
         ? Math.round(quizResults.reduce((sum, result) => sum + result.percent, 0) / quizResults.length)
@@ -63,7 +64,7 @@ export function StudentStats({ isOpen, onClose }) {
       };
     });
 
-    const allResults = quizEntries.map(toQuizResult);
+    const allResults = quizEntries.map(toQuizResult).filter(Boolean);
 
     const overallQuizPercent = allResults.length > 0
       ? Math.round(allResults.reduce((sum, result) => sum + result.percent, 0) / allResults.length)
@@ -193,7 +194,7 @@ export function StudentStats({ isOpen, onClose }) {
             </div>
             <div className="ss-card">
               <span className="ss-card-value">{stats.totalPercent}%</span>
-              <span className="ss-card-label">Complete</span>
+              <span className="ss-card-label">Lessons complete</span>
               <span className="ss-card-sub">{stats.totalDone}/{stats.totalLessons} lessons</span>
             </div>
           </div>
