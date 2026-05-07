@@ -25,6 +25,17 @@ describe('authenticated E2E preflight', () => {
     ]);
   });
 
+  it('allows CI to skip authenticated E2E when the full secret set is absent', () => {
+    const result = validateAuthE2EEnv({
+      CI: 'true',
+      E2E_AUTH_REQUIRED: 'false',
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.required).toBe(false);
+    expect(result.problems.map((problem) => problem.code)).toEqual(['missing_env']);
+  });
+
   it('rejects localhost and placeholder Supabase config when auth E2E is required', () => {
     const result = validateAuthE2EEnv({
       ...validEnv,
