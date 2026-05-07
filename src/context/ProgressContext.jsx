@@ -1225,17 +1225,3 @@ export function useXP() {
 export function useSR() {
   return useContext(SRContext);
 }
-
-/**
- * @deprecated Aggregate hook kept as a migration alias for callers that
- *   pre-date the three-context split. New code should import the
- *   narrower `useProgressData`, `useXP`, or `useSR` hook so a streak
- *   tick doesn't re-render a screen that only reads completion data.
- *   See docs/progress-context-decomposition-plan.md for the migration plan.
- */
-export function useProgress() {
-  const progress = useProgressData();
-  const xp = useXP();
-  const sr = useSR();
-  return useMemo(() => ({ ...progress, ...xp, ...sr }), [progress, xp, sr]);
-}
