@@ -24,6 +24,7 @@ This is the fastest path for a recruiter or technical reviewer to understand Cod
 - Progress Summary PDFs are learner progress summaries, not verified certificates.
 - Challenge auto-grading is a learning aid. HTML checks inspect rendered DOM snapshots, CSS checks mix computed-style and source-pattern checks, and JavaScript/React checks rely on console/runtime output.
 - Backend reward sync is scaffolded but disabled until Supabase migrations and duplicate-award flows are verified against a real project.
+- Supabase migration/privacy readiness has a static gate: `npm run check:supabase-readiness`.
 
 ## Useful Commands
 

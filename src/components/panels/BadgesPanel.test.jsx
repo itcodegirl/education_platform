@@ -32,6 +32,7 @@ describe('BadgesPanel', () => {
     render(<BadgesPanel isOpen onClose={() => {}} />);
 
     expect(screen.getByText(/in-app milestones, not external credentials/i)).toBeInTheDocument();
+    expect(screen.getByText(/No badges earned yet/i)).toBeInTheDocument();
 
     // The grid is a real <ul> announced as a list, with an aria-label
     // summarizing total earned vs total available.

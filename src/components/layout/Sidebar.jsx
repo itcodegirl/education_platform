@@ -12,7 +12,7 @@ import { ProfilePopover } from './ProfilePopover';
 import { Logo } from '../shared/Logo';
 import { getCourseCompletedLessonCount, hasLessonCompletion } from '../../utils/lessonKeys';
 import { logNavigationDiagnostic } from '../../utils/navigationDiagnostics';
-import { getLearningToolCopy } from '../../constants/learningTools';
+import { getLearningToolCopy, isLearningToolAvailable } from '../../constants/learningTools';
 
 const POPUP_MENU_ITEM_SELECTOR = '[role="menuitem"]';
 
@@ -50,6 +50,7 @@ export const Sidebar = memo(function Sidebar({
   onSelectModQuiz,
   onOpenTool,
   activePanel,
+  hasCompletedProgress = true,
 }) {
   const isDesktopCollapsed = !isMobile && isCollapsed;
   const { completed = [] } = useProgressData();
@@ -513,7 +514,9 @@ export const Sidebar = memo(function Sidebar({
                   label: 'Badges',
                   hint: 'Milestones earned inside CodeHerWay.',
                 },
-              ].map((t) => {
+              ].filter((t) =>
+                isLearningToolAvailable(t.key, hasCompletedProgress),
+              ).map((t) => {
                 const copy = getLearningToolCopy(t.key);
                 const label = copy.label || t.label;
                 const hint = copy.sidebarHint || t.hint;

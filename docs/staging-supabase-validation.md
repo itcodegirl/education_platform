@@ -32,28 +32,29 @@ Confirm the running staging build is using these values before starting validati
 
 ## Required Migrations
 
-Apply and verify these migrations before running browser tests:
+Apply and verify the current repo migrations before running browser tests. Run the static source-control gate first:
 
-- Reward events migration: `supabase/migrations/202604250001_create_reward_events.sql`
-- Award reward event RPC migration: `supabase/migrations/202604250002_add_award_reward_event_rpc.sql`
-- Backend trust progress sync migration: `supabase/migrations/202605030001_backend_trust_progress_sync.sql`
+```bash
+npm run check:supabase-readiness
+```
+
+Then apply `supabase-schema.sql` followed by the additive files listed in [Supabase Production Readiness](./supabase-production-readiness.md).
 
 Required database objects after migration:
 
 - `public.reward_events`
-- `public.challenge_completions`
-- `public.daily_activity_events`
 - `public.award_reward_event(...)`
-- `public.record_daily_activity(uuid, text)`
+- Stable resume columns on `public.last_position`: `course_id`, `module_id`, `lesson_id`, `is_module_quiz`
+- Aggregate public profile view: `public.public_profiles`
 
-The backend trust progress sync migration must include or preserve:
+The current backend reward migration set must include or preserve:
 
-- `challenge_completions`
 - `award_reward_event` RPC
-- `record_daily_activity` RPC
-- RLS on reward/challenge/daily activity tables
+- RLS on reward event tables
 - Authenticated-only RPC grants
-- Auth-owned backend RPCs. `award_reward_event` derives the learner from `auth.uid()` and must not accept a client-provided user id; any future RPC that accepts `learner_id` must reject mismatches.
+- Auth-owned backend RPCs. `award_reward_event` derives the learner from `auth.uid()` and must not accept a client-provided user id.
+
+Challenge completion and daily/streak server-authoritative tables remain follow-up backend sync work unless a later migration adds them. Keep those validation sections as release blockers only when that backend feature is being enabled.
 
 ## Manual Test Checklist
 

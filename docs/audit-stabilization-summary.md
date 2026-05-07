@@ -22,6 +22,7 @@ This PR hardens CodeHerWay as a portfolio-ready learning platform demo. It does 
 ## Follow-Up
 
 - Run authenticated Playwright flows in CI with real Supabase test credentials.
+- Run `npm run check:supabase-readiness` before persistence-related releases, then apply the listed migrations to the target Supabase project.
 - Apply the additive Supabase migrations before enabling backend reward sync.
 - Continue decomposing `ProgressContext` and `AppLayout` in small, behavior-preserving steps.
 

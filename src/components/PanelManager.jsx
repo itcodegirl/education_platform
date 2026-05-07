@@ -48,8 +48,13 @@ const PANEL_REGISTRY = {
   glossary: ({ panels }) => (
     <GlossaryPanel isOpen onClose={panels.closePanel} />
   ),
-  projects: ({ panels, course }) => (
-    <ProjectsPanel isOpen onClose={panels.closePanel} currentCourse={course.id} />
+  projects: ({ panels, course, hasCompletedProgress }) => (
+    <ProjectsPanel
+      isOpen
+      onClose={panels.closePanel}
+      currentCourse={course.id}
+      hasCompletedProgress={hasCompletedProgress}
+    />
   ),
   badges: ({ panels }) => (
     <BadgesPanel isOpen onClose={panels.closePanel} />
@@ -87,10 +92,10 @@ function ActivePanelBoundary({ panelName, context }) {
 }
 
 export function PanelManager({
-  panels, nav, course, profile, completed, lastPosition, courseTotal,
+  panels, nav, course, profile, completed, hasCompletedProgress = true, lastPosition, courseTotal,
 }) {
   const moduleProgress = computeModuleProgress(course, lastPosition, completed);
-  const panelContext = { panels, nav, course };
+  const panelContext = { panels, nav, course, hasCompletedProgress };
 
   return (
     <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>

@@ -46,17 +46,19 @@ Current baseline checks:
 - `npm run build`
 - `npm run lint`
 - `npm run check:js-source` (JS-only source policy; this project does not run TypeScript type checking)
+- `npm run check:supabase-readiness` (static migration/privacy/reward-ledger readiness gate)
 - `npm run test` (Vitest unit/component suite — passes on a fresh clone with no `.env` configured; the suite stubs the `VITE_SUPABASE_*` placeholders via `vitest.config.js` so client-importing tests can evaluate)
 - `npm run audit:quizzes`
 - `npm run test:e2e` (public smoke and first-lesson preview paths run by default)
 
 Current test boundaries:
 
-- Authenticated Playwright smoke checks are skipped locally when auth env credentials are not provided. CI treats the authenticated learner suite as required and fails in preflight if the E2E Supabase secrets are missing, invalid, or unreachable; see [Authenticated E2E CI setup](./docs/authenticated-e2e-ci.md).
+- Authenticated Playwright smoke checks are skipped locally when auth env credentials are not provided. CI runs authenticated learner coverage only when the full E2E Supabase secret set is configured; see [Authenticated E2E CI setup](./docs/authenticated-e2e-ci.md).
 - Playwright authenticated storage state is generated under `playwright/.auth/` and intentionally ignored by Git.
 - `npm run audit:quizzes` runs in strict mode by default and is the source of truth for quiz integrity drift. It fails on any unclassified orphan quizzes or unreviewed variant groups. All 14 intentional variant groups are locked; 53 legacy orphans are classified and non-blocking.
 - The local reward-event ledger/queue and Supabase reward backend branches are now unified. The local engine remains the default fallback, and backend reward sync remains disabled until the migrations are applied and authenticated reward flows are validated in a real project.
 - Backend reward details live in [docs/backend-reward-events.md](./docs/backend-reward-events.md), [docs/atomic-reward-award.md](./docs/atomic-reward-award.md), and [docs/reward-sync-strategy.md](./docs/reward-sync-strategy.md).
+- Supabase migration and privacy readiness details live in [docs/supabase-production-readiness.md](./docs/supabase-production-readiness.md).
 - Authenticated smoke checks are enabled in the suite, but they self-skip unless Supabase and learner test credentials are configured.
 - Direct optimistic progress writes now use a same-browser retry queue with manual retry, reconnect retry, and next-session replay.
 - Recoverable lesson route mutations for completion toggles and bookmarks now feed that same-browser retry queue when Supabase route actions fail with a recoverable write descriptor.
@@ -190,10 +192,11 @@ VITE_REWARD_BACKEND_SYNC_ENABLED=false
 
 1. Create a Supabase project.
 2. Run [`supabase-schema.sql`](./supabase-schema.sql) in Supabase SQL editor.
-3. For the optional backend reward engine, run the additive SQL files in [`supabase/migrations`](./supabase/migrations) after the base schema.
-4. Keep `VITE_REWARD_BACKEND_SYNC_ENABLED=false` until `reward_events` and `award_reward_event` are applied and verified.
-5. Enable Email auth.
-6. Optionally enable Google/GitHub auth.
+3. Run `npm run check:supabase-readiness` before release to verify the required migration/privacy artifacts remain in source.
+4. For the optional backend reward engine, run the additive SQL files in [`supabase/migrations`](./supabase/migrations) after the base schema. Use [Supabase Production Readiness](./docs/supabase-production-readiness.md) for the current migration order.
+5. Keep `VITE_REWARD_BACKEND_SYNC_ENABLED=false` until `reward_events` and `award_reward_event` are applied and verified.
+6. Enable Email auth.
+7. Optionally enable Google/GitHub auth.
 
 ### 4. Run the app
 
