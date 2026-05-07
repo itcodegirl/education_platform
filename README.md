@@ -4,7 +4,7 @@
 
 CodeHerWay is an active frontend learning platform project and portfolio product focused on beginner-friendly coding education.
 
-**Start here for review:** [docs/reviewer-start-here.md](./docs/reviewer-start-here.md)
+**Start here for review:** [REVIEWER_START_HERE.md](./REVIEWER_START_HERE.md)
 
 ## Repository identity
 
@@ -123,6 +123,7 @@ Reviewer shortcuts:
 
 - Reviewer start: [docs/reviewer-start-here.md](./docs/reviewer-start-here.md)
 - Reviewer demo script: [docs/reviewer-demo-script.md](./docs/reviewer-demo-script.md)
+- Branch and PR triage: [docs/branch-triage.md](./docs/branch-triage.md)
 - Product story: [docs/portfolio-case-study.md](./docs/portfolio-case-study.md)
 - Audit stabilization summary: [docs/audit-stabilization-summary.md](./docs/audit-stabilization-summary.md)
 - UX trust/calmness notes: [docs/ux-trust-calmness-notes.md](./docs/ux-trust-calmness-notes.md)
