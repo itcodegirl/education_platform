@@ -341,7 +341,7 @@
         ]
       },
       "bridge": {
-        "preview": "In the next lesson, you'll learn how arrays can transform and organize data — the bridge from interaction logic into richer app behavior.",
+        "preview": "In the next module, you'll learn advanced array methods like map, filter, and reduce so you can transform data more cleanly.",
         "nextLessonId": "js-4-1"
       }
     }

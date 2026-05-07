@@ -73,7 +73,7 @@ describe('AuthPage', () => {
     fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'abc' } });
 
     expect(
-      screen.getByText(/3\/6 characters\. Add 3 more to continue\./i),
+      screen.getByText(/3\/8 characters\. Add 5 more to continue\./i),
     ).toBeInTheDocument();
   });
 

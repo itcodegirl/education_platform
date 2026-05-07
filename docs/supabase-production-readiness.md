@@ -18,6 +18,8 @@ The command verifies that the repo still contains:
 - Explicit anon `select` revokes for raw profile/progress/reward-adjacent tables.
 - Reward event ledger migrations and the `award_reward_event(...)` RPC that derives ownership from `auth.uid()`.
 - The idempotency guard for `(user_id, event_key)` reward events.
+- Unique Supabase migration timestamp prefixes, so no migration is skipped
+  or mis-reconciled by version.
 
 This is a source-control guard. Passing it means the schema and migration artifacts are present; it does not mean the live Supabase project has applied them.
 
@@ -28,8 +30,8 @@ For a fresh Supabase project, apply `supabase-schema.sql` first, then apply the 
 1. `supabase/migrations/202604250001_create_reward_events.sql`
 2. `supabase/migrations/202604250002_add_award_reward_event_rpc.sql`
 3. `supabase/migrations/202605060001_guard_profile_disabled_updates.sql`
-4. `supabase/migrations/202605060001_harden_profile_updates.sql`
-5. `supabase/migrations/202605060002_guard_reward_event_idempotency.sql`
+4. `supabase/migrations/202605060002_guard_reward_event_idempotency.sql`
+5. `supabase/migrations/202605060003_harden_profile_updates.sql`
 6. `supabase/migrations/202605070001_add_stable_last_position_columns.sql`
 7. `supabase/migrations/202605070002_harden_public_profile_privacy.sql`
 

@@ -33,8 +33,8 @@
   .nav-guidance { display: none; }
   .mark-btn { display: none; }
   .main-shell {
-    padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
-    scroll-padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+    scroll-padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
   }
 
   /* Hide the old floating toolbar on mobile (tools moved to sidebar) */
@@ -131,8 +131,8 @@
   .breadcrumb-lesson { font-size: 11px; }
 
   .main-shell {
-    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
-    scroll-padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+    scroll-padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
   }
   .lesson-nav { padding: 8px 10px; gap: 6px; }
   .lesson-nav-btn { padding: 8px 4px; border-radius: 10px; min-height: 44px; }

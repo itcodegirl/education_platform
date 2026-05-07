@@ -7,6 +7,37 @@ import { parseQuizKey } from '../../utils/quizKeys';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 
+const LEGACY_QUIZ_COURSE_PREFIXES = {
+  html: ['h', 'lesson-'],
+  css: ['c', 'css-'],
+  js: ['j', 'js-'],
+  react: ['r'],
+};
+
+function courseContainsQuizEntity(course, parsed) {
+  const entityId = String(parsed.entityId || '');
+  if (!entityId) return false;
+
+  for (const module of course.modules || []) {
+    if (parsed.type === 'm' && String(module.id) === entityId) return true;
+    if (parsed.type === 'l' && (module.lessons || []).some((lesson) => lesson.id === entityId)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function quizKeyBelongsToCourse(quizKey, course) {
+  const parsed = parseQuizKey(quizKey);
+
+  if (parsed.courseId) return parsed.courseId === course.id;
+  if (courseContainsQuizEntity(course, parsed)) return true;
+
+  const prefixes = LEGACY_QUIZ_COURSE_PREFIXES[course.id] || [];
+  return prefixes.some((prefix) => parsed.entityId.startsWith(prefix));
+}
+
 export function StudentStats({ isOpen, onClose }) {
   const { completed, quizScores } = useProgressData();
   const { xpTotal, streak, pausedStreak = null, dailyCount, earnedBadges } = useXP();
@@ -29,11 +60,7 @@ export function StudentStats({ isOpen, onClose }) {
       const done = getCourseCompletedLessonCount(completedSet, course);
       const percent = totalLessons > 0 ? Math.round((done / totalLessons) * 100) : 0;
 
-      const courseQuizKeys = Object.keys(quizScores).filter((key) => {
-        const parsed = parseQuizKey(key);
-        if (parsed.courseId) return parsed.courseId === course.id;
-        return parsed.entityId.startsWith(course.id.charAt(0));
-      });
+      const courseQuizKeys = Object.keys(quizScores).filter((key) => quizKeyBelongsToCourse(key, course));
 
       const quizResults = courseQuizKeys.map((key) => {
         const [got, total] = quizScores[key].split('/').map(Number);

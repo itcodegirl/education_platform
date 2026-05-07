@@ -25,15 +25,16 @@ npm run audit:content
 2. Enter the learning app and point out the current primary action: read the lesson, then complete it.
 3. Complete one lesson and show the progress feedback, XP feedback, and updated course status.
 4. Open saved lessons, notes, review queue, badges, and challenges. Explain which tools are motivational/local today and which writes may sync.
-5. Submit a quiz, retry it, and point out that retrying is for practice while XP is awarded once per quiz milestone.
+5. Submit a quiz, retry it, and point out that retrying is for practice while XP is awarded once per stable quiz milestone.
 6. Open Progress Summary and call out that it is not a verified credential.
-7. Close with the roadmap and trust boundaries: portfolio-ready now, production-ready after stable IDs, backend reward records, authenticated CI, and observability.
+7. Close with the roadmap and trust boundaries: portfolio-ready now, production-ready after staging Supabase validation, backend reward records, authenticated CI credentials, and observability.
 
 ## Failure-Path Moment
 
 If demonstrating engineering depth, show the sync warning/retry copy or docs:
 
 - Same-browser queued recovery exists for covered progress writes.
+- Queued progress writes expose a visible "Retry now" action near the current learning step.
 - Backend reward sync is intentionally disabled until migrations and duplicate-award tests pass.
 - The app avoids claiming cross-device reward trust before the backend supports it.
 

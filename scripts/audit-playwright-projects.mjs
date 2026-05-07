@@ -1,80 +1,105 @@
 /* global console, process */
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import playwrightConfig from '../playwright.config.js';
 
-const PROJECT_REF_PATTERN = /--project(?:=|\s+)(["']?)([A-Za-z0-9_-]+)\1/g;
+const PROJECT_ARG_RE = /--project(?:=|\s+)(["']?)([A-Za-z0-9_-]+)\1/g;
 
-function readText(filePath) {
-  return readFileSync(filePath, 'utf8');
-}
-
-export function collectProjectReferences({
-  packageJsonText = readText(path.join(process.cwd(), 'package.json')),
-  scriptFiles = readdirSync(path.join(process.cwd(), 'scripts'), { withFileTypes: true })
-    .filter((entry) => entry.isFile() && entry.name.endsWith('.mjs'))
-    .map((entry) => path.join(process.cwd(), 'scripts', entry.name)),
-} = {}) {
+export function collectProjectReferences({ packageJsonText, scriptFiles }) {
   const references = [];
   const packageJson = JSON.parse(packageJsonText);
 
-  for (const [scriptName, command] of Object.entries(packageJson.scripts || {})) {
-    collectFromText(references, `package.json scripts.${scriptName}`, String(command));
-  }
+  Object.entries(packageJson.scripts || {}).forEach(([scriptName, command]) => {
+    collectFromText({
+      source: `package.json scripts.${scriptName}`,
+      text: command,
+      references,
+    });
+  });
 
-  for (const filePath of scriptFiles) {
-    collectFromText(references, path.relative(process.cwd(), filePath), readText(filePath));
-  }
+  scriptFiles.forEach(({ source, text }) => {
+    collectFromText({ source, text, references });
+  });
 
   return references;
 }
 
-function collectFromText(references, source, text) {
-  for (const match of text.matchAll(PROJECT_REF_PATTERN)) {
-    references.push({ source, project: match[2] });
-  }
-}
-
-export function auditPlaywrightProjectReferences({
-  config = playwrightConfig,
-  references = collectProjectReferences(),
-} = {}) {
-  const configuredProjects = new Set((config.projects || []).map((project) => project.name));
-  const invalidReferences = references
-    .filter((reference) => !configuredProjects.has(reference.project))
-    .map(({ source, project }) => ({ source, project }));
+export function auditPlaywrightProjectReferences({ config, references }) {
+  const projectNames = new Set((config.projects || []).map((project) => project.name));
+  const invalidReferences = references.filter((reference) => !projectNames.has(reference.project));
 
   return {
-    configuredProjects: [...configuredProjects].sort(),
+    projectNames: [...projectNames].sort(),
     references,
     invalidReferences,
   };
 }
 
-export function runPlaywrightProjectAudit() {
-  return auditPlaywrightProjectReferences();
+function collectFromText({ source, text, references }) {
+  PROJECT_ARG_RE.lastIndex = 0;
+  let match = PROJECT_ARG_RE.exec(text);
+
+  while (match) {
+    references.push({
+      source,
+      project: match[2],
+    });
+    match = PROJECT_ARG_RE.exec(text);
+  }
 }
 
-function main() {
-  console.log('Playwright Project Reference Audit');
-  const result = runPlaywrightProjectAudit();
-
-  console.log(`  configured projects: ${result.configuredProjects.join(', ')}`);
-  console.log(`  referenced projects: ${result.references.length}`);
-  console.log(`  invalid project references: ${result.invalidReferences.length}`);
-
-  if (result.invalidReferences.length > 0) {
-    result.invalidReferences.forEach((reference) => {
-      console.log(`  - ${reference.source}: ${reference.project}`);
+function loadScriptFiles(rootDir) {
+  const scriptsDir = path.join(rootDir, 'scripts');
+  return readdirSync(scriptsDir)
+    .filter((fileName) => fileName.endsWith('.mjs'))
+    .map((fileName) => {
+      const filePath = path.join(scriptsDir, fileName);
+      return {
+        source: path.relative(rootDir, filePath).replaceAll(path.sep, '/'),
+        text: readFileSync(filePath, 'utf8'),
+      };
     });
-    process.exitCode = 1;
+}
+
+export function runPlaywrightProjectAudit(rootDir = process.cwd()) {
+  const packageJsonText = readFileSync(path.join(rootDir, 'package.json'), 'utf8');
+  const references = collectProjectReferences({
+    packageJsonText,
+    scriptFiles: loadScriptFiles(rootDir),
+  });
+
+  return auditPlaywrightProjectReferences({
+    config: playwrightConfig,
+    references,
+  });
+}
+
+function printAuditResult(result) {
+  console.log('Playwright Project Reference Audit');
+  console.log(`  configured projects: ${result.projectNames.join(', ')}`);
+  console.log(`  referenced projects: ${result.references.length}`);
+
+  if (!result.invalidReferences.length) {
+    console.log('  invalid project references: 0');
+    console.log('No invalid Playwright project references detected.');
     return;
   }
 
-  console.log('No invalid Playwright project references detected.');
+  console.error(`  invalid project references: ${result.invalidReferences.length}`);
+  result.invalidReferences.forEach((reference) => {
+    console.error(`  - ${reference.source}: --project=${reference.project}`);
+  });
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main();
+const isDirectRun = process.argv[1]
+  && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isDirectRun) {
+  const result = runPlaywrightProjectAudit();
+  printAuditResult(result);
+
+  if (result.invalidReferences.length) {
+    process.exitCode = 1;
+  }
 }

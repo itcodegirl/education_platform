@@ -11,6 +11,11 @@ const WORKFLOW_FILES = Object.freeze([
 
 const AUTH_PREFLIGHT_SCRIPT = 'npm run test:e2e:auth:preflight';
 const AUTH_SMOKE_SCRIPT = 'node scripts/run-auth-e2e-smoke.mjs';
+const AUTH_SCOPE_SCRIPTS = Object.freeze({
+  'test:e2e:smoke:lesson': `${AUTH_SMOKE_SCRIPT} lesson`,
+  'test:e2e:smoke:mobile': `${AUTH_SMOKE_SCRIPT} mobile`,
+  'test:e2e:smoke:authenticated': `${AUTH_SMOKE_SCRIPT} authenticated`,
+});
 const REQUIRED_AUTH_SMOKE_SPECS = Object.freeze([
   'tests/e2e/authenticated.smoke.spec.js',
   'tests/e2e/lesson-flow.spec.js',
@@ -29,6 +34,10 @@ function addIssue(issues, source, message) {
   issues.push({ source, message });
 }
 
+function workflowHasSecretGate(workflowText, envName) {
+  return workflowText.includes(`secrets.${envName}`);
+}
+
 export function auditAuthE2EReadiness({
   rootDir = process.cwd(),
   packageJsonText = readText(path.join(rootDir, 'package.json')),
@@ -40,8 +49,9 @@ export function auditAuthE2EReadiness({
 } = {}) {
   const issues = [];
   const packageJson = JSON.parse(packageJsonText);
+  const authPreflightScript = packageJson.scripts?.['test:e2e:auth:preflight'];
 
-  if (packageJson.scripts?.['test:e2e:auth:preflight'] !== 'node scripts/auth-e2e-preflight.mjs') {
+  if (authPreflightScript !== 'node scripts/auth-e2e-preflight.mjs') {
     addIssue(
       issues,
       'package.json scripts.test:e2e:auth:preflight',
@@ -57,7 +67,17 @@ export function auditAuthE2EReadiness({
     );
   }
 
-  for (const specPath of REQUIRED_AUTH_SMOKE_SPECS) {
+  Object.entries(AUTH_SCOPE_SCRIPTS).forEach(([scriptName, expectedCommand]) => {
+    if (packageJson.scripts?.[scriptName] !== expectedCommand) {
+      addIssue(
+        issues,
+        `package.json scripts.${scriptName}`,
+        `Scoped authenticated smoke script must run ${expectedCommand}.`,
+      );
+    }
+  });
+
+  REQUIRED_AUTH_SMOKE_SPECS.forEach((specPath) => {
     if (!authSmokeScriptText.includes(specPath)) {
       addIssue(
         issues,
@@ -65,9 +85,9 @@ export function auditAuthE2EReadiness({
         `Authenticated smoke runner must include ${specPath}.`,
       );
     }
-  }
+  });
 
-  for (const projectName of REQUIRED_AUTH_SMOKE_PROJECTS) {
+  REQUIRED_AUTH_SMOKE_PROJECTS.forEach((projectName) => {
     if (!authSmokeScriptText.includes(projectName)) {
       addIssue(
         issues,
@@ -75,7 +95,7 @@ export function auditAuthE2EReadiness({
         `Authenticated smoke runner must include ${projectName}.`,
       );
     }
-  }
+  });
 
   for (const { filePath, text } of workflowFiles) {
     if (!text.includes('E2E_AUTH_REQUIRED:')) {
@@ -87,11 +107,11 @@ export function auditAuthE2EReadiness({
     }
 
     for (const envName of REQUIRED_AUTH_ENV) {
-      if (!text.includes(`${envName}:`)) {
+      if (!text.includes(`${envName}:`) && !text.includes(`${envName}: \${{`)) {
         addIssue(issues, filePath, `Workflow does not pass ${envName} into the job environment.`);
       }
 
-      if (!text.includes(`secrets.${envName}`)) {
+      if (!workflowHasSecretGate(text, envName)) {
         addIssue(issues, filePath, `E2E_AUTH_REQUIRED does not gate on secrets.${envName}.`);
       }
     }
@@ -100,15 +120,22 @@ export function auditAuthE2EReadiness({
   return { issues };
 }
 
+function printEntries(title, entries) {
+  if (!entries.length) return;
+
+  console.log(`\n${title} (${entries.length}):`);
+  entries.forEach((entry) => {
+    console.log(`  - ${entry.source}: ${entry.message}`);
+  });
+}
+
 function main() {
   console.log('Authenticated E2E Readiness Audit');
   const result = auditAuthE2EReadiness();
 
+  printEntries('Blocking issues', result.issues);
+
   if (result.issues.length > 0) {
-    console.log(`\nBlocking issues (${result.issues.length}):`);
-    result.issues.forEach((issue) => {
-      console.log(`  - ${issue.source}: ${issue.message}`);
-    });
     process.exitCode = 1;
     return;
   }
