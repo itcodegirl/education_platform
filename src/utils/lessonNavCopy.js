@@ -40,8 +40,8 @@ export function getNextLessonTitle({
 export function getNextStepHint({ isLast, showModQuiz, isDone }) {
   if (isLast) return 'Track complete. Pick another course or review a lesson that deserves another pass.';
   if (showModQuiz) return 'Finish the quiz, then continue into the next module.';
-  if (!isDone) return 'Read first. Mark done when the idea clicks, then continue.';
-  return 'This step is marked done. Continue when you are ready.';
+  if (!isDone) return 'Read first. Complete the lesson when the idea clicks, then continue.';
+  return 'This lesson is complete. Continue when you are ready.';
 }
 
 export function getLessonPositionLabel({ showModQuiz, modTitle, lesIdx, lessonsLength }) {

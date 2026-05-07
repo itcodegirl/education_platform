@@ -113,8 +113,8 @@ describe('getNextStepHint', () => {
   it('matches the four user-facing states', () => {
     expect(getNextStepHint({ isLast: true, showModQuiz: false, isDone: true })).toMatch(/Track complete/);
     expect(getNextStepHint({ isLast: false, showModQuiz: true, isDone: false })).toMatch(/Finish the quiz/);
-    expect(getNextStepHint({ isLast: false, showModQuiz: false, isDone: false })).toMatch(/Mark done/);
-    expect(getNextStepHint({ isLast: false, showModQuiz: false, isDone: true })).toMatch(/step is marked done/);
+    expect(getNextStepHint({ isLast: false, showModQuiz: false, isDone: false })).toMatch(/Complete the lesson/);
+    expect(getNextStepHint({ isLast: false, showModQuiz: false, isDone: true })).toMatch(/lesson is complete/);
   });
 });
 

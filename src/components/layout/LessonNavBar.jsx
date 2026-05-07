@@ -28,7 +28,7 @@ export const LessonNavBar = memo(function LessonNavBar({
       ? 'Go to module quiz'
       : 'Go to next lesson';
 
-  const doneAriaLabel = isDone ? 'Unmark lesson as complete' : 'Mark this lesson done and save progress';
+  const doneAriaLabel = isDone ? 'Mark lesson as incomplete' : 'Complete this lesson and save progress';
 
   return (
     <nav className="lesson-nav" aria-label="Lesson navigation">
@@ -58,7 +58,7 @@ export const LessonNavBar = memo(function LessonNavBar({
           <span className="lesson-nav-icon" aria-hidden="true">
             {marking ? '…' : isDone ? '✓' : '◌'}
           </span>
-          <span className="lesson-nav-label">{marking ? 'Saving' : isDone ? 'Done' : 'Mark done'}</span>
+          <span className="lesson-nav-label">{marking ? 'Saving' : isDone ? 'Complete' : 'Complete lesson'}</span>
         </button>
       )}
 

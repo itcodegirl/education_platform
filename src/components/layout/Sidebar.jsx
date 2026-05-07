@@ -638,7 +638,7 @@ export const Sidebar = memo(function Sidebar({
               <span className="lock-text">{lockMode ? 'Guided order on' : 'Open navigation'}</span>
               <span className="lock-help">
                 {lockMode
-                  ? 'Lessons unlock step by step as you mark them done.'
+                  ? 'Lessons unlock step by step as you complete them.'
                   : 'You can browse lessons in any order.'}
               </span>
             </span>

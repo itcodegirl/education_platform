@@ -15,8 +15,8 @@ export function getSyncStatusCopy({
   if (!user) {
     return {
       tone: 'local',
-      label: 'Same-device mode',
-      detail: 'Sign in to sync lessons, bookmarks, notes, XP, and streaks across devices.',
+      label: 'Saved locally',
+      detail: 'This preview saves in this browser. Sign in to sync lessons, bookmarks, notes, XP, and streaks.',
     };
   }
 
@@ -24,7 +24,7 @@ export function getSyncStatusCopy({
     return {
       tone: 'warning',
       label: 'Cloud progress unavailable',
-      detail: 'This view is using the current browser session until account progress loads again.',
+      detail: 'Your current session is safe, but cloud progress needs retry before account state is confirmed.',
     };
   }
 
@@ -32,23 +32,25 @@ export function getSyncStatusCopy({
     return {
       tone: syncRetryInFlight ? 'saving' : 'queued',
       label: syncRetryInFlight ? 'Retrying cloud sync' : 'Cloud sync queued',
-      detail: `${pluralizeUpdate(pendingSyncWrites)} waiting in this browser. Keep this tab open when you reconnect.`,
+      detail: syncRetryInFlight
+        ? `${pluralizeUpdate(pendingSyncWrites)} retrying now. Your current session stays visible while cloud sync catches up.`
+        : `Saved locally. ${pluralizeUpdate(pendingSyncWrites)} will retry cloud sync when you are back online.`,
     };
   }
 
   if (syncFailed > 0) {
     return {
       tone: 'warning',
-      label: 'Cloud not confirmed',
-      detail: 'Your latest in-tab progress is visible here; retry when the connection is stable.',
+      label: 'Sync needs retry',
+      detail: 'Your current session is safe, but cloud sync needs retry when the connection is stable.',
     };
   }
 
   if (marking || mutationState === 'submitting' || mutationState === 'loading') {
     return {
       tone: 'saving',
-      label: 'Saving to cloud',
-      detail: 'Lesson progress is updating for this account.',
+      label: 'Saving',
+      detail: 'Saving this lesson step to your account.',
     };
   }
 
@@ -62,7 +64,7 @@ export function getSyncStatusCopy({
 
   return {
     tone: 'synced',
-    label: 'Account sync ready',
-    detail: 'Lessons, bookmarks, notes, XP, and streaks save to your account when the cloud is reachable.',
+    label: 'Saved',
+    detail: 'Progress can sync to this account when the cloud is reachable.',
   };
 }

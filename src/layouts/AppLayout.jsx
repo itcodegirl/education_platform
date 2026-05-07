@@ -232,14 +232,14 @@ export function AppLayout() {
     ? 'Take the module quiz'
     : isDone
       ? 'Continue when ready'
-      : 'Read, then mark done';
+      : 'Read, then complete lesson';
   const currentStepCopy = showModQuiz
     ? 'Answer the questions, then move into the next lesson when you are ready.'
     : isDone
       ? nextTitle
-        ? `Marked done here. Up next: ${nextTitle}.`
-        : 'Marked done here. Pick another course or revisit lessons that need another pass.'
-      : 'Focus on the lesson first. When the idea clicks, use Mark done to save this step.';
+        ? `Lesson complete here. Up next: ${nextTitle}.`
+        : 'Lesson complete here. Pick another course or revisit lessons that need another pass.'
+      : 'Focus on the lesson first. When the idea clicks, use Complete lesson to save this step.';
 
   // --- Lesson view analytics ----------------
   const lessonViewStartRef = useLessonViewTracking({
@@ -545,10 +545,10 @@ export function AppLayout() {
                   className={`mark-btn ${isDone ? "dn" : ""}`}
                   onClick={handleMarkDone}
                   disabled={marking}
-                  aria-label={marking ? "Saving lesson progress" : isDone ? "Mark lesson as not done" : "Mark lesson done and save progress"}
+                  aria-label={marking ? "Saving lesson progress" : isDone ? "Mark lesson as incomplete" : "Complete lesson and save progress"}
                   aria-pressed={isDone}
                 >
-                  {marking ? "Saving…" : isDone ? "✓ Done" : "Mark done"}
+                  {marking ? "Saving…" : isDone ? "✓ Complete" : "Complete lesson"}
                 </button>
               )}
             </div>
@@ -583,7 +583,7 @@ export function AppLayout() {
                     </h2>
                     <p className="frg-copy">
                       You are on the first lesson to set your pace. Read this lesson,
-                      complete it, then hit <strong>Mark done</strong> to unlock the next one.
+                      complete it, then use <strong>Complete lesson</strong> to save this step.
                     </p>
                     <p className="frg-sub">Course switching is in the sidebar when you are ready.</p>
                   </div>
