@@ -157,4 +157,3 @@ export function getMobileLearningTools(hasCompletedProgress = true, handlers = {
       };
     });
 }
-

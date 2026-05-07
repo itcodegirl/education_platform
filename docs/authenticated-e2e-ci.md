@@ -96,6 +96,8 @@ signed-in app shell.
   refreshed after migration. Apply `supabase-schema.sql` and the additive
   migrations, then retry after the project can read `public.progress`.
 
+Treat a skipped authenticated E2E run as a known limitation, not as a signed-in test pass.
+
 ## Artifact Inspection
 
 On failed E2E runs, download the workflow artifact named one of:
