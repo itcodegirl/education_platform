@@ -488,7 +488,7 @@ export function AppLayout() {
                   aria-label={marking ? "Saving lesson progress" : isDone ? "Mark lesson as incomplete" : "Complete lesson and save progress"}
                   aria-pressed={isDone}
                 >
-                  {marking ? "Saving…" : isDone ? "✓ Complete" : "Complete lesson"}
+                  {marking ? "Saving…" : isDone ? "✓ Lesson complete" : "Complete lesson"}
                 </button>
               )}
             </div>

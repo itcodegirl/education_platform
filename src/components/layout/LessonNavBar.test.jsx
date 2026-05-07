@@ -40,4 +40,12 @@ describe('LessonNavBar', () => {
     fireEvent.click(tools);
     expect(onOpenTools).toHaveBeenCalledTimes(1);
   });
+
+  it('clarifies that completed state belongs to the lesson only', () => {
+    render(<LessonNavBar {...baseProps} isDone />);
+
+    const lessonButton = screen.getByRole('button', { name: /mark lesson as incomplete/i });
+    expect(lessonButton).toHaveTextContent(/lesson saved/i);
+    expect(lessonButton).not.toHaveTextContent(/^complete$/i);
+  });
 });

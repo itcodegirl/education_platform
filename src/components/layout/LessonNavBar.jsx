@@ -61,7 +61,7 @@ export const LessonNavBar = memo(function LessonNavBar({
           <span className="lesson-nav-icon" aria-hidden="true">
             {marking ? '…' : isDone ? '✓' : '◌'}
           </span>
-          <span className="lesson-nav-label">{marking ? 'Saving' : isDone ? 'Complete' : 'Complete lesson'}</span>
+          <span className="lesson-nav-label">{marking ? 'Saving' : isDone ? 'Lesson saved' : 'Complete lesson'}</span>
         </button>
       )}
 

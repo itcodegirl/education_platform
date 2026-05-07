@@ -36,6 +36,12 @@ describe('getSyncStatusCopy', () => {
       label: 'Sync needs retry',
       detail: 'Your current session is safe, but cloud sync needs retry when the connection is stable.',
     });
+
+    expect(getSyncStatusCopy({ user, dataLoaded: true, loadError: new Error('offline') })).toEqual({
+      tone: 'warning',
+      label: 'Cloud progress unavailable',
+      detail: 'Your current session is safe, but cloud progress needs retry before account state is confirmed.',
+    });
   });
 
   it('progressSaveFailureShowsRecoveryMessage', () => {

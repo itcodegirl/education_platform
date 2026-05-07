@@ -193,7 +193,7 @@ export function StudentStats({ isOpen, onClose }) {
             </div>
             <div className="ss-card">
               <span className="ss-card-value">{stats.totalPercent}%</span>
-              <span className="ss-card-label">Complete</span>
+              <span className="ss-card-label">Lessons complete</span>
               <span className="ss-card-sub">{stats.totalDone}/{stats.totalLessons} lessons</span>
             </div>
           </div>
