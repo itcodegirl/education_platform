@@ -53,7 +53,7 @@ The backend trust progress sync migration must include or preserve:
 - `record_daily_activity` RPC
 - RLS on reward/challenge/daily activity tables
 - Authenticated-only RPC grants
-- `learner_id` mismatch rejection inside backend RPCs
+- Auth-owned backend RPCs. `award_reward_event` derives the learner from `auth.uid()` and must not accept a client-provided user id; any future RPC that accepts `learner_id` must reject mismatches.
 
 ## Manual Test Checklist
 
@@ -181,11 +181,13 @@ Expected result: duplicate same-day activity keys do not create duplicate canoni
 
 Also inspect the existing daily/streak aggregate tables used by the app and confirm the UI matches backend canonical values after reconciliation.
 
-### RPC Learner Mismatch Rejection
+### RPC Auth Ownership
 
-While authenticated as the test learner, call both RPCs with a different `learner_id`.
+While authenticated as the test learner, confirm `award_reward_event` has no `learner_id` or `user_id` argument and derives ownership from `auth.uid()`. Then attempt a duplicate reward event for the same learner/event key.
 
-Expected result: `award_reward_event` rejects the mismatch and does not insert a reward event or increment XP.
+Expected result: `award_reward_event` inserts at most one row for `(user_id, event_key)`, returns a skipped duplicate result on repeat, and does not increment XP twice.
+
+If validating an RPC that accepts `learner_id`, call it with a different learner id.
 
 Expected result: `record_daily_activity` rejects the mismatch and does not create a daily activity event.
 
@@ -254,7 +256,7 @@ SQL inspection:
 - reward_events idempotency:
 - challenge_completions:
 - daily/streak:
-- learner_id mismatch rejection:
+- RPC auth ownership:
 - RLS isolation:
 
 Observed XP inflation:
