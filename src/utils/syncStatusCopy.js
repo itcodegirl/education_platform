@@ -35,6 +35,8 @@ export function getSyncStatusCopy({
       detail: syncRetryInFlight
         ? `${pluralizeUpdate(pendingSyncWrites)} retrying now. Your current session stays visible while cloud sync catches up.`
         : `Saved locally. ${pluralizeUpdate(pendingSyncWrites)} will retry cloud sync when you are back online.`,
+      actionLabel: syncRetryInFlight ? '' : 'Retry now',
+      actionAriaLabel: syncRetryInFlight ? '' : 'Retry queued progress updates now',
     };
   }
 

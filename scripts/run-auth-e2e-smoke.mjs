@@ -3,18 +3,46 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { loadAuthE2EEnvFile, runAuthE2EPreflight } from './auth-e2e-preflight.mjs';
 
-const playwrightArgs = [
-  'test',
-  'tests/e2e/authenticated.smoke.spec.js',
-  'tests/e2e/lesson-flow.spec.js',
-  'tests/e2e/mobile-learning-smoke.spec.js',
-  '--project=authenticated-chromium',
-  '--project=authenticated-mobile-chrome',
-];
+const AUTH_SMOKE_SCOPES = Object.freeze({
+  learning: {
+    specs: [
+      'tests/e2e/authenticated.smoke.spec.js',
+      'tests/e2e/lesson-flow.spec.js',
+      'tests/e2e/mobile-learning-smoke.spec.js',
+    ],
+    projects: [
+      '--project=authenticated-chromium',
+      '--project=authenticated-mobile-chrome',
+    ],
+  },
+  authenticated: {
+    specs: ['tests/e2e/authenticated.smoke.spec.js'],
+    projects: ['--project=authenticated-chromium'],
+  },
+  lesson: {
+    specs: ['tests/e2e/lesson-flow.spec.js'],
+    projects: ['--project=authenticated-chromium'],
+  },
+  mobile: {
+    specs: ['tests/e2e/mobile-learning-smoke.spec.js'],
+    projects: ['--project=authenticated-mobile-chrome'],
+  },
+});
 
-function runPlaywright() {
+function getPlaywrightArgs(scopeName = 'learning') {
+  const scope = AUTH_SMOKE_SCOPES[scopeName];
+  if (!scope) {
+    console.error(`Unknown authenticated E2E smoke scope "${scopeName}".`);
+    console.error(`Available scopes: ${Object.keys(AUTH_SMOKE_SCOPES).join(', ')}`);
+    process.exit(1);
+  }
+
+  return ['test', ...scope.specs, ...scope.projects];
+}
+
+function runPlaywright(scopeName) {
   const cliPath = path.join(process.cwd(), 'node_modules', 'playwright', 'cli.js');
-  const result = spawnSync(process.execPath, [cliPath, ...playwrightArgs], {
+  const result = spawnSync(process.execPath, [cliPath, ...getPlaywrightArgs(scopeName)], {
     env: process.env,
     stdio: 'inherit',
   });
@@ -26,6 +54,9 @@ function runPlaywright() {
 
   process.exit(result.status ?? 1);
 }
+
+const scopeName = process.argv[2] || 'learning';
+getPlaywrightArgs(scopeName);
 
 const envFile = await loadAuthE2EEnvFile();
 if (envFile.loaded) {
@@ -44,4 +75,4 @@ if (!preflight.ok) {
 }
 
 console.log(preflight.message);
-runPlaywright();
+runPlaywright(scopeName);

@@ -94,6 +94,7 @@ function installNavigationStorage(initialValue = null) {
 
 beforeEach(() => {
   vi.restoreAllMocks();
+  window.matchMedia.mockReturnValue({ matches: false });
   mockUseCourseContent.mockReturnValue({
     ensureLoaded: vi.fn(async () => null),
   });
@@ -179,6 +180,18 @@ describe('useNavigation go()', () => {
     const { result } = renderHook(() => useNavigation());
     act(() => result.current.go(0, 1));
     expect(window.location.pathname).toBe('/learn/html/basics/l-tags');
+  });
+
+  it('reducedMotionUsesAutoScrollBehavior', () => {
+    window.matchMedia.mockReturnValue({ matches: true });
+    const scrollTo = vi.fn();
+    const { result } = renderHook(() => useNavigation());
+    result.current.mainRef.current = { scrollTo };
+
+    act(() => result.current.go(0, 1));
+
+    expect(window.matchMedia).toHaveBeenCalledWith('(prefers-reduced-motion: reduce)');
+    expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'auto' });
   });
 
   it('changes the active lesson id immediately when selecting a different lesson', () => {

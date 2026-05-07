@@ -4,7 +4,7 @@
 
 CodeHerWay is an active frontend learning platform project and portfolio product focused on beginner-friendly coding education.
 
-**Start here for review:** [docs/reviewer-start-here.md](./docs/reviewer-start-here.md)
+**Start here for review:** [REVIEWER_START_HERE.md](./REVIEWER_START_HERE.md)
 
 ## Repository identity
 
@@ -47,8 +47,9 @@ Current baseline checks:
 - `npm run lint`
 - `npm run check:js-source` (JS-only source policy; this project does not run TypeScript type checking)
 - `npm run check:supabase-readiness` (static migration/privacy/reward-ledger readiness gate)
-- `npm run audit:content` (course/module/lesson/quiz/challenge content integrity guard)
 - `npm run audit:e2e-scripts` (Playwright project-reference guard)
+- `npm run audit:auth-e2e` (authenticated E2E workflows keep preflight, secret wiring, and required signed-in smoke coverage)
+- `npm run audit:content` (course/module/lesson/quiz/challenge content integrity guard)
 - `npm run test` (Vitest unit/component suite — passes on a fresh clone with no `.env` configured; the suite stubs the `VITE_SUPABASE_*` placeholders via `vitest.config.js` so client-importing tests can evaluate)
 - `npm run audit:quizzes`
 - `npm run test:e2e` (public smoke and first-lesson preview paths run by default)
@@ -56,6 +57,7 @@ Current baseline checks:
 Current test boundaries:
 
 - Authenticated Playwright smoke checks are skipped locally when auth env credentials are not provided. CI runs authenticated learner coverage only when the full E2E Supabase secret set is configured; see [Authenticated E2E CI setup](./docs/authenticated-e2e-ci.md) and [PR admin readiness](./docs/pr-admin-readiness.md).
+- Local authenticated Playwright checks can read an ignored `.env.e2e.local` file copied from [`.env.e2e.example`](./.env.e2e.example); CI still requires GitHub Secrets.
 - Playwright authenticated storage state is generated under `playwright/.auth/` and intentionally ignored by Git.
 - `npm run audit:quizzes` runs in strict mode by default and is the source of truth for quiz integrity drift. It fails on any unclassified orphan quizzes or unreviewed variant groups. All 14 intentional variant groups are locked; 53 legacy orphans are classified and non-blocking.
 - `npm run audit:content` fails on stale prerequisite IDs, missing bridge lesson IDs, and implicit cross-course lesson handoffs.
@@ -124,6 +126,7 @@ Reviewer shortcuts:
 
 - Reviewer start: [docs/reviewer-start-here.md](./docs/reviewer-start-here.md)
 - Reviewer demo script: [docs/reviewer-demo-script.md](./docs/reviewer-demo-script.md)
+- Branch and PR triage: [docs/branch-triage.md](./docs/branch-triage.md)
 - Product story: [docs/portfolio-case-study.md](./docs/portfolio-case-study.md)
 - Audit stabilization summary: [docs/audit-stabilization-summary.md](./docs/audit-stabilization-summary.md)
 - UX trust/calmness notes: [docs/ux-trust-calmness-notes.md](./docs/ux-trust-calmness-notes.md)

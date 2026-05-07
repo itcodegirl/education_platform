@@ -17,6 +17,8 @@ describe('getSyncStatusCopy', () => {
       tone: 'queued',
       label: 'Cloud sync queued',
       detail: 'Saved locally. 2 updates will retry cloud sync when you are back online.',
+      actionLabel: 'Retry now',
+      actionAriaLabel: 'Retry queued progress updates now',
     });
   });
 
@@ -25,9 +27,19 @@ describe('getSyncStatusCopy', () => {
       tone: 'saving',
       label: 'Retrying cloud sync',
       detail: '1 update retrying now. Your current session stays visible while cloud sync catches up.',
+      actionLabel: '',
+      actionAriaLabel: '',
     });
 
     expect(getSyncStatusCopy({ user, dataLoaded: true, syncFailed: 1 })).toEqual({
+      tone: 'warning',
+      label: 'Sync needs retry',
+      detail: 'Your current session is safe, but cloud sync needs retry when the connection is stable.',
+    });
+  });
+
+  it('progressSaveFailureShowsRecoveryMessage', () => {
+    expect(getSyncStatusCopy({ user, dataLoaded: true, syncFailed: 2 })).toEqual({
       tone: 'warning',
       label: 'Sync needs retry',
       detail: 'Your current session is safe, but cloud sync needs retry when the connection is stable.',

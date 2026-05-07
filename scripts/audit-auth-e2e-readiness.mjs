@@ -10,6 +10,21 @@ const WORKFLOW_FILES = Object.freeze([
 ]);
 
 const AUTH_PREFLIGHT_SCRIPT = 'npm run test:e2e:auth:preflight';
+const AUTH_SMOKE_SCRIPT = 'node scripts/run-auth-e2e-smoke.mjs';
+const AUTH_SCOPE_SCRIPTS = Object.freeze({
+  'test:e2e:smoke:lesson': `${AUTH_SMOKE_SCRIPT} lesson`,
+  'test:e2e:smoke:mobile': `${AUTH_SMOKE_SCRIPT} mobile`,
+  'test:e2e:smoke:authenticated': `${AUTH_SMOKE_SCRIPT} authenticated`,
+});
+const REQUIRED_AUTH_SMOKE_SPECS = Object.freeze([
+  'tests/e2e/authenticated.smoke.spec.js',
+  'tests/e2e/lesson-flow.spec.js',
+  'tests/e2e/mobile-learning-smoke.spec.js',
+]);
+const REQUIRED_AUTH_SMOKE_PROJECTS = Object.freeze([
+  '--project=authenticated-chromium',
+  '--project=authenticated-mobile-chrome',
+]);
 
 function readText(filePath) {
   return readFileSync(filePath, 'utf8');
@@ -23,9 +38,28 @@ function workflowHasSecretGate(workflowText, envName) {
   return workflowText.includes(`secrets.${envName}`);
 }
 
+function getObjectScopeText(sourceText, scopeName) {
+  const scopeIndex = sourceText.indexOf(`${scopeName}:`);
+  if (scopeIndex < 0) return '';
+
+  const openBraceIndex = sourceText.indexOf('{', scopeIndex);
+  if (openBraceIndex < 0) return '';
+
+  let depth = 0;
+  for (let index = openBraceIndex; index < sourceText.length; index += 1) {
+    const char = sourceText[index];
+    if (char === '{') depth += 1;
+    if (char === '}') depth -= 1;
+    if (depth === 0) return sourceText.slice(openBraceIndex, index + 1);
+  }
+
+  return sourceText.slice(openBraceIndex);
+}
+
 export function auditAuthE2EReadiness({
   rootDir = process.cwd(),
   packageJsonText = readText(path.join(rootDir, 'package.json')),
+  authSmokeScriptText = readText(path.join(rootDir, 'scripts/run-auth-e2e-smoke.mjs')),
   workflowFiles = WORKFLOW_FILES.map((filePath) => ({
     filePath,
     text: readText(path.join(rootDir, filePath)),
@@ -42,6 +76,53 @@ export function auditAuthE2EReadiness({
       'Authenticated E2E preflight script must run scripts/auth-e2e-preflight.mjs.',
     );
   }
+
+  if (packageJson.scripts?.['test:e2e:smoke:learning'] !== AUTH_SMOKE_SCRIPT) {
+    addIssue(
+      issues,
+      'package.json scripts.test:e2e:smoke:learning',
+      `Authenticated learning smoke script must run ${AUTH_SMOKE_SCRIPT}.`,
+    );
+  }
+
+  Object.entries(AUTH_SCOPE_SCRIPTS).forEach(([scriptName, expectedCommand]) => {
+    if (packageJson.scripts?.[scriptName] !== expectedCommand) {
+      addIssue(
+        issues,
+        `package.json scripts.${scriptName}`,
+        `Scoped authenticated smoke script must run ${expectedCommand}.`,
+      );
+    }
+  });
+
+  const learningSmokeScopeText = getObjectScopeText(authSmokeScriptText, 'learning');
+  if (!learningSmokeScopeText) {
+    addIssue(
+      issues,
+      'scripts/run-auth-e2e-smoke.mjs',
+      'Authenticated smoke runner must define a learning scope.',
+    );
+  }
+
+  REQUIRED_AUTH_SMOKE_SPECS.forEach((specPath) => {
+    if (!learningSmokeScopeText.includes(specPath)) {
+      addIssue(
+        issues,
+        'scripts/run-auth-e2e-smoke.mjs',
+        `Authenticated smoke runner must include ${specPath}.`,
+      );
+    }
+  });
+
+  REQUIRED_AUTH_SMOKE_PROJECTS.forEach((projectName) => {
+    if (!learningSmokeScopeText.includes(projectName)) {
+      addIssue(
+        issues,
+        'scripts/run-auth-e2e-smoke.mjs',
+        `Authenticated smoke runner must include ${projectName}.`,
+      );
+    }
+  });
 
   for (const { filePath, text } of workflowFiles) {
     if (!text.includes('E2E_AUTH_REQUIRED:')) {

@@ -39,12 +39,44 @@ export function getNextLessonTitle({
 
 export function getNextStepHint({ isLast, showModQuiz, isDone }) {
   if (isLast) return 'Track complete. Pick another course or review a lesson that deserves another pass.';
-  if (showModQuiz) return 'Finish the quiz, then continue into the next module.';
-  if (!isDone) return 'Read first. Complete the lesson when the idea clicks, then continue.';
-  return 'This lesson is complete. Continue when you are ready.';
+  if (showModQuiz) return 'Finish the quiz to save this checkpoint, then continue into the next module.';
+  if (!isDone) return 'Complete the lesson when the idea clicks. Your next step stays saved here.';
+  return 'Saved. Continue to the next lesson when you are ready.';
 }
 
 export function getLessonPositionLabel({ showModQuiz, modTitle, lesIdx, lessonsLength }) {
   if (showModQuiz) return `Module quiz for ${modTitle}`;
   return `Lesson ${lesIdx + 1} of ${lessonsLength}`;
+}
+
+export function getCurrentStepCopy({ isLast, showModQuiz, isDone, nextTitle }) {
+  if (showModQuiz) {
+    return {
+      title: 'Module quiz',
+      copy: nextTitle
+        ? `Finish this quiz to save the checkpoint. Then continue to ${nextTitle}.`
+        : 'Finish this quiz to save the checkpoint before choosing what to review next.',
+    };
+  }
+
+  if (isDone) {
+    if (isLast) {
+      return {
+        title: 'Track complete',
+        copy: 'This course is complete. Review a lesson, open another course, or polish a project when you are ready.',
+      };
+    }
+
+    return {
+      title: 'Continue learning',
+      copy: nextTitle
+        ? `Progress is saved. Continue to ${nextTitle}.`
+        : 'Progress is saved. Continue to the next lesson when you are ready.',
+    };
+  }
+
+  return {
+    title: 'Continue learning',
+    copy: 'Read this lesson, try the build, then use Complete lesson to save progress.',
+  };
 }

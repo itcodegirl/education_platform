@@ -41,7 +41,11 @@ export const MobileToolsSheet = memo(function MobileToolsSheet({
           </button>
         </div>
         <div className="mobile-tools-grid">
-          {tools.map((tool) => (
+          {tools.length === 0 ? (
+            <p className="mobile-tools-empty">
+              Complete the current lesson to unlock more learning tools.
+            </p>
+          ) : tools.map((tool) => (
             <button
               key={tool.key}
               type="button"

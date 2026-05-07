@@ -18,6 +18,7 @@ This is the fastest path for a recruiter or technical reviewer to understand Cod
 5. For architecture, read [docs/architecture.md](./architecture.md).
 6. For a fast walkthrough, use [docs/reviewer-demo-script.md](./reviewer-demo-script.md).
 7. For current trust boundaries, read [docs/trust-boundaries.md](./trust-boundaries.md).
+8. If reviewing open PRs or older branches, use [docs/branch-triage.md](./branch-triage.md).
 
 ## Trust Boundaries
 

@@ -15,6 +15,7 @@ const baseProps = {
   hasModuleQuiz: false,
   accent: '#4ecdc4',
   lessonPosition: 'Lesson 1 of 4',
+  nextTitle: 'Lesson Two',
 };
 
 describe('LessonNavBar', () => {
@@ -23,7 +24,8 @@ describe('LessonNavBar', () => {
 
     expect(screen.getByRole('button', { name: /go to previous lesson/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /complete this lesson and save progress/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /go to next lesson/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /continue to next lesson: lesson two/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /continue to next lesson/i })).toHaveTextContent('Continue');
   });
 
   it('exposes a compact mobile tools trigger when provided', () => {

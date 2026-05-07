@@ -1,7 +1,8 @@
 /* @vitest-environment jsdom */
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { RichLessonBody } from './RichLessonBody';
 import { StructuredLessonBody } from './StructuredLessonBody';
 
 vi.mock('./CodePreview', () => ({
@@ -82,5 +83,51 @@ describe('StructuredLessonBody heading hierarchy', () => {
     // hierarchy stays calm and screen-reader output stays direct.
     expect(container.querySelectorAll('.sl-section-title span[aria-hidden="true"]')).toHaveLength(0);
     expect(container.querySelectorAll('.box-label span[aria-hidden="true"]')).toHaveLength(0);
+  });
+
+  it('keeps structured challenge requirements as native focusable checkboxes', () => {
+    const onToggleTask = vi.fn();
+    const { container } = render(
+      <StructuredLessonBody
+        lesson={lesson}
+        lang="html"
+        scaffolding="full"
+        codeForPreview=""
+        checkedTasks={new Set()}
+        onToggleTask={onToggleTask}
+      />,
+    );
+
+    const checkbox = screen.getByRole('checkbox', { name: /has a button/i });
+    checkbox.focus();
+    expect(checkbox).toHaveFocus();
+
+    fireEvent.click(checkbox);
+    expect(onToggleTask).toHaveBeenCalledWith('ch-0');
+    expect(container.querySelector('.task-check')).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('keeps rich lesson tasks as native focusable checkboxes', () => {
+    const onToggleTask = vi.fn();
+
+    render(
+      <RichLessonBody
+        lesson={{ title: 'Practice', tasks: ['Add a label'] }}
+        lang="html"
+        scaffolding="full"
+        codeForPreview=""
+        checkedTasks={new Set()}
+        onToggleTask={onToggleTask}
+        showDevFession={false}
+        onToggleDevFession={() => {}}
+      />,
+    );
+
+    const checkbox = screen.getByRole('checkbox', { name: /add a label/i });
+    checkbox.focus();
+    expect(checkbox).toHaveFocus();
+
+    fireEvent.click(checkbox);
+    expect(onToggleTask).toHaveBeenCalledWith(0);
   });
 });

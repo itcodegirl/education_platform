@@ -134,7 +134,14 @@
     padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
     scroll-padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
   }
-  .lesson-nav { padding: 8px 10px; gap: 6px; }
+  .lesson-nav {
+    padding:
+      8px
+      max(10px, env(safe-area-inset-right, 0px))
+      calc(8px + env(safe-area-inset-bottom, 0px))
+      max(10px, env(safe-area-inset-left, 0px));
+    gap: 6px;
+  }
   .lesson-nav-btn { padding: 8px 4px; border-radius: 10px; min-height: 44px; }
   .lesson-nav-label { font-size: 11px; }
 

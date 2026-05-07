@@ -8,6 +8,7 @@
 /* ─── 4. Auth Page — Brand Aligned ────────────── */
 .auth-page {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -227,6 +228,7 @@
 /* ─── 5. Loading Screen ───────────────────────── */
 .loading-screen {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;

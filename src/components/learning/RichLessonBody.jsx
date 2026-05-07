@@ -81,7 +81,7 @@ export const RichLessonBody = memo(function RichLessonBody({
                     onChange={() => onToggleTask(index)}
                     aria-label={task}
                   />
-                  <span className="task-check">{isChecked ? '✓' : ''}</span>
+                  <span className="task-check" aria-hidden="true">{isChecked ? '✓' : ''}</span>
                   <span className="task-text">{task}</span>
                 </label>
               );

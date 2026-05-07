@@ -94,7 +94,7 @@ describe('CodeChallenge', () => {
     render(<CodeChallenge challenge={baseChallenge} lang="html" />);
 
     // Textarea fallback (Code editor) is rendered, not the Monaco
-    // "Loading editor..." Suspense fallback.
+    // "Opening editor..." Suspense fallback.
     expect(screen.getByLabelText(/code editor/i)).toHaveProperty('tagName', 'TEXTAREA');
     // The opt-in escape hatch is offered on desktop.
     expect(

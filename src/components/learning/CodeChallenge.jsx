@@ -128,7 +128,7 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
 
           ) : (
           <Suspense fallback={
-            <div className="cc-editor-loading">Loading editor...</div>
+            <div className="cc-editor-loading">Opening editor...</div>
           }>
             <MonacoEditor
               height="280px"
