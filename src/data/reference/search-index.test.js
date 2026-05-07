@@ -1,52 +1,61 @@
 import { describe, expect, it } from 'vitest';
 import { buildSearchIndexFromCourses } from './search-index';
 
-const courses = [
-  {
-    id: 'html',
-    label: 'HTML',
-    icon: '<>',
-    modules: [
-      {
-        title: 'Structure',
-        lessons: [
-          {
-            title: 'Semantic Layout',
-            concepts: ['landmarks', 'document outline'],
-            code: '<main><article class="card">Hello</article></main>',
-            challenge: {
-              title: 'Build a semantic profile',
-              requirements: ['Use a main landmark', 'Include an accessible heading'],
-              starterCode: '<main><h1>Profile</h1></main>',
-            },
-            understand: {
-              concepts: [
-                { term: 'ARIA labels', meaning: 'Use names when visible text is not enough' },
+describe('buildSearchIndexFromCourses', () => {
+  it('indexes structured lesson search coverage', () => {
+    const index = buildSearchIndexFromCourses(
+      [
+        {
+          id: 'html',
+          label: 'HTML',
+          icon: 'H',
+          modules: [
+            {
+              title: 'Accessible Forms',
+              lessons: [
+                {
+                  title: 'Labels and status messages',
+                  hook: {
+                    accomplishment: 'Wire up an aria live confirmation',
+                  },
+                  do: {
+                    steps: ['Connect a label to an input', 'Announce form status politely'],
+                  },
+                  understand: {
+                    concepts: [
+                      {
+                        term: 'Accessible name',
+                        definition: 'The label screen readers announce for a control',
+                        analogy: 'A name tag for interactive elements',
+                      },
+                    ],
+                  },
+                  challenge: {
+                    requirements: ['Render a status region', 'Keep the submit button reachable'],
+                    summary: 'The form communicates progress without surprise.',
+                  },
+                  bridge: 'Next, turn the same pattern into a quiz explanation.',
+                  quiz: {
+                    explanation: 'The label element gives the input a stable accessible name.',
+                  },
+                },
               ],
             },
-          },
-        ],
-      },
-    ],
-  },
-];
+          ],
+        },
+      ],
+      [{ course: 'html', term: 'Form control', def: 'An input, select, or textarea' }],
+    );
 
-const glossary = [
-  {
-    course: 'html',
-    term: 'Skip link',
-    def: 'Keyboard shortcut link that moves focus to the main content.',
-  },
-];
-
-describe('buildSearchIndexFromCourses', () => {
-  it('search.index.includes-structured-lesson-fields', () => {
-    const [entry] = buildSearchIndexFromCourses(courses, glossary);
-
-    expect(entry.keywords).toContain('semantic layout');
-    expect(entry.keywords).toContain('aria labels');
-    expect(entry.keywords).toContain('use a main landmark');
-    expect(entry.keywords).toContain('main article class card');
-    expect(entry.keywords).toContain('skip link');
+    expect(index).toHaveLength(1);
+    const keywords = index[0].keywords;
+    expect(keywords).toContain('aria live confirmation');
+    expect(keywords).toContain('announce form status politely');
+    expect(keywords).toContain('accessible name');
+    expect(keywords).toContain('name tag for interactive elements');
+    expect(keywords).toContain('render a status region');
+    expect(keywords).toContain('quiz explanation');
+    expect(keywords).toContain('form control');
   });
 });
+

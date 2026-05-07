@@ -18,6 +18,7 @@ function isCi(env = process.env) {
 }
 
 function isAuthRequired(env = process.env) {
+  if (env.E2E_AUTH_REQUIRED === 'false') return false;
   return env.E2E_AUTH_REQUIRED === 'true' || isCi(env);
 }
 

@@ -94,7 +94,7 @@ describe('QuizView', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /<h1>/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /<h1>/i }));
     fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
 
     await waitFor(() => {
@@ -124,7 +124,7 @@ describe('QuizView', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /<p>/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /<p>/i }));
     fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
 
     await waitFor(() => {
@@ -133,7 +133,7 @@ describe('QuizView', () => {
     expect(saveQuizScore).not.toHaveBeenCalled();
   });
 
-  it('quiz.a11y.selected-answer-announced', async () => {
+  it('quizChoicesExposeAccessibleSingleAnswerSemantics', async () => {
     render(
       <QuizView
         quiz={quiz}
@@ -143,16 +143,19 @@ describe('QuizView', () => {
       />,
     );
 
-    const wrongAnswer = screen.getByRole('button', { name: /B: <p>/i });
+    expect(screen.getByText(/separately from lesson completion/i)).toBeInTheDocument();
+
+    expect(screen.getByRole('group', { name: /which tag creates a top-level heading/i })).toBeInTheDocument();
+    const wrongAnswer = screen.getByRole('radio', { name: /B: <p>/i });
     fireEvent.click(wrongAnswer);
-    expect(wrongAnswer).toHaveAttribute('aria-pressed', 'true');
+    expect(wrongAnswer).toBeChecked();
 
     fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /A: <h1>, correct answer/i })).toBeDisabled();
+      expect(screen.getByRole('radio', { name: /A: <h1>, correct answer/i })).toBeDisabled();
       expect(
-        screen.getByRole('button', { name: /B: <p>, selected, incorrect answer/i }),
+        screen.getByRole('radio', { name: /B: <p>, selected, incorrect answer/i }),
       ).toBeDisabled();
     });
   });
@@ -188,11 +191,11 @@ describe('QuizView', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /<h1>/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /<h1>/i }));
     fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
     await waitFor(() => expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument());
     fireEvent.click(screen.getByRole('button', { name: /retry/i }));
-    fireEvent.click(screen.getByRole('button', { name: /<h1>/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /<h1>/i }));
     fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
 
     await waitFor(() => {
@@ -239,7 +242,7 @@ describe('QuizView', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /<h1>/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /<h1>/i }));
     const submitButton = screen.getByRole('button', { name: /submit answers/i });
     fireEvent.click(submitButton);
     fireEvent.click(submitButton);
@@ -269,7 +272,7 @@ describe('QuizView', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /<h1>/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /<h1>/i }));
     fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
 
     await waitFor(() => {

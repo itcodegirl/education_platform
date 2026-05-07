@@ -114,6 +114,7 @@ This project is intended to demonstrate:
 Reviewer shortcuts:
 
 - Product story: [docs/portfolio-case-study.md](./docs/portfolio-case-study.md)
+- Audit stabilization summary: [docs/audit-stabilization-summary.md](./docs/audit-stabilization-summary.md)
 - UX trust/calmness notes: [docs/ux-trust-calmness-notes.md](./docs/ux-trust-calmness-notes.md)
 - Progress sync recovery: [docs/progress-sync-recovery.md](./docs/progress-sync-recovery.md)
 - Architecture overview: [docs/architecture.md](./docs/architecture.md)

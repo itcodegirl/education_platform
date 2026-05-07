@@ -14,6 +14,7 @@ import {
   normalizeProgressLessonKey,
   removeEquivalentBookmarks,
 } from './progressSavedLessonHelpers';
+import { createEmptyLastPosition, mapLastPositionRow } from './lastPositionState';
 import { collectRecoverableLoadWarnings } from './progressSyncWarningHelpers';
 import {
   DAILY_GOAL,
@@ -334,7 +335,7 @@ export function ProgressProvider({ children }) {
   const [bookmarks, setBookmarks] = useState([]);
   const [notes, setNotes] = useState({});
   const [coursesVisited, setCoursesVisited] = useState([]);
-  const [lastPosition, setLastPosition] = useState({ course: '', mod: '', les: '', time: 0 });
+  const [lastPosition, setLastPosition] = useState(createEmptyLastPosition);
   const [rewardHistory, setRewardHistory] = useState([]);
   const rewardHistoryRef = useRef(new Set());
   const [challengeCompletions, setChallengeCompletions] = useState([]);
@@ -432,7 +433,7 @@ export function ProgressProvider({ children }) {
     setBookmarks([]);
     setNotes({});
     setCoursesVisited([]);
-    setLastPosition({ course: '', mod: '', les: '', time: 0 });
+    setLastPosition(createEmptyLastPosition());
     rewardHistoryRef.current = new Set();
     setRewardHistory([]);
     challengeCompletionsRef.current = new Set();
@@ -569,16 +570,7 @@ export function ProgressProvider({ children }) {
 
       setCoursesVisited(visited.map(r => r.course_id));
 
-      if (position) {
-        setLastPosition({
-          course: position.course || '',
-          mod: position.mod || '',
-          les: position.les || '',
-          time: position.updated_at ? new Date(position.updated_at).getTime() : 0,
-        });
-      } else {
-        setLastPosition({ course: '', mod: '', les: '', time: 0 });
-      }
+      setLastPosition(mapLastPositionRow(position));
 
       setDataLoaded(true);
       } catch (err) {

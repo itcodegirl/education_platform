@@ -134,4 +134,16 @@ describe('CodeChallenge', () => {
     });
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
+
+  it('explains challenge grader limits without overstating mastery', async () => {
+    render(<CodeChallenge challenge={baseChallenge} lang="html" />);
+
+    fireEvent.load(screen.getByTitle(/challenge preview/i));
+    fireEvent.click(screen.getByRole('button', { name: /run tests/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/checks specific requirements/i)).toBeInTheDocument();
+    });
+    expect(screen.getByText(/not that the whole skill is verified/i)).toBeInTheDocument();
+  });
 });

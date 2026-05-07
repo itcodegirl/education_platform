@@ -16,7 +16,7 @@ This note records the learner-trust decisions behind the current UX pass.
 
 ## Mobile Learning
 
-- The sticky mobile lesson nav remains the primary small-screen path for Previous, Mark done, Tools, and Next.
+- The sticky mobile lesson nav remains the primary small-screen path for Previous, Complete lesson, Tools, and Next.
 - Search stays reachable from the mobile topbar without opening the full course drawer.
 - The mobile tools sheet opens the existing panels instead of introducing a second tool system.
 

@@ -1,5 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSR } from "../../providers";
+import { getLearningToolCopy } from "../../constants/learningTools";
 
 export const BottomToolbar = memo(function BottomToolbar({
   activePanel,
@@ -27,9 +28,9 @@ export const BottomToolbar = memo(function BottomToolbar({
     () => [
       {
         key: "bookmarks",
-        label: "Saved",
-        title: "Saved lessons",
-        ariaLabel: "Open saved lessons",
+        label: getLearningToolCopy("bookmarks").shortLabel,
+        title: getLearningToolCopy("bookmarks").bottomTitle,
+        ariaLabel: getLearningToolCopy("bookmarks").bottomAriaLabel,
         icon: "★",
         onClick: onBookmarks,
         badge: bookmarks.length > 0 ? (
@@ -38,9 +39,9 @@ export const BottomToolbar = memo(function BottomToolbar({
       },
       {
         key: "stats",
-        label: "Progress",
-        title: "Your progress",
-        ariaLabel: "Open your progress",
+        label: getLearningToolCopy("stats").label,
+        title: getLearningToolCopy("stats").bottomTitle,
+        ariaLabel: getLearningToolCopy("stats").bottomAriaLabel,
         icon: "↗",
         onClick: onStats,
       },
@@ -52,33 +53,33 @@ export const BottomToolbar = memo(function BottomToolbar({
     () => [
       {
         key: "sr",
-        label: "Review queue",
+        label: getLearningToolCopy("sr").label,
         onClick: onSR,
         count: dueCount > 0 ? dueCount : null,
       },
       {
         key: "badges",
-        label: "Badges",
+        label: getLearningToolCopy("badges").label,
         onClick: onBadges,
       },
       {
         key: "challenges",
-        label: "Challenges",
+        label: getLearningToolCopy("challenges").label,
         onClick: onChallenges,
       },
       {
         key: "cheatsheet",
-        label: "Cheat sheets",
+        label: getLearningToolCopy("cheatsheet").label,
         onClick: onCheatsheet,
       },
       {
         key: "glossary",
-        label: "Glossary",
+        label: getLearningToolCopy("glossary").label,
         onClick: onGlossary,
       },
       {
         key: "projects",
-        label: "Build projects",
+        label: getLearningToolCopy("projects").label,
         onClick: onProjects,
       },
       {

@@ -22,7 +22,7 @@ describe('LessonNavBar', () => {
     render(<LessonNavBar {...baseProps} />);
 
     expect(screen.getByRole('button', { name: /go to previous lesson/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /mark this lesson done and save progress/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /complete this lesson and save progress/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /go to next lesson/i })).toBeInTheDocument();
   });
 

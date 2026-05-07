@@ -23,6 +23,7 @@ import {
   addLesson,
   removeLesson,
   saveQuizScore,
+  savePosition,
   updateXP,
   awardBadge,
 } from './progressService';
@@ -298,6 +299,70 @@ describe('saveQuizScore', () => {
       skipped: true,
     });
     expect(selectChain.update).not.toHaveBeenCalled();
+  });
+});
+
+describe('savePosition', () => {
+  it('saves stable resume identifiers with legacy labels', async () => {
+    const chain = makeChain(null);
+    mockFrom.mockReturnValue(chain);
+
+    await savePosition(UID, {
+      course: 'HTML',
+      mod: 'Basics',
+      les: 'Intro',
+      courseId: 'html',
+      moduleId: 'basics',
+      lessonId: 'intro',
+      isModuleQuiz: false,
+    });
+
+    expect(mockFrom).toHaveBeenCalledWith('last_position');
+    expect(chain.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_id: UID,
+        course: 'HTML',
+        mod: 'Basics',
+        les: 'Intro',
+        course_id: 'html',
+        module_id: 'basics',
+        lesson_id: 'intro',
+        is_module_quiz: false,
+        updated_at: expect.any(String),
+      }),
+    );
+  });
+
+  it('falls back to legacy last_position writes when stable columns are not migrated yet', async () => {
+    const stableChain = makeChain(null, {
+      message: "Could not find the 'course_id' column of 'last_position' in the schema cache",
+    });
+    const legacyChain = makeChain(null);
+    mockFrom
+      .mockReturnValueOnce(stableChain)
+      .mockReturnValueOnce(legacyChain);
+
+    const result = await savePosition(UID, {
+      course: 'HTML',
+      mod: 'Basics',
+      les: 'Intro',
+      courseId: 'html',
+      moduleId: 'basics',
+      lessonId: 'intro',
+      isModuleQuiz: false,
+    });
+
+    expect(result.error).toBeNull();
+    expect(legacyChain.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_id: UID,
+        course: 'HTML',
+        mod: 'Basics',
+        les: 'Intro',
+        updated_at: expect.any(String),
+      }),
+    );
+    expect(legacyChain.upsert.mock.calls[0][0]).not.toHaveProperty('course_id');
   });
 });
 

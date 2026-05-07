@@ -90,6 +90,60 @@ function createQuizScorePayload(uid, quizKey, score) {
   };
 }
 
+function isMissingStableLastPositionColumn(error) {
+  if (!error) return false;
+  const message = `${error.message || ''} ${error.details || ''} ${error.hint || ''}`.toLowerCase();
+  return (
+    message.includes('course_id') ||
+    message.includes('module_id') ||
+    message.includes('lesson_id') ||
+    message.includes('is_module_quiz') ||
+    message.includes('schema cache')
+  );
+}
+
+function createLastPositionPayload(uid, position) {
+  return {
+    user_id: uid,
+    course: position.course,
+    mod: position.mod,
+    les: position.les,
+    course_id: position.courseId || null,
+    module_id: position.moduleId || null,
+    lesson_id: position.lessonId || null,
+    is_module_quiz: Boolean(position.isModuleQuiz),
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function createLegacyLastPositionPayload(uid, position) {
+  return {
+    user_id: uid,
+    course: position.course,
+    mod: position.mod,
+    les: position.les,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+async function loadLastPosition(uid) {
+  const stableResult = await supabase
+    .from('last_position')
+    .select('course, mod, les, course_id, module_id, lesson_id, is_module_quiz, updated_at')
+    .eq('user_id', uid)
+    .maybeSingle();
+
+  if (!stableResult?.error || !isMissingStableLastPositionColumn(stableResult.error)) {
+    return stableResult;
+  }
+
+  return supabase
+    .from('last_position')
+    .select('course, mod, les, updated_at')
+    .eq('user_id', uid)
+    .maybeSingle();
+}
+
 // ─── Fetch all user data on login ───────────
 const USER_LOAD_DOMAINS = Object.freeze([
   {
@@ -175,11 +229,7 @@ const USER_LOAD_DOMAINS = Object.freeze([
     critical: false,
     kind: 'single',
     userMessage: 'Last lesson position failed to load.',
-    load: (uid) => supabase
-      .from('last_position')
-      .select('course, mod, les, updated_at')
-      .eq('user_id', uid)
-      .maybeSingle(),
+    load: loadLastPosition,
   },
 ]);
 
@@ -519,14 +569,18 @@ export function saveNote(uid, lessonKey, content) {
 }
 
 // ─── Position ───────────────────────────────
-export function savePosition(uid, position) {
-  return supabase.from('last_position').upsert({
-    user_id: uid,
-    course: position.course,
-    mod: position.mod,
-    les: position.les,
-    updated_at: new Date().toISOString(),
-  });
+export async function savePosition(uid, position) {
+  const result = await supabase
+    .from('last_position')
+    .upsert(createLastPositionPayload(uid, position));
+
+  if (!result?.error || !isMissingStableLastPositionColumn(result.error)) {
+    return result;
+  }
+
+  return supabase
+    .from('last_position')
+    .upsert(createLegacyLastPositionPayload(uid, position));
 }
 
 // ─── Course Visits ──────────────────────────

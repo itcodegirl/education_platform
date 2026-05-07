@@ -146,7 +146,7 @@ export function StudentStats({ isOpen, onClose }) {
               <span className="ss-empty-icon" aria-hidden="true">✓</span>
               <h3 className="ss-empty-title">No completed lessons yet</h3>
               <p className="ss-empty-body">
-                Read the lesson in front of you first. When the idea clicks, use Mark done
+                Read the lesson in front of you first. When the idea clicks, use Complete lesson
                 to start your progress dashboard.
               </p>
               <button type="button" className="ss-empty-cta" onClick={onClose}>

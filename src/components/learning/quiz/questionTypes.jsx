@@ -55,13 +55,25 @@ function getChoiceAriaLabel({ prefix, text, stateLabel }) {
   return stateLabel ? `${label}, ${stateLabel}` : label;
 }
 
-function MCQuestion({ q, answer, onAnswer, submitted }) {
+function ChoiceRadioGroup({
+  q,
+  answer,
+  onAnswer,
+  submitted,
+  prompt,
+  code = null,
+  renderOption,
+}) {
   const isCorrect = isAnswerCorrect(q, answer);
+  const groupName = `qq-${q.id || prompt.replace(/\W+/g, '-').toLowerCase()}`;
+  const promptId = `${groupName}-prompt`;
+
   return (
     <>
-      <p className="qq-text">{q.question}</p>
-      {q.code && <pre className="qq-code"><code>{q.code}</code></pre>}
-      <div className="qq-opts">
+      <p id={promptId} className="qq-text">{prompt}</p>
+      {code && <pre className="qq-code"><code>{code}</code></pre>}
+      <fieldset className="qq-opts" aria-describedby={promptId}>
+        <legend className="sr-only">{prompt}</legend>
         {q.options.map((opt, oi) => {
           let cls = 'qq-opt';
           const isSelected = answer === oi;
@@ -70,6 +82,7 @@ function MCQuestion({ q, answer, onAnswer, submitted }) {
           if (isSelected) cls += ' picked';
           if (submitted && oi === q.correct) cls += ' is-correct';
           if (isWrongSelected) cls += ' is-wrong';
+          if (submitted) cls += ' disabled';
           const stateLabel = getChoiceStateLabel({
             isSelected,
             submitted,
@@ -77,71 +90,59 @@ function MCQuestion({ q, answer, onAnswer, submitted }) {
             isWrongSelected,
           });
           return (
-            <button
+            <label
               key={oi}
-              type="button"
               className={cls}
-              onClick={() => onAnswer(oi)}
-              disabled={submitted}
-              aria-pressed={isSelected}
-              aria-label={getChoiceAriaLabel({
-                prefix: String.fromCharCode(65 + oi),
-                text: opt,
-                stateLabel,
-              })}
             >
+              <input
+                className="qq-radio-native"
+                type="radio"
+                name={groupName}
+                value={oi}
+                checked={isSelected}
+                onChange={() => onAnswer(oi)}
+                disabled={submitted}
+                aria-label={getChoiceAriaLabel({
+                  prefix: String.fromCharCode(65 + oi),
+                  text: opt,
+                  stateLabel,
+                })}
+              />
               <span className="qq-opt-letter">{String.fromCharCode(65 + oi)}</span>
-              <span>{opt}</span>
-            </button>
+              {renderOption(opt)}
+            </label>
           );
         })}
-      </div>
+      </fieldset>
     </>
   );
 }
 
-function CodeQuestion({ q, answer, onAnswer, submitted }) {
-  const isCorrect = isAnswerCorrect(q, answer);
+function MCQuestion({ q, answer, onAnswer, submitted }) {
   return (
-    <>
-      <p className="qq-text">What does this code output?</p>
-      <pre className="qq-code"><code>{q.code}</code></pre>
-      <div className="qq-opts">
-        {q.options.map((opt, oi) => {
-          let cls = 'qq-opt';
-          const isSelected = answer === oi;
-          const isCorrectChoice = submitted && oi === q.correct;
-          const isWrongSelected = submitted && isSelected && !isCorrect;
-          if (isSelected) cls += ' picked';
-          if (submitted && oi === q.correct) cls += ' is-correct';
-          if (isWrongSelected) cls += ' is-wrong';
-          const stateLabel = getChoiceStateLabel({
-            isSelected,
-            submitted,
-            isCorrectChoice,
-            isWrongSelected,
-          });
-          return (
-            <button
-              key={oi}
-              type="button"
-              className={cls}
-              onClick={() => onAnswer(oi)}
-              disabled={submitted}
-              aria-pressed={isSelected}
-              aria-label={getChoiceAriaLabel({
-                prefix: String.fromCharCode(65 + oi),
-                text: opt,
-                stateLabel,
-              })}
-            >
-              <span className="qq-opt-letter">{String.fromCharCode(65 + oi)}</span>
-              <code className="qq-opt-code">{opt}</code>
-            </button>
-          );
-        })}
-      </div>
-    </>
+    <ChoiceRadioGroup
+      q={q}
+      answer={answer}
+      onAnswer={onAnswer}
+      submitted={submitted}
+      prompt={q.question}
+      code={q.code}
+      renderOption={(opt) => <span>{opt}</span>}
+    />
+  );
+}
+
+function CodeQuestion({ q, answer, onAnswer, submitted }) {
+  return (
+    <ChoiceRadioGroup
+      q={q}
+      answer={answer}
+      onAnswer={onAnswer}
+      submitted={submitted}
+      prompt="What does this code output?"
+      code={q.code}
+      renderOption={(opt) => <code className="qq-opt-code">{opt}</code>}
+    />
   );
 }
 

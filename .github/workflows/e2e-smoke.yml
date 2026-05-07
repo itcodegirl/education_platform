@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      E2E_AUTH_REQUIRED: 'true'
+      E2E_AUTH_REQUIRED: ${{ secrets.VITE_SUPABASE_URL != '' && secrets.VITE_SUPABASE_ANON_KEY != '' && secrets.E2E_EMAIL != '' && secrets.E2E_PASSWORD != '' }}
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || '' }}
       VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || '' }}
       E2E_EMAIL: ${{ secrets.E2E_EMAIL || '' }}

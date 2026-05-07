@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 
-const { MOCK_COURSES, MOCK_QUIZ_MAP } = vi.hoisted(() => {
+const { MOCK_COURSES, MOCK_QUIZ_MAP, mockUseCourseContent } = vi.hoisted(() => {
   const courses = [
     {
       id: 'html',
@@ -53,12 +53,16 @@ const { MOCK_COURSES, MOCK_QUIZ_MAP } = vi.hoisted(() => {
     ['l:css:l-class', { id: 'q-css-class', questions: [] }],
   ]);
 
-  return { MOCK_COURSES: courses, MOCK_QUIZ_MAP: quizMap };
+  return { MOCK_COURSES: courses, MOCK_QUIZ_MAP: quizMap, mockUseCourseContent: vi.fn() };
 });
 
 vi.mock('../data', () => ({
   COURSES: MOCK_COURSES,
   getQuiz: (courseId, type, entityId) => MOCK_QUIZ_MAP.get(`${type}:${courseId}:${entityId}`),
+}));
+
+vi.mock('../providers', () => ({
+  useCourseContent: () => mockUseCourseContent(),
 }));
 
 import { useNavigation } from './useNavigation';
@@ -90,6 +94,9 @@ function installNavigationStorage(initialValue = null) {
 
 beforeEach(() => {
   vi.restoreAllMocks();
+  mockUseCourseContent.mockReturnValue({
+    ensureLoaded: vi.fn(async () => null),
+  });
   installNavigationStorage();
   window.history.replaceState(null, '', '/');
 });
@@ -288,6 +295,38 @@ describe('useNavigation switchCourse()', () => {
     expect(result.current.courseIdx).toBe(0);
     act(() => result.current.switchCourse(99));
     expect(result.current.courseIdx).toBe(0);
+  });
+});
+
+describe('useNavigation goToCourseModule()', () => {
+  it('roadmapNavigationLoadsTargetCourseBeforeSelectingModule', async () => {
+    const originalModules = MOCK_COURSES[1].modules;
+    MOCK_COURSES[1].modules = [];
+    const ensureLoaded = vi.fn(async (courseId) => {
+      expect(courseId).toBe('css');
+      MOCK_COURSES[1].modules = originalModules;
+      return MOCK_COURSES[1];
+    });
+    mockUseCourseContent.mockReturnValue({ ensureLoaded });
+
+    try {
+      const { result } = renderHook(() => useNavigation());
+      let navigated = false;
+
+      await act(async () => {
+        navigated = await result.current.goToCourseModule(1, 0, 0);
+      });
+
+      expect(navigated).toBe(true);
+      expect(ensureLoaded).toHaveBeenCalledWith('css');
+      expect(result.current.courseIdx).toBe(1);
+      expect(result.current.modIdx).toBe(0);
+      expect(result.current.lesIdx).toBe(0);
+      expect(result.current.les.id).toBe('l-class');
+      expect(window.location.pathname).toBe('/learn/css/selectors/l-class');
+    } finally {
+      MOCK_COURSES[1].modules = originalModules;
+    }
   });
 });
 

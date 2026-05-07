@@ -258,13 +258,10 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
               </div>
             ))}
           </div>
-          {/* Transparency: today's tests look at your source text, not the
-              rendered output. That's enough to guide most beginners but
-              easy to game. The preview pane is the source of truth for
-              what your code actually does — trust it over the checklist. */}
+          {/* Transparency: challenge grading is a focused checklist, not a verified mastery signal. */}
           <p className="cc-results-honest">
-            <strong>How tests work:</strong> these checks read your code, not the live preview.
-            If a test passes but the preview looks wrong, trust the preview.
+            <strong>How tests work:</strong> this grader checks specific requirements for this exercise.
+            Passing means your code matched the expected checks, not that the whole skill is verified.
           </p>
         </div>
       )}

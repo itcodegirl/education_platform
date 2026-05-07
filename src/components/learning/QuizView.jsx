@@ -40,6 +40,9 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
           <span className="quiz-count">{total} question{total > 1 ? 's' : ''}</span>
         </div>
       </div>
+      <p className="quiz-trust-copy">
+        Quiz results save separately from lesson completion and are meant as confidence checks.
+      </p>
 
       <div className="quiz-questions">
         {quiz.questions.map((q, qi) => {
