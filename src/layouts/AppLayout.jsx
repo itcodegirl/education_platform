@@ -81,6 +81,7 @@ export function AppLayout() {
     syncRetryInFlight = false,
     markSyncFailed = () => {},
     enqueuePendingSyncWrite = () => false,
+    retryPendingSyncWrites = () => {},
   } = useProgressData();
   const { xpTotal = 0, streak = 0, pausedStreak = null, dailyCount = 0 } = useXP();
 
@@ -296,6 +297,9 @@ export function AppLayout() {
     marking,
     mutationState: progressMutation.state,
   });
+  const handleRetrySync = useCallback(() => {
+    retryPendingSyncWrites();
+  }, [retryPendingSyncWrites]);
 
   const handleNextLesson = useCallback(() => {
     trackEvent('lesson_next_clicked', {
@@ -517,6 +521,7 @@ export function AppLayout() {
                 currentStepTitle={currentStepTitle}
                 currentStepCopy={currentStepCopy}
                 syncStatus={syncStatus}
+                onRetrySync={syncStatus.actionLabel ? handleRetrySync : undefined}
               />
               <LessonView
                 lesson={les}
