@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { SRPanel } from './SRPanel';
 
 const { mockUseSR } = vi.hoisted(() => ({
@@ -29,12 +29,15 @@ describe('SRPanel', () => {
   });
 
   it('shows all-caught-up guidance when no cards are due and queue is empty', () => {
-    render(<SRPanel isOpen onClose={vi.fn()} />);
+    const onClose = vi.fn();
+    render(<SRPanel isOpen onClose={onClose} />);
 
     expect(screen.getByText(/All caught up\./i)).toBeInTheDocument();
     expect(
       screen.getByText(/No review cards are due yet/i),
     ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /back to lesson/i }));
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('shows scheduled-later context when queue has cards but none are due', () => {
