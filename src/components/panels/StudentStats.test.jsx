@@ -27,6 +27,13 @@ vi.mock('../../data', () => ({
       accent: '#000',
       modules: [{ id: 'm1', title: 'M1', lessons: [{ id: 'l1', title: 'L1' }] }],
     },
+    {
+      id: 'css',
+      label: 'CSS',
+      icon: 'C',
+      accent: '#123',
+      modules: [{ id: 'c-m1', title: 'Selectors', lessons: [{ id: 'c-l1', title: 'Class selectors' }] }],
+    },
   ],
 }));
 
@@ -122,5 +129,30 @@ describe('StudentStats streak card', () => {
     render(<StudentStats isOpen onClose={vi.fn()} />);
 
     expect(screen.getByText('Lessons complete')).toBeInTheDocument();
+  });
+
+  it('matches quiz averages by stable lesson and module ids', () => {
+    mockUseProgressData.mockReturnValue({
+      completed: ['c:html|m:m1|l:l1'],
+      quizScores: {
+        'l:l1': '1/1',
+        'm:m1': '1/2',
+        'l:c-l1': '0/1',
+        'l:unknown': '0/1',
+        'm:m1-bad': 'not-a-score',
+      },
+    });
+    mockUseXP.mockReturnValue({
+      xpTotal: 80,
+      streak: 1,
+      pausedStreak: null,
+      dailyCount: 1,
+      earnedBadges: {},
+    });
+
+    render(<StudentStats isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText('Quiz avg: 75%')).toBeInTheDocument();
+    expect(screen.getByText('Quiz avg: 0%')).toBeInTheDocument();
   });
 });
