@@ -42,6 +42,7 @@ Then apply `supabase-schema.sql` followed by the additive files listed in [Supab
 
 Required database objects after migration:
 
+- `public.progress`
 - `public.reward_events`
 - `public.award_reward_event(...)`
 - Stable resume columns on `public.last_position`: `course_id`, `module_id`, `lesson_id`, `is_module_quiz`
@@ -55,6 +56,28 @@ The current backend reward migration set must include or preserve:
 - Auth-owned backend RPCs. `award_reward_event` derives the learner from `auth.uid()` and must not accept a client-provided user id.
 
 Challenge completion and daily/streak server-authoritative tables remain follow-up backend sync work unless a later migration adds them. Keep those validation sections as release blockers only when that backend feature is being enabled.
+
+## Pre-Browser Authenticated E2E Gate
+
+Before running the manual checklist, confirm the staging auth path reaches the
+learner shell with the same dedicated learner account:
+
+```bash
+npm run test:e2e:auth:preflight
+npm run test:e2e:smoke:authenticated
+```
+
+Passing the preflight only proves the Supabase host and anon key are reachable.
+The authenticated smoke must also pass. Skipped Playwright lines are not a
+signed-in pass when credentials are configured.
+
+If the setup reports a disabled learner, re-enable the dedicated test account
+or switch to a non-disabled E2E learner before recording validation. If it
+reports that the profile could not be verified, inspect the learner row in
+`public.profiles` and the profile RLS policies. If the browser or console says
+`public.progress` is missing from the schema cache, apply the base schema and
+additive migrations to the staging project, then retry after Supabase refreshes
+the schema cache.
 
 ## Manual Test Checklist
 

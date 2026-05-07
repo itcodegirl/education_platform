@@ -24,7 +24,11 @@ const REQUIRED_RUNBOOK_CHECKS = Object.freeze([
   },
   {
     label: 'required migrations section',
-    pattern: /## Required Migrations[\s\S]+npm run check:supabase-readiness[\s\S]+award_reward_event/i,
+    pattern: /## Required Migrations[\s\S]+npm run check:supabase-readiness[\s\S]+public\.progress[\s\S]+award_reward_event/i,
+  },
+  {
+    label: 'authenticated e2e gate',
+    pattern: /## Pre-Browser Authenticated E2E Gate[\s\S]+npm run test:e2e:auth:preflight[\s\S]+npm run test:e2e:smoke:authenticated[\s\S]+Skipped Playwright lines are not a\s+signed-in pass/i,
   },
   {
     label: 'lesson completion validation',

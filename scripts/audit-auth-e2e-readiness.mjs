@@ -60,6 +60,7 @@ export function auditAuthE2EReadiness({
   rootDir = process.cwd(),
   packageJsonText = readText(path.join(rootDir, 'package.json')),
   authSmokeScriptText = readText(path.join(rootDir, 'scripts/run-auth-e2e-smoke.mjs')),
+  authSetupSpecText = readText(path.join(rootDir, 'tests/e2e/authenticated.setup.spec.js')),
   workflowFiles = WORKFLOW_FILES.map((filePath) => ({
     filePath,
     text: readText(path.join(rootDir, filePath)),
@@ -123,6 +124,22 @@ export function auditAuthE2EReadiness({
       );
     }
   });
+
+  if (/test\.skip\(true,\s*authReady\.reason\)/.test(authSetupSpecText)) {
+    addIssue(
+      issues,
+      'tests/e2e/authenticated.setup.spec.js',
+      'Authenticated setup must fail, not skip, when configured credentials cannot reach the learner shell.',
+    );
+  }
+
+  if (!/throw new Error\(authReady\.reason\)/.test(authSetupSpecText)) {
+    addIssue(
+      issues,
+      'tests/e2e/authenticated.setup.spec.js',
+      'Authenticated setup must throw authReady.reason after marking configured auth unavailable.',
+    );
+  }
 
   for (const { filePath, text } of workflowFiles) {
     if (!text.includes('E2E_AUTH_REQUIRED:')) {

@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { getAuthSkipReason, getMissingAuthEnv } from './authE2E.js';
+import { signInIfAuthScreen } from './authHelpers.js';
 
 const missingEnv = getMissingAuthEnv();
 
@@ -40,17 +41,7 @@ test.describe('authenticated smoke', () => {
     });
 
     await page.goto('/');
-
-    if (await page.getByLabel('Email').isVisible().catch(() => false)) {
-      const loginTab = page.getByRole('tab', { name: /login/i });
-      if (await loginTab.isVisible().catch(() => false)) {
-        await loginTab.click();
-      }
-
-      await page.getByLabel('Email').fill(process.env.E2E_EMAIL);
-      await page.getByLabel('Password').fill(process.env.E2E_PASSWORD);
-      await page.getByRole('button', { name: /log in/i }).last().click();
-    }
+    await signInIfAuthScreen(page);
 
     await waitForAuthenticatedShell(page, diagnostics);
 
@@ -143,6 +134,10 @@ async function getTerminalStateError(page) {
   }
 
   if (await page.locator('.disabled-screen').isVisible().catch(() => false)) {
+    const disabledText = await page.locator('.disabled-screen').textContent().catch(() => '');
+    if (/could not verify your account/i.test(disabledText || '')) {
+      return new Error('Authenticated smoke user signed in, but the profile could not be verified. Check the E2E profiles row and profile RLS policies.');
+    }
     return new Error('Authenticated smoke user is signed in but the account is disabled.');
   }
 
