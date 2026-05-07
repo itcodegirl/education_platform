@@ -34,9 +34,7 @@ import {
 } from "../utils/lessonNavCopy";
 import { getSyncStatusCopy } from "../utils/syncStatusCopy";
 import {
-  getLearningToolCopy,
-  isLearningToolAvailable,
-  MOBILE_TOOL_KEYS,
+  getMobileLearningTools,
 } from "../constants/learningTools";
 
 // Layout components
@@ -333,20 +331,7 @@ export function AppLayout() {
     [panels],
   );
   const mobileTools = useMemo(
-    () => MOBILE_TOOL_KEYS.filter((key) =>
-      isLearningToolAvailable(key, hasCompletedProgress),
-    ).map((key) => {
-      const copy = getLearningToolCopy(key);
-      const handlerName = key === 'sr'
-        ? 'onSR'
-        : `on${key.charAt(0).toUpperCase()}${key.slice(1)}`;
-      return {
-        key,
-        label: copy.shortLabel || copy.label,
-        helper: copy.helper,
-        onSelect: toolbarHandlers[handlerName],
-      };
-    }),
+    () => getMobileLearningTools(hasCompletedProgress, toolbarHandlers),
     [hasCompletedProgress, toolbarHandlers],
   );
 

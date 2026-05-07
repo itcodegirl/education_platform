@@ -185,6 +185,8 @@ Why: product reliability needs visibility, but portfolio credibility is stronger
 - stronger CI hygiene because authenticated smoke readiness now audits the signed-in, lesson-flow, and mobile-learning specs before credentials are required
 - cleaner QA hygiene because authenticated Playwright state is ignored instead of appearing as untracked session residue
 - improved AppLayout modularity: lesson view analytics and mark-done action extracted into independent, testable hooks, shrinking the layout file by 60 lines
+- hardened trust semantics: progress exports are framed as learning records, resume uses stable course/module/lesson IDs, public profiles expose aggregate fields only, and challenge grading is described as exercise-specific checks rather than credential verification
+- simplified learning-tool maintenance by moving mobile tool wiring and shared tool copy into a single registry
 - clearer portfolio narrative for both non-technical and technical reviewers
 
 ---

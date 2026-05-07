@@ -6,11 +6,14 @@ This PR hardens CodeHerWay as a portfolio-ready learning platform demo. It does 
 
 - Progress Summary downloads are framed as learning records, not verified certificates.
 - Saved lesson resume now prefers stable course, module, lesson, and quiz identifiers with legacy label fallback.
+- Resume loads the saved course before selecting a module or lesson, avoiding stale selections from a previously active course.
 - Learner-adjacent local state now uses per-learner storage keys with a guest namespace for signed-out preview state.
 - Roadmap jumps load the target course before selecting a module.
 - Public profile SQL exposes aggregate profile stats through `public_profiles`; raw progress rows and lesson keys are not intentional public data.
 - Quiz choices use native radio semantics for single-answer questions.
 - Challenge grading copy explains that tests check exercise-specific requirements, not full skill verification.
+- Progress stats derive quiz averages from stable lesson/module IDs instead of display labels or course-name prefixes.
+- Learning tool labels and mobile tool wiring are centralized in the shared tool registry.
 
 ## Honest Limits
 
