@@ -42,11 +42,12 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 
 Current baseline checks:
 
-- `npm run check` (lint, JS-source policy, Playwright project-reference audit, Supabase static policy readiness, production build, bundle budget, lesson-label audit, strict quiz audit, learning-content flow audit, and unit tests)
+- `npm run check` (lint, JS-source policy, Playwright project-reference audit, Supabase static policy readiness, staging runbook audit, production build, bundle budget, lesson-label audit, strict quiz audit, learning-content flow audit, and unit tests)
 - `npm run build`
 - `npm run lint`
 - `npm run check:js-source` (JS-only source policy; this project does not run TypeScript type checking)
 - `npm run check:supabase-readiness` (static migration/privacy/reward-ledger readiness gate)
+- `npm run audit:staging-runbook` (static guard that keeps the live Supabase validation runbook complete and honest)
 - `npm run audit:e2e-scripts` (Playwright project-reference guard)
 - `npm run audit:auth-e2e` (authenticated E2E workflows keep preflight, secret wiring, and required signed-in smoke coverage)
 - `npm run audit:content` (course/module/lesson/quiz/challenge content integrity guard)
@@ -65,6 +66,7 @@ Current test boundaries:
 - The local reward-event ledger/queue and Supabase reward backend branches are now unified. The local engine remains the default fallback, and backend reward sync remains disabled until the migrations are applied and authenticated reward flows are validated in a real project.
 - Backend reward details live in [docs/backend-reward-events.md](./docs/backend-reward-events.md), [docs/atomic-reward-award.md](./docs/atomic-reward-award.md), and [docs/reward-sync-strategy.md](./docs/reward-sync-strategy.md).
 - Supabase migration and privacy readiness details live in [docs/supabase-production-readiness.md](./docs/supabase-production-readiness.md).
+- Live backend reward validation must follow [docs/staging-supabase-validation.md](./docs/staging-supabase-validation.md); `npm run audit:staging-runbook` only verifies that the runbook stays complete, not that staging has passed.
 - Authenticated smoke checks are enabled in the suite, but they self-skip unless Supabase and learner test credentials are configured.
 - Direct optimistic progress writes now use a same-browser retry queue with manual retry, reconnect retry, and next-session replay.
 - Recoverable lesson route mutations for completion toggles and bookmarks now feed that same-browser retry queue when Supabase route actions fail with a recoverable write descriptor.
