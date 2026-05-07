@@ -47,6 +47,7 @@ Current baseline checks:
 - `npm run lint`
 - `npm run check:js-source` (JS-only source policy; this project does not run TypeScript type checking)
 - `npm run check:supabase-readiness` (static migration/privacy/reward-ledger readiness gate)
+- `npm run audit:content` (course/module/lesson/quiz/challenge content integrity guard)
 - `npm run test` (Vitest unit/component suite — passes on a fresh clone with no `.env` configured; the suite stubs the `VITE_SUPABASE_*` placeholders via `vitest.config.js` so client-importing tests can evaluate)
 - `npm run audit:quizzes`
 - `npm run test:e2e` (public smoke and first-lesson preview paths run by default)
@@ -119,9 +120,13 @@ This project is intended to demonstrate:
 Reviewer shortcuts:
 
 - Reviewer start: [docs/reviewer-start-here.md](./docs/reviewer-start-here.md)
+- Reviewer demo script: [docs/reviewer-demo-script.md](./docs/reviewer-demo-script.md)
 - Product story: [docs/portfolio-case-study.md](./docs/portfolio-case-study.md)
 - Audit stabilization summary: [docs/audit-stabilization-summary.md](./docs/audit-stabilization-summary.md)
 - UX trust/calmness notes: [docs/ux-trust-calmness-notes.md](./docs/ux-trust-calmness-notes.md)
+- Trust boundaries: [docs/trust-boundaries.md](./docs/trust-boundaries.md)
+- Learner state model: [docs/learner-state-model.md](./docs/learner-state-model.md)
+- Roadmap acceptance criteria: [docs/roadmap-acceptance-criteria.md](./docs/roadmap-acceptance-criteria.md)
 - Progress sync recovery: [docs/progress-sync-recovery.md](./docs/progress-sync-recovery.md)
 - Architecture overview: [docs/architecture.md](./docs/architecture.md)
 - Release checklist: [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md)

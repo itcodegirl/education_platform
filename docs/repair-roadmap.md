@@ -2,6 +2,8 @@
 
 This roadmap tracks the prioritized stabilization path for CodeHerWay. It is intentionally honest about the difference between portfolio-ready, product-trust-ready, and production-ready.
 
+Phase exit criteria live in [Roadmap Acceptance Criteria](./roadmap-acceptance-criteria.md). Learner-owned state and trust boundaries live in [Learner State Model](./learner-state-model.md) and [Trust Boundaries](./trust-boundaries.md).
+
 ## Phase 1: Stabilize
 
 Goal: make the project safe to show to recruiters without confusing them or overstating product trust.

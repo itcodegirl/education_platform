@@ -16,6 +16,8 @@ This is the fastest path for a recruiter or technical reviewer to understand Cod
 3. Review the staged plan in [docs/repair-roadmap.md](./repair-roadmap.md).
 4. For product narrative, read [docs/portfolio-case-study.md](./portfolio-case-study.md).
 5. For architecture, read [docs/architecture.md](./architecture.md).
+6. For a fast walkthrough, use [docs/reviewer-demo-script.md](./reviewer-demo-script.md).
+7. For current trust boundaries, read [docs/trust-boundaries.md](./trust-boundaries.md).
 
 ## Trust Boundaries
 
@@ -40,6 +42,7 @@ Focused checks:
 npm run lint
 npm run check:js-source
 npm run build
+npm run audit:content
 npm run test:unit
 npm run audit:quizzes
 ```
@@ -55,6 +58,8 @@ npm run audit:quizzes
 - `src/utils/lessonKeys.js` and `src/utils/savedPosition.js` - stable-key and legacy-position compatibility work
 
 ## Demo Script
+
+Use the full five-minute path in [docs/reviewer-demo-script.md](./reviewer-demo-script.md). The short version:
 
 1. Start at the public landing page and open the first-lesson preview.
 2. Sign in or use a configured test learner.
