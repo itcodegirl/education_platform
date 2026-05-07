@@ -31,6 +31,8 @@ describe('BadgesPanel', () => {
   it('renders the badges grid with list semantics so screen readers can navigate it', () => {
     render(<BadgesPanel isOpen onClose={() => {}} />);
 
+    expect(screen.getByText(/in-app milestones, not external credentials/i)).toBeInTheDocument();
+
     // The grid is a real <ul> announced as a list, with an aria-label
     // summarizing total earned vs total available.
     const list = screen.getByRole('list', { name: /badges earned/i });
@@ -51,6 +53,7 @@ describe('BadgesPanel', () => {
     const earnedBadge = screen.getByRole('listitem', { name: /First Steps, earned on 2026-04-30/i });
     expect(earnedBadge).toBeInTheDocument();
     expect(earnedBadge.className).toContain('earned');
+    expect(screen.getByText(/Earned here 2026-04-30/i)).toBeInTheDocument();
   });
 
   it('marks an unearned badge as locked in the aria-label', () => {
@@ -87,5 +90,12 @@ describe('BadgesPanel', () => {
     expect(screen.getByRole('heading', { name: /badges \(2\/18\)/i })).toBeInTheDocument();
     // Programmatic list label — same numbers, screen-reader-friendly phrasing.
     expect(screen.getByRole('list', { name: /2 of 18 badges earned/i })).toBeInTheDocument();
+  });
+
+  it('shows the local-first progress sync scope', () => {
+    render(<BadgesPanel isOpen onClose={() => {}} />);
+
+    expect(screen.getByText(/Progress sync: saved on this device/i)).toBeInTheDocument();
+    expect(screen.getByText(/badges, review queue, and challenges are single-device today/i)).toBeInTheDocument();
   });
 });

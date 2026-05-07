@@ -13,9 +13,14 @@ function isMonacoChunk(filename) {
 function getMonacoChunkName(moduleId) {
   if (moduleId.includes('/basic-languages/')) return 'vendor-monaco-languages';
   if (moduleId.includes('/editor/contrib/')) return 'vendor-monaco-editor-contrib';
+  if (moduleId.includes('/editor/internal/')) return 'vendor-monaco-editor-internal';
   if (moduleId.includes('/editor/browser/')) return 'vendor-monaco-editor-browser';
   if (moduleId.includes('/editor/common/')) return 'vendor-monaco-editor-common';
   if (moduleId.includes('/editor/standalone/')) return 'vendor-monaco-editor-standalone';
+  if (moduleId.includes('/editor/editor.api')) return 'vendor-monaco-editor-api';
+  if (moduleId.includes('/editor/editor.all')) return 'vendor-monaco-editor-all';
+  if (moduleId.includes('/editor/editor.main')) return 'vendor-monaco-editor-main';
+  if (moduleId.includes('/editor/edcore.main')) return 'vendor-monaco-editor-core';
   if (moduleId.includes('/editor/')) return 'vendor-monaco-editor';
   if (moduleId.includes('/base/')) return 'vendor-monaco-base';
   if (moduleId.includes('/platform/')) return 'vendor-monaco-platform';

@@ -13,6 +13,7 @@
 // ═══════════════════════════════════════════════
 
 import { IFRAME_STYLES } from '../../../utils/iframeStyles';
+import { buildChallengePreviewBridgeScript } from './challengePreviewBridge';
 
 const DEFAULT_CSS_PREVIEW_HTML =
   '<h1>Styled Heading</h1><p>Body text</p><div class="card"><h3>Card</h3></div>';
@@ -20,6 +21,7 @@ const DEFAULT_CSS_PREVIEW_HTML =
 export function buildChallengePreview({ sourceCode, lang, previewHTML }) {
   const isJS = lang === 'js' || lang === 'react';
   const isCSS = lang === 'css';
+  const bridgeScript = buildChallengePreviewBridgeScript();
 
   if (isJS) {
     // Note the </script> escape: if the learner's code legitimately
@@ -33,13 +35,13 @@ export function buildChallengePreview({ sourceCode, lang, previewHTML }) {
       window._challengeResults = _results;
       window._challengeCode = ${JSON.stringify(sourceCode)};
     `;
-    return `<!DOCTYPE html><html><head><style>${IFRAME_STYLES}</style></head><body><pre id="out"></pre><script>${consoleCapture}<\/script></body></html>`;
+    return `<!DOCTYPE html><html><head><style>${IFRAME_STYLES}</style></head><body><pre id="out"></pre><script>${consoleCapture}<\/script><script>${bridgeScript}<\/script></body></html>`;
   }
 
   if (isCSS) {
     const html = previewHTML || DEFAULT_CSS_PREVIEW_HTML;
-    return `<!DOCTYPE html><html><head><style>${IFRAME_STYLES}\n${sourceCode}</style></head><body>${html}</body></html>`;
+    return `<!DOCTYPE html><html><head><style>${IFRAME_STYLES}\n${sourceCode}</style></head><body>${html}<script>${bridgeScript}<\/script></body></html>`;
   }
 
-  return `<!DOCTYPE html><html><head><style>${IFRAME_STYLES}</style></head><body>${sourceCode}</body></html>`;
+  return `<!DOCTYPE html><html><head><style>${IFRAME_STYLES}</style></head><body>${sourceCode}<script>${bridgeScript}<\/script></body></html>`;
 }

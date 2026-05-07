@@ -49,10 +49,10 @@ export function AdminUsersTab({ data, currentUserId, setData, usersPagination, u
     setActionLoading(u.id);
     setActionError(null);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ is_disabled: !isDisabled })
-        .eq('id', u.id);
+      const { error } = await supabase.rpc('set_user_disabled', {
+        target_user_id: u.id,
+        make_disabled: !isDisabled,
+      });
       if (error) {
         throw error;
       }

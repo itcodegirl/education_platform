@@ -62,10 +62,11 @@ describe('BookmarksPanel', () => {
     );
 
     expect(screen.getByRole('heading', { name: /Bookmarks \(0\)/i })).toBeInTheDocument();
-    expect(screen.getByText(/No bookmarks yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/No saved lessons yet/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/Mark a lesson as saved from the header star/i),
+      screen.getByText(/Use the Save button in a lesson header/i),
     ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Back to lesson/i })).toBeInTheDocument();
   });
 
   it('opens a stable-key bookmark and routes to the resolved lesson indices', () => {

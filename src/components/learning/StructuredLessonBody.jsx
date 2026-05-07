@@ -33,7 +33,7 @@ export const StructuredLessonBody = memo(function StructuredLessonBody({
       {/* Hook — what you'll accomplish */}
       {lesson.hook?.accomplishments && (
         <div className="box sl-hook">
-          <div className="box-label"><span aria-hidden="true">🎯 </span>What you will ship</div>
+          <div className="box-label">What you will ship</div>
           <ul className="sl-hook-list">
             {lesson.hook.accomplishments.map((item, i) => (
               <li key={i}>{item}</li>
@@ -47,7 +47,6 @@ export const StructuredLessonBody = memo(function StructuredLessonBody({
         <>
           {lesson.do.title && (
             <h2 className="sl-section-title">
-              <span aria-hidden="true">🛠️ </span>
               {lesson.do.title}
             </h2>
           )}
@@ -75,13 +74,12 @@ export const StructuredLessonBody = memo(function StructuredLessonBody({
       {/* Do — result + proof */}
       {lesson.do?.result && (
         <div className="box output-box">
-          <div className="box-label">▶ Result</div>
+          <div className="box-label">Result</div>
           <p>{lesson.do.result}</p>
         </div>
       )}
       {lesson.do?.proofRequired && (
         <div className="sl-proof">
-          <span className="sl-proof-icon" aria-hidden="true">📸</span>
           <span>
             <strong>Show your work:</strong> {lesson.do.proofRequired}
           </span>
@@ -92,7 +90,6 @@ export const StructuredLessonBody = memo(function StructuredLessonBody({
       {lesson.understand?.concepts && (
         <>
           <h2 className="sl-section-title">
-            <span aria-hidden="true">💡 </span>
             Understand
           </h2>
           <p className="sl-section-intro">
@@ -116,7 +113,7 @@ export const StructuredLessonBody = memo(function StructuredLessonBody({
           </div>
           {lesson.understand.keyTakeaway && (
             <div className="box tip">
-              <div className="box-label"><span aria-hidden="true">🔑 </span>Key Takeaway</div>
+              <div className="box-label">Key Takeaway</div>
               <p>{lesson.understand.keyTakeaway}</p>
             </div>
           )}
@@ -127,7 +124,6 @@ export const StructuredLessonBody = memo(function StructuredLessonBody({
       {lesson.build && (
         <>
           <h2 className="sl-section-title">
-            <span aria-hidden="true">🔨 </span>
             Build on it
           </h2>
           <p className="sl-section-intro">
@@ -148,7 +144,7 @@ export const StructuredLessonBody = memo(function StructuredLessonBody({
           )}
           {lesson.build.hint && (
             <div className="box tip">
-              <div className="box-label"><span aria-hidden="true">💡 </span>Hint</div>
+              <div className="box-label">Hint</div>
               <p>{lesson.build.hint}</p>
             </div>
           )}
@@ -161,7 +157,6 @@ export const StructuredLessonBody = memo(function StructuredLessonBody({
         lesson.challenge.mission && (
           <>
             <h2 className="sl-section-title">
-              <span aria-hidden="true">🔥 </span>
               Challenge: {lesson.challenge.title}
             </h2>
             <p className="sl-section-intro">
@@ -170,7 +165,7 @@ export const StructuredLessonBody = memo(function StructuredLessonBody({
             <p className="lp">{lesson.challenge.mission}</p>
             {lesson.challenge.requirements && (
               <div className="box tasks-box">
-                <div className="box-label"><span aria-hidden="true">✅ </span>Requirements</div>
+                <div className="box-label">Requirements</div>
                 <div className="tasks-list">
                   {lesson.challenge.requirements.map((req, i) => {
                     const key = `ch-${i}`;
@@ -203,7 +198,7 @@ export const StructuredLessonBody = memo(function StructuredLessonBody({
             )}
             {lesson.challenge.bonusChallenge && (
               <div className="box chal">
-                <div className="box-label"><span aria-hidden="true">⭐ </span>Bonus</div>
+                <div className="box-label">Bonus</div>
                 <p>{lesson.challenge.bonusChallenge}</p>
               </div>
             )}
@@ -213,7 +208,7 @@ export const StructuredLessonBody = memo(function StructuredLessonBody({
       {/* Summary — what you can now do */}
       {lesson.summary?.capabilities && (
         <div className="sl-summary">
-          <div className="sl-summary-title"><span aria-hidden="true">🏁 </span>You can now</div>
+          <div className="sl-summary-title">You can now</div>
           <ul className="sl-summary-list">
             {lesson.summary.capabilities.map((cap, i) => (
               <li key={i}>

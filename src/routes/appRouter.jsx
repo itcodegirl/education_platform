@@ -35,6 +35,18 @@ const PublicProfile = lazy(() =>
   import('../components/shared/PublicProfile').then((m) => ({ default: m.PublicProfile })),
 );
 
+function json(data, init = {}) {
+  const headers = new Headers(init.headers || {});
+  if (!headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json; charset=utf-8');
+  }
+
+  return new Response(JSON.stringify(data), {
+    ...init,
+    headers,
+  });
+}
+
 function RouteLoadingScreen({ theme, size = 'sm', children }) {
   return (
     <div className={`loading-screen ${theme}`} role="status" aria-live="polite">

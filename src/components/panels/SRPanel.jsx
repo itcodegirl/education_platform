@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useSR } from "../../providers";
 import { generatePracticeCard } from "../../services/practiceService";
 import { useFocusTrap } from "../../hooks/useFocusTrap";
+import { PROGRESS_SYNC_COPY } from "../../constants/progressCopy";
 
 const TOPICS = [
   { id: "html", label: "HTML" },
@@ -118,6 +119,7 @@ export function SRPanel({ isOpen, onClose }) {
             Keep tough concepts warm with short review bursts and AI-generated
             practice cards.
           </p>
+          <p className="panel-meta">{PROGRESS_SYNC_COPY}</p>
 
           <form className="sr-generate" onSubmit={handleGenerate}>
             <div className="sr-generate-head">
@@ -165,8 +167,8 @@ export function SRPanel({ isOpen, onClose }) {
               <p><strong>All caught up.</strong></p>
               <p className="empty-state-msg">
                 {queue.length > 0
-                  ? `${queue.length} card${queue.length > 1 ? "s are" : " is"} scheduled for later.`
-                  : "Complete quizzes or generate a fresh card to start building your review habit."}
+                  ? `${queue.length} card${queue.length > 1 ? "s are" : " is"} scheduled for later. Nothing needs attention right now.`
+                  : "No review cards are due yet. Complete quizzes or use the form above to create one focused card."}
               </p>
             </div>
           ) : currentIdx >= due.length ? (

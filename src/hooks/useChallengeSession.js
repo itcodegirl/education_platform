@@ -16,6 +16,7 @@
 // ═══════════════════════════════════════════════
 
 import { useCallback, useRef, useState } from 'react';
+import { createChallengePreviewTestFrame } from '../components/learning/challenge/challengePreviewBridge';
 
 // How long we'll wait for the iframe to finish loading the latest
 // code before running tests anyway. The iframe load event normally
@@ -91,14 +92,18 @@ export function useChallengeSession({ challenge, onComplete }) {
       await waitForIframeReady();
     }
 
-    const testResults = tests.map((test) => {
+    const previewFrame = iframeEl
+      ? await createChallengePreviewTestFrame(iframeEl)
+      : null;
+
+    const testResults = await Promise.all(tests.map(async (test) => {
       try {
-        const result = test.check(code, iframeEl);
+        const result = await Promise.resolve(test.check(code, previewFrame));
         return { label: test.label, passed: !!result };
       } catch {
         return { label: test.label, passed: false };
       }
-    });
+    }));
 
     setResults(testResults);
 

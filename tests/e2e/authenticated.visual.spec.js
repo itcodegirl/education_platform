@@ -29,6 +29,11 @@ async function ensureSidebarOpen(page) {
 
 test.describe('authenticated visual regression', () => {
 	test.skip(
+		Boolean(process.env.CI),
+		'Visual snapshots use platform-specific baselines; run locally when updating snapshots.'
+	);
+
+	test.skip(
 		missingEnv.length > 0,
 		`Set ${missingEnv.join(', ')} to enable authenticated visual snapshots.`
 	);

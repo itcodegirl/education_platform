@@ -2,6 +2,7 @@
 import { generateCertificate } from '../../utils/certificate';
 import { useToast } from '../shared/Toast';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { COMPLETION_EXPORT_COPY, PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 
 export function CourseComplete({ isOpen, onClose, course, displayName, lessonCount }) {
   const [show, setShow] = useState(false);
@@ -40,7 +41,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
         completionDate: today,
       });
     } catch {
-      toast.show('Certificate failed — try again in a moment.');
+      toast.show('Learner export failed — try again in a moment.');
     } finally {
       setTimeout(() => setDownloading(false), 1000);
     }
@@ -55,22 +56,25 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
         role="dialog"
         aria-modal="true"
         aria-labelledby="cc-course-title"
-        aria-describedby="cc-course-desc cc-course-kicker"
+        aria-describedby="cc-course-desc cc-course-kicker cc-progress-sync"
         tabIndex={-1}
       >
         <div className="cc-badge-row">
-          <span className="cc-trophy">🏆</span>
+          <span className="cc-trophy" aria-hidden="true">{course.icon}</span>
         </div>
 
         <div className="cc-header">
-          <span className="cc-overline">Milestone unlocked</span>
-          <h2 id="cc-course-title" className="cc-title">Course complete</h2>
+          <span className="cc-overline">Completion noted</span>
+          <h2 id="cc-course-title" className="cc-title">Course lessons complete</h2>
           <p id="cc-course-desc" className="cc-sub">
-            You finished <strong>{course.label}</strong> and shipped all {lessonCount} lessons.
+            You marked all {lessonCount} lessons in <strong>{course.label}</strong> as done.
           </p>
           <p id="cc-course-kicker" className="cc-kicker">
-            This learner export celebrates your current completion state. Verified
-            credentials require server-side completion checks and are not live yet.
+            This completion milestone shows that you stayed with the work long enough
+            to turn effort into visible progress.
+          </p>
+          <p id="cc-progress-sync" className="cc-kicker">
+            {PROGRESS_SYNC_COPY} {COMPLETION_EXPORT_COPY} This is learner progress, not a third-party certificate.
           </p>
         </div>
 
@@ -83,7 +87,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
               {course.label}
             </div>
             <div className="cc-cert-name">{displayName || 'Learner'}</div>
-            <div className="cc-cert-detail">Completed all {lessonCount} lessons</div>
+            <div className="cc-cert-detail">Completed all {lessonCount} lessons in current app progress</div>
             <div className="cc-cert-date">{today}</div>
             <div className="cc-cert-note">Not a verified credential</div>
             <div className="cc-cert-brand">
@@ -115,37 +119,34 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
           </button>
 
           <button type="button" className="cc-share-btn" onClick={async () => {
-            const text = `I just completed the ${course.label} course on CodeHerWay! 🎉 ${lessonCount} lessons done. #CodeHerWay #WomenInTech #LearnToCode`;
+            const text = `I just completed the ${course.label} course on CodeHerWay! ${lessonCount} lessons done. #CodeHerWay #WomenInTech #LearnToCode`;
             // Each path silently swallows its own failure mode:
             //   - navigator.share rejects when the user cancels the sheet
             //   - clipboard.writeText can reject without a user gesture
             //     or when the document is not focused (notably in Safari)
             // We do NOT want either to bubble as an unhandled rejection.
             if (navigator.share) {
-              try { await navigator.share({ title: 'CodeHerWay Certificate', text }); } catch { /* user cancelled */ }
+              try { await navigator.share({ title: 'CodeHerWay learner progress', text }); } catch { /* user cancelled */ }
               return;
             }
             if (navigator.clipboard) {
               try {
                 await navigator.clipboard.writeText(text);
-                toast.show('Copied to clipboard!');
+                toast.show('Copied progress update to clipboard.');
               } catch {
                 toast.show('Could not copy. Try the Download button instead.');
               }
             }
           }}>
-            📤 Share Achievement
+            Share progress
           </button>
 
           <button type="button" className="cc-close-btn" onClick={onClose}>
-            Keep building →
+            Continue learning
           </button>
         </div>
       </div>
     </div>
   );
 }
-
-
-
 

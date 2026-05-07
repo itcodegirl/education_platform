@@ -7,7 +7,7 @@ import { useState, memo, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useProgressData, useAuth } from '../../providers';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
-import { QUIZ_MAP } from '../../data';
+import { hasQuiz } from '../../data';
 import { ProfilePopover } from './ProfilePopover';
 import { Logo } from '../shared/Logo';
 import { getCourseCompletedLessonCount, hasLessonCompletion } from '../../utils/lessonKeys';
@@ -56,9 +56,9 @@ export const Sidebar = memo(function Sidebar({
   const [lockMode, setLockMode] = useLocalStorage('chw-lock-mode', false);
   const [popoverOpen, setPopoverOpen] = useState(false);
   // `activePopout` replaces the old `courseDropdownOpen` — a single
-  // state for the Courses + Resources tab bar. Only one popout can be
+  // state for the Courses + Tools tab bar. Only one popout can be
   // open at a time; clicking a tab while the other is open switches.
-  const [activePopout, setActivePopout] = useState(null); // 'courses' | 'resources' | null
+  const [activePopout, setActivePopout] = useState(null); // 'courses' | 'resources' (tools tab) | null
   // Keep tab content docked inside the sidebar. Fixed flyouts can be
   // clipped by the sidebar's glass/overflow stack and look non-responsive.
   const [popoutPos, setPopoutPos] = useState(null);
@@ -378,11 +378,11 @@ export const Sidebar = memo(function Sidebar({
         {/* ─── Profile Popover ─── */}
         <ProfilePopover isOpen={popoverOpen} onClose={closePopover} isMobile={isMobile} />
 
-        {/* ─── Tab bar: Courses + Resources ─── */}
+        {/* ─── Tab bar: Courses + Tools ─── */}
         {/* Two tabs side-by-side. Each opens a small docked panel inside
             the sidebar so overflow/glass layers cannot clip the content.
             Courses: switches between course tracks (HTML/CSS/JS/React).
-            Resources: opens a quick-launcher for the learning tools
+            Tools: opens a quick-launcher for the learning tools
             (cheat sheets, glossary, bookmarks, review queue, challenges, badges).
             Click-outside and Escape close the active panel. */}
         <div className="sidebar-tabs" ref={tabsRef} aria-label="Sidebar navigation">
@@ -414,7 +414,7 @@ export const Sidebar = memo(function Sidebar({
             aria-controls="sidebar-tab-panel-resources"
           >
             <span className="sidebar-tab-icon" aria-hidden="true">📋</span>
-            <span className="sidebar-tab-label">Resources</span>
+            <span className="sidebar-tab-label">Tools</span>
             <span className="sidebar-tab-arrow" aria-hidden="true">▸</span>
           </button>
 
@@ -443,7 +443,7 @@ export const Sidebar = memo(function Sidebar({
             role="menu"
             aria-orientation="vertical"
             aria-labelledby={activePopout === 'courses' ? 'sidebar-tab-courses' : 'sidebar-tab-resources'}
-            aria-label={activePopout === 'courses' ? 'Select course' : 'Open a learning tool'}
+            aria-label={activePopout === 'courses' ? 'Select course' : 'Open learning tools'}
             onKeyDown={handlePopoutKeyDown}
             style={popoutPos.mode === 'fixed' ? { top: popoutPos.top, left: popoutPos.left } : undefined}
           >
@@ -470,12 +470,48 @@ export const Sidebar = memo(function Sidebar({
 
             {activePopout === 'resources' &&
               [
-                { key: 'cheatsheet', icon: '📋', label: 'Cheat Sheets' },
-                { key: 'glossary',   icon: '📖', label: 'Glossary'     },
-                { key: 'bookmarks',  icon: '⭐', label: 'Bookmarks'    },
-                { key: 'sr',         icon: '🔄', label: 'Review'       },
-                { key: 'challenges', icon: '🏋️', label: 'Challenges'   },
-                { key: 'badges',     icon: '🏆', label: 'Badges'       },
+                {
+                  key: 'bookmarks',
+                  icon: '★',
+                  label: 'Saved lessons',
+                  hint: 'Return to lessons you chose to keep close.',
+                },
+                {
+                  key: 'sr',
+                  icon: '↻',
+                  label: 'Review queue',
+                  hint: 'Practice cards that are due today.',
+                },
+                {
+                  key: 'glossary',
+                  icon: 'Aa',
+                  label: 'Glossary',
+                  hint: 'Look up a term when lesson language gets dense.',
+                },
+                {
+                  key: 'cheatsheet',
+                  icon: '{}',
+                  label: 'Cheat sheets',
+                  hint: 'Quick syntax reminders for the current track.',
+                },
+                {
+                  key: 'projects',
+                  icon: '<>',
+                  label: 'Build projects',
+                  hint: 'Use after a few lessons to make portfolio work.',
+                },
+                {
+                  key: 'challenges',
+                  icon: '✓',
+                  label: 'Challenges',
+                  hint: 'Hands-on practice when you want a stretch.',
+                },
+                {
+                  key: 'badges',
+                  icon: '☆',
+                  label: 'Badges',
+                  hint: 'Milestones earned inside CodeHerWay.',
+                },
               ].map((t) => (
                 <button
                   key={t.key}
@@ -488,10 +524,13 @@ export const Sidebar = memo(function Sidebar({
                     setActivePopout(null);
                     setPopoutPos(null);
                   }}
-                  aria-label={`Open ${t.label} panel`}
+                  aria-label={`Open ${t.label}`}
                 >
                   <span className="sidebar-tab-opt-icon" aria-hidden="true">{t.icon}</span>
-                  <span className="sidebar-tab-opt-label">{t.label}</span>
+                  <span className="sidebar-tab-opt-copy">
+                    <span className="sidebar-tab-opt-label">{t.label}</span>
+                    <span className="sidebar-tab-opt-hint">{t.hint}</span>
+                  </span>
                 </button>
               ))}
           </div>
@@ -565,7 +604,7 @@ export const Sidebar = memo(function Sidebar({
                           </button>
                         );
                       })}
-                      {QUIZ_MAP.has(`m:${course.id}:${module.id}`) && (
+                      {hasQuiz(course.id, 'm', module.id) && (
                         <button
                           type="button"
                           className={`lesson-list-btn lesson-list-quiz ${showModQuiz && mi === modIdx ? 'act' : ''}`}
@@ -583,7 +622,7 @@ export const Sidebar = memo(function Sidebar({
             })}
           </div>
 
-          {/* The Tools grid was moved into the Resources popout at the
+          {/* The Tools grid was moved into the Tools popout at the
               top of the sidebar (see .sidebar-tabs above). */}
 
           {/* ─── Lock toggle ─── */}
@@ -593,9 +632,16 @@ export const Sidebar = memo(function Sidebar({
               type="checkbox"
               checked={lockMode}
               onChange={(e) => setLockMode(e.target.checked)}
-              aria-label="Toggle sequential lock mode"
+              aria-label="Toggle guided lesson order"
             />
-            <span className="lock-text">{lockMode ? '🔒 Sequential' : '🔓 Free roam'}</span>
+            <span className="lock-copy">
+              <span className="lock-text">{lockMode ? 'Guided order on' : 'Open navigation'}</span>
+              <span className="lock-help">
+                {lockMode
+                  ? 'Lessons unlock step by step as you mark them done.'
+                  : 'You can browse lessons in any order.'}
+              </span>
+            </span>
             </label>
           </div>
         </div>

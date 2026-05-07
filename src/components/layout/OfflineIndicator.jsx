@@ -14,8 +14,11 @@ export function OfflineIndicator() {
     syncFailed,
     pendingSyncWrites,
     syncRetryInFlight,
+    loadWarnings = [],
     clearSyncFailed,
+    clearLoadWarnings,
     retryPendingSyncWrites,
+    retryLoad,
   } = useProgressData();
   const onlineToastTimerRef = useRef(null);
 
@@ -78,8 +81,8 @@ export function OfflineIndicator() {
     const retryDetail = syncRetryInFlight
       ? 'Keep this tab open while the cloud sync catches up.'
       : syncFailed > 0
-      ? 'Last retry could not reach the cloud. Your latest in-tab progress is still here.'
-      : 'Your latest in-tab progress is still here.';
+      ? 'Last retry could not reach the cloud. Your latest progress is queued in this browser.'
+      : 'Your latest progress is queued in this browser.';
 
     return (
       <div
@@ -117,7 +120,7 @@ export function OfflineIndicator() {
           {syncFailed === 1
             ? 'One progress update could not be confirmed in the cloud.'
             : `${syncFailed} progress updates could not be confirmed in the cloud.`}
-          {' '}Your latest local state is still visible in this browser session.
+          {' '}Your latest local state is still visible in this browser.
         </span>
         <button
           type="button"
@@ -127,6 +130,40 @@ export function OfflineIndicator() {
         >
           Hide
         </button>
+      </div>
+    );
+  }
+
+  if (loadWarnings.length > 0) {
+    const warningSummary = loadWarnings.join(' ');
+
+    return (
+      <div className="offline-banner is-load-warning" role="alert" aria-live="assertive" aria-atomic="true">
+        <span className="offline-icon" aria-hidden="true">!</span>
+        <span className="offline-copy">
+          <span className="offline-text">{warningSummary}</span>
+          <span className="offline-note">
+            Core lessons still loaded in this browser. Retry to fill in the missing extras.
+          </span>
+        </span>
+        <div className="offline-actions">
+          <button
+            type="button"
+            className="offline-retry"
+            onClick={retryLoad}
+            aria-label="Retry progress load"
+          >
+            Retry load
+          </button>
+          <button
+            type="button"
+            className="offline-dismiss"
+            onClick={clearLoadWarnings}
+            aria-label="Hide load warnings"
+          >
+            Hide
+          </button>
+        </div>
       </div>
     );
   }

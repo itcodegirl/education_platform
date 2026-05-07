@@ -1,12 +1,8 @@
 import { expect, test } from '@playwright/test';
-import {
-  dismissWelcomeOverlay,
-  getMissingE2EAuthConfig,
-  loginWithCredentials,
-  waitForLearningShell,
-} from './authHelpers';
+import { getAuthSkipReason, getMissingAuthEnv } from './authE2E.js';
+import { dismissWelcomeOverlay } from './authHelpers';
 
-const missingEnv = getMissingE2EAuthConfig();
+const missingEnv = getMissingAuthEnv();
 
 test.describe('mobile learning smoke', () => {
   test.setTimeout(90000);
@@ -18,20 +14,18 @@ test.describe('mobile learning smoke', () => {
 
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(
-      testInfo.project.name !== 'mobile-authenticated-chrome' && testInfo.project.name !== 'mobile-chrome',
-      'This smoke test is scoped to mobile Chrome projects only.',
+      testInfo.project.name !== 'authenticated-mobile-chrome',
+      'This smoke test is scoped to authenticated mobile Chrome only.',
     );
+    const authSkipReason = getAuthSkipReason();
+    test.skip(Boolean(authSkipReason), authSkipReason);
 
     await page.goto('/');
     await page.waitForSelector('.auth-form, .main-shell, .welcome-overlay', { timeout: 30000 });
 
     const onAuthPage = await page.locator('.auth-form').isVisible().catch(() => false);
     if (onAuthPage) {
-      await loginWithCredentials(page, {
-        email: process.env.E2E_EMAIL,
-        password: process.env.E2E_PASSWORD,
-      });
-      await waitForLearningShell(page);
+      test.skip(true, 'Authenticated mobile smoke could not restore the shared signed-in state.');
     }
 
     await dismissWelcomeOverlay(page);
@@ -72,7 +66,7 @@ test.describe('mobile learning smoke', () => {
     }
   }
 
-  test('opens resources from sidebar and search from topbar', async ({ page }) => {
+  test('opens resources, search, and the mobile tools sheet', async ({ page }) => {
     await page.getByLabel('Open course navigation').click();
     await expect(page.locator('#course-sidebar.open')).toBeVisible();
 
@@ -85,20 +79,34 @@ test.describe('mobile learning smoke', () => {
 
     await page.getByLabel('Open lesson search').click();
     await expect(page.locator('.search-input')).toBeVisible();
+    await page.keyboard.press('Escape');
+
+    await page.getByLabel('Open learning tools').click();
+    const toolsSheet = page.getByRole('dialog', { name: /learning tools/i });
+    await expect(toolsSheet).toBeVisible();
+
+    await toolsSheet.getByRole('button', { name: /challenges/i }).click();
+    await expect(page.locator('.challenges-panel')).toBeVisible();
   });
 
   test('navigates lessons, toggles completion, and submits a quiz', async ({ page }) => {
     await expect(page.locator('.lesson-title')).toBeVisible();
     const initialTitle = await page.locator('.lesson-title').textContent();
 
+    await page.getByLabel('Toggle lesson notes').click();
+    await expect(page.locator('.notes-panel')).toBeVisible();
+    await page.getByLabel('Toggle lesson notes').click();
+    await expect(page.locator('.notes-panel')).toHaveCount(0);
+
+    const doneButton = page.locator('.lesson-nav-done');
     const getDoneState = async () =>
-      page.locator('.mark-btn').evaluate((node) => node.classList.contains('dn'));
+      (await doneButton.getAttribute('aria-pressed')) === 'true';
 
     const previousDoneState = await getDoneState();
-    await page.locator('.mark-btn').click();
+    await doneButton.click();
     await expect.poll(getDoneState).toBe(!previousDoneState);
 
-    await page.locator('.nav-btn.nx').click();
+    await page.locator('.lesson-nav-next').click();
     await expect(page.locator('.lesson-title')).not.toHaveText(initialTitle || '', { timeout: 10000 });
 
     await page.getByLabel('Open course navigation').click();

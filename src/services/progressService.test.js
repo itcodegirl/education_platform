@@ -58,34 +58,44 @@ beforeEach(() => {
 // ─── fetchAllUserData ────────────────────────────
 
 describe('fetchAllUserData', () => {
-  it('returns an object with all 11 expected keys on success', async () => {
+  it('returns structured data plus empty error buckets on success', async () => {
     const result = await fetchAllUserData(UID);
 
     expect(result).toMatchObject({
-      progress: expect.any(Object),
-      quiz: expect.any(Object),
-      xp: expect.any(Object),
-      streak: expect.any(Object),
-      daily: expect.any(Object),
-      badges: expect.any(Object),
-      sr: expect.any(Object),
-      bookmarks: expect.any(Object),
-      notes: expect.any(Object),
-      visited: expect.any(Object),
-      position: expect.any(Object),
+      data: {
+        progress: expect.any(Array),
+        quiz: expect.any(Array),
+        xp: null,
+        streak: null,
+        daily: null,
+        badges: expect.any(Array),
+        sr: expect.any(Array),
+        bookmarks: expect.any(Array),
+        notes: expect.any(Array),
+        visited: expect.any(Array),
+        position: null,
+      },
+      recoverableErrors: {},
+      criticalError: null,
     });
   });
 
-  it('throws a combined error when one table fails', async () => {
+  it('marks lesson progress failures as critical', async () => {
     mockFrom.mockImplementation((table) => {
       if (table === 'progress') return makeChain(null, { message: 'connection refused' });
       return makeChain([], null);
     });
 
-    await expect(fetchAllUserData(UID)).rejects.toThrow('progress: connection refused');
+    const result = await fetchAllUserData(UID);
+
+    expect(result.criticalError).toMatchObject({
+      message: 'Lesson progress failed to load. (progress: connection refused)',
+      details: 'progress: connection refused',
+    });
+    expect(result.data.progress).toEqual([]);
   });
 
-  it('lists every failed table in the error message', async () => {
+  it('collects optional domain failures as recoverable warnings', async () => {
     mockFrom.mockImplementation((table) => {
       if (table === 'xp' || table === 'badges') {
         return makeChain(null, { message: `${table} timeout` });
@@ -93,16 +103,34 @@ describe('fetchAllUserData', () => {
       return makeChain([], null);
     });
 
-    await expect(fetchAllUserData(UID)).rejects.toThrow(/xp.*badges|badges.*xp/);
+    const result = await fetchAllUserData(UID);
+
+    expect(result.criticalError).toBeNull();
+    expect(result.recoverableErrors.xp).toMatchObject({
+      message: 'XP summary failed to load.',
+      detail: 'xp timeout',
+    });
+    expect(result.recoverableErrors.badges).toMatchObject({
+      message: 'Badges failed to load.',
+      detail: 'badges timeout',
+    });
+    expect(result.data.xp).toBeNull();
+    expect(result.data.badges).toEqual([]);
   });
 
-  it('includes the source table name in the error details', async () => {
+  it('keeps the source detail for recoverable table failures', async () => {
     mockFrom.mockImplementation((table) => {
       if (table === 'quiz_scores') return makeChain(null, { message: 'bad request' });
       return makeChain([], null);
     });
 
-    await expect(fetchAllUserData(UID)).rejects.toThrow('quiz_scores: bad request');
+    const result = await fetchAllUserData(UID);
+
+    expect(result.recoverableErrors.quiz).toMatchObject({
+      domain: 'quiz',
+      message: 'Quiz history failed to load.',
+      detail: 'bad request',
+    });
   });
 
   it('partial-progress-load.notes-failure-does-not-block-lessons', async () => {
@@ -118,14 +146,12 @@ describe('fetchAllUserData', () => {
 
     const result = await fetchAllUserData(UID);
 
-    expect(result.progress.data).toEqual([{ lesson_key: 'html|intro|welcome' }]);
-    expect(result.notes).toMatchObject({
-      data: [],
-      error: null,
-      recoverableError: { message: 'notes table unavailable' },
-    });
-    expect(result.recoverableErrors).toEqual({
-      notes: 'notes table unavailable',
+    expect(result.data.progress).toEqual([{ lesson_key: 'html|intro|welcome' }]);
+    expect(result.data.notes).toEqual([]);
+    expect(result.recoverableErrors.notes).toMatchObject({
+      domain: 'notes',
+      message: 'Notes failed to load.',
+      detail: 'notes table unavailable',
     });
   });
 });

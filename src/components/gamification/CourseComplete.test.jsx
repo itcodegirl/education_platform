@@ -10,6 +10,10 @@ vi.mock('../shared/Toast', () => ({
   useToast: () => ({ show: vi.fn() }),
 }));
 
+vi.mock('../../hooks/useFocusTrap', () => ({
+  useFocusTrap: () => {},
+}));
+
 const course = {
   id: 'html',
   label: 'HTML Foundations',
@@ -29,10 +33,14 @@ describe('CourseComplete', () => {
       />,
     );
 
-    expect(screen.getAllByText(/learner export/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/learner export of completion/i)).toBeInTheDocument();
+    expect(screen.getByText(/Progress sync: saved on this device/i)).toBeInTheDocument();
+    expect(screen.getByText(/not server-authoritative yet/i)).toBeInTheDocument();
     expect(screen.getByText(/not a verified credential/i)).toBeInTheDocument();
+    expect(screen.getByText(/not a third-party certificate/i)).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /download learner export/i }),
     ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /share progress/i })).toBeInTheDocument();
   });
 });

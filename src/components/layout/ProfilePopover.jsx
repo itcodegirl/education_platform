@@ -3,6 +3,7 @@ import { useProgressData, useXP, useAuth } from '../../providers';
 import { getLevel, getXPInLevel, XP_PER_LEVEL, DAILY_GOAL } from '../../utils/helpers';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { navigateTo } from '../../routes/routeUtils';
+import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 
 export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, isMobile }) {
   const { completed = [] } = useProgressData();
@@ -108,6 +109,7 @@ export const ProfilePopover = memo(function ProfilePopover({ isOpen, onClose, is
       <div className="pp-time">
         <span>{Math.floor((completed.length * 3) / 60)}h total study time</span>
       </div>
+      <p className="pp-momentum">{PROGRESS_SYNC_COPY}</p>
 
       <div className="pp-actions">
         <button

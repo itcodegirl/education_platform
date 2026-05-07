@@ -11,7 +11,6 @@ const QUIZ_SCORE_DEBUG_KEYS = Object.freeze([
   'debug-quiz-score-save',
   'debug-reward-sync',
 ]);
-const RECOVERABLE_FETCH_TABLES = new Set(['notes']);
 
 function isQuizScoreDebugEnabled(storage = globalThis.localStorage) {
   try {
@@ -91,99 +90,182 @@ function createQuizScorePayload(uid, quizKey, score) {
   };
 }
 
-function makeRecoverableFetchResult(result, fallbackData = []) {
-  if (!result?.error) return result;
-
-  return {
-    ...result,
-    data: fallbackData,
-    error: null,
-    recoverableError: result.error,
-  };
-}
-
 // ─── Fetch all user data on login ───────────
-export async function fetchAllUserData(uid) {
-  const [
-    progressRes,
-    quizRes,
-    xpRes,
-    streakRes,
-    dailyRes,
-    badgesRes,
-    srRes,
-    bookmarksRes,
-    notesRes,
-    visitedRes,
-    posRes,
-  ] = await Promise.all([
-    supabase.from('progress').select('lesson_key').eq('user_id', uid),
-    supabase.from('quiz_scores').select('quiz_key, score').eq('user_id', uid),
-    supabase.from('xp').select('total').eq('user_id', uid).maybeSingle(),
-    supabase
+const USER_LOAD_DOMAINS = Object.freeze([
+  {
+    key: 'progress',
+    critical: true,
+    kind: 'list',
+    userMessage: 'Lesson progress failed to load.',
+    load: (uid) => supabase.from('progress').select('lesson_key').eq('user_id', uid),
+  },
+  {
+    key: 'quiz',
+    critical: false,
+    kind: 'list',
+    userMessage: 'Quiz history failed to load.',
+    load: (uid) => supabase.from('quiz_scores').select('quiz_key, score').eq('user_id', uid),
+  },
+  {
+    key: 'xp',
+    critical: false,
+    kind: 'single',
+    userMessage: 'XP summary failed to load.',
+    load: (uid) => supabase.from('xp').select('total').eq('user_id', uid).maybeSingle(),
+  },
+  {
+    key: 'streak',
+    critical: false,
+    kind: 'single',
+    userMessage: 'Streak progress failed to load.',
+    load: (uid) => supabase
       .from('streaks')
       .select('days, last_date')
       .eq('user_id', uid)
       .maybeSingle(),
-    supabase
+  },
+  {
+    key: 'daily',
+    critical: false,
+    kind: 'single',
+    userMessage: 'Today\'s activity failed to load.',
+    load: (uid) => supabase
       .from('daily_goals')
       .select('goal_date, count')
       .eq('user_id', uid)
       .maybeSingle(),
-    supabase.from('badges').select('badge_id, earned_at').eq('user_id', uid),
-    supabase.from('sr_cards').select('*').eq('user_id', uid),
-    supabase.from('bookmarks').select('*').eq('user_id', uid),
-    supabase.from('notes').select('lesson_key, content').eq('user_id', uid),
-    supabase.from('courses_visited').select('course_id').eq('user_id', uid),
-    supabase
+  },
+  {
+    key: 'badges',
+    critical: false,
+    kind: 'list',
+    userMessage: 'Badges failed to load.',
+    load: (uid) => supabase.from('badges').select('badge_id, earned_at').eq('user_id', uid),
+  },
+  {
+    key: 'sr',
+    critical: false,
+    kind: 'list',
+    userMessage: 'Review queue failed to load.',
+    load: (uid) => supabase.from('sr_cards').select('*').eq('user_id', uid),
+  },
+  {
+    key: 'bookmarks',
+    critical: false,
+    kind: 'list',
+    userMessage: 'Bookmarks failed to load.',
+    load: (uid) => supabase.from('bookmarks').select('*').eq('user_id', uid),
+  },
+  {
+    key: 'notes',
+    critical: false,
+    kind: 'list',
+    userMessage: 'Notes failed to load.',
+    load: (uid) => supabase.from('notes').select('lesson_key, content').eq('user_id', uid),
+  },
+  {
+    key: 'visited',
+    critical: false,
+    kind: 'list',
+    userMessage: 'Course visit history failed to load.',
+    load: (uid) => supabase.from('courses_visited').select('course_id').eq('user_id', uid),
+  },
+  {
+    key: 'position',
+    critical: false,
+    kind: 'single',
+    userMessage: 'Last lesson position failed to load.',
+    load: (uid) => supabase
       .from('last_position')
       .select('course, mod, les, updated_at')
       .eq('user_id', uid)
       .maybeSingle(),
-  ]);
+  },
+]);
 
-  const errors = [
-    ['progress', progressRes.error],
-    ['quiz_scores', quizRes.error],
-    ['xp', xpRes.error],
-    ['streaks', streakRes.error],
-    ['daily_goals', dailyRes.error],
-    ['badges', badgesRes.error],
-    ['sr_cards', srRes.error],
-    ['bookmarks', bookmarksRes.error],
-    ['notes', notesRes.error],
-    ['courses_visited', visitedRes.error],
-    ['last_position', posRes.error],
-        ].filter(([, error]) => !!error);
-
-  const blockingErrors = errors.filter(([source]) => !RECOVERABLE_FETCH_TABLES.has(source));
-
-  if (blockingErrors.length > 0) {
-    const details = blockingErrors
-      .map(([source, error]) => `${source}: ${error?.message || 'Unknown error'}`)
-      .join(' | ');
-    throw new Error(`Failed to load user data (${details})`);
+function normalizeDomainData(kind, value) {
+  if (kind === 'single') {
+    return value && !Array.isArray(value) ? value : null;
   }
 
-  const recoverableErrors = Object.fromEntries(
-    errors
-      .filter(([source]) => RECOVERABLE_FETCH_TABLES.has(source))
-      .map(([source, error]) => [source, error?.message || 'Unknown error']),
-  );
+  return Array.isArray(value) ? value : [];
+}
+
+function toLoadError(config, error) {
+  return {
+    domain: config.key,
+    message: config.userMessage,
+    detail: getErrorMessage(error) || 'Unknown error',
+  };
+}
+
+function buildCriticalLoadError(errorsByDomain) {
+  const entries = Object.entries(errorsByDomain);
+  if (entries.length === 0) return null;
+
+  const details = entries
+    .map(([domain, error]) => `${domain}: ${error.detail}`)
+    .join(' | ');
+
+  if (entries.length === 1) {
+    const [, error] = entries[0];
+    return {
+      domains: errorsByDomain,
+      details,
+      message: `${error.message}${details ? ` (${details})` : ''}`,
+    };
+  }
 
   return {
-    progress: progressRes,
-    quiz: quizRes,
-    xp: xpRes,
-    streak: streakRes,
-    daily: dailyRes,
-    badges: badgesRes,
-    sr: srRes,
-    bookmarks: bookmarksRes,
-    notes: makeRecoverableFetchResult(notesRes, []),
-    visited: visitedRes,
-    position: posRes,
+    domains: errorsByDomain,
+    details,
+    message: `Core progress failed to load (${details})`,
+  };
+}
+
+export async function fetchAllUserData(uid) {
+  const settledResults = await Promise.allSettled(
+    USER_LOAD_DOMAINS.map((config) => config.load(uid)),
+  );
+
+  const data = {};
+  const recoverableErrors = {};
+  const criticalErrors = {};
+
+  USER_LOAD_DOMAINS.forEach((config, index) => {
+    const settled = settledResults[index];
+    const fallbackData = normalizeDomainData(config.kind, null);
+
+    if (settled.status === 'rejected') {
+      const loadError = toLoadError(config, settled.reason);
+      data[config.key] = fallbackData;
+      if (config.critical) {
+        criticalErrors[config.key] = loadError;
+      } else {
+        recoverableErrors[config.key] = loadError;
+      }
+      return;
+    }
+
+    const result = settled.value;
+    if (result?.error) {
+      const loadError = toLoadError(config, result.error);
+      data[config.key] = fallbackData;
+      if (config.critical) {
+        criticalErrors[config.key] = loadError;
+      } else {
+        recoverableErrors[config.key] = loadError;
+      }
+      return;
+    }
+
+    data[config.key] = normalizeDomainData(config.kind, result?.data);
+  });
+
+  return {
+    data,
     recoverableErrors,
+    criticalError: buildCriticalLoadError(criticalErrors),
   };
 }
 
