@@ -3,40 +3,9 @@ import { useProgressData, useXP, useSR, BADGE_DEFS, useCourseContent } from '../
 import { COURSES } from '../../data';
 import { getLevel, getXPInLevel, XP_PER_LEVEL } from '../../utils/helpers';
 import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
-import { parseQuizKey } from '../../utils/quizKeys';
+import { findQuizEntityTitle, quizKeyBelongsToCourse } from '../../utils/quizCourseOwnership';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
-
-const LEGACY_QUIZ_COURSE_PREFIXES = {
-  html: ['h', 'lesson-'],
-  css: ['c', 'css-'],
-  js: ['j', 'js-'],
-  react: ['r'],
-};
-
-function courseContainsQuizEntity(course, parsed) {
-  const entityId = String(parsed.entityId || '');
-  if (!entityId) return false;
-
-  for (const module of course.modules || []) {
-    if (parsed.type === 'm' && String(module.id) === entityId) return true;
-    if (parsed.type === 'l' && (module.lessons || []).some((lesson) => lesson.id === entityId)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-function quizKeyBelongsToCourse(quizKey, course) {
-  const parsed = parseQuizKey(quizKey);
-
-  if (parsed.courseId) return parsed.courseId === course.id;
-  if (courseContainsQuizEntity(course, parsed)) return true;
-
-  const prefixes = LEGACY_QUIZ_COURSE_PREFIXES[course.id] || [];
-  return prefixes.some((prefix) => parsed.entityId.startsWith(prefix));
-}
 
 export function StudentStats({ isOpen, onClose }) {
   const { completed, quizScores } = useProgressData();
@@ -136,19 +105,7 @@ export function StudentStats({ isOpen, onClose }) {
     return '#ef4444';
   };
 
-  const findLessonTitle = (quizKey) => {
-    const parsed = parseQuizKey(quizKey);
-    for (const course of COURSES) {
-      if (parsed.courseId && parsed.courseId !== course.id) continue;
-      for (const module of course.modules) {
-        if (parsed.type === 'm' && String(module.id) === parsed.entityId) return `${module.title} (Quiz)`;
-        for (const lesson of module.lessons) {
-          if (lesson.id === parsed.entityId) return lesson.title;
-        }
-      }
-    }
-    return quizKey;
-  };
+  const findLessonTitle = (quizKey) => findQuizEntityTitle(quizKey, COURSES);
 
   return (
     <div className="search-overlay" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
