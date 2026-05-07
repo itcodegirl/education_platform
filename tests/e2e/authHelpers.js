@@ -31,6 +31,13 @@ export function getMissingE2EAuthConfig(env = process.env) {
   return [...new Set(missing)];
 }
 
+export async function waitForAuthEntryOrShell(page, { timeout = 30000 } = {}) {
+  await page.waitForSelector(
+    '.topbar, .auth-card, .auth-error, .conn-error, .disabled-screen, .eb-screen',
+    { timeout },
+  );
+}
+
 export async function loginWithCredentials(page, { email, password }) {
   const loginTab = page.locator('.auth-tabs [role="tab"]').filter({ hasText: /^Login$/i }).first();
   await expect(loginTab).toBeVisible({ timeout: 10000 });
@@ -44,6 +51,21 @@ export async function loginWithCredentials(page, { email, password }) {
   await expect(loginButton).toBeVisible({ timeout: 10000 });
   await expect(loginButton).toContainText(/log in/i, { timeout: 10000 });
   await loginButton.click();
+}
+
+export async function signInIfAuthScreen(page, {
+  email = process.env.E2E_EMAIL,
+  password = process.env.E2E_PASSWORD,
+  timeout = 30000,
+} = {}) {
+  await waitForAuthEntryOrShell(page, { timeout });
+
+  if (!(await page.locator('.auth-card').isVisible().catch(() => false))) {
+    return false;
+  }
+
+  await loginWithCredentials(page, { email, password });
+  return true;
 }
 
 export async function waitForLearningShell(page, { timeout = 30000 } = {}) {
@@ -73,6 +95,10 @@ export async function throwIfAuthTerminalState(page) {
   }
 
   if (await page.locator('.disabled-screen').isVisible().catch(() => false)) {
+    const disabledText = await page.locator('.disabled-screen').textContent().catch(() => '');
+    if (/could not verify your account/i.test(disabledText || '')) {
+      throw new Error('E2E user signed in, but the profile could not be verified. Check the E2E profiles row and profile RLS policies.');
+    }
     throw new Error('E2E user signed in but the account is disabled.');
   }
 

@@ -24,17 +24,18 @@ import {
   getLessonKeyVariants,
   hasLessonCompletion,
 } from "../utils/lessonKeys";
+import { buildLegacyQuizKey, buildStableQuizKey } from "../utils/quizKeys";
 import {
+  getCurrentStepCopy,
   getLessonPositionLabel,
   getNextLessonTitle,
   getNextStepHint,
   getPrevLessonTitle,
 } from "../utils/lessonNavCopy";
+import { getLessonCompletionActionCopy } from "../utils/lessonCompletionCopy";
 import { getSyncStatusCopy } from "../utils/syncStatusCopy";
 import {
-  getLearningToolCopy,
-  isLearningToolAvailable,
-  MOBILE_TOOL_KEYS,
+  getMobileLearningTools,
 } from "../constants/learningTools";
 
 // Layout components
@@ -79,6 +80,7 @@ export function AppLayout() {
     syncRetryInFlight = false,
     markSyncFailed = () => {},
     enqueuePendingSyncWrite = () => false,
+    retryPendingSyncWrites = () => {},
   } = useProgressData();
   const { xpTotal = 0, streak = 0, pausedStreak = null, dailyCount = 0 } = useXP();
 
@@ -237,18 +239,16 @@ export function AppLayout() {
   )}/${encodeURIComponent(showModQuiz ? 'quiz' : les.id)}`;
 
   const nextStepHint = getNextStepHint({ isLast, showModQuiz, isDone });
-  const currentStepTitle = showModQuiz
-    ? 'Take the module quiz'
-    : isDone
-      ? 'Continue when ready'
-      : 'Read, then complete lesson';
-  const currentStepCopy = showModQuiz
-    ? 'Answer the questions, then move into the next lesson when you are ready.'
-    : isDone
-      ? nextTitle
-        ? `Lesson complete here. Up next: ${nextTitle}.`
-        : 'Lesson complete here. Pick another course or revisit lessons that need another pass.'
-      : 'Focus on the lesson first. When the idea clicks, use Complete lesson to save this step.';
+  const moduleQuizKey = buildStableQuizKey('m', course.id, mod.id);
+  const legacyModuleQuizKey = buildLegacyQuizKey('m', mod.id);
+  const lessonQuizKey = buildStableQuizKey('l', course.id, les.id);
+  const legacyLessonQuizKey = buildLegacyQuizKey('l', les.id);
+  const { title: currentStepTitle, copy: currentStepCopy } = getCurrentStepCopy({
+    isLast,
+    showModQuiz,
+    isDone,
+    nextTitle,
+  });
 
   // --- Lesson view analytics ----------------
   const lessonViewStartRef = useLessonViewTracking({
@@ -286,6 +286,11 @@ export function AppLayout() {
     toggleLessonDone: learn.toggleLessonDone,
     lessonViewStartRef,
   });
+  const topbarCompletionCopy = getLessonCompletionActionCopy({
+    isDone,
+    marking,
+    surface: 'topbar',
+  });
   const syncStatus = getSyncStatusCopy({
     user,
     dataLoaded,
@@ -296,6 +301,9 @@ export function AppLayout() {
     marking,
     mutationState: progressMutation.state,
   });
+  const handleRetrySync = useCallback(() => {
+    retryPendingSyncWrites();
+  }, [retryPendingSyncWrites]);
 
   const handleNextLesson = useCallback(() => {
     trackEvent('lesson_next_clicked', {
@@ -329,20 +337,7 @@ export function AppLayout() {
     [panels],
   );
   const mobileTools = useMemo(
-    () => MOBILE_TOOL_KEYS.filter((key) =>
-      isLearningToolAvailable(key, hasCompletedProgress),
-    ).map((key) => {
-      const copy = getLearningToolCopy(key);
-      const handlerName = key === 'sr'
-        ? 'onSR'
-        : `on${key.charAt(0).toUpperCase()}${key.slice(1)}`;
-      return {
-        key,
-        label: copy.shortLabel || copy.label,
-        helper: copy.helper,
-        onSelect: toolbarHandlers[handlerName],
-      };
-    }),
+    () => getMobileLearningTools(hasCompletedProgress, toolbarHandlers),
     [hasCompletedProgress, toolbarHandlers],
   );
 
@@ -481,10 +476,11 @@ export function AppLayout() {
                   className={`mark-btn ${isDone ? "dn" : ""}`}
                   onClick={handleMarkDone}
                   disabled={marking}
-                  aria-label={marking ? "Saving lesson progress" : isDone ? "Mark lesson as incomplete" : "Complete lesson and save progress"}
+                  aria-label={topbarCompletionCopy.ariaLabel}
                   aria-pressed={isDone}
                 >
-                  {marking ? "Saving…" : isDone ? "✓ Complete" : "Complete lesson"}
+                  {isDone && !marking ? "✓ " : ""}
+                  {topbarCompletionCopy.label}
                 </button>
               )}
             </div>
@@ -505,7 +501,8 @@ export function AppLayout() {
                 quiz={moduleQuiz}
                 accent={course.accent}
                 label={`${mod.title} Quiz`}
-                quizKey={`m:${mod.id}`}
+                quizKey={moduleQuizKey}
+                legacyQuizKeys={[legacyModuleQuizKey]}
               />
             </div>
           ) : (
@@ -516,6 +513,7 @@ export function AppLayout() {
                 currentStepTitle={currentStepTitle}
                 currentStepCopy={currentStepCopy}
                 syncStatus={syncStatus}
+                onRetrySync={syncStatus.actionLabel ? handleRetrySync : undefined}
               />
               <LessonView
                 lesson={les}
@@ -532,7 +530,8 @@ export function AppLayout() {
                     quiz={lessonQuiz}
                     accent={course.accent}
                     label="Quick Check"
-                    quizKey={`l:${les.id}`}
+                    quizKey={lessonQuizKey}
+                    legacyQuizKeys={[legacyLessonQuizKey]}
                   />
                 </div>
               )}
@@ -574,7 +573,7 @@ export function AppLayout() {
                 'Track complete'
               ) : nextTitle ? (
                 <>
-                  <span className="nav-btn-label">Up next</span>
+                  <span className="nav-btn-label">Continue to</span>
                   <span className="nav-btn-title">{nextTitle}</span>
                 </>
               ) : 'Next lesson'}
@@ -602,6 +601,7 @@ export function AppLayout() {
           hasModuleQuiz={!!moduleQuiz}
           accent={course.accent}
           lessonPosition={lessonPosition}
+          nextTitle={nextTitle}
           onOpenTools={() => setMobileToolsOpen((open) => !open)}
           toolsOpen={mobileToolsOpen}
         />
@@ -635,7 +635,6 @@ export function AppLayout() {
     </div>
   );
 }
-
 
 
 

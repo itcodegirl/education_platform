@@ -13,7 +13,7 @@ export const TopbarLearnerStatus = memo(function TopbarLearnerStatus({
 }) {
   return (
     <div className="topbar-status" aria-label="Current learning status">
-      <span className="topbar-greeting">Keep building, {learnerName}.</span>
+      <span className="topbar-greeting">Continue learning, {learnerName}.</span>
       {!showModQuiz && (
         <span className="topbar-pill" aria-label={`Estimated read time: ${readTime}`}>
           {readTime} read

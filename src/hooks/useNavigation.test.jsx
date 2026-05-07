@@ -94,6 +94,7 @@ function installNavigationStorage(initialValue = null) {
 
 beforeEach(() => {
   vi.restoreAllMocks();
+  window.matchMedia.mockReturnValue({ matches: false });
   mockUseCourseContent.mockReturnValue({
     ensureLoaded: vi.fn(async () => null),
   });
@@ -179,6 +180,18 @@ describe('useNavigation go()', () => {
     const { result } = renderHook(() => useNavigation());
     act(() => result.current.go(0, 1));
     expect(window.location.pathname).toBe('/learn/html/basics/l-tags');
+  });
+
+  it('reducedMotionUsesAutoScrollBehavior', () => {
+    window.matchMedia.mockReturnValue({ matches: true });
+    const scrollTo = vi.fn();
+    const { result } = renderHook(() => useNavigation());
+    result.current.mainRef.current = { scrollTo };
+
+    act(() => result.current.go(0, 1));
+
+    expect(window.matchMedia).toHaveBeenCalledWith('(prefers-reduced-motion: reduce)');
+    expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'auto' });
   });
 
   it('changes the active lesson id immediately when selecting a different lesson', () => {
@@ -331,11 +344,11 @@ describe('useNavigation goToCourseModule()', () => {
 });
 
 describe('useNavigation resumeFromPosition()', () => {
-  it('restores valid saved position and returns true', () => {
+  it('restores valid saved position and returns true', async () => {
     const { result } = renderHook(() => useNavigation());
     let resumed;
-    act(() => {
-      resumed = result.current.resumeFromPosition({
+    await act(async () => {
+      resumed = await result.current.resumeFromPosition({
         course: 'HTML',
         mod: 'Basics',
         les: 'Tags',
@@ -347,11 +360,11 @@ describe('useNavigation resumeFromPosition()', () => {
     expect(result.current.lesIdx).toBe(1);
   });
 
-  it('restores module quiz position', () => {
+  it('restores module quiz position', async () => {
     const { result } = renderHook(() => useNavigation());
     let resumed;
-    act(() => {
-      resumed = result.current.resumeFromPosition({
+    await act(async () => {
+      resumed = await result.current.resumeFromPosition({
         course: 'HTML',
         mod: 'Basics',
         les: 'Module Quiz',
@@ -361,20 +374,57 @@ describe('useNavigation resumeFromPosition()', () => {
     expect(result.current.showModQuiz).toBe(true);
   });
 
-  it('returns false for null position', () => {
+  it('loads a stable saved course before resolving resume coordinates', async () => {
+    const originalModules = MOCK_COURSES[1].modules;
+    MOCK_COURSES[1].modules = [];
+    const ensureLoaded = vi.fn(async (courseId) => {
+      expect(courseId).toBe('css');
+      MOCK_COURSES[1].modules = originalModules;
+      return MOCK_COURSES[1];
+    });
+    mockUseCourseContent.mockReturnValue({ ensureLoaded });
+
+    try {
+      const { result } = renderHook(() => useNavigation());
+      let resumed = false;
+
+      await act(async () => {
+        resumed = await result.current.resumeFromPosition({
+          courseId: 'css',
+          moduleId: 'selectors',
+          lessonId: 'l-class',
+          isModuleQuiz: false,
+          course: 'Renamed course',
+          mod: 'Renamed module',
+          les: 'Renamed lesson',
+        });
+      });
+
+      expect(resumed).toBe(true);
+      expect(ensureLoaded).toHaveBeenCalledWith('css');
+      expect(result.current.courseIdx).toBe(1);
+      expect(result.current.modIdx).toBe(0);
+      expect(result.current.lesIdx).toBe(0);
+      expect(window.location.pathname).toBe('/learn/css/selectors/l-class');
+    } finally {
+      MOCK_COURSES[1].modules = originalModules;
+    }
+  });
+
+  it('returns false for null position', async () => {
     const { result } = renderHook(() => useNavigation());
     let resumed;
-    act(() => {
-      resumed = result.current.resumeFromPosition(null);
+    await act(async () => {
+      resumed = await result.current.resumeFromPosition(null);
     });
     expect(resumed).toBe(false);
   });
 
-  it('returns false when course label is unknown', () => {
+  it('returns false when course label is unknown', async () => {
     const { result } = renderHook(() => useNavigation());
     let resumed;
-    act(() => {
-      resumed = result.current.resumeFromPosition({
+    await act(async () => {
+      resumed = await result.current.resumeFromPosition({
         course: 'NoSuchCourse',
         mod: 'Basics',
         les: 'Tags',

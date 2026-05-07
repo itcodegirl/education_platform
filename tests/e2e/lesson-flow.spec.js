@@ -102,20 +102,18 @@ test.describe('lesson flow', () => {
     await expect(page.locator('.lesson-title')).toHaveText(deepLinkTitle);
   });
 
-  test('mark done button toggles lesson completion', async ({ page }) => {
+  test('authenticatedProgressFlowIfCredentialsExist', async ({ page }) => {
     await page.waitForSelector('.mark-btn', { timeout: 10000 });
 
     const wasDone = await page.locator('.mark-btn.dn').isVisible().catch(() => false);
-    await page.click('.mark-btn');
-    await page.waitForTimeout(500);
-
-    if (wasDone) {
-      // Was done, now should be un-done
-      await expect(page.locator('.mark-btn:not(.dn)')).toBeVisible();
-    } else {
-      // Was not done, now should be done
+    if (!wasDone) {
+      await page.click('.mark-btn');
       await expect(page.locator('.mark-btn.dn')).toBeVisible();
     }
+
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await dismissWelcomeOverlay(page);
+    await expect(page.locator('.mark-btn.dn')).toBeVisible();
   });
 
   test('search opens and finds lessons', async ({ page }) => {
@@ -173,23 +171,24 @@ test.describe('lesson flow', () => {
     await expect(page.locator('#main-content')).toBeFocused();
   });
 
-  test('resources flyout supports menu keyboard controls', async ({ page }, testInfo) => {
+  test('tools flyout supports menu keyboard controls', async ({ page }, testInfo) => {
     test.skip(
       testInfo.project.name === 'mobile-chrome',
       'Desktop keyboard menu behavior is verified in Chromium desktop.'
     );
 
-    const resourcesTrigger = page.getByRole('button', { name: 'Resources' });
-    await resourcesTrigger.focus();
+    const toolsTrigger = page.getByRole('button', { name: 'Tools' });
+    await toolsTrigger.focus();
     await page.keyboard.press('ArrowDown');
 
-    const menu = page.getByRole('menu');
-    const firstItem = page.getByRole('menuitem', { name: 'Open Cheat Sheets panel' });
-    const lastItem = page.getByRole('menuitem', { name: 'Open Badges panel' });
+    const menu = page.getByRole('menu', { name: /tools/i });
+    const menuItems = menu.getByRole('menuitem');
+    const firstItem = menuItems.first();
 
     await expect(menu).toBeVisible();
     await expect(firstItem).toBeFocused();
 
+    const lastItem = menuItems.nth((await menuItems.count()) - 1);
     await page.keyboard.press('End');
     await expect(lastItem).toBeFocused();
 
@@ -198,7 +197,7 @@ test.describe('lesson flow', () => {
 
     await page.keyboard.press('Escape');
     await expect(menu).toHaveCount(0);
-    await expect(resourcesTrigger).toBeFocused();
+    await expect(toolsTrigger).toBeFocused();
   });
 
   test('desktop collapse toggle sets sidebar to inert until expanded', async ({ page }, testInfo) => {

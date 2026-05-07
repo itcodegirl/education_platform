@@ -10,6 +10,28 @@ function normalizeText(value) {
   return typeof value === 'string' ? value.trim().slice(0, MAX_SAFE_LABEL_CHARS) : '';
 }
 
+function classifyFailureSource(label) {
+  const normalizedLabel = normalizeText(label).toLowerCase();
+  if (!normalizedLabel) return 'unknown';
+  if (normalizedLabel.includes('local-storage') || normalizedLabel.includes('localstorage')) {
+    return 'local_storage';
+  }
+  if (normalizedLabel.includes('retry')) return 'retry';
+  if (normalizedLabel.includes('reward queue')) return 'reward_queue';
+  if (normalizedLabel.includes('reward event')) return 'reward_event';
+  if (normalizedLabel.includes('backend reward')) return 'backend_reward';
+  if (normalizedLabel.includes('reward-history')) return 'reward_history';
+  if (normalizedLabel.includes('challenge')) return 'challenge_completion';
+  if (normalizedLabel.includes('bookmark')) return 'bookmark';
+  if (normalizedLabel.includes('note')) return 'note';
+  if (normalizedLabel.includes('lesson')) return 'lesson_progress';
+  if (normalizedLabel.includes('position')) return 'last_position';
+  if (normalizedLabel.includes('quiz')) return 'quiz_score';
+  if (normalizedLabel.includes('xp')) return 'xp';
+  if (normalizedLabel.includes('streak') || normalizedLabel.includes('daily')) return 'activity';
+  return 'progress_write';
+}
+
 function getErrorName(error) {
   if (!error || typeof error !== 'object') return '';
   return normalizeText(error.name || error.constructor?.name || '');
@@ -30,6 +52,13 @@ export function trackProgressSyncQueued({ operation = '', label = '', queueSize 
     operation: normalizeText(operation),
     label: normalizeText(label),
     queueSize: normalizeCount(queueSize),
+  });
+}
+
+export function trackProgressSyncFailure({ label = '', pendingCount = 0 } = {}) {
+  trackEvent('progress_sync_failure_visible', {
+    source: classifyFailureSource(label),
+    pendingCount: normalizeCount(pendingCount),
   });
 }
 

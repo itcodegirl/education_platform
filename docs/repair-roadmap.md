@@ -2,6 +2,8 @@
 
 This roadmap tracks the prioritized stabilization path for CodeHerWay. It is intentionally honest about the difference between portfolio-ready, product-trust-ready, and production-ready.
 
+Phase exit criteria live in [Roadmap Acceptance Criteria](./roadmap-acceptance-criteria.md). Learner-owned state and trust boundaries live in [Learner State Model](./learner-state-model.md) and [Trust Boundaries](./trust-boundaries.md).
+
 ## Phase 1: Stabilize
 
 Goal: make the project safe to show to recruiters without confusing them or overstating product trust.
@@ -49,6 +51,7 @@ Tasks:
 - Migrate saved position away from display labels.
 - User-scope localStorage keys.
 - Consolidate route action and service mutation logic.
+- Keep cross-course bridge targets explicit with `bridge.nextCourseId` so learners are not sent toward stale or ambiguous next steps.
 - Move XP, streaks, badges, SR queue, and challenge completions toward backend-backed idempotent records.
 - Decide local import/backfill policy for existing reward ledger data.
 - Add durable certificate verification only after server-backed completion records exist.
@@ -85,6 +88,7 @@ Tasks:
 - Enable backend reward sync only after duplicate-award tests pass.
 - Add authenticated E2E coverage as required CI.
 - Expand accessibility tests across the signed-in app.
+- Keep `audit:e2e-scripts`, `audit:content`, `audit:quizzes`, and the Supabase readiness gate in the local quality gate.
 - Run Lighthouse and enforce measurable performance budgets.
 - Add privacy/terms/security docs.
 - Add backend observability for failed sync/reward writes.

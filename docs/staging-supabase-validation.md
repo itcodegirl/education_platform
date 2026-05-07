@@ -42,6 +42,7 @@ Then apply `supabase-schema.sql` followed by the additive files listed in [Supab
 
 Required database objects after migration:
 
+- `public.progress`
 - `public.reward_events`
 - `public.award_reward_event(...)`
 - Stable resume columns on `public.last_position`: `course_id`, `module_id`, `lesson_id`, `is_module_quiz`
@@ -55,6 +56,28 @@ The current backend reward migration set must include or preserve:
 - Auth-owned backend RPCs. `award_reward_event` derives the learner from `auth.uid()` and must not accept a client-provided user id.
 
 Challenge completion and daily/streak server-authoritative tables remain follow-up backend sync work unless a later migration adds them. Keep those validation sections as release blockers only when that backend feature is being enabled.
+
+## Pre-Browser Authenticated E2E Gate
+
+Before running the manual checklist, confirm the staging auth path reaches the
+learner shell with the same dedicated learner account:
+
+```bash
+npm run test:e2e:auth:preflight
+npm run test:e2e:smoke:authenticated
+```
+
+Passing the preflight only proves the Supabase host and anon key are reachable.
+The authenticated smoke must also pass. Skipped Playwright lines are not a
+signed-in pass when credentials are configured.
+
+If the setup reports a disabled learner, re-enable the dedicated test account
+or switch to a non-disabled E2E learner before recording validation. If it
+reports that the profile could not be verified, inspect the learner row in
+`public.profiles` and the profile RLS policies. If the browser or console says
+`public.progress` is missing from the schema cache, apply the base schema and
+additive migrations to the staging project, then retry after Supabase refreshes
+the schema cache.
 
 ## Manual Test Checklist
 
@@ -93,7 +116,9 @@ Pass criteria: duplicate attempt is skipped by the backend and XP remains stable
 
 Pass criteria: valid quiz reward is awarded once per stable event key; retry does not inflate XP.
 
-### 4. Challenge Completion
+### 4. Challenge Completion (backend feature gate)
+
+Run this section only after a backend `challenge_completions` model exists in the target project. Today, challenge completion is same-device motivational state, so this section is a future production gate rather than a claim about the current app.
 
 - Complete a challenge as the test learner.
 - Confirm the UI marks the challenge complete.
@@ -103,9 +128,11 @@ Pass criteria: valid quiz reward is awarded once per stable event key; retry doe
 - Confirm the challenge completion syncs across sessions.
 - Inspect `challenge_completions` for the expected `challenge_id` record.
 
-Pass criteria: completion persists after reload and appears in a second session for the same learner.
+Pass criteria when the backend feature exists: completion persists after reload and appears in a second session for the same learner.
 
-### 5. Daily And Streak
+### 5. Daily And Streak (backend feature gate)
+
+Run this section only after server-authoritative daily activity events are enabled in the target project. Today, daily and streak UI is motivational and local-first unless a later migration adds canonical activity records.
 
 - Trigger a learning activity that records daily progress.
 - Confirm the UI applies the optimistic daily/streak update.
@@ -115,7 +142,7 @@ Pass criteria: completion persists after reload and appears in a second session 
 - Trigger the same activity again on the same day.
 - Confirm the duplicate daily activity does not inflate the canonical daily count.
 
-Pass criteria: optimistic UI reconciles to server-owned values without duplicate daily/streak inflation.
+Pass criteria when the backend feature exists: optimistic UI reconciles to server-owned values without duplicate daily/streak inflation.
 
 ### 6. Offline And Online Replay
 
@@ -169,6 +196,8 @@ order by completed_at desc;
 
 Expected result: expected challenge ids are present once for the learner.
 
+Skip this query for current environments that have not added the backend challenge completion table. Do not treat local challenge completion state as cross-session proof.
+
 ### Daily And Streak Canonical Values
 
 ```sql
@@ -211,8 +240,8 @@ Backend sync can be enabled beyond staging only if all of these are true:
 - One authenticated learner completes every validation test in this runbook.
 - Duplicate reward test passes.
 - Offline replay test passes.
-- Challenge cross-session test passes.
-- Daily/streak reconciliation passes.
+- Challenge cross-session test passes if backend challenge completion sync is being enabled.
+- Daily/streak reconciliation passes if server-authoritative activity records are being enabled.
 - No XP inflation is observed.
 - No RLS failures are observed.
 - Rollback plan is documented and reviewed.

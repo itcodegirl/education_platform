@@ -1,7 +1,7 @@
 /* @vitest-environment jsdom */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 
 const { mockUseProgressData, mockUseXP, mockUseSR, mockUseCourseContent } = vi.hoisted(() => ({
   mockUseProgressData: vi.fn(),
@@ -27,6 +27,13 @@ vi.mock('../../data', () => ({
       accent: '#000',
       modules: [{ id: 'm1', title: 'M1', lessons: [{ id: 'l1', title: 'L1' }] }],
     },
+    {
+      id: 'css',
+      label: 'CSS',
+      icon: 'C',
+      accent: '#123',
+      modules: [{ id: 'c-m1', title: 'Selectors', lessons: [{ id: 'c-l1', title: 'Class selectors' }] }],
+    },
   ],
 }));
 
@@ -43,6 +50,26 @@ beforeEach(() => {
 });
 
 describe('StudentStats streak card', () => {
+  it('exposes progress as a modal dialog with an accessible close path', () => {
+    const onClose = vi.fn();
+    mockUseXP.mockReturnValue({
+      xpTotal: 0,
+      streak: 0,
+      pausedStreak: null,
+      dailyCount: 0,
+      earnedBadges: {},
+    });
+
+    render(<StudentStats isOpen onClose={onClose} />);
+
+    const dialog = screen.getByRole('dialog', { name: /your progress/i });
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    expect(screen.getByRole('button', { name: /close progress panel/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /back to current lesson/i }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
   it('shows the active-streak card when streak is alive', () => {
     mockUseXP.mockReturnValue({
       xpTotal: 200,
@@ -107,5 +134,45 @@ describe('StudentStats streak card', () => {
 
     expect(screen.getByText(/Progress sync: saved on this device/i)).toBeInTheDocument();
     expect(screen.getByText(/XP, streaks, badges, review queue, and challenges are single-device today/i)).toBeInTheDocument();
+  });
+
+  it('labels progress completion as lesson completion', () => {
+    mockUseProgressData.mockReturnValue({ completed: ['c:html|m:m1|l:l1'], quizScores: {} });
+    mockUseXP.mockReturnValue({
+      xpTotal: 80,
+      streak: 1,
+      pausedStreak: null,
+      dailyCount: 1,
+      earnedBadges: {},
+    });
+
+    render(<StudentStats isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText('Lessons complete')).toBeInTheDocument();
+  });
+
+  it('matches quiz averages by stable lesson and module ids', () => {
+    mockUseProgressData.mockReturnValue({
+      completed: ['c:html|m:m1|l:l1'],
+      quizScores: {
+        'l:l1': '1/1',
+        'm:m1': '1/2',
+        'l:c-l1': '0/1',
+        'l:unknown': '0/1',
+        'm:m1-bad': 'not-a-score',
+      },
+    });
+    mockUseXP.mockReturnValue({
+      xpTotal: 80,
+      streak: 1,
+      pausedStreak: null,
+      dailyCount: 1,
+      earnedBadges: {},
+    });
+
+    render(<StudentStats isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText('Quiz avg: 75%')).toBeInTheDocument();
+    expect(screen.getByText('Quiz avg: 0%')).toBeInTheDocument();
   });
 });

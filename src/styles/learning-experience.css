@@ -34,7 +34,9 @@
 /* ─── Guest Preview ─────────────────────────────── */
 .guest-preview {
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--bg-deep);
+  padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
 }
 
 .guest-preview-loading {
@@ -65,9 +67,6 @@
   padding: 12px 24px;
   background: var(--bg-dark);
   border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 10;
 }
 
 .gp-back {
@@ -112,7 +111,7 @@
 .gp-content {
   max-width: var(--content-max);
   margin: 0 auto;
-  padding: 24px;
+  padding: 24px 24px calc(40px + env(safe-area-inset-bottom, 0px));
 }
 
 .gp-banner {
@@ -183,7 +182,7 @@
   display: block;
   width: 100%;
   margin-top: 12px;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 12px;
   color: var(--text-dim);
   font-size: 14px;

@@ -16,7 +16,7 @@ export function getSyncStatusCopy({
     return {
       tone: 'local',
       label: 'Saved locally',
-      detail: 'This preview saves in this browser. Sign in to sync lessons, bookmarks, and notes; rewards stay on this device today.',
+      detail: 'This preview saves in this browser. Sign in to sync lessons, bookmarks, notes, and account progress; rewards stay motivational until backend sync is verified.',
     };
   }
 
@@ -35,6 +35,8 @@ export function getSyncStatusCopy({
       detail: syncRetryInFlight
         ? `${pluralizeUpdate(pendingSyncWrites)} retrying now. Your current session stays visible while cloud sync catches up.`
         : `Saved locally. ${pluralizeUpdate(pendingSyncWrites)} will retry cloud sync when you are back online.`,
+      actionLabel: syncRetryInFlight ? '' : 'Retry now',
+      actionAriaLabel: syncRetryInFlight ? '' : 'Retry queued progress updates now',
     };
   }
 
@@ -65,6 +67,6 @@ export function getSyncStatusCopy({
   return {
     tone: 'synced',
     label: 'Saved',
-    detail: 'Lessons, bookmarks, and notes can sync to this account when the cloud is reachable. Rewards stay on this device today.',
+    detail: 'Lessons, bookmarks, notes, and account progress can sync when the cloud is reachable. Rewards stay motivational until backend sync is verified.',
   };
 }
