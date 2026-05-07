@@ -1,5 +1,6 @@
 /* global console */
 import process from 'node:process';
+import { pathToFileURL } from 'node:url';
 import { createServer } from 'vite';
 
 const EXPECTED_COURSE_IDS = Object.freeze(['html', 'css', 'js', 'react']);
@@ -72,6 +73,29 @@ function hasDurationSignal(lesson) {
   return isNonEmptyString(lesson.duration) || Number.isFinite(Number(lesson.metadata?.estimatedTime));
 }
 
+function buildLessonIndexes(loaded) {
+  const courseIds = new Set();
+  const lessonsByCourse = new Map();
+
+  loaded.forEach(({ courseMeta, data }) => {
+    const courseId = courseMeta.id;
+    const lessonIds = new Set();
+    courseIds.add(courseId);
+
+    (data?.modules || []).forEach((moduleData) => {
+      (moduleData.lessons || []).forEach((lesson) => {
+        if (isNonEmptyString(lesson?.id)) {
+          lessonIds.add(String(lesson.id));
+        }
+      });
+    });
+
+    lessonsByCourse.set(courseId, lessonIds);
+  });
+
+  return { courseIds, lessonsByCourse };
+}
+
 function analyzeMetadata(courseMetadata, issues, warnings) {
   const ids = new Set();
   const actualIds = courseMetadata.map((course) => course.id);
@@ -101,7 +125,7 @@ function analyzeMetadata(courseMetadata, issues, warnings) {
   }
 }
 
-function analyzeLessons(courseId, modules, issues, warnings) {
+function analyzeLessons(courseId, modules, lessonIndexes, issues, warnings) {
   const moduleIds = new Set();
   const lessonIds = new Set();
   const lessonEntries = [];
@@ -173,13 +197,40 @@ function analyzeLessons(courseId, modules, issues, warnings) {
   for (const { lesson, lessonPath } of lessonEntries) {
     (lesson.prereqs || []).forEach((prereqId) => {
       if (!lessonIds.has(String(prereqId))) {
-        addWarning(warnings, lessonPath, `Prerequisite "${prereqId}" does not match an active lesson id.`);
+        addIssue(issues, lessonPath, `Prerequisite "${prereqId}" does not match an active lesson in ${courseId}.`);
       }
     });
 
-    const nextLessonId = lesson.bridge?.nextLessonId;
-    if (nextLessonId && !lessonIds.has(String(nextLessonId))) {
-      addWarning(warnings, lessonPath, `Bridge nextLessonId "${nextLessonId}" does not match an active lesson id.`);
+    const bridge = lesson.bridge || {};
+    const nextLessonId = bridge.nextLessonId;
+    const nextCourseId = bridge.nextCourseId || courseId;
+
+    if (bridge.nextCourseId && !lessonIndexes.courseIds.has(String(bridge.nextCourseId))) {
+      addIssue(issues, lessonPath, `Bridge nextCourseId "${bridge.nextCourseId}" does not match an active course.`);
+    }
+
+    if (bridge.nextCourseId && !nextLessonId) {
+      addIssue(issues, lessonPath, 'Bridge declares nextCourseId but is missing nextLessonId.');
+    }
+
+    if (nextLessonId) {
+      const targetLessonIds = lessonIndexes.lessonsByCourse.get(String(nextCourseId)) || new Set();
+      const existsInAnotherCourse = [...lessonIndexes.lessonsByCourse.entries()].some(
+        ([candidateCourseId, candidateLessonIds]) =>
+          candidateCourseId !== courseId && candidateLessonIds.has(String(nextLessonId)),
+      );
+
+      if (!targetLessonIds.has(String(nextLessonId))) {
+        if (!bridge.nextCourseId && existsInAnotherCourse) {
+          addIssue(
+            issues,
+            lessonPath,
+            `Bridge nextLessonId "${nextLessonId}" points outside ${courseId}; add nextCourseId for an explicit cross-course handoff.`,
+          );
+        } else {
+          addIssue(issues, lessonPath, `Bridge target "${nextCourseId}/${nextLessonId}" does not match an active lesson.`);
+        }
+      }
     }
   }
 
@@ -299,12 +350,10 @@ function printEntries(title, entries, limit = 30) {
   }
 }
 
-async function main() {
-  console.log('Learning Content Audit');
-
+export function analyzeLearningContent({ courseMetadata, loaded }) {
   const issues = [];
   const warnings = [];
-  const { courseMetadata, loaded } = await loadAllCourseData();
+  const lessonIndexes = buildLessonIndexes(loaded);
 
   analyzeMetadata(courseMetadata, issues, warnings);
 
@@ -321,21 +370,40 @@ async function main() {
     quizCount += (data?.quizzes || []).length;
     challengeCount += (data?.challenges || []).length;
 
-    analyzeLessons(courseId, modules, issues, warnings);
+    analyzeLessons(courseId, modules, lessonIndexes, issues, warnings);
     analyzeQuizzes(courseId, data?.quizzes || [], issues);
     analyzeChallenges(courseId, data?.challenges || [], issues, warnings);
   }
 
-  console.log(`  courses: ${loaded.length}`);
-  console.log(`  modules: ${moduleCount}`);
-  console.log(`  lessons: ${lessonCount}`);
-  console.log(`  quizzes: ${quizCount}`);
-  console.log(`  challenges: ${challengeCount}`);
+  return {
+    issues,
+    warnings,
+    counts: {
+      courses: loaded.length,
+      modules: moduleCount,
+      lessons: lessonCount,
+      quizzes: quizCount,
+      challenges: challengeCount,
+    },
+  };
+}
 
-  printEntries('Warnings', warnings);
-  printEntries('Blocking issues', issues);
+async function main() {
+  console.log('Learning Content Audit');
 
-  if (issues.length > 0) {
+  const { courseMetadata, loaded } = await loadAllCourseData();
+  const result = analyzeLearningContent({ courseMetadata, loaded });
+
+  console.log(`  courses: ${result.counts.courses}`);
+  console.log(`  modules: ${result.counts.modules}`);
+  console.log(`  lessons: ${result.counts.lessons}`);
+  console.log(`  quizzes: ${result.counts.quizzes}`);
+  console.log(`  challenges: ${result.counts.challenges}`);
+
+  printEntries('Warnings', result.warnings);
+  printEntries('Blocking issues', result.issues);
+
+  if (result.issues.length > 0) {
     process.exitCode = 1;
     return;
   }
@@ -343,7 +411,9 @@ async function main() {
   console.log('\n  no blocking content integrity issues.');
 }
 
-main().catch((err) => {
-  console.error('Learning content audit failed:', err);
-  process.exitCode = 1;
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((err) => {
+    console.error('Learning content audit failed:', err);
+    process.exitCode = 1;
+  });
+}

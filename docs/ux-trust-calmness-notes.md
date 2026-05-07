@@ -4,7 +4,7 @@ This note records the learner-trust decisions behind the current UX pass.
 
 ## Progress and Sync
 
-- Lesson progress, bookmarks, and notes surface visible save/sync status in the lesson flow. XP, streaks, badges, review queue, and challenges are single-device today.
+- Lesson progress, bookmarks, notes, and account progress surface visible save/sync status in the lesson flow. Reward language stays motivational until backend reward sync is verified.
 - Same-browser retry is supported for recoverable failed writes. The UI should not imply universal cloud recovery for every failed route action.
 - Challenge completion history is still same-browser CodeHerWay progress until a backend-backed challenge completion model is added.
 
