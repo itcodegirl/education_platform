@@ -34,6 +34,14 @@ describe('getSyncStatusCopy', () => {
     });
   });
 
+  it('progressSaveFailureShowsRecoveryMessage', () => {
+    expect(getSyncStatusCopy({ user, dataLoaded: true, syncFailed: 2 })).toEqual({
+      tone: 'warning',
+      label: 'Sync needs retry',
+      detail: 'Your current session is safe, but cloud sync needs retry when the connection is stable.',
+    });
+  });
+
   it('shows an active saving state while mark-done is submitting', () => {
     expect(getSyncStatusCopy({ user, dataLoaded: true, mutationState: 'submitting' })).toEqual({
       tone: 'saving',

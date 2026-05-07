@@ -66,7 +66,7 @@ test.describe('mobile learning smoke', () => {
     }
   }
 
-  test('opens resources, search, and the mobile tools sheet', async ({ page }) => {
+  test('opens sidebar tools, search, and the mobile tools sheet', async ({ page }) => {
     await page.getByLabel('Open course navigation').click();
     await expect(page.locator('#course-sidebar.open')).toBeVisible();
 
@@ -90,6 +90,32 @@ test.describe('mobile learning smoke', () => {
 
     await toolsSheet.getByRole('button', { name: /challenges/i }).click();
     await expect(page.locator('.challenges-panel')).toBeVisible();
+  });
+
+  test('mobileSidebarSupportsKeyboardNavigation', async ({ page }) => {
+    await page.getByLabel('Open course navigation').click();
+    const sidebar = page.locator('#course-sidebar');
+    await expect(sidebar).toHaveClass(/open/);
+
+    await page.keyboard.press('Escape');
+    await expect(sidebar).not.toHaveClass(/open/);
+
+    await page.getByLabel('Open course navigation').focus();
+    await page.keyboard.press('Enter');
+    await expect(sidebar).toHaveClass(/open/);
+
+    const toolsTab = page.getByRole('button', { name: /tools/i });
+    await toolsTab.focus();
+    await page.keyboard.press('ArrowDown');
+
+    const toolsMenu = page.getByRole('menu', { name: /tools/i });
+    const firstTool = toolsMenu.getByRole('menuitem').first();
+    await expect(toolsMenu).toBeVisible();
+    await expect(firstTool).toBeFocused();
+
+    await page.keyboard.press('Escape');
+    await expect(toolsMenu).toHaveCount(0);
+    await expect(toolsTab).toBeFocused();
   });
 
   test('navigates lessons, toggles completion, and submits a quiz', async ({ page }) => {

@@ -372,7 +372,7 @@ describe('ProgressContext — user logged in (happy path)', () => {
     });
   });
 
-  it('lesson-progress.reload-persists-completion', async () => {
+  it('lessonCompletionPersistsAfterRefresh', async () => {
     mockUseAuth.mockReturnValue({ user: { id: 'uid-abc' } });
     mockFetchAllUserData.mockResolvedValue(
       makeFetchResult({
