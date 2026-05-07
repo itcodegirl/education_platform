@@ -27,6 +27,7 @@ const {
   mockUpdateStreak,
   mockUpdateDailyGoal,
   mockUpdateXP,
+  mockTrackProgressSyncFailure,
   mockTrackProgressSyncQueued,
   mockTrackProgressSyncReplay,
 } = vi.hoisted(() => ({
@@ -36,6 +37,7 @@ const {
   mockUpdateStreak: vi.fn(),
   mockUpdateDailyGoal: vi.fn(),
   mockUpdateXP: vi.fn(),
+  mockTrackProgressSyncFailure: vi.fn(),
   mockTrackProgressSyncQueued: vi.fn(),
   mockTrackProgressSyncReplay: vi.fn(),
 }));
@@ -66,6 +68,7 @@ vi.mock('../services/progressService', () => ({
 }));
 
 vi.mock('../services/progressSyncTelemetry', () => ({
+  trackProgressSyncFailure: mockTrackProgressSyncFailure,
   trackProgressSyncQueued: mockTrackProgressSyncQueued,
   trackProgressSyncReplay: mockTrackProgressSyncReplay,
 }));
@@ -299,6 +302,7 @@ beforeEach(() => {
   mockAddLesson.mockResolvedValue({ error: null });
   mockUpdateStreak.mockResolvedValue({});
   mockUpdateDailyGoal.mockResolvedValue({});
+  mockTrackProgressSyncFailure.mockReset();
   mockTrackProgressSyncQueued.mockReset();
   mockTrackProgressSyncReplay.mockReset();
 });
@@ -321,12 +325,17 @@ describe('ProgressContext — no user logged in', () => {
 
     renderWithProvider();
 
-    window.dispatchEvent(new window.CustomEvent('chw:local-storage-sync-error', {
+    fireEvent(window, new window.CustomEvent('chw:local-storage-sync-error', {
       detail: { key: 'chw-tasks', phase: 'write' },
     }));
 
     await waitFor(() => {
       expect(screen.getByTestId('consumer').dataset.syncFailed).toBe('1');
+    });
+
+    expect(mockTrackProgressSyncFailure).toHaveBeenCalledWith({
+      label: 'localStorage write:chw-tasks',
+      pendingCount: 0,
     });
   });
 });

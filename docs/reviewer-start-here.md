@@ -28,6 +28,8 @@ This is the fastest path for a recruiter or technical reviewer to understand Cod
 - Challenge auto-grading is a learning aid. HTML checks inspect rendered DOM snapshots, CSS checks mix computed-style and source-pattern checks, and JavaScript/React checks rely on console/runtime output.
 - Backend reward sync is scaffolded but disabled until Supabase migrations and duplicate-award flows are verified against a real project.
 - Supabase migration/privacy readiness has a static gate: `npm run check:supabase-readiness`.
+<<<<<<< HEAD
+- Staging reward validation has a runbook integrity gate: `npm run audit:staging-runbook`; passing it means the checklist is complete, not that live staging has passed.
 - Authenticated persistence has unit coverage for account switching and learner-scoped pending retry queues; live authenticated E2E still needs configured Supabase test credentials.
 - "Complete lesson" means saved reading progress. Quiz results and challenge completion are separate learning checks.
 
@@ -45,6 +47,7 @@ Focused checks:
 npm run lint
 npm run check:js-source
 npm run build
+npm run audit:staging-runbook
 npm run audit:content
 npm run test:unit
 npm run audit:quizzes
