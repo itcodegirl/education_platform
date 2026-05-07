@@ -10,18 +10,21 @@ const REQUIRED_AUTH_ENV = [
 const LOCAL_SUPABASE_URL = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i;
 const PLACEHOLDER_SUPABASE_ANON_KEY = 'example-anon-key';
 
+export function isE2EAuthRequired(env = process.env) {
+  return env.E2E_AUTH_REQUIRED === 'true' || env.CI === 'true';
+}
+
 export function getMissingE2EAuthConfig(env = process.env) {
   const missing = REQUIRED_AUTH_ENV.filter((name) => !env[name]);
-  const isCi = env.CI === 'true';
   const allowLocalSupabase = env.E2E_ALLOW_LOCAL_SUPABASE === 'true';
   const supabaseUrl = env.VITE_SUPABASE_URL?.trim() || '';
   const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY?.trim() || '';
 
-  if (isCi && !allowLocalSupabase && LOCAL_SUPABASE_URL.test(supabaseUrl)) {
+  if (isE2EAuthRequired(env) && !allowLocalSupabase && LOCAL_SUPABASE_URL.test(supabaseUrl)) {
     missing.push('VITE_SUPABASE_URL');
   }
 
-  if (isCi && supabaseAnonKey === PLACEHOLDER_SUPABASE_ANON_KEY) {
+  if (isE2EAuthRequired(env) && supabaseAnonKey === PLACEHOLDER_SUPABASE_ANON_KEY) {
     missing.push('VITE_SUPABASE_ANON_KEY');
   }
 

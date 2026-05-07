@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { test } from '@playwright/test';
-import { getMissingE2EAuthConfig } from './authHelpers';
+import { getMissingE2EAuthConfig, isE2EAuthRequired } from './authHelpers';
 
 const authDir = path.join(process.cwd(), 'playwright', '.auth');
 const authFile = path.join(authDir, 'user.json');
@@ -97,6 +97,11 @@ test('capture authenticated storage state', async ({ request }, testInfo) => {
 	const missingEnv = getMissingE2EAuthConfig();
 	if (missingEnv.length > 0) {
 		writeEmptyState();
+		if (isE2EAuthRequired()) {
+			throw new Error(
+				`Authenticated E2E requires GitHub Secrets or environment variables: ${missingEnv.join(', ')}.`,
+			);
+		}
 		test.skip(true, `Set ${missingEnv.join(', ')} to generate authenticated storage state.`);
 	}
 
