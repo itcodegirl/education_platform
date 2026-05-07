@@ -15,6 +15,18 @@ Add these under GitHub repository settings -> Secrets and variables -> Actions -
 
 Do not store these as workflow defaults or print them in logs. The CI preflight redacts host and credential values.
 
+You can add the values through the GitHub UI or with an authenticated GitHub CLI session:
+
+```bash
+gh auth status
+gh auth login -h github.com
+
+gh secret set VITE_SUPABASE_URL
+gh secret set VITE_SUPABASE_ANON_KEY
+gh secret set E2E_EMAIL
+gh secret set E2E_PASSWORD
+```
+
 ## Expected CI Behavior
 
 - `E2E_AUTH_REQUIRED=true` is set in CI.
@@ -36,3 +48,5 @@ Open `playwright-report/index.html` for the report. Retained traces, screenshots
 ## Backend Reward Sync Boundary
 
 The authenticated learner account verifies the browser flow only. Backend reward sync still requires the Supabase migrations in `supabase/migrations/` and the staging validation checklist in `docs/staging-supabase-validation.md` before `VITE_REWARD_BACKEND_SYNC_ENABLED=true` is used beyond staging.
+
+For the full PR/admin checklist, see `docs/pr-admin-readiness.md`.

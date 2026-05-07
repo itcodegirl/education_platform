@@ -175,7 +175,7 @@ Live token preview route: `/styleguide`.
 - Domain-aware chunking in `vite.config.js` keeps first paint focused.
 - Monaco editor is lazy loaded so first-run users do not pay editor cost up front.
 - Admin views are lazy loaded and route-gated.
-- Chunk budget checks (`npm run check:bundle`) protect against silent regressions.
+- Chunk budget checks (`npm run check:bundle`) protect against silent regressions. Monaco budget changes should be handled as explicit performance work; see `docs/pr-admin-readiness.md`.
 
 ---
 
