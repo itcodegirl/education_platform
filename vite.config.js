@@ -61,11 +61,35 @@ function getManualChunkName(id) {
   return null;
 }
 
+const fontPackageScopes = ['@fontsource', '@fontsource-variable'];
+
+function getDevServerFsAllowList() {
+  const projectRoot = path.resolve(__dirname);
+  const dependencyRoots = [
+    path.resolve(projectRoot, 'node_modules'),
+    path.resolve(projectRoot, '..', '..', 'node_modules'),
+  ];
+
+  // Git worktrees can reuse node_modules from a parent checkout. Keep the
+  // dev-server exception narrow to self-hosted font package assets.
+  return [
+    projectRoot,
+    ...dependencyRoots.flatMap((root) => (
+      fontPackageScopes.map((scope) => path.join(root, scope))
+    )),
+  ];
+}
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+    },
+  },
+  server: {
+    fs: {
+      allow: getDevServerFsAllowList(),
     },
   },
   build: {
