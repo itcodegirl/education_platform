@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  parseAuthE2EEnvFile,
   runAuthE2EPreflight,
   validateAuthE2EEnv,
 } from '../../scripts/auth-e2e-preflight.mjs';
@@ -12,6 +13,25 @@ const validEnv = {
 };
 
 describe('authenticated E2E preflight', () => {
+  it('parses the local authenticated E2E env template shape', () => {
+    const parsed = parseAuthE2EEnvFile(`
+      # local test credentials
+      export VITE_SUPABASE_URL="https://secret-project-ref.supabase.co"
+      VITE_SUPABASE_ANON_KEY='secret-anon-key'
+      E2E_EMAIL=learner@example.test
+      E2E_PASSWORD="secret-password"
+      E2E_AUTH_REQUIRED=false
+    `);
+
+    expect(parsed).toEqual({
+      VITE_SUPABASE_URL: 'https://secret-project-ref.supabase.co',
+      VITE_SUPABASE_ANON_KEY: 'secret-anon-key',
+      E2E_EMAIL: 'learner@example.test',
+      E2E_PASSWORD: 'secret-password',
+      E2E_AUTH_REQUIRED: 'false',
+    });
+  });
+
   it('reports missing config without requiring local runs to fail', () => {
     const result = validateAuthE2EEnv({});
 

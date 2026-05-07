@@ -1,7 +1,7 @@
 /* global console, process */
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
-import { runAuthE2EPreflight } from './auth-e2e-preflight.mjs';
+import { loadAuthE2EEnvFile, runAuthE2EPreflight } from './auth-e2e-preflight.mjs';
 
 const playwrightArgs = [
   'test',
@@ -26,6 +26,11 @@ function runPlaywright() {
   }
 
   process.exit(result.status ?? 1);
+}
+
+const envFile = await loadAuthE2EEnvFile();
+if (envFile.loaded) {
+  console.log(`Loaded authenticated E2E env from ${path.basename(envFile.filePath)} (${envFile.keys.length} keys).`);
 }
 
 const preflight = await runAuthE2EPreflight();
