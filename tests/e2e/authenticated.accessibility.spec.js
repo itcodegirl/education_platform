@@ -225,11 +225,11 @@ test.describe('authenticated accessibility', () => {
     test.skip(!quizVisible, 'No visible lesson quiz found within the first few lessons.');
 
     const quiz = page.locator('.quiz-container').first();
-    const firstOption = quiz.getByRole('button').first();
+    const firstOption = quiz.getByRole('radio').first();
     const submitButton = quiz.getByRole('button', { name: /submit answers/i });
 
     await firstOption.focus();
-    await page.keyboard.press('Enter');
+    await page.keyboard.press('Space');
     await expect(submitButton).toBeEnabled();
     await submitButton.focus();
     await page.keyboard.press('Enter');
