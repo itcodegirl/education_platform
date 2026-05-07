@@ -93,6 +93,9 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
           </ul>
         </div>
       )}
+      <p className="cc-grader-note">
+        This grader checks specific requirements for this exercise. Passing means your code matched the expected checks.
+      </p>
 
       {/* Editor + Preview split */}
       <div className="cc-workspace">
@@ -128,7 +131,7 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
 
           ) : (
           <Suspense fallback={
-            <div className="cc-editor-loading">Loading editor...</div>
+            <div className="cc-editor-loading">Opening editor...</div>
           }>
             <MonacoEditor
               height="280px"

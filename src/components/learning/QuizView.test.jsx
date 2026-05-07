@@ -21,11 +21,20 @@ vi.mock('../../providers', () => ({
 vi.mock('../../engine/rewards/rewardRuntime', () => ({
   awardRewardOnce: vi.fn(async ({
     legacyRewardKey,
+    hasRewardBeenAwarded = () => false,
     markRewardAwarded = () => false,
     awardXP = () => {},
     xpAmount = 0,
     reason = '',
   }) => {
+    if (hasRewardBeenAwarded(legacyRewardKey)) {
+      return {
+        rewardResult: {
+          xpAwarded: 0,
+        },
+      };
+    }
+
     const awarded = markRewardAwarded(legacyRewardKey);
     if (awarded) {
       awardXP(xpAmount, reason);
@@ -132,6 +141,51 @@ describe('QuizView', () => {
       expect(screen.getByText(/Best score saved to your progress/i)).toBeInTheDocument();
     });
     expect(saveQuizScore).not.toHaveBeenCalled();
+  });
+
+  it('quizRetryDoesNotDuplicateXp when only legacy quiz rewards exist', async () => {
+    const awardXP = vi.fn();
+    const saveQuizScore = vi.fn();
+    const legacyBaseRewardKey = rewardKeys.quizComplete('l:h1-1');
+    const legacyPerfectRewardKey = rewardKeys.quizPerfect('l:h1-1');
+    const hasRewardBeenAwarded = vi.fn((rewardKey) =>
+      rewardKey === legacyBaseRewardKey || rewardKey === legacyPerfectRewardKey,
+    );
+    const markRewardAwarded = vi.fn(() => true);
+
+    mockUseProgressData.mockReturnValue({
+      quizScores: { 'l:h1-1': '1/1' },
+      saveQuizScore,
+      hasRewardBeenAwarded,
+      markRewardAwarded,
+      markSyncFailed: vi.fn(),
+    });
+    mockUseXP.mockReturnValue({
+      awardXP,
+      recordDailyActivity: vi.fn(),
+    });
+
+    render(
+      <QuizView
+        quiz={quiz}
+        accent="#4ecdc4"
+        label="Quick Check"
+        quizKey="l:html:h1-1"
+        legacyQuizKeys={['l:h1-1']}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('radio', { name: /<h1>/i }));
+    fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/XP already earned/i)).toBeInTheDocument();
+    });
+    expect(saveQuizScore).not.toHaveBeenCalled();
+    expect(awardXP).not.toHaveBeenCalled();
+    expect(markRewardAwarded).not.toHaveBeenCalled();
+    expect(hasRewardBeenAwarded).toHaveBeenCalledWith(legacyBaseRewardKey);
+    expect(hasRewardBeenAwarded).toHaveBeenCalledWith(legacyPerfectRewardKey);
   });
 
   it('quizChoicesExposeAccessibleSingleAnswerSemantics', async () => {

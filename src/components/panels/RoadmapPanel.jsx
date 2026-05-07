@@ -43,7 +43,7 @@ export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx }) {
 
           {!allCoursesLoaded && (
             <p className="roadmap-loading" aria-live="polite">
-              Loading the rest of your roadmap so progress stays accurate across every track...
+              Loading the rest of your roadmap so progress stays accurate across every track.
             </p>
           )}
 

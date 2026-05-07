@@ -94,7 +94,7 @@ describe('CodeChallenge', () => {
     render(<CodeChallenge challenge={baseChallenge} lang="html" />);
 
     // Textarea fallback (Code editor) is rendered, not the Monaco
-    // "Loading editor..." Suspense fallback.
+    // "Opening editor..." Suspense fallback.
     expect(screen.getByLabelText(/code editor/i)).toHaveProperty('tagName', 'TEXTAREA');
     // The opt-in escape hatch is offered on desktop.
     expect(
@@ -133,6 +133,13 @@ describe('CodeChallenge', () => {
       expect(screen.getByText(/All tests passed! You nailed it./i)).toBeInTheDocument();
     });
     expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('explains what the challenge grader checks before running tests', () => {
+    render(<CodeChallenge challenge={baseChallenge} lang="html" />);
+
+    expect(screen.getByText(/This grader checks specific requirements/i)).toBeInTheDocument();
+    expect(screen.getByText(/matched the expected checks/i)).toBeInTheDocument();
   });
 
   it('explains challenge grader limits without overstating mastery', async () => {

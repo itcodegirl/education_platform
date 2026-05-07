@@ -11,6 +11,11 @@ export default defineConfig({
     // (like the services layer) still work fine under jsdom; it's
     // only ~50ms slower per file.
     environment: 'jsdom',
+    environmentOptions: {
+      jsdom: {
+        url: 'http://localhost/',
+      },
+    },
     setupFiles: ['./src/test/setup.js'],
     include: ['src/**/*.test.{js,jsx,ts,tsx}'],
     exclude: [
@@ -32,5 +37,9 @@ export default defineConfig({
       VITE_SUPABASE_URL: 'http://test.supabase.local',
       VITE_SUPABASE_ANON_KEY: 'test-anon-key',
     },
+    // The full jsdom suite can briefly starve individual component tests
+    // on Windows under parallel load. Keep a finite limit, but avoid false
+    // failures from the default 5s timeout.
+    testTimeout: 15000,
   },
 });

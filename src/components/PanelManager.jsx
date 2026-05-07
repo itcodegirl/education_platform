@@ -6,9 +6,9 @@ function PanelError({ retry }) {
   return (
     <div className="panel-error-fallback" role="alert">
       <span aria-hidden="true">⚠︎</span>
-      <p>This panel ran into a problem.</p>
+      <p>This panel hit a snag. Your lesson stays open and progress is still safe.</p>
       <button type="button" className="ui-btn ui-btn-secondary ui-btn-compact" onClick={retry}>
-        Try again
+        Reload panel
       </button>
     </div>
   );
@@ -18,7 +18,7 @@ function PanelLoading() {
   return (
     <div className="panel-loading-inline" role="status" aria-live="polite">
       <span className="panel-loading-dot" aria-hidden="true" />
-      <span>Loading panel...</span>
+      <span>Opening panel...</span>
     </div>
   );
 }

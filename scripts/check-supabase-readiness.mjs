@@ -1,5 +1,5 @@
 /* global console, process */
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -64,7 +64,45 @@ const REQUIRED_ARTIFACTS = [
       ['user event key columns', /on\s+public\.reward_events\s*\(\s*user_id,\s*event_key\s*\)/i],
     ],
   },
+  {
+    path: 'supabase/migrations/202605060003_harden_profile_updates.sql',
+    label: 'profile safe-field hardening migration',
+    checks: [
+      ['safe profile update grant', /grant\s+update\s*\(\s*display_name,\s*avatar_url,\s*is_public,\s*public_handle\s*\)/i],
+      ['admin status RPC', /create\s+or\s+replace\s+function\s+public\.set_user_disabled/i],
+      ['admin status RPC grant', /grant\s+execute\s+on\s+function\s+public\.set_user_disabled[\s\S]+to\s+authenticated/i],
+    ],
+  },
+  {
+    path: 'docs/supabase-production-readiness.md',
+    label: 'Supabase production readiness docs',
+    checks: [
+      ['live deployment checklist', /##\s+Live Deployment Checklist/i],
+      ['RLS smoke checks', /RLS smoke checks/i],
+      ['authenticated E2E secrets boundary', /Authenticated E2E Secrets/i],
+      ['backend reward sync boundary', /Backend Reward Sync Boundary/i],
+    ],
+  },
 ];
+
+async function findDuplicateMigrationVersions(rootDir) {
+  const migrationDir = path.join(rootDir, 'supabase', 'migrations');
+  const entries = await readdir(migrationDir, { withFileTypes: true });
+  const versions = new Map();
+
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.endsWith('.sql')) continue;
+    const version = entry.name.match(/^(\d+)_/)?.[1];
+    if (!version) continue;
+    const files = versions.get(version) || [];
+    files.push(entry.name);
+    versions.set(version, files);
+  }
+
+  return [...versions.entries()]
+    .filter(([, files]) => files.length > 1)
+    .map(([version, files]) => ({ version, files }));
+}
 
 async function readArtifact(rootDir, relativePath) {
   const absolutePath = path.join(rootDir, relativePath);
@@ -74,6 +112,19 @@ async function readArtifact(rootDir, relativePath) {
 export async function checkSupabaseReadiness(rootDir = process.cwd()) {
   const failures = [];
   const passed = [];
+
+  try {
+    const duplicates = await findDuplicateMigrationVersions(rootDir);
+    if (duplicates.length === 0) {
+      passed.push('migration inventory: unique timestamp prefixes');
+    } else {
+      duplicates.forEach(({ version, files }) => {
+        failures.push(`migration inventory: duplicate timestamp ${version} used by ${files.join(', ')}`);
+      });
+    }
+  } catch (error) {
+    failures.push(`migration inventory: unable to read supabase/migrations (${error.code || error.message})`);
+  }
 
   for (const artifact of REQUIRED_ARTIFACTS) {
     let content = '';

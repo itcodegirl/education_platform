@@ -127,7 +127,7 @@ export function ProtectedRoute({ children }) {
   if (authLoading || (user && profileLoading)) {
     return (
       <RouteLoadingScreen theme={theme} size="lg">
-        <p style={{ marginTop: '16px', opacity: 0.5 }}>Checking your account session...</p>
+        <p style={{ marginTop: '16px', opacity: 0.5 }}>Opening your learning dashboard...</p>
       </RouteLoadingScreen>
     );
   }
@@ -180,7 +180,7 @@ function StyleguideRoute() {
       <Suspense
         fallback={(
           <RouteLoadingScreen theme={theme}>
-            <p>Loading styleguide...</p>
+            <p>Opening styleguide...</p>
           </RouteLoadingScreen>
         )}
       >
@@ -199,7 +199,7 @@ function PublicProfileRoute() {
       <Suspense
         fallback={(
           <RouteLoadingScreen theme={theme}>
-            <p>Loading public profile...</p>
+            <p>Opening public profile...</p>
           </RouteLoadingScreen>
         )}
       >
@@ -218,7 +218,7 @@ function ProfileRoute() {
         <Suspense
           fallback={(
             <RouteLoadingScreen theme={theme}>
-              <p>Loading profile...</p>
+              <p>Opening profile...</p>
             </RouteLoadingScreen>
           )}
         >
@@ -247,7 +247,7 @@ function AdminDashboardRoute() {
           <Suspense
             fallback={(
               <RouteLoadingScreen theme={theme}>
-                <p>Loading admin dashboard...</p>
+                <p>Opening admin dashboard...</p>
               </RouteLoadingScreen>
             )}
           >

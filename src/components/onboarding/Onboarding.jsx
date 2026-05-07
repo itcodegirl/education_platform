@@ -34,7 +34,7 @@ const STEPS = [
     points: [
       'Read the learning frame so you know the goal before the details.',
       'Build the example, check the preview, and use notes only when they help.',
-      'Mark the lesson complete, take the quick check, then continue to the next lesson.',
+      'Save lesson reading progress, take the quick check, then continue to the next lesson.',
     ],
   },
 ];
