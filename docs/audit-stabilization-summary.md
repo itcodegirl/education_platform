@@ -4,7 +4,7 @@ This PR hardens CodeHerWay as a portfolio-ready learning platform demo. It does 
 
 ## What Was Hardened
 
-- Progress exports are framed as learning records, not verified certificates.
+- Progress Summary downloads are framed as learning records, not verified certificates.
 - Saved lesson resume now prefers stable course, module, lesson, and quiz identifiers with legacy label fallback.
 - Learner-adjacent local state now uses per-learner storage keys with a guest namespace for signed-out preview state.
 - Roadmap jumps load the target course before selecting a module.
@@ -17,7 +17,7 @@ This PR hardens CodeHerWay as a portfolio-ready learning platform demo. It does 
 - XP, streaks, badges, review cards, and challenge completions remain motivational product signals.
 - Cross-device reward integrity is still feature-gated until Supabase migrations and authenticated duplicate-award flows are verified.
 - Public profile pages show aggregate progress only.
-- Completion exports reflect current app progress and are not server-authoritative credentials.
+- Progress Summary downloads reflect current app progress and are not server-authoritative credentials.
 
 ## Follow-Up
 

@@ -261,6 +261,7 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
           {/* Transparency: challenge grading is a focused checklist, not a verified mastery signal. */}
           <p className="cc-results-honest">
             <strong>How tests work:</strong> this grader checks specific requirements for this exercise.
+            Some checks inspect the preview DOM or computed styles; others read source patterns when interaction or viewport checks are not available.
             Passing means your code matched the expected checks, not that the whole skill is verified.
           </p>
         </div>

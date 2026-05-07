@@ -142,7 +142,7 @@ describe('CodeChallenge', () => {
     fireEvent.click(screen.getByRole('button', { name: /run tests/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/checks specific requirements/i)).toBeInTheDocument();
+      expect(screen.getByText(/Some checks inspect the preview DOM or computed styles/i)).toBeInTheDocument();
     });
     expect(screen.getByText(/not that the whole skill is verified/i)).toBeInTheDocument();
   });

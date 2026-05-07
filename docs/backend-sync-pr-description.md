@@ -38,7 +38,7 @@ This PR hardens learning-platform safety paths and documents the backend reward 
 - `npm.cmd audit`
 - `npm.cmd audit --omit=dev`
 - `npm.cmd run lint`
-- `npm.cmd run typecheck`
+- `npm.cmd run check:js-source`
 - `npm.cmd run build`
 - `npm.cmd run check:bundle`
 - `npm.cmd run check`
@@ -55,7 +55,7 @@ This PR hardens learning-platform safety paths and documents the backend reward 
 - `npm.cmd run test:policy` skipped because live Supabase policy credentials are absent.
 - `git diff --check`
 
-Direct PowerShell `npm run test:unit`, `npm run lint`, and `npm run typecheck` may be blocked by local `npm.ps1` execution policy on this machine; the same package scripts pass through `npm.cmd`.
+Direct PowerShell `npm run test:unit`, `npm run lint`, and `npm run check:js-source` may be blocked by local `npm.ps1` execution policy on this machine; the same package scripts pass through `npm.cmd`.
 
 ## What Was Not Live-Validated
 

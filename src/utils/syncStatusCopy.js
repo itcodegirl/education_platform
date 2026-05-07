@@ -16,7 +16,7 @@ export function getSyncStatusCopy({
     return {
       tone: 'local',
       label: 'Saved locally',
-      detail: 'This preview saves in this browser. Sign in to sync lessons, bookmarks, notes, XP, and streaks.',
+      detail: 'This preview saves in this browser. Sign in to sync lessons, bookmarks, and notes; rewards stay on this device today.',
     };
   }
 
@@ -65,6 +65,6 @@ export function getSyncStatusCopy({
   return {
     tone: 'synced',
     label: 'Saved',
-    detail: 'Progress can sync to this account when the cloud is reachable.',
+    detail: 'Lessons, bookmarks, and notes can sync to this account when the cloud is reachable. Rewards stay on this device today.',
   };
 }

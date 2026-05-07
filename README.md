@@ -4,6 +4,8 @@
 
 CodeHerWay is an active frontend learning platform project and portfolio product focused on beginner-friendly coding education.
 
+**Start here for review:** [docs/reviewer-start-here.md](./docs/reviewer-start-here.md)
+
 ## Repository identity
 
 - **Canonical active app:** `itcodegirl/education_platform`
@@ -19,10 +21,10 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 
 ## What Is Currently Working
 
-> **Progress sync: saved on this device.** Lesson completions and bookmarks
-> may sync when connected; XP, streaks, badges, review queue, and challenges
-> are single-device today. Backend cross-device reward sync is scaffolded but
-> intentionally disabled (see [Cross-device persistence](#cross-device-persistence)).
+> **Progress sync: saved on this device.** Lesson completions, bookmarks,
+> and notes may sync when connected; XP, streaks, badges, review queue, and
+> challenges are single-device today. Backend cross-device reward sync is
+> scaffolded but intentionally disabled (see [Cross-device persistence](#cross-device-persistence)).
 
 - Course browsing and lesson viewing UI for HTML, CSS, JavaScript, and React tracks.
 - Single-device progress save/reload for the core learning flow, with same-browser retry/replay for failed writes.
@@ -31,7 +33,7 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 - Active lesson quiz coverage for HTML, CSS, JavaScript, and React tracks is complete.
 - Quiz variant groups and legacy orphan quiz inventory are classified and monitored by the audit.
 - Bookmarks and lesson notes in the active app.
-- Learner progress export flow that is explicitly not a verified credential.
+- Progress Summary PDF flow that reflects current app progress and is explicitly not a verified credential.
 - Mobile learning flow with sticky lesson navigation, topbar search, and a compact tools sheet.
 - Public Playwright smoke coverage, including landing, auth, accessibility, visual snapshots, and first-lesson preview entry.
 - Netlify + Vite build/deploy flow.
@@ -43,6 +45,7 @@ Current baseline checks:
 - `npm run check` (lint, production build, bundle budget, unit tests)
 - `npm run build`
 - `npm run lint`
+- `npm run check:js-source` (JS-only source policy; this project does not run TypeScript type checking)
 - `npm run test` (Vitest unit/component suite — passes on a fresh clone with no `.env` configured; the suite stubs the `VITE_SUPABASE_*` placeholders via `vitest.config.js` so client-importing tests can evaluate)
 - `npm run audit:quizzes`
 - `npm run test:e2e` (public smoke and first-lesson preview paths run by default)
@@ -65,8 +68,8 @@ Current test boundaries:
 
 The runtime today targets a single device. Progress sync is saved on this
 device. A learner who signs in from a second browser may see their
-server-stored lesson completions and bookmarks when connected, but XP,
-streaks, badges, the spaced-repetition review queue, and challenge
+server-stored lesson completions, bookmarks, and notes when connected, but
+XP, streaks, badges, the spaced-repetition review queue, and challenge
 completions are computed against the local reward ledger and `localStorage`
 mirror.
 
@@ -94,11 +97,11 @@ See [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md) for the current limitation ba
 
 See [docs/repair-roadmap.md](./docs/repair-roadmap.md) for the staged repair plan:
 
-- P0: Repo trust and documentation
-- P1: Learning integrity
-- P2: Data model hardening and migration safety
-- P3: ADHD-friendly UX simplification
-- P4: Reliability testing and CI gates
+- Phase 1: Stabilize
+- Phase 2: Clarify UX
+- Phase 3: Strengthen Product Logic
+- Phase 4: Portfolio Polish
+- Phase 5: Launch Readiness
 
 ## Recruiter / Hiring Context
 
@@ -113,6 +116,7 @@ This project is intended to demonstrate:
 
 Reviewer shortcuts:
 
+- Reviewer start: [docs/reviewer-start-here.md](./docs/reviewer-start-here.md)
 - Product story: [docs/portfolio-case-study.md](./docs/portfolio-case-study.md)
 - Audit stabilization summary: [docs/audit-stabilization-summary.md](./docs/audit-stabilization-summary.md)
 - UX trust/calmness notes: [docs/ux-trust-calmness-notes.md](./docs/ux-trust-calmness-notes.md)
