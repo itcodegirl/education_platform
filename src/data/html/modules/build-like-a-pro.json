@@ -212,7 +212,8 @@
       },
       "bridge": {
         "preview": "You've completed the HTML course! Next up: the CSS course, where you'll learn professional layouts, responsive design, animations, and flexbox/grid systems.",
-        "nextLessonId": "css-lesson-01"
+        "nextCourseId": "css",
+        "nextLessonId": "css-1-1"
       }
     }
   ]

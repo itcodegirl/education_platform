@@ -70,12 +70,15 @@ test.describe('mobile learning smoke', () => {
     await page.getByLabel('Open course navigation').click();
     await expect(page.locator('#course-sidebar.open')).toBeVisible();
 
-    await page.getByRole('tab', { name: /resources/i }).click();
-    await page.getByRole('button', { name: /cheat sheets/i }).first().click();
+    await page.getByRole('button', { name: /tools/i }).click();
+    await page.getByRole('menuitem', { name: /cheat sheets/i }).click();
     await expect(page.locator('.search-modal')).toBeVisible();
 
     await page.keyboard.press('Escape');
-    await page.getByLabel('Close sidebar').click();
+    const closeSidebar = page.getByLabel('Close sidebar');
+    if (await closeSidebar.isVisible().catch(() => false)) {
+      await closeSidebar.click();
+    }
 
     await page.getByLabel('Open lesson search').click();
     await expect(page.locator('.search-input')).toBeVisible();

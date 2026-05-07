@@ -341,8 +341,8 @@
         ]
       },
       "bridge": {
-        "preview": "In the next lesson, you'll learn about LOOPS in depth — while loops, for...of loops, and how to iterate through data efficiently.",
-        "nextLessonId": "js-3-4"
+        "preview": "In the next lesson, you'll learn how arrays can transform and organize data — the bridge from interaction logic into richer app behavior.",
+        "nextLessonId": "js-4-1"
       }
     }
   ]

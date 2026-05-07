@@ -7,6 +7,9 @@ Use this checklist before Netlify releases or hotfix deploys.
 - Confirm branch, target deploy context, and commit SHA.
 - Run:
   - `npm run check`
+  - `npm run audit:e2e-scripts`
+  - `npm run audit:auth-e2e`
+  - `npm run audit:content`
   - `npm run audit:quizzes`
   - `npm run test:e2e`
 - Confirm required runtime environment variables:
@@ -47,7 +50,8 @@ Use this checklist before Netlify releases or hotfix deploys.
 
 - `npm run test:e2e` always covers public smoke, accessibility, visual, and first-lesson preview paths.
 - Authenticated smoke checks require environment credentials and will otherwise skip.
-- `npm run audit:quizzes` should remain report-only until strict-mode criteria are defined for classified orphan inventory, intentional variants, aliases, and archived inactive quiz coverage.
+- `npm run audit:quizzes` runs strict mode and should stay green for classified orphan inventory, intentional variants, aliases, and archived inactive quiz coverage.
+- `npm run audit:content` should fail on stale prerequisite and bridge IDs before public release.
 - Production-grade reliability still requires broader learning/data/a11y regression coverage.
 
 ## Release Sign-Off

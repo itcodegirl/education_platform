@@ -32,7 +32,10 @@
   .nav-row { display: none; }
   .nav-guidance { display: none; }
   .mark-btn { display: none; }
-  .main-shell { padding-bottom: 80px; }
+  .main-shell {
+    padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+    scroll-padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+  }
 
   /* Hide the old floating toolbar on mobile (tools moved to sidebar) */
   .bottom-tools { display: none; }
@@ -127,7 +130,10 @@
   .breadcrumb { padding: 6px 8px; border-radius: 10px; }
   .breadcrumb-lesson { font-size: 11px; }
 
-  .main-shell { padding-bottom: 88px; }
+  .main-shell {
+    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+    scroll-padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+  }
   .lesson-nav { padding: 8px 10px; gap: 6px; }
   .lesson-nav-btn { padding: 8px 4px; border-radius: 10px; min-height: 44px; }
   .lesson-nav-label { font-size: 11px; }

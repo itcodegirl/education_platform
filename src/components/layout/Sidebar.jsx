@@ -53,6 +53,7 @@ export const Sidebar = memo(function Sidebar({
   hasCompletedProgress = true,
 }) {
   const isDesktopCollapsed = !isMobile && isCollapsed;
+  const isNavInteractionHidden = isDesktopCollapsed || (isMobile && !isOpen);
   const { completed = [] } = useProgressData();
   const { user } = useAuth();
   const [lockMode, setLockMode] = useLearnerLocalStorage('chw-lock-mode', false);
@@ -231,6 +232,12 @@ export const Sidebar = memo(function Sidebar({
   }, [activePopout, closePopout, isDesktopCollapsed]);
 
   useEffect(() => {
+    if (!isMobile || isOpen) return;
+    setPopoverOpen(false);
+    closePopout(false);
+  }, [closePopout, isMobile, isOpen]);
+
+  useEffect(() => {
     const navElement = document.getElementById('course-sidebar');
     if (!navElement) return undefined;
 
@@ -238,7 +245,7 @@ export const Sidebar = memo(function Sidebar({
       navElement.querySelectorAll('a[href], button, input, select, textarea, [tabindex]'),
     );
 
-    if (isDesktopCollapsed) {
+    if (isNavInteractionHidden) {
       focusableElements.forEach((element) => {
         if (!element.hasAttribute('data-prev-tabindex')) {
           const previousTabIndex = element.getAttribute('tabindex');
@@ -261,7 +268,7 @@ export const Sidebar = memo(function Sidebar({
     });
 
     return undefined;
-  }, [isDesktopCollapsed]);
+  }, [isNavInteractionHidden]);
 
   // While tab content is active, close it on click-outside or Escape.
   useEffect(() => {
@@ -300,6 +307,20 @@ export const Sidebar = memo(function Sidebar({
 
   const togglePopover = useCallback(() => setPopoverOpen((v) => !v), []);
   const closePopover = useCallback(() => setPopoverOpen(false), []);
+  const handleCourseSelect = useCallback((nextCourseIndex) => {
+    onSelectCourse(nextCourseIndex);
+    setActivePopout(null);
+    setPopoutPos(null);
+    if (isMobile) onClose();
+  }, [isMobile, onClose, onSelectCourse]);
+
+  const handleToolSelect = useCallback((toolKey) => {
+    onOpenTool(toolKey);
+    setActivePopout(null);
+    setPopoutPos(null);
+    if (isMobile) onClose();
+  }, [isMobile, onClose, onOpenTool]);
+
   const handleLessonSelect = useCallback((module, lesson, mi, li, unlocked) => {
     logNavigationDiagnostic('lesson-click-fired', {
       targetLessonId: lesson?.id || '',
@@ -322,6 +343,7 @@ export const Sidebar = memo(function Sidebar({
     enabled: isMobile && isOpen,
     onEscape: onClose,
     lockBodyScroll: true,
+    initialFocus: 'first-tabbable',
   });
 
   return (
@@ -336,14 +358,15 @@ export const Sidebar = memo(function Sidebar({
         aria-modal={isMobile && isOpen ? 'true' : undefined}
         aria-label={isMobile && isOpen ? 'Course navigation' : undefined}
         aria-hidden={isMobile ? !isOpen : undefined}
+        inert={isMobile && !isOpen ? '' : undefined}
         tabIndex={isMobile ? -1 : undefined}
       >
       <nav
         id="course-sidebar"
         className={`sidebar ${isOpen ? 'open' : ''} ${!isMobile && isCollapsed ? 'collapsed' : ''}`}
         aria-label="Course navigation"
-        aria-hidden={isDesktopCollapsed ? 'true' : undefined}
-        inert={isDesktopCollapsed ? '' : undefined}
+        aria-hidden={isNavInteractionHidden ? 'true' : undefined}
+        inert={isNavInteractionHidden ? '' : undefined}
       >
         {/* ─── Brand + Avatar row ─── */}
         <header className="sidebar-head">
@@ -456,11 +479,7 @@ export const Sidebar = memo(function Sidebar({
                   type="button"
                   role="menuitem"
                   className={`cs-option ${ci === courseIdx ? 'active' : ''}`}
-                  onClick={() => {
-                    onSelectCourse(ci);
-                    setActivePopout(null);
-                    setPopoutPos(null);
-                  }}
+                  onClick={() => handleCourseSelect(ci)}
                   style={{ '--cs-accent': c.accent }}
                   aria-label={`Switch to ${c.label} course`}
                 >
@@ -527,11 +546,7 @@ export const Sidebar = memo(function Sidebar({
                   role="menuitem"
                   className={`sidebar-tab-opt ${activePanel === t.key ? 'active' : ''}`}
                   aria-pressed={activePanel === t.key}
-                  onClick={() => {
-                    onOpenTool(t.key);
-                    setActivePopout(null);
-                    setPopoutPos(null);
-                  }}
+                  onClick={() => handleToolSelect(t.key)}
                   aria-label={`Open ${label}`}
                 >
                   <span className="sidebar-tab-opt-icon" aria-hidden="true">{t.icon}</span>
@@ -552,7 +567,7 @@ export const Sidebar = memo(function Sidebar({
             <button
               type="button"
               className={`sidebar-roadmap-btn ${activePanel === 'roadmap' ? 'active' : ''}`}
-              onClick={() => onOpenTool('roadmap')}
+              onClick={() => handleToolSelect('roadmap')}
               aria-label="Open full learning roadmap"
               title="Full roadmap"
             >

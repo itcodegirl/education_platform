@@ -42,11 +42,13 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 
 Current baseline checks:
 
-- `npm run check` (lint, production build, bundle budget, unit tests)
+- `npm run check` (lint, production build, bundle budget, static audits, unit tests)
 - `npm run build`
 - `npm run lint`
 - `npm run check:js-source` (JS-only source policy; this project does not run TypeScript type checking)
 - `npm run check:supabase-readiness` (static migration/privacy/reward-ledger readiness gate)
+- `npm run audit:e2e-scripts` (Playwright project-name references match `playwright.config.js`)
+- `npm run audit:auth-e2e` (authenticated E2E workflows keep preflight and required secret wiring)
 - `npm run audit:content` (course/module/lesson/quiz/challenge content integrity guard)
 - `npm run test` (Vitest unit/component suite — passes on a fresh clone with no `.env` configured; the suite stubs the `VITE_SUPABASE_*` placeholders via `vitest.config.js` so client-importing tests can evaluate)
 - `npm run audit:quizzes`

@@ -9,7 +9,7 @@
       "id": "lesson-04",
       "title": "Organize Information with Lists",
       "prereqs": [
-        "h1-2"
+        "lesson-03"
       ],
       "difficulty": "beginner",
       "duration": "16 min",

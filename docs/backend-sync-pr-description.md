@@ -11,7 +11,7 @@ This PR hardens learning-platform safety paths and documents the backend reward 
 ## Current Hardening Update
 
 - Authenticated learner E2E now has a CI preflight that requires these GitHub Secrets: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `E2E_EMAIL`, and `E2E_PASSWORD`.
-- Local authenticated E2E can still skip when those values are intentionally absent. CI jobs set `E2E_AUTH_REQUIRED=true`, so missing secrets, placeholder Supabase config, invalid URLs, or unreachable Supabase hosts fail clearly before Playwright runs.
+- Local authenticated E2E can still skip when those values are intentionally absent. CI jobs set `E2E_AUTH_REQUIRED=true` only when the full secret set is present; once required, placeholder Supabase config, invalid URLs, or unreachable Supabase hosts fail clearly before Playwright runs.
 - Playwright already records `trace: retain-on-failure`, `screenshot: only-on-failure`, and `video: retain-on-failure`; CI now uploads `playwright-report/` and `test-results/` artifacts with 7-day retention for failed-run inspection.
 - Reward backend idempotency now has an additive migration guard for `(user_id, event_key)` plus static SQL checks that verify auth-derived ownership and duplicate-award prevention. Live Supabase validation is still required before enabling backend reward sync outside staging.
 - `npm audit --omit=dev` identified `dompurify` via `monaco-editor`; the override is updated to the patched `dompurify` range.
