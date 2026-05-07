@@ -36,7 +36,7 @@ test('capture authenticated storage state', async ({ page }) => {
 	const authReady = await waitForAuthenticatedShell(page);
 	if (!authReady.ok) {
 		markAuthUnavailable(authReady.reason);
-		test.skip(true, authReady.reason);
+		throw new Error(authReady.reason);
 	}
 
 	const startFreshButton = page.getByRole('button', { name: /start fresh/i });
@@ -59,6 +59,22 @@ async function waitForAuthenticatedShell(page) {
 		const authErrorText = authError?.textContent?.trim();
 		if (isVisible('.auth-error') && authErrorText) {
 			return { ok: false, reason: `Configured E2E test account could not sign in: ${authErrorText}` };
+		}
+
+		if (isVisible('.conn-error')) {
+			return { ok: false, reason: 'Configured E2E test account reached the connection error screen after login.' };
+		}
+
+		if (isVisible('.disabled-screen')) {
+			return { ok: false, reason: 'Configured E2E test account is signed in but disabled.' };
+		}
+
+		if (isVisible('.eb-screen')) {
+			const detail = document.querySelector('.eb-detail code')?.textContent?.trim();
+			return {
+				ok: false,
+				reason: `Configured E2E test account hit the app error boundary.${detail ? ` Detail: ${detail}` : ''}`,
+			};
 		}
 
 		const hasAuthenticatedShell = isVisible('.topbar') &&
