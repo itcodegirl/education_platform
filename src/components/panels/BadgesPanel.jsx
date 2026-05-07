@@ -40,6 +40,19 @@ export function BadgesPanel({ isOpen, onClose }) {
           <p className="panel-meta panel-meta-trust">
             Badges are CodeHerWay in-app milestones, not external credentials. XP and streaks are motivational signals.
           </p>
+          {earnedCount === 0 && (
+            <div className="sr-empty">
+              <span className="sr-empty-icon" aria-hidden="true">☆</span>
+              <p><strong>No badges earned yet.</strong></p>
+              <p className="empty-state-msg">
+                Start with one lesson. Badges will appear here after real progress,
+                so this panel stays celebratory instead of noisy.
+              </p>
+              <button type="button" className="empty-state-action" onClick={onClose}>
+                Back to lesson
+              </button>
+            </div>
+          )}
           {/* List semantics + per-badge aria-label so screen-reader users
               can tell earned from locked badges. Without this, the
               earned/locked distinction was visual only — the emoji,

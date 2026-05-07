@@ -113,9 +113,10 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
             )}
           </div>
           <p className="quiz-next-step" role="status" aria-live="polite">
-            Next step: review the explanations below, then retry or continue to the next lesson.
+            Review the explanations, then choose: retry for practice or continue to the next lesson.
+            XP is awarded once per quiz milestone.
           </p>
-          <button type="button" className="quiz-retry" onClick={reset}>? Retry</button>
+          <button type="button" className="quiz-retry" onClick={reset}>Retry for practice</button>
         </div>
       )}
     </div>

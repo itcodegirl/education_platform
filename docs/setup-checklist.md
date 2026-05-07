@@ -11,6 +11,18 @@ doc is a single copy-paste guide for all of them.
 
 ## 1. Run the Supabase migration
 
+Before touching the live project, run the static repo gate:
+
+```bash
+npm run check:supabase-readiness
+```
+
+That command verifies the required stable resume, public profile privacy,
+and reward ledger migration artifacts are present in source control. It
+does not prove the live Supabase project has applied them. Use
+[Supabase Production Readiness](./supabase-production-readiness.md) for
+the exact migration order and SQL inspection queries.
+
 The `supabase-schema.sql` file is idempotent — you can paste the
 **entire file** into the Supabase SQL Editor and hit Run.
 

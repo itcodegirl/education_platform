@@ -152,6 +152,18 @@ describe('Sidebar', () => {
     expect(screen.getByRole('menuitem', { name: /open cheat sheets/i })).toBeInTheDocument();
   });
 
+  it('keeps first-session tools focused before a lesson is completed', () => {
+    renderSidebar({ hasCompletedProgress: false });
+
+    fireEvent.click(screen.getByRole('button', { name: /tools/i }));
+
+    expect(screen.getByRole('menuitem', { name: /open saved lessons/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /open cheat sheets/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /open glossary/i })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: /open badges/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: /open challenges/i })).not.toBeInTheDocument();
+  });
+
   it('keeps tab switching and lesson navigation working together', () => {
     const onSelectLesson = vi.fn();
     mockUseLocalStorage.mockReturnValue([false, vi.fn()]);

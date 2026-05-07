@@ -102,6 +102,7 @@ describe('QuizView', () => {
       expect(
         screen.getByText(/Best score saved to your progress/i),
       ).toBeInTheDocument();
+      expect(screen.getByText(/XP is awarded once per quiz milestone/i)).toBeInTheDocument();
     });
   });
 

@@ -64,6 +64,14 @@ export const MOBILE_TOOL_KEYS = Object.freeze([
   'badges',
 ]);
 
+export const FIRST_SESSION_TOOL_KEYS = Object.freeze([
+  'search',
+  'bookmarks',
+  'stats',
+  'cheatsheet',
+  'glossary',
+]);
+
 export const SIDEBAR_RESOURCE_TOOL_KEYS = Object.freeze([
   'bookmarks',
   'sr',
@@ -86,5 +94,9 @@ export const BOTTOM_SECONDARY_TOOL_KEYS = Object.freeze([
 
 export function getLearningToolCopy(key) {
   return LEARNING_TOOL_COPY[key] || { label: key, helper: '' };
+}
+
+export function isLearningToolAvailable(key, hasCompletedProgress = true) {
+  return hasCompletedProgress || FIRST_SESSION_TOOL_KEYS.includes(key);
 }
 
