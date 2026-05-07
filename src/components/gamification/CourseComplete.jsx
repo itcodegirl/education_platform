@@ -4,7 +4,17 @@ import { useToast } from '../shared/Toast';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { PROGRESS_SUMMARY_COPY, PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 
-export function CourseComplete({ isOpen, onClose, course, displayName, lessonCount }) {
+// Curriculum order (HTML → CSS → JS → React) doubles as the natural
+// "what's next" recommendation. The pure helper is exported so the
+// recommendation can be unit-tested without mounting the dialog.
+export function getNextRecommendedTrack(currentCourseId, courses) {
+  if (!Array.isArray(courses) || courses.length === 0) return null;
+  const idx = courses.findIndex((c) => c.id === currentCourseId);
+  if (idx === -1 || idx >= courses.length - 1) return null;
+  return courses[idx + 1] || null;
+}
+
+export function CourseComplete({ isOpen, onClose, course, displayName, lessonCount, courses, onSelectNextCourse }) {
   const [show, setShow] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const toast = useToast();
@@ -29,6 +39,14 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
     month: 'long',
     day: 'numeric',
   });
+
+  const nextTrack = getNextRecommendedTrack(course?.id, courses);
+  const handleStartNextTrack = () => {
+    if (typeof onSelectNextCourse === 'function' && nextTrack) {
+      onSelectNextCourse(nextTrack.id);
+    }
+    onClose();
+  };
 
   const handleDownload = async () => {
     setDownloading(true);
@@ -106,6 +124,25 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
             </div>
           </div>
         </div>
+
+        {nextTrack && (
+          <div className="cc-next-track" aria-label={`Recommended next track: ${nextTrack.label}`}>
+            <p className="cc-next-track-label">Recommended next</p>
+            <button
+              type="button"
+              className="cc-next-track-btn"
+              onClick={handleStartNextTrack}
+              style={{ borderColor: nextTrack.accent }}
+            >
+              <span className="cc-next-track-icon" aria-hidden="true">{nextTrack.icon}</span>
+              <span className="cc-next-track-text">
+                <span className="cc-next-track-title">Start {nextTrack.label}</span>
+                <span className="cc-next-track-sub">Builds on what you just shipped.</span>
+              </span>
+              <span className="cc-next-track-arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
+        )}
 
         <div className="cc-actions">
           <button

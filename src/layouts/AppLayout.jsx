@@ -38,15 +38,15 @@ import { getSyncStatusCopy } from "../utils/syncStatusCopy";
 
 // Layout components
 import { Sidebar } from "../components/layout/Sidebar";
-import { Breadcrumb } from "../components/layout/Breadcrumb";
+import { LessonShellTopbar } from "../components/layout/LessonShellTopbar";
 import { ThemeToggle } from "../components/layout/ThemeToggle";
 import { BottomToolbar } from "../components/layout/BottomToolbar";
 import { LessonNavBar } from "../components/layout/LessonNavBar";
+import { LessonPagination } from "../components/layout/LessonPagination";
 import { MobileToolsSheet } from "../components/layout/MobileToolsSheet";
 import { OfflineIndicator } from "../components/layout/OfflineIndicator";
 import { FirstRunGuide } from "../components/layout/FirstRunGuide";
 import { LessonFocusStrip } from "../components/layout/LessonFocusStrip";
-import { TopbarLearnerStatus } from "../components/layout/TopbarLearnerStatus";
 
 // Learning components
 import { LessonView } from "../components/learning/LessonView";
@@ -133,23 +133,29 @@ export function AppLayout() {
 
   const { stable: stableLessonKey, legacy: legacyLessonKey } = getLessonKeyVariants(course, mod, les);
   const isDone = hasLessonCompletion(completedSet, course, mod, les);
+  // Reading-time estimate is the prose path only. Including the
+  // code block would inflate the figure (~200 wpm reading prose is
+  // not the same as scanning code) and surface a misleading number
+  // in the topbar pill.
   const readTime = useMemo(
-    () => estimateReadingTime((les.content || '') + (les.code || '')),
-    [les.content, les.code],
+    () => estimateReadingTime(les.content || ''),
+    [les.content],
   );
   const level = useMemo(() => getLevel(xpTotal), [xpTotal]);
   const hasProgress = completed.length > 0 || Number(lastPosition?.time) > 0;
   const hasCompletedProgress = completed.length > 0;
   const showStarterGuide = !hasProgress && !showModQuiz;
-  // "Builder" was the previous fallback. It's well-meaning but
-  // reads as scripted. "there" reads as a normal greeting when no
-  // display name is set ("Keep building, there.") and avoids
-  // gendered or jargon-y framing.
+  // Resolved display name when one exists; null otherwise. Surfaces
+  // that need a textual fallback ("Continue learning, there." reads
+  // cold) decide locally how to handle the null case — the topbar
+  // drops the salutation entirely; FirstRunGuide uses an open-form
+  // sentence that doesn't require a name. This avoids cycling through
+  // awkward placeholders ("Builder" / "there") that read as scripted.
   const learnerName =
-    profile?.display_name ||
-    user?.user_metadata?.display_name ||
+    profile?.display_name?.trim() ||
+    user?.user_metadata?.display_name?.trim() ||
     user?.email?.split("@")[0] ||
-    "there";
+    null;
   const isSidebarOpen = isMobile ? panels.sidebar : true;
 
   useEffect(() => {
@@ -396,75 +402,38 @@ export function AppLayout() {
       />
 
       <main className="main-shell" ref={mainRef} id="main-content" tabIndex={-1}>
-        <header className="topbar">
-          <div className="topbar-inner">
-            <button
-              type="button"
-              className="ham"
-              onClick={() => {
-                if (isMobile) {
-                  panels.setSidebar(true);
-                  return;
-                }
-                setSidebarCollapsed((value) => !value);
-              }}
-              aria-label={isMobile ? "Open course navigation" : sidebarCollapsed ? "Expand course navigation" : "Collapse course navigation"}
-              aria-controls="course-sidebar"
-              aria-expanded={isMobile ? panels.sidebar : !sidebarCollapsed}
-            >
-              <span className="ham-glyph" aria-hidden="true">
-                {isMobile ? '☰' : sidebarCollapsed ? '›' : '‹'}
-              </span>
-              <span className="ham-label">
-                {isMobile ? 'Menu' : sidebarCollapsed ? 'Expand' : 'Collapse'}
-              </span>
-            </button>
-            <Breadcrumb
-              course={course}
-              mod={mod}
-              lesTitle={les.title}
-              showModQuiz={showModQuiz}
-              lessonPosition={lessonPosition}
-            />
-            <TopbarLearnerStatus
-              learnerName={learnerName}
-              readTime={readTime}
-              showModQuiz={showModQuiz}
-              xpTotal={xpTotal}
-              level={level}
-              coursePct={coursePct}
-              streak={streak}
-              pausedStreak={pausedStreak}
-              dailyCount={dailyCount}
-            />
-            <div className="topbar-actions">
-              <button
-                type="button"
-                className={`search-trigger ui-btn ui-btn-secondary ${panels.panel === "search" ? "active" : ""}`}
-                onClick={() => panels.togglePanel("search")}
-                aria-label="Open lesson search"
-                aria-pressed={panels.panel === "search"}
-              >
-                <span className="search-trigger-label">Search</span>
-                <span className="search-trigger-mobile-hint">Tap to search</span>
-                <kbd>Ctrl+K</kbd>
-              </button>
-              {!showModQuiz && (
-              <button
-                  type="button"
-                  className={`mark-btn ${isDone ? "dn" : ""}`}
-                  onClick={handleMarkDone}
-                  disabled={marking}
-                  aria-label={topbarCompletionCopy.ariaLabel}
-                  aria-pressed={isDone}
-                >
-                  {isDone && !marking ? "✓ " : ""}
-                  {topbarCompletionCopy.label}
-                </button>
-              )}
-            </div>
-          </div>
-        </header>
+        <LessonShellTopbar
+          isMobile={isMobile}
+          sidebarCollapsed={sidebarCollapsed}
+          isSidebarOpen={panels.sidebar}
+          onHamburgerClick={() => {
+            if (isMobile) {
+              panels.setSidebar(true);
+              return;
+            }
+            setSidebarCollapsed((value) => !value);
+          }}
+          course={course}
+          mod={mod}
+          les={les}
+          showModQuiz={showModQuiz}
+          lessonPosition={lessonPosition}
+          learnerName={learnerName}
+          readTime={readTime}
+          xpTotal={xpTotal}
+          level={level}
+          coursePct={coursePct}
+          streak={streak}
+          pausedStreak={pausedStreak}
+          dailyCount={dailyCount}
+          isSearchActive={panels.panel === 'search'}
+          onToggleSearch={() => panels.togglePanel('search')}
+          isDone={isDone}
+          marking={marking}
+          onMarkDone={handleMarkDone}
+          markDoneAriaLabel={topbarCompletionCopy.ariaLabel}
+          markDoneLabel={topbarCompletionCopy.label}
+        />
 
         <div className="lesson-container">
           {showModQuiz && moduleQuiz ? (
@@ -518,48 +487,15 @@ export function AppLayout() {
           )}
         </div>
 
-        <nav className="nav-row" aria-label="Lesson pagination">
-          <button
-            type="button"
-            className="nav-btn ui-btn ui-btn-secondary"
-            onClick={nav.prev}
-            disabled={isFirst}
-            aria-label={prevTitle ? `Previous lesson: ${prevTitle}` : 'Previous lesson'}
-          >
-            <span className="nav-btn-dir" aria-hidden="true">←</span>
-            <span className="nav-btn-text">
-              {prevTitle ? (
-                <>
-                  <span className="nav-btn-label">Previous lesson</span>
-                  <span className="nav-btn-title">{prevTitle}</span>
-                </>
-              ) : 'Previous lesson'}
-            </span>
-          </button>
-          <button
-            type="button"
-            className="nav-btn nx ui-btn ui-btn-primary"
-            onClick={handleNextLesson}
-            disabled={isLast}
-            style={{ background: course.accent }}
-            aria-label={
-              isLast ? 'Course complete' :
-              nextTitle ? `Next: ${nextTitle}` : 'Next lesson'
-            }
-          >
-            <span className="nav-btn-text">
-              {isLast ? (
-                'Track complete'
-              ) : nextTitle ? (
-                <>
-                  <span className="nav-btn-label">Continue to</span>
-                  <span className="nav-btn-title">{nextTitle}</span>
-                </>
-              ) : 'Next lesson'}
-            </span>
-            <span className="nav-btn-dir" aria-hidden="true">→</span>
-          </button>
-        </nav>
+        <LessonPagination
+          onPrev={nav.prev}
+          onNext={handleNextLesson}
+          prevTitle={prevTitle}
+          nextTitle={nextTitle}
+          isFirst={isFirst}
+          isLast={isLast}
+          accent={course.accent}
+        />
         <p className="nav-guidance" role="status" aria-live="polite">
           {nextStepHint}
         </p>
