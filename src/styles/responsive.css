@@ -134,6 +134,7 @@
     padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
     scroll-padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
   }
+  .lesson-nav { padding: 8px 10px; gap: 6px; }
   .lesson-nav {
     padding:
       8px
