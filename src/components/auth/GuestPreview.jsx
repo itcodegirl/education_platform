@@ -29,7 +29,7 @@ export function GuestPreview({ onBack }) {
   if (!htmlReady || !firstLesson) {
     return (
       <main className="guest-preview guest-preview-loading" aria-live="polite" role="status">
-        <p>Loading lesson preview...</p>
+        <p>Opening lesson preview...</p>
       </main>
     );
   }

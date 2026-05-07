@@ -205,7 +205,7 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
             </>
 
           ) : (
-            <Suspense fallback={<div className="code-preview-editor-loading"><span className="code-preview-loading-spinner"></span>Loading editor...</div>}>
+            <Suspense fallback={<div className="code-preview-editor-loading"><span className="code-preview-loading-spinner"></span>Opening editor...</div>}>
               <MonacoEditor
                 height="320px"
                 language={monacoLang}

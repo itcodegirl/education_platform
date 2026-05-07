@@ -80,7 +80,7 @@ describe('appRouter ProtectedRoute', () => {
 
     renderProtectedRoute();
 
-    expect(screen.getByText(/Checking your account session/i)).toBeInTheDocument();
+    expect(screen.getByText(/Opening your learning dashboard/i)).toBeInTheDocument();
     expect(screen.queryByText('auth-layout')).not.toBeInTheDocument();
     expect(screen.queryByText('private-content')).not.toBeInTheDocument();
   });
@@ -96,7 +96,7 @@ describe('appRouter ProtectedRoute', () => {
 
     renderProtectedRoute();
 
-    expect(screen.getByText(/Checking your account session/i)).toBeInTheDocument();
+    expect(screen.getByText(/Opening your learning dashboard/i)).toBeInTheDocument();
     expect(screen.queryByText('auth-layout')).not.toBeInTheDocument();
     expect(screen.queryByText('private-content')).not.toBeInTheDocument();
   });
