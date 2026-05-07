@@ -318,6 +318,10 @@
   line-height: 1.4;
 }
 .task-item:hover { border-color: var(--border-bright); }
+.task-item:focus-within {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.18);
+}
 .task-item.done {
   border-color: var(--cyan);
   background: rgba(78,205,196,0.08);
@@ -327,7 +331,16 @@
   color: var(--text-dim);
 }
 .task-item input[type="checkbox"] {
-  display: none;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 .task-check {
   width: 22px;
@@ -342,6 +355,10 @@
   flex-shrink: 0;
   transition: all 0.2s;
   color: transparent;
+}
+.task-item input[type="checkbox"]:focus-visible + .task-check {
+  outline: 3px solid var(--cyan);
+  outline-offset: 3px;
 }
 .task-item.done .task-check {
   background: var(--cyan);

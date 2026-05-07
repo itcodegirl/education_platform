@@ -181,7 +181,7 @@ export const StructuredLessonBody = memo(function StructuredLessonBody({
                           onChange={() => onToggleTask(key)}
                           aria-label={req}
                         />
-                        <span className="task-check">{isChecked ? '✓' : ''}</span>
+                        <span className="task-check" aria-hidden="true">{isChecked ? '✓' : ''}</span>
                         <span className="task-text">{req}</span>
                       </label>
                     );

@@ -252,11 +252,12 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
         <div className="pp-public-card">
           <div className="pp-public-head">
             <div>
-              <div className="pp-public-title">Let your progress speak for itself</div>
+              <div className="pp-public-title">Share a progress snapshot</div>
               <div className="pp-public-sub">
                 Create a read-only page at <code>/u/your-handle</code> that shows your
-                level, motivational XP, streak, lessons shipped, and badge count. No
-                email, notes, or private progress details are exposed.
+                level, motivational XP, streak, completed lessons, and badge count.
+                This is a learning snapshot, not a verified credential. No email,
+                notes, or private progress details are exposed.
               </div>
             </div>
             <label className="pp-public-switch">
