@@ -40,6 +40,7 @@ import {
   replayProgressWriteQueue,
 } from '../services/progressWriteQueue';
 import {
+  trackProgressSyncFailure,
   trackProgressSyncQueued,
   trackProgressSyncReplay,
 } from '../services/progressSyncTelemetry';
@@ -148,7 +149,11 @@ export function ProgressProvider({ children }) {
   const pendingSyncWritesRef = useRef(0);
   const hydratePendingQueueRef = useRef(false);
 
-  const markSyncFailed = useCallback(() => {
+  const markSyncFailed = useCallback((label = 'sync-write') => {
+    trackProgressSyncFailure({
+      label,
+      pendingCount: pendingSyncWritesRef.current,
+    });
     setSyncFailed((count) => count + 1);
   }, []);
 
