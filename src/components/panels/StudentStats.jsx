@@ -156,7 +156,7 @@ export function StudentStats({ isOpen, onClose }) {
           ) : (
           <p className="panel-meta">
             Track motivational XP, quiz confidence, review load, and the parts of the curriculum that need the next rep.
-            Lessons, bookmarks, notes, XP, and streaks sync to your account when the cloud is reachable.
+            Lessons, bookmarks, and notes can sync to your account when the cloud is reachable; rewards stay on this device today.
           </p>
           )}
           <p className="panel-meta">{PROGRESS_SYNC_COPY}</p>

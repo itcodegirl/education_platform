@@ -31,7 +31,11 @@ import {
   getPrevLessonTitle,
 } from "../utils/lessonNavCopy";
 import { getSyncStatusCopy } from "../utils/syncStatusCopy";
-import { getLearningToolCopy, MOBILE_TOOL_KEYS } from "../constants/learningTools";
+import {
+  getLearningToolCopy,
+  isLearningToolAvailable,
+  MOBILE_TOOL_KEYS,
+} from "../constants/learningTools";
 
 // Layout components
 import { Sidebar } from "../components/layout/Sidebar";
@@ -135,6 +139,7 @@ export function AppLayout() {
   );
   const level = useMemo(() => getLevel(xpTotal), [xpTotal]);
   const hasProgress = completed.length > 0 || Number(lastPosition?.time) > 0;
+  const hasCompletedProgress = completed.length > 0;
   const showStarterGuide = !hasProgress && !showModQuiz;
   // "Builder" was the previous fallback. It's well-meaning but
   // reads as scripted. "there" reads as a normal greeting when no
@@ -324,7 +329,9 @@ export function AppLayout() {
     [panels],
   );
   const mobileTools = useMemo(
-    () => MOBILE_TOOL_KEYS.map((key) => {
+    () => MOBILE_TOOL_KEYS.filter((key) =>
+      isLearningToolAvailable(key, hasCompletedProgress),
+    ).map((key) => {
       const copy = getLearningToolCopy(key);
       const handlerName = key === 'sr'
         ? 'onSR'
@@ -336,7 +343,7 @@ export function AppLayout() {
         onSelect: toolbarHandlers[handlerName],
       };
     }),
-    [toolbarHandlers],
+    [hasCompletedProgress, toolbarHandlers],
   );
 
   useEffect(() => {
@@ -411,6 +418,7 @@ export function AppLayout() {
         }}
         onOpenTool={handleOpenTool}
         activePanel={panels.panel}
+        hasCompletedProgress={hasCompletedProgress}
       />
 
       <main className="main-shell" ref={mainRef} id="main-content" tabIndex={-1}>
@@ -598,7 +606,11 @@ export function AppLayout() {
           toolsOpen={mobileToolsOpen}
         />
       ) : (
-        <BottomToolbar activePanel={panels.panel} {...toolbarHandlers} />
+        <BottomToolbar
+          activePanel={panels.panel}
+          hasCompletedProgress={hasCompletedProgress}
+          {...toolbarHandlers}
+        />
       )}
       <MobileToolsSheet
         isOpen={isMobile && mobileToolsOpen}
@@ -614,6 +626,7 @@ export function AppLayout() {
         course={course}
         profile={profile}
         completed={completed}
+        hasCompletedProgress={hasCompletedProgress}
         lastPosition={lastPosition}
         courseTotal={courseTotal}
       />

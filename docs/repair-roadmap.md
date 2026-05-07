@@ -1,93 +1,97 @@
 # Repair Roadmap
 
-This roadmap tracks staged stabilization work from audit findings. It is intentionally incremental and evidence-driven.
+This roadmap tracks the prioritized stabilization path for CodeHerWay. It is intentionally honest about the difference between portfolio-ready, product-trust-ready, and production-ready.
 
-## P0: Repo Trust + Documentation
+Phase exit criteria live in [Roadmap Acceptance Criteria](./roadmap-acceptance-criteria.md). Learner-owned state and trust boundaries live in [Learner State Model](./learner-state-model.md) and [Trust Boundaries](./trust-boundaries.md).
 
-Goal: make the canonical app path, product identity, and project status unambiguous.
+## Phase 1: Stabilize
 
-- Canonical repo surface cleanup
-- Brand and claim alignment
-- Transparency documentation baseline
+Goal: make the project safe to show to recruiters without confusing them or overstating product trust.
 
-Exit criteria:
+Tasks:
 
-- Recruiter-visible docs are accurate and consistent with implemented behavior.
-- Archived code is clearly labeled as non-canonical.
+- Rename or clearly mark the canonical repo.
+- Remove archived repos from portfolio navigation.
+- Add a Reviewer Start Here doc.
+- Align README, Known Limitations, repair roadmap, and package scripts.
+- Correct challenge-grading disclosure.
+- Rename certificate/export copy to Progress Summary unless verification exists.
+- Rename typecheck or add real type checking.
+- Update public copy to say single-device rewards are local today.
 
-## P1: Learning Integrity
+Expected result:
 
-Goal: make learner progress and completion signals trustworthy.
+Recruiters land in the right repo, understand the product's real status, and do not catch obvious claim mismatches.
 
-Current quiz checkpoint:
+## Phase 2: Clarify UX
 
-- Active HTML, CSS, JavaScript, and React lesson quiz coverage is complete.
-- The platform now ships only the four frontend tracks (HTML, CSS, JS, React); the previous Python track was removed to keep the product focus tight.
-- Quiz variant groups and legacy orphan quiz inventory are now classified and monitored through `npm run audit:quizzes`.
-- Strict-mode quiz audit CI criteria are still planned, not enabled as a release gate.
+Goal: make the learner journey calmer and more obvious.
 
-Current progress/reward checkpoint:
+Tasks:
 
-- Lesson completion XP uses stable reward keys and a local reward-event processor to prevent same-device uncomplete/recomplete farming.
-- Quiz retries remain available for learning, while base quiz XP and perfect-score bonus XP are awarded once per stable quiz key and recorded through learner-scoped local reward events.
-- Streaks now advance from explicit learning actions instead of app load, while preserving existing UTC date semantics.
-- Challenge completion is persisted, deduped, and reward-event processed for same-device learning motivation, but is not secure certification.
-- Core localStorage and route-action write failures mark sync-failed state instead of failing completely silently.
-- `src/engine/rewards/` contains the local reward-event foundation, local ledger, local retry queue, reconciliation helpers, diagnostics, processor, and shared runtime bridge used by lesson, quiz, and challenge rewards.
-- Supabase reward backend scaffolding is unified with the local runtime: additive `reward_events` and `award_reward_event` migrations, a backend reward service wrapper, and feature-gated runtime integration that preserves local fallback behavior.
+- Strengthen first-session flow around one primary action.
+- Reduce tool visibility before the learner has progress.
+- Improve empty states for bookmarks, review queue, projects, badges, and notes.
+- Add route recovery for invalid lesson links.
+- Make sync warnings more specific and reassuring.
+- Fix quiz retry copy.
+- Audit mobile panel/tool stacking.
 
-Remaining hardening:
+Expected result:
 
-- Maintain completed active lesson quiz coverage for HTML, CSS, JavaScript, and React.
-- Continue legacy alias review and monitor classified orphan/variant drift through `npm run audit:quizzes`.
-- Use the reward/progress trust policy in `docs/reward-progress-policy.md` as the source of truth for future schema-backed reward hardening.
-- Apply and validate the reward backend migrations in a real Supabase project before enabling `VITE_REWARD_BACKEND_SYNC_ENABLED`.
-- Decide how to reconcile or explicitly import local reward-event ledger entries with backend reward-event records.
-- Turn the unified local queue/backend sync plan into an intentional background or user-initiated reconciliation workflow.
-- Move challenge completion history toward backend-backed persistence when the data model is ready.
-- Add backend durable retry/reconciliation for failed progress writes outside the local reward queue.
-- Decide whether learner-local streak dates should replace the current UTC date semantics.
-- Ensure search indexes intended learning content consistently.
+A beginner knows what to do next without feeling like they opened a productivity app designed by committee.
 
-Exit criteria:
+## Phase 3: Strengthen Product Logic
 
-- Active frontend-track quiz coverage remains complete and remaining audit findings stay classified with documented owner/decision status.
-- Core same-device learning loop cannot be easily gamed or silently desynced; cross-device reward integrity is scaffolded but waits for live Supabase migration application, validation, and import/backfill policy.
+Goal: make progress, rewards, and identity more trustworthy.
 
-## P2: Data Model Hardening + Migration Safety
+Tasks:
 
-Goal: move persistence from fragile labels to stable identifiers.
+- Complete stable ID persistence for course/module/lesson/quiz/challenge/badge.
+- Migrate saved position away from display labels.
+- User-scope localStorage keys.
+- Consolidate route action and service mutation logic.
+- Move XP, streaks, badges, SR queue, and challenge completions toward backend-backed idempotent records.
+- Decide local import/backfill policy for existing reward ledger data.
+- Add durable certificate verification only after server-backed completion records exist.
 
-- Replace string/display-label keys with stable IDs.
-- Unify course/module/lesson/quiz/challenge/badge identity model.
-- Define safe migration strategy for existing local storage and Supabase records.
-- Decide targeted compatibility handling for renamed HTML Module 102 lesson progress/bookmark keys.
+Expected result:
 
-Exit criteria:
+Progress survives content changes, device changes, and normal product evolution.
 
-- Data model supports growth without identity collisions or migration ambiguity.
+## Phase 4: Portfolio Polish
 
-## P3: ADHD-Friendly UX Simplification
+Goal: turn the project into a strong case study.
 
-Goal: reduce cognitive load and increase next-step clarity.
+Tasks:
 
-- Reduce overlay stacking and competing panel states.
-- Clarify one primary next action in signed-in shell.
-- Improve keyboard/focus behavior and interaction predictability.
+- Add polished screenshots/GIFs.
+- Add concise architecture diagram.
+- Add Before / After hardening section.
+- Reduce overly historical comments in source files.
+- Move audit rationale into docs/ADRs.
+- Highlight testing, performance, accessibility, and persistence decisions.
+- Add a short demo script for recruiters.
 
-Exit criteria:
+Expected result:
 
-- Task flow feels clear, low-friction, and momentum-preserving.
+The project reads like a thoughtful product build, not a pile of features wearing a nice gradient.
 
-## P4: Reliability Testing + CI Gates
+## Phase 5: Launch Readiness
 
-Goal: raise confidence with targeted regression coverage and enforceable quality gates.
+Goal: move from portfolio-ready to production-ready.
 
-- Add tests for learning flow, progress integrity, XP/streaks, search, bookmarks, auth, and accessibility.
-- Expand CI gates around build/test quality checks.
-- Define future strict-mode CI criteria for quiz integrity once orphan, variant, and alias policy decisions are complete.
-- Tighten release checklist around verified behavior.
+Tasks:
 
-Exit criteria:
+- Apply and verify Supabase reward migrations.
+- Enable backend reward sync only after duplicate-award tests pass.
+- Add authenticated E2E coverage as required CI.
+- Expand accessibility tests across the signed-in app.
+- Run Lighthouse and enforce measurable performance budgets.
+- Add privacy/terms/security docs.
+- Add backend observability for failed sync/reward writes.
+- Add verified certificate links only if the backend supports them.
 
-- Critical user journeys are covered by repeatable, actionable automated checks.
+Expected result:
+
+CodeHerWay becomes credible as a public learning platform, not just a strong portfolio product.

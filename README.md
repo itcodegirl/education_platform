@@ -4,6 +4,8 @@
 
 CodeHerWay is an active frontend learning platform project and portfolio product focused on beginner-friendly coding education.
 
+**Start here for review:** [docs/reviewer-start-here.md](./docs/reviewer-start-here.md)
+
 ## Repository identity
 
 - **Canonical active app:** `itcodegirl/education_platform`
@@ -19,10 +21,10 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 
 ## What Is Currently Working
 
-> **Progress sync: saved on this device.** Lesson completions and bookmarks
-> may sync when connected; XP, streaks, badges, review queue, and challenges
-> are single-device today. Backend cross-device reward sync is scaffolded but
-> intentionally disabled (see [Cross-device persistence](#cross-device-persistence)).
+> **Progress sync: saved on this device.** Lesson completions, bookmarks,
+> and notes may sync when connected; XP, streaks, badges, review queue, and
+> challenges are single-device today. Backend cross-device reward sync is
+> scaffolded but intentionally disabled (see [Cross-device persistence](#cross-device-persistence)).
 
 - Course browsing and lesson viewing UI for HTML, CSS, JavaScript, and React tracks.
 - Single-device progress save/reload for the core learning flow, with same-browser retry/replay for failed writes.
@@ -31,7 +33,7 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 - Active lesson quiz coverage for HTML, CSS, JavaScript, and React tracks is complete.
 - Quiz variant groups and legacy orphan quiz inventory are classified and monitored by the audit.
 - Bookmarks and lesson notes in the active app.
-- Learner progress export flow that is explicitly not a verified credential.
+- Progress Summary PDF flow that reflects current app progress and is explicitly not a verified credential.
 - Mobile learning flow with sticky lesson navigation, topbar search, and a compact tools sheet.
 - Public Playwright smoke coverage, including landing, auth, accessibility, visual snapshots, and first-lesson preview entry.
 - Netlify + Vite build/deploy flow.
@@ -43,17 +45,21 @@ Current baseline checks:
 - `npm run check` (lint, production build, bundle budget, unit tests)
 - `npm run build`
 - `npm run lint`
+- `npm run check:js-source` (JS-only source policy; this project does not run TypeScript type checking)
+- `npm run check:supabase-readiness` (static migration/privacy/reward-ledger readiness gate)
+- `npm run audit:content` (course/module/lesson/quiz/challenge content integrity guard)
 - `npm run test` (Vitest unit/component suite — passes on a fresh clone with no `.env` configured; the suite stubs the `VITE_SUPABASE_*` placeholders via `vitest.config.js` so client-importing tests can evaluate)
 - `npm run audit:quizzes`
 - `npm run test:e2e` (public smoke and first-lesson preview paths run by default)
 
 Current test boundaries:
 
-- Authenticated Playwright smoke checks are skipped locally when auth env credentials are not provided. CI treats the authenticated learner suite as required and fails in preflight if the E2E Supabase secrets are missing, invalid, or unreachable; see [Authenticated E2E CI setup](./docs/authenticated-e2e-ci.md) and [PR admin readiness](./docs/pr-admin-readiness.md).
+- Authenticated Playwright smoke checks are skipped locally when auth env credentials are not provided. CI runs authenticated learner coverage only when the full E2E Supabase secret set is configured; see [Authenticated E2E CI setup](./docs/authenticated-e2e-ci.md) and [PR admin readiness](./docs/pr-admin-readiness.md).
 - Playwright authenticated storage state is generated under `playwright/.auth/` and intentionally ignored by Git.
 - `npm run audit:quizzes` runs in strict mode by default and is the source of truth for quiz integrity drift. It fails on any unclassified orphan quizzes or unreviewed variant groups. All 14 intentional variant groups are locked; 53 legacy orphans are classified and non-blocking.
 - The local reward-event ledger/queue and Supabase reward backend branches are now unified. The local engine remains the default fallback, and backend reward sync remains disabled until the migrations are applied and authenticated reward flows are validated in a real project.
 - Backend reward details live in [docs/backend-reward-events.md](./docs/backend-reward-events.md), [docs/atomic-reward-award.md](./docs/atomic-reward-award.md), and [docs/reward-sync-strategy.md](./docs/reward-sync-strategy.md).
+- Supabase migration and privacy readiness details live in [docs/supabase-production-readiness.md](./docs/supabase-production-readiness.md).
 - Authenticated smoke checks are enabled in the suite, but they self-skip unless Supabase and learner test credentials are configured.
 - Direct optimistic progress writes now use a same-browser retry queue with manual retry, reconnect retry, and next-session replay.
 - Recoverable lesson route mutations for completion toggles and bookmarks now feed that same-browser retry queue when Supabase route actions fail with a recoverable write descriptor.
@@ -65,8 +71,8 @@ Current test boundaries:
 
 The runtime today targets a single device. Progress sync is saved on this
 device. A learner who signs in from a second browser may see their
-server-stored lesson completions and bookmarks when connected, but XP,
-streaks, badges, the spaced-repetition review queue, and challenge
+server-stored lesson completions, bookmarks, and notes when connected, but
+XP, streaks, badges, the spaced-repetition review queue, and challenge
 completions are computed against the local reward ledger and `localStorage`
 mirror.
 
@@ -94,11 +100,11 @@ See [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md) for the current limitation ba
 
 See [docs/repair-roadmap.md](./docs/repair-roadmap.md) for the staged repair plan:
 
-- P0: Repo trust and documentation
-- P1: Learning integrity
-- P2: Data model hardening and migration safety
-- P3: ADHD-friendly UX simplification
-- P4: Reliability testing and CI gates
+- Phase 1: Stabilize
+- Phase 2: Clarify UX
+- Phase 3: Strengthen Product Logic
+- Phase 4: Portfolio Polish
+- Phase 5: Launch Readiness
 
 ## Recruiter / Hiring Context
 
@@ -113,9 +119,14 @@ This project is intended to demonstrate:
 
 Reviewer shortcuts:
 
+- Reviewer start: [docs/reviewer-start-here.md](./docs/reviewer-start-here.md)
+- Reviewer demo script: [docs/reviewer-demo-script.md](./docs/reviewer-demo-script.md)
 - Product story: [docs/portfolio-case-study.md](./docs/portfolio-case-study.md)
 - Audit stabilization summary: [docs/audit-stabilization-summary.md](./docs/audit-stabilization-summary.md)
 - UX trust/calmness notes: [docs/ux-trust-calmness-notes.md](./docs/ux-trust-calmness-notes.md)
+- Trust boundaries: [docs/trust-boundaries.md](./docs/trust-boundaries.md)
+- Learner state model: [docs/learner-state-model.md](./docs/learner-state-model.md)
+- Roadmap acceptance criteria: [docs/roadmap-acceptance-criteria.md](./docs/roadmap-acceptance-criteria.md)
 - Progress sync recovery: [docs/progress-sync-recovery.md](./docs/progress-sync-recovery.md)
 - Architecture overview: [docs/architecture.md](./docs/architecture.md)
 - Release checklist: [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md)
@@ -186,10 +197,11 @@ VITE_REWARD_BACKEND_SYNC_ENABLED=false
 
 1. Create a Supabase project.
 2. Run [`supabase-schema.sql`](./supabase-schema.sql) in Supabase SQL editor.
-3. For the optional backend reward engine, run the additive SQL files in [`supabase/migrations`](./supabase/migrations) after the base schema.
-4. Keep `VITE_REWARD_BACKEND_SYNC_ENABLED=false` until `reward_events` and `award_reward_event` are applied and verified.
-5. Enable Email auth.
-6. Optionally enable Google/GitHub auth.
+3. Run `npm run check:supabase-readiness` before release to verify the required migration/privacy artifacts remain in source.
+4. For the optional backend reward engine, run the additive SQL files in [`supabase/migrations`](./supabase/migrations) after the base schema. Use [Supabase Production Readiness](./docs/supabase-production-readiness.md) for the current migration order.
+5. Keep `VITE_REWARD_BACKEND_SYNC_ENABLED=false` until `reward_events` and `award_reward_event` are applied and verified.
+6. Enable Email auth.
+7. Optionally enable Google/GitHub auth.
 
 ### 4. Run the app
 

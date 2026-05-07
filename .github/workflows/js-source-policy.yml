@@ -1,4 +1,4 @@
-name: JS Policy
+name: JS Source Policy
 
 on:
   pull_request:
@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  typecheck:
+  js-source-policy:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -30,4 +30,4 @@ jobs:
         run: npm ci
 
       - name: Run JS-only source policy
-        run: npm run typecheck
+        run: npm run check:js-source

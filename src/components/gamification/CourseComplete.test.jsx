@@ -2,8 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { CourseComplete } from './CourseComplete';
 
-vi.mock('../../utils/certificate', () => ({
-  generateCertificate: vi.fn(),
+vi.mock('../../utils/progressSummary', () => ({
+  generateProgressSummary: vi.fn(),
 }));
 
 vi.mock('../shared/Toast', () => ({
@@ -22,7 +22,7 @@ const course = {
 };
 
 describe('CourseComplete', () => {
-  it('frames completion PDFs as learner exports, not verified credentials', () => {
+  it('frames completion PDFs as Progress Summaries, not verified credentials', () => {
     render(
       <CourseComplete
         isOpen
@@ -33,13 +33,13 @@ describe('CourseComplete', () => {
       />,
     );
 
-    expect(screen.getByText(/learner export of completion/i)).toBeInTheDocument();
+    expect(screen.getByText(/^Progress Summary$/i)).toBeInTheDocument();
     expect(screen.getByText(/Progress sync: saved on this device/i)).toBeInTheDocument();
     expect(screen.getByText(/not server-authoritative yet/i)).toBeInTheDocument();
     expect(screen.getByText(/not a verified credential/i)).toBeInTheDocument();
     expect(screen.getByText(/not a third-party certificate/i)).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /download learner export/i }),
+      screen.getByRole('button', { name: /download Progress Summary/i }),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /share progress/i })).toBeInTheDocument();
   });

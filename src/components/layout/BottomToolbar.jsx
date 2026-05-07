@@ -1,6 +1,9 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSR } from "../../providers";
-import { getLearningToolCopy } from "../../constants/learningTools";
+import {
+  getLearningToolCopy,
+  isLearningToolAvailable,
+} from "../../constants/learningTools";
 
 export const BottomToolbar = memo(function BottomToolbar({
   activePanel,
@@ -12,6 +15,7 @@ export const BottomToolbar = memo(function BottomToolbar({
   onBookmarks,
   onChallenges,
   onStats,
+  hasCompletedProgress = true,
 }) {
   const { getDueSRCards, bookmarks } = useSR();
   const dueCount = getDueSRCards().length;
@@ -91,6 +95,13 @@ export const BottomToolbar = memo(function BottomToolbar({
     [dueCount, onBadges, onChallenges, onCheatsheet, onGlossary, onProjects, onSR],
   );
 
+  const visibleSecondaryTools = useMemo(
+    () => secondaryTools.filter((tool) =>
+      tool.key === "print" || isLearningToolAvailable(tool.key, hasCompletedProgress),
+    ),
+    [hasCompletedProgress, secondaryTools],
+  );
+
   const isSecondaryPanelActive = secondaryTools.some(
     (tool) => tool.key !== "print" && tool.key === activePanel,
   );
@@ -164,7 +175,7 @@ export const BottomToolbar = memo(function BottomToolbar({
 
         {isMenuOpen && (
           <div className="tool-menu" role="menu" aria-label="Learning tools">
-            {secondaryTools.map((tool) => (
+            {visibleSecondaryTools.map((tool) => (
               <button
                 key={tool.key}
                 type="button"
