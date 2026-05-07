@@ -49,7 +49,7 @@ Current baseline checks:
 
 Current test boundaries:
 
-- Authenticated Playwright smoke checks are skipped when auth env credentials are not provided.
+- Authenticated Playwright smoke checks are skipped locally when auth env credentials are not provided. CI treats the authenticated learner suite as required and fails in preflight if the E2E Supabase secrets are missing, invalid, or unreachable; see [Authenticated E2E CI setup](./docs/authenticated-e2e-ci.md).
 - Playwright authenticated storage state is generated under `playwright/.auth/` and intentionally ignored by Git.
 - `npm run audit:quizzes` runs in strict mode by default and is the source of truth for quiz integrity drift. It fails on any unclassified orphan quizzes or unreviewed variant groups. All 14 intentional variant groups are locked; 53 legacy orphans are classified and non-blocking.
 - The local reward-event ledger/queue and Supabase reward backend branches are now unified. The local engine remains the default fallback, and backend reward sync remains disabled until the migrations are applied and authenticated reward flows are validated in a real project.

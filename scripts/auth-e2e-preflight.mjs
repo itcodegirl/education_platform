@@ -127,8 +127,9 @@ export async function checkSupabaseReachability(url) {
   };
 }
 
-export async function runAuthE2EPreflight(env = process.env) {
+export async function runAuthE2EPreflight(env = process.env, options = {}) {
   const validation = validateAuthE2EEnv(env);
+  const checkReachability = options.checkReachability || checkSupabaseReachability;
 
   if (!validation.ok) {
     return {
@@ -143,7 +144,7 @@ export async function runAuthE2EPreflight(env = process.env) {
   }
 
   try {
-    const reachability = await checkSupabaseReachability(validation.url);
+    const reachability = await checkReachability(validation.url);
     return {
       ok: true,
       required: validation.required,
