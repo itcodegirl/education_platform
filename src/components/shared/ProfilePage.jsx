@@ -156,7 +156,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
           <div className="pp-status-row" aria-label="Current learning status">
             <span className="pp-status-pill">Level {level}</span>
             <span className="pp-status-pill warm">
-              {completedLessons}/{totalLessons} lessons shipped
+              {completedLessons}/{totalLessons} lessons completed
             </span>
             {streak > 0 ? (
               <span className="pp-status-pill accent">{streak} day streak</span>
