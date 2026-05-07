@@ -5,6 +5,7 @@ import {
 	markAuthReady,
 	markAuthUnavailable,
 } from './authE2E.js';
+import { signInIfAuthScreen } from './authHelpers.js';
 
 test('capture authenticated storage state', async ({ page }) => {
 	const missingEnv = getMissingAuthEnv();
@@ -20,18 +21,7 @@ test('capture authenticated storage state', async ({ page }) => {
 	});
 
 	await page.goto('/');
-
-	const emailInput = page.getByLabel('Email');
-	if (await emailInput.isVisible().catch(() => false)) {
-		const loginTab = page.getByRole('tab', { name: /login/i });
-		if (await loginTab.isVisible().catch(() => false)) {
-			await loginTab.click();
-		}
-
-		await emailInput.fill(process.env.E2E_EMAIL);
-		await page.getByLabel('Password').fill(process.env.E2E_PASSWORD);
-		await page.getByRole('button', { name: /log in/i }).last().click();
-	}
+	await signInIfAuthScreen(page);
 
 	const authReady = await waitForAuthenticatedShell(page);
 	if (!authReady.ok) {
@@ -66,6 +56,13 @@ async function waitForAuthenticatedShell(page) {
 		}
 
 		if (isVisible('.disabled-screen')) {
+			const disabledText = document.querySelector('.disabled-screen')?.textContent?.trim() || '';
+			if (/could not verify your account/i.test(disabledText)) {
+				return {
+					ok: false,
+					reason: 'Configured E2E test account signed in, but its profile could not be verified. Check the E2E profiles row and profile RLS policies.',
+				};
+			}
 			return { ok: false, reason: 'Configured E2E test account is signed in but disabled.' };
 		}
 
