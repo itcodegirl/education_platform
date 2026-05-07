@@ -155,7 +155,7 @@
   font-family: 'Space Mono', ui-monospace, monospace;
   font-size: var(--text-xs);
   text-decoration: none;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 14px;
   border-style: solid;
   border-color: rgba(255, 255, 255, 0.2);

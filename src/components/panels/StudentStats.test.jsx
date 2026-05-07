@@ -1,7 +1,7 @@
 /* @vitest-environment jsdom */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 
 const { mockUseProgressData, mockUseXP, mockUseSR, mockUseCourseContent } = vi.hoisted(() => ({
   mockUseProgressData: vi.fn(),
@@ -43,6 +43,26 @@ beforeEach(() => {
 });
 
 describe('StudentStats streak card', () => {
+  it('exposes progress as a modal dialog with an accessible close path', () => {
+    const onClose = vi.fn();
+    mockUseXP.mockReturnValue({
+      xpTotal: 0,
+      streak: 0,
+      pausedStreak: null,
+      dailyCount: 0,
+      earnedBadges: {},
+    });
+
+    render(<StudentStats isOpen onClose={onClose} />);
+
+    const dialog = screen.getByRole('dialog', { name: /your progress/i });
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    expect(screen.getByRole('button', { name: /close progress panel/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /back to current lesson/i }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
   it('shows the active-streak card when streak is alive', () => {
     mockUseXP.mockReturnValue({
       xpTotal: 200,

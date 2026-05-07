@@ -115,6 +115,18 @@ The goal was to keep the existing core vision and architecture intact while maki
 
 ---
 
+## Before / After hardening
+
+| Area | Before | After |
+| --- | --- | --- |
+| Reviewer entry | Multiple branches and historical repos made the canonical project harder to identify. | Root reviewer guide, branch triage, README status, and roadmap now point reviewers to the current product and its limits. |
+| Learner flow | New learners could see many tools before the first meaningful action was obvious. | First-session copy, lesson navigation, empty states, and progress surfaces now emphasize the next learning step. |
+| Reward trust | Quiz/challenge retries and fragile display labels could overstate progress reliability. | Stable quiz ownership, one-time local reward ledgers, retry-safe copy, and explicit backend-sync gating keep claims honest. |
+| Recovery | Save failures were mostly advisory. | Covered progress writes can queue, replay, and expose a visible retry action without claiming universal cloud durability. |
+| Quality signal | Tests existed, but release confidence depended on remembering several separate commands. | Local and CI quality gates now include content, quiz, Playwright project, authenticated E2E readiness, Supabase readiness, build, bundle, and unit checks. |
+
+---
+
 ## Key technical tradeoffs
 
 ### Tradeoff: polish speed vs architectural churn

@@ -11,6 +11,11 @@ export default defineConfig({
     // (like the services layer) still work fine under jsdom; it's
     // only ~50ms slower per file.
     environment: 'jsdom',
+    environmentOptions: {
+      jsdom: {
+        url: 'http://localhost/',
+      },
+    },
     setupFiles: ['./src/test/setup.js'],
     include: ['src/**/*.test.{js,jsx,ts,tsx}'],
     exclude: [
