@@ -3,7 +3,7 @@
 // Indexes: lesson titles, module titles, concepts, code, tasks
 // ═══════════════════════════════════════════════
 
-import { COURSES } from '../index';
+import { COURSES, getQuizVariants } from '../index';
 import { GLOSSARY } from './glossary';
 
 function collectSearchText(value, parts = []) {
@@ -43,16 +43,31 @@ function getCourseGlossaryText(courseId, glossary) {
     .join(' ');
 }
 
-export function buildSearchIndexFromCourses(courses, glossary = GLOSSARY) {
+function getQuizSearchText(quizVariants) {
+  if (!quizVariants) return [];
+  const quizzes = [
+    quizVariants.primary,
+    ...(Array.isArray(quizVariants.bonus) ? quizVariants.bonus : []),
+  ].filter(Boolean);
+
+  return quizzes.flatMap((quiz) => collectSearchText(quiz));
+}
+
+export function buildSearchIndexFromCourses(courses, glossary = GLOSSARY, options = {}) {
   const entries = [];
+  const resolveQuizVariants = options.getQuizVariants || (() => null);
 
   courses.forEach((course, ci) => {
     const glossaryText = getCourseGlossaryText(course.id, glossary);
 
     course.modules.forEach((mod, mi) => {
       mod.lessons.forEach((les, li) => {
+        const lessonQuizText = getQuizSearchText(resolveQuizVariants(course.id, 'l', les.id));
+        const moduleQuizText = getQuizSearchText(resolveQuizVariants(course.id, 'm', mod.id));
         const keywords = normalizeKeywords([
           ...collectSearchText(les),
+          ...lessonQuizText,
+          ...moduleQuizText,
           mod.title,
           course.label,
           glossaryText,
@@ -76,5 +91,5 @@ export function buildSearchIndexFromCourses(courses, glossary = GLOSSARY) {
 }
 
 export function buildSearchIndex() {
-  return buildSearchIndexFromCourses(COURSES, GLOSSARY);
+  return buildSearchIndexFromCourses(COURSES, GLOSSARY, { getQuizVariants });
 }

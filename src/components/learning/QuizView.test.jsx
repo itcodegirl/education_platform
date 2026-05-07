@@ -215,6 +215,41 @@ describe('QuizView', () => {
     });
   });
 
+  it('bugQuizChoicesUseNativeSingleAnswerSemantics', async () => {
+    const bugQuiz = {
+      questions: [
+        {
+          id: 'bug-1',
+          type: 'bug',
+          question: 'Which line has the bug?',
+          lines: ['const total = 1 + 1;', 'return totl;'],
+          correct: 1,
+          explanation: 'The return statement uses a misspelled variable name.',
+        },
+      ],
+    };
+
+    render(
+      <QuizView
+        quiz={bugQuiz}
+        accent="#4ecdc4"
+        label="Bug Check"
+        quizKey="bug-check"
+      />,
+    );
+
+    expect(screen.getByRole('group', { name: /which line has the bug/i })).toBeInTheDocument();
+    const bugLine = screen.getByRole('radio', { name: /Line 2: return totl;/i });
+    fireEvent.click(bugLine);
+    expect(bugLine).toBeChecked();
+
+    fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('radio', { name: /Line 2: return totl;, selected, correct answer/i })).toBeDisabled();
+    });
+  });
+
   it('does not award quiz XP again on retry after both quiz rewards are earned', async () => {
     const awarded = new Set();
     const awardXP = vi.fn();

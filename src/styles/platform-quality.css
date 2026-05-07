@@ -369,7 +369,7 @@ img {
   background: var(--bg-surface);
   border: 1px solid var(--border);
   color: var(--text-dim);
-  margin-bottom: var(--space-2);
+  margin: 0 0 var(--space-2);
   font-family: 'Inter', sans-serif;
   font-weight: 600;
 }
@@ -386,6 +386,7 @@ img {
   display: flex;
   flex-direction: column;
   gap: 0;
+  padding: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -412,8 +413,15 @@ img {
   border-bottom: none;
 }
 
-.qq-bug-line:hover:not(:disabled) {
+.qq-bug-line:hover:not(.disabled) {
   background: var(--bg-surface);
+}
+
+.qq-bug-line:has(.qq-radio-native:focus-visible) {
+  outline: 2px solid var(--purple);
+  outline-offset: -2px;
+  position: relative;
+  z-index: 1;
 }
 
 .qq-bug-line.picked {
