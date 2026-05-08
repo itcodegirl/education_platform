@@ -6,14 +6,7 @@
 
 import { createContext, useContext, useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useAuth } from './AuthContext';
-import {
-  buildNotesMap,
-  findExistingBookmark,
-  getSavedNote,
-  isBookmarkedLesson,
-  normalizeProgressLessonKey,
-  removeEquivalentBookmarks,
-} from './progressSavedLessonHelpers';
+import { buildNotesMap } from './progressSavedLessonHelpers';
 import { createEmptyLastPosition, mapLastPositionRow } from './lastPositionState';
 import { collectRecoverableLoadWarnings } from './progressSyncWarningHelpers';
 import {
@@ -31,6 +24,8 @@ import { isPerfectQuizScore, isQuizScoreValueImprovement, rewardKeys } from '../
 import { useTodayKey } from '../hooks/useTodayKey';
 import { useProgressSync } from '../hooks/useProgressSync';
 import { useReviewQueue } from '../hooks/useReviewQueue';
+import { useBookmarks } from '../hooks/useBookmarks';
+import { useNotes } from '../hooks/useNotes';
 import { findNewlyEarnedBadges } from '../services/badgeRules';
 import {
   normalizeRewardHistory,
@@ -134,8 +129,6 @@ export function ProgressProvider({ children }) {
   const [dailyCount, setDailyCount] = useState(0);
   const [dailyDate, setDailyDate] = useState('');
   const [earnedBadges, setEarnedBadges] = useState({});
-  const [bookmarks, setBookmarks] = useState([]);
-  const [notes, setNotes] = useState({});
   const [coursesVisited, setCoursesVisited] = useState([]);
   const [lastPosition, setLastPosition] = useState(createEmptyLastPosition);
   const [rewardHistory, setRewardHistory] = useState([]);
@@ -207,6 +200,26 @@ export function ProgressProvider({ children }) {
     resetCards: resetSRCards,
   } = useReviewQueue({ user, dbWrite, createProgressWrite });
 
+  // Bookmarks + notes have the same shape as SR cards: state +
+  // ref-mirror + dbWrite via per-resource serialization. Each hook
+  // exposes a replace<X> hydration setter that the data-load effect
+  // calls once on hydration, and a reset<X> setter for sign-out.
+  const {
+    bookmarks,
+    toggleBookmark,
+    isBookmarked,
+    replaceBookmarks,
+    resetBookmarks,
+  } = useBookmarks({ user, dbWrite, createProgressWrite });
+
+  const {
+    notes,
+    saveNote,
+    getNote,
+    replaceNotes,
+    resetNotes,
+  } = useNotes({ user, dbWrite, createProgressWrite });
+
   const replaceRewardHistory = useCallback((userId, keys, { persist = false } = {}) => {
     const normalizedKeys = normalizeRewardHistory(keys);
     rewardHistoryRef.current = new Set(normalizedKeys);
@@ -256,8 +269,8 @@ export function ProgressProvider({ children }) {
     dailyStateRef.current = { count: 0, date: '' };
     setEarnedBadges({});
     resetSRCards();
-    setBookmarks([]);
-    setNotes({});
+    resetBookmarks();
+    resetNotes();
     setCoursesVisited([]);
     setLastPosition(createEmptyLastPosition());
     rewardHistoryRef.current = new Set();
@@ -266,7 +279,7 @@ export function ProgressProvider({ children }) {
     setChallengeCompletions([]);
     setXpPopupQueue([]);
     setNewBadgeQueue([]);
-  }, [resetSRCards]);
+  }, [resetSRCards, resetBookmarks, resetNotes]);
 
   // ─── Load all data from Supabase on login ──────
   useEffect(() => {
@@ -391,9 +404,9 @@ export function ProgressProvider({ children }) {
         ease: r.ease,
       })));
 
-      setBookmarks(bookmarkRows);
+      replaceBookmarks(bookmarkRows);
 
-      setNotes(buildNotesMap(noteRows));
+      replaceNotes(buildNotesMap(noteRows));
 
       setCoursesVisited(visited.map(r => r.course_id));
 
@@ -413,7 +426,16 @@ export function ProgressProvider({ children }) {
     return () => {
       cancelled = true;
     };
-  }, [user, loadVersion, resetUserState, replaceRewardHistory, replaceChallengeCompletions, replaceSRCards]);
+  }, [
+    user,
+    loadVersion,
+    resetUserState,
+    replaceRewardHistory,
+    replaceChallengeCompletions,
+    replaceSRCards,
+    replaceBookmarks,
+    replaceNotes,
+  ]);
 
   // ─── Progress ─────────────────────────────────
   const completedSet = useMemo(() => new Set(completed), [completed]);
@@ -686,78 +708,6 @@ export function ProgressProvider({ children }) {
   const clearNewBadge = useCallback(() => {
     setNewBadgeQueue((queue) => (queue.length > 0 ? queue.slice(1) : queue));
   }, []);
-
-  // ─── Bookmarks (NEW) ─────────────────────────
-  const toggleBookmark = useCallback(async (lessonKey, courseId, lessonTitle, options = {}) => {
-    if (!user) return;
-    const skipRemote = Boolean(options?.skipRemote);
-    const normalizedLessonKey = normalizeProgressLessonKey(lessonKey);
-    const existing = findExistingBookmark(bookmarks, normalizedLessonKey);
-    const resourceKey = `bookmark:${normalizedLessonKey}`;
-
-    if (existing) {
-      setBookmarks((prev) => removeEquivalentBookmarks(prev, normalizedLessonKey));
-      if (!skipRemote) {
-        const removalKeys = new Set([existing.lesson_key, normalizedLessonKey]);
-        removalKeys.forEach((key) => {
-          dbWrite(
-            createProgressWrite('removeBookmark', { lessonKey: key }),
-            'removeBookmark',
-            { resourceKey },
-          );
-        });
-      }
-    } else {
-      const newBookmark = {
-        lesson_key: normalizedLessonKey,
-        course_id: courseId,
-        lesson_title: lessonTitle,
-        created_at: new Date().toISOString(),
-      };
-      setBookmarks(prev => [...prev, newBookmark]);
-      if (!skipRemote) {
-        dbWrite(
-          createProgressWrite('addBookmark', {
-            bookmark: {
-              lessonKey: normalizedLessonKey,
-              courseId,
-              lessonTitle,
-            },
-          }),
-          'addBookmark',
-          { resourceKey },
-        );
-      }
-    }
-  }, [user, bookmarks, dbWrite]);
-
-  const isBookmarked = useCallback((lessonKey) => {
-    const normalizedLessonKey = normalizeProgressLessonKey(lessonKey);
-    return isBookmarkedLesson(bookmarks, normalizedLessonKey);
-  }, [bookmarks]);
-
-  // ─── Notes (NEW) ─────────────────────────────
-  const saveNote = useCallback(async (lessonKey, content) => {
-    if (!user) return;
-    const normalizedLessonKey = normalizeProgressLessonKey(lessonKey);
-    setNotes(prev => ({ ...prev, [normalizedLessonKey]: content }));
-    // Note saves are debounced upstream but a fast typist can still
-    // queue two saves for the same lesson; serialize so the latest
-    // text wins.
-    dbWrite(
-      createProgressWrite('saveNote', {
-        lessonKey: normalizedLessonKey,
-        content,
-      }),
-      'saveNote',
-      { resourceKey: `note:${normalizedLessonKey}` },
-    );
-  }, [user, dbWrite]);
-
-  const getNote = useCallback((lessonKey) => {
-    const normalizedLessonKey = normalizeProgressLessonKey(lessonKey);
-    return getSavedNote(notes, lessonKey, normalizedLessonKey);
-  }, [notes]);
 
   // ─── Position ─────────────────────────────────
   const savePosition = useCallback(async (pos) => {
