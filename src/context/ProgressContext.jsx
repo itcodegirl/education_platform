@@ -26,14 +26,11 @@ import { useReviewQueue } from '../hooks/useReviewQueue';
 import { useBookmarks } from '../hooks/useBookmarks';
 import { useNotes } from '../hooks/useNotes';
 import { useDailyActivity } from '../hooks/useDailyActivity';
+import { useLearnerRewards } from '../hooks/useLearnerRewards';
 import { findNewlyEarnedBadges } from '../services/badgeRules';
 import {
-  normalizeRewardHistory,
-  normalizeStringList as normalizeStringSet,
   readChallengeCompletions,
   readRewardHistory,
-  writeChallengeCompletions,
-  writeRewardHistory,
 } from '../utils/learnerLocalStore';
 
 // BADGE_DEFS is imported above from '../data/badges' (the canonical
@@ -127,10 +124,6 @@ export function ProgressProvider({ children }) {
   const [earnedBadges, setEarnedBadges] = useState({});
   const [coursesVisited, setCoursesVisited] = useState([]);
   const [lastPosition, setLastPosition] = useState(createEmptyLastPosition);
-  const [rewardHistory, setRewardHistory] = useState([]);
-  const rewardHistoryRef = useRef(new Set());
-  const [challengeCompletions, setChallengeCompletions] = useState([]);
-  const challengeCompletionsRef = useRef(new Set());
   // XP popups are queued so back-to-back awards each get their full
   // dismissal animation. Without this, a perfect-quiz flow that awards
   // +30 XP (base) then +50 XP (perfect bonus) in the same tick would
@@ -223,39 +216,21 @@ export function ProgressProvider({ children }) {
     resetStreakAndDaily,
   } = useDailyActivity({ user, dbWrite, createProgressWrite });
 
-  const replaceRewardHistory = useCallback((userId, keys, { persist = false } = {}) => {
-    const normalizedKeys = normalizeRewardHistory(keys);
-    rewardHistoryRef.current = new Set(normalizedKeys);
-    setRewardHistory(normalizedKeys);
-
-    if (persist) {
-      try {
-        writeRewardHistory(userId, normalizedKeys);
-      } catch (err) {
-        if (import.meta.env.DEV) {
-          console.warn('[ProgressContext] reward history write failed:', err);
-        }
-        markSyncFailed('reward-history-local');
-      }
-    }
-  }, [markSyncFailed]);
-
-  const replaceChallengeCompletions = useCallback((userId, challengeIds, { persist = false } = {}) => {
-    const normalizedChallengeIds = normalizeStringSet(challengeIds);
-    challengeCompletionsRef.current = new Set(normalizedChallengeIds);
-    setChallengeCompletions(normalizedChallengeIds);
-
-    if (persist) {
-      try {
-        writeChallengeCompletions(userId, normalizedChallengeIds);
-      } catch (err) {
-        if (import.meta.env.DEV) {
-          console.warn('[ProgressContext] challenge completion write failed:', err);
-        }
-        markSyncFailed('challenge-completions-local');
-      }
-    }
-  }, [markSyncFailed]);
+  // Reward dedup + challenge-completion dedup live in their own
+  // hook. Both are localStorage-backed today and route their write
+  // failures through markSyncFailed so the UI banner counts them
+  // alongside cloud-write failures.
+  const {
+    rewardHistory,
+    hasRewardBeenAwarded,
+    markRewardAwarded,
+    challengeCompletions,
+    isChallengeCompleted,
+    markChallengeCompleted,
+    replaceRewardHistory,
+    replaceChallengeCompletions,
+    resetLearnerRewards,
+  } = useLearnerRewards({ user, markSyncFailed });
 
   const resetUserState = useCallback(() => {
     setCompleted([]);
@@ -271,13 +246,16 @@ export function ProgressProvider({ children }) {
     resetNotes();
     setCoursesVisited([]);
     setLastPosition(createEmptyLastPosition());
-    rewardHistoryRef.current = new Set();
-    setRewardHistory([]);
-    challengeCompletionsRef.current = new Set();
-    setChallengeCompletions([]);
+    resetLearnerRewards();
     setXpPopupQueue([]);
     setNewBadgeQueue([]);
-  }, [resetSRCards, resetBookmarks, resetNotes, resetStreakAndDaily]);
+  }, [
+    resetSRCards,
+    resetBookmarks,
+    resetNotes,
+    resetStreakAndDaily,
+    resetLearnerRewards,
+  ]);
 
   // ─── Load all data from Supabase on login ──────
   useEffect(() => {
@@ -518,58 +496,7 @@ export function ProgressProvider({ children }) {
     setXpPopupQueue((queue) => (queue.length > 0 ? queue.slice(1) : queue));
   }, []);
 
-  const hasRewardBeenAwarded = useCallback((rewardKey) => {
-    return rewardHistoryRef.current.has(rewardKey);
-  }, []);
-
-  const markRewardAwarded = useCallback((rewardKey) => {
-    if (!user || typeof rewardKey !== 'string' || !rewardKey.trim()) return false;
-    const normalizedRewardKey = rewardKey.trim();
-
-    if (rewardHistoryRef.current.has(normalizedRewardKey)) return false;
-
-    const nextKeys = [...rewardHistoryRef.current, normalizedRewardKey];
-    rewardHistoryRef.current = new Set(nextKeys);
-    setRewardHistory(nextKeys);
-
-    try {
-      writeRewardHistory(user.id, nextKeys);
-    } catch (err) {
-      if (import.meta.env.DEV) {
-        console.warn('[ProgressContext] reward history write failed:', err);
-      }
-      markSyncFailed('reward-history-local');
-    }
-
-    return true;
-  }, [markSyncFailed, user]);
-
-  const isChallengeCompleted = useCallback((challengeId) => {
-    if (typeof challengeId !== 'string' || !challengeId.trim()) return false;
-    return challengeCompletionsRef.current.has(challengeId.trim());
-  }, []);
-
-  const markChallengeCompleted = useCallback((challengeId) => {
-    if (!user || typeof challengeId !== 'string' || !challengeId.trim()) return false;
-    const normalizedChallengeId = challengeId.trim();
-
-    if (challengeCompletionsRef.current.has(normalizedChallengeId)) return false;
-
-    const nextChallengeIds = [...challengeCompletionsRef.current, normalizedChallengeId];
-    challengeCompletionsRef.current = new Set(nextChallengeIds);
-    setChallengeCompletions(nextChallengeIds);
-
-    try {
-      writeChallengeCompletions(user.id, nextChallengeIds);
-    } catch (err) {
-      if (import.meta.env.DEV) {
-        console.warn('[ProgressContext] challenge completion write failed:', err);
-      }
-      markSyncFailed('challenge-completions-local');
-    }
-
-    return true;
-  }, [markSyncFailed, user]);
+  // Reward dedup + challenge completion are owned by useLearnerRewards above.
 
   // Streak + daily-goal increment is owned by useDailyActivity above.
 
