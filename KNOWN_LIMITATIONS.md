@@ -9,6 +9,7 @@ This project is actively stabilized and is not yet production-grade. The followi
 - Authenticated E2E scenarios are skipped when auth credentials are not configured in environment variables.
 - Public E2E scenarios cover the landing/auth shell, accessibility smoke, visual snapshots, and the first-lesson preview path. Signed-in learner persistence still requires configured Supabase test credentials.
 - Authenticated Playwright storage state is intentionally ignored under `playwright/.auth/` to avoid committing local session files.
+- Lighthouse and Playwright (a11y/E2E) gates run in GitHub Actions, not in `npm run check:quality`. The corresponding workflows are `.github/workflows/lighthouse-ci.yml` and `.github/workflows/e2e-smoke.yml`; both fire on every pull request. Running them locally requires a Chromium install (`npx playwright install chromium` or a system Chrome). Sandbox / restricted environments without browser-binary download access should rely on the GitHub Actions runs for these gates.
 
 ## Learning Integrity
 
