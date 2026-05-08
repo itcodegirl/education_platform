@@ -30,8 +30,8 @@ import { createProgressWrite } from '../services/progressWriteQueue';
 import { isPerfectQuizScore, isQuizScoreValueImprovement, rewardKeys } from '../services/rewardPolicy';
 import { useTodayKey } from '../hooks/useTodayKey';
 import { useProgressSync } from '../hooks/useProgressSync';
+import { useReviewQueue } from '../hooks/useReviewQueue';
 import { findNewlyEarnedBadges } from '../services/badgeRules';
-import { nextSRCardState } from '../services/srAlgorithm';
 import {
   normalizeRewardHistory,
   normalizeStringList as normalizeStringSet,
@@ -134,7 +134,6 @@ export function ProgressProvider({ children }) {
   const [dailyCount, setDailyCount] = useState(0);
   const [dailyDate, setDailyDate] = useState('');
   const [earnedBadges, setEarnedBadges] = useState({});
-  const [srCards, setSrCards] = useState([]);
   const [bookmarks, setBookmarks] = useState([]);
   const [notes, setNotes] = useState({});
   const [coursesVisited, setCoursesVisited] = useState([]);
@@ -196,6 +195,18 @@ export function ProgressProvider({ children }) {
     onReloadAfterRetry: handleReloadAfterRetry,
   });
 
+  // Spaced-repetition card state lives in useReviewQueue — addToSRQueue,
+  // updateSRCard, getDueSRCards, replaceCards (hydration setter for the
+  // data load), resetCards (sign-out reset).
+  const {
+    srCards,
+    addToSRQueue,
+    updateSRCard,
+    getDueSRCards,
+    replaceCards: replaceSRCards,
+    resetCards: resetSRCards,
+  } = useReviewQueue({ user, dbWrite, createProgressWrite });
+
   const replaceRewardHistory = useCallback((userId, keys, { persist = false } = {}) => {
     const normalizedKeys = normalizeRewardHistory(keys);
     rewardHistoryRef.current = new Set(normalizedKeys);
@@ -244,7 +255,7 @@ export function ProgressProvider({ children }) {
     setDailyDate('');
     dailyStateRef.current = { count: 0, date: '' };
     setEarnedBadges({});
-    setSrCards([]);
+    resetSRCards();
     setBookmarks([]);
     setNotes({});
     setCoursesVisited([]);
@@ -255,7 +266,7 @@ export function ProgressProvider({ children }) {
     setChallengeCompletions([]);
     setXpPopupQueue([]);
     setNewBadgeQueue([]);
-  }, []);
+  }, [resetSRCards]);
 
   // ─── Load all data from Supabase on login ──────
   useEffect(() => {
@@ -367,7 +378,7 @@ export function ProgressProvider({ children }) {
       badgeRows.forEach(r => { loadedBadges[r.badge_id] = { date: r.earned_at?.slice(0, 10) }; });
       setEarnedBadges(loadedBadges);
 
-      setSrCards(sr.map(r => ({
+      replaceSRCards(sr.map(r => ({
         question: r.question,
         code: r.code,
         options: r.options,
@@ -402,7 +413,7 @@ export function ProgressProvider({ children }) {
     return () => {
       cancelled = true;
     };
-  }, [user, loadVersion, resetUserState, replaceRewardHistory, replaceChallengeCompletions]);
+  }, [user, loadVersion, resetUserState, replaceRewardHistory, replaceChallengeCompletions, replaceSRCards]);
 
   // ─── Progress ─────────────────────────────────
   const completedSet = useMemo(() => new Set(completed), [completed]);
@@ -675,51 +686,6 @@ export function ProgressProvider({ children }) {
   const clearNewBadge = useCallback(() => {
     setNewBadgeQueue((queue) => (queue.length > 0 ? queue.slice(1) : queue));
   }, []);
-
-  // ─── Spaced Repetition ────────────────────────
-  const addToSRQueue = useCallback(async (cards) => {
-    if (!user) return;
-    const existing = new Set(srCards.map(c => c.question));
-    const newCards = cards.filter(c => !existing.has(c.question));
-
-    setSrCards(prev => [...prev, ...newCards]);
-
-    for (const card of newCards) {
-      dbWrite(createProgressWrite('addSRCard', { card }), 'addSRCard');
-    }
-  }, [user, srCards, dbWrite]);
-
-  const updateSRCard = useCallback(async (question, correct) => {
-    if (!user) return;
-
-    const currentCard = srCards.find((c) => c.question === question);
-    if (!currentCard) return;
-
-    // The SM-2-style scheduling math lives in services/srAlgorithm so
-    // it's unit-testable in isolation. This callback only does state +
-    // persistence.
-    const { interval, ease, nextReview } = nextSRCardState({ card: currentCard, correct });
-    const updatedCard = { ...currentCard, interval, ease, nextReview };
-
-    setSrCards((prev) => prev.map((card) => (card.question === question ? updatedCard : card)));
-
-    dbWrite(
-      createProgressWrite('updateSRCard', {
-        question,
-        updates: {
-          next_review: new Date(updatedCard.nextReview).toISOString(),
-          interval_days: updatedCard.interval,
-          ease: updatedCard.ease,
-        },
-      }),
-      'updateSRCard',
-      { resourceKey: `sr-card:${question}` },
-    );
-  }, [user, srCards, dbWrite]);
-
-  const getDueSRCards = useCallback(() => {
-    return srCards.filter(c => c.nextReview <= Date.now());
-  }, [srCards]);
 
   // ─── Bookmarks (NEW) ─────────────────────────
   const toggleBookmark = useCallback(async (lessonKey, courseId, lessonTitle, options = {}) => {
