@@ -10,7 +10,6 @@ import { buildNotesMap } from './progressSavedLessonHelpers';
 import { createEmptyLastPosition, mapLastPositionRow } from './lastPositionState';
 import { collectRecoverableLoadWarnings } from './progressSyncWarningHelpers';
 import {
-  DAILY_GOAL,
   getActiveDailyCount,
   getActiveStreakDays,
   getLevel,
@@ -26,6 +25,7 @@ import { useProgressSync } from '../hooks/useProgressSync';
 import { useReviewQueue } from '../hooks/useReviewQueue';
 import { useBookmarks } from '../hooks/useBookmarks';
 import { useNotes } from '../hooks/useNotes';
+import { useDailyActivity } from '../hooks/useDailyActivity';
 import { findNewlyEarnedBadges } from '../services/badgeRules';
 import {
   normalizeRewardHistory,
@@ -124,10 +124,6 @@ export function ProgressProvider({ children }) {
   const [xpTotal, setXpTotal] = useState(0);
   const xpTotalRef = useRef(0);
   const xpWriteChainRef = useRef(Promise.resolve());
-  const [streak, setStreak] = useState(0);
-  const [streakLastDate, setStreakLastDate] = useState('');
-  const [dailyCount, setDailyCount] = useState(0);
-  const [dailyDate, setDailyDate] = useState('');
   const [earnedBadges, setEarnedBadges] = useState({});
   const [coursesVisited, setCoursesVisited] = useState([]);
   const [lastPosition, setLastPosition] = useState(createEmptyLastPosition);
@@ -135,13 +131,6 @@ export function ProgressProvider({ children }) {
   const rewardHistoryRef = useRef(new Set());
   const [challengeCompletions, setChallengeCompletions] = useState([]);
   const challengeCompletionsRef = useRef(new Set());
-  const streakStateRef = useRef({ days: 0, lastDate: '' });
-  // Same ref-mirroring pattern as streakStateRef. Two recordDailyActivity
-  // calls in the same React batch would otherwise both read the stale
-  // closure-captured dailyCount/dailyDate and lose an increment. The ref
-  // updates synchronously so the second call sees the first call's
-  // value.
-  const dailyStateRef = useRef({ count: 0, date: '' });
   // XP popups are queued so back-to-back awards each get their full
   // dismissal animation. Without this, a perfect-quiz flow that awards
   // +30 XP (base) then +50 XP (perfect bonus) in the same tick would
@@ -220,6 +209,20 @@ export function ProgressProvider({ children }) {
     resetNotes,
   } = useNotes({ user, dbWrite, createProgressWrite });
 
+  // Streak + daily-goal state lives in useDailyActivity. The provider
+  // still owns the wall-clock guards (active vs paused streak) below
+  // because they depend on todayKey and only matter at render time.
+  const {
+    streak,
+    streakLastDate,
+    dailyCount,
+    dailyDate,
+    recordDailyActivity,
+    replaceStreak,
+    replaceDailyGoal,
+    resetStreakAndDaily,
+  } = useDailyActivity({ user, dbWrite, createProgressWrite });
+
   const replaceRewardHistory = useCallback((userId, keys, { persist = false } = {}) => {
     const normalizedKeys = normalizeRewardHistory(keys);
     rewardHistoryRef.current = new Set(normalizedKeys);
@@ -261,12 +264,7 @@ export function ProgressProvider({ children }) {
     xpTotalRef.current = 0;
     xpWriteChainRef.current = Promise.resolve();
     setXpTotal(0);
-    setStreak(0);
-    setStreakLastDate('');
-    streakStateRef.current = { days: 0, lastDate: '' };
-    setDailyCount(0);
-    setDailyDate('');
-    dailyStateRef.current = { count: 0, date: '' };
+    resetStreakAndDaily();
     setEarnedBadges({});
     resetSRCards();
     resetBookmarks();
@@ -279,7 +277,7 @@ export function ProgressProvider({ children }) {
     setChallengeCompletions([]);
     setXpPopupQueue([]);
     setNewBadgeQueue([]);
-  }, [resetSRCards, resetBookmarks, resetNotes]);
+  }, [resetSRCards, resetBookmarks, resetNotes, resetStreakAndDaily]);
 
   // ─── Load all data from Supabase on login ──────
   useEffect(() => {
@@ -358,33 +356,20 @@ export function ProgressProvider({ children }) {
 
       const sd = streak;
       if (sd) {
-        const loadedStreak = sd.days || 0;
-        const loadedLastDate = sd.last_date || '';
-        setStreak(loadedStreak);
-        setStreakLastDate(loadedLastDate);
-        streakStateRef.current = { days: loadedStreak, lastDate: loadedLastDate };
+        replaceStreak(sd.days || 0, sd.last_date || '');
       } else {
-        // No streak row exists for this user yet. Reset both the
-        // ref AND the React state so a previous load's streak
-        // can't leak into the topbar pill on a retry. The daily
-        // branch below already does this; the streak branch was
-        // missing the React state half.
-        setStreak(0);
-        setStreakLastDate('');
-        streakStateRef.current = { days: 0, lastDate: '' };
+        // No streak row exists for this user yet. replaceStreak
+        // resets both the React state and the ref so a previous
+        // load's streak cannot leak into the topbar pill.
+        replaceStreak(0, '');
       }
 
       const dd = daily;
       const today = getTodayString();
       if (dd && dd.goal_date === today) {
-        const loadedCount = dd.count || 0;
-        setDailyCount(loadedCount);
-        setDailyDate(today);
-        dailyStateRef.current = { count: loadedCount, date: today };
+        replaceDailyGoal(dd.count || 0, today);
       } else {
-        setDailyCount(0);
-        setDailyDate(today);
-        dailyStateRef.current = { count: 0, date: today };
+        replaceDailyGoal(0, today);
       }
 
       const loadedBadges = {};
@@ -435,6 +420,8 @@ export function ProgressProvider({ children }) {
     replaceSRCards,
     replaceBookmarks,
     replaceNotes,
+    replaceStreak,
+    replaceDailyGoal,
   ]);
 
   // ─── Progress ─────────────────────────────────
@@ -584,45 +571,7 @@ export function ProgressProvider({ children }) {
     return true;
   }, [markSyncFailed, user]);
 
-  // ─── Daily Goal ───────────────────────────────
-  const recordDailyActivity = useCallback(async () => {
-    if (!user) return;
-    const today = getTodayString();
-    const yesterday = getYesterdayString();
-    // Read prior daily state from the ref, not the React closure, so two
-    // calls in the same React batch don't both see the stale "before
-    // either ran" value and lose an increment.
-    const dailyState = dailyStateRef.current;
-    const currentCount = dailyState.date === today ? dailyState.count : 0;
-    const newCount = Math.min(currentCount + 1, DAILY_GOAL);
-    const streakState = streakStateRef.current;
-
-    if (streakState.lastDate !== today) {
-      const nextStreakDays = streakState.lastDate === yesterday ? streakState.days + 1 : 1;
-      streakStateRef.current = { days: nextStreakDays, lastDate: today };
-      setStreak(nextStreakDays);
-      setStreakLastDate(today);
-      dbWrite(
-        createProgressWrite('updateStreak', {
-          days: nextStreakDays,
-          lastDate: today,
-        }),
-        'updateStreak',
-      );
-    }
-
-    dailyStateRef.current = { count: newCount, date: today };
-    setDailyCount(newCount);
-    setDailyDate(today);
-
-    dbWrite(
-      createProgressWrite('updateDailyGoal', {
-        goalDate: today,
-        count: newCount,
-      }),
-      'updateDailyGoal',
-    );
-  }, [user, dbWrite]);
+  // Streak + daily-goal increment is owned by useDailyActivity above.
 
   // ─── Badges ───────────────────────────────────
   // The pure rules (which conditions earn which badge) live in
