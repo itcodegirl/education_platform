@@ -159,7 +159,7 @@ test.describe('authenticated accessibility', () => {
     await expect(page).toHaveURL(/\/learn\/[^/]+\/[^/]+\/[^/]+/);
   });
 
-  test('mobile sidebar drawer restores focus after keyboard close', async ({ page }) => {
+  test('mobileSidebarSupportsKeyboardNavigation', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload();
     await waitForAuthenticatedShell(page);

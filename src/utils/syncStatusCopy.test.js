@@ -20,6 +20,14 @@ describe('getSyncStatusCopy', () => {
     });
   });
 
+  it('progressSaveFailureShowsRecoveryMessage', () => {
+    expect(getSyncStatusCopy({ user, dataLoaded: true, syncFailed: 1 })).toEqual({
+      tone: 'warning',
+      label: 'Cloud not confirmed',
+      detail: 'Your latest in-tab progress is visible here; retry when the connection is stable.',
+    });
+  });
+
   it('shows an active saving state while mark-done is submitting', () => {
     expect(getSyncStatusCopy({ user, dataLoaded: true, mutationState: 'submitting' })).toEqual({
       tone: 'saving',

@@ -114,7 +114,7 @@ describe('createLearningEngine → completeLesson', () => {
     expect(deps.recordDailyActivity).not.toHaveBeenCalled();
   });
 
-  it('reward-engine.double-click-does-not-duplicate-xp for lesson completion', async () => {
+  it('lessonCompletionAwardsXpOnlyOnce', async () => {
     const awarded = new Set();
     const deps = buildDeps({
       hasRewardBeenAwarded: vi.fn((rewardKey) => awarded.has(rewardKey)),
@@ -428,7 +428,7 @@ describe('createLearningEngine → completeChallenge', () => {
     });
   });
 
-  it('does not duplicate challenge completion, XP, or activity', async () => {
+  it('challengeCompletionDoesNotDuplicateXp', async () => {
     const deps = buildDeps({
       isChallengeCompleted: vi.fn(() => true),
     });

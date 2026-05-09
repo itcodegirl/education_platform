@@ -157,7 +157,7 @@ describe('QuizView', () => {
     });
   });
 
-  it('does not award quiz XP again on retry after both quiz rewards are earned', async () => {
+  it('quizRetryDoesNotDuplicateXp', async () => {
     const awarded = new Set();
     const awardXP = vi.fn();
     const recordDailyActivity = vi.fn();
