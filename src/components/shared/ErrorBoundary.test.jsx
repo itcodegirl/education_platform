@@ -51,7 +51,7 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>,
     );
     expect(screen.getByTestId('child')).toBeInTheDocument();
-    expect(screen.queryByText('Something went wrong')).not.toBeInTheDocument();
+    expect(screen.queryByText('We hit a temporary snag')).not.toBeInTheDocument();
   });
 
   it('shows the default full-screen fallback when a child throws', () => {
@@ -60,7 +60,7 @@ describe('ErrorBoundary', () => {
         <BombChild shouldThrow message="boom" />
       </ErrorBoundary>,
     );
-    expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+    expect(screen.getByText('We hit a temporary snag')).toBeInTheDocument();
     expect(screen.getByText('boom')).toBeInTheDocument();
     expect(screen.queryByTestId('child')).not.toBeInTheDocument();
   });
@@ -85,15 +85,15 @@ describe('ErrorBoundary', () => {
     }
 
     render(<Controlled />);
-    expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+    expect(screen.getByText('We hit a temporary snag')).toBeInTheDocument();
 
     // First disable the throw, then click retry so the boundary
     // re-renders children successfully.
     fireEvent.click(screen.getByTestId('stop-btn'));
-    fireEvent.click(screen.getByText('↺ Try Again'));
+    fireEvent.click(screen.getByRole('button', { name: /try again/i }));
 
     expect(screen.getByTestId('child')).toBeInTheDocument();
-    expect(screen.queryByText('Something went wrong')).not.toBeInTheDocument();
+    expect(screen.queryByText('We hit a temporary snag')).not.toBeInTheDocument();
   });
 
   it('calls a function fallback with { error, retry } when provided', () => {
@@ -117,7 +117,7 @@ describe('ErrorBoundary', () => {
       }),
     );
     // The default full-screen overlay must NOT appear.
-    expect(screen.queryByText('Something went wrong')).not.toBeInTheDocument();
+    expect(screen.queryByText('We hit a temporary snag')).not.toBeInTheDocument();
   });
 
   it('renders a React-node fallback directly when provided', () => {
@@ -131,7 +131,7 @@ describe('ErrorBoundary', () => {
 
     expect(screen.getByTestId('node-fallback')).toBeInTheDocument();
     expect(screen.getByText('Oops!')).toBeInTheDocument();
-    expect(screen.queryByText('Something went wrong')).not.toBeInTheDocument();
+    expect(screen.queryByText('We hit a temporary snag')).not.toBeInTheDocument();
   });
 
   it('the retry callback passed to a function fallback resets the error', () => {

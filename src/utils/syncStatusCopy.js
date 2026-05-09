@@ -16,7 +16,7 @@ export function getSyncStatusCopy({
     return {
       tone: 'local',
       label: 'Same-device mode',
-      detail: 'Sign in to sync lessons, bookmarks, notes, XP, and streaks across devices.',
+      detail: 'Create an account to save lessons, bookmarks, and notes to the cloud. XP, streaks, badges, review cards, and challenges stay on this device today.',
     };
   }
 
@@ -63,6 +63,6 @@ export function getSyncStatusCopy({
   return {
     tone: 'synced',
     label: 'Account sync ready',
-    detail: 'Lessons, bookmarks, notes, XP, and streaks save to your account when the cloud is reachable.',
+    detail: 'Lessons, bookmarks, and notes save to your account when the cloud is reachable. XP, streaks, badges, review cards, and challenges stay on this device today.',
   };
 }

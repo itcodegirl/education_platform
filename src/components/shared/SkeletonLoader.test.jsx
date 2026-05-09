@@ -34,9 +34,9 @@ describe('ConnectionError', () => {
     render(<ConnectionError onRetry={onRetry} />);
 
     const alert = screen.getByRole('alert');
-    expect(alert).toHaveTextContent(/Connection issue/i);
+    expect(alert).toHaveTextContent(/could not confirm account progress/i);
 
-    const retry = screen.getByRole('button', { name: /retry connection/i });
+    const retry = screen.getByRole('button', { name: /try again/i });
     fireEvent.click(retry);
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
