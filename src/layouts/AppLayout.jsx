@@ -5,7 +5,7 @@
 
 import { useCallback, useMemo, useEffect, useState } from "react";
 import { useFetcher } from "react-router-dom";
-import { COURSES } from "../data";
+import { COURSES, buildScopedQuizKey } from "../data";
 import { useTheme, useAuth, useProgressData, useXP, useCourseContent } from "../providers";
 import { useNavigation } from "../hooks/useNavigation";
 import { usePanels } from "../hooks/usePanels";
@@ -124,6 +124,10 @@ export function AppLayout() {
   const goNextLesson = nav.next;
 
   const { stable: stableLessonKey, legacy: legacyLessonKey } = getLessonKeyVariants(course, mod, les);
+  const moduleQuizKey = buildScopedQuizKey('m', course.id, mod.id);
+  const legacyModuleQuizKey = `m:${mod.id}`;
+  const lessonQuizKey = buildScopedQuizKey('l', course.id, les.id);
+  const legacyLessonQuizKey = `l:${les.id}`;
   const isDone = hasLessonCompletion(completedSet, course, mod, les);
   const readTime = useMemo(
     () => estimateReadingTime((les.content || '') + (les.code || '')),
@@ -563,7 +567,8 @@ export function AppLayout() {
                 quiz={moduleQuiz}
                 accent={course.accent}
                 label={`${mod.title} Quiz`}
-                quizKey={`m:${mod.id}`}
+                quizKey={moduleQuizKey}
+                legacyQuizKeys={[legacyModuleQuizKey]}
               />
             </div>
           ) : (
@@ -620,7 +625,8 @@ export function AppLayout() {
                     quiz={lessonQuiz}
                     accent={course.accent}
                     label="Quick Check"
-                    quizKey={`l:${les.id}`}
+                    quizKey={lessonQuizKey}
+                    legacyQuizKeys={[legacyLessonQuizKey]}
                   />
                 </div>
               )}

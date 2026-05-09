@@ -112,15 +112,34 @@ export function isPerfectQuizScore(scoreValue) {
   return Boolean(parsed && parsed.score === parsed.total && parsed.total > 0);
 }
 
-export function isQuizScoreImprovement(currentScoreValue, nextScore, nextTotal) {
+export function compareQuizScoreValues(currentScoreValue, nextScoreValue) {
   const current = parseQuizScore(currentScoreValue);
-  const next = parseQuizScore(formatQuizScore(nextScore, nextTotal));
+  const next = parseQuizScore(nextScoreValue);
 
-  if (!next) return false;
-  if (!current) return true;
-  if (next.pct !== current.pct) return next.pct > current.pct;
+  if (current && next) {
+    if (next.pct !== current.pct) return next.pct - current.pct;
+    return next.score - current.score;
+  }
 
-  return next.score > current.score;
+  if (!current && next) return 1;
+  if (current && !next) return -1;
+
+  return 0;
+}
+
+export function isQuizScoreImprovement(currentScoreValue, nextScore, nextTotal) {
+  const nextScoreValue = formatQuizScore(nextScore, nextTotal);
+  if (!parseQuizScore(nextScoreValue)) return false;
+  return compareQuizScoreValues(currentScoreValue, nextScoreValue) > 0;
+}
+
+export function getBestQuizScoreForKeys(quizScores = {}, quizKeys = []) {
+  return quizKeys.reduce((bestScore, quizKey) => {
+    const score = quizScores?.[quizKey];
+    if (!parseQuizScore(score)) return bestScore;
+    if (!bestScore) return score;
+    return compareQuizScoreValues(bestScore, score) > 0 ? score : bestScore;
+  }, '');
 }
 
 export const REWARD_POLICY = Object.freeze({

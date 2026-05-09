@@ -118,6 +118,28 @@ const SRContext = createContext({
   getNote: () => '',
 });
 
+function normalizeCompletedLessonKey(lessonKey) {
+  if (typeof lessonKey !== 'string' || !lessonKey.trim()) return '';
+  return normalizeProgressLessonKey(lessonKey.trim());
+}
+
+function normalizeCompletedLessonKeys(lessonKeys = []) {
+  return normalizeStringSet(
+    (Array.isArray(lessonKeys) ? lessonKeys : [])
+      .map(normalizeCompletedLessonKey)
+      .filter(Boolean),
+  );
+}
+
+function getEquivalentCompletedLessonKeys(completedKeys = [], rawLessonKey = '') {
+  const normalizedTarget = normalizeCompletedLessonKey(rawLessonKey);
+  if (!normalizedTarget) return [];
+
+  return (Array.isArray(completedKeys) ? completedKeys : []).filter((completedKey) =>
+    normalizeCompletedLessonKey(completedKey) === normalizedTarget,
+  );
+}
+
 // Per-learner localStorage helpers (reward history, challenge
 // completions, normalization) live in utils/learnerLocalStore so
 // they can be unit-tested independently of the provider.
@@ -321,6 +343,7 @@ export function ProgressProvider({ children }) {
 
   // ─── State ─────────────────────────────────────
   const [completed, setCompleted] = useState([]);
+  const completedRef = useRef(new Set());
   const [quizScores, setQuizScores] = useState({});
   const [xpTotal, setXpTotal] = useState(0);
   const xpTotalRef = useRef(0);
@@ -416,6 +439,7 @@ export function ProgressProvider({ children }) {
   }, []);
 
   const resetUserState = useCallback(() => {
+    completedRef.current = new Set();
     setCompleted([]);
     setQuizScores({});
     xpTotalRef.current = 0;
@@ -471,7 +495,8 @@ export function ProgressProvider({ children }) {
       const { progress, quiz, xp, streak, daily, badges: badgeRows, sr, bookmarks: bookmarkRows,
         notes: noteRows, visited, position } = results.data;
 
-      const completedLessonKeys = progress.map(r => r.lesson_key);
+      const completedLessonKeys = normalizeCompletedLessonKeys(progress.map(r => r.lesson_key));
+      completedRef.current = new Set(completedLessonKeys);
       setCompleted(completedLessonKeys);
 
       const scores = {};
@@ -602,20 +627,48 @@ export function ProgressProvider({ children }) {
   const toggleLesson = useCallback(async (lessonKey, options = {}) => {
     if (!user) return;
     const skipRemote = Boolean(options?.skipRemote);
-    const has = completedSet.has(lessonKey);
+    const rawLessonKey = typeof lessonKey === 'string' ? lessonKey.trim() : '';
+    const normalizedLessonKey = normalizeCompletedLessonKey(rawLessonKey);
+    if (!normalizedLessonKey) return;
 
-    if (has) {
-      setCompleted(prev => prev.filter(k => k !== lessonKey));
+    const currentCompleted = Array.from(completedRef.current);
+    const equivalentKeys = getEquivalentCompletedLessonKeys(currentCompleted, normalizedLessonKey);
+    const has = equivalentKeys.length > 0;
+    const nextCompletedState =
+      typeof options?.completed === 'boolean' ? options.completed : !has;
+
+    if (nextCompletedState === has) return;
+
+    if (!nextCompletedState) {
+      const removalKeys = normalizeStringSet([
+        normalizedLessonKey,
+        rawLessonKey,
+        ...equivalentKeys,
+      ]);
+      const nextCompleted = currentCompleted.filter(
+        (key) => !removalKeys.includes(key) &&
+          normalizeCompletedLessonKey(key) !== normalizedLessonKey,
+      );
+      completedRef.current = new Set(nextCompleted);
+      setCompleted(nextCompleted);
       if (!skipRemote) {
-        dbWrite(createProgressWrite('removeLesson', { lessonKey }), 'removeLesson');
+        dbWrite(
+          createProgressWrite('removeLessonVariants', {
+            lessonKeys: removalKeys,
+            dedupeLessonKey: normalizedLessonKey,
+          }),
+          'removeLesson',
+        );
       }
     } else {
-      setCompleted(prev => [...prev, lessonKey]);
+      const nextCompleted = [...currentCompleted, normalizedLessonKey];
+      completedRef.current = new Set(nextCompleted);
+      setCompleted(nextCompleted);
       if (!skipRemote) {
-        dbWrite(createProgressWrite('addLesson', { lessonKey }), 'addLesson');
+        dbWrite(createProgressWrite('addLesson', { lessonKey: normalizedLessonKey }), 'addLesson');
       }
     }
-  }, [user, completedSet, dbWrite]);
+  }, [user, dbWrite]);
 
   const saveQuizScore = useCallback(async (quizKey, score) => {
     if (!user) return;
