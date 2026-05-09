@@ -258,13 +258,13 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
               </div>
             ))}
           </div>
-          {/* Transparency: today's tests look at your source text, not the
-              rendered output. That's enough to guide most beginners but
-              easy to game. The preview pane is the source of truth for
-              what your code actually does — trust it over the checklist. */}
+          {/* Transparency: challenge tests are guidance, not credentialing.
+              Some inspect source code and some inspect a safe snapshot of
+              the preview, so learners should still verify the rendered result. */}
           <p className="cc-results-honest">
-            <strong>How tests work:</strong> these checks read your code, not the live preview.
-            If a test passes but the preview looks wrong, trust the preview.
+            <strong>How tests work:</strong> some checks inspect your code, and some inspect
+            a safe preview snapshot. Use the results as guidance, then confirm the preview
+            looks right before moving on.
           </p>
         </div>
       )}

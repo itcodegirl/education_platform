@@ -229,15 +229,15 @@ export function AppLayout() {
   const currentStepTitle = showModQuiz
     ? 'Take the module quiz'
     : isDone
-      ? 'Continue when ready'
+      ? 'Next step ready'
       : 'Read, then mark done';
   const currentStepCopy = showModQuiz
-    ? 'Answer the questions, then move into the next lesson when you are ready.'
+    ? 'Submit the quiz when ready. Your best score saves, and retries do not duplicate XP.'
     : isDone
       ? nextTitle
-        ? `Marked done here. Up next: ${nextTitle}.`
-        : 'Marked done here. Pick another course or revisit lessons that need another pass.'
-      : 'Focus on the lesson first. When the idea clicks, use Mark done to save this step.';
+        ? `Progress is saved here. Use Next to start: ${nextTitle}.`
+        : 'Progress is saved here. Review another lesson or switch tracks when you are ready.'
+      : 'Read the frame, build the example, then use Mark done so this step saves.';
 
   // --- Lesson view analytics ----------------
   const lessonViewStartRef = useLessonViewTracking({
@@ -581,10 +581,10 @@ export function AppLayout() {
                       Welcome to your learning path, {learnerName}.
                     </h2>
                     <p className="frg-copy">
-                      You are on the first lesson to set your pace. Read this lesson,
-                      complete it, then hit <strong>Mark done</strong> to unlock the next one.
+                      Start with the lesson in front of you. Read it, build the example,
+                      then use <strong>Mark done</strong> so your progress and next step stay clear.
                     </p>
-                    <p className="frg-sub">Course switching is in the sidebar when you are ready.</p>
+                    <p className="frg-sub">When you are ready, the sidebar lets you switch courses or revisit earlier lessons.</p>
                   </div>
                   <ol className="frg-steps" aria-label="First session steps">
                     <li>Read the learning frame.</li>

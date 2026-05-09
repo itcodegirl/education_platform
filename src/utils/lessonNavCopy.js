@@ -39,9 +39,9 @@ export function getNextLessonTitle({
 
 export function getNextStepHint({ isLast, showModQuiz, isDone }) {
   if (isLast) return 'Track complete. Pick another course or review a lesson that deserves another pass.';
-  if (showModQuiz) return 'Finish the quiz, then continue into the next module.';
-  if (!isDone) return 'Read first. Mark done when the idea clicks, then continue.';
-  return 'This step is marked done. Continue when you are ready.';
+  if (showModQuiz) return 'Submit the quiz when ready. Your best score saves, and retries will not duplicate XP.';
+  if (!isDone) return 'Read, build the example, then Mark done so this lesson saves to your progress.';
+  return 'Progress is saved here. Use Next to keep going, or review before moving on.';
 }
 
 export function getLessonPositionLabel({ showModQuiz, modTitle, lesIdx, lessonsLength }) {

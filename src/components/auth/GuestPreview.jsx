@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { COURSES } from '../../data';
 import { useCourseContent } from '../../providers';
 import { renderMarkdown } from '../../utils/markdown';
@@ -17,14 +17,6 @@ export function GuestPreview({ onBack }) {
   const course = COURSES[0];
   const firstModule = htmlReady ? course.modules[0] : null;
   const firstLesson = firstModule?.lessons?.[0] || null;
-  const totalLessons = useMemo(
-    () =>
-      COURSES.reduce((sum, currentCourse) => sum + currentCourse.modules.reduce(
-        (moduleSum, module) => moduleSum + module.lessons.length,
-        0,
-      ), 0),
-    [],
-  );
 
   if (!htmlReady || !firstLesson) {
     return (
@@ -65,7 +57,7 @@ export function GuestPreview({ onBack }) {
                 <span className="lesson-kicker-label">Module</span>
                 <span className="lesson-kicker-value">{firstModule.title}</span>
               </div>
-              <h2 className="lesson-title">{firstLesson.title}</h2>
+              <h1 className="lesson-title">{firstLesson.title}</h1>
               {firstLesson.difficulty && (
                 <div className="lesson-meta">
                   <span className={`lesson-diff lesson-diff-${firstLesson.difficulty}`}>
@@ -159,8 +151,8 @@ export function GuestPreview({ onBack }) {
         <section className="gp-cta" aria-label="Preview call to action">
           <h3>Ready to keep going?</h3>
           <p>
-            Create a free account to unlock all {totalLessons}+ lessons, track your progress,
-            earn badges, and use the AI tutor.
+            Create a free account to continue through the full lesson library,
+            track and save your progress, earn badges, and use the AI tutor.
           </p>
           <button type="button" className="gp-cta-btn ui-btn ui-btn-primary ui-btn-pill" onClick={onBack} aria-label="Create free account">
             Create free account

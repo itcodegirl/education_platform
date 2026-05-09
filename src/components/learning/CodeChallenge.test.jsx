@@ -132,6 +132,8 @@ describe('CodeChallenge', () => {
     await waitFor(() => {
       expect(screen.getByText(/All tests passed! You nailed it./i)).toBeInTheDocument();
     });
+    expect(screen.getByText(/some checks inspect your code/i)).toBeInTheDocument();
+    expect(screen.getByText(/safe preview snapshot/i)).toBeInTheDocument();
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 });
