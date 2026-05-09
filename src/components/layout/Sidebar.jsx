@@ -51,6 +51,8 @@ export const Sidebar = memo(function Sidebar({
   activePanel,
 }) {
   const isDesktopCollapsed = !isMobile && isCollapsed;
+  const isMobileClosed = isMobile && !isOpen;
+  const isSidebarInert = isDesktopCollapsed || isMobileClosed;
   const { completed = [] } = useProgressData();
   const { user } = useAuth();
   const [lockMode, setLockMode] = useLocalStorage('chw-lock-mode', false);
@@ -224,9 +226,16 @@ export const Sidebar = memo(function Sidebar({
   }, [closePopout, focusPopoutByOffset, focusPopoutItem]);
 
   useEffect(() => {
-    if (!isDesktopCollapsed || !activePopout) return;
+    if (!isSidebarInert || !activePopout) return;
     closePopout(false);
-  }, [activePopout, closePopout, isDesktopCollapsed]);
+  }, [activePopout, closePopout, isSidebarInert]);
+
+  useEffect(() => {
+    if (!isMobileClosed) return;
+    setActivePopout(null);
+    setPopoutPos(null);
+    setPopoverOpen(false);
+  }, [isMobileClosed]);
 
   useEffect(() => {
     const navElement = document.getElementById('course-sidebar');
@@ -236,7 +245,7 @@ export const Sidebar = memo(function Sidebar({
       navElement.querySelectorAll('a[href], button, input, select, textarea, [tabindex]'),
     );
 
-    if (isDesktopCollapsed) {
+    if (isSidebarInert) {
       focusableElements.forEach((element) => {
         if (!element.hasAttribute('data-prev-tabindex')) {
           const previousTabIndex = element.getAttribute('tabindex');
@@ -259,7 +268,7 @@ export const Sidebar = memo(function Sidebar({
     });
 
     return undefined;
-  }, [isDesktopCollapsed]);
+  }, [isSidebarInert]);
 
   // While tab content is active, close it on click-outside or Escape.
   useEffect(() => {
@@ -334,14 +343,15 @@ export const Sidebar = memo(function Sidebar({
         aria-modal={isMobile && isOpen ? 'true' : undefined}
         aria-label={isMobile && isOpen ? 'Course navigation' : undefined}
         aria-hidden={isMobile ? !isOpen : undefined}
+        inert={isMobileClosed ? '' : undefined}
         tabIndex={isMobile ? -1 : undefined}
       >
       <nav
         id="course-sidebar"
         className={`sidebar ${isOpen ? 'open' : ''} ${!isMobile && isCollapsed ? 'collapsed' : ''}`}
         aria-label="Course navigation"
-        aria-hidden={isDesktopCollapsed ? 'true' : undefined}
-        inert={isDesktopCollapsed ? '' : undefined}
+        aria-hidden={isSidebarInert ? 'true' : undefined}
+        inert={isSidebarInert ? '' : undefined}
       >
         {/* ─── Brand + Avatar row ─── */}
         <header className="sidebar-head">

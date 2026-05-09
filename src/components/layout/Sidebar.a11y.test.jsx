@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import { Sidebar } from './Sidebar';
 
@@ -54,7 +54,7 @@ const baseCourses = [
   },
 ];
 
-function renderSidebar() {
+function renderSidebar(overrides = {}) {
   return render(
     <Sidebar
       courses={baseCourses}
@@ -72,6 +72,7 @@ function renderSidebar() {
       onSelectModQuiz={() => {}}
       onOpenTool={() => {}}
       activePanel={null}
+      {...overrides}
     />,
   );
 }
@@ -94,5 +95,25 @@ describe('Sidebar accessibility', () => {
       },
     });
     expect(results.violations).toEqual([]);
+  });
+
+  it('keeps the closed mobile drawer inert and out of the tab order', async () => {
+    const { container } = renderSidebar({
+      isOpen: false,
+      isMobile: true,
+    });
+
+    const shell = container.querySelector('.sidebar-shell');
+    const nav = container.querySelector('#course-sidebar');
+    expect(shell).toHaveAttribute('aria-hidden', 'true');
+    expect(shell).toHaveAttribute('inert', '');
+    expect(nav).toHaveAttribute('aria-hidden', 'true');
+    expect(nav).toHaveAttribute('inert', '');
+
+    await waitFor(() => {
+      expect(container.querySelector('.sidebar-avatar')).toHaveAttribute('tabindex', '-1');
+      expect(container.querySelector('.module-group-btn')).toHaveAttribute('tabindex', '-1');
+      expect(container.querySelector('.sidebar-close')).toHaveAttribute('tabindex', '-1');
+    });
   });
 });

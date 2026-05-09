@@ -166,16 +166,24 @@ test.describe('authenticated accessibility', () => {
     await dismissTransientUi(page);
 
     const navTrigger = page.getByRole('button', { name: /open course navigation/i });
+    const sidebar = page.locator('#course-sidebar');
+    await expect(sidebar).toHaveAttribute('aria-hidden', 'true');
+    await expect(sidebar).toHaveAttribute('inert', '');
+
     await navTrigger.focus();
     await page.keyboard.press('Enter');
 
     const drawer = page.getByRole('dialog', { name: /course navigation/i });
     await expect(drawer).toBeVisible();
     await expect(drawer).toBeFocused();
+    await expect(sidebar).not.toHaveAttribute('aria-hidden', 'true');
+    await expect(sidebar).not.toHaveAttribute('inert', '');
     await expectNoSeriousViolations(page);
 
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog', { name: /course navigation/i })).toHaveCount(0);
+    await expect(sidebar).toHaveAttribute('aria-hidden', 'true');
+    await expect(sidebar).toHaveAttribute('inert', '');
     await expect(navTrigger).toBeFocused();
   });
 

@@ -67,15 +67,23 @@ test.describe('mobile learning smoke', () => {
   }
 
   test('opens resources, search, and the mobile tools sheet', async ({ page }) => {
-    await page.getByLabel('Open course navigation').click();
-    await expect(page.locator('#course-sidebar.open')).toBeVisible();
+    const sidebar = page.locator('#course-sidebar');
+    await expect(sidebar).toHaveAttribute('aria-hidden', 'true');
+    await expect(sidebar).toHaveAttribute('inert', '');
 
-    await page.getByRole('tab', { name: /resources/i }).click();
+    await page.getByLabel('Open course navigation').click();
+    await expect(sidebar).toBeVisible();
+    await expect(sidebar).not.toHaveAttribute('aria-hidden', 'true');
+    await expect(sidebar).not.toHaveAttribute('inert', '');
+
+    await page.getByRole('button', { name: /tools/i }).click();
     await page.getByRole('button', { name: /cheat sheets/i }).first().click();
     await expect(page.locator('.search-modal')).toBeVisible();
 
     await page.keyboard.press('Escape');
     await page.getByLabel('Close sidebar').click();
+    await expect(sidebar).toHaveAttribute('aria-hidden', 'true');
+    await expect(sidebar).toHaveAttribute('inert', '');
 
     await page.getByLabel('Open lesson search').click();
     await expect(page.locator('.search-input')).toBeVisible();
