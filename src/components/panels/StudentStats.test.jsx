@@ -81,10 +81,10 @@ describe('StudentStats streak card', () => {
 
     render(<StudentStats isOpen onClose={vi.fn()} />);
 
-    const label = screen.getByText('Day Streak');
+    const label = screen.getByText('Learning streak');
     const card = label.parentElement;
     expect(card).toHaveTextContent('5');
-    expect(card).toHaveTextContent(/momentum is building/i);
+    expect(card).toHaveTextContent(/steady rhythm is forming/i);
   });
 
   it('shows the paused-streak recovery copy when active is 0 but a paused streak exists', () => {
@@ -101,7 +101,7 @@ describe('StudentStats streak card', () => {
     const label = screen.getByText('Streak paused');
     const card = label.parentElement;
     expect(card).toHaveTextContent('7');
-    expect(card).toHaveTextContent(/pick it back up/i);
+    expect(card).toHaveTextContent(/one lesson today resumes it/i);
   });
 
   it('falls back to the bare 0 when there is no streak history at all', () => {
@@ -115,7 +115,7 @@ describe('StudentStats streak card', () => {
 
     render(<StudentStats isOpen onClose={vi.fn()} />);
 
-    const label = screen.getByText('Day Streak');
+    const label = screen.getByText('Learning streak');
     const card = label.parentElement;
     expect(card).toHaveTextContent('0');
     expect(card).not.toHaveTextContent(/streak paused/i);
@@ -149,6 +149,27 @@ describe('StudentStats streak card', () => {
     render(<StudentStats isOpen onClose={vi.fn()} />);
 
     expect(screen.getByText('Lessons complete')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /recommended next step/i })).toHaveTextContent(/continue the next lesson/i);
+  });
+
+  it('prioritizes due review work in the recommended next step', () => {
+    mockUseProgressData.mockReturnValue({ completed: ['c:html|m:m1|l:l1'], quizScores: {} });
+    mockUseSR.mockReturnValue({
+      srCards: [{ id: 'card-1', nextReview: 0 }],
+      bookmarks: [],
+      notes: {},
+    });
+    mockUseXP.mockReturnValue({
+      xpTotal: 80,
+      streak: 1,
+      pausedStreak: null,
+      dailyCount: 1,
+      earnedBadges: {},
+    });
+
+    render(<StudentStats isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByRole('region', { name: /recommended next step/i })).toHaveTextContent(/review what is due/i);
   });
 
   it('matches quiz averages by stable lesson and module ids', () => {
