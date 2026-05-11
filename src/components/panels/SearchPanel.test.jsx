@@ -1,18 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { SearchPanel } from './SearchPanel';
 
-const { mockUseCourseContent, mockBuildSearchIndex } = vi.hoisted(() => ({
-  mockUseCourseContent: vi.fn(),
-  mockBuildSearchIndex: vi.fn(),
-}));
-
-vi.mock('../../providers', () => ({
-  useCourseContent: () => mockUseCourseContent(),
+const { mockLoadSearchIndex, mockGetCachedSearchIndex } = vi.hoisted(() => ({
+  mockLoadSearchIndex: vi.fn(),
+  mockGetCachedSearchIndex: vi.fn(),
 }));
 
 vi.mock('../../data/reference/search-index', () => ({
-  buildSearchIndex: (...args) => mockBuildSearchIndex(...args),
+  loadSearchIndex: (...args) => mockLoadSearchIndex(...args),
+  getCachedSearchIndex: (...args) => mockGetCachedSearchIndex(...args),
 }));
 
 vi.mock('../../hooks/useFocusTrap', () => ({
@@ -20,46 +17,35 @@ vi.mock('../../hooks/useFocusTrap', () => ({
 }));
 
 describe('SearchPanel', () => {
+  const sampleIndex = [
+    {
+      title: 'Flexbox Basics',
+      module: 'Layout',
+      course: 'CSS',
+      keywords: 'flexbox gap justify align',
+      icon: 'C',
+      courseIdx: 1,
+      modIdx: 0,
+      lesIdx: 2,
+    },
+  ];
+
   beforeEach(() => {
-    mockUseCourseContent.mockReturnValue({
-      ensureAllLoaded: vi.fn(),
-      loadedCourseIds: ['html'],
-      allCoursesLoaded: true,
-    });
-    mockBuildSearchIndex.mockReturnValue([
-      {
-        title: 'Flexbox Basics',
-        module: 'Layout',
-        course: 'CSS',
-        keywords: 'flexbox gap justify align',
-        icon: 'C',
-        courseIdx: 1,
-        modIdx: 0,
-        lesIdx: 2,
-      },
-    ]);
+    mockGetCachedSearchIndex.mockReturnValue([]);
+    mockLoadSearchIndex.mockResolvedValue(sampleIndex);
   });
 
-  it('waits to hydrate the full search index until the learner starts a real search', () => {
-    const ensureAllLoaded = vi.fn();
-    mockUseCourseContent.mockReturnValue({
-      ensureAllLoaded,
-      loadedCourseIds: ['html'],
-      allCoursesLoaded: false,
-    });
-
+  it('loads the lightweight search manifest when the panel opens', async () => {
     render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
 
-    expect(ensureAllLoaded).not.toHaveBeenCalled();
-
-    fireEvent.change(screen.getByRole('searchbox', { name: /Search lessons/i }), {
-      target: { value: 'fl' },
+    await waitFor(() => {
+      expect(mockLoadSearchIndex).toHaveBeenCalledTimes(1);
     });
-
-    expect(ensureAllLoaded).toHaveBeenCalledTimes(1);
   });
 
   it('shows starter guidance before the query reaches two characters', () => {
+    mockGetCachedSearchIndex.mockReturnValue(sampleIndex);
+
     render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
 
     expect(
@@ -68,8 +54,12 @@ describe('SearchPanel', () => {
     expect(screen.getByText(/Type at least two letters from a lesson/i)).toBeInTheDocument();
   });
 
-  it('shows a clear no-results message when query has no matches', () => {
+  it('shows a clear no-results message when query has no matches', async () => {
     render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(mockLoadSearchIndex).toHaveBeenCalled();
+    });
 
     fireEvent.change(screen.getByRole('searchbox', { name: /Search lessons/i }), {
       target: { value: 'zzz' },
@@ -81,11 +71,15 @@ describe('SearchPanel', () => {
     expect(screen.getByRole('button', { name: /^clear search$/i })).toBeInTheDocument();
   });
 
-  it('opens the top search result from the keyboard', () => {
+  it('opens the top search result from the keyboard', async () => {
     const onNavigate = vi.fn();
     const onClose = vi.fn();
 
     render(<SearchPanel isOpen onClose={onClose} onNavigate={onNavigate} />);
+
+    await waitFor(() => {
+      expect(mockLoadSearchIndex).toHaveBeenCalled();
+    });
 
     const input = screen.getByRole('searchbox', { name: /Search lessons/i });
     fireEvent.change(input, {
@@ -98,8 +92,12 @@ describe('SearchPanel', () => {
   });
 
 
-  it('uses mobile-friendly search input controls', () => {
+  it('uses mobile-friendly search input controls', async () => {
     render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(mockLoadSearchIndex).toHaveBeenCalled();
+    });
 
     const input = screen.getByRole('searchbox', { name: /Search lessons/i });
     expect(input).toHaveAttribute('type', 'search');
@@ -117,8 +115,12 @@ describe('SearchPanel', () => {
     expect(input).toHaveFocus();
   });
 
-  it('announces keyboard result selection without combobox option roles', () => {
+  it('announces keyboard result selection without combobox option roles', async () => {
     render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(mockLoadSearchIndex).toHaveBeenCalled();
+    });
 
     const input = screen.getByRole('searchbox', { name: /Search lessons/i });
     fireEvent.change(input, {
