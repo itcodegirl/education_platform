@@ -1,8 +1,9 @@
 // ═══════════════════════════════════════════════
 // BADGE UNLOCK — Amplified celebration with particles.
-// Lifecycle (visible time + fade-out + queue clear,
-// including the manual 'Nice!' dismiss path) is owned
-// by useAutoDismissReveal.
+// Lifecycle (visible state + fade-out + queue clear,
+// including the manual dismiss path) is owned by
+// useAutoDismissReveal. Badge dialogs require a deliberate
+// dismiss so screen-reader users do not lose the announcement.
 // ═══════════════════════════════════════════════
 
 import { useMemo, useRef } from 'react';
@@ -24,6 +25,7 @@ export function BadgeUnlock() {
     visibleMs: VISIBLE_MS,
     fadeOutMs: FADE_OUT_MS,
     onClear: clearNewBadge,
+    autoDismiss: false,
   });
 
   // Generate a small burst when badge changes.
@@ -50,7 +52,6 @@ export function BadgeUnlock() {
     <div
       className="badge-unlock-overlay"
       onClick={dismiss}
-      aria-hidden="true"
     >
       <div
         ref={modalRef}
@@ -58,7 +59,8 @@ export function BadgeUnlock() {
         onClick={(e) => e.stopPropagation()}
         role="alertdialog"
         aria-modal="true"
-        aria-label={`Badge earned: ${newBadge.name}`}
+        aria-labelledby="badge-unlock-title"
+        aria-describedby="badge-unlock-desc"
         tabIndex={-1}
       >
         {/* Small celebratory burst */}
@@ -80,8 +82,8 @@ export function BadgeUnlock() {
         <div className="bu-glow" aria-hidden="true" />
         <span className="bu-icon" aria-hidden="true">{newBadge.icon}</span>
         <div className="bu-label">Badge earned</div>
-        <div className="bu-name">{newBadge.name}</div>
-        <div className="bu-desc">{newBadge.desc}</div>
+        <div id="badge-unlock-title" className="bu-name">{newBadge.name}</div>
+        <div id="badge-unlock-desc" className="bu-desc">{newBadge.desc}</div>
         <button type="button" className="bu-dismiss" onClick={dismiss}>Close</button>
       </div>
     </div>

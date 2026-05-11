@@ -25,7 +25,13 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-export function useAutoDismissReveal({ active, visibleMs, fadeOutMs, onClear }) {
+export function useAutoDismissReveal({
+  active,
+  visibleMs,
+  fadeOutMs,
+  onClear,
+  autoDismiss = true,
+}) {
   const [show, setShow] = useState(false);
   // Single in-flight clear timer. scheduleClear cancels any prior
   // pending clear before scheduling a new one, so onClear is never
@@ -44,6 +50,15 @@ export function useAutoDismissReveal({ active, visibleMs, fadeOutMs, onClear }) 
     if (!active) return undefined;
 
     setShow(true);
+    if (!autoDismiss) {
+      return () => {
+        if (clearTimerRef.current) {
+          clearTimeout(clearTimerRef.current);
+          clearTimerRef.current = null;
+        }
+      };
+    }
+
     const visibleTimer = setTimeout(() => {
       setShow(false);
       scheduleClear();
@@ -56,7 +71,7 @@ export function useAutoDismissReveal({ active, visibleMs, fadeOutMs, onClear }) 
         clearTimerRef.current = null;
       }
     };
-  }, [active, visibleMs, scheduleClear]);
+  }, [active, visibleMs, autoDismiss, scheduleClear]);
 
   const dismiss = useCallback(() => {
     setShow(false);
