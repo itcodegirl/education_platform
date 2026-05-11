@@ -1,5 +1,9 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
-import { getChallengesForCourse } from '../../data/challenges';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  areChallengesLoaded,
+  getChallengesForCourse,
+  loadChallengesForCourse,
+} from '../../data/challenges';
 import { COURSES } from '../../data';
 import { CodeChallenge } from '../learning/CodeChallenge';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
@@ -10,9 +14,14 @@ import { getChallengeProgressionPlan } from '../../utils/challengeProgression';
 import { getChallengeEvidenceSummary } from '../../utils/challengeEvidence';
 import { getChallengeAnalyticsPayload } from '../../utils/learningAnalyticsPayloads';
 import { trackEvent } from '../../lib/analytics';
+import '../../styles/feature-challenges.css';
+
+const CHALLENGE_LOAD_ERROR_COPY = 'The lesson workspace is still safe. Try again when your connection settles.';
 
 export function ChallengesPanel({ courseId, lang, onClose }) {
-  const challenges = getChallengesForCourse(courseId);
+  const [challenges, setChallenges] = useState(() => getChallengesForCourse(courseId));
+  const [challengeLoadError, setChallengeLoadError] = useState('');
+  const [isLoadingChallenges, setIsLoadingChallenges] = useState(() => !areChallengesLoaded(courseId));
   const [activeChallenge, setActiveChallenge] = useState(null);
   const { challengeCompletions = [], completedSet = new Set() } = useProgressData();
   const learn = useLearning();
@@ -34,6 +43,7 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
     [activeChallenge, completed],
   );
   const modalRef = useRef(null);
+  const loadRequestRef = useRef(0);
 
   const openChallenge = useCallback((challenge, source) => {
     setActiveChallenge(challenge);
@@ -46,6 +56,46 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
   }, [completed, courseId]);
 
   useFocusTrap(modalRef, { enabled: true, onEscape: onClose });
+
+  const refreshChallengeList = useCallback(async ({ resetActive = false } = {}) => {
+    const requestId = loadRequestRef.current + 1;
+    loadRequestRef.current = requestId;
+    const cachedChallenges = getChallengesForCourse(courseId);
+    const cachedLoaded = areChallengesLoaded(courseId);
+
+    if (resetActive) {
+      setActiveChallenge(null);
+    }
+    setChallenges(cachedChallenges);
+    setChallengeLoadError('');
+    setIsLoadingChallenges(!cachedLoaded);
+
+    if (cachedLoaded) return;
+
+    try {
+      const loadedChallenges = await loadChallengesForCourse(courseId);
+      if (loadRequestRef.current !== requestId) return;
+      setChallenges(loadedChallenges);
+    } catch (error) {
+      if (loadRequestRef.current !== requestId) return;
+      if (import.meta.env.DEV) {
+        console.warn('[ChallengesPanel] challenge load failed:', error);
+      }
+      setChallengeLoadError(CHALLENGE_LOAD_ERROR_COPY);
+    } finally {
+      if (loadRequestRef.current === requestId) {
+        setIsLoadingChallenges(false);
+      }
+    }
+  }, [courseId]);
+
+  useEffect(() => {
+    void refreshChallengeList({ resetActive: true });
+
+    return () => {
+      loadRequestRef.current += 1;
+    };
+  }, [refreshChallengeList]);
 
   if (activeChallenge) {
     return (
@@ -185,7 +235,28 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
             Completed labels reflect same-browser CodeHerWay progress. XP and badges stay motivational unless backend reward sync is enabled and verified.
           </p>
 
-          {challenges.length === 0 ? (
+          {challengeLoadError ? (
+            <div className="challenges-empty" role="alert" aria-live="assertive">
+              <p><strong>Challenges could not load right now.</strong></p>
+              <p className="challenges-empty-sub">
+                {challengeLoadError}
+              </p>
+              <button
+                type="button"
+                className="panel-back"
+                onClick={() => void refreshChallengeList()}
+              >
+                Try again
+              </button>
+            </div>
+          ) : isLoadingChallenges ? (
+            <div className="challenges-empty" role="status" aria-live="polite" aria-busy="true">
+              <p><strong>Loading the challenge lab...</strong></p>
+              <p className="challenges-empty-sub">
+                Pulling in the hands-on practice track for this course.
+              </p>
+            </div>
+          ) : challenges.length === 0 ? (
             <div className="challenges-empty">
               <p><strong>No challenges are live for this course yet.</strong></p>
               <p className="challenges-empty-sub">

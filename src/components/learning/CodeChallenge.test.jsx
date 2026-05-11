@@ -142,6 +142,13 @@ describe('CodeChallenge', () => {
     expect(screen.getByText(/matched the expected checks/i)).toBeInTheDocument();
   });
 
+  it('uses a clear reset label in the challenge editor', () => {
+    render(<CodeChallenge challenge={baseChallenge} lang="html" />);
+
+    expect(screen.getByRole('button', { name: /reset code/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /retry reset/i })).not.toBeInTheDocument();
+  });
+
   it('explains challenge grader limits without overstating mastery', async () => {
     render(<CodeChallenge challenge={baseChallenge} lang="html" />);
 

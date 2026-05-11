@@ -37,6 +37,14 @@ const TABBABLE_SELECTOR =
   'select:not([disabled]), textarea:not([disabled]), ' +
   '[tabindex]:not([tabindex="-1"])';
 
+function isHiddenFromFocus(element) {
+  if (!(element instanceof HTMLElement)) return true;
+  if (element.hidden || element.closest('[hidden], [aria-hidden="true"]')) return true;
+
+  const style = window.getComputedStyle(element);
+  return style.display === 'none' || style.visibility === 'hidden';
+}
+
 /**
  * @param {React.RefObject<HTMLElement>} containerRef
  * @param {{
@@ -87,13 +95,7 @@ export function useFocusTrap(containerRef, options) {
       const root = containerRef.current;
       if (!root) return [];
       return Array.from(root.querySelectorAll(TABBABLE_SELECTOR)).filter(
-        (el) => {
-          // Skip elements that are display:none or inside an
-          // aria-hidden subtree.
-          if (el.offsetParent === null) return false;
-          if (el.closest('[aria-hidden="true"]')) return false;
-          return true;
-        },
+        (el) => !isHiddenFromFocus(el),
       );
     };
 
@@ -102,6 +104,7 @@ export function useFocusTrap(containerRef, options) {
         if (onEscape) {
           e.preventDefault();
           e.stopPropagation();
+          e.stopImmediatePropagation?.();
           onEscape();
         }
         return;
@@ -153,6 +156,5 @@ export function useFocusTrap(containerRef, options) {
         previouslyFocused.focus();
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, onEscape]);
+  }, [containerRef, enabled, initialFocus, lockBodyScroll, onEscape]);
 }

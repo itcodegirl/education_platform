@@ -97,6 +97,7 @@ describe('SearchPanel', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+
   it('uses mobile-friendly search input controls', () => {
     render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
 
