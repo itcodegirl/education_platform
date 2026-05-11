@@ -4,6 +4,7 @@ import {
   buildLearnPath,
   parseLearnPath,
   parsePublicProfilePath,
+  routeIdMatches,
   toPathFromLegacyHash,
 } from './routePaths';
 
@@ -38,6 +39,12 @@ describe('routePaths', () => {
 
     expect(buildLearnPath(course, moduleData, lesson, false)).toBe('/learn/react/hooks/use-state');
     expect(buildLearnPath(course, moduleData, lesson, true)).toBe('/learn/react/hooks/quiz');
+  });
+
+  it('matches persisted route ids even when source data uses numeric ids', () => {
+    expect(routeIdMatches(101, '101')).toBe(true);
+    expect(routeIdMatches('lesson-01', 'lesson-01')).toBe(true);
+    expect(routeIdMatches(null, '101')).toBe(false);
   });
 });
 

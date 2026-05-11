@@ -7,7 +7,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { COURSES, getQuiz } from '../data';
 import { useCourseContent } from '../providers';
 import { navigateTo, toPathFromLegacyHash } from '../routes/routeUtils';
-import { buildLearnPath, parseLearnPath } from '../routes/routePaths';
+import { buildLearnPath, parseLearnPath, routeIdMatches } from '../routes/routePaths';
 import { getLessonKeyVariants } from '../utils/lessonKeys';
 import { logNavigationDiagnostic } from '../utils/navigationDiagnostics';
 import { resolveSavedPosition } from '../utils/savedPosition';
@@ -36,7 +36,7 @@ function findPathPosition(pathname) {
   const course = COURSES[courseIndex];
   if (!course.modules.length) return null;
 
-  const moduleIndex = course.modules.findIndex((module) => module.id === parsed.moduleId);
+  const moduleIndex = course.modules.findIndex((module) => routeIdMatches(module.id, parsed.moduleId));
   if (moduleIndex === -1) return null;
 
   const moduleData = course.modules[moduleIndex];
@@ -54,7 +54,7 @@ function findPathPosition(pathname) {
     };
   }
 
-  const lessonIndex = moduleData.lessons.findIndex((lesson) => lesson.id === parsed.lessonId);
+  const lessonIndex = moduleData.lessons.findIndex((lesson) => routeIdMatches(lesson.id, parsed.lessonId));
   if (lessonIndex === -1) return null;
 
   return { courseIndex, moduleIndex, lessonIndex, isModuleQuiz: false };

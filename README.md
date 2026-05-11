@@ -17,7 +17,7 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 - This repository root is the active canonical app for CodeHerWay.
 - The project is usable for demos and portfolio review.
 - The project is not yet production-grade.
-- The quality baseline currently includes lint, JS-source policy, Playwright script validation, Supabase static policy readiness, production build, bundle budget, lesson-label audit, strict quiz audit, learning-content flow audit, unit tests, and Playwright smoke coverage.
+- The quality baseline currently includes lint, JS-source policy, Playwright script validation, Supabase static policy readiness, reward catalog integrity audit, production build, bundle budget, lesson-label audit, strict quiz audit, learning-content flow audit, unit tests, and Playwright smoke coverage.
 - Recent audit hardening added stable resume coverage, learner-scoped local state, authenticated persistence boundary tests, clearer lesson/quiz/challenge semantics, mobile tool-sheet polish, and Supabase live-deployment readiness notes.
 
 ## What Is Currently Working
@@ -49,6 +49,7 @@ Current baseline checks:
 - `npm run typecheck` (JS-only source policy alias; this project intentionally does not run the TypeScript compiler)
 - `npm run check:js-source` (JS-only source policy; this project does not run TypeScript type checking)
 - `npm run check:supabase-readiness` (static migration/privacy/reward-ledger readiness gate)
+- `npm run audit:reward-catalog` (verifies the Supabase reward catalog migration still matches checked-in curriculum lessons, quizzes, and challenges)
 - `npm run audit:staging-runbook` (static guard that keeps the live Supabase validation runbook complete and honest)
 - `npm run audit:e2e-scripts` (Playwright project-reference guard)
 - `npm run audit:auth-e2e` (authenticated E2E workflows keep preflight, secret wiring, and required signed-in smoke coverage)

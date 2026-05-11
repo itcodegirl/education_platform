@@ -67,7 +67,8 @@ export async function loadProfile(userId) {
     .eq('id', userId)
     .maybeSingle();
   if (error) throw error;
-  return data || null;
+  if (!data) throw new Error('Profile record not found.');
+  return data;
 }
 
 export async function signInWithEmail(email, password) {
