@@ -122,6 +122,7 @@ export default defineConfig({
       },
     },
     rollupOptions: {
+      input: 'index.html',
       output: {
         manualChunks(id) {
           return getManualChunkName(id) ?? undefined;

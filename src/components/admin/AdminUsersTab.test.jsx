@@ -64,4 +64,26 @@ describe('AdminUsersTab', () => {
       });
     });
   });
+
+  it('labels the users table for assistive technology', () => {
+    render(
+      <AdminUsersTab
+        {...baseProps}
+        data={{
+          users: [{
+            id: 'user-1',
+            display_name: 'Learner One',
+            is_disabled: false,
+            lessons_done: 0,
+            xp_total: 0,
+            streak_days: 0,
+            badges_earned: 0,
+            created_at: '2026-05-06T00:00:00.000Z',
+          }],
+        }}
+      />,
+    );
+
+    expect(screen.getByRole('table', { name: /admin user accounts/i })).toBeInTheDocument();
+  });
 });
