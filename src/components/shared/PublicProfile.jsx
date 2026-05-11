@@ -5,8 +5,15 @@ import { XP_PER_LEVEL, getLevel, getXPInLevel } from '../../utils/helpers';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import '../../styles/public-profile.css';
 
+const PROFILE_ERROR = {
+  MISSING_HANDLE: 'missing-handle',
+  NOT_FOUND: 'not-found',
+  UNAVAILABLE: 'unavailable',
+};
+
 export function PublicProfile({ handle, onClose }) {
-  const [state, setState] = useState({ loading: true, error: null, profile: null });
+  const [state, setState] = useState({ loading: true, errorType: null, profile: null });
+  const [retryCount, setRetryCount] = useState(0);
 
   useDocumentTitle(
     state.profile?.display_name
@@ -21,9 +28,11 @@ export function PublicProfile({ handle, onClose }) {
 
     async function load() {
       if (!handle) {
-        setState({ loading: false, error: 'No handle provided', profile: null });
+        setState({ loading: false, errorType: PROFILE_ERROR.MISSING_HANDLE, profile: null });
         return;
       }
+
+      setState({ loading: true, errorType: null, profile: null });
 
       try {
         const { data, error } = await supabase
@@ -37,21 +46,21 @@ export function PublicProfile({ handle, onClose }) {
         if (cancelled) return;
 
         if (error) {
-          setState({ loading: false, error: error.message, profile: null });
+          setState({ loading: false, errorType: PROFILE_ERROR.UNAVAILABLE, profile: null });
           return;
         }
 
         if (!data) {
-          setState({ loading: false, error: 'Profile not found', profile: null });
+          setState({ loading: false, errorType: PROFILE_ERROR.NOT_FOUND, profile: null });
           return;
         }
 
-        setState({ loading: false, error: null, profile: data });
-      } catch (error) {
+        setState({ loading: false, errorType: null, profile: data });
+      } catch {
         if (!cancelled) {
           setState({
             loading: false,
-            error: error?.message || 'Failed to load profile',
+            errorType: PROFILE_ERROR.UNAVAILABLE,
             profile: null,
           });
         }
@@ -63,7 +72,7 @@ export function PublicProfile({ handle, onClose }) {
     return () => {
       cancelled = true;
     };
-  }, [handle]);
+  }, [handle, retryCount]);
 
   if (state.loading) {
     return (
@@ -81,20 +90,39 @@ export function PublicProfile({ handle, onClose }) {
     );
   }
 
-  if (state.error || !state.profile) {
+  if (state.errorType || !state.profile) {
+    const isMissingOrNotFound =
+      state.errorType === PROFILE_ERROR.MISSING_HANDLE ||
+      state.errorType === PROFILE_ERROR.NOT_FOUND;
+
     return (
       <div className="pub-profile">
         <div className="pub-card pub-card-center" role="alert">
           <div className="pub-notfound-icon" aria-hidden="true">🌙</div>
-          <h1 className="pub-notfound-title">Profile not found</h1>
+          <h1 className="pub-notfound-title">
+            {isMissingOrNotFound ? 'Profile not found' : 'Profile temporarily unavailable'}
+          </h1>
           <p className="pub-notfound-msg">
-            {state.error === 'Profile not found'
+            {state.errorType === PROFILE_ERROR.NOT_FOUND
               ? `We couldn't find a public profile for "${handle}".`
-              : 'Something went wrong loading this profile.'}
+              : state.errorType === PROFILE_ERROR.MISSING_HANDLE
+                ? 'Open a valid public profile link to view this learner snapshot.'
+                : 'We could not load this profile. Check your connection and try again.'}
           </p>
-          <a className="pub-cta" href="/">
-            Go to CodeHerWay &rarr;
-          </a>
+          <div className="pub-actions">
+            {!isMissingOrNotFound && (
+              <button
+                type="button"
+                className="pub-cta pub-cta-button"
+                onClick={() => setRetryCount((count) => count + 1)}
+              >
+                Try again
+              </button>
+            )}
+            <a className="pub-cta" href="/">
+              Go to CodeHerWay &rarr;
+            </a>
+          </div>
         </div>
       </div>
     );
