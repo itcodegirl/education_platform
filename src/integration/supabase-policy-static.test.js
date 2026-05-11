@@ -75,4 +75,16 @@ describe('supabase policy sql static checks', () => {
       expect(sql).not.toMatch(/create policy "Public progress count readable"[\s\S]*on public\.progress/i);
     });
   });
+
+  it('adminUserRollupsStayAdminOnly', () => {
+    const schema = readText('../../supabase-schema.sql')
+      .split('-- Admin user table with pre-aggregated user stats.')[1] || '';
+    const migration = readText('../../supabase/migrations/202605110002_lock_admin_user_rollups.sql');
+
+    [schema, migration].forEach((sql) => {
+      expect(sql).toMatch(/create or replace view public\.admin_user_rollups\s+with\s*\(\s*security_invoker\s*=\s*true\s*\)/i);
+      expect(sql).toMatch(/where public\.is_admin\(\)/i);
+      expect(sql).toMatch(/grant select on public\.admin_user_rollups to authenticated/i);
+    });
+  });
 });
