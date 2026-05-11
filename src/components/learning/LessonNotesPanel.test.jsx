@@ -33,7 +33,12 @@ describe('LessonNotesPanel', () => {
   it('renders the saved note in an accessible textarea', () => {
     render(<LessonNotesPanel lessonKey="c:html|m:basics|l:intro" />);
 
-    expect(screen.getByRole('textbox', { name: /lesson notes/i })).toHaveValue('Existing note');
+    const textarea = screen.getByRole('textbox', { name: /lesson notes/i });
+    expect(textarea).toHaveValue('Existing note');
+    expect(textarea).toHaveAttribute('maxlength', '2000');
+    expect(textarea).toHaveAccessibleDescription(/saved in this browser first/i);
+    expect(screen.getByText(/saved locally/i)).toBeInTheDocument();
+    expect(screen.getByText('13/2000')).toBeInTheDocument();
   });
 
   it('debounces note persistence while the learner types', () => {
@@ -43,7 +48,8 @@ describe('LessonNotesPanel', () => {
     fireEvent.change(textarea, { target: { value: 'Updated accessibility note' } });
 
     expect(textarea).toHaveValue('Updated accessibility note');
-    expect(screen.getByText(/saving/i)).toBeInTheDocument();
+    expect(screen.getByText(/saving note/i)).toBeInTheDocument();
+    expect(screen.getByText('26/2000')).toBeInTheDocument();
     expect(mockSaveNote).not.toHaveBeenCalled();
 
     act(() => {
