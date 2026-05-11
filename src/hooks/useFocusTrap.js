@@ -88,9 +88,11 @@ export function useFocusTrap(containerRef, options) {
       if (!root) return [];
       return Array.from(root.querySelectorAll(TABBABLE_SELECTOR)).filter(
         (el) => {
-          // Skip elements that are display:none or inside an
-          // aria-hidden subtree.
-          if (el.offsetParent === null) return false;
+          // Skip elements that are visually hidden or inside an
+          // aria-hidden subtree without excluding fixed-position
+          // controls that legitimately have no offsetParent.
+          const style = window.getComputedStyle(el);
+          if (el.hidden || style.display === 'none' || style.visibility === 'hidden') return false;
           if (el.closest('[aria-hidden="true"]')) return false;
           return true;
         },
@@ -102,6 +104,7 @@ export function useFocusTrap(containerRef, options) {
         if (onEscape) {
           e.preventDefault();
           e.stopPropagation();
+          e.stopImmediatePropagation?.();
           onEscape();
         }
         return;
@@ -153,6 +156,5 @@ export function useFocusTrap(containerRef, options) {
         previouslyFocused.focus();
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, onEscape]);
+  }, [containerRef, enabled, initialFocus, lockBodyScroll, onEscape]);
 }
