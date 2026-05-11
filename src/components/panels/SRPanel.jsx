@@ -68,11 +68,11 @@ export function SRPanel({ isOpen, onClose }) {
 
     if (correct) setSessionRight((count) => count + 1);
     else setSessionWrong((count) => count + 1);
+  };
 
-    setTimeout(() => {
-      setAnswered(null);
-      setCurrentIdx((idx) => idx + 1);
-    }, 1200);
+  const handleNextCard = () => {
+    setAnswered(null);
+    setCurrentIdx((idx) => idx + 1);
   };
 
   const resetSession = () => {
@@ -96,13 +96,14 @@ export function SRPanel({ isOpen, onClose }) {
         className="search-modal"
         role="dialog"
         aria-modal="true"
-        aria-label={`Review queue (${due.length} cards due)`}
+        aria-labelledby="sr-panel-title"
+        aria-describedby="sr-panel-description sr-panel-sync"
         tabIndex={-1}
       >
         <div className="cheatsheet-head">
           <div className="panel-title-group">
             <p className="panel-kicker">Spaced repetition</p>
-            <h2>🔄 Review ({due.length} due)</h2>
+            <h2 id="sr-panel-title">🔄 Review ({due.length} due)</h2>
           </div>
           <button
             type="button"
@@ -115,11 +116,11 @@ export function SRPanel({ isOpen, onClose }) {
         </div>
 
         <div className="cheatsheet-body">
-          <p className="panel-meta">
+          <p id="sr-panel-description" className="panel-meta">
             Keep tough concepts warm with short review bursts and AI-generated
             practice cards.
           </p>
-          <p className="panel-meta">{PROGRESS_SYNC_COPY}</p>
+          <p id="sr-panel-sync" className="panel-meta">{PROGRESS_SYNC_COPY}</p>
 
           <form className="sr-generate" onSubmit={handleGenerate}>
             <div className="sr-generate-head">
@@ -144,6 +145,7 @@ export function SRPanel({ isOpen, onClose }) {
                 ))}
               </select>
               <input
+                id="sr-generate-concept"
                 type="text"
                 className="sr-generate-concept"
                 placeholder="e.g. flexbox gap vs margin, async/await errors, useEffect deps..."
@@ -152,13 +154,25 @@ export function SRPanel({ isOpen, onClose }) {
                 disabled={genLoading}
                 maxLength={200}
                 aria-label="Concept to practice"
+                aria-invalid={Boolean(genError)}
+                aria-describedby="sr-generate-help sr-generate-status"
               />
               <button type="submit" className="sr-generate-btn" disabled={genLoading}>
                 {genLoading ? "Generating…" : "Generate"}
               </button>
             </div>
-            {genError && <div className="sr-generate-error">{genError}</div>}
-            {genSuccess && <div className="sr-generate-success">{genSuccess}</div>}
+            <div id="sr-generate-help" className="sr-only">
+              Enter one concept, then generate a focused practice card.
+            </div>
+            <div
+              id="sr-generate-status"
+              role={genError ? "alert" : "status"}
+              aria-live={genError ? "assertive" : "polite"}
+              aria-atomic="true"
+            >
+              {genError && <div className="sr-generate-error">{genError}</div>}
+              {genSuccess && <div className="sr-generate-success">{genSuccess}</div>}
+            </div>
           </form>
 
           {due.length === 0 ? (
@@ -202,9 +216,10 @@ export function SRPanel({ isOpen, onClose }) {
                 <div className="sr-from">{currentCard?.source}</div>
                 {currentCard?.code && <code>{currentCard.code}</code>}
 
-                <div className="sr-opts">
+                <div className="sr-opts" role="group" aria-label="Answer choices">
                   {(currentCard?.options || []).map((option, optionIndex) => {
                     let className = "sr-opt";
+                    const isSelected = answered === optionIndex;
 
                     if (answered !== null) {
                       if (optionIndex === currentCard?.correct) className += " correct";
@@ -218,6 +233,7 @@ export function SRPanel({ isOpen, onClose }) {
                         className={className}
                         onClick={() => handleAnswer(optionIndex)}
                         disabled={answered !== null}
+                        aria-pressed={isSelected}
                       >
                         <span className="sr-letter">{String.fromCharCode(65 + optionIndex)}</span>
                         {option}
@@ -227,11 +243,25 @@ export function SRPanel({ isOpen, onClose }) {
                 </div>
 
                 {answered !== null && (
-                  <div className={`sr-result ${answered === currentCard?.correct ? "right" : "wrong"}`}>
-                    {answered === currentCard?.correct
-                      ? "Correct. Strong recall."
-                      : "Not quite. Review this explanation:"} {currentCard?.explanation}
-                  </div>
+                  <>
+                    <div
+                      className={`sr-result ${answered === currentCard?.correct ? "right" : "wrong"}`}
+                      role="status"
+                      aria-live="polite"
+                      aria-atomic="true"
+                    >
+                      {answered === currentCard?.correct
+                        ? "Correct. Strong recall."
+                        : "Not quite. Review this explanation:"} {currentCard?.explanation}
+                    </div>
+                    <button
+                      type="button"
+                      className="quiz-retry retry-btn-mt"
+                      onClick={handleNextCard}
+                    >
+                      Next card
+                    </button>
+                  </>
                 )}
               </div>
 
