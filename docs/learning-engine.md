@@ -140,6 +140,10 @@ Per `docs/reward-progress-policy.md`:
 - Submitting a quiz is a streak-qualifying action — including retries —
   so `recordDailyActivity` runs unconditionally on submit. This is
   intentional engagement design, documented in the policy.
+- The post-submit feedback loop uses `src/utils/quizFeedback.js` to
+  translate a score into learner-facing next actions: explain, review,
+  retry, or apply in a challenge. This keeps quizzes instructional even
+  when XP has already been earned.
 
 ## 5. Challenge completion
 
