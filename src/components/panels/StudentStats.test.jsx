@@ -231,6 +231,8 @@ describe('StudentStats streak card', () => {
 
     expect(screen.getByText('Mastery Evidence')).toBeInTheDocument();
     expect(screen.getByText(/Lesson completion shows exposure/i)).toBeInTheDocument();
+    expect(screen.getByText('Review evidence due')).toBeInTheDocument();
+    expect(screen.getByText(/retry one missed quick check/i)).toBeInTheDocument();
     expect(screen.getByText('Quiz checks at 80%+')).toBeInTheDocument();
     expect(screen.getByText('Applied challenges')).toBeInTheDocument();
     expect(screen.getByText('Review due now')).toBeInTheDocument();
