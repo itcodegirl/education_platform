@@ -154,6 +154,7 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
             inputMode="search"
             enterKeyHint="search"
             spellCheck="false"
+
             aria-controls="search-results-list"
           />
           {query && (

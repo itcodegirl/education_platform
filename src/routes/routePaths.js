@@ -21,6 +21,11 @@ function decodePathSegment(value = '') {
   }
 }
 
+export function routeIdMatches(value, routeSegment) {
+  if (value == null || routeSegment == null) return false;
+  return String(value) === String(routeSegment);
+}
+
 export function toPathFromLegacyHash(hash = '') {
   if (!hash || hash === '#') return null;
   if (LEGACY_HASH_MAP[hash]) return LEGACY_HASH_MAP[hash];

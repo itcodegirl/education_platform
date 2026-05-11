@@ -8,12 +8,12 @@ import {
   useLocation,
   useNavigate,
 } from 'react-router-dom';
-import { COURSE_LOADER_IDS, loadCourse } from '../data';
+import { COURSE_LOADER_IDS, loadCourseRuntime } from '../data';
 import { useAuth } from '../providers/AuthProvider';
 import { useTheme } from '../providers/ThemeProvider';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { Logo } from '../components/shared/Logo';
-import { APP_ROUTES, parsePublicProfilePath } from './routePaths';
+import { APP_ROUTES, parsePublicProfilePath, routeIdMatches } from './routePaths';
 import { closeRouteOrGoHome, toPathFromLegacyHash } from './routeUtils';
 import { RouteErrorBoundary } from './RouteErrorBoundary';
 
@@ -42,6 +42,12 @@ const ProtectedAdminDashboardRoute = lazy(() =>
 export async function learnRouteAction(args) {
   const module = await import('./learnRouteActions');
   return module.learnRouteAction(args);
+}
+
+function loadedCourseHasModuleQuiz(loadedCourse, moduleId) {
+  return (loadedCourse.quizzes || []).some((quiz) =>
+    quiz?.moduleId != null && routeIdMatches(quiz.moduleId, moduleId),
+  );
 }
 
 function RouteLoadingScreen({ theme, size = 'sm', children }) {
@@ -247,14 +253,18 @@ export async function learnRouteLoader({ params }) {
   }
 
   try {
-    const loadedCourse = await loadCourse(courseId);
-    const moduleMatch = loadedCourse.modules.find((module) => module.id === moduleId);
+    const loadedCourse = await loadCourseRuntime(courseId);
+    const moduleMatch = loadedCourse.modules.find((module) => routeIdMatches(module.id, moduleId));
     if (!moduleMatch) {
       throw new Error('Unknown module');
     }
 
-    if (lessonId !== 'quiz') {
-      const lessonMatch = moduleMatch.lessons.find((lesson) => lesson.id === lessonId);
+    if (lessonId === 'quiz') {
+      if (!loadedCourseHasModuleQuiz(loadedCourse, moduleMatch.id)) {
+        throw new Error('Unknown module quiz');
+      }
+    } else {
+      const lessonMatch = moduleMatch.lessons.find((lesson) => routeIdMatches(lesson.id, lessonId));
       if (!lessonMatch) {
         throw new Error('Unknown lesson');
       }

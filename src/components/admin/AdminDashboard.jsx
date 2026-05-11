@@ -24,6 +24,7 @@ import { AdminOverviewTab } from './AdminOverviewTab';
 import { AdminUsersTab } from './AdminUsersTab';
 import { AdminCoursesTab } from './AdminCoursesTab';
 import { AdminQuizzesTab } from './AdminQuizzesTab';
+import '../../styles/feature-admin.css';
 
 const LessonBuilder = lazy(() =>
   import('./LessonBuilder').then((m) => ({ default: m.LessonBuilder })),
@@ -189,7 +190,7 @@ export function AdminDashboard({ onClose }) {
             onClick={() => window.location.reload()}
             aria-label="Reload the admin dashboard"
           >
-            Retry Retry
+            Retry
           </button>
         </div>
       </div>

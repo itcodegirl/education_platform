@@ -38,11 +38,16 @@ vi.mock('../../data', () => ({
 }));
 
 vi.mock('../../data/challenges', () => ({
+  areChallengesLoaded: () => true,
   getChallengesForCourse: (courseId) => {
     if (courseId === 'html') return [{ id: 'html-challenge-1', title: 'HTML Challenge' }];
     if (courseId === 'css') return [{ id: 'css-challenge-1', title: 'CSS Challenge' }];
     return [];
   },
+  loadAllChallenges: vi.fn(async () => ({
+    html: [{ id: 'html-challenge-1', title: 'HTML Challenge' }],
+    css: [{ id: 'css-challenge-1', title: 'CSS Challenge' }],
+  })),
 }));
 
 vi.mock('../../hooks/useFocusTrap', () => ({

@@ -25,6 +25,14 @@ const TABBABLE_SELECTOR =
   'select:not([disabled]), textarea:not([disabled]), ' +
   '[tabindex]:not([tabindex="-1"])';
 
+function isHiddenFromFocus(element) {
+  if (!(element instanceof HTMLElement)) return true;
+  if (element.hidden || element.closest('[hidden], [aria-hidden="true"]')) return true;
+
+  const style = window.getComputedStyle(element);
+  return style.display === 'none' || style.visibility === 'hidden';
+}
+
 /**
  * @param {React.RefObject<HTMLElement>} containerRef
  * @param {{
@@ -65,13 +73,9 @@ export function useFocusTrap(containerRef, options) {
     const getTabbables = () => {
       const root = containerRef.current;
       if (!root) return [];
-
-      return Array.from(root.querySelectorAll(TABBABLE_SELECTOR)).filter((el) => {
-        const style = window.getComputedStyle(el);
-        if (el.hidden || style.display === 'none' || style.visibility === 'hidden') return false;
-        if (el.closest('[aria-hidden="true"]')) return false;
-        return true;
-      });
+      return Array.from(root.querySelectorAll(TABBABLE_SELECTOR)).filter(
+        (el) => !isHiddenFromFocus(el),
+      );
     };
 
     const handleKey = (event) => {

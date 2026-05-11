@@ -205,4 +205,51 @@ describe('progressWriteQueue', () => {
 
     expect(readProgressWriteQueue(userId, { storage })).toEqual([]);
   });
+
+  it('drops malformed stored writes before replaying the offline queue', async () => {
+    storage.setItem(
+      'chw-progress-write-queue:user-123',
+      JSON.stringify([
+        {
+          id: 'tampered-xp',
+          operation: 'updateXP',
+          payload: { total: 999999999 },
+          createdAt: new Date().toISOString(),
+          attemptCount: 0,
+        },
+        {
+          id: 'valid-note',
+          operation: 'saveNote',
+          payload: {
+            lessonKey: 'html|intro',
+            content: 'Valid queued note',
+          },
+          createdAt: new Date().toISOString(),
+          attemptCount: 0,
+        },
+      ]),
+    );
+
+    const result = await replayProgressWriteQueue(userId, { storage });
+
+    expect(progressServiceMocks.updateXP).not.toHaveBeenCalled();
+    expect(progressServiceMocks.saveNote).toHaveBeenCalledWith(
+      userId,
+      'html|intro',
+      'Valid queued note',
+    );
+    expect(result).toMatchObject({
+      processed: 1,
+      remaining: 0,
+      failedItem: null,
+      error: null,
+    });
+  });
+
+  it('refuses invalid writes before they enter the retry queue', () => {
+    expect(() => createProgressWrite('updateStreak', {
+      days: 99999,
+      lastDate: 'not-a-date',
+    })).toThrow(/Invalid progress write payload/);
+  });
 });

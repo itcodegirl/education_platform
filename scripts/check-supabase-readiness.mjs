@@ -65,12 +65,45 @@ const REQUIRED_ARTIFACTS = [
     ],
   },
   {
+    path: 'supabase/migrations/202605110001_harden_reward_event_trust_boundaries.sql',
+    label: 'reward trust boundary hardening migration',
+    checks: [
+      ['reward catalog table', /create\s+table\s+if\s+not\s+exists\s+public\.reward_catalog/i],
+      ['reward catalog RLS', /alter\s+table\s+public\.reward_catalog\s+enable\s+row\s+level\s+security/i],
+      ['server-derived event key', /v_expected_event_key\s*:=/i],
+      ['server-derived XP', /v_expected_xp/i],
+      ['forged event key rejection', /event_key_mismatch/i],
+      ['forged XP rejection', /xp_amount_mismatch/i],
+    ],
+  },
+  {
     path: 'supabase/migrations/202605060003_harden_profile_updates.sql',
     label: 'profile safe-field hardening migration',
     checks: [
       ['safe profile update grant', /grant\s+update\s*\(\s*display_name,\s*avatar_url,\s*is_public,\s*public_handle\s*\)/i],
       ['admin status RPC', /create\s+or\s+replace\s+function\s+public\.set_user_disabled/i],
       ['admin status RPC grant', /grant\s+execute\s+on\s+function\s+public\.set_user_disabled[\s\S]+to\s+authenticated/i],
+    ],
+  },
+  {
+    path: 'supabase/migrations/202605110001_harden_reward_event_trust_boundaries.sql',
+    label: 'reward catalog trust-boundary migration',
+    checks: [
+      ['server-owned reward catalog table', /create\s+table\s+if\s+not\s+exists\s+public\.reward_catalog/i],
+      ['catalog browser write revoke', /revoke\s+insert,\s*update,\s*delete\s+on\s+table\s+public\.reward_catalog\s+from\s+anon,\s*authenticated/i],
+      ['RPC derives XP from catalog', /into\s+v_expected_xp[\s\S]+from\s+public\.reward_catalog\s+catalog/i],
+      ['event key mismatch rejection', /event_key_mismatch/i],
+      ['XP amount mismatch rejection', /xp_amount_mismatch/i],
+      ['unknown reward entity rejection', /unknown_reward_entity/i],
+    ],
+  },
+  {
+    path: 'supabase/migrations/202605110002_lock_admin_user_rollups.sql',
+    label: 'admin user rollups hardening migration',
+    checks: [
+      ['security invoker view option', /security_invoker\s*=\s*true/i],
+      ['admin-only view filter', /where\s+public\.is_admin\(\)/i],
+      ['authenticated admin rollup grant', /grant\s+select\s+on\s+public\.admin_user_rollups\s+to\s+authenticated/i],
     ],
   },
   {

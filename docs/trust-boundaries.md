@@ -7,16 +7,19 @@ CodeHerWay is portfolio/demo-ready today, not production credentialing infrastru
 - Supabase Auth sessions.
 - Profile access when Supabase is configured and RLS policies are active.
 - Lesson completions, bookmarks, and notes when connected writes succeed.
+- User-facing Netlify functions validate the Supabase JWT and fail closed when the learner profile is disabled or missing.
+- The optional backend reward RPC derives learner identity from `auth.uid()`, reward XP from `public.reward_catalog`, and duplicate handling from the `reward_events` idempotency ledger.
 
 ## Same-Browser Recovery Today
 
 - Direct optimistic progress writes can queue and retry in the same browser.
 - Recoverable lesson completion and bookmark route-action failures can enter the same local retry path.
+- The retry queue treats localStorage entries as untrusted input. It drops malformed, stale, future-dated, oversized, or out-of-range writes before replaying them.
 - Hiding an advisory warning does not guarantee every failed write was recovered.
 
 ## Local-Only Today
 
-- XP.
+- XP, unless backend reward sync is explicitly enabled and live-validated.
 - Streaks.
 - Badges.
 - Spaced-repetition review queue.
@@ -24,6 +27,13 @@ CodeHerWay is portfolio/demo-ready today, not production credentialing infrastru
 - Reward ledger diagnostics.
 
 These are useful learning signals, but they should be described as single-device until backend reward and activity records are verified.
+
+## Release Gates
+
+- Run `npm run check:supabase-readiness` before persistence-sensitive releases.
+- Run `npm run audit:reward-catalog` after curriculum changes that add, remove, or rename lessons, quizzes, or challenges.
+- Keep `VITE_REWARD_BACKEND_SYNC_ENABLED=false` outside staging until `docs/staging-supabase-validation.md` records authenticated duplicate-award, forged-XP, RLS, and replay checks against a real Supabase project.
+- Do not describe progress summaries, XP, or badges as credentialed outcomes until verified server-backed completion records exist.
 
 ## Informational, Not Credentialed
 

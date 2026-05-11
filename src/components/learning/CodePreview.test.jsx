@@ -61,6 +61,7 @@ describe('CodePreview', () => {
     expect(frame.getAttribute('srcdoc')).toContain('<main>Preview Me</main>');
   });
 
+
   it('marks active practice views as tabs for assistive technology', () => {
     render(<CodePreview code="<h1>Hello</h1>" lang="html" scaffolding="full" />);
 
@@ -69,6 +70,11 @@ describe('CodePreview', () => {
     expect(within(tablist).getAllByRole('tab')).toHaveLength(3);
     expect(tablist).not.toContainElement(screen.getByRole('button', { name: /copy code to clipboard/i }));
     expect(screen.getByRole('tab', { name: /code/i })).toHaveAttribute('aria-selected', 'true');
+    expect(
+      within(screen.getByRole('tablist', { name: /code practice views/i })).queryByRole('button', {
+        name: /copy code/i,
+      }),
+    ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('tab', { name: /editor/i }));
 

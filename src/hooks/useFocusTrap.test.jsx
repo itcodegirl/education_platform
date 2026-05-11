@@ -93,9 +93,6 @@ describe('useFocusTrap', () => {
     fireEvent.keyDown(window, { key: 'Tab' });
     expect(firstAction).toHaveFocus();
 
-    firstAction.focus();
-    fireEvent.keyDown(window, { key: 'Tab' });
-    expect(firstAction).toHaveFocus();
     expect(fixedAction).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /hidden action/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /decorative action/i })).not.toBeInTheDocument();

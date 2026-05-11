@@ -4,7 +4,6 @@
 // ===============================================
 
 import { useCallback, useMemo, useEffect, useState } from "react";
-import { useFetcher } from "react-router-dom";
 import { COURSES } from "../data";
 import { useTheme, useAuth, useProgressData, useXP, useCourseContent, useSR } from "../providers";
 import { useNavigation } from "../hooks/useNavigation";
@@ -15,9 +14,8 @@ import { useIsMobile } from "../hooks/useIsMobile";
 import { useMobileKeyboardOpen } from "../hooks/useMobileKeyboardOpen";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
-import { useFetcherSyncFailure } from "../hooks/useFetcherSyncFailure";
 import { useLessonViewTracking } from "../hooks/useLessonViewTracking";
-import { useLessonMarkDone } from "../hooks/useLessonMarkDone";
+import { useMarkLessonDone } from "../hooks/useMarkLessonDone";
 import { useLearningToolActions } from "../hooks/useLearningToolActions";
 import { estimateReadingTime, getLevel } from "../utils/helpers";
 import { trackEvent } from "../lib/analytics";
@@ -85,8 +83,6 @@ export function AppLayout() {
     syncFailed = 0,
     pendingSyncWrites = 0,
     syncRetryInFlight = false,
-    markSyncFailed = () => {},
-    enqueuePendingSyncWrite = () => false,
     retryPendingSyncWrites = () => {},
   } = useProgressData();
   const { xpTotal = 0, streak = 0, pausedStreak = null, dailyCount = 0 } = useXP();
@@ -95,7 +91,6 @@ export function AppLayout() {
   const nav = useNavigation();
   const panels = usePanels({ dataLoaded, user, lastPosition });
   const learn = useLearning();
-  const progressMutation = useFetcher();
   const isMobile = useIsMobile(901);
   const mobileKeyboardOpen = useMobileKeyboardOpen(isMobile);
   const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage(
@@ -304,22 +299,20 @@ export function AppLayout() {
   }, [isCourseComplete, isDone, panels]);
 
   // --- Actions ------------------------------
-  useFetcherSyncFailure(
-    progressMutation,
-    { markSyncFailed, enqueuePendingSyncWrite },
-    'lesson progress',
-  );
-  const { marking, handleMarkDone } = useLessonMarkDone({
-    completedSet,
-    stableLessonKey,
-    legacyLessonKey,
+  const markDoneAnalyticsContext = useMemo(() => ({
     courseId: course.id,
     moduleId: mod.id,
     lessonId: les.id,
-    mutationActionPath,
-    progressMutation,
-    toggleLessonDone: learn.toggleLessonDone,
     lessonViewStartRef,
+  }), [course.id, les.id, lessonViewStartRef, mod.id]);
+
+  const { marking, handleMarkDone, mutationState } = useMarkLessonDone({
+    completedSet,
+    stableLessonKey,
+    legacyLessonKey,
+    mutationActionPath,
+    toggleLessonDone: learn.toggleLessonDone,
+    analyticsContext: markDoneAnalyticsContext,
   });
   const topbarCompletionCopy = getLessonCompletionActionCopy({
     isDone,
@@ -334,7 +327,7 @@ export function AppLayout() {
     syncFailed,
     syncRetryInFlight,
     marking,
-    mutationState: progressMutation.state,
+    mutationState,
   });
   const handleRetrySync = useCallback(() => {
     retryPendingSyncWrites();

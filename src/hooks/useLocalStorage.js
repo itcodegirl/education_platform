@@ -23,9 +23,18 @@ export const LOCAL_STORAGE_SYNC_ERROR_EVENT = 'chw:local-storage-sync-error';
 
 function notifyLocalStorageError(key, phase) {
   if (typeof window === 'undefined') return;
-  window.dispatchEvent(new window.CustomEvent(LOCAL_STORAGE_SYNC_ERROR_EVENT, {
-    detail: { key, phase },
-  }));
+  const dispatch = () => {
+    window.dispatchEvent(new window.CustomEvent(LOCAL_STORAGE_SYNC_ERROR_EVENT, {
+      detail: { key, phase },
+    }));
+  };
+
+  if (typeof window.queueMicrotask === 'function') {
+    window.queueMicrotask(dispatch);
+    return;
+  }
+
+  window.setTimeout(dispatch, 0);
 }
 
 function readInitial(key, initialValue, options = {}) {

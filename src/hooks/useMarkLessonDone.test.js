@@ -62,6 +62,7 @@ describe('useMarkLessonDone', () => {
   it('starts in the not-marking state', () => {
     const { result } = renderHook(() => useMarkLessonDone(baseArgs));
     expect(result.current.marking).toBe(false);
+    expect(result.current.mutationState).toBe('idle');
   });
 
   it('on mark-done with a fresh lesson: optimistic toggle, submit complete, analytics', async () => {
