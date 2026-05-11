@@ -129,6 +129,7 @@ This project is intended to demonstrate:
 Reviewer shortcuts:
 
 - Reviewer start: [docs/reviewer-start-here.md](./docs/reviewer-start-here.md)
+- Claim-to-code evidence map: [docs/reviewer-evidence-map.md](./docs/reviewer-evidence-map.md)
 - Reviewer demo script: [docs/reviewer-demo-script.md](./docs/reviewer-demo-script.md)
 - Branch and PR triage: [docs/branch-triage.md](./docs/branch-triage.md)
 - Product story: [docs/portfolio-case-study.md](./docs/portfolio-case-study.md)

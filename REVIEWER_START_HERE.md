@@ -5,6 +5,7 @@ This repository is the active CodeHerWay learning platform for portfolio review.
 For the full guided review path, start with:
 
 - [docs/reviewer-start-here.md](./docs/reviewer-start-here.md)
+- [docs/reviewer-evidence-map.md](./docs/reviewer-evidence-map.md)
 - [README.md](./README.md)
 - [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md)
 - [docs/repair-roadmap.md](./docs/repair-roadmap.md)

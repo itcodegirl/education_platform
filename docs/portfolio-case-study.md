@@ -6,6 +6,8 @@ CodeHerWay is a production-minded learning platform built to improve first-time 
 
 This case study highlights how the platform was hardened for portfolio review across UX, accessibility, release readiness, and developer workflow quality.
 
+For a reviewer who wants direct proof behind the case-study claims, use the claim-to-code map in [docs/reviewer-evidence-map.md](./reviewer-evidence-map.md).
+
 ---
 
 ## Problem and opportunity
