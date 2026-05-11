@@ -303,6 +303,11 @@
 /* Pure layout row — the interactive bits are the two child buttons
    (.bk-main for open, .bk-remove for delete). Previously this whole
    row was a <div onClick>, which was keyboard-inaccessible. */
+.bookmark-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
 .bookmark-item {
   display: flex;
   align-items: center;
