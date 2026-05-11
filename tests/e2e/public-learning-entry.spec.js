@@ -42,6 +42,51 @@ async function expectTouchTarget(locator) {
   expect(box?.height || 0).toBeGreaterThanOrEqual(44);
 }
 
+async function expectNoVisibleControlOverlap(page, selector) {
+  const result = await page.evaluate((controlSelector) => {
+    const controls = Array.from(document.querySelectorAll(controlSelector))
+      .map((node) => {
+        const rect = node.getBoundingClientRect();
+        const style = window.getComputedStyle(node);
+        return {
+          label: node.getAttribute('aria-label') || node.textContent?.trim() || node.className || node.tagName,
+          left: Math.round(rect.left),
+          top: Math.round(rect.top),
+          right: Math.round(rect.right),
+          bottom: Math.round(rect.bottom),
+          width: Math.round(rect.width),
+          height: Math.round(rect.height),
+          visible: style.display !== 'none'
+            && style.visibility !== 'hidden'
+            && rect.width > 0
+            && rect.height > 0,
+        };
+      })
+      .filter((item) => item.visible);
+
+    const overlaps = [];
+    for (let i = 0; i < controls.length; i += 1) {
+      for (let j = i + 1; j < controls.length; j += 1) {
+        const a = controls[i];
+        const b = controls[j];
+        const overlapsX = a.left < b.right && a.right > b.left;
+        const overlapsY = a.top < b.bottom && a.bottom > b.top;
+        if (overlapsX && overlapsY) {
+          overlaps.push({ a: a.label, b: b.label });
+        }
+      }
+    }
+
+    return { count: controls.length, overlaps: overlaps.slice(0, 5) };
+  }, selector);
+
+  expect(result.count).toBeGreaterThan(0);
+  expect(
+    result.overlaps,
+    `Overlapping controls detected: ${JSON.stringify(result.overlaps)}`,
+  ).toEqual([]);
+}
+
 test.describe('public learner entry', () => {
   test('opens the first lesson preview from the hero without an account', async ({ page }) => {
     await page.goto('/');
@@ -54,7 +99,8 @@ test.describe('public learner entry', () => {
     await expect(page.locator('.guest-preview')).toBeVisible({ timeout: 30000 });
     await expect(page.getByText(/Preview Mode/i)).toBeVisible();
     await expect(page.locator('.lesson-title')).toBeVisible();
-    await expect(page.locator('.gp-cta')).toContainText(/track your progress/i);
+    await expect(page.locator('.gp-cta')).toContainText(/keep your place/i);
+    await expect(page.locator('.gp-cta')).toContainText(/save notes and bookmarks/i);
 
     await page.getByRole('button', { name: /create free account/i }).click();
 
@@ -121,6 +167,35 @@ test.describe('public learner entry', () => {
 
       await expect(page.locator('.guest-preview')).toBeVisible({ timeout: 30000 });
       await expectNoHorizontalOverflow(page);
+
+      const createAccountButton = page.getByRole('button', { name: /create free account/i });
+      await createAccountButton.scrollIntoViewIfNeeded();
+      await expect(createAccountButton).toBeVisible();
+      await expectTouchTarget(createAccountButton);
+    }
+  });
+
+  test('mobilePreviewKeepsAccountActionsReachable', async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== 'mobile-chrome',
+      'Small-phone action reachability is scoped to mobile Chrome.',
+    );
+
+    for (const viewport of [
+      { width: 360, height: 780 },
+      { width: 390, height: 844 },
+    ]) {
+      await page.setViewportSize(viewport);
+      await page.goto('/');
+      await page.getByRole('button', { name: /preview the first lesson/i }).first().click();
+
+      await expect(page.locator('.guest-preview')).toBeVisible({ timeout: 30000 });
+      await expectNoHorizontalOverflow(page);
+      await expectNoVisibleControlOverlap(page, '.guest-preview button, .guest-preview a');
+
+      const returnButton = page.getByLabel('Return to authentication page');
+      await expect(returnButton).toBeVisible();
+      await expectTouchTarget(returnButton);
 
       const createAccountButton = page.getByRole('button', { name: /create free account/i });
       await createAccountButton.scrollIntoViewIfNeeded();

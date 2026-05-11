@@ -16,12 +16,21 @@ vi.mock('../../data/challenges', () => ({
       difficulty: 'beginner',
       tests: [{ label: 'has card' }],
     },
+  ],
+}));
+
+vi.mock('../../data', () => ({
+  COURSES: [
     {
-      id: 'challenge-2',
-      title: 'Style a Layout',
-      description: 'Create a responsive layout.',
-      difficulty: 'intermediate',
-      tests: [{ label: 'uses grid' }, { label: 'has gap' }],
+      id: 'html',
+      label: 'HTML',
+      modules: [
+        {
+          id: 'foundations',
+          title: 'HTML Foundations',
+          lessons: [{ id: 'l1', title: 'Intro' }],
+        },
+      ],
     },
   ],
 }));
@@ -68,28 +77,12 @@ describe('ChallengesPanel', () => {
     expect(screen.getByText(/same-browser CodeHerWay progress/i)).toBeInTheDocument();
   });
 
-  it('surfaces a recommended next challenge with progress context', () => {
+  it('shows a course-connected recommended practice match', () => {
     render(<ChallengesPanel courseId="html" lang="html" onClose={vi.fn()} />);
 
-    expect(screen.getByText(/Recommended next challenge/i)).toBeInTheDocument();
-    expect(screen.getByText('0/2 complete')).toBeInTheDocument();
-
-    fireEvent.click(
-      screen.getByRole('button', { name: /start recommended challenge: build a card/i }),
-    );
-
-    expect(screen.getByRole('dialog', { name: /challenge: build a card/i })).toBeInTheDocument();
-  });
-
-  it('recommends the next open challenge after a completion', () => {
-    mockUseProgressData.mockReturnValue({ challengeCompletions: ['challenge-1'] });
-
-    render(<ChallengesPanel courseId="html" lang="html" onClose={vi.fn()} />);
-
-    expect(screen.getByText('1/2 complete')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /start recommended challenge: style a layout/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Practice match/i)).toBeInTheDocument();
+    expect(screen.getByText(/Best connected to/i)).toHaveTextContent('HTML Foundations');
+    expect(screen.getByText(/Ready for practice: HTML Foundations/i)).toBeInTheDocument();
   });
 
   it('routes challenge completion through the learning engine', () => {

@@ -16,6 +16,8 @@
 // `submitted` freezes the UI into the post-grade state.
 // ═══════════════════════════════════════════════
 
+import { useState } from 'react';
+
 // ─── Correctness check (also exported for the session hook) ──
 export function isAnswerCorrect(q, answer) {
   if (answer === undefined || answer === null) return false;
@@ -234,27 +236,38 @@ function FillQuestion({ q, answer, onAnswer, submitted }) {
 function OrderQuestion({ q, answer, onAnswer, submitted }) {
   const items = answer || q.items.map((_, i) => i);
   const isCorrect = isAnswerCorrect(q, answer);
+  const [announcement, setAnnouncement] = useState('');
 
   const moveUp = (idx) => {
     if (submitted || idx === 0) return;
     const next = [...items];
+    const itemIdx = next[idx];
     [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
     onAnswer(next);
+    setAnnouncement(`${q.items[itemIdx]} moved to position ${idx} of ${items.length}.`);
   };
 
   const moveDown = (idx) => {
     if (submitted || idx === items.length - 1) return;
     const next = [...items];
+    const itemIdx = next[idx];
     [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
     onAnswer(next);
+    setAnnouncement(`${q.items[itemIdx]} moved to position ${idx + 2} of ${items.length}.`);
   };
 
   return (
     <>
       <p className="qq-text">{q.question || 'Put these in the correct order:'}</p>
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </div>
       <div className="qq-order-list">
         {items.map((itemIdx, pos) => {
           let cls = 'qq-order-item';
+          const currentPosition = pos + 1;
+          const upTarget = Math.max(1, pos);
+          const downTarget = Math.min(items.length, pos + 2);
           if (submitted) {
             cls += q.correct[pos] === itemIdx ? ' is-correct' : ' is-wrong';
           }
@@ -269,7 +282,7 @@ function OrderQuestion({ q, answer, onAnswer, submitted }) {
                     className="qq-order-btn"
                     onClick={() => moveUp(pos)}
                     disabled={pos === 0}
-                    aria-label={`Move item ${pos + 1} up`}
+                    aria-label={`Move ${q.items[itemIdx]} from position ${currentPosition} to position ${upTarget}`}
                   >
                     ↑
                   </button>
@@ -278,7 +291,7 @@ function OrderQuestion({ q, answer, onAnswer, submitted }) {
                     className="qq-order-btn"
                     onClick={() => moveDown(pos)}
                     disabled={pos === items.length - 1}
-                    aria-label={`Move item ${pos + 1} down`}
+                    aria-label={`Move ${q.items[itemIdx]} from position ${currentPosition} to position ${downTarget}`}
                   >
                     ↓
                   </button>
