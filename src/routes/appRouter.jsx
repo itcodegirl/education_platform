@@ -46,7 +46,7 @@ export async function learnRouteAction(args) {
 
 function RouteLoadingScreen({ theme, size = 'sm', children }) {
   return (
-    <div className={`loading-screen ${theme}`} role="status" aria-live="polite">
+    <div className={`loading-screen ${theme}`} role="status" aria-live="polite" aria-busy="true">
       <div className="loading-pulse">
         {size === 'lg' ? <Logo size="lg" showTagline /> : <Logo size={size} />}
         {children}
@@ -55,37 +55,76 @@ function RouteLoadingScreen({ theme, size = 'sm', children }) {
   );
 }
 
-function DisabledAccountScreen({ theme, onSignOut }) {
+function LoadingMessage({ children }) {
+  return <p className="route-loading-message">{children}</p>;
+}
+
+function AccountStatusScreen({
+  actions,
+  icon,
+  idPrefix,
+  message,
+  theme,
+  title,
+}) {
+  const titleId = `${idPrefix}-title`;
+  const descriptionId = `${idPrefix}-desc`;
+
   return (
-    <div className={`loading-screen ${theme}`} role="status" aria-live="polite">
+    <div
+      className={`loading-screen ${theme}`}
+      role="alert"
+      aria-live="assertive"
+      aria-labelledby={titleId}
+      aria-describedby={descriptionId}
+    >
       <div className="disabled-screen">
-        <span className="disabled-icon" aria-hidden="true">⊘</span>
-        <h2 className="disabled-title">Account disabled</h2>
-        <p className="disabled-msg">Your account has been disabled. Contact support if this is a mistake.</p>
-        <a href="mailto:hello@codeherway.com" className="disabled-link">Contact support</a>
-        <button type="button" className="disabled-logout" onClick={onSignOut}>Log out</button>
+        <span className="disabled-icon" aria-hidden="true">{icon}</span>
+        <h2 id={titleId} className="disabled-title">{title}</h2>
+        <p id={descriptionId} className="disabled-msg">{message}</p>
+        <div className="disabled-actions">
+          {actions}
+        </div>
       </div>
     </div>
   );
 }
 
+function DisabledAccountScreen({ theme, onSignOut }) {
+  return (
+    <AccountStatusScreen
+      theme={theme}
+      idPrefix="disabled-account"
+      icon="!"
+      title="Account disabled"
+      message="Your account has been disabled. Contact support if this is a mistake."
+      actions={(
+        <>
+          <a href="mailto:hello@codeherway.com" className="disabled-link">Contact support</a>
+          <button type="button" className="disabled-logout" onClick={onSignOut}>Log out</button>
+        </>
+      )}
+    />
+  );
+}
+
 function AccountCheckErrorScreen({ theme, onRetry, onSignOut }) {
   return (
-    <div className={`loading-screen ${theme}`} role="alert" aria-live="assertive">
-      <div className="disabled-screen">
-        <span className="disabled-icon" aria-hidden="true">!</span>
-        <h2 className="disabled-title">We could not verify your account</h2>
-        <p className="disabled-msg">
-          Your lessons are safe, but CodeHerWay needs to confirm your profile before opening the learning dashboard.
-        </p>
-        <button type="button" className="disabled-logout" onClick={onRetry}>
-          Try Again
-        </button>
-        <button type="button" className="disabled-link" onClick={onSignOut}>
-          Log Out
-        </button>
-      </div>
-    </div>
+    <AccountStatusScreen
+      theme={theme}
+      idPrefix="account-check-error"
+      icon="!"
+      title="We could not verify your account"
+      message="Your lessons are safe, but CodeHerWay needs to confirm your profile before opening the learning dashboard."
+      actions={(
+        <>
+          <button type="button" className="disabled-link" onClick={onRetry}>
+            Try again
+          </button>
+          <button type="button" className="disabled-logout" onClick={onSignOut}>Log out</button>
+        </>
+      )}
+    />
   );
 }
 
@@ -104,7 +143,7 @@ export function ProtectedRoute({ children }) {
   if (authLoading || (user && profileLoading)) {
     return (
       <RouteLoadingScreen theme={theme} size="lg">
-        <p style={{ marginTop: '16px', opacity: 0.5 }}>Opening your learning dashboard...</p>
+        <LoadingMessage>Opening your learning dashboard...</LoadingMessage>
       </RouteLoadingScreen>
     );
   }
@@ -140,7 +179,7 @@ function StyleguideRoute() {
       <Suspense
         fallback={(
           <RouteLoadingScreen theme={theme}>
-            <p>Opening styleguide...</p>
+            <LoadingMessage>Opening styleguide...</LoadingMessage>
           </RouteLoadingScreen>
         )}
       >
@@ -159,7 +198,7 @@ function PublicProfileRoute() {
       <Suspense
         fallback={(
           <RouteLoadingScreen theme={theme}>
-            <p>Opening public profile...</p>
+            <LoadingMessage>Opening public profile...</LoadingMessage>
           </RouteLoadingScreen>
         )}
       >
@@ -174,7 +213,7 @@ function ProtectedShellLoadingScreen({ message }) {
 
   return (
     <RouteLoadingScreen theme={theme}>
-      <p>{message}</p>
+      <LoadingMessage>{message}</LoadingMessage>
     </RouteLoadingScreen>
   );
 }
@@ -187,7 +226,7 @@ function ProtectedAppShellRoute() {
       <Suspense
         fallback={(
           <RouteLoadingScreen theme={theme} size="lg">
-            <p style={{ marginTop: '16px', opacity: 0.5 }}>Preparing your learning dashboard...</p>
+            <LoadingMessage>Preparing your learning dashboard...</LoadingMessage>
           </RouteLoadingScreen>
         )}
       >
