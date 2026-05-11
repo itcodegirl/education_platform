@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, lazy, Suspense, useEffect, useMemo, memo } from 'react';
+import { useState, useRef, useCallback, lazy, Suspense, useEffect, useMemo, memo, useId } from 'react';
 import { IFRAME_STYLES } from '../../utils/iframeStyles';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { usePrefersReducedData } from '../../hooks/usePrefersReducedData';
@@ -51,6 +51,7 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
   const copyTimerRef = useRef(null);
   const aiRequestControllerRef = useRef(null);
   const previousTabRef = useRef(defaultTab);
+  const tabBaseId = useId();
 
   const isCSS = lang === 'css';
   const isJS = lang === 'js' || lang === 'react';
@@ -178,6 +179,43 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
         : tab === 'editor'
           ? `Change one small detail, then ${previewLabel.toLowerCase()} the result before moving on.`
           : 'Read the sample first, then try one small change in the editor.';
+  const visibleTabs = [
+    ...(scaffolding !== 'requirements'
+      ? [{ id: 'code', label: `${tabIcon} Code` }]
+      : []),
+    {
+      id: 'editor',
+      label: scaffolding === 'requirements' ? '✏️ Write Code' : 'Editor',
+    },
+    { id: 'preview', label: previewLabel },
+  ];
+  const getTabId = (tabId) => `${tabBaseId}-${tabId}-tab`;
+  const getPanelId = (tabId) => `${tabBaseId}-${tabId}-panel`;
+
+  const handleTabKeyDown = (event) => {
+    const currentIndex = visibleTabs.findIndex((item) => item.id === tab);
+    if (currentIndex < 0) return;
+
+    const lastIndex = visibleTabs.length - 1;
+    const keyActions = {
+      ArrowRight: currentIndex === lastIndex ? 0 : currentIndex + 1,
+      ArrowDown: currentIndex === lastIndex ? 0 : currentIndex + 1,
+      ArrowLeft: currentIndex === 0 ? lastIndex : currentIndex - 1,
+      ArrowUp: currentIndex === 0 ? lastIndex : currentIndex - 1,
+      Home: 0,
+      End: lastIndex,
+    };
+
+    if (!(event.key in keyActions)) return;
+    event.preventDefault();
+
+    const nextTab = visibleTabs[keyActions[event.key]].id;
+    setTab(nextTab);
+    event.currentTarget
+      .parentElement
+      ?.querySelector(`[data-code-preview-tab="${nextTab}"]`)
+      ?.focus();
+  };
 
   return (
     <div className="code-preview">
@@ -195,48 +233,30 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
         <span>{guidanceCopy}</span>
       </div>
 
-      <div className="code-preview-controls">
+      <div className="code-preview-tabs">
         <div
-          className="code-preview-tabs"
+          className="code-preview-tablist"
           role="tablist"
           aria-label="Code practice views"
           aria-describedby="code-preview-guidance"
         >
-        {scaffolding !== 'requirements' && (
-          <button
-            type="button"
-            id="code-preview-tab-code"
-            className={`code-preview-tab ${tab === 'code' ? 'on' : ''}`}
-            role="tab"
-            aria-selected={tab === 'code'}
-            aria-controls="code-preview-panel-code"
-            onClick={() => setTab('code')}
-          >
-            {tabIcon} Code
-          </button>
-        )}
-        <button
-          type="button"
-          id="code-preview-tab-editor"
-          className={`code-preview-tab ${tab === 'editor' ? 'on' : ''}`}
-          role="tab"
-          aria-selected={tab === 'editor'}
-          aria-controls="code-preview-panel-editor"
-          onClick={() => setTab('editor')}
-        >
-          {scaffolding === 'requirements' ? '✏️ Write Code' : 'Editor'}
-        </button>
-        <button
-          type="button"
-          id="code-preview-tab-preview"
-          className={`code-preview-tab ${tab === 'preview' ? 'on' : ''}`}
-          role="tab"
-          aria-selected={tab === 'preview'}
-          aria-controls="code-preview-panel-preview"
-          onClick={() => setTab('preview')}
-        >
-          {previewLabel}
-        </button>
+          {visibleTabs.map((item) => (
+            <button
+              key={item.id}
+              id={getTabId(item.id)}
+              type="button"
+              role="tab"
+              className={`code-preview-tab ${tab === item.id ? 'on' : ''}`}
+              aria-selected={tab === item.id}
+              aria-controls={getPanelId(item.id)}
+              tabIndex={tab === item.id ? 0 : -1}
+              data-code-preview-tab={item.id}
+              onClick={() => setTab(item.id)}
+              onKeyDown={handleTabKeyDown}
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
 
         <div className="code-preview-actions">
@@ -265,9 +285,10 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
 
       {tab === 'code' && (
         <pre
-          id="code-preview-panel-code"
+          id={getPanelId('code')}
           className="code-preview-code"
           role="tabpanel"
+          aria-labelledby={getTabId('code')}
           tabIndex={0}
           aria-label={`${monacoLang.toUpperCase()} code sample`}
         >
@@ -277,10 +298,10 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
 
       {tab === 'editor' && (
         <div
-          id="code-preview-panel-editor"
+          id={getPanelId('editor')}
           className="code-preview-editor-wrap"
           role="tabpanel"
-          aria-labelledby="code-preview-tab-editor"
+          aria-labelledby={getTabId('editor')}
         >
           {useTextareaEditor ? (
             <>
@@ -356,10 +377,10 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
       )}
 
       {tab === 'preview' && (
-      <div
-          id="code-preview-panel-preview"
+        <div
+          id={getPanelId('preview')}
           role="tabpanel"
-          aria-labelledby="code-preview-tab-preview"
+          aria-labelledby={getTabId('preview')}
         >
           <iframe
             className="code-preview-iframe"

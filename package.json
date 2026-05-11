@@ -21,7 +21,6 @@
     "audit:content": "node scripts/audit-learning-content.mjs",
     "audit:lesson-labels": "node scripts/check-lesson-labels.mjs",
     "check:js-source": "node scripts/check-js-source-policy.mjs",
-    "typecheck": "npm run check:js-source",
     "test": "npm run test:unit",
     "test:unit": "vitest run",
     "test:run": "vitest run",

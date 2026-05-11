@@ -164,7 +164,7 @@ export const BottomToolbar = memo(function BottomToolbar({
           type="button"
           className={`tool-btn ${isMenuOpen || isSecondaryPanelActive ? "active" : ""}`}
           title="Learning tools"
-          aria-label="Open learning tools"
+          aria-label={isMenuOpen ? "Close learning tools" : "Open learning tools"}
           aria-expanded={isMenuOpen}
           aria-haspopup="menu"
           onClick={() => setIsMenuOpen((open) => !open)}
@@ -175,21 +175,26 @@ export const BottomToolbar = memo(function BottomToolbar({
 
         {isMenuOpen && (
           <div className="tool-menu" role="menu" aria-label="Learning tools">
-            {visibleSecondaryTools.map((tool) => (
-              <button
-                key={tool.key}
-                type="button"
-                className={`tool-menu-item ${activePanel === tool.key ? "active" : ""}`}
-                role="menuitem"
-                aria-pressed={activePanel === tool.key}
-                onClick={() => closeMenuAndRun(tool.onClick)}
-              >
-                {tool.label}
-                {tool.count ? (
-                  <span className="tool-menu-count">{tool.count}</span>
-                ) : null}
-              </button>
-            ))}
+            {visibleSecondaryTools.map((tool) => {
+              const isPanelTool = tool.key !== "print";
+              const isActive = activePanel === tool.key;
+
+              return (
+                <button
+                  key={tool.key}
+                  type="button"
+                  className={`tool-menu-item ${isActive ? "active" : ""}`}
+                  role={isPanelTool ? "menuitemcheckbox" : "menuitem"}
+                  aria-checked={isPanelTool ? isActive : undefined}
+                  onClick={() => closeMenuAndRun(tool.onClick)}
+                >
+                  {tool.label}
+                  {tool.count ? (
+                    <span className="tool-menu-count">{tool.count}</span>
+                  ) : null}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
