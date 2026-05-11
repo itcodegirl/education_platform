@@ -28,6 +28,12 @@ export const DEFAULT_BUNDLE_BUDGETS = [
     maxKb: 1900,
   },
   {
+    label: 'protected app stylesheet lazy chunk',
+    match: (file) => /^App-.*\.css$/i.test(file),
+    maxKb: 230,
+    gzipMaxKb: 45,
+  },
+  {
     label: 'general JavaScript chunk',
     match: (file) => file.toLowerCase().endsWith('.js'),
     maxKb: 700,

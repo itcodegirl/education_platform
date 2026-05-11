@@ -116,6 +116,22 @@ describe('bundle budget policy', () => {
     expect(cssFailure?.rawOverByKb).toBeGreaterThan(0);
   });
 
+  it('uses a protected app stylesheet budget for lazy authenticated CSS', () => {
+    const fixture = createBundleFixture({
+      assets: {
+        'index-app.js': 'console.log("app");',
+        'index-app.css': 'body{color:white;}',
+        'App-authenticated.css': 'a'.repeat(180 * 1024),
+      },
+    });
+
+    const report = collectBundleBudgetReport(fixture);
+    const appStylesheet = report.sizeReport.find((entry) => entry.file === 'App-authenticated.css');
+
+    expect(appStylesheet?.budget.label).toBe('protected app stylesheet lazy chunk');
+    expect(report.sizeFailures.some((entry) => entry.file === 'App-authenticated.css')).toBe(false);
+  });
+
   it('checks initial entry gzip budgets separately from lazy chunks', () => {
     const fixture = createBundleFixture({
       indexHtml: '<script type="module" src="/assets/index-app.js"></script>',
