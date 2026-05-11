@@ -16,12 +16,13 @@
 // ═══════════════════════════════════════════════
 
 import { useState, useEffect, useCallback, memo } from 'react';
-import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { useLearnerLocalStorage } from '../../hooks/useLearnerLocalStorage';
 import { useToggleBookmark } from '../../hooks/useToggleBookmark';
 import { AITutor } from './AITutor';
 import { LessonFeedback } from './LessonFeedback';
 import { LessonHeader } from './LessonHeader';
 import { LessonNotesPanel } from './LessonNotesPanel';
+import { LessonProductFrame } from './LessonProductFrame';
 import { StructuredLessonBody } from './StructuredLessonBody';
 import { RichLessonBody } from './RichLessonBody';
 
@@ -32,6 +33,7 @@ export const LessonView = memo(function LessonView({
   lessonKey,
   courseId,
   moduleTitle,
+  nextTitle,
 }) {
   const { bookmarked, handleToggleBookmark } = useToggleBookmark({
     lessonKey,
@@ -44,7 +46,7 @@ export const LessonView = memo(function LessonView({
   // Per-lesson task state persisted under one localStorage key. We
   // re-seed the in-memory Set whenever lessonKey changes so that
   // the task checklist reflects the new lesson's saved state.
-  const [allTasks, setAllTasks] = useLocalStorage('chw-tasks', {});
+  const [allTasks, setAllTasks] = useLearnerLocalStorage('chw-tasks', {});
   const [checkedTasks, setCheckedTasks] = useState(
     () => new Set(allTasks?.[lessonKey] || []),
   );
@@ -117,6 +119,8 @@ export const LessonView = memo(function LessonView({
       />
 
       {showNotes && <LessonNotesPanel lessonKey={lessonKey} />}
+
+      <LessonProductFrame lesson={lesson} nextTitle={nextTitle} />
 
       {isStructured ? (
         <StructuredLessonBody

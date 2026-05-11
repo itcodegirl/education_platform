@@ -23,6 +23,7 @@ import {
   addLesson,
   removeLesson,
   saveQuizScore,
+  savePosition,
   updateXP,
   awardBadge,
 } from './progressService';
@@ -58,68 +59,101 @@ beforeEach(() => {
 // ─── fetchAllUserData ────────────────────────────
 
 describe('fetchAllUserData', () => {
-  it('returns an object with all 11 expected keys on success', async () => {
+  it('returns structured data plus empty error buckets on success', async () => {
     const result = await fetchAllUserData(UID);
 
     expect(result).toMatchObject({
-      progress: expect.any(Object),
-      quiz: expect.any(Object),
-      xp: expect.any(Object),
-      streak: expect.any(Object),
-      daily: expect.any(Object),
-      badges: expect.any(Object),
-      sr: expect.any(Object),
-      bookmarks: expect.any(Object),
-      notes: expect.any(Object),
-      visited: expect.any(Object),
-      position: expect.any(Object),
+      data: {
+        progress: expect.any(Array),
+        quiz: expect.any(Array),
+        xp: null,
+        streak: null,
+        daily: null,
+        badges: expect.any(Array),
+        sr: expect.any(Array),
+        bookmarks: expect.any(Array),
+        notes: expect.any(Array),
+        visited: expect.any(Array),
+        position: null,
+      },
+      recoverableErrors: {},
+      criticalError: null,
     });
   });
 
-  it('throws a combined error when one table fails', async () => {
+  it('marks lesson progress failures as critical', async () => {
     mockFrom.mockImplementation((table) => {
       if (table === 'progress') return makeChain(null, { message: 'connection refused' });
       return makeChain([], null);
     });
 
-    await expect(fetchAllUserData(UID)).rejects.toThrow('progress: connection refused');
-  });
+    const result = await fetchAllUserData(UID);
 
-  it('lists every failed critical table in the error message', async () => {
-    mockFrom.mockImplementation((table) => {
-      if (table === 'xp' || table === 'quiz_scores') {
-        return makeChain(null, { message: `${table} timeout` });
-      }
-      return makeChain([], null);
+    expect(result.criticalError).toMatchObject({
+      message: 'Lesson progress failed to load. (progress: connection refused)',
+      details: 'progress: connection refused',
     });
-
-    await expect(fetchAllUserData(UID)).rejects.toThrow(/xp.*quiz_scores|quiz_scores.*xp/);
+    expect(result.data.progress).toEqual([]);
   });
 
-  it('includes the source table name in the error details', async () => {
+  it('collects optional domain failures as recoverable warnings', async () => {
     mockFrom.mockImplementation((table) => {
-      if (table === 'quiz_scores') return makeChain(null, { message: 'bad request' });
-      return makeChain([], null);
-    });
-
-    await expect(fetchAllUserData(UID)).rejects.toThrow('quiz_scores: bad request');
-  });
-
-  it('does not throw when only non-critical tables fail — returns loadErrors instead', async () => {
-    mockFrom.mockImplementation((table) => {
-      if (table === 'badges' || table === 'sr_cards') {
+      if (table === 'xp' || table === 'badges') {
         return makeChain(null, { message: `${table} timeout` });
       }
       return makeChain([], null);
     });
 
     const result = await fetchAllUserData(UID);
-    expect(result.loadErrors).toHaveLength(2);
-    expect(result.loadErrors.some((e) => e.includes('badges'))).toBe(true);
-    expect(result.loadErrors.some((e) => e.includes('sr_cards'))).toBe(true);
-    // Critical data is still present
-    expect(result.progress).toBeDefined();
-    expect(result.xp).toBeDefined();
+
+    expect(result.criticalError).toBeNull();
+    expect(result.recoverableErrors.xp).toMatchObject({
+      message: 'XP summary failed to load.',
+      detail: 'xp timeout',
+    });
+    expect(result.recoverableErrors.badges).toMatchObject({
+      message: 'Badges failed to load.',
+      detail: 'badges timeout',
+    });
+    expect(result.data.xp).toBeNull();
+    expect(result.data.badges).toEqual([]);
+  });
+
+  it('keeps the source detail for recoverable table failures', async () => {
+    mockFrom.mockImplementation((table) => {
+      if (table === 'quiz_scores') return makeChain(null, { message: 'bad request' });
+      return makeChain([], null);
+    });
+
+    const result = await fetchAllUserData(UID);
+
+    expect(result.recoverableErrors.quiz).toMatchObject({
+      domain: 'quiz',
+      message: 'Quiz history failed to load.',
+      detail: 'bad request',
+    });
+  });
+
+  it('partial-progress-load.notes-failure-does-not-block-lessons', async () => {
+    mockFrom.mockImplementation((table) => {
+      if (table === 'progress') {
+        return makeChain([{ lesson_key: 'html|intro|welcome' }], null);
+      }
+      if (table === 'notes') {
+        return makeChain(null, { message: 'notes table unavailable' });
+      }
+      return makeChain([], null);
+    });
+
+    const result = await fetchAllUserData(UID);
+
+    expect(result.data.progress).toEqual([{ lesson_key: 'html|intro|welcome' }]);
+    expect(result.data.notes).toEqual([]);
+    expect(result.recoverableErrors.notes).toMatchObject({
+      domain: 'notes',
+      message: 'Notes failed to load.',
+      detail: 'notes table unavailable',
+    });
   });
 });
 
@@ -265,6 +299,70 @@ describe('saveQuizScore', () => {
       skipped: true,
     });
     expect(selectChain.update).not.toHaveBeenCalled();
+  });
+});
+
+describe('savePosition', () => {
+  it('saves stable resume identifiers with legacy labels', async () => {
+    const chain = makeChain(null);
+    mockFrom.mockReturnValue(chain);
+
+    await savePosition(UID, {
+      course: 'HTML',
+      mod: 'Basics',
+      les: 'Intro',
+      courseId: 'html',
+      moduleId: 'basics',
+      lessonId: 'intro',
+      isModuleQuiz: false,
+    });
+
+    expect(mockFrom).toHaveBeenCalledWith('last_position');
+    expect(chain.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_id: UID,
+        course: 'HTML',
+        mod: 'Basics',
+        les: 'Intro',
+        course_id: 'html',
+        module_id: 'basics',
+        lesson_id: 'intro',
+        is_module_quiz: false,
+        updated_at: expect.any(String),
+      }),
+    );
+  });
+
+  it('falls back to legacy last_position writes when stable columns are not migrated yet', async () => {
+    const stableChain = makeChain(null, {
+      message: "Could not find the 'course_id' column of 'last_position' in the schema cache",
+    });
+    const legacyChain = makeChain(null);
+    mockFrom
+      .mockReturnValueOnce(stableChain)
+      .mockReturnValueOnce(legacyChain);
+
+    const result = await savePosition(UID, {
+      course: 'HTML',
+      mod: 'Basics',
+      les: 'Intro',
+      courseId: 'html',
+      moduleId: 'basics',
+      lessonId: 'intro',
+      isModuleQuiz: false,
+    });
+
+    expect(result.error).toBeNull();
+    expect(legacyChain.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_id: UID,
+        course: 'HTML',
+        mod: 'Basics',
+        les: 'Intro',
+        updated_at: expect.any(String),
+      }),
+    );
+    expect(legacyChain.upsert.mock.calls[0][0]).not.toHaveProperty('course_id');
   });
 });
 

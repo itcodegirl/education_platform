@@ -23,17 +23,21 @@ import { getTodayString, getYesterdayString } from '../utils/helpers';
 const {
   mockUseAuth,
   mockFetchAllUserData,
+  mockAddLesson,
   mockUpdateStreak,
   mockUpdateDailyGoal,
   mockUpdateXP,
+  mockTrackProgressSyncFailure,
   mockTrackProgressSyncQueued,
   mockTrackProgressSyncReplay,
 } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
   mockFetchAllUserData: vi.fn(),
+  mockAddLesson: vi.fn(),
   mockUpdateStreak: vi.fn(),
   mockUpdateDailyGoal: vi.fn(),
   mockUpdateXP: vi.fn(),
+  mockTrackProgressSyncFailure: vi.fn(),
   mockTrackProgressSyncQueued: vi.fn(),
   mockTrackProgressSyncReplay: vi.fn(),
 }));
@@ -47,7 +51,7 @@ vi.mock('./AuthContext', () => ({
 vi.mock('../services/progressService', () => ({
   fetchAllUserData: (...args) => mockFetchAllUserData(...args),
   // Write functions — not triggered by load, but imported by the module
-  addLesson: vi.fn(),
+  addLesson: (...args) => mockAddLesson(...args),
   removeLesson: vi.fn(),
   saveQuizScore: vi.fn(),
   updateXP: (...args) => mockUpdateXP(...args),
@@ -64,6 +68,7 @@ vi.mock('../services/progressService', () => ({
 }));
 
 vi.mock('../services/progressSyncTelemetry', () => ({
+  trackProgressSyncFailure: mockTrackProgressSyncFailure,
   trackProgressSyncQueued: mockTrackProgressSyncQueued,
   trackProgressSyncReplay: mockTrackProgressSyncReplay,
 }));
@@ -73,12 +78,13 @@ import { ProgressProvider, useProgressData, useXP } from './ProgressContext';
 // ─── Test consumer ───────────────────────────────
 // Renders a div with data attributes we can query in tests.
 function TestConsumer() {
-  const { dataLoaded, loadError, completed, syncFailed } = useProgressData();
+  const { dataLoaded, loadError, loadWarnings, completed, syncFailed } = useProgressData();
   return (
     <div
       data-testid="consumer"
       data-loaded={String(dataLoaded)}
       data-error={loadError ?? ''}
+      data-load-warnings={loadWarnings.join('|')}
       data-completed={completed.join(',')}
       data-sync-failed={String(syncFailed)}
     />
@@ -127,6 +133,38 @@ function XPWriteConsumer() {
         onClick={() => retryPendingSyncWrites()}
       >
         Retry pending
+      </button>
+    </>
+  );
+}
+
+function LessonWriteConsumer() {
+  const {
+    completed,
+    toggleLesson,
+    pendingSyncWrites,
+    syncRetryInFlight,
+    retryPendingSyncWrites,
+  } = useProgressData();
+
+  return (
+    <>
+      <button
+        type="button"
+        data-testid="toggle-lesson"
+        data-completed={completed.join(',')}
+        data-pending-sync={String(pendingSyncWrites)}
+        data-retrying={String(syncRetryInFlight)}
+        onClick={() => toggleLesson('html|intro|welcome')}
+      >
+        Toggle lesson
+      </button>
+      <button
+        type="button"
+        data-testid="retry-lesson"
+        onClick={() => retryPendingSyncWrites()}
+      >
+        Retry lesson
       </button>
     </>
   );
@@ -189,6 +227,14 @@ function renderXPWriteWithProvider() {
   );
 }
 
+function renderLessonWriteWithProvider() {
+  return render(
+    <ProgressProvider>
+      <LessonWriteConsumer />
+    </ProgressProvider>,
+  );
+}
+
 function renderXPPopupQueueWithProvider() {
   return render(
     <ProgressProvider>
@@ -197,21 +243,29 @@ function renderXPPopupQueueWithProvider() {
   );
 }
 
-// Helper: build a minimal successful fetchAllUserData response
-function makeFetchResult(overrides = {}) {
+// Helper: build the structured progressService.fetchAllUserData response.
+function makeFetchResult({
+  data = {},
+  recoverableErrors = {},
+  criticalError = null,
+} = {}) {
   return {
-    progress:  { data: [], error: null },
-    quiz:      { data: [], error: null },
-    xp:        { data: null, error: null },
-    streak:    { data: null, error: null },
-    daily:     { data: null, error: null },
-    badges:    { data: [], error: null },
-    sr:        { data: [], error: null },
-    bookmarks: { data: [], error: null },
-    notes:     { data: [], error: null },
-    visited:   { data: [], error: null },
-    position:  { data: null, error: null },
-    ...overrides,
+    data: {
+      progress: [],
+      quiz: [],
+      xp: null,
+      streak: null,
+      daily: null,
+      badges: [],
+      sr: [],
+      bookmarks: [],
+      notes: [],
+      visited: [],
+      position: null,
+      ...data,
+    },
+    recoverableErrors,
+    criticalError,
   };
 }
 
@@ -241,12 +295,14 @@ beforeEach(() => {
     configurable: true,
     value: storage,
   });
-  ['uid-write', 'uid-retry'].forEach((userId) => {
+  ['uid-write', 'uid-retry', 'uid-lesson'].forEach((userId) => {
     window.localStorage.removeItem(getProgressWriteQueueStorageKey(userId));
   });
   mockUpdateXP.mockResolvedValue({ error: null });
+  mockAddLesson.mockResolvedValue({ error: null });
   mockUpdateStreak.mockResolvedValue({});
   mockUpdateDailyGoal.mockResolvedValue({});
+  mockTrackProgressSyncFailure.mockReset();
   mockTrackProgressSyncQueued.mockReset();
   mockTrackProgressSyncReplay.mockReset();
 });
@@ -269,12 +325,17 @@ describe('ProgressContext — no user logged in', () => {
 
     renderWithProvider();
 
-    window.dispatchEvent(new window.CustomEvent('chw:local-storage-sync-error', {
+    fireEvent(window, new window.CustomEvent('chw:local-storage-sync-error', {
       detail: { key: 'chw-tasks', phase: 'write' },
     }));
 
     await waitFor(() => {
       expect(screen.getByTestId('consumer').dataset.syncFailed).toBe('1');
+    });
+
+    expect(mockTrackProgressSyncFailure).toHaveBeenCalledWith({
+      label: 'localStorage write:chw-tasks',
+      pendingCount: 0,
     });
   });
 });
@@ -306,9 +367,8 @@ describe('ProgressContext — user logged in (happy path)', () => {
     mockUseAuth.mockReturnValue({ user: { id: 'uid-abc' } });
     mockFetchAllUserData.mockResolvedValue(
       makeFetchResult({
-        progress: {
-          data: [{ lesson_key: 'HTML|Basics|Intro' }, { lesson_key: 'HTML|Basics|Tags' }],
-          error: null,
+        data: {
+          progress: [{ lesson_key: 'HTML|Basics|Intro' }, { lesson_key: 'HTML|Basics|Tags' }],
         },
       }),
     );
@@ -321,6 +381,67 @@ describe('ProgressContext — user logged in (happy path)', () => {
     });
   });
 
+  it('lessonCompletionPersistsAfterRefresh', async () => {
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-abc' } });
+    mockFetchAllUserData.mockResolvedValue(
+      makeFetchResult({
+        data: {
+          progress: [{ lesson_key: 'html|intro|welcome' }],
+        },
+      }),
+    );
+
+    renderWithProvider();
+
+    await waitFor(() => {
+      const el = screen.getByTestId('consumer');
+      expect(el.dataset.loaded).toBe('true');
+      expect(el.dataset.completed).toBe('html|intro|welcome');
+    });
+  });
+
+  it('authenticatedProgressDoesNotLeakBetweenLearners', async () => {
+    let currentUser = { id: 'uid-primary' };
+    mockUseAuth.mockImplementation(() => ({ user: currentUser }));
+    mockFetchAllUserData.mockImplementation((uid) =>
+      Promise.resolve(
+        makeFetchResult({
+          data: {
+            progress:
+              uid === 'uid-primary'
+                ? [{ lesson_key: 'c:html|m:m1|l:l1' }]
+                : [],
+          },
+        }),
+      ),
+    );
+
+    const { rerender } = render(
+      <ProgressProvider>
+        <TestConsumer />
+      </ProgressProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('consumer').dataset.completed).toBe('c:html|m:m1|l:l1');
+    });
+
+    currentUser = { id: 'uid-secondary' };
+    rerender(
+      <ProgressProvider>
+        <TestConsumer />
+      </ProgressProvider>,
+    );
+
+    await waitFor(() => {
+      const el = screen.getByTestId('consumer');
+      expect(el.dataset.completed).toBe('');
+      expect(el.dataset.loaded).toBe('true');
+    });
+    expect(mockFetchAllUserData).toHaveBeenCalledWith('uid-primary');
+    expect(mockFetchAllUserData).toHaveBeenCalledWith('uid-secondary');
+  });
+
   it('does not update streak just because progress data loaded', async () => {
     // last_date must be today (or yesterday) so the active-streak
     // guard in ProgressContext doesn't dim the loaded value to 0.
@@ -330,9 +451,8 @@ describe('ProgressContext — user logged in (happy path)', () => {
     mockUseAuth.mockReturnValue({ user: { id: 'uid-abc' } });
     mockFetchAllUserData.mockResolvedValue(
       makeFetchResult({
-        streak: {
-          data: { days: 3, last_date: getTodayString() },
-          error: null,
+        data: {
+          streak: { days: 3, last_date: getTodayString() },
         },
       }),
     );
@@ -350,9 +470,8 @@ describe('ProgressContext — user logged in (happy path)', () => {
     mockUseAuth.mockReturnValue({ user: { id: 'uid-abc' } });
     mockFetchAllUserData.mockResolvedValue(
       makeFetchResult({
-        streak: {
-          data: { days: 3, last_date: getYesterdayString() },
-          error: null,
+        data: {
+          streak: { days: 3, last_date: getYesterdayString() },
         },
       }),
     );
@@ -380,9 +499,8 @@ describe('ProgressContext — user logged in (happy path)', () => {
     mockUseAuth.mockReturnValue({ user: { id: 'uid-stale' } });
     mockFetchAllUserData.mockResolvedValue(
       makeFetchResult({
-        streak: {
-          data: { days: 5, last_date: '2024-01-01' },
-          error: null,
+        data: {
+          streak: { days: 5, last_date: '2024-01-01' },
         },
       }),
     );
@@ -404,7 +522,9 @@ describe('ProgressContext — user logged in (happy path)', () => {
     mockUseAuth.mockReturnValue({ user: { id: 'uid-fresh' } });
     mockFetchAllUserData.mockResolvedValue(
       makeFetchResult({
-        streak: { data: null, error: null },
+        data: {
+          streak: null,
+        },
       }),
     );
 
@@ -443,6 +563,65 @@ describe('ProgressContext — user logged in (happy path)', () => {
 });
 
 describe('ProgressContext — fetch error', () => {
+  it('keeps core progress loaded when optional domains fail and surfaces scoped warnings', async () => {
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-soft-fail' } });
+    mockFetchAllUserData.mockResolvedValue(
+      makeFetchResult({
+        data: {
+          progress: [{ lesson_key: 'HTML|Basics|Intro' }],
+        },
+        recoverableErrors: {
+          notes: {
+            domain: 'notes',
+            message: 'Notes failed to load.',
+            detail: 'timeout',
+          },
+          badges: {
+            domain: 'badges',
+            message: 'Badges failed to load.',
+            detail: 'timeout',
+          },
+        },
+      }),
+    );
+
+    renderWithProvider();
+
+    await waitFor(() => {
+      const el = screen.getByTestId('consumer');
+      expect(el.dataset.loaded).toBe('true');
+      expect(el.dataset.error).toBe('');
+      expect(el.dataset.completed).toBe('HTML|Basics|Intro');
+      expect(el.dataset.loadWarnings).toBe('Notes failed to load.|Badges failed to load.');
+    });
+  });
+
+  it('treats critical load failures as blocking errors', async () => {
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-critical' } });
+    mockFetchAllUserData.mockResolvedValue(
+      makeFetchResult({
+        criticalError: {
+          message: 'Lesson progress failed to load. (progress: connection refused)',
+          domains: {
+            progress: {
+              domain: 'progress',
+              message: 'Lesson progress failed to load.',
+              detail: 'connection refused',
+            },
+          },
+        },
+      }),
+    );
+
+    renderWithProvider();
+
+    await waitFor(() => {
+      const el = screen.getByTestId('consumer');
+      expect(el.dataset.error).toBe('Lesson progress failed to load. (progress: connection refused)');
+      expect(el.dataset.loadWarnings).toBe('');
+    });
+  });
+
   it('sets loadError when fetchAllUserData rejects', async () => {
     mockUseAuth.mockReturnValue({ user: { id: 'uid-xyz' } });
     mockFetchAllUserData.mockRejectedValue(new Error('DB unavailable'));
@@ -467,6 +646,89 @@ describe('ProgressContext — fetch error', () => {
 });
 
 describe('ProgressContext write failure detection', () => {
+  it('lesson-progress.failed-write-queues-and-retries', async () => {
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-lesson' } });
+    mockFetchAllUserData.mockResolvedValue(makeFetchResult());
+    mockAddLesson
+      .mockResolvedValueOnce({
+        data: null,
+        error: { message: 'lesson write timeout' },
+      })
+      .mockResolvedValue({ error: null });
+
+    renderLessonWriteWithProvider();
+
+    await waitFor(() => {
+      expect(mockFetchAllUserData).toHaveBeenCalledWith('uid-lesson');
+    });
+
+    fireEvent.click(screen.getByTestId('toggle-lesson'));
+
+    await waitFor(() => {
+      const toggle = screen.getByTestId('toggle-lesson');
+      expect(toggle.dataset.completed).toBe('html|intro|welcome');
+      expect(toggle.dataset.pendingSync).toBe('1');
+    });
+
+    expect(readProgressWriteQueue('uid-lesson')[0]).toMatchObject({
+      operation: 'addLesson',
+      payload: { lessonKey: 'html|intro|welcome' },
+    });
+
+    fireEvent.click(screen.getByTestId('retry-lesson'));
+
+    await waitFor(() => {
+      const toggle = screen.getByTestId('toggle-lesson');
+      expect(toggle.dataset.completed).toBe('html|intro|welcome');
+      expect(toggle.dataset.pendingSync).toBe('0');
+    });
+    expect(mockAddLesson).toHaveBeenCalledTimes(2);
+    expect(readProgressWriteQueue('uid-lesson')).toEqual([]);
+  });
+
+  it('pendingProgressWritesStayScopedToTheAuthenticatedLearner', async () => {
+    let currentUser = { id: 'uid-queue-a' };
+    mockUseAuth.mockImplementation(() => ({ user: currentUser }));
+    mockFetchAllUserData.mockResolvedValue(makeFetchResult());
+    mockAddLesson.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'lesson write timeout' },
+    });
+
+    const { rerender } = render(
+      <ProgressProvider>
+        <LessonWriteConsumer />
+      </ProgressProvider>,
+    );
+
+    await waitFor(() => {
+      expect(mockFetchAllUserData).toHaveBeenCalledWith('uid-queue-a');
+    });
+
+    fireEvent.click(screen.getByTestId('toggle-lesson'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('toggle-lesson').dataset.pendingSync).toBe('1');
+    });
+    expect(readProgressWriteQueue('uid-queue-a')).toHaveLength(1);
+    expect(readProgressWriteQueue('uid-queue-b')).toEqual([]);
+
+    currentUser = { id: 'uid-queue-b' };
+    rerender(
+      <ProgressProvider>
+        <LessonWriteConsumer />
+      </ProgressProvider>,
+    );
+
+    await waitFor(() => {
+      const toggle = screen.getByTestId('toggle-lesson');
+      expect(toggle.dataset.completed).toBe('');
+      expect(toggle.dataset.pendingSync).toBe('0');
+    });
+    expect(readProgressWriteQueue('uid-queue-a')).toHaveLength(1);
+    expect(readProgressWriteQueue('uid-queue-b')).toEqual([]);
+  });
+
   it('queues Supabase result errors returned by optimistic writes', async () => {
     mockUseAuth.mockReturnValue({ user: { id: 'uid-write' } });
     mockFetchAllUserData.mockResolvedValue(makeFetchResult());

@@ -32,7 +32,10 @@
   .nav-row { display: none; }
   .nav-guidance { display: none; }
   .mark-btn { display: none; }
-  .main-shell { padding-bottom: 80px; }
+  .main-shell {
+    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+    scroll-padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+  }
 
   /* Hide the old floating toolbar on mobile (tools moved to sidebar) */
   .bottom-tools { display: none; }
@@ -100,7 +103,7 @@
   .lesson-head { flex-direction: column; align-items: flex-start; }
   .lesson-actions { width: 100%; }
   .lesson-action-btn::after { display: none; }
-  .lesson-emoji { font-size: 32px; }
+  .lesson-emoji { font-size: 26px; }
   .lp { font-size: 15px; line-height: 1.75; }
   .box { padding: 16px 18px; border-radius: 14px; }
   .quiz-header { padding: 14px var(--quiz-inline-pad); }
@@ -127,8 +130,19 @@
   .breadcrumb { padding: 6px 8px; border-radius: 10px; }
   .breadcrumb-lesson { font-size: 11px; }
 
-  .main-shell { padding-bottom: 88px; }
+  .main-shell {
+    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+    scroll-padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  }
   .lesson-nav { padding: 8px 10px; gap: 6px; }
+  .lesson-nav {
+    padding:
+      8px
+      max(10px, env(safe-area-inset-right, 0px))
+      calc(8px + env(safe-area-inset-bottom, 0px))
+      max(10px, env(safe-area-inset-left, 0px));
+    gap: 6px;
+  }
   .lesson-nav-btn { padding: 8px 4px; border-radius: 10px; min-height: 44px; }
   .lesson-nav-label { font-size: 11px; }
 

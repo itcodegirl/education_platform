@@ -138,13 +138,13 @@ export function PublicProfile({ handle, onClose }) {
         <h1 className="pub-name">{display_name || profileHandle}</h1>
         <p className="pub-handle">@{profileHandle}</p>
         <p className="pub-summary">
-          This learner is building with CodeHerWay and sharing the proof: progress,
-          momentum, and shipped lessons.
+          This learner is building with CodeHerWay and sharing a progress snapshot:
+          completed lessons, momentum, and motivational milestones.
         </p>
 
         <div className="pub-pill-row" aria-label="Public progress summary">
           <span className="pub-pill">Level {level}</span>
-          <span className="pub-pill warm">{lessons_completed || 0} lessons shipped</span>
+          <span className="pub-pill warm">{lessons_completed || 0} lessons completed</span>
           <span className="pub-pill accent">{momentumCopy}</span>
         </div>
 
@@ -152,7 +152,7 @@ export function PublicProfile({ handle, onClose }) {
           <div className="pub-level-row">
             <span>Level {level}</span>
             <span>
-              {xpInLevel}/{XP_PER_LEVEL} XP to Level {level + 1}
+              {xpInLevel}/{XP_PER_LEVEL} motivational XP to Level {level + 1}
             </span>
           </div>
           <div className="pub-level-track">
@@ -163,7 +163,7 @@ export function PublicProfile({ handle, onClose }) {
         <div className="pub-stats">
           <div className="pub-stat">
             <div className="pub-stat-value">{(xp_total || 0).toLocaleString()}</div>
-            <div className="pub-stat-label">Total XP</div>
+            <div className="pub-stat-label">Motivational XP</div>
           </div>
           <div className="pub-stat">
             <div className="pub-stat-value">
@@ -174,7 +174,7 @@ export function PublicProfile({ handle, onClose }) {
           </div>
           <div className="pub-stat">
             <div className="pub-stat-value">{lessons_completed || 0}</div>
-            <div className="pub-stat-label">Lessons shipped</div>
+            <div className="pub-stat-label">Lessons completed</div>
           </div>
           <div className="pub-stat">
             <div className="pub-stat-value">{badges_earned || 0}</div>
@@ -187,7 +187,7 @@ export function PublicProfile({ handle, onClose }) {
         </a>
 
         <p className="pub-footer">
-          Public profile  -  shared by {display_name || profileHandle}  -  built on CodeHerWay
+          Public progress snapshot - not a verified credential - shared by {display_name || profileHandle}
         </p>
       </div>
     </div>

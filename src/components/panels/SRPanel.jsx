@@ -2,8 +2,7 @@ import { useRef, useState } from "react";
 import { useSR } from "../../providers";
 import { generatePracticeCard } from "../../services/practiceService";
 import { useFocusTrap } from "../../hooks/useFocusTrap";
-import { renderMarkdown } from "../../utils/markdown";
-import { EmptyState } from "../shared/EmptyState";
+import { PROGRESS_SYNC_COPY } from "../../constants/progressCopy";
 
 const TOPICS = [
   { id: "html", label: "HTML" },
@@ -120,6 +119,7 @@ export function SRPanel({ isOpen, onClose }) {
             Keep tough concepts warm with short review bursts and AI-generated
             practice cards.
           </p>
+          <p className="panel-meta">{PROGRESS_SYNC_COPY}</p>
 
           <form className="sr-generate" onSubmit={handleGenerate}>
             <div className="sr-generate-head">
@@ -162,22 +162,28 @@ export function SRPanel({ isOpen, onClose }) {
           </form>
 
           {due.length === 0 ? (
-            <EmptyState
-              icon="✓"
-              headline="All caught up."
-              subtext={
-                queue.length > 0
-                  ? `${queue.length} card${queue.length > 1 ? "s are" : " is"} scheduled for later.`
-                  : "Complete quizzes or generate a fresh card to start building your review habit."
-              }
-            />
+            <div className="sr-empty">
+              <span className="sr-empty-icon" aria-hidden="true">✓</span>
+              <p><strong>All caught up.</strong></p>
+              <p className="empty-state-msg">
+                {queue.length > 0
+                  ? `${queue.length} card${queue.length > 1 ? "s are" : " is"} scheduled for later. Nothing needs attention right now.`
+                  : "No review cards are due yet. Complete quizzes or use the form above to create one focused card."}
+              </p>
+              <button type="button" className="empty-state-action" onClick={onClose}>
+                Back to lesson
+              </button>
+            </div>
           ) : currentIdx >= due.length ? (
             <>
-              <EmptyState
-                icon="✓"
-                headline="Session complete."
-                subtext="Nice work. You cleared today's due cards and can jump back in for another round anytime."
-              />
+              <div className="sr-empty">
+                <span className="sr-empty-icon" aria-hidden="true">✓</span>
+                <p><strong>Session complete.</strong></p>
+                <p className="empty-state-msg">
+                  Nice work. You cleared today&apos;s due cards and can jump back in
+                  for another round anytime.
+                </p>
+              </div>
 
               <div className="sr-score-bar">
                 <span>Results:</span>
@@ -222,14 +228,9 @@ export function SRPanel({ isOpen, onClose }) {
 
                 {answered !== null && (
                   <div className={`sr-result ${answered === currentCard?.correct ? "right" : "wrong"}`}>
-                    <span>
-                      {answered === currentCard?.correct
-                        ? "Correct. Strong recall."
-                        : "Not quite. Review this explanation:"}
-                    </span>
-                    {currentCard?.explanation && (
-                      <div className="sr-explanation">{renderMarkdown(currentCard.explanation)}</div>
-                    )}
+                    {answered === currentCard?.correct
+                      ? "Correct. Strong recall."
+                      : "Not quite. Review this explanation:"} {currentCard?.explanation}
                   </div>
                 )}
               </div>

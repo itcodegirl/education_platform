@@ -99,14 +99,72 @@ describePolicy('supabase rls and admin escalation policies', () => {
     }
   });
 
-  it('prevents non-admins from toggling is_admin through direct profile updates', async () => {
-    const { error } = await userClient
+  it('profile-policy.blocks-user-editing-admin-fields', async () => {
+    const adminUpdate = await userClient
       .from('profiles')
       .update({ is_admin: true })
       .eq('id', regularUserId);
 
+    expect(adminUpdate.error).toBeTruthy();
+    expect(adminUpdate.error.message).toMatch(/is_admin can only be changed|permission denied/i);
+
+    const disabledUpdate = await userClient
+      .from('profiles')
+      .update({ is_disabled: true })
+      .eq('id', regularUserId);
+
+    expect(disabledUpdate.error).toBeTruthy();
+    expect(disabledUpdate.error.message).toMatch(/is_disabled can only be changed|permission denied/i);
+  });
+
+  it('allows admins to disable and re-enable another user through direct profile updates', async () => {
+    const disableResult = await adminClient
+      .from('profiles')
+      .update({ is_disabled: true })
+      .eq('id', regularUserId);
+    expect(disableResult.error).toBeNull();
+
+    const enableResult = await adminClient
+      .from('profiles')
+      .update({ is_disabled: false })
+      .eq('id', regularUserId);
+    expect(enableResult.error).toBeNull();
+  });
+
+  it('allows learners to update safe self-editable profile fields', async () => {
+    const { error } = await userClient
+      .from('profiles')
+      .update({
+        display_name: 'Policy User Updated',
+        public_handle: `policy-user-${runId.slice(-6)}`,
+        is_public: true,
+      })
+      .eq('id', regularUserId);
+
+    expect(error).toBeNull();
+
+    const { data, error: readError } = await serviceClient
+      .from('profiles')
+      .select('display_name, public_handle, is_public')
+      .eq('id', regularUserId)
+      .single();
+
+    expect(readError).toBeNull();
+    expect(data).toMatchObject({
+      display_name: 'Policy User Updated',
+      is_public: true,
+    });
+    expect(data.public_handle).toMatch(/^policy-user-/);
+  });
+
+  it('prevents non-admins from toggling is_disabled through direct profile updates', async () => {
+    const { error } = await userClient
+      .from('profiles')
+      .update({ is_disabled: true })
+      .eq('id', regularUserId);
+
     expect(error).toBeTruthy();
-    expect(error.message).toMatch(/is_admin can only be changed|permission denied/i);
+    expect(error.message).toMatch(/is_disabled can only be changed|permission denied/i);
   });
 
   it('blocks non-admin callers from using set_user_admin rpc', async () => {
@@ -129,6 +187,16 @@ describePolicy('supabase rls and admin escalation policies', () => {
     expect(error.message).toMatch(/cannot change their own is_admin flag/i);
   });
 
+  it('blocks admin self-disable attempts through the sanctioned rpc', async () => {
+    const { error } = await adminClient.rpc('set_user_disabled', {
+      target_user_id: adminUserId,
+      make_disabled: true,
+    });
+
+    expect(error).toBeTruthy();
+    expect(error.message).toMatch(/cannot change their own account status/i);
+  });
+
   it('keeps progress rows isolated for regular users under rls', async () => {
     const { data, error } = await userClient
       .from('progress')
@@ -139,35 +207,6 @@ describePolicy('supabase rls and admin escalation policies', () => {
     expect(data).toBeTruthy();
     expect(data.some((row) => row.user_id === adminUserId)).toBe(false);
     expect(data.some((row) => row.user_id === regularUserId)).toBe(true);
-  });
-
-  it('allows admins to promote another user through the sanctioned rpc path', async () => {
-    const { error: promoteError } = await adminClient.rpc('set_user_admin', {
-      target_user_id: regularUserId,
-      make_admin: true,
-    });
-    expect(promoteError).toBeNull();
-
-    const { data: promotedProfile, error: profileError } = await serviceClient
-      .from('profiles')
-      .select('is_admin')
-      .eq('id', regularUserId)
-      .single();
-    expect(profileError).toBeNull();
-    expect(promotedProfile?.is_admin).toBe(true);
-
-    const { data: auditRow, error: auditError } = await serviceClient
-      .from('admin_audit_log')
-      .select('actor_id, target_id, action')
-      .eq('actor_id', adminUserId)
-      .eq('target_id', regularUserId)
-      .eq('action', 'grant_admin')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    expect(auditError).toBeNull();
-    expect(auditRow).toBeTruthy();
   });
 
   it('blocks non-admin callers from admin_dashboard_metrics rpc', async () => {
@@ -213,6 +252,97 @@ describePolicy('supabase rls and admin escalation policies', () => {
     });
     expect(error).toBeNull();
     expect(Array.isArray(data)).toBe(true);
+  });
+
+  it('allows admins to disable and re-enable another user through the sanctioned rpc path', async () => {
+    const { error: disableError } = await adminClient.rpc('set_user_disabled', {
+      target_user_id: regularUserId,
+      make_disabled: true,
+    });
+    expect(disableError).toBeNull();
+
+    const { data: disabledProfile, error: disabledProfileError } = await serviceClient
+      .from('profiles')
+      .select('is_disabled')
+      .eq('id', regularUserId)
+      .single();
+    expect(disabledProfileError).toBeNull();
+    expect(disabledProfile?.is_disabled).toBe(true);
+
+    const { data: disableAuditRow, error: disableAuditError } = await serviceClient
+      .from('admin_audit_log')
+      .select('actor_id, target_id, action')
+      .eq('actor_id', adminUserId)
+      .eq('target_id', regularUserId)
+      .eq('action', 'disable_user')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    expect(disableAuditError).toBeNull();
+    expect(disableAuditRow).toBeTruthy();
+
+    const { error: enableError } = await adminClient.rpc('set_user_disabled', {
+      target_user_id: regularUserId,
+      make_disabled: false,
+    });
+    expect(enableError).toBeNull();
+
+    const { data: enabledProfile, error: enabledProfileError } = await serviceClient
+      .from('profiles')
+      .select('is_disabled')
+      .eq('id', regularUserId)
+      .single();
+    expect(enabledProfileError).toBeNull();
+    expect(enabledProfile?.is_disabled).toBe(false);
+
+    const { data: enableAuditRow, error: enableAuditError } = await serviceClient
+      .from('admin_audit_log')
+      .select('actor_id, target_id, action')
+      .eq('actor_id', adminUserId)
+      .eq('target_id', regularUserId)
+      .eq('action', 'enable_user')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    expect(enableAuditError).toBeNull();
+    expect(enableAuditRow).toBeTruthy();
+  });
+
+  it('allows admins to promote another user through the sanctioned rpc path', async () => {
+    const { error: promoteError } = await adminClient.rpc('set_user_admin', {
+      target_user_id: regularUserId,
+      make_admin: true,
+    });
+    expect(promoteError).toBeNull();
+
+    const { data: promotedProfile, error: profileError } = await serviceClient
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', regularUserId)
+      .single();
+    expect(profileError).toBeNull();
+    expect(promotedProfile?.is_admin).toBe(true);
+
+    const { data: auditRow, error: auditError } = await serviceClient
+      .from('admin_audit_log')
+      .select('actor_id, target_id, action')
+      .eq('actor_id', adminUserId)
+      .eq('target_id', regularUserId)
+      .eq('action', 'grant_admin')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    expect(auditError).toBeNull();
+    expect(auditRow).toBeTruthy();
+
+    const { error: demoteError } = await adminClient.rpc('set_user_admin', {
+      target_user_id: regularUserId,
+      make_admin: false,
+    });
+    expect(demoteError).toBeNull();
   });
 });
 

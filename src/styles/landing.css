@@ -120,11 +120,11 @@
 .lh-inline-code {
   font-family: 'Space Mono', ui-monospace, monospace;
   font-size: 0.9em;
-  background: var(--bg-surface);
-  color: var(--cyan);
+  background: rgba(30, 30, 64, 0.94);
+  color: #64f4ff;
   padding: 2px 8px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .lh-cta-row {
@@ -150,16 +150,20 @@
 }
 
 .lh-cta-ghost {
-  color: var(--text-dim);
+  color: #f4f4ff;
+  background: rgba(255, 255, 255, 0.08);
   font-family: 'Space Mono', ui-monospace, monospace;
   font-size: var(--text-xs);
   text-decoration: none;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 14px;
   border-style: solid;
+  border-color: rgba(255, 255, 255, 0.2);
 }
 .lh-cta-ghost:hover {
-  color: var(--cyan);
+  color: #101025;
+  background: #8df6ff;
+  border-color: #8df6ff;
 }
 
 .lh-scroll-cue {

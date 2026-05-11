@@ -10,6 +10,11 @@ const IGNORE_DIRS = new Set([
   'node_modules',
   'playwright-report',
   'test-results',
+  '.codex-worktrees',
+  '.codex-backup-wrong-local',
+  'aura-weather',
+  'Cinova',
+  'codeherway-ceo-os',
   'codeherway-v2',
 ]);
 const IGNORE_FILES = new Set(['vite-env.d.ts']);

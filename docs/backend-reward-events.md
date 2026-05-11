@@ -17,7 +17,7 @@ Implemented:
 Still future work:
 
 - Automatic local reward backfill/import into backend events.
-- Background replay of local queue entries to the backend.
+- Authenticated-load replay of retryable local queue entries to the backend.
 - Live Supabase validation in a configured project.
 - Server-side challenge certification.
 - Any service-role browser access.
@@ -70,12 +70,13 @@ Reward writes should go through `public.award_reward_event()`, which derives ide
 
 `public.award_reward_event()` accepts:
 
-- `p_event_key`
-- `p_event_type`
-- `p_entity_id`
-- `p_xp_amount`
-- `p_metadata`
-- `p_source`
+- `learner_id`
+- `event_type`
+- `event_key`
+- `metadata`
+- `entity_id`
+- `xp_amount`
+- `source`
 
 It returns:
 
@@ -85,7 +86,7 @@ It returns:
 - `total_xp`
 - `reason` when failed
 
-The RPC never accepts `user_id` from the client.
+The RPC never accepts `user_id` from the client. It accepts `learner_id` only as a client-side consistency check, derives canonical identity from `auth.uid()`, and rejects learner mismatches.
 
 ## Frontend Wrapper
 

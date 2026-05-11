@@ -26,13 +26,17 @@ describe('OfflineIndicator', () => {
       syncFailed: 0,
       pendingSyncWrites: 0,
       syncRetryInFlight: false,
+      loadWarnings: [],
       clearSyncFailed: vi.fn(),
+      clearLoadWarnings: vi.fn(),
       retryPendingSyncWrites: vi.fn(),
+      retryLoad: vi.fn(),
     });
   });
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllEnvs();
   });
 
   it('renders a retry banner when queued progress writes are pending', () => {
@@ -41,8 +45,11 @@ describe('OfflineIndicator', () => {
       syncFailed: 0,
       pendingSyncWrites: 2,
       syncRetryInFlight: false,
+      loadWarnings: [],
       clearSyncFailed: vi.fn(),
+      clearLoadWarnings: vi.fn(),
       retryPendingSyncWrites,
+      retryLoad: vi.fn(),
     });
 
     render(<OfflineIndicator />);
@@ -51,7 +58,7 @@ describe('OfflineIndicator', () => {
       screen.getByText(/2 progress updates are queued to retry\./i),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/your latest in-tab progress is still here\./i),
+      screen.getByText(/your latest progress is queued in this browser\./i),
     ).toBeInTheDocument();
 
     const retryButton = screen.getByRole('button', { name: /retry queued progress updates now/i });
@@ -62,13 +69,37 @@ describe('OfflineIndicator', () => {
     expect(retryPendingSyncWrites).toHaveBeenCalledTimes(1);
   });
 
+  it('copy.single-device-warning-visible-when-backend-sync-disabled', () => {
+    vi.stubEnv('VITE_REWARD_BACKEND_SYNC_ENABLED', 'false');
+    mockUseProgressData.mockReturnValue({
+      syncFailed: 0,
+      pendingSyncWrites: 1,
+      syncRetryInFlight: false,
+      clearSyncFailed: vi.fn(),
+      retryPendingSyncWrites: vi.fn(),
+    });
+
+    render(<OfflineIndicator />);
+
+    expect(
+      screen.getByText(/one progress update is queued to retry\./i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/your latest progress is queued in this browser\./i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/cross-device/i)).not.toBeInTheDocument();
+  });
+
   it('announces when queued progress writes are actively retrying', () => {
     mockUseProgressData.mockReturnValue({
       syncFailed: 0,
       pendingSyncWrites: 1,
       syncRetryInFlight: true,
+      loadWarnings: [],
       clearSyncFailed: vi.fn(),
+      clearLoadWarnings: vi.fn(),
       retryPendingSyncWrites: vi.fn(),
+      retryLoad: vi.fn(),
     });
 
     render(<OfflineIndicator />);
@@ -92,8 +123,11 @@ describe('OfflineIndicator', () => {
       syncFailed: 1,
       pendingSyncWrites: 1,
       syncRetryInFlight: false,
+      loadWarnings: [],
       clearSyncFailed: vi.fn(),
+      clearLoadWarnings: vi.fn(),
       retryPendingSyncWrites: vi.fn(),
+      retryLoad: vi.fn(),
     });
 
     render(<OfflineIndicator />);
@@ -102,7 +136,7 @@ describe('OfflineIndicator', () => {
       screen.getByText(/one progress update is queued to retry\./i),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/last retry could not reach the cloud\. your latest in-tab progress is still here\./i),
+      screen.getByText(/last retry could not reach the cloud\. your latest progress is queued in this browser\./i),
     ).toBeInTheDocument();
   });
 
@@ -112,8 +146,11 @@ describe('OfflineIndicator', () => {
       syncFailed: 2,
       pendingSyncWrites: 0,
       syncRetryInFlight: false,
+      loadWarnings: [],
       clearSyncFailed,
+      clearLoadWarnings: vi.fn(),
       retryPendingSyncWrites: vi.fn(),
+      retryLoad: vi.fn(),
     });
 
     render(<OfflineIndicator />);
@@ -122,7 +159,7 @@ describe('OfflineIndicator', () => {
       screen.getByText(/2 progress updates could not be confirmed in the cloud\./i),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/your latest local state is still visible in this browser session\./i),
+      screen.getByText(/your latest local state is still visible in this browser\./i),
     ).toBeInTheDocument();
 
     const hideButton = screen.getByRole('button', { name: /hide sync warning/i });
@@ -133,14 +170,47 @@ describe('OfflineIndicator', () => {
     expect(clearSyncFailed).toHaveBeenCalledTimes(1);
   });
 
+  it('renders scoped recoverable load warnings without blocking the app shell', () => {
+    const clearLoadWarnings = vi.fn();
+    const retryLoad = vi.fn();
+    mockUseProgressData.mockReturnValue({
+      syncFailed: 0,
+      pendingSyncWrites: 0,
+      syncRetryInFlight: false,
+      loadWarnings: ['Notes failed to load.', 'Badges failed to load.'],
+      clearSyncFailed: vi.fn(),
+      clearLoadWarnings,
+      retryPendingSyncWrites: vi.fn(),
+      retryLoad,
+    });
+
+    render(<OfflineIndicator />);
+
+    expect(
+      screen.getByText(/notes failed to load\. badges failed to load\./i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/core lessons still loaded in this browser\./i),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /retry progress load/i }));
+    fireEvent.click(screen.getByRole('button', { name: /hide load warnings/i }));
+
+    expect(retryLoad).toHaveBeenCalledTimes(1);
+    expect(clearLoadWarnings).toHaveBeenCalledTimes(1);
+  });
+
   it('renders the offline banner from the initial browser state', () => {
     setNavigatorOnline(false);
     mockUseProgressData.mockReturnValue({
       syncFailed: 0,
       pendingSyncWrites: 1,
       syncRetryInFlight: false,
+      loadWarnings: [],
       clearSyncFailed: vi.fn(),
+      clearLoadWarnings: vi.fn(),
       retryPendingSyncWrites: vi.fn(),
+      retryLoad: vi.fn(),
     });
 
     render(<OfflineIndicator />);

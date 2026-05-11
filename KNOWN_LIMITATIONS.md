@@ -4,21 +4,24 @@ This project is actively stabilized and is not yet production-grade. The followi
 
 ## Tooling / Verification
 
-- The local quality gate covers lint, production build, bundle budget, and unit tests through `npm run check`.
+- The local quality gate covers lint, JS-only source policy, production build, bundle budget, and unit tests through `npm run check`.
+- `npm run check:js-source` enforces the JS-only source policy. This project does not currently run TypeScript type checking.
 - Authenticated E2E scenarios are skipped when auth credentials are not configured in environment variables.
 - Public E2E scenarios cover the landing/auth shell, accessibility smoke, visual snapshots, and the first-lesson preview path. Signed-in learner persistence still requires configured Supabase test credentials.
 - Authenticated Playwright storage state is intentionally ignored under `playwright/.auth/` to avoid committing local session files.
 
 ## Learning Integrity
 
-- Saved learning position resolves persisted course/module/lesson labels back to indices via strict-equal match first, then falls back to substring match. The DB column still stores the human-readable label string; if a label is renamed without a paired migration, the lookup may still drop a learner back to the first lesson of the course rather than tracking the renamed lesson.
+- Progress sync: saved on this device. Lesson completions, bookmarks, and notes may sync when connected; XP, streaks, badges, review queue, and challenges are single-device today.
+- Saved learning position resolves persisted course/module/lesson labels back to indices via strict-equal match first, then falls back to substring match. The DB column still stores the human-readable label string; if a label is renamed without a paired migration, the lookup may still drop a learner back to the first lesson of the course rather than tracking the renamed lesson. `npm run audit:lesson-labels` (wired into `npm run check:quality`) now snapshots every active lesson title and blocks PRs that rename or remove an existing `(courseId, moduleId, lessonId)` triple until the C2 stable-ID migration lands. Intentional renames must ship with a paired progress migration and `node scripts/check-lesson-labels.mjs --update` in the same PR.
+- Saved learning position now writes stable `courseId`, `moduleId`, `lessonId`, and `isModuleQuiz` fields while preserving the older human-readable labels for compatibility. Resume prefers the stable identifiers, loads the saved course before resolving if needed, and only falls back to label matching for legacy rows.
 - Streak count: the persisted streak in the DB is the value as of the learner's most recent activity. The UI applies an active-streak guard (`getActiveStreakDays` in `src/utils/helpers.js`) so a learner who has missed more than one day sees `0` instead of the stale value. The DB write path is unchanged; the next activity inside the today/yesterday window resumes the saved count cleanly. Companion `getPausedStreak` surfaces the lapsed value as a positive recovery cue across all three streak-display surfaces: the WelcomeBack overlay pill, the always-visible topbar pill, and the ProfilePopover stat block. `useTodayKey` re-evaluates these guards when the wall clock crosses UTC midnight inside an open tab.
 - Daily count: same shape as the streak guard. Persisted `dailyCount` + `dailyDate` reflect the LAST day the learner did activity. `getActiveDailyCount` returns 0 when `dailyDate` isn't today so the topbar / profile-popover don't lie that the daily goal is already met when the learner returns the next day. Persisted state is unchanged so `recordDailyActivity` rebuilds the count correctly the moment the next activity lands.
 - Learning identity/data model hardening is still pending. The local retry/reconciliation reward engine and Supabase backend reward branch have been unified, but production cross-device reward trust still requires applying migrations, validating the RPC/RLS behavior against a real Supabase project, and deciding local import/backfill policy.
 - Active lesson quiz coverage is complete for HTML, CSS, JavaScript, and React.
 - The platform now ships only the four frontend tracks (HTML, CSS, JS, React); the previous Python track was removed to keep product focus tight.
 - Quiz inventory still has known integrity follow-up, but the current orphan lesson quizzes and intentional variant groups are classified by audit metadata rather than left ambiguous.
-- Run `npm run audit:quizzes` for the current inventory report. The script now runs in strict mode by default and fails on any unclassified orphan quizzes or unreviewed variant groups. Use it to monitor classified orphan quizzes, intentional variant groups, and legacy aliases.
+- Run `npm run audit:quizzes` for the current inventory report. The script now runs in strict mode by default and fails on any unclassified orphan quizzes or unreviewed variant groups. CI runs the same gate without `continue-on-error`, so quiz integrity drift now blocks the PR instead of surfacing as advisory output. Use it to monitor classified orphan quizzes, intentional variant groups, and legacy aliases.
 - Cross-course mixed-type quiz entries previously embedded in React quiz data are intentionally archived as inactive exports and excluded from active React lookup.
 - Renamed HTML Module 102 lesson IDs resolved duplicate identity risk, but existing progress/bookmark keys for those old lesson IDs may need a later targeted compatibility decision.
 - Core same-device reward trust rules are hardened for lesson completion XP, quiz retry rewards, activity-based streaks, and challenge completion dedupe.
@@ -28,6 +31,7 @@ This project is actively stabilized and is not yet production-grade. The followi
 - Reward engine diagnostics can summarize local ledger/queue health, but they are developer-facing and do not replace backend observability.
 - Additive Supabase migrations define `reward_events` and `award_reward_event`, and the frontend has a feature-gated backend reward service wrapper. Backend reward sync remains disabled by default so demos and existing local fallback behavior are preserved.
 - Cross-device reward idempotency is backend-ready but not production-complete until those migrations are applied, the feature flag is enabled intentionally, and authenticated duplicate-award behavior is verified.
+- Progress Summary PDF downloads reflect current app progress and are not server-authoritative yet.
 - Challenge completion persistence is same-device/localStorage-backed and should not be treated as secure certification.
 - Challenge auto-grading: all HTML challenges now use live DOM-based graders (`iframe.contentDocument` queries via `querySelector`). A learner can no longer pass structural tests by typing a tag inside an HTML comment — the parser strips comments before `querySelector` runs. CSS challenges use a mixed approach: structural properties (display, padding, gap, background-color) are verified via `iframe.contentWindow.getComputedStyle`, while pseudo-selector (`:hover`, `:focus`), `@keyframes`, and `@media` tests remain source-regex — these require interaction or viewport simulation that is not available in a static iframe snapshot. JavaScript and React challenges use console output capture and are not affected by the DOM migration. The CodeChallenge UI still states the grading basis explicitly so the limitation stays visible to learners.
 - Direct optimistic progress writes from `ProgressContext` now have same-browser queue replay, including reconnect retry and next-session replay in the same browser.
@@ -39,7 +43,7 @@ This project is actively stabilized and is not yet production-grade. The followi
 
 ## Search / Content
 
-- Search indexing may not yet cover every structured lesson field.
+- Search indexing covers structured lesson content, including hooks, steps, concepts, definitions, analogies, challenge requirements, summaries, bridge text, quiz explanations, and glossary terms. It is still a lightweight in-browser index rather than a ranked search service.
 - Content is source-file based and does not yet use a full CMS workflow.
 
 ## Security / Production Hardening

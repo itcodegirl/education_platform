@@ -11,6 +11,18 @@ doc is a single copy-paste guide for all of them.
 
 ## 1. Run the Supabase migration
 
+Before touching the live project, run the static repo gate:
+
+```bash
+npm run check:supabase-readiness
+```
+
+That command verifies the required stable resume, public profile privacy,
+and reward ledger migration artifacts are present in source control. It
+does not prove the live Supabase project has applied them. Use
+[Supabase Production Readiness](./supabase-production-readiness.md) for
+the exact migration order and SQL inspection queries.
+
 The `supabase-schema.sql` file is idempotent — you can paste the
 **entire file** into the Supabase SQL Editor and hit Run.
 
@@ -19,173 +31,22 @@ Reward backend note: if you plan to enable
 `supabase/migrations/` after the base schema and verify the
 `reward_events` table plus `award_reward_event()` RPC before release.
 
-If you only want the additions that landed during the portfolio-polish
-branch, here's the minimal delta you need to apply:
+If you only need the additive hardening after an existing base schema,
+apply the checked-in migration files in timestamp order instead of
+copying older SQL snippets from prior portfolio branches:
 
-```sql
--- ═══════════════════════════════════════════════
--- PORTFOLIO-POLISH MIGRATION DELTA
--- Safe to re-run. Installs:
---   - ai_rate_limits table + consume_ai_quota() RPC
---   - admin_audit_log + escalation guard + set_user_admin() RPC
---   - public profile opt-in (is_public, public_handle, view, policies)
--- ═══════════════════════════════════════════════
+1. `supabase/migrations/202604250001_create_reward_events.sql`
+2. `supabase/migrations/202604250002_add_award_reward_event_rpc.sql`
+3. `supabase/migrations/202605060001_guard_profile_disabled_updates.sql`
+4. `supabase/migrations/202605060002_guard_reward_event_idempotency.sql`
+5. `supabase/migrations/202605060003_harden_profile_updates.sql`
+6. `supabase/migrations/202605070001_add_stable_last_position_columns.sql`
+7. `supabase/migrations/202605070002_harden_public_profile_privacy.sql`
 
--- ── AI rate limit ────────────────────────────
-create table if not exists public.ai_rate_limits (
-  user_id uuid references auth.users on delete cascade primary key,
-  window_start timestamptz not null default now(),
-  count integer not null default 0
-);
-alter table public.ai_rate_limits enable row level security;
-
-create or replace function public.consume_ai_quota()
-returns boolean
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  v_user uuid := auth.uid();
-  v_max constant integer := 10;
-  v_window constant integer := 60;
-  v_now timestamptz := now();
-  v_count integer;
-begin
-  if v_user is null then return false; end if;
-  insert into public.ai_rate_limits (user_id, window_start, count)
-  values (v_user, v_now, 1)
-  on conflict (user_id) do update
-    set window_start = case
-          when public.ai_rate_limits.window_start < v_now - make_interval(secs => v_window)
-            then v_now
-          else public.ai_rate_limits.window_start
-        end,
-        count = case
-          when public.ai_rate_limits.window_start < v_now - make_interval(secs => v_window)
-            then 1
-          else public.ai_rate_limits.count + 1
-        end
-  returning count into v_count;
-  return v_count <= v_max;
-end;
-$$;
-revoke all on function public.consume_ai_quota() from public;
-grant execute on function public.consume_ai_quota() to authenticated;
-
--- ── Admin escalation guard ───────────────────
-create table if not exists public.admin_audit_log (
-  id uuid default gen_random_uuid() primary key,
-  actor_id uuid not null,
-  target_id uuid not null,
-  action text not null,
-  details jsonb,
-  created_at timestamptz default now()
-);
-alter table public.admin_audit_log enable row level security;
-drop policy if exists "Admins read audit log" on public.admin_audit_log;
-create policy "Admins read audit log" on public.admin_audit_log
-  for select using (is_admin());
-
-create or replace function public.guard_profile_admin_changes()
-returns trigger language plpgsql as $$
-begin
-  if new.is_admin is distinct from old.is_admin then
-    if coalesce(current_setting('app.bypass_admin_guard', true), 'false') = 'true' then
-      return new;
-    end if;
-    if current_user in ('postgres', 'supabase_admin') then
-      return new;
-    end if;
-    raise exception 'is_admin can only be changed via public.set_user_admin()';
-  end if;
-  return new;
-end;
-$$;
-drop trigger if exists trg_guard_profile_admin_changes on public.profiles;
-create trigger trg_guard_profile_admin_changes
-  before update of is_admin on public.profiles
-  for each row execute function public.guard_profile_admin_changes();
-
-create or replace function public.set_user_admin(target_user_id uuid, make_admin boolean)
-returns void language plpgsql security definer set search_path = public as $$
-declare v_caller uuid := auth.uid();
-begin
-  if v_caller is null then raise exception 'Authentication required'; end if;
-  if not public.is_admin() then raise exception 'Admin privileges required'; end if;
-  if v_caller = target_user_id then
-    raise exception 'Admins cannot change their own is_admin flag';
-  end if;
-  perform set_config('app.bypass_admin_guard', 'true', true);
-  update public.profiles set is_admin = make_admin where id = target_user_id;
-  perform set_config('app.bypass_admin_guard', 'false', true);
-  insert into public.admin_audit_log (actor_id, target_id, action, details)
-  values (v_caller, target_user_id,
-    case when make_admin then 'grant_admin' else 'revoke_admin' end,
-    jsonb_build_object('make_admin', make_admin));
-end;
-$$;
-revoke all on function public.set_user_admin(uuid, boolean) from public;
-grant execute on function public.set_user_admin(uuid, boolean) to authenticated;
-
--- ── Public profile opt-in ────────────────────
-alter table public.profiles
-  add column if not exists is_public boolean default false;
-alter table public.profiles
-  add column if not exists public_handle text unique;
-
-create index if not exists idx_profiles_public_handle_lower
-  on public.profiles (lower(public_handle))
-  where is_public = true;
-
-create or replace view public.public_profiles as
-select
-  p.id, p.display_name, p.avatar_url, p.public_handle as handle,
-  coalesce(x.total, 0)    as xp_total,
-  coalesce(s.days, 0)     as streak_days,
-  coalesce(lc.n, 0)       as lessons_completed,
-  coalesce(bc.n, 0)       as badges_earned
-from public.profiles p
-left join public.xp x on x.user_id = p.id
-left join public.streaks s on s.user_id = p.id
-left join (select user_id, count(*)::int n from public.progress group by user_id) lc on lc.user_id = p.id
-left join (select user_id, count(*)::int n from public.badges group by user_id) bc on bc.user_id = p.id
-where p.is_public = true and coalesce(p.is_disabled, false) = false;
-
-grant select on public.public_profiles to anon, authenticated;
-
-drop policy if exists "Public profiles readable by anyone" on public.profiles;
-create policy "Public profiles readable by anyone" on public.profiles
-  for select using (is_public = true and coalesce(is_disabled, false) = false);
-
-drop policy if exists "Public xp readable" on public.xp;
-create policy "Public xp readable" on public.xp for select using (
-  exists (select 1 from public.profiles
-    where profiles.id = xp.user_id
-      and profiles.is_public = true
-      and coalesce(profiles.is_disabled, false) = false));
-
-drop policy if exists "Public streaks readable" on public.streaks;
-create policy "Public streaks readable" on public.streaks for select using (
-  exists (select 1 from public.profiles
-    where profiles.id = streaks.user_id
-      and profiles.is_public = true
-      and coalesce(profiles.is_disabled, false) = false));
-
-drop policy if exists "Public progress count readable" on public.progress;
-create policy "Public progress count readable" on public.progress for select using (
-  exists (select 1 from public.profiles
-    where profiles.id = progress.user_id
-      and profiles.is_public = true
-      and coalesce(profiles.is_disabled, false) = false));
-
-drop policy if exists "Public badges count readable" on public.badges;
-create policy "Public badges count readable" on public.badges for select using (
-  exists (select 1 from public.profiles
-    where profiles.id = badges.user_id
-      and profiles.is_public = true
-      and coalesce(profiles.is_disabled, false) = false));
-```
+Public profile note: use `public.public_profiles` for aggregate
+portfolio snapshots. Do not add public select policies on
+`public.progress`, `public.bookmarks`, `public.notes`,
+`public.sr_cards`, or other learner-owned row tables.
 
 Verify the migration:
 
@@ -196,8 +57,20 @@ select tgname from pg_trigger where tgrelid = 'public.profiles'::regclass;
 -- Functions exist?
 select proname from pg_proc where proname in ('consume_ai_quota', 'set_user_admin');
 
--- Public view exists?
+-- Stable resume columns exist?
+select course_id, module_id, lesson_id, is_module_quiz
+from public.last_position
+limit 1;
+
+-- Public aggregate view exists?
 select * from public.public_profiles limit 1;
+
+-- Raw progress rows are not granted to anon?
+select grantee, privilege_type
+from information_schema.role_table_grants
+where table_schema = 'public'
+  and table_name = 'progress'
+  and grantee = 'anon';
 ```
 
 ---
@@ -331,7 +204,7 @@ Once all of the above is done, in order:
 # 1. Build + tests
 npm ci
 npm run build
-npm run typecheck
+npm run check:js-source
 npm test
 npm audit --audit-level=high
 

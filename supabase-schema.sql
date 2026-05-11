@@ -114,6 +114,10 @@ create table if not exists public.last_position (
   course text,
   mod text,
   les text,
+  course_id text,
+  module_id text,
+  lesson_id text,
+  is_module_quiz boolean default false,
   updated_at timestamptz default now()
 );
 
@@ -467,10 +471,9 @@ grant execute on function public.get_analytics_daily_funnel(integer) to authenti
 alter table public.profiles add column if not exists is_disabled boolean default false;
 
 -- Admins can update profiles (to disable/enable users). The trigger
--- defined below blocks any UPDATE that would change is_admin via this
--- broad policy — so admins can flip is_disabled freely but cannot
--- escalate themselves or anyone else without going through the
--- set_user_admin() RPC.
+-- defined below blocks direct browser updates to protected profile flags:
+-- is_admin changes must go through set_user_admin(), while is_disabled
+-- can only be changed by an admin.
 create policy "Admins update all profiles" on public.profiles for update using (is_admin());
 
 -- ═══════════════════════════════════════════════
@@ -499,10 +502,11 @@ alter table public.admin_audit_log enable row level security;
 create policy "Admins read audit log" on public.admin_audit_log
   for select using (is_admin());
 
--- Trigger: refuse any UPDATE that flips is_admin unless the change is
+-- Trigger: refuse any UPDATE that flips protected admin fields unless the change is
 -- explicitly sanctioned by set_user_admin() (which sets a session flag)
 -- or comes from a database superuser running raw SQL (migrations,
--- bootstrap, the initial admin).
+-- bootstrap, the initial admin). Normal users can still update their
+-- editable profile fields through the self-profile policy.
 create or replace function public.guard_profile_admin_changes()
 returns trigger
 language plpgsql
@@ -519,13 +523,24 @@ begin
     end if;
     raise exception 'is_admin can only be changed via public.set_user_admin()';
   end if;
+
+  if new.is_disabled is distinct from old.is_disabled then
+    -- Allow superuser / migrations (Supabase SQL Editor).
+    if current_user in ('postgres', 'supabase_admin') then
+      return new;
+    end if;
+    if not public.is_admin() then
+      raise exception 'is_disabled can only be changed by an admin';
+    end if;
+  end if;
+
   return new;
 end;
 $$;
 
 drop trigger if exists trg_guard_profile_admin_changes on public.profiles;
 create trigger trg_guard_profile_admin_changes
-  before update of is_admin on public.profiles
+  before update of is_admin, is_disabled on public.profiles
   for each row execute function public.guard_profile_admin_changes();
 
 -- Sanctioned RPC for promoting/demoting admins. Refuses self-edits.
@@ -640,12 +655,11 @@ grant execute on function public.consume_ai_quota() to authenticated;
 -- count, and badge count. Opt-in defaults to false;
 -- everything else stays private.
 --
--- Design: we DON'T add a public RLS policy directly
--- to `profiles`, `xp`, `streaks`, etc. (that would
--- risk over-exposing columns). Instead we create a
--- `public_profiles` VIEW that projects only the
--- fields we want public, and grant SELECT on that
--- view to `anon`.
+-- Design: we DON'T add public RLS policies directly
+-- to learner-owned tables like `progress`, because raw
+-- rows include private lesson keys. Instead we create a
+-- `public_profiles` VIEW that projects only aggregate
+-- fields and grant SELECT on that view to `anon`.
 
 alter table public.profiles
   add column if not exists is_public boolean default false;
@@ -659,7 +673,8 @@ create index if not exists idx_profiles_public_handle_lower
   on public.profiles (lower(public_handle))
   where is_public = true;
 
-create or replace view public.public_profiles as
+create or replace view public.public_profiles
+with (security_invoker = false) as
 select
   p.id                    as id,
   p.display_name          as display_name,
@@ -685,74 +700,29 @@ left join (
 where p.is_public = true
   and coalesce(p.is_disabled, false) = false;
 
--- Views inherit RLS from their base tables, so we also need to grant
--- SELECT on the view itself to the anon role. Base-table RLS continues
--- to protect raw rows; only the projected columns above are exposed.
+-- The view exposes aggregates only. Raw progress rows, lesson keys,
+-- badge rows, XP rows, and streak rows are not an intentional public
+-- API surface.
 grant select on public.public_profiles to anon, authenticated;
 
--- And we need a policy on `profiles` that lets `anon` read the specific
--- public columns via the view. Postgres RLS doesn't do column-level
--- grants in a policy, so we add a row-level "is_public = true" policy
--- and rely on the VIEW to limit the columns.
+-- Drop legacy public base-table policies so public profile pages stay
+-- aggregate-only through the view above.
+-- The following policies are intentionally not recreated.
 drop policy if exists "Public profiles readable by anyone" on public.profiles;
-create policy "Public profiles readable by anyone"
-  on public.profiles
-  for select
-  using (is_public = true and coalesce(is_disabled, false) = false);
 
--- Same for the joined tables — only the minimum columns projected by
--- the view are reachable, but the base-table RLS still needs a path.
 drop policy if exists "Public xp readable" on public.xp;
-create policy "Public xp readable"
-  on public.xp
-  for select
-  using (
-    exists (
-      select 1 from public.profiles
-      where profiles.id = xp.user_id
-        and profiles.is_public = true
-        and coalesce(profiles.is_disabled, false) = false
-    )
-  );
 
 drop policy if exists "Public streaks readable" on public.streaks;
-create policy "Public streaks readable"
-  on public.streaks
-  for select
-  using (
-    exists (
-      select 1 from public.profiles
-      where profiles.id = streaks.user_id
-        and profiles.is_public = true
-        and coalesce(profiles.is_disabled, false) = false
-    )
-  );
 
 drop policy if exists "Public progress count readable" on public.progress;
-create policy "Public progress count readable"
-  on public.progress
-  for select
-  using (
-    exists (
-      select 1 from public.profiles
-      where profiles.id = progress.user_id
-        and profiles.is_public = true
-        and coalesce(profiles.is_disabled, false) = false
-    )
-  );
 
 drop policy if exists "Public badges count readable" on public.badges;
-create policy "Public badges count readable"
-  on public.badges
-  for select
-  using (
-    exists (
-      select 1 from public.profiles
-      where profiles.id = badges.user_id
-        and profiles.is_public = true
-        and coalesce(profiles.is_disabled, false) = false
-    )
-  );
+
+revoke select on table public.profiles from anon;
+revoke select on table public.xp from anon;
+revoke select on table public.streaks from anon;
+revoke select on table public.progress from anon;
+revoke select on table public.badges from anon;
 
 -- Users can still only UPDATE their own is_public / public_handle
 -- columns through the existing "Users manage own profiles" policy —

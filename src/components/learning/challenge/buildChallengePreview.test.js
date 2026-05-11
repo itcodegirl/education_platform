@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildChallengePreview } from './buildChallengePreview';
+import { PREVIEW_REQUEST_TYPE } from './challengePreviewBridge';
 
 describe('buildChallengePreview', () => {
   it('wraps raw HTML so it renders directly in the iframe body', () => {
@@ -8,7 +9,9 @@ describe('buildChallengePreview', () => {
 
     expect(out).toContain('<!DOCTYPE html>');
     expect(out).toContain('<h1>Hello</h1>');
-    expect(out).not.toContain('window._challengeResults');
+    expect(out).not.toContain('window._challengeCode');
+    expect(out).not.toContain('const _origLog = console.log;');
+    expect(out).toContain(PREVIEW_REQUEST_TYPE);
   });
 
   it('injects CSS via a <style> tag and uses the challenge previewHTML when given', () => {
@@ -35,8 +38,10 @@ describe('buildChallengePreview', () => {
 
     expect(jsOut).toContain('window._challengeResults');
     expect(jsOut).toContain('console.log("hi")');
+    expect(jsOut).toContain(PREVIEW_REQUEST_TYPE);
     expect(reactOut).toContain('window._challengeResults');
     expect(reactOut).toContain('console.log("hi")');
+    expect(reactOut).toContain(PREVIEW_REQUEST_TYPE);
   });
 
   it('escapes literal "</script>" in JS source so it does not terminate the wrapping script tag', () => {

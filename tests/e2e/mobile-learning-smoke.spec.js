@@ -1,13 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { getAuthSkipReason, getMissingAuthEnv } from './authE2E.js';
+import { dismissWelcomeOverlay } from './authHelpers';
 
-const requiredEnv = [
-  'VITE_SUPABASE_URL',
-  'VITE_SUPABASE_ANON_KEY',
-  'E2E_EMAIL',
-  'E2E_PASSWORD',
-];
-
-const missingEnv = requiredEnv.filter((name) => !process.env[name]);
+const missingEnv = getMissingAuthEnv();
 
 test.describe('mobile learning smoke', () => {
   test.setTimeout(90000);
@@ -19,29 +14,24 @@ test.describe('mobile learning smoke', () => {
 
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(
-      testInfo.project.name !== 'mobile-chrome',
-      'This smoke test is scoped to mobile-chrome only.',
+      testInfo.project.name !== 'authenticated-mobile-chrome',
+      'This smoke test is scoped to authenticated mobile Chrome only.',
     );
+    const authSkipReason = getAuthSkipReason();
+    test.skip(Boolean(authSkipReason), authSkipReason);
 
     await page.goto('/');
-    await page.waitForSelector('.auth-form, .shell, .welcome-overlay', { timeout: 30000 });
+    await page.waitForSelector('.auth-form, .main-shell, .welcome-overlay', { timeout: 30000 });
 
     const onAuthPage = await page.locator('.auth-form').isVisible().catch(() => false);
     if (onAuthPage) {
-      await page.fill('input[type="email"]', process.env.E2E_EMAIL);
-      await page.fill('input[type="password"]', process.env.E2E_PASSWORD);
-      await page.click('button[type="submit"]');
-      await page.waitForSelector('.shell, .welcome-overlay', { timeout: 30000 });
+      test.skip(true, 'Authenticated mobile smoke could not restore the shared signed-in state.');
     }
 
-    const welcomeVisible = await page.locator('.welcome-overlay').isVisible().catch(() => false);
-    if (welcomeVisible) {
-      await page.click('.welcome-dismiss, .welcome-resume-btn');
-      await page.waitForSelector('.shell', { timeout: 10000 });
-    }
+    await dismissWelcomeOverlay(page);
 
     await page.keyboard.press('Escape').catch(() => {});
-    await expect(page.locator('.shell')).toBeVisible({ timeout: 30000 });
+    await expect(page.locator('.main-shell')).toBeVisible({ timeout: 30000 });
   });
 
   async function answerQuizQuestions(page) {
@@ -76,33 +66,76 @@ test.describe('mobile learning smoke', () => {
     }
   }
 
-  test('opens resources from sidebar and search from topbar', async ({ page }) => {
+  test('opens sidebar tools, search, and the mobile tools sheet', async ({ page }) => {
     await page.getByLabel('Open course navigation').click();
     await expect(page.locator('#course-sidebar.open')).toBeVisible();
 
-    await page.getByRole('tab', { name: /resources/i }).click();
-    await page.getByRole('button', { name: /cheat sheets/i }).first().click();
+    await page.getByRole('button', { name: /tools/i }).click();
+    await page.getByRole('menuitem', { name: /cheat sheets/i }).click();
     await expect(page.locator('.search-modal')).toBeVisible();
 
     await page.keyboard.press('Escape');
-    await page.getByLabel('Close sidebar').click();
+    const closeSidebar = page.getByLabel('Close sidebar');
+    if (await closeSidebar.isVisible().catch(() => false)) {
+      await closeSidebar.click();
+    }
 
     await page.getByLabel('Open lesson search').click();
     await expect(page.locator('.search-input')).toBeVisible();
+    await page.keyboard.press('Escape');
+
+    await page.getByLabel('Open learning tools').click();
+    const toolsSheet = page.getByRole('dialog', { name: /learning tools/i });
+    await expect(toolsSheet).toBeVisible();
+
+    await toolsSheet.getByRole('button', { name: /challenges/i }).click();
+    await expect(page.locator('.challenges-panel')).toBeVisible();
+  });
+
+  test('mobileSidebarSupportsKeyboardNavigation', async ({ page }) => {
+    await page.getByLabel('Open course navigation').click();
+    const sidebar = page.locator('#course-sidebar');
+    await expect(sidebar).toHaveClass(/open/);
+
+    await page.keyboard.press('Escape');
+    await expect(sidebar).not.toHaveClass(/open/);
+
+    await page.getByLabel('Open course navigation').focus();
+    await page.keyboard.press('Enter');
+    await expect(sidebar).toHaveClass(/open/);
+
+    const toolsTab = page.getByRole('button', { name: /tools/i });
+    await toolsTab.focus();
+    await page.keyboard.press('ArrowDown');
+
+    const toolsMenu = page.getByRole('menu', { name: /tools/i });
+    const firstTool = toolsMenu.getByRole('menuitem').first();
+    await expect(toolsMenu).toBeVisible();
+    await expect(firstTool).toBeFocused();
+
+    await page.keyboard.press('Escape');
+    await expect(toolsMenu).toHaveCount(0);
+    await expect(toolsTab).toBeFocused();
   });
 
   test('navigates lessons, toggles completion, and submits a quiz', async ({ page }) => {
     await expect(page.locator('.lesson-title')).toBeVisible();
     const initialTitle = await page.locator('.lesson-title').textContent();
 
+    await page.getByLabel('Toggle lesson notes').click();
+    await expect(page.locator('.notes-panel')).toBeVisible();
+    await page.getByLabel('Toggle lesson notes').click();
+    await expect(page.locator('.notes-panel')).toHaveCount(0);
+
+    const doneButton = page.locator('.lesson-nav-done');
     const getDoneState = async () =>
-      page.locator('.mark-btn').evaluate((node) => node.classList.contains('dn'));
+      (await doneButton.getAttribute('aria-pressed')) === 'true';
 
     const previousDoneState = await getDoneState();
-    await page.locator('.mark-btn').click();
+    await doneButton.click();
     await expect.poll(getDoneState).toBe(!previousDoneState);
 
-    await page.locator('.nav-btn.nx').click();
+    await page.locator('.lesson-nav-next').click();
     await expect(page.locator('.lesson-title')).not.toHaveText(initialTitle || '', { timeout: 10000 });
 
     await page.getByLabel('Open course navigation').click();

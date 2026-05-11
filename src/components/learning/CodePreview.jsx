@@ -166,7 +166,13 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
       </div>
 
       {tab === 'code' && (
-        <pre className="code-preview-code"><code>{code}</code></pre>
+        <pre
+          className="code-preview-code"
+          tabIndex={0}
+          aria-label={`${monacoLang.toUpperCase()} code sample`}
+        >
+          <code>{code}</code>
+        </pre>
       )}
 
       {tab === 'editor' && (
@@ -197,8 +203,9 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
                 </button>
               )}
             </>
+
           ) : (
-            <Suspense fallback={<div className="code-preview-editor-loading"><span className="code-preview-loading-spinner"></span>Loading editor...</div>}>
+            <Suspense fallback={<div className="code-preview-editor-loading"><span className="code-preview-loading-spinner"></span>Opening editor...</div>}>
               <MonacoEditor
                 height="320px"
                 language={monacoLang}

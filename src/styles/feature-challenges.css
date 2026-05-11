@@ -118,6 +118,13 @@
   font-weight: 700;
 }
 
+.cc-grader-note {
+  margin: -4px 24px 16px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 /* Workspace (editor + preview) */
 .cc-workspace {
   display: grid;
@@ -571,6 +578,14 @@
   font-size: 15px;
 }
 
+.challenges-empty-compact {
+  margin-bottom: 14px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
 .challenges-empty-sub {
   font-size: 13px;
   color: var(--text-muted);
@@ -617,6 +632,22 @@
 
 .challenge-card-icon {
   font-size: 22px;
+}
+
+.challenge-card-icon.is-open {
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.challenge-card-icon.is-done {
+  color: var(--cyan);
 }
 
 .challenge-card-title {

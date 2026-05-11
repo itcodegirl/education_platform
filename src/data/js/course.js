@@ -1,10 +1,12 @@
 // ═══════════════════════════════════════════════
-// JAVASCRIPT COURSE — 4 Core Modules
+// JAVASCRIPT COURSE — 6 Core Modules
 //
 // Module 1: JavaScript Awakening
-// Module 2: (coming soon)
-// Module 3: (coming soon)
-// Module 4: (coming soon)
+// Module 2: Data Mastery
+// Module 3: User Interaction
+// Module 4: Advanced Arrays
+// Module 5: APIs & Async
+// Module 6: DOM Manipulation
 // ═══════════════════════════════════════════════
 
 import jsAwakening from './modules/js-awakening.json';
@@ -13,10 +15,6 @@ import userInteraction from './modules/user-interaction.json';
 import advancedArrays from './modules/advanced-arrays.json';
 import apisAsync from './modules/apis-async.json';
 import domManipulation from './modules/dom-manipulation.json';
-
-// Old modules kept for advanced track (not loaded in core course)
-// import { module201 } from './modules/what-javascript-is.js';
-// ...
 
 export const JS_MODULES = [
   jsAwakening,

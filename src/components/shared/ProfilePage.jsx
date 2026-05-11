@@ -5,6 +5,7 @@ import { XP_PER_LEVEL, getLevel, getXPInLevel } from '../../utils/helpers';
 import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { supabase } from '../../lib/supabaseClient';
+import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 
 export const ProfilePage = memo(function ProfilePage({ onClose }) {
   const { user, profile, signOut } = useAuth();
@@ -148,13 +149,14 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
           <p className="pp-email">{user?.email}</p>
           {joined && <p className="pp-joined">Joined {joined}</p>}
           <p className="pp-hero-copy">
-            This is your proof-of-progress page: streaks, shipped lessons, and the
-            momentum you are building one session at a time.
+            This is your progress page: saved lessons, motivational XP, streaks,
+            and the momentum you are building one session at a time.
           </p>
+          <p className="pp-hero-copy">{PROGRESS_SYNC_COPY}</p>
           <div className="pp-status-row" aria-label="Current learning status">
             <span className="pp-status-pill">Level {level}</span>
             <span className="pp-status-pill warm">
-              {completedLessons}/{totalLessons} lessons shipped
+              {completedLessons}/{totalLessons} lessons completed
             </span>
             {streak > 0 ? (
               <span className="pp-status-pill accent">{streak} day streak</span>
@@ -185,7 +187,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
           <div className="pp-xp-info">
             <span>Level {level}</span>
             <span>
-              {xpInLevel}/{XP_PER_LEVEL} XP to Level {level + 1}
+              {xpInLevel}/{XP_PER_LEVEL} motivational XP to Level {level + 1}
             </span>
           </div>
           <div className="pp-xp-track">
@@ -215,7 +217,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
         </div>
 
         <h3 className="pp-section-title">
-          Proof of progress ({badgeCount}/{BADGE_DEFS.length})
+          CodeHerWay progress ({badgeCount}/{BADGE_DEFS.length})
         </h3>
         {/* List semantics + per-badge earned/locked status, mirroring
             BadgesPanel — without these the screen-reader experience
@@ -250,11 +252,12 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
         <div className="pp-public-card">
           <div className="pp-public-head">
             <div>
-              <div className="pp-public-title">Let your progress speak for itself</div>
+              <div className="pp-public-title">Share a progress snapshot</div>
               <div className="pp-public-sub">
                 Create a read-only page at <code>/u/your-handle</code> that shows your
-                level, XP, streak, lessons shipped, and badge count. No email, notes, or
-                private progress details are exposed.
+                level, motivational XP, streak, completed lessons, and badge count.
+                This is a learning snapshot, not a verified credential. No email,
+                notes, or private progress details are exposed.
               </div>
             </div>
             <label className="pp-public-switch">

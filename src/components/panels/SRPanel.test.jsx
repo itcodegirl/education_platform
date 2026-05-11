@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { SRPanel } from './SRPanel';
 
 const { mockUseSR } = vi.hoisted(() => ({
@@ -29,12 +29,15 @@ describe('SRPanel', () => {
   });
 
   it('shows all-caught-up guidance when no cards are due and queue is empty', () => {
-    render(<SRPanel isOpen onClose={vi.fn()} />);
+    const onClose = vi.fn();
+    render(<SRPanel isOpen onClose={onClose} />);
 
     expect(screen.getByText(/All caught up\./i)).toBeInTheDocument();
     expect(
-      screen.getByText(/Complete quizzes or generate a fresh card/i),
+      screen.getByText(/No review cards are due yet/i),
     ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /back to lesson/i }));
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('shows scheduled-later context when queue has cards but none are due', () => {
@@ -47,7 +50,14 @@ describe('SRPanel', () => {
 
     render(<SRPanel isOpen onClose={vi.fn()} />);
 
-    expect(screen.getByText(/2 cards are scheduled for later\./i)).toBeInTheDocument();
+    expect(screen.getByText(/2 cards are scheduled for later\. Nothing needs attention right now\./i)).toBeInTheDocument();
+  });
+
+  it('shows the local-first progress sync scope', () => {
+    render(<SRPanel isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText(/Progress sync: saved on this device/i)).toBeInTheDocument();
+    expect(screen.getByText(/review queue, and challenges are single-device today/i)).toBeInTheDocument();
   });
 });
 

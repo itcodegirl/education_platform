@@ -90,88 +90,232 @@ function createQuizScorePayload(uid, quizKey, score) {
   };
 }
 
+function isMissingStableLastPositionColumn(error) {
+  if (!error) return false;
+  const message = `${error.message || ''} ${error.details || ''} ${error.hint || ''}`.toLowerCase();
+  return (
+    message.includes('course_id') ||
+    message.includes('module_id') ||
+    message.includes('lesson_id') ||
+    message.includes('is_module_quiz') ||
+    message.includes('schema cache')
+  );
+}
+
+function createLastPositionPayload(uid, position) {
+  return {
+    user_id: uid,
+    course: position.course,
+    mod: position.mod,
+    les: position.les,
+    course_id: position.courseId || null,
+    module_id: position.moduleId || null,
+    lesson_id: position.lessonId || null,
+    is_module_quiz: Boolean(position.isModuleQuiz),
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function createLegacyLastPositionPayload(uid, position) {
+  return {
+    user_id: uid,
+    course: position.course,
+    mod: position.mod,
+    les: position.les,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+async function loadLastPosition(uid) {
+  const stableResult = await supabase
+    .from('last_position')
+    .select('course, mod, les, course_id, module_id, lesson_id, is_module_quiz, updated_at')
+    .eq('user_id', uid)
+    .maybeSingle();
+
+  if (!stableResult?.error || !isMissingStableLastPositionColumn(stableResult.error)) {
+    return stableResult;
+  }
+
+  return supabase
+    .from('last_position')
+    .select('course, mod, les, updated_at')
+    .eq('user_id', uid)
+    .maybeSingle();
+}
+
 // ─── Fetch all user data on login ───────────
-export async function fetchAllUserData(uid) {
-  const [
-    progressRes,
-    quizRes,
-    xpRes,
-    streakRes,
-    dailyRes,
-    badgesRes,
-    srRes,
-    bookmarksRes,
-    notesRes,
-    visitedRes,
-    posRes,
-  ] = await Promise.all([
-    supabase.from('progress').select('lesson_key').eq('user_id', uid),
-    supabase.from('quiz_scores').select('quiz_key, score').eq('user_id', uid),
-    supabase.from('xp').select('total').eq('user_id', uid).maybeSingle(),
-    supabase
+const USER_LOAD_DOMAINS = Object.freeze([
+  {
+    key: 'progress',
+    critical: true,
+    kind: 'list',
+    userMessage: 'Lesson progress failed to load.',
+    load: (uid) => supabase.from('progress').select('lesson_key').eq('user_id', uid),
+  },
+  {
+    key: 'quiz',
+    critical: false,
+    kind: 'list',
+    userMessage: 'Quiz history failed to load.',
+    load: (uid) => supabase.from('quiz_scores').select('quiz_key, score').eq('user_id', uid),
+  },
+  {
+    key: 'xp',
+    critical: false,
+    kind: 'single',
+    userMessage: 'XP summary failed to load.',
+    load: (uid) => supabase.from('xp').select('total').eq('user_id', uid).maybeSingle(),
+  },
+  {
+    key: 'streak',
+    critical: false,
+    kind: 'single',
+    userMessage: 'Streak progress failed to load.',
+    load: (uid) => supabase
       .from('streaks')
       .select('days, last_date')
       .eq('user_id', uid)
       .maybeSingle(),
-    supabase
+  },
+  {
+    key: 'daily',
+    critical: false,
+    kind: 'single',
+    userMessage: 'Today\'s activity failed to load.',
+    load: (uid) => supabase
       .from('daily_goals')
       .select('goal_date, count')
       .eq('user_id', uid)
       .maybeSingle(),
-    supabase.from('badges').select('badge_id, earned_at').eq('user_id', uid),
-    supabase.from('sr_cards').select('*').eq('user_id', uid),
-    supabase.from('bookmarks').select('*').eq('user_id', uid),
-    supabase.from('notes').select('lesson_key, content').eq('user_id', uid),
-    supabase.from('courses_visited').select('course_id').eq('user_id', uid),
-    supabase
-      .from('last_position')
-      .select('course, mod, les, updated_at')
-      .eq('user_id', uid)
-      .maybeSingle(),
-  ]);
+  },
+  {
+    key: 'badges',
+    critical: false,
+    kind: 'list',
+    userMessage: 'Badges failed to load.',
+    load: (uid) => supabase.from('badges').select('badge_id, earned_at').eq('user_id', uid),
+  },
+  {
+    key: 'sr',
+    critical: false,
+    kind: 'list',
+    userMessage: 'Review queue failed to load.',
+    load: (uid) => supabase.from('sr_cards').select('*').eq('user_id', uid),
+  },
+  {
+    key: 'bookmarks',
+    critical: false,
+    kind: 'list',
+    userMessage: 'Bookmarks failed to load.',
+    load: (uid) => supabase.from('bookmarks').select('*').eq('user_id', uid),
+  },
+  {
+    key: 'notes',
+    critical: false,
+    kind: 'list',
+    userMessage: 'Notes failed to load.',
+    load: (uid) => supabase.from('notes').select('lesson_key, content').eq('user_id', uid),
+  },
+  {
+    key: 'visited',
+    critical: false,
+    kind: 'list',
+    userMessage: 'Course visit history failed to load.',
+    load: (uid) => supabase.from('courses_visited').select('course_id').eq('user_id', uid),
+  },
+  {
+    key: 'position',
+    critical: false,
+    kind: 'single',
+    userMessage: 'Last lesson position failed to load.',
+    load: loadLastPosition,
+  },
+]);
 
-  // Critical tables — if these fail the app cannot function meaningfully.
-  const criticalErrors = [
-    ['progress', progressRes.error],
-    ['quiz_scores', quizRes.error],
-    ['xp', xpRes.error],
-  ].filter(([, error]) => !!error);
-
-  if (criticalErrors.length > 0) {
-    const details = criticalErrors
-      .map(([source, error]) => `${source}: ${error?.message || 'Unknown error'}`)
-      .join(' | ');
-    throw new Error(`Failed to load user data (${details})`);
+function normalizeDomainData(kind, value) {
+  if (kind === 'single') {
+    return value && !Array.isArray(value) ? value : null;
   }
 
-  // Non-critical tables — failures degrade gracefully; callers receive
-  // a `loadErrors` array they can surface as a non-blocking warning.
-  const loadErrors = [
-    ['streaks', streakRes.error],
-    ['daily_goals', dailyRes.error],
-    ['badges', badgesRes.error],
-    ['sr_cards', srRes.error],
-    ['bookmarks', bookmarksRes.error],
-    ['notes', notesRes.error],
-    ['courses_visited', visitedRes.error],
-    ['last_position', posRes.error],
-  ]
-    .filter(([, error]) => !!error)
-    .map(([source, error]) => `${source}: ${error?.message || 'Unknown error'}`);
+  return Array.isArray(value) ? value : [];
+}
+
+function toLoadError(config, error) {
+  return {
+    domain: config.key,
+    message: config.userMessage,
+    detail: getErrorMessage(error) || 'Unknown error',
+  };
+}
+
+function buildCriticalLoadError(errorsByDomain) {
+  const entries = Object.entries(errorsByDomain);
+  if (entries.length === 0) return null;
+
+  const details = entries
+    .map(([domain, error]) => `${domain}: ${error.detail}`)
+    .join(' | ');
+
+  if (entries.length === 1) {
+    const [, error] = entries[0];
+    return {
+      domains: errorsByDomain,
+      details,
+      message: `${error.message}${details ? ` (${details})` : ''}`,
+    };
+  }
 
   return {
-    progress: progressRes,
-    quiz: quizRes,
-    xp: xpRes,
-    streak: streakRes,
-    daily: dailyRes,
-    badges: badgesRes,
-    sr: srRes,
-    bookmarks: bookmarksRes,
-    notes: notesRes,
-    visited: visitedRes,
-    position: posRes,
-    loadErrors,
+    domains: errorsByDomain,
+    details,
+    message: `Core progress failed to load (${details})`,
+  };
+}
+
+export async function fetchAllUserData(uid) {
+  const settledResults = await Promise.allSettled(
+    USER_LOAD_DOMAINS.map((config) => config.load(uid)),
+  );
+
+  const data = {};
+  const recoverableErrors = {};
+  const criticalErrors = {};
+
+  USER_LOAD_DOMAINS.forEach((config, index) => {
+    const settled = settledResults[index];
+    const fallbackData = normalizeDomainData(config.kind, null);
+
+    if (settled.status === 'rejected') {
+      const loadError = toLoadError(config, settled.reason);
+      data[config.key] = fallbackData;
+      if (config.critical) {
+        criticalErrors[config.key] = loadError;
+      } else {
+        recoverableErrors[config.key] = loadError;
+      }
+      return;
+    }
+
+    const result = settled.value;
+    if (result?.error) {
+      const loadError = toLoadError(config, result.error);
+      data[config.key] = fallbackData;
+      if (config.critical) {
+        criticalErrors[config.key] = loadError;
+      } else {
+        recoverableErrors[config.key] = loadError;
+      }
+      return;
+    }
+
+    data[config.key] = normalizeDomainData(config.kind, result?.data);
+  });
+
+  return {
+    data,
+    recoverableErrors,
+    criticalError: buildCriticalLoadError(criticalErrors),
   };
 }
 
@@ -318,20 +462,10 @@ export async function saveQuizScore(uid, quizKey, score, options = {}) {
 }
 
 // ─── XP ─────────────────────────────────────
-// Uses a read-before-write max to prevent stale queued writes from
-// overwriting a higher total earned on another device. The extra
-// read adds one round-trip but protects cross-device correctness.
-export async function updateXP(uid, total) {
-  const { data } = await supabase
-    .from('xp')
-    .select('total')
-    .eq('user_id', uid)
-    .maybeSingle();
-  const serverTotal = typeof data?.total === 'number' ? data.total : 0;
-  const safeTotal = Math.max(total, serverTotal);
+export function updateXP(uid, total) {
   return supabase.from('xp').upsert({
     user_id: uid,
-    total: safeTotal,
+    total,
     updated_at: new Date().toISOString(),
   });
 }
@@ -435,14 +569,18 @@ export function saveNote(uid, lessonKey, content) {
 }
 
 // ─── Position ───────────────────────────────
-export function savePosition(uid, position) {
-  return supabase.from('last_position').upsert({
-    user_id: uid,
-    course: position.course,
-    mod: position.mod,
-    les: position.les,
-    updated_at: new Date().toISOString(),
-  });
+export async function savePosition(uid, position) {
+  const result = await supabase
+    .from('last_position')
+    .upsert(createLastPositionPayload(uid, position));
+
+  if (!result?.error || !isMissingStableLastPositionColumn(result.error)) {
+    return result;
+  }
+
+  return supabase
+    .from('last_position')
+    .upsert(createLegacyLastPositionPayload(uid, position));
 }
 
 // ─── Course Visits ──────────────────────────

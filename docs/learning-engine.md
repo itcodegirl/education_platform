@@ -79,7 +79,7 @@ string comparison.
 ## 3. Lesson completion
 
 ```
-User clicks "Mark done"
+User clicks "Complete lesson"
        │
        ▼
 useMarkLessonDone (hook)

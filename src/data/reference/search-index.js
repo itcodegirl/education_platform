@@ -3,50 +3,75 @@
 // Indexes: lesson titles, module titles, concepts, code, tasks
 // ═══════════════════════════════════════════════
 
-import { COURSES } from '../index';
+import { COURSES, getQuizVariants } from '../index';
+import { GLOSSARY } from './glossary';
 
-export function buildSearchIndex() {
+function collectSearchText(value, parts = []) {
+  if (value === null || value === undefined) return parts;
+
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    parts.push(String(value));
+    return parts;
+  }
+
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectSearchText(item, parts));
+    return parts;
+  }
+
+  if (typeof value === 'object') {
+    Object.values(value).forEach((item) => collectSearchText(item, parts));
+  }
+
+  return parts;
+}
+
+function normalizeKeywords(parts) {
+  return parts
+    .join(' ')
+    .toLowerCase()
+    .replace(/[<>{}()[\]/\\;:'"`,=+\-*&|!?#]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 1200);
+}
+
+function getCourseGlossaryText(courseId, glossary) {
+  return glossary
+    .filter((entry) => entry.course === courseId)
+    .flatMap((entry) => [entry.term, entry.def])
+    .join(' ');
+}
+
+function getQuizSearchText(quizVariants) {
+  if (!quizVariants) return [];
+  const quizzes = [
+    quizVariants.primary,
+    ...(Array.isArray(quizVariants.bonus) ? quizVariants.bonus : []),
+  ].filter(Boolean);
+
+  return quizzes.flatMap((quiz) => collectSearchText(quiz));
+}
+
+export function buildSearchIndexFromCourses(courses, glossary = GLOSSARY, options = {}) {
   const entries = [];
+  const resolveQuizVariants = options.getQuizVariants || (() => null);
 
-  COURSES.forEach((course, ci) => {
+  courses.forEach((course, ci) => {
+    const glossaryText = getCourseGlossaryText(course.id, glossary);
+
     course.modules.forEach((mod, mi) => {
       mod.lessons.forEach((les, li) => {
-        // Build keywords from all available lesson data
-        const parts = [
-          les.title,
+        const lessonQuizText = getQuizSearchText(resolveQuizVariants(course.id, 'l', les.id));
+        const moduleQuizText = getQuizSearchText(resolveQuizVariants(course.id, 'm', mod.id));
+        const keywords = normalizeKeywords([
+          ...collectSearchText(les),
+          ...lessonQuizText,
+          ...moduleQuizText,
           mod.title,
-          les.content || '',
-        ];
-
-        // Index rich format concepts
-        if (les.concepts?.length) {
-          parts.push(les.concepts.join(' '));
-        }
-
-        // Index tasks
-        if (les.tasks?.length) {
-          parts.push(les.tasks.join(' '));
-        }
-
-        // Index challenge text
-        if (les.challenge) {
-          parts.push(les.challenge);
-        }
-
-        // Index code keywords (strip syntax, keep identifiers)
-        if (les.code) {
-          parts.push(les.code.replace(/[<>{}()\[\]\/\\;:'"`,=+\-*&|!?#]/g, ' '));
-        }
-
-        // Index output
-        if (les.output) {
-          parts.push(les.output);
-        }
-
-        const keywords = parts.join(' ')
-          .toLowerCase()
-          .replace(/\s+/g, ' ')
-          .slice(0, 500); // cap to prevent huge index
+          course.label,
+          glossaryText,
+        ]);
 
         entries.push({
           title: les.title,
@@ -63,4 +88,8 @@ export function buildSearchIndex() {
   });
 
   return entries;
+}
+
+export function buildSearchIndex() {
+  return buildSearchIndexFromCourses(COURSES, GLOSSARY, { getQuizVariants });
 }

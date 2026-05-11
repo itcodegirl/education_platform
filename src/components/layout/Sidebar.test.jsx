@@ -2,10 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Sidebar } from './Sidebar';
 
-const { mockUseProgressData, mockUseAuth, mockUseLocalStorage } = vi.hoisted(() => ({
+const { mockUseProgressData, mockUseAuth, mockUseLocalStorage, mockUseFocusTrap } = vi.hoisted(() => ({
   mockUseProgressData: vi.fn(),
   mockUseAuth: vi.fn(),
   mockUseLocalStorage: vi.fn(),
+  mockUseFocusTrap: vi.fn(),
 }));
 
 vi.mock('../../providers', () => ({
@@ -18,11 +19,11 @@ vi.mock('../../hooks/useLocalStorage', () => ({
 }));
 
 vi.mock('../../hooks/useFocusTrap', () => ({
-  useFocusTrap: () => {},
+  useFocusTrap: (...args) => mockUseFocusTrap(...args),
 }));
 
 vi.mock('../../data', () => ({
-  QUIZ_MAP: new Map(),
+  hasQuiz: () => false,
 }));
 
 vi.mock('./ProfilePopover', () => ({
@@ -102,6 +103,7 @@ describe('Sidebar', () => {
     mockUseProgressData.mockReturnValue({ completed: [] });
     mockUseAuth.mockReturnValue({ user: { email: 'jenna@example.com', user_metadata: {} } });
     mockUseLocalStorage.mockReturnValue([true, vi.fn()]);
+    mockUseFocusTrap.mockClear();
   });
 
   it('locks sequential lessons when lock mode is enabled', () => {
@@ -109,6 +111,15 @@ describe('Sidebar', () => {
 
     const secondLesson = screen.getByRole('button', { name: /lesson two/i });
     expect(secondLesson).toBeDisabled();
+  });
+
+  it('shows visible lesson readiness states', () => {
+    renderSidebar();
+
+    expect(screen.getByRole('button', { name: /lesson one lesson, ready/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /lesson two lesson, locked/i })).toBeDisabled();
+    expect(screen.getByText('Ready')).toBeInTheDocument();
+    expect(screen.getByText('Locked')).toBeInTheDocument();
   });
 
   it('fires lesson navigation clicks when free-roam mode is enabled', () => {
@@ -134,22 +145,34 @@ describe('Sidebar', () => {
     expect(screen.getByRole('button', { name: /foundations module/i })).toBeInTheDocument();
   });
 
-  it('switches from Courses to Resources as the active sidebar tab', () => {
+  it('switches from Courses to Tools as the active sidebar tab', () => {
     renderSidebar();
 
     const coursesTab = screen.getByRole('button', { name: /courses/i });
-    const resourcesTab = screen.getByRole('button', { name: /resources/i });
+    const toolsTab = screen.getByRole('button', { name: /tools/i });
 
     fireEvent.click(coursesTab);
     expect(coursesTab).toHaveAttribute('aria-expanded', 'true');
 
-    fireEvent.click(resourcesTab);
+    fireEvent.click(toolsTab);
 
     expect(coursesTab).toHaveAttribute('aria-expanded', 'false');
-    expect(resourcesTab).toHaveAttribute('aria-expanded', 'true');
-    expect(resourcesTab).toHaveClass('active');
-    expect(screen.getByRole('menu', { name: /resources/i })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: /open cheat sheets panel/i })).toBeInTheDocument();
+    expect(toolsTab).toHaveAttribute('aria-expanded', 'true');
+    expect(toolsTab).toHaveClass('active');
+    expect(screen.getByRole('menu', { name: /tools/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /open cheat sheets/i })).toBeInTheDocument();
+  });
+
+  it('keeps first-session tools focused before a lesson is completed', () => {
+    renderSidebar({ hasCompletedProgress: false });
+
+    fireEvent.click(screen.getByRole('button', { name: /tools/i }));
+
+    expect(screen.getByRole('menuitem', { name: /open saved lessons/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /open cheat sheets/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /open glossary/i })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: /open badges/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: /open challenges/i })).not.toBeInTheDocument();
   });
 
   it('keeps tab switching and lesson navigation working together', () => {
@@ -157,7 +180,7 @@ describe('Sidebar', () => {
     mockUseLocalStorage.mockReturnValue([false, vi.fn()]);
     renderSidebar({ onSelectLesson });
 
-    fireEvent.click(screen.getByRole('button', { name: /resources/i }));
+    fireEvent.click(screen.getByRole('button', { name: /tools/i }));
     fireEvent.click(screen.getByRole('button', { name: /courses/i }));
     fireEvent.click(screen.getByRole('button', { name: /lesson two/i }));
 
@@ -172,11 +195,11 @@ describe('Sidebar', () => {
     document.body.appendChild(hiddenToolbar);
     renderSidebar();
 
-    const resourcesTab = screen.getByRole('button', { name: /resources/i });
-    fireEvent.click(resourcesTab);
+    const toolsTab = screen.getByRole('button', { name: /tools/i });
+    fireEvent.click(toolsTab);
 
-    expect(resourcesTab).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByRole('menu', { name: /resources/i })).toBeInTheDocument();
+    expect(toolsTab).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('menu', { name: /tools/i })).toBeInTheDocument();
   });
 
   it('logs gated navigation diagnostics when a lesson click fires', () => {
@@ -236,14 +259,67 @@ describe('Sidebar', () => {
     expect(overlay).toHaveClass('overlay-open');
   });
 
-  it('opens Resources popout and triggers selected tool', () => {
+  it('keeps the closed mobile drawer hidden and removed from tab order', () => {
+    renderSidebar({ isMobile: true, isOpen: false });
+
+    const shell = document.querySelector('.sidebar-shell');
+    const nav = document.getElementById('course-sidebar');
+    const firstButton = nav.querySelector('button');
+
+    expect(shell).toHaveAttribute('aria-hidden', 'true');
+    expect(shell).toHaveAttribute('inert');
+    expect(nav).toHaveAttribute('aria-hidden', 'true');
+    expect(nav).toHaveAttribute('inert');
+    expect(firstButton).toHaveAttribute('tabindex', '-1');
+  });
+
+  it('mobileSidebarSupportsKeyboardNavigation', () => {
+    const onClose = vi.fn();
+    renderSidebar({ isMobile: true, isOpen: true, onClose });
+
+    expect(mockUseFocusTrap).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({
+        enabled: true,
+        onEscape: onClose,
+        lockBodyScroll: true,
+        initialFocus: 'first-tabbable',
+      }),
+    );
+  });
+
+  it('opens Tools popout and triggers selected tool', () => {
     const onOpenTool = vi.fn();
     renderSidebar({ onOpenTool });
 
-    fireEvent.click(screen.getByRole('button', { name: /resources/i }));
+    fireEvent.click(screen.getByRole('button', { name: /tools/i }));
     fireEvent.click(screen.getByRole('menuitem', { name: /cheat sheets/i }));
 
     expect(onOpenTool).toHaveBeenCalledWith('cheatsheet');
+  });
+
+  it('closes the mobile drawer after selecting a tool', () => {
+    const onOpenTool = vi.fn();
+    const onClose = vi.fn();
+    renderSidebar({ isMobile: true, isOpen: true, onOpenTool, onClose });
+
+    fireEvent.click(screen.getByRole('button', { name: /tools/i }));
+    fireEvent.click(screen.getByRole('menuitem', { name: /cheat sheets/i }));
+
+    expect(onOpenTool).toHaveBeenCalledWith('cheatsheet');
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('closes the mobile drawer after selecting a course', () => {
+    const onSelectCourse = vi.fn();
+    const onClose = vi.fn();
+    renderSidebar({ isMobile: true, isOpen: true, onSelectCourse, onClose });
+
+    fireEvent.click(screen.getByRole('button', { name: /courses/i }));
+    fireEvent.click(screen.getByRole('menuitem', { name: /switch to html course/i }));
+
+    expect(onSelectCourse).toHaveBeenCalledWith(0);
+    expect(onClose).toHaveBeenCalled();
   });
 
   it('marks desktop-collapsed sidebar as hidden and inert', () => {
@@ -255,16 +331,16 @@ describe('Sidebar', () => {
     expect(nav).toHaveAttribute('inert');
   });
 
-  it('supports keyboard navigation for menu-style resources popout', async () => {
+  it('supports keyboard navigation for menu-style tools popout', async () => {
     renderSidebar();
-    const resourcesTab = screen.getByRole('button', { name: /resources/i });
+    const toolsTab = screen.getByRole('button', { name: /tools/i });
 
-    resourcesTab.focus();
-    fireEvent.keyDown(resourcesTab, { key: 'ArrowDown' });
+    toolsTab.focus();
+    fireEvent.keyDown(toolsTab, { key: 'ArrowDown' });
 
     const menu = await screen.findByRole('menu');
-    const firstItem = await screen.findByRole('menuitem', { name: /open cheat sheets panel/i });
-    const lastItem = await screen.findByRole('menuitem', { name: /open badges panel/i });
+    const firstItem = await screen.findByRole('menuitem', { name: /open saved lessons/i });
+    const lastItem = await screen.findByRole('menuitem', { name: /open badges/i });
 
     await waitFor(() => expect(firstItem).toHaveFocus());
 
@@ -276,6 +352,6 @@ describe('Sidebar', () => {
 
     fireEvent.keyDown(menu, { key: 'Escape' });
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
-    await waitFor(() => expect(resourcesTab).toHaveFocus());
+    await waitFor(() => expect(toolsTab).toHaveFocus());
   });
 });

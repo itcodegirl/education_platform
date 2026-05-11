@@ -42,73 +42,161 @@ export function isAnswerCorrect(q, answer) {
   }
 }
 
-function MCQuestion({ q, answer, onAnswer, submitted }) {
+function getChoiceStateLabel({ isSelected, submitted, isCorrectChoice, isWrongSelected }) {
+  const states = [];
+  if (isSelected) states.push('selected');
+  if (submitted && isCorrectChoice) states.push('correct answer');
+  if (submitted && isWrongSelected) states.push('incorrect answer');
+  return states.join(', ');
+}
+
+function getChoiceAriaLabel({ prefix, text, stateLabel }) {
+  const label = prefix ? `${prefix}: ${text}` : text;
+  return stateLabel ? `${label}, ${stateLabel}` : label;
+}
+
+function ChoiceRadioGroup({
+  q,
+  answer,
+  onAnswer,
+  submitted,
+  prompt,
+  code = null,
+  renderOption,
+}) {
   const isCorrect = isAnswerCorrect(q, answer);
+  const groupName = `qq-${q.id || prompt.replace(/\W+/g, '-').toLowerCase()}`;
+  const promptId = `${groupName}-prompt`;
+
   return (
     <>
-      <p className="qq-text">{q.question}</p>
-      {q.code && <pre className="qq-code"><code>{q.code}</code></pre>}
-      <div className="qq-opts">
+      <p id={promptId} className="qq-text">{prompt}</p>
+      {code && <pre className="qq-code"><code>{code}</code></pre>}
+      <fieldset className="qq-opts" aria-describedby={promptId}>
+        <legend className="sr-only">{prompt}</legend>
         {q.options.map((opt, oi) => {
           let cls = 'qq-opt';
-          if (answer === oi) cls += ' picked';
+          const isSelected = answer === oi;
+          const isCorrectChoice = submitted && oi === q.correct;
+          const isWrongSelected = submitted && isSelected && !isCorrect;
+          if (isSelected) cls += ' picked';
           if (submitted && oi === q.correct) cls += ' is-correct';
-          if (submitted && answer === oi && !isCorrect) cls += ' is-wrong';
+          if (isWrongSelected) cls += ' is-wrong';
+          if (submitted) cls += ' disabled';
+          const stateLabel = getChoiceStateLabel({
+            isSelected,
+            submitted,
+            isCorrectChoice,
+            isWrongSelected,
+          });
           return (
-            <button key={oi} type="button" className={cls} onClick={() => onAnswer(oi)} disabled={submitted}>
+            <label
+              key={oi}
+              className={cls}
+            >
+              <input
+                className="qq-radio-native"
+                type="radio"
+                name={groupName}
+                value={oi}
+                checked={isSelected}
+                onChange={() => onAnswer(oi)}
+                disabled={submitted}
+                aria-label={getChoiceAriaLabel({
+                  prefix: String.fromCharCode(65 + oi),
+                  text: opt,
+                  stateLabel,
+                })}
+              />
               <span className="qq-opt-letter">{String.fromCharCode(65 + oi)}</span>
-              <span>{opt}</span>
-            </button>
+              {renderOption(opt)}
+            </label>
           );
         })}
-      </div>
+      </fieldset>
     </>
   );
 }
 
-function CodeQuestion({ q, answer, onAnswer, submitted }) {
-  const isCorrect = isAnswerCorrect(q, answer);
+function MCQuestion({ q, answer, onAnswer, submitted }) {
   return (
-    <>
-      <p className="qq-text">What does this code output?</p>
-      <pre className="qq-code"><code>{q.code}</code></pre>
-      <div className="qq-opts">
-        {q.options.map((opt, oi) => {
-          let cls = 'qq-opt';
-          if (answer === oi) cls += ' picked';
-          if (submitted && oi === q.correct) cls += ' is-correct';
-          if (submitted && answer === oi && !isCorrect) cls += ' is-wrong';
-          return (
-            <button key={oi} type="button" className={cls} onClick={() => onAnswer(oi)} disabled={submitted}>
-              <span className="qq-opt-letter">{String.fromCharCode(65 + oi)}</span>
-              <code className="qq-opt-code">{opt}</code>
-            </button>
-          );
-        })}
-      </div>
-    </>
+    <ChoiceRadioGroup
+      q={q}
+      answer={answer}
+      onAnswer={onAnswer}
+      submitted={submitted}
+      prompt={q.question}
+      code={q.code}
+      renderOption={(opt) => <span>{opt}</span>}
+    />
+  );
+}
+
+function CodeQuestion({ q, answer, onAnswer, submitted }) {
+  return (
+    <ChoiceRadioGroup
+      q={q}
+      answer={answer}
+      onAnswer={onAnswer}
+      submitted={submitted}
+      prompt="What does this code output?"
+      code={q.code}
+      renderOption={(opt) => <code className="qq-opt-code">{opt}</code>}
+    />
   );
 }
 
 function BugQuestion({ q, answer, onAnswer, submitted }) {
   const isCorrect = isAnswerCorrect(q, answer);
+  const prompt = q.question || 'Which line has the bug?';
+  const groupName = `qq-bug-${q.id || prompt.replace(/\W+/g, '-').toLowerCase()}`;
+  const promptId = `${groupName}-prompt`;
+
   return (
     <>
-      <p className="qq-text">{q.question || 'Which line has the bug?'}</p>
-      <div className="qq-bug-lines">
+      <p id={promptId} className="qq-text">{prompt}</p>
+      <fieldset className="qq-bug-lines" aria-describedby={promptId}>
+        <legend className="sr-only">{prompt}</legend>
         {q.lines.map((line, li) => {
           let cls = 'qq-bug-line';
-          if (answer === li) cls += ' picked';
+          const isSelected = answer === li;
+          const isCorrectChoice = submitted && li === q.correct;
+          const isWrongSelected = submitted && isSelected && !isCorrect;
+          if (isSelected) cls += ' picked';
           if (submitted && li === q.correct) cls += ' is-correct';
-          if (submitted && answer === li && !isCorrect) cls += ' is-wrong';
+          if (isWrongSelected) cls += ' is-wrong';
+          if (submitted) cls += ' disabled';
+          const stateLabel = getChoiceStateLabel({
+            isSelected,
+            submitted,
+            isCorrectChoice,
+            isWrongSelected,
+          });
           return (
-            <button key={li} type="button" className={cls} onClick={() => onAnswer(li)} disabled={submitted}>
+            <label
+              key={li}
+              className={cls}
+            >
+              <input
+                className="qq-radio-native"
+                type="radio"
+                name={groupName}
+                value={li}
+                checked={isSelected}
+                onChange={() => onAnswer(li)}
+                disabled={submitted}
+                aria-label={getChoiceAriaLabel({
+                  prefix: `Line ${li + 1}`,
+                  text: line,
+                  stateLabel,
+                })}
+              />
               <span className="qq-line-num">{li + 1}</span>
               <code>{line}</code>
-            </button>
+            </label>
           );
         })}
-      </div>
+      </fieldset>
     </>
   );
 }

@@ -16,8 +16,8 @@ import {
 } from './quiz/questionTypes';
 import { renderMarkdown } from '../../utils/markdown';
 
-export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey }) {
-  const session = useQuizSession({ quiz, label, quizKey });
+export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey, legacyQuizKeys = [] }) {
+  const session = useQuizSession({ quiz, label, quizKey, legacyQuizKeys });
   const {
     answers,
     submitted,
@@ -41,6 +41,9 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
           <span className="quiz-count">{total} question{total > 1 ? 's' : ''}</span>
         </div>
       </div>
+      <p className="quiz-trust-copy">
+        Quiz results save separately from lesson completion and are meant as confidence checks.
+      </p>
 
       <div className="quiz-questions">
         {quiz.questions.map((q, qi) => {
@@ -111,9 +114,10 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey })
             )}
           </div>
           <p className="quiz-next-step" role="status" aria-live="polite">
-            Next step: review the explanations below, then retry or continue to the next lesson.
+            Review the explanations, then choose: retry for practice or continue to the next lesson.
+            XP is awarded once per quiz milestone.
           </p>
-          <button type="button" className="quiz-retry" onClick={reset}>? Retry</button>
+          <button type="button" className="quiz-retry" onClick={reset}>Retry for practice</button>
         </div>
       )}
     </div>

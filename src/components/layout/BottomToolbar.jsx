@@ -1,5 +1,9 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSR } from "../../providers";
+import {
+  getLearningToolCopy,
+  isLearningToolAvailable,
+} from "../../constants/learningTools";
 
 export const BottomToolbar = memo(function BottomToolbar({
   activePanel,
@@ -11,6 +15,7 @@ export const BottomToolbar = memo(function BottomToolbar({
   onBookmarks,
   onChallenges,
   onStats,
+  hasCompletedProgress = true,
 }) {
   const { getDueSRCards, bookmarks } = useSR();
   const dueCount = getDueSRCards().length;
@@ -26,18 +31,10 @@ export const BottomToolbar = memo(function BottomToolbar({
   const primaryTools = useMemo(
     () => [
       {
-        key: "stats",
-        label: "Stats",
-        title: "Your Stats",
-        ariaLabel: "Open your stats",
-        icon: "📊",
-        onClick: onStats,
-      },
-      {
         key: "bookmarks",
-        label: "Bookmarks",
-        title: "Bookmarks",
-        ariaLabel: "Open bookmarks",
+        label: getLearningToolCopy("bookmarks").shortLabel,
+        title: getLearningToolCopy("bookmarks").bottomTitle,
+        ariaLabel: getLearningToolCopy("bookmarks").bottomAriaLabel,
         icon: "★",
         onClick: onBookmarks,
         badge: bookmarks.length > 0 ? (
@@ -45,55 +42,64 @@ export const BottomToolbar = memo(function BottomToolbar({
         ) : null,
       },
       {
-        key: "glossary",
-        label: "Glossary",
-        title: "Glossary",
-        ariaLabel: "Open glossary",
-        icon: "📖",
-        onClick: onGlossary,
-      },
-      {
-        key: "challenges",
-        label: "Challenges",
-        title: "Code challenges",
-        ariaLabel: "Open code challenges",
-        icon: "🏋️",
-        onClick: onChallenges,
+        key: "stats",
+        label: getLearningToolCopy("stats").label,
+        title: getLearningToolCopy("stats").bottomTitle,
+        ariaLabel: getLearningToolCopy("stats").bottomAriaLabel,
+        icon: "↗",
+        onClick: onStats,
       },
     ],
-    [bookmarks.length, onBookmarks, onChallenges, onGlossary, onStats],
+    [bookmarks.length, onBookmarks, onStats],
   );
 
   const secondaryTools = useMemo(
     () => [
       {
-        key: "badges",
-        label: "🏆 Badges",
-        onClick: onBadges,
-      },
-      {
         key: "sr",
-        label: "🔄 Review Queue",
+        label: getLearningToolCopy("sr").label,
         onClick: onSR,
         count: dueCount > 0 ? dueCount : null,
       },
       {
+        key: "badges",
+        label: getLearningToolCopy("badges").label,
+        onClick: onBadges,
+      },
+      {
+        key: "challenges",
+        label: getLearningToolCopy("challenges").label,
+        onClick: onChallenges,
+      },
+      {
         key: "cheatsheet",
-        label: "📋 Cheat Sheets",
+        label: getLearningToolCopy("cheatsheet").label,
         onClick: onCheatsheet,
       },
       {
+        key: "glossary",
+        label: getLearningToolCopy("glossary").label,
+        onClick: onGlossary,
+      },
+      {
         key: "projects",
-        label: "🔨 Build Projects",
+        label: getLearningToolCopy("projects").label,
         onClick: onProjects,
       },
       {
         key: "print",
-        label: "🖨️ Print / PDF",
+        label: "Print / PDF",
         onClick: () => window.print(),
       },
     ],
-    [dueCount, onBadges, onCheatsheet, onProjects, onSR],
+    [dueCount, onBadges, onChallenges, onCheatsheet, onGlossary, onProjects, onSR],
+  );
+
+  const visibleSecondaryTools = useMemo(
+    () => secondaryTools.filter((tool) =>
+      tool.key === "print" || isLearningToolAvailable(tool.key, hasCompletedProgress),
+    ),
+    [hasCompletedProgress, secondaryTools],
   );
 
   const isSecondaryPanelActive = secondaryTools.some(
@@ -134,7 +140,7 @@ export const BottomToolbar = memo(function BottomToolbar({
     <div
       className="bottom-tools"
       role="toolbar"
-      aria-label="Quick learning tools"
+      aria-label="Learning tools"
     >
       {primaryTools.map((tool) => (
         <button
@@ -157,19 +163,19 @@ export const BottomToolbar = memo(function BottomToolbar({
           ref={triggerRef}
           type="button"
           className={`tool-btn ${isMenuOpen || isSecondaryPanelActive ? "active" : ""}`}
-          title="More tools"
-          aria-label="More tools"
+          title="Learning tools"
+          aria-label="Open learning tools"
           aria-expanded={isMenuOpen}
           aria-haspopup="menu"
           onClick={() => setIsMenuOpen((open) => !open)}
-          data-label="More"
+          data-label="Tools"
         >
-          ⋯
+          +
         </button>
 
         {isMenuOpen && (
-          <div className="tool-menu" role="menu" aria-label="More tools">
-            {secondaryTools.map((tool) => (
+          <div className="tool-menu" role="menu" aria-label="Learning tools">
+            {visibleSecondaryTools.map((tool) => (
               <button
                 key={tool.key}
                 type="button"

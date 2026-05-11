@@ -93,6 +93,9 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
           </ul>
         </div>
       )}
+      <p className="cc-grader-note">
+        This grader checks specific requirements for this exercise. Passing means your code matched the expected checks.
+      </p>
 
       {/* Editor + Preview split */}
       <div className="cc-workspace">
@@ -125,9 +128,10 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
                 </button>
               )}
             </>
+
           ) : (
           <Suspense fallback={
-            <div className="cc-editor-loading">Loading editor...</div>
+            <div className="cc-editor-loading">Opening editor...</div>
           }>
             <MonacoEditor
               height="280px"
@@ -159,7 +163,10 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
             // an iframe document that's still loading the previous code.
             onLoad={handleIframeLoad}
             title="Challenge Preview"
-            sandbox="allow-scripts allow-same-origin"
+            // Intentionally exclude allow-same-origin: learner-authored
+            // code runs in an opaque-origin sandbox and grading uses a
+            // read-only postMessage snapshot bridge instead.
+            sandbox="allow-scripts"
           />
         </div>
       </div>
@@ -254,13 +261,11 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
               </div>
             ))}
           </div>
-          {/* Transparency: today's tests look at your source text, not the
-              rendered output. That's enough to guide most beginners but
-              easy to game. The preview pane is the source of truth for
-              what your code actually does — trust it over the checklist. */}
+          {/* Transparency: challenge grading is a focused checklist, not a verified mastery signal. */}
           <p className="cc-results-honest">
-            <strong>How tests work:</strong> these checks read your code, not the live preview.
-            If a test passes but the preview looks wrong, trust the preview.
+            <strong>How tests work:</strong> this grader checks specific requirements for this exercise.
+            Some checks inspect the preview DOM or computed styles; others read source patterns when interaction or viewport checks are not available.
+            Passing means your code matched the expected checks, not that the whole skill is verified.
           </p>
         </div>
       )}

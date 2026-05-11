@@ -1,9 +1,9 @@
 const has = (code, str) => code.toLowerCase().includes(str.toLowerCase());
 
-// Helper for DOM-based tests. Returns the iframe's document or null if
-// the iframe hasn't loaded yet — useChallengeSession.runTests already
-// awaits the iframe's onLoad before grading, so this should normally
-// be non-null. Falsy check returns false (test fails) to be safe.
+// Helper for DOM-based tests. Returns the preview snapshot document or
+// null if grading could not inspect the iframe. useChallengeSession
+// waits for the iframe load first, then requests a read-only snapshot
+// over postMessage so learner code stays in an opaque-origin sandbox.
 const dom = (iframe) => iframe?.contentDocument || null;
 
 export const HTML_CHALLENGES = [

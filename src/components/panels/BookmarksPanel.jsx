@@ -4,7 +4,6 @@ import { COURSES } from '../../data';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useRemoveBookmark } from '../../hooks/useToggleBookmark';
 import { findLessonByKey } from '../../utils/lessonKeys';
-import { EmptyState } from '../shared/EmptyState';
 
 function findBookmarkTarget(bookmark, courses) {
   const byKey = findLessonByKey(bookmark.lesson_key, courses);
@@ -79,11 +78,17 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
             Save lessons from the lesson header star so you can jump back in quickly.
           </p>
           {bookmarks.length === 0 ? (
-            <EmptyState
-              icon="★"
-              headline="No bookmarks yet"
-              subtext="Star a lesson from the lesson header and it will appear here for one-click return."
-            />
+            <div className="sr-empty">
+              <span className="sr-empty-icon" aria-hidden="true">★</span>
+              <p><strong>No saved lessons yet</strong></p>
+              <p className="empty-state-msg">
+                Use the Save button in a lesson header when you find a page worth returning to.
+                Saved lessons sync to your account when cloud sync is available.
+              </p>
+              <button type="button" className="empty-state-action" onClick={onClose}>
+                Back to lesson
+              </button>
+            </div>
           ) : (
             bookmarks.map((bookmark) => {
               const target = findBookmarkTarget(bookmark, sourceCourses);
