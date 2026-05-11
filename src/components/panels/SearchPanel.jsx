@@ -145,7 +145,7 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
           ? `No results for ${query}.`
           : activeIndex >= 0
             ? `${results[activeIndex].title} selected. Press Enter to open.`
-            : `${results.length} result${results.length === 1 ? '' : 's'}${allCoursesLoaded ? '' : ' — additional courses still loading.'}`;
+            : `${results.length} result${results.length === 1 ? '' : 's'}${allCoursesLoaded ? '' : '. Additional courses are still loading.'}`;
 
   return (
     <div
