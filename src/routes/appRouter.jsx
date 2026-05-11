@@ -16,9 +16,6 @@ import { Logo } from '../components/shared/Logo';
 import { APP_ROUTES, parsePublicProfilePath } from './routePaths';
 import { closeRouteOrGoHome, toPathFromLegacyHash } from './routeUtils';
 import { RouteErrorBoundary } from './RouteErrorBoundary';
-import { learnRouteAction } from './learnRouteActions';
-
-export { learnRouteAction } from './learnRouteActions';
 
 const Styleguide = lazy(() =>
   import('../components/shared/Styleguide').then((m) => ({ default: m.Styleguide })),
@@ -41,6 +38,11 @@ const ProtectedProfileRoute = lazy(() =>
 const ProtectedAdminDashboardRoute = lazy(() =>
   import('./ProtectedAppRoutes').then((m) => ({ default: m.ProtectedAdminDashboardRoute })),
 );
+
+export async function learnRouteAction(args) {
+  const module = await import('./learnRouteActions');
+  return module.learnRouteAction(args);
+}
 
 function RouteLoadingScreen({ theme, size = 'sm', children }) {
   return (

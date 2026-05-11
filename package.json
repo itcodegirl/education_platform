@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
+    "typecheck": "node scripts/typecheck.mjs",
     "lint:fix": "eslint . --fix",
     "check": "npm run check:quality && npm run test:unit",
     "check:ci": "npm run check && npm run test:integration",
