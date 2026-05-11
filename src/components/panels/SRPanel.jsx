@@ -3,6 +3,7 @@ import { useSR } from "../../providers";
 import { generatePracticeCard } from "../../services/practiceService";
 import { useFocusTrap } from "../../hooks/useFocusTrap";
 import { PROGRESS_SYNC_COPY } from "../../constants/progressCopy";
+import { getReviewLoadSummary } from "../../utils/reviewLoad";
 
 const TOPICS = [
   { id: "html", label: "HTML" },
@@ -29,6 +30,10 @@ export function SRPanel({ isOpen, onClose }) {
   const queue = Array.isArray(srCards) ? srCards : [];
   const due = typeof getDueSRCards === "function" ? getDueSRCards() || [] : [];
   const currentCard = due[currentIdx] || null;
+  const reviewLoad = getReviewLoadSummary({
+    dueCount: due.length,
+    totalCount: queue.length,
+  });
 
   const handleGenerate = async (event) => {
     event.preventDefault();
@@ -120,6 +125,19 @@ export function SRPanel({ isOpen, onClose }) {
             practice cards.
           </p>
           <p className="panel-meta">{PROGRESS_SYNC_COPY}</p>
+
+          <div className={`sr-review-load sr-review-load-${reviewLoad.tone}`}>
+            <div>
+              <span className="sr-review-load-kicker">Review rhythm</span>
+              <p className="sr-review-load-title">{reviewLoad.title}</p>
+              <p className="sr-review-load-detail">{reviewLoad.detail}</p>
+            </div>
+            {reviewLoad.scheduledLater > 0 && (
+              <span className="sr-review-load-pill">
+                {reviewLoad.scheduledLater} later
+              </span>
+            )}
+          </div>
 
           <form className="sr-generate" onSubmit={handleGenerate}>
             <div className="sr-generate-head">

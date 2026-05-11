@@ -37,6 +37,14 @@ vi.mock('../../data', () => ({
   ],
 }));
 
+vi.mock('../../data/challenges', () => ({
+  getChallengesForCourse: (courseId) => {
+    if (courseId === 'html') return [{ id: 'html-challenge-1', title: 'HTML Challenge' }];
+    if (courseId === 'css') return [{ id: 'css-challenge-1', title: 'CSS Challenge' }];
+    return [];
+  },
+}));
+
 vi.mock('../../hooks/useFocusTrap', () => ({
   useFocusTrap: () => {},
 }));
@@ -44,7 +52,7 @@ vi.mock('../../hooks/useFocusTrap', () => ({
 import { StudentStats } from './StudentStats';
 
 beforeEach(() => {
-  mockUseProgressData.mockReturnValue({ completed: [], quizScores: {} });
+  mockUseProgressData.mockReturnValue({ completed: [], quizScores: {}, challengeCompletions: [] });
   mockUseSR.mockReturnValue({ srCards: [], bookmarks: [], notes: {} });
   mockUseCourseContent.mockReturnValue({ ensureAllLoaded: vi.fn() });
 });
@@ -182,6 +190,7 @@ describe('StudentStats streak card', () => {
         'l:unknown': '0/1',
         'm:m1-bad': 'not-a-score',
       },
+      challengeCompletions: [],
     });
     mockUseXP.mockReturnValue({
       xpTotal: 80,
@@ -195,5 +204,36 @@ describe('StudentStats streak card', () => {
 
     expect(screen.getByText('Quiz avg: 75%')).toBeInTheDocument();
     expect(screen.getByText('Quiz avg: 0%')).toBeInTheDocument();
+  });
+
+  it('shows mastery evidence separately from motivational XP', () => {
+    mockUseProgressData.mockReturnValue({
+      completed: ['c:html|m:m1|l:l1'],
+      quizScores: {
+        'l:html:l1': '1/1',
+      },
+      challengeCompletions: ['html-challenge-1'],
+    });
+    mockUseSR.mockReturnValue({
+      srCards: [{ nextReview: 0 }],
+      bookmarks: [],
+      notes: {},
+    });
+    mockUseXP.mockReturnValue({
+      xpTotal: 80,
+      streak: 1,
+      pausedStreak: null,
+      dailyCount: 1,
+      earnedBadges: {},
+    });
+
+    render(<StudentStats isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText('Mastery Evidence')).toBeInTheDocument();
+    expect(screen.getByText(/Lesson completion shows exposure/i)).toBeInTheDocument();
+    expect(screen.getByText('Quiz checks at 80%+')).toBeInTheDocument();
+    expect(screen.getByText('Applied challenges')).toBeInTheDocument();
+    expect(screen.getByText('Review due now')).toBeInTheDocument();
+    expect(screen.getByText('Challenges: 1/1')).toBeInTheDocument();
   });
 });

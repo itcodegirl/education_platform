@@ -15,6 +15,7 @@ import {
   isAnswerCorrect,
 } from './quiz/questionTypes';
 import { renderMarkdown } from '../../utils/markdown';
+import { getQuizResultFeedback } from '../../utils/quizFeedback';
 
 export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey, legacyQuizKeys = [] }) {
   const session = useQuizSession({ quiz, label, quizKey, legacyQuizKeys });
@@ -31,6 +32,9 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey, l
     pct,
     wrongCount,
   } = session;
+  const resultFeedback = submitted
+    ? getQuizResultFeedback({ pct, wrongCount, total })
+    : null;
 
   return (
     <div className="quiz-container">
@@ -101,7 +105,8 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey, l
               {pct}%{pct === 100 ? ' — Perfect! 🎉' : pct >= 70 ? ' — Nice! 💪' : ' — Keep learning! 📚'}
             </div>
           </div>
-          <div className="quiz-meta">
+          <div className="quiz-result-body">
+            <div className="quiz-meta">
             {lastEarnedXp > 0 && (
               <span className={`quiz-xp-badge ${pct === 100 ? 'perfect' : ''}`}>+{lastEarnedXp} XP</span>
             )}
@@ -112,11 +117,23 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey, l
             {wrongCount > 0 && (
               <span className="quiz-sr-badge">🔄 {wrongCount} added to review</span>
             )}
-          </div>
-          <p className="quiz-next-step" role="status" aria-live="polite">
+            </div>
+            {resultFeedback && (
+              <div className="quiz-feedback-loop">
+                <p className="quiz-feedback-label">Feedback loop: {resultFeedback.label}</p>
+                <p className="quiz-feedback-meaning">{resultFeedback.meaning}</p>
+                <ul className="quiz-feedback-actions">
+                  {resultFeedback.actions.map((action) => (
+                    <li key={action}>{action}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <p className="quiz-next-step" role="status" aria-live="polite">
             Review the explanations, then choose: retry for practice or continue to the next lesson.
             XP is awarded once per quiz milestone.
-          </p>
+            </p>
+          </div>
           <button type="button" className="quiz-retry" onClick={reset}>Retry for practice</button>
         </div>
       )}
