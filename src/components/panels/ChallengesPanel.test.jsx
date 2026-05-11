@@ -95,6 +95,7 @@ describe('ChallengesPanel', () => {
     expect(screen.getByText(/Ready for practice: HTML Foundations/i)).toBeInTheDocument();
   });
 
+
   it('routes challenge completion through the learning engine', () => {
     const completeChallenge = vi.fn();
     mockUseLearning.mockReturnValue({ completeChallenge });
