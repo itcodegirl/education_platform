@@ -10,6 +10,10 @@ const PASSWORD_MIN_LENGTH = 8;
 const DISPLAY_NAME_MAX_LENGTH = 60;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+function prefersReducedMotion() {
+  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+}
+
 export function AuthPage({ onPreview }) {
   const {
     signIn,
@@ -59,11 +63,16 @@ export function AuthPage({ onPreview }) {
     // On desktop the card is already in the first viewport - scroll is a
     // no-op. On mobile it scrolls the form into view. Either way, focus
     // the primary field so keyboard users land in the right place.
-    authCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    // Defer focus until after the smooth scroll settles.
+    const reduceMotion = prefersReducedMotion();
+    authCardRef.current?.scrollIntoView({
+      behavior: reduceMotion ? 'auto' : 'smooth',
+      block: 'center',
+    });
+
+    const focusDelay = reduceMotion ? 0 : 450;
     window.setTimeout(() => {
       focusPrimaryAuthField(nextMode);
-    }, 450);
+    }, focusDelay);
   };
 
   const handleSubmit = async (e) => {

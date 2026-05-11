@@ -157,8 +157,8 @@
   font-weight: 700;
   letter-spacing: 0.03em;
 }
-.lesson-action-btn:hover { border-color: var(--purple); color: var(--purple); transform: translateY(-1px); }
-.lesson-action-btn.active { background: rgba(180,74,255,0.12); border-color: var(--purple); color: var(--purple); }
+.lesson-action-btn:hover { border-color: var(--purple); color: var(--purple-text); transform: translateY(-1px); }
+.lesson-action-btn.active { background: rgba(180,74,255,0.12); border-color: var(--purple); color: var(--purple-text); }
 .lesson-notes-btn::after { content: none; }
 .lesson-body { margin-bottom: 32px; position: relative; z-index: 1; }
 /* Cap prose at a readable measure (~72ch) so a 1920px monitor doesn't
@@ -668,10 +668,10 @@
 .sr-icon { font-size:20px; }
 .sr-body { flex:1; min-width:0; }
 .sr-title { font-size:14px; font-weight:600; }
-.sr-title mark { background:var(--pink-dim); color:var(--pink); border-radius:2px; padding:0 2px; }
+.sr-title mark { background:var(--pink-dim); color:var(--pink-text); border-radius:2px; padding:0 2px; }
 .sr-path { font-size:11px; color:var(--text-muted); margin-top:2px; font-family:'Poppins', sans-serif; }
 .sr-snippet { font-size:12px; color:var(--text-dim); margin-top:4px; line-height:1.5; }
-.sr-snippet mark { background:var(--pink-dim); color:var(--pink); }
+.sr-snippet mark { background:var(--pink-dim); color:var(--pink-text); }
 .search-trigger {
   display:flex;
   align-items:center;

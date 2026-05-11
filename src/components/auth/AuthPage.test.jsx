@@ -66,6 +66,15 @@ describe('AuthPage', () => {
       configurable: true,
       value: vi.fn(),
     });
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: vi.fn().mockReturnValue({
+        matches: false,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }),
+    });
   });
 
   it('shows inline password progress while the user types', () => {
@@ -120,6 +129,28 @@ describe('AuthPage', () => {
     expect(
       screen.getByText(/Unable to continue with GitHub right now/i),
     ).toBeInTheDocument();
+  });
+
+  it('does not smooth-scroll the auth form when reduced motion is requested', () => {
+    const scrollIntoView = vi.fn();
+    Object.defineProperty(window.HTMLElement.prototype, 'scrollIntoView', {
+      configurable: true,
+      value: scrollIntoView,
+    });
+    window.matchMedia.mockReturnValue({
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    });
+
+    render(<AuthPage onPreview={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /start learning/i }));
+
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: 'auto',
+      block: 'center',
+    });
   });
 });
 

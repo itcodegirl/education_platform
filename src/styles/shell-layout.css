@@ -913,16 +913,18 @@
   --border-bright: #b0b0c0;
   --text: #1a1a2e;
   --text-dim: #555570;
-  --text-muted: #8888a0;
-  --pink: #e0558a;
-  --pink-dim: #e0558a25;
-  --pink-glow: #e0558a15;
-  --cyan: #0d9488;
-  --cyan-dim: #0d948815;
-  --amber: #d97706;
-  --amber-dim: #d9770615;
+  --text-muted: #66667a;
+  --pink: #b4235f;
+  --pink-dim: #b4235f25;
+  --pink-glow: #b4235f15;
+  --cyan: #006a78;
+  --cyan-dim: #006a7815;
+  --amber: #9a4b00;
+  --amber-dim: #9a4b0015;
   --purple: #7c3aed;
   --purple-dim: #7c3aed15;
+  --pink-text: var(--pink);
+  --purple-text: var(--purple);
 }
 
 /* Code blocks stay dark in light mode (industry standard) */
