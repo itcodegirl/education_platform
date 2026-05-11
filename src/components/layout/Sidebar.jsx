@@ -7,31 +7,15 @@ import { useState, memo, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useProgressData, useAuth } from '../../providers';
 import { useLearnerLocalStorage } from '../../hooks/useLearnerLocalStorage';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
-import { hasQuiz } from '../../data';
 import { ProfilePopover } from './ProfilePopover';
 import { Logo } from '../shared/Logo';
-import { getCourseCompletedLessonCount, hasLessonCompletion } from '../../utils/lessonKeys';
+import { SidebarModuleList } from './SidebarModuleList';
+import { SidebarLockToggle } from './SidebarLockToggle';
+import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
 import { logNavigationDiagnostic } from '../../utils/navigationDiagnostics';
 import { getLearningToolCopy, isLearningToolAvailable } from '../../constants/learningTools';
 
 const POPUP_MENU_ITEM_SELECTOR = '[role="menuitem"]';
-
-function isLessonUnlocked(course, modules, mi, li, completedSet) {
-  if (mi === 0 && li === 0) return true;
-
-  if (li > 0) {
-    const prevLesson = modules[mi].lessons[li - 1];
-    return hasLessonCompletion(completedSet, course, modules[mi], prevLesson);
-  }
-
-  if (mi > 0) {
-    const prevMod = modules[mi - 1];
-    const lastLesson = prevMod.lessons[prevMod.lessons.length - 1];
-    return hasLessonCompletion(completedSet, course, prevMod, lastLesson);
-  }
-
-  return true;
-}
 
 
 export const Sidebar = memo(function Sidebar({
@@ -548,116 +532,22 @@ export const Sidebar = memo(function Sidebar({
 
         {/* ─── Module/Lesson Tree ─── */}
         <div className="sidebar-scroll">
-          <div className="sidebar-map-header">
-            <span className="sidebar-map-title">Modules</span>
-            <button
-              type="button"
-              className={`sidebar-roadmap-btn ${activePanel === 'roadmap' ? 'active' : ''}`}
-              onClick={() => handleToolSelect('roadmap')}
-              aria-label="Open full learning roadmap"
-              title="Full roadmap"
-            >
-              🗺️
-            </button>
-          </div>
-          {/* The outer <nav aria-label="Course navigation"> already exposes
-              this region as a landmark — this inner list doesn't need its
-              own nested <nav> (would be noisy for screen readers). */}
-          <div className="sidebar-nav">
-            {modules.map((module, mi) => {
-              const modDone = module.lessons.filter((lesson) =>
-                hasLessonCompletion(completedSet, course, module, lesson),
-              ).length;
-              const isModUnlocked = !lockMode || isLessonUnlocked(course, modules, mi, 0, completedSet);
-
-              const isExpanded = expandedMod === mi;
-
-              return (
-                <div key={module.id} className={`module-group ${mi === modIdx ? 'act' : ''} ${isExpanded ? 'expanded' : ''} ${!isModUnlocked ? 'locked' : ''}`}>
-                  <button
-                    type="button"
-                    className="module-group-btn"
-                    onClick={() => {
-                      if (!isModUnlocked) return;
-                      // Toggle expand/collapse; if collapsing the current, just collapse
-                      setExpandedMod(isExpanded ? -1 : mi);
-                    }}
-                    disabled={!isModUnlocked}
-                    aria-expanded={isExpanded}
-                    aria-label={`${module.title} module${isModUnlocked ? `, ${modDone}/${module.lessons.length} lessons completed` : ', locked until the previous module is complete'}`}
-                  >
-                    <span className="module-group-emoji" aria-hidden="true">{isModUnlocked ? module.emoji : '🔒'}</span>
-                    <div className="module-group-info">
-                      <span className="module-group-name">{module.title}</span>
-                      <span className="module-group-sub">
-                        {isModUnlocked ? `${modDone}/${module.lessons.length}` : 'Locked'}
-                      </span>
-                    </div>
-                  </button>
-
-                  {isExpanded && (
-                    <div className="lesson-list">
-                      {module.lessons.map((lesson, li) => {
-                        const isDone = hasLessonCompletion(completedSet, course, module, lesson);
-                        const unlocked = !lockMode || isLessonUnlocked(course, modules, mi, li, completedSet);
-                        const lessonState = isDone ? 'Done' : unlocked ? 'Ready' : 'Locked';
-                        return (
-                          <button
-                            key={lesson.id}
-                            type="button"
-                            className={`lesson-list-btn ${mi === modIdx && li === lesIdx && !showModQuiz ? 'act' : ''} ${isDone ? 'dn' : ''} ${!unlocked ? 'locked' : ''}`}
-                            onClick={() => handleLessonSelect(module, lesson, mi, li, unlocked)}
-                            disabled={!unlocked}
-                            aria-label={`${lesson.title} lesson, ${lessonState.toLowerCase()}${!unlocked ? ' until the previous lesson is complete' : ''}`}
-                            aria-current={mi === modIdx && li === lesIdx && !showModQuiz ? 'page' : undefined}
-                          >
-                            <span className="lesson-list-chk" aria-hidden="true">{isDone ? '✓' : unlocked ? '○' : '🔒'}</span>
-                            <span className="lesson-list-title">{lesson.title}</span>
-                            <span className="lesson-list-state">{lessonState}</span>
-                            {mi === modIdx && li === lesIdx && !showModQuiz && <span className="lesson-list-robot" aria-hidden="true">🤖</span>}
-                          </button>
-                        );
-                      })}
-                      {hasQuiz(course.id, 'm', module.id) && (
-                        <button
-                          type="button"
-                          className={`lesson-list-btn lesson-list-quiz ${showModQuiz && mi === modIdx ? 'act' : ''}`}
-                          onClick={() => onSelectModQuiz(mi)}
-                          aria-label={`Open module quiz for ${module.title}`}
-                        >
-                          <span className="lesson-list-chk" aria-hidden="true">📝</span>
-                          <span>Module Quiz</span>
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* The Tools grid was moved into the Tools popout at the
-              top of the sidebar (see .sidebar-tabs above). */}
-
-          {/* ─── Lock toggle ─── */}
-          <div className="sidebar-lock-row">
-            <label className="lock-label">
-            <input
-              type="checkbox"
-              checked={lockMode}
-              onChange={(e) => setLockMode(e.target.checked)}
-              aria-label="Toggle guided lesson order"
-            />
-            <span className="lock-copy">
-              <span className="lock-text">{lockMode ? 'Guided order on' : 'Open navigation'}</span>
-              <span className="lock-help">
-                {lockMode
-                  ? 'Lessons unlock step by step as you complete them.'
-                  : 'You can browse lessons in any order.'}
-              </span>
-            </span>
-            </label>
-          </div>
+          <SidebarModuleList
+            course={course}
+            modules={modules}
+            modIdx={modIdx}
+            lesIdx={lesIdx}
+            showModQuiz={showModQuiz}
+            completedSet={completedSet}
+            expandedMod={expandedMod}
+            onToggleExpand={setExpandedMod}
+            lockMode={lockMode}
+            onLessonSelect={handleLessonSelect}
+            onSelectModQuiz={onSelectModQuiz}
+            activePanel={activePanel}
+            onOpenRoadmap={() => handleToolSelect('roadmap')}
+          />
+          <SidebarLockToggle lockMode={lockMode} onToggle={setLockMode} />
         </div>
       </nav>
       </div>

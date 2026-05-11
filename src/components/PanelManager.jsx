@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { ErrorBoundary } from './shared/ErrorBoundary';
 import { getCourseCompletedLessonCount, hasLessonCompletion } from '../utils/lessonKeys';
+import { COURSES } from '../data';
 
 function PanelError({ retry }) {
   return (
@@ -137,6 +138,11 @@ export function PanelManager({
             course={course}
             displayName={profile?.display_name}
             lessonCount={courseTotal}
+            courses={COURSES}
+            onSelectNextCourse={(nextCourseId) => {
+              const idx = COURSES.findIndex((c) => c.id === nextCourseId);
+              if (idx !== -1) nav.switchCourse(idx);
+            }}
           />
         )}
       </Suspense>

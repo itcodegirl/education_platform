@@ -1,7 +1,6 @@
 export { AuthProvider, useAuth } from './AuthProvider';
 export {
 	ProgressProvider,
-	useProgress,
 	useProgressData,
 	useXP,
 	useSR,

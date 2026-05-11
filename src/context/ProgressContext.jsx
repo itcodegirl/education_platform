@@ -6,24 +6,10 @@
 
 import { createContext, useContext, useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useAuth } from './AuthContext';
-import {
-  buildNotesMap,
-  findExistingBookmark,
-  getSavedNote,
-  isBookmarkedLesson,
-  normalizeProgressLessonKey,
-  removeEquivalentBookmarks,
-} from './progressSavedLessonHelpers';
+import { buildNotesMap } from './progressSavedLessonHelpers';
 import { createEmptyLastPosition, mapLastPositionRow } from './lastPositionState';
-import {
-  buildSkippedRetryResult,
-  getLocalStorageSyncFailureLabel,
-  hasPendingSyncWrites,
-  shouldReplayHydratedQueue,
-} from './progressSyncState';
 import { collectRecoverableLoadWarnings } from './progressSyncWarningHelpers';
 import {
-  DAILY_GOAL,
   getActiveDailyCount,
   getActiveStreakDays,
   getLevel,
@@ -32,31 +18,19 @@ import {
   getYesterdayString,
 } from '../utils/helpers';
 import * as progressService from '../services/progressService';
-import {
-  createProgressWrite,
-  enqueueProgressWrite,
-  executeProgressWrite,
-  readProgressWriteQueue,
-  replayProgressWriteQueue,
-} from '../services/progressWriteQueue';
-import {
-  trackProgressSyncFailure,
-  trackProgressSyncQueued,
-  trackProgressSyncReplay,
-} from '../services/progressSyncTelemetry';
-import { getProgressWriteFailure } from '../services/progressWriteRuntime';
+import { createProgressWrite } from '../services/progressWriteQueue';
 import { isPerfectQuizScore, isQuizScoreValueImprovement, rewardKeys } from '../services/rewardPolicy';
-import { LOCAL_STORAGE_SYNC_ERROR_EVENT } from '../hooks/useLocalStorage';
 import { useTodayKey } from '../hooks/useTodayKey';
+import { useProgressSync } from '../hooks/useProgressSync';
+import { useReviewQueue } from '../hooks/useReviewQueue';
+import { useBookmarks } from '../hooks/useBookmarks';
+import { useNotes } from '../hooks/useNotes';
+import { useDailyActivity } from '../hooks/useDailyActivity';
+import { useLearnerRewards } from '../hooks/useLearnerRewards';
 import { findNewlyEarnedBadges } from '../services/badgeRules';
-import { nextSRCardState } from '../services/srAlgorithm';
 import {
-  normalizeRewardHistory,
-  normalizeStringList as normalizeStringSet,
   readChallengeCompletions,
   readRewardHistory,
-  writeChallengeCompletions,
-  writeRewardHistory,
 } from '../utils/learnerLocalStore';
 
 // BADGE_DEFS is imported above from '../data/badges' (the canonical
@@ -139,193 +113,6 @@ export function ProgressProvider({ children }) {
   // active-daily-count guards so they recompute when the wall
   // clock crosses midnight inside an open tab.
   const todayKey = useTodayKey();
-  // Counter for DB writes that have failed since the last successful
-  // load. The optimistic state is still the source of truth for the
-  // session — this is just so the UI can surface "your progress did
-  // not save to the cloud" instead of silently losing writes.
-  const [syncFailed, setSyncFailed] = useState(0);
-  const [pendingSyncWrites, setPendingSyncWrites] = useState(0);
-  const [syncRetryInFlight, setSyncRetryInFlight] = useState(false);
-  const pendingSyncWritesRef = useRef(0);
-  const hydratePendingQueueRef = useRef(false);
-
-  const markSyncFailed = useCallback((label = 'sync-write') => {
-    trackProgressSyncFailure({
-      label,
-      pendingCount: pendingSyncWritesRef.current,
-    });
-    setSyncFailed((count) => count + 1);
-  }, []);
-
-  const syncPendingQueueCount = useCallback((targetUserId = userId) => {
-    if (!targetUserId) {
-      pendingSyncWritesRef.current = 0;
-      setPendingSyncWrites(0);
-      return 0;
-    }
-
-    const queueCount = readProgressWriteQueue(targetUserId).length;
-    pendingSyncWritesRef.current = queueCount;
-    setPendingSyncWrites(queueCount);
-    return queueCount;
-  }, [userId]);
-
-  const enqueuePendingSyncWrite = useCallback((writeLike, label = 'sync-write') => {
-    if (!userId || !writeLike?.operation) return false;
-
-    try {
-      const queueItem = writeLike.id
-        ? writeLike
-        : createProgressWrite(writeLike.operation, writeLike.payload, { label });
-
-      const queue = enqueueProgressWrite(userId, queueItem);
-      trackProgressSyncQueued({
-        operation: queueItem.operation,
-        label: queueItem.label,
-        queueSize: queue.length,
-      });
-      hydratePendingQueueRef.current = false;
-      syncPendingQueueCount(userId);
-      return true;
-    } catch (queueErr) {
-      if (import.meta.env.DEV) {
-        console.warn(
-          `[ProgressContext] ${label} could not be added to the retry queue:`,
-          queueErr,
-        );
-      }
-      markSyncFailed(label);
-      return false;
-    }
-  }, [markSyncFailed, syncPendingQueueCount, userId]);
-
-  // Supabase write helper. Optimistic state is updated BEFORE this is
-  // called, so we catch and report failures rather than rollback.
-  // Previously this silently swallowed all errors, which made every
-  // sync failure invisible — a real correctness bug flagged in the
-  // portfolio audit. Now we:
-  //   1. console.warn in dev so the developer sees it immediately
-  //   2. bump the syncFailed counter exposed via context so the UI
-  //      can show a "sync failed, your work is still saved locally"
-  //      banner. Calling retryLoad() will reset the counter.
-  //   3. accept a human-readable label so the warning identifies
-  //      which service call failed.
-  const dbWrite = useCallback(async (write, label = 'db-write') => {
-    if (!userId) return { queued: false, skipped: true };
-
-    try {
-      const result = await executeProgressWrite(userId, write);
-      const failure = getProgressWriteFailure(result);
-      if (failure) throw failure;
-      return { queued: false, skipped: false };
-    } catch (err) {
-      if (import.meta.env.DEV) {
-        console.warn(
-          `[ProgressContext] ${label} failed — optimistic state kept:`,
-          err,
-        );
-      }
-      const queued = enqueuePendingSyncWrite(write, label);
-      return { queued, skipped: false };
-    }
-  }, [enqueuePendingSyncWrite, userId]);
-
-  const clearSyncFailed = useCallback(() => setSyncFailed(0), []);
-
-  const retryPendingSyncWrites = useCallback(async ({
-    reloadAfterSuccess = false,
-    trigger = 'manual',
-  } = {}) => {
-    if (!userId || syncRetryInFlight || !hasPendingSyncWrites(pendingSyncWritesRef.current)) {
-      return buildSkippedRetryResult({
-        userId,
-        pendingCount: pendingSyncWritesRef.current,
-        readQueue: readProgressWriteQueue,
-      });
-    }
-
-    setSyncRetryInFlight(true);
-    try {
-      const result = await replayProgressWriteQueue(userId);
-      pendingSyncWritesRef.current = result.remaining;
-      setPendingSyncWrites(result.remaining);
-      trackProgressSyncReplay({
-        trigger,
-        processed: result.processed,
-        remaining: result.remaining,
-        failedItem: result.failedItem,
-        error: result.error,
-      });
-
-      if (result.error) {
-        markSyncFailed('retryPendingSyncWrites');
-      } else if (result.remaining === 0) {
-        hydratePendingQueueRef.current = false;
-        if (reloadAfterSuccess) {
-          setLoadVersion((version) => version + 1);
-        }
-      }
-
-      return result;
-    } catch (err) {
-      if (import.meta.env.DEV) {
-        console.warn('[ProgressContext] retryPendingSyncWrites failed:', err);
-      }
-      trackProgressSyncReplay({
-        trigger,
-        processed: 0,
-        remaining: pendingSyncWritesRef.current,
-        error: err,
-      });
-      markSyncFailed('retryPendingSyncWrites');
-      return {
-        processed: 0,
-        remaining: pendingSyncWritesRef.current,
-        queue: readProgressWriteQueue(userId),
-        failedItem: null,
-        error: err,
-      };
-    } finally {
-      setSyncRetryInFlight(false);
-    }
-  }, [markSyncFailed, syncRetryInFlight, userId]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const handleLocalStorageFailure = (event) => {
-      markSyncFailed(getLocalStorageSyncFailureLabel(event.detail));
-    };
-
-    window.addEventListener(LOCAL_STORAGE_SYNC_ERROR_EVENT, handleLocalStorageFailure);
-    return () => window.removeEventListener(LOCAL_STORAGE_SYNC_ERROR_EVENT, handleLocalStorageFailure);
-  }, [markSyncFailed]);
-
-  useEffect(() => {
-    if (!userId) {
-      hydratePendingQueueRef.current = false;
-      pendingSyncWritesRef.current = 0;
-      setPendingSyncWrites(0);
-      setSyncRetryInFlight(false);
-      return;
-    }
-
-    const queueCount = syncPendingQueueCount(userId);
-    hydratePendingQueueRef.current = queueCount > 0;
-  }, [syncPendingQueueCount, userId]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !userId) return undefined;
-
-    const handleOnline = () => {
-      if (hasPendingSyncWrites(pendingSyncWritesRef.current)) {
-        retryPendingSyncWrites({ trigger: 'online' });
-      }
-    };
-
-    window.addEventListener('online', handleOnline);
-    return () => window.removeEventListener('online', handleOnline);
-  }, [retryPendingSyncWrites, userId]);
 
   // ─── State ─────────────────────────────────────
   const [completed, setCompleted] = useState([]);
@@ -334,27 +121,9 @@ export function ProgressProvider({ children }) {
   const [xpTotal, setXpTotal] = useState(0);
   const xpTotalRef = useRef(0);
   const xpWriteChainRef = useRef(Promise.resolve());
-  const [streak, setStreak] = useState(0);
-  const [streakLastDate, setStreakLastDate] = useState('');
-  const [dailyCount, setDailyCount] = useState(0);
-  const [dailyDate, setDailyDate] = useState('');
   const [earnedBadges, setEarnedBadges] = useState({});
-  const [srCards, setSrCards] = useState([]);
-  const [bookmarks, setBookmarks] = useState([]);
-  const [notes, setNotes] = useState({});
   const [coursesVisited, setCoursesVisited] = useState([]);
   const [lastPosition, setLastPosition] = useState(createEmptyLastPosition);
-  const [rewardHistory, setRewardHistory] = useState([]);
-  const rewardHistoryRef = useRef(new Set());
-  const [challengeCompletions, setChallengeCompletions] = useState([]);
-  const challengeCompletionsRef = useRef(new Set());
-  const streakStateRef = useRef({ days: 0, lastDate: '' });
-  // Same ref-mirroring pattern as streakStateRef. Two recordDailyActivity
-  // calls in the same React batch would otherwise both read the stale
-  // closure-captured dailyCount/dailyDate and lose an increment. The ref
-  // updates synchronously so the second call sees the first call's
-  // value.
-  const dailyStateRef = useRef({ count: 0, date: '' });
   // XP popups are queued so back-to-back awards each get their full
   // dismissal animation. Without this, a perfect-quiz flow that awards
   // +30 XP (base) then +50 XP (perfect bonus) in the same tick would
@@ -375,62 +144,93 @@ export function ProgressProvider({ children }) {
   const [loadWarnings, setLoadWarnings] = useState([]);
   const clearLoadWarnings = useCallback(() => setLoadWarnings([]), [setLoadWarnings]);
 
-  useEffect(() => {
-    const isOnline = typeof navigator === 'undefined' || navigator.onLine;
-    const shouldReplay = shouldReplayHydratedQueue({
-      userId,
-      dataLoaded,
-      loadError,
-      hydratePendingQueue: hydratePendingQueueRef.current,
-      pendingSyncWrites,
-      isOnline,
-    });
+  // Cloud-write retry surface lives in useProgressSync — pendingSyncWrites,
+  // syncFailed, dbWrite, queue replay, online-listener, etc. The hook
+  // also owns the session-replay-on-load lifecycle; we hand it a
+  // callback so a successful retry can bump the data-loader version
+  // and re-hydrate canonical state.
+  const handleReloadAfterRetry = useCallback(() => {
+    setLoadVersion((version) => version + 1);
+  }, []);
 
-    if (!shouldReplay) return;
-
-    hydratePendingQueueRef.current = false;
-    retryPendingSyncWrites({ reloadAfterSuccess: true, trigger: 'session-replay' });
-  }, [
+  const {
+    syncFailed,
+    pendingSyncWrites,
+    syncRetryInFlight,
+    markSyncFailed,
+    clearSyncFailed,
+    enqueuePendingSyncWrite,
+    dbWrite,
+    retryPendingSyncWrites,
+    setSyncFailed,
+  } = useProgressSync({
+    userId,
     dataLoaded,
     loadError,
-    pendingSyncWrites,
-    retryPendingSyncWrites,
-    userId,
-  ]);
+    onReloadAfterRetry: handleReloadAfterRetry,
+  });
 
-  const replaceRewardHistory = useCallback((userId, keys, { persist = false } = {}) => {
-    const normalizedKeys = normalizeRewardHistory(keys);
-    rewardHistoryRef.current = new Set(normalizedKeys);
-    setRewardHistory(normalizedKeys);
+  // Spaced-repetition card state lives in useReviewQueue — addToSRQueue,
+  // updateSRCard, getDueSRCards, replaceCards (hydration setter for the
+  // data load), resetCards (sign-out reset).
+  const {
+    srCards,
+    addToSRQueue,
+    updateSRCard,
+    getDueSRCards,
+    replaceCards: replaceSRCards,
+    resetCards: resetSRCards,
+  } = useReviewQueue({ user, dbWrite, createProgressWrite });
 
-    if (persist) {
-      try {
-        writeRewardHistory(userId, normalizedKeys);
-      } catch (err) {
-        if (import.meta.env.DEV) {
-          console.warn('[ProgressContext] reward history write failed:', err);
-        }
-        markSyncFailed('reward-history-local');
-      }
-    }
-  }, [markSyncFailed]);
+  // Bookmarks + notes have the same shape as SR cards: state +
+  // ref-mirror + dbWrite via per-resource serialization. Each hook
+  // exposes a replace<X> hydration setter that the data-load effect
+  // calls once on hydration, and a reset<X> setter for sign-out.
+  const {
+    bookmarks,
+    toggleBookmark,
+    isBookmarked,
+    replaceBookmarks,
+    resetBookmarks,
+  } = useBookmarks({ user, dbWrite, createProgressWrite });
 
-  const replaceChallengeCompletions = useCallback((userId, challengeIds, { persist = false } = {}) => {
-    const normalizedChallengeIds = normalizeStringSet(challengeIds);
-    challengeCompletionsRef.current = new Set(normalizedChallengeIds);
-    setChallengeCompletions(normalizedChallengeIds);
+  const {
+    notes,
+    saveNote,
+    getNote,
+    replaceNotes,
+    resetNotes,
+  } = useNotes({ user, dbWrite, createProgressWrite });
 
-    if (persist) {
-      try {
-        writeChallengeCompletions(userId, normalizedChallengeIds);
-      } catch (err) {
-        if (import.meta.env.DEV) {
-          console.warn('[ProgressContext] challenge completion write failed:', err);
-        }
-        markSyncFailed('challenge-completions-local');
-      }
-    }
-  }, [markSyncFailed]);
+  // Streak + daily-goal state lives in useDailyActivity. The provider
+  // still owns the wall-clock guards (active vs paused streak) below
+  // because they depend on todayKey and only matter at render time.
+  const {
+    streak,
+    streakLastDate,
+    dailyCount,
+    dailyDate,
+    recordDailyActivity,
+    replaceStreak,
+    replaceDailyGoal,
+    resetStreakAndDaily,
+  } = useDailyActivity({ user, dbWrite, createProgressWrite });
+
+  // Reward dedup + challenge-completion dedup live in their own
+  // hook. Both are localStorage-backed today and route their write
+  // failures through markSyncFailed so the UI banner counts them
+  // alongside cloud-write failures.
+  const {
+    rewardHistory,
+    hasRewardBeenAwarded,
+    markRewardAwarded,
+    challengeCompletions,
+    isChallengeCompleted,
+    markChallengeCompleted,
+    replaceRewardHistory,
+    replaceChallengeCompletions,
+    resetLearnerRewards,
+  } = useLearnerRewards({ user, markSyncFailed });
 
   const resetUserState = useCallback(() => {
     setCompleted([]);
@@ -439,25 +239,23 @@ export function ProgressProvider({ children }) {
     xpTotalRef.current = 0;
     xpWriteChainRef.current = Promise.resolve();
     setXpTotal(0);
-    setStreak(0);
-    setStreakLastDate('');
-    streakStateRef.current = { days: 0, lastDate: '' };
-    setDailyCount(0);
-    setDailyDate('');
-    dailyStateRef.current = { count: 0, date: '' };
+    resetStreakAndDaily();
     setEarnedBadges({});
-    setSrCards([]);
-    setBookmarks([]);
-    setNotes({});
+    resetSRCards();
+    resetBookmarks();
+    resetNotes();
     setCoursesVisited([]);
     setLastPosition(createEmptyLastPosition());
-    rewardHistoryRef.current = new Set();
-    setRewardHistory([]);
-    challengeCompletionsRef.current = new Set();
-    setChallengeCompletions([]);
+    resetLearnerRewards();
     setXpPopupQueue([]);
     setNewBadgeQueue([]);
-  }, []);
+  }, [
+    resetSRCards,
+    resetBookmarks,
+    resetNotes,
+    resetStreakAndDaily,
+    resetLearnerRewards,
+  ]);
 
   // ─── Load all data from Supabase on login ──────
   useEffect(() => {
@@ -536,40 +334,27 @@ export function ProgressProvider({ children }) {
 
       const sd = streak;
       if (sd) {
-        const loadedStreak = sd.days || 0;
-        const loadedLastDate = sd.last_date || '';
-        setStreak(loadedStreak);
-        setStreakLastDate(loadedLastDate);
-        streakStateRef.current = { days: loadedStreak, lastDate: loadedLastDate };
+        replaceStreak(sd.days || 0, sd.last_date || '');
       } else {
-        // No streak row exists for this user yet. Reset both the
-        // ref AND the React state so a previous load's streak
-        // can't leak into the topbar pill on a retry. The daily
-        // branch below already does this; the streak branch was
-        // missing the React state half.
-        setStreak(0);
-        setStreakLastDate('');
-        streakStateRef.current = { days: 0, lastDate: '' };
+        // No streak row exists for this user yet. replaceStreak
+        // resets both the React state and the ref so a previous
+        // load's streak cannot leak into the topbar pill.
+        replaceStreak(0, '');
       }
 
       const dd = daily;
       const today = getTodayString();
       if (dd && dd.goal_date === today) {
-        const loadedCount = dd.count || 0;
-        setDailyCount(loadedCount);
-        setDailyDate(today);
-        dailyStateRef.current = { count: loadedCount, date: today };
+        replaceDailyGoal(dd.count || 0, today);
       } else {
-        setDailyCount(0);
-        setDailyDate(today);
-        dailyStateRef.current = { count: 0, date: today };
+        replaceDailyGoal(0, today);
       }
 
       const loadedBadges = {};
       badgeRows.forEach(r => { loadedBadges[r.badge_id] = { date: r.earned_at?.slice(0, 10) }; });
       setEarnedBadges(loadedBadges);
 
-      setSrCards(sr.map(r => ({
+      replaceSRCards(sr.map(r => ({
         question: r.question,
         code: r.code,
         options: r.options,
@@ -582,9 +367,9 @@ export function ProgressProvider({ children }) {
         ease: r.ease,
       })));
 
-      setBookmarks(bookmarkRows);
+      replaceBookmarks(bookmarkRows);
 
-      setNotes(buildNotesMap(noteRows));
+      replaceNotes(buildNotesMap(noteRows));
 
       setCoursesVisited(visited.map(r => r.course_id));
 
@@ -604,7 +389,18 @@ export function ProgressProvider({ children }) {
     return () => {
       cancelled = true;
     };
-  }, [user, loadVersion, resetUserState, replaceRewardHistory, replaceChallengeCompletions]);
+  }, [
+    user,
+    loadVersion,
+    resetUserState,
+    replaceRewardHistory,
+    replaceChallengeCompletions,
+    replaceSRCards,
+    replaceBookmarks,
+    replaceNotes,
+    replaceStreak,
+    replaceDailyGoal,
+  ]);
 
   // ─── Progress ─────────────────────────────────
   const completedSet = useMemo(() => new Set(completed), [completed]);
@@ -615,11 +411,20 @@ export function ProgressProvider({ children }) {
     if (!normalizedLessonKey) return;
     const skipRemote = Boolean(options?.skipRemote);
     const has = completedSet.has(normalizedLessonKey);
+    // Serialize concurrent toggles for the SAME lesson so an
+    // addLesson → removeLesson → addLesson sequence lands in the
+    // submitted order on the server. Toggles for different lessons
+    // still run in parallel.
+    const resourceKey = `lesson:${normalizedLessonKey}`;
 
     if (has) {
       setCompleted(prev => prev.filter(k => k !== normalizedLessonKey));
       if (!skipRemote) {
-        dbWrite(createProgressWrite('removeLesson', { lessonKey: normalizedLessonKey }), 'removeLesson');
+        dbWrite(
+          createProgressWrite('removeLesson', { lessonKey: normalizedLessonKey }),
+          'removeLesson',
+          { resourceKey },
+        );
       }
     } else {
       setCompleted(prev => {
@@ -627,7 +432,11 @@ export function ProgressProvider({ children }) {
         return [...prev, normalizedLessonKey];
       });
       if (!skipRemote) {
-        dbWrite(createProgressWrite('addLesson', { lessonKey: normalizedLessonKey }), 'addLesson');
+        dbWrite(
+          createProgressWrite('addLesson', { lessonKey: normalizedLessonKey }),
+          'addLesson',
+          { resourceKey },
+        );
       }
     }
   }, [user, completedSet, dbWrite]);
@@ -648,6 +457,7 @@ export function ProgressProvider({ children }) {
     dbWrite(
       createProgressWrite('saveQuizScore', { quizKey: normalizedQuizKey, score }),
       'saveQuizScore',
+      { resourceKey: `quiz:${normalizedQuizKey}` },
     );
   }, [user, dbWrite]);
 
@@ -686,127 +496,59 @@ export function ProgressProvider({ children }) {
     setXpPopupQueue((queue) => (queue.length > 0 ? queue.slice(1) : queue));
   }, []);
 
-  const hasRewardBeenAwarded = useCallback((rewardKey) => {
-    return rewardHistoryRef.current.has(rewardKey);
-  }, []);
+  // Reward dedup + challenge completion are owned by useLearnerRewards above.
 
-  const markRewardAwarded = useCallback((rewardKey) => {
-    if (!user || typeof rewardKey !== 'string' || !rewardKey.trim()) return false;
-    const normalizedRewardKey = rewardKey.trim();
-
-    if (rewardHistoryRef.current.has(normalizedRewardKey)) return false;
-
-    const nextKeys = [...rewardHistoryRef.current, normalizedRewardKey];
-    rewardHistoryRef.current = new Set(nextKeys);
-    setRewardHistory(nextKeys);
-
-    try {
-      writeRewardHistory(user.id, nextKeys);
-    } catch (err) {
-      if (import.meta.env.DEV) {
-        console.warn('[ProgressContext] reward history write failed:', err);
-      }
-      markSyncFailed('reward-history-local');
-    }
-
-    return true;
-  }, [markSyncFailed, user]);
-
-  const isChallengeCompleted = useCallback((challengeId) => {
-    if (typeof challengeId !== 'string' || !challengeId.trim()) return false;
-    return challengeCompletionsRef.current.has(challengeId.trim());
-  }, []);
-
-  const markChallengeCompleted = useCallback((challengeId) => {
-    if (!user || typeof challengeId !== 'string' || !challengeId.trim()) return false;
-    const normalizedChallengeId = challengeId.trim();
-
-    if (challengeCompletionsRef.current.has(normalizedChallengeId)) return false;
-
-    const nextChallengeIds = [...challengeCompletionsRef.current, normalizedChallengeId];
-    challengeCompletionsRef.current = new Set(nextChallengeIds);
-    setChallengeCompletions(nextChallengeIds);
-
-    try {
-      writeChallengeCompletions(user.id, nextChallengeIds);
-    } catch (err) {
-      if (import.meta.env.DEV) {
-        console.warn('[ProgressContext] challenge completion write failed:', err);
-      }
-      markSyncFailed('challenge-completions-local');
-    }
-
-    return true;
-  }, [markSyncFailed, user]);
-
-  // ─── Daily Goal ───────────────────────────────
-  const recordDailyActivity = useCallback(async () => {
-    if (!user) return;
-    const today = getTodayString();
-    const yesterday = getYesterdayString();
-    // Read prior daily state from the ref, not the React closure, so two
-    // calls in the same React batch don't both see the stale "before
-    // either ran" value and lose an increment.
-    const dailyState = dailyStateRef.current;
-    const currentCount = dailyState.date === today ? dailyState.count : 0;
-    const newCount = Math.min(currentCount + 1, DAILY_GOAL);
-    const streakState = streakStateRef.current;
-
-    if (streakState.lastDate !== today) {
-      const nextStreakDays = streakState.lastDate === yesterday ? streakState.days + 1 : 1;
-      streakStateRef.current = { days: nextStreakDays, lastDate: today };
-      setStreak(nextStreakDays);
-      setStreakLastDate(today);
-      dbWrite(
-        createProgressWrite('updateStreak', {
-          days: nextStreakDays,
-          lastDate: today,
-        }),
-        'updateStreak',
-      );
-    }
-
-    dailyStateRef.current = { count: newCount, date: today };
-    setDailyCount(newCount);
-    setDailyDate(today);
-
-    dbWrite(
-      createProgressWrite('updateDailyGoal', {
-        goalDate: today,
-        count: newCount,
-      }),
-      'updateDailyGoal',
-    );
-  }, [user, dbWrite]);
+  // Streak + daily-goal increment is owned by useDailyActivity above.
 
   // ─── Badges ───────────────────────────────────
   // The pure rules (which conditions earn which badge) live in
   // services/badgeRules.js. This callback's only job is to build a
   // context snapshot from current state, ask findNewlyEarnedBadges
   // what's freshly earned, and then persist + celebrate it.
+  //
+  // Primitives are derived once per state change so the callback +
+  // effect deps never touch unstable object identities (quizScores,
+  // notes, bookmarks, earnedBadges). Without this guard, a single
+  // note save creates a new `notes` object → effect refires →
+  // checkBadges reruns even when no badge-relevant input moved.
+  const completedCount = completed.length;
+  const quizCount = useMemo(() => Object.keys(quizScores).length, [quizScores]);
+  const hasPerfectQuiz = useMemo(
+    () => Object.values(quizScores).some((v) => {
+      const [a, b] = typeof v === 'string' ? v.split('/') : [];
+      return a === b && parseInt(a, 10) > 0;
+    }),
+    [quizScores],
+  );
+  const coursesVisitedCount = coursesVisited.length;
+  const bookmarkCount = bookmarks.length;
+  const noteCount = useMemo(() => Object.keys(notes).length, [notes]);
+  const earnedBadgesRef = useRef(earnedBadges);
+  useEffect(() => {
+    earnedBadgesRef.current = earnedBadges;
+  }, [earnedBadges]);
+
   const checkBadges = useCallback(async () => {
     if (!user) return;
 
     const ctx = {
-      completedCount: completed.length,
-      quizCount: Object.keys(quizScores).length,
-      hasPerfect: Object.values(quizScores).some((v) => {
-        const [a, b] = v.split('/');
-        return a === b && parseInt(a) > 0;
-      }),
+      completedCount,
+      quizCount,
+      hasPerfect: hasPerfectQuiz,
       xpTotal,
       streak,
-      coursesVisitedCount: coursesVisited.length,
+      coursesVisitedCount,
       dailyCount: dailyDate === getTodayString() ? dailyCount : 0,
       hour: new Date().getHours(),
-      bookmarkCount: bookmarks.length,
-      noteCount: Object.keys(notes).length,
+      bookmarkCount,
+      noteCount,
     };
 
-    const newlyEarned = findNewlyEarnedBadges(ctx, earnedBadges);
+    const currentEarnedBadges = earnedBadgesRef.current;
+    const newlyEarned = findNewlyEarnedBadges(ctx, currentEarnedBadges);
     if (newlyEarned.length === 0) return;
 
-    const updated = { ...earnedBadges };
+    const updated = { ...currentEarnedBadges };
     const today = getTodayString();
     for (const badge of newlyEarned) {
       updated[badge.id] = { date: today };
@@ -820,127 +562,41 @@ export function ProgressProvider({ children }) {
     // Enqueue every newly earned badge so each one gets its own
     // celebration in turn, instead of all but the first being lost.
     setNewBadgeQueue((queue) => [...queue, ...newlyEarned]);
-  }, [user, completed, quizScores, xpTotal, streak, coursesVisited, dailyCount, dailyDate, earnedBadges, bookmarks, notes, dbWrite]);
+  }, [
+    user,
+    completedCount,
+    quizCount,
+    hasPerfectQuiz,
+    xpTotal,
+    streak,
+    coursesVisitedCount,
+    dailyCount,
+    dailyDate,
+    bookmarkCount,
+    noteCount,
+    dbWrite,
+  ]);
 
   useEffect(() => {
     if (dataLoaded) checkBadges();
-  }, [dataLoaded, checkBadges, completed.length, quizScores, xpTotal, dailyCount, bookmarks.length, notes]);
+  }, [dataLoaded, checkBadges]);
 
   const clearNewBadge = useCallback(() => {
     setNewBadgeQueue((queue) => (queue.length > 0 ? queue.slice(1) : queue));
   }, []);
 
-  // ─── Spaced Repetition ────────────────────────
-  const addToSRQueue = useCallback(async (cards) => {
-    if (!user) return;
-    const existing = new Set(srCards.map(c => c.question));
-    const newCards = cards.filter(c => !existing.has(c.question));
-
-    setSrCards(prev => [...prev, ...newCards]);
-
-    for (const card of newCards) {
-      dbWrite(createProgressWrite('addSRCard', { card }), 'addSRCard');
-    }
-  }, [user, srCards, dbWrite]);
-
-  const updateSRCard = useCallback(async (question, correct) => {
-    if (!user) return;
-
-    const currentCard = srCards.find((c) => c.question === question);
-    if (!currentCard) return;
-
-    // The SM-2-style scheduling math lives in services/srAlgorithm so
-    // it's unit-testable in isolation. This callback only does state +
-    // persistence.
-    const { interval, ease, nextReview } = nextSRCardState({ card: currentCard, correct });
-    const updatedCard = { ...currentCard, interval, ease, nextReview };
-
-    setSrCards((prev) => prev.map((card) => (card.question === question ? updatedCard : card)));
-
-    dbWrite(
-      createProgressWrite('updateSRCard', {
-        question,
-        updates: {
-          next_review: new Date(updatedCard.nextReview).toISOString(),
-          interval_days: updatedCard.interval,
-          ease: updatedCard.ease,
-        },
-      }),
-      'updateSRCard',
-    );
-  }, [user, srCards, dbWrite]);
-
-  const getDueSRCards = useCallback(() => {
-    return srCards.filter(c => c.nextReview <= Date.now());
-  }, [srCards]);
-
-  // ─── Bookmarks (NEW) ─────────────────────────
-  const toggleBookmark = useCallback(async (lessonKey, courseId, lessonTitle, options = {}) => {
-    if (!user) return;
-    const skipRemote = Boolean(options?.skipRemote);
-    const normalizedLessonKey = normalizeProgressLessonKey(lessonKey);
-    const existing = findExistingBookmark(bookmarks, normalizedLessonKey);
-
-    if (existing) {
-      setBookmarks((prev) => removeEquivalentBookmarks(prev, normalizedLessonKey));
-      if (!skipRemote) {
-        const removalKeys = new Set([existing.lesson_key, normalizedLessonKey]);
-        removalKeys.forEach((key) => {
-          dbWrite(createProgressWrite('removeBookmark', { lessonKey: key }), 'removeBookmark');
-        });
-      }
-    } else {
-      const newBookmark = {
-        lesson_key: normalizedLessonKey,
-        course_id: courseId,
-        lesson_title: lessonTitle,
-        created_at: new Date().toISOString(),
-      };
-      setBookmarks(prev => [...prev, newBookmark]);
-      if (!skipRemote) {
-        dbWrite(
-          createProgressWrite('addBookmark', {
-            bookmark: {
-              lessonKey: normalizedLessonKey,
-              courseId,
-              lessonTitle,
-            },
-          }),
-          'addBookmark',
-        );
-      }
-    }
-  }, [user, bookmarks, dbWrite]);
-
-  const isBookmarked = useCallback((lessonKey) => {
-    const normalizedLessonKey = normalizeProgressLessonKey(lessonKey);
-    return isBookmarkedLesson(bookmarks, normalizedLessonKey);
-  }, [bookmarks]);
-
-  // ─── Notes (NEW) ─────────────────────────────
-  const saveNote = useCallback(async (lessonKey, content) => {
-    if (!user) return;
-    const normalizedLessonKey = normalizeProgressLessonKey(lessonKey);
-    setNotes(prev => ({ ...prev, [normalizedLessonKey]: content }));
-    dbWrite(
-      createProgressWrite('saveNote', {
-        lessonKey: normalizedLessonKey,
-        content,
-      }),
-      'saveNote',
-    );
-  }, [user, dbWrite]);
-
-  const getNote = useCallback((lessonKey) => {
-    const normalizedLessonKey = normalizeProgressLessonKey(lessonKey);
-    return getSavedNote(notes, lessonKey, normalizedLessonKey);
-  }, [notes]);
-
   // ─── Position ─────────────────────────────────
   const savePosition = useCallback(async (pos) => {
     if (!user) return;
     setLastPosition(prev => ({ ...prev, ...pos, time: Date.now() }));
-    dbWrite(createProgressWrite('savePosition', { position: pos }), 'savePosition');
+    // Position is single-row per learner; serializing means a faster
+    // navigation never overwrites a slower one with stale "previous"
+    // coordinates.
+    dbWrite(
+      createProgressWrite('savePosition', { position: pos }),
+      'savePosition',
+      { resourceKey: 'last-position' },
+    );
   }, [user, dbWrite]);
 
   // ─── Courses Visited ──────────────────────────
@@ -959,7 +615,7 @@ export function ProgressProvider({ children }) {
     // so any stale "sync failed" counter is irrelevant after this.
     setSyncFailed(0);
     setLoadVersion((version) => version + 1);
-  }, [setLoadWarnings]);
+  }, [setLoadWarnings, setSyncFailed]);
 
   const progressValue = useMemo(() => ({
     completed,
@@ -1118,18 +774,4 @@ export function useXP() {
 
 export function useSR() {
   return useContext(SRContext);
-}
-
-/**
- * @deprecated Aggregate hook kept as a migration alias for callers that
- *   pre-date the three-context split. New code should import the
- *   narrower `useProgressData`, `useXP`, or `useSR` hook so a streak
- *   tick doesn't re-render a screen that only reads completion data.
- *   See docs/progress-context-decomposition-plan.md for the migration plan.
- */
-export function useProgress() {
-  const progress = useProgressData();
-  const xp = useXP();
-  const sr = useSR();
-  return useMemo(() => ({ ...progress, ...xp, ...sr }), [progress, xp, sr]);
 }

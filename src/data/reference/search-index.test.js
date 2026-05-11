@@ -11,9 +11,11 @@ describe('buildSearchIndexFromCourses', () => {
           icon: 'H',
           modules: [
             {
+              id: 'forms',
               title: 'Accessible Forms',
               lessons: [
                 {
+                  id: 'labels-status',
                   title: 'Labels and status messages',
                   hook: {
                     accomplishment: 'Wire up an aria live confirmation',
@@ -56,6 +58,54 @@ describe('buildSearchIndexFromCourses', () => {
     expect(keywords).toContain('render a status region');
     expect(keywords).toContain('quiz explanation');
     expect(keywords).toContain('form control');
+  });
+
+  it('indexes related quiz explanations for lesson search', () => {
+    const index = buildSearchIndexFromCourses(
+      [
+        {
+          id: 'js',
+          label: 'JavaScript',
+          icon: 'J',
+          modules: [
+            {
+              id: 'async',
+              title: 'Async JavaScript',
+              lessons: [
+                {
+                  id: 'fetch-errors',
+                  title: 'Fetch errors',
+                  summary: { capabilities: ['Handle failed requests calmly'] },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      [],
+      {
+        getQuizVariants: (courseId, type, entityId) => {
+          if (courseId === 'js' && type === 'l' && entityId === 'fetch-errors') {
+            return {
+              primary: {
+                questions: [
+                  {
+                    question: 'What should a catch block do?',
+                    explanation: 'A retry message should be specific and recoverable.',
+                  },
+                ],
+              },
+              bonus: [],
+            };
+          }
+
+          return null;
+        },
+      },
+    );
+
+    expect(index).toHaveLength(1);
+    expect(index[0].keywords).toContain('retry message should be specific and recoverable');
   });
 });
 
