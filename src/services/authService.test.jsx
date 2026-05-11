@@ -10,6 +10,7 @@ const {
       getSession: vi.fn(),
       onAuthStateChange: vi.fn(),
     },
+    from: vi.fn(),
   },
   supabaseConfigStatus: { configured: true },
 }));
@@ -18,7 +19,7 @@ vi.mock('../lib/lazySupabaseClient', () => ({
   getLazySupabaseClient: mockGetLazySupabaseClient,
 }));
 
-import { getInitialSession, onAuthStateChange } from './authService';
+import { getInitialSession, loadProfile, onAuthStateChange } from './authService';
 
 describe('authService', () => {
   beforeEach(() => {
@@ -26,6 +27,7 @@ describe('authService', () => {
     mockGetLazySupabaseClient.mockReturnValue(mockSupabase);
     mockSupabase.auth.getSession.mockReset();
     mockSupabase.auth.onAuthStateChange.mockReset();
+    mockSupabase.from.mockReset();
   });
 
   it('restores the existing Supabase session user', async () => {
@@ -96,5 +98,28 @@ describe('authService', () => {
 
     subscription.unsubscribe();
     expect(realSubscription.unsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it('loads the current user profile', async () => {
+    const profile = { display_name: 'Jenna', is_admin: false, is_disabled: false };
+    const maybeSingle = vi.fn().mockResolvedValue({ data: profile, error: null });
+    const eq = vi.fn(() => ({ maybeSingle }));
+    const select = vi.fn(() => ({ eq }));
+    mockSupabase.from.mockReturnValue({ select });
+
+    await expect(loadProfile('user-1')).resolves.toBe(profile);
+
+    expect(mockSupabase.from).toHaveBeenCalledWith('profiles');
+    expect(select).toHaveBeenCalledWith('display_name, avatar_url, is_admin, is_disabled');
+    expect(eq).toHaveBeenCalledWith('id', 'user-1');
+  });
+
+  it('fails closed when the profile row is missing', async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
+    const eq = vi.fn(() => ({ maybeSingle }));
+    const select = vi.fn(() => ({ eq }));
+    mockSupabase.from.mockReturnValue({ select });
+
+    await expect(loadProfile('user-1')).rejects.toThrow('Profile record not found.');
   });
 });

@@ -15,6 +15,7 @@ describe('netlify function security static checks', () => {
 
     expect(shared).toMatch(/export async function verifyActiveUser/i);
     expect(shared).toMatch(/select:\s*'is_disabled'/i);
+    expect(shared).toMatch(/rows\.length\s*!==\s*1[\s\S]*return true/i);
     expect(shared).toMatch(/return disabled \? null : user/i);
 
     [ai, practice, analyticsIngest, analyticsSnapshots].forEach((source) => {
