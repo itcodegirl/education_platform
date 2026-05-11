@@ -1,21 +1,28 @@
 import { useMemo, useRef, useState } from 'react';
 import { getChallengesForCourse } from '../../data/challenges';
+import { COURSES } from '../../data';
 import { CodeChallenge } from '../learning/CodeChallenge';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useProgressData } from '../../providers';
 import { useLearning } from '../../hooks/useLearning';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
-import { getChallengePracticePlan } from '../../utils/challengeProgress';
+import { getChallengeProgressionPlan } from '../../utils/challengeProgression';
 
 export function ChallengesPanel({ courseId, lang, onClose }) {
   const challenges = getChallengesForCourse(courseId);
   const [activeChallenge, setActiveChallenge] = useState(null);
-  const { challengeCompletions = [] } = useProgressData();
+  const { challengeCompletions = [], completedSet = new Set() } = useProgressData();
   const learn = useLearning();
   const completed = useMemo(() => new Set(challengeCompletions), [challengeCompletions]);
+  const course = COURSES.find((entry) => entry.id === courseId);
   const challengePlan = useMemo(
-    () => getChallengePracticePlan(challenges, completed),
-    [challenges, completed],
+    () => getChallengeProgressionPlan({
+      course,
+      challenges,
+      completedSet,
+      completedChallengeIds: challengeCompletions,
+    }),
+    [challengeCompletions, challenges, completedSet, course],
   );
   const modalRef = useRef(null);
 
@@ -126,36 +133,29 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
             </div>
           ) : (
             <>
-              <div className={`challenge-recommendation ${challengePlan.recommendedChallenge ? '' : 'is-complete'}`}>
-                <div className="challenge-recommendation-copy">
-                  <p className="challenge-recommendation-kicker">
-                    {challengePlan.recommendedChallenge ? 'Recommended next challenge' : 'Challenge practice complete'}
-                  </p>
-                  <h3 className="challenge-recommendation-title">
-                    {challengePlan.recommendedChallenge?.title || 'All available challenges completed'}
-                  </h3>
-                  <p className="challenge-recommendation-reason">{challengePlan.reason}</p>
-                  <div className="challenge-recommendation-meta">
-                    <span>{challengePlan.progressLabel}</span>
-                    {challengePlan.recommendedChallenge && (
-                      <>
-                        <span>{challengePlan.recommendedChallenge.difficulty}</span>
-                        <span>{challengePlan.recommendedChallenge.tests?.length || 0} tests</span>
-                      </>
-                    )}
+              {challengePlan.recommended && (
+                <div className="challenge-path-card">
+                  <div>
+                    <p className="challenge-path-kicker">Practice match</p>
+                    <h3 className="challenge-path-title">{challengePlan.recommended.title}</h3>
+                    <p className="challenge-path-copy">
+                      {challengePlan.recommended.readinessLabel}. Best connected to{' '}
+                      <strong>{challengePlan.recommended.targetModuleTitle}</strong>.
+                    </p>
+                    <p className="challenge-path-meta">
+                      {challengePlan.completedCount}/{challengePlan.totalCount} challenges complete
+                    </p>
                   </div>
-                </div>
-                {challengePlan.recommendedChallenge && (
                   <button
                     type="button"
-                    className="challenge-recommendation-cta"
-                    onClick={() => setActiveChallenge(challengePlan.recommendedChallenge)}
-                    aria-label={`Start recommended challenge: ${challengePlan.recommendedChallenge.title}`}
+                    className="challenge-path-cta"
+                    onClick={() => setActiveChallenge(challengePlan.recommended)}
+                    aria-label={`Start recommended challenge: ${challengePlan.recommended.title}`}
                   >
                     Start recommended
                   </button>
-                )}
-              </div>
+                </div>
+              )}
               {completed.size === 0 && (
                 <div className="challenges-empty challenges-empty-compact">
                   <p><strong>No completed challenges yet.</strong></p>
@@ -165,7 +165,7 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
                 </div>
               )}
               <div className="challenges-list">
-                {challenges.map((challenge) => (
+                {challengePlan.challenges.map((challenge) => (
                   <button
                     type="button"
                     key={challenge.id}
@@ -182,6 +182,9 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
                     </div>
                     <h4 className="challenge-card-title">{challenge.title}</h4>
                     <p className="challenge-card-desc">{challenge.description}</p>
+                    <p className="challenge-card-target">
+                      {challenge.readinessLabel}: {challenge.targetModuleTitle}
+                    </p>
                     <div className="challenge-card-meta">
                       <span>{challenge.tests?.length || 0} tests</span>
                       <span>{completed.has(challenge.id) ? 'Completed here' : 'Open challenge'}</span>
