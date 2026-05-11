@@ -177,6 +177,7 @@ Live token preview route: `/styleguide`.
 | Local dev | Vite | `npm run dev` |
 | Production build | Vite + Rollup | `npm run build` |
 | Lint | ESLint | `npm run lint` |
+| Standard typecheck command | JS source policy alias | `npm run typecheck` |
 | Unit tests | Vitest | `npm run test:unit` |
 | Integration/E2E | Playwright | `npm run test:integration` |
 | Bundle budgets | custom script | `npm run check:bundle` |

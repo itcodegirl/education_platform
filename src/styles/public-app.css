@@ -16,7 +16,7 @@
 @import './landing.css';
 
 /* Shared public route states */
-@import './responsive.css';
 @import './resilience-states.css';
+@import './responsive.css';
 @import './public-route-shell.css';
 @import './install-prompt.css';

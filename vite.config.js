@@ -1,7 +1,11 @@
-import fs from 'node:fs';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const projectRoot = path.dirname(fileURLToPath(import.meta.url));
+
+const MONACO_CSS_LINK_RE = /<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref=["'][^"']*vendor-monaco-[^"']+\.css["'][^>]*>\s*/gi;
 
 function normalizeModuleId(id) {
   return id.replace(/\\/g, '/');
@@ -54,6 +58,10 @@ function getManualChunkName(id) {
   }
 
   // Course content is dynamically imported through src/data/loaders.js.
+  if (moduleId.includes('/src/data/html/challenges')) return 'data-html-challenges';
+  if (moduleId.includes('/src/data/css/challenges')) return 'data-css-challenges';
+  if (moduleId.includes('/src/data/js/challenges')) return 'data-js-challenges';
+  if (moduleId.includes('/src/data/react/challenges')) return 'data-react-challenges';
   if (moduleId.includes('/src/data/html/')) return 'data-html';
   if (moduleId.includes('/src/data/css/')) return 'data-css';
   if (moduleId.includes('/src/data/js/')) return 'data-js';
@@ -65,7 +73,6 @@ function getManualChunkName(id) {
 const fontPackageScopes = ['@fontsource', '@fontsource-variable'];
 
 function getDevServerFsAllowList() {
-  const projectRoot = path.resolve(__dirname);
   const dependencyRoots = [
     path.resolve(projectRoot, 'node_modules'),
     path.resolve(projectRoot, '..', '..', 'node_modules'),
@@ -81,26 +88,18 @@ function getDevServerFsAllowList() {
   ];
 }
 
-function stripInitialMonacoCssLinks(outDir = 'dist') {
+function stripInitialMonacoCssLinks() {
   return {
     name: 'strip-initial-monaco-css-links',
     apply: 'build',
-    closeBundle() {
-      const indexHtmlPath = path.resolve(__dirname, outDir, 'index.html');
-
-      if (!fs.existsSync(indexHtmlPath)) {
+    enforce: 'post',
+    generateBundle(_options, bundle) {
+      const indexAsset = bundle['index.html'];
+      if (!indexAsset || indexAsset.type !== 'asset' || typeof indexAsset.source !== 'string') {
         return;
       }
 
-      const html = fs.readFileSync(indexHtmlPath, 'utf8');
-      const nextHtml = html.replace(
-        /\s*<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref=["']\/assets\/vendor-monaco-[^"']+\.css["'][^>]*>\s*/gi,
-        '\n',
-      );
-
-      if (nextHtml !== html) {
-        fs.writeFileSync(indexHtmlPath, nextHtml, 'utf8');
-      }
+      indexAsset.source = indexAsset.source.replace(MONACO_CSS_LINK_RE, '');
     },
   };
 }
@@ -109,7 +108,7 @@ export default defineConfig({
   plugins: [react(), stripInitialMonacoCssLinks()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(projectRoot, './src'),
     },
   },
   server: {

@@ -6,7 +6,7 @@ import { lazy, Suspense, useState } from 'react';
 import { AuthPage } from '../components/auth/AuthPage';
 
 const GuestPreviewRoute = lazy(() =>
-  import('../routes/GuestPreviewRoute').then((module) => ({ default: module.GuestPreviewRoute })),
+  import('../routes/GuestPreviewRoute').then((m) => ({ default: m.GuestPreviewRoute })),
 );
 
 export function AuthLayout() {

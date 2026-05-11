@@ -12,10 +12,10 @@ import { closeRouteOrGoHome } from './routeUtils';
 import '../styles/App.css';
 
 const AdminDashboard = lazy(() =>
-  import('../components/admin/AdminDashboard').then((module) => ({ default: module.AdminDashboard })),
+  import('../components/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })),
 );
 const ProfilePage = lazy(() =>
-  import('../components/shared/ProfilePage').then((module) => ({ default: module.ProfilePage })),
+  import('../components/shared/ProfilePage').then((m) => ({ default: m.ProfilePage })),
 );
 
 function ProtectedRouteLoadingScreen({ theme, children }) {

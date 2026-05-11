@@ -44,6 +44,7 @@ Required database objects after migration:
 
 - `public.progress`
 - `public.reward_events`
+- `public.reward_catalog`
 - `public.award_reward_event(...)`
 - Stable resume columns on `public.last_position`: `course_id`, `module_id`, `lesson_id`, `is_module_quiz`
 - Aggregate public profile view: `public.public_profiles`
@@ -51,9 +52,10 @@ Required database objects after migration:
 The current backend reward migration set must include or preserve:
 
 - `award_reward_event` RPC
+- `reward_catalog` rows for the supported reward event types
 - RLS on reward event tables
 - Authenticated-only RPC grants
-- Auth-owned backend RPCs. `award_reward_event` derives the learner from `auth.uid()` and must not accept a client-provided user id.
+- Auth-owned backend RPCs. `award_reward_event` derives the learner from `auth.uid()`, derives XP from `reward_catalog`, and must not accept a client-provided user id.
 
 Challenge completion and daily/streak server-authoritative tables remain follow-up backend sync work unless a later migration adds them. Keep those validation sections as release blockers only when that backend feature is being enabled.
 

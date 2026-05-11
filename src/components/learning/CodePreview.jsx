@@ -1,9 +1,9 @@
-﻿import { useState, useRef, useCallback, lazy, Suspense, useEffect, memo } from 'react';
+import { useState, useRef, useCallback, lazy, Suspense, useEffect, useMemo, memo, useId } from 'react';
 import { IFRAME_STYLES } from '../../utils/iframeStyles';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { usePrefersReducedData } from '../../hooks/usePrefersReducedData';
 import { defineMonacoTheme, MONACO_THEME_NAME, MONACO_OPTIONS } from '../../utils/monacoTheme';
-import { explainCode as explainCodeRequest } from '../../services/aiService';
+import { AI_ERROR_CODES, explainCode as explainCodeRequest } from '../../services/aiService';
 import { buildCodePreviewConsoleScript } from './codePreviewConsoleScript';
 
 // Chain monacoLoader so it runs its side-effects (loader.config,
@@ -22,6 +22,9 @@ const SCAFFOLDING = {
   requirements: { icon: '📋', label: 'Requirements Only',   hint: 'No code given! Open the Editor tab and write it from scratch.' },
 };
 
+const COPY_FEEDBACK_MS = 2000;
+const PREVIEW_SYNC_DELAY_MS = 180;
+
 // Memoized — CodePreview takes only primitive props (code, lang,
 // scaffolding) so it can safely skip re-renders that come from
 // unrelated lesson-chain state (showNotes, checkedTasks, AI tutor
@@ -30,12 +33,14 @@ const SCAFFOLDING = {
 export const CodePreview = memo(function CodePreview({ code, lang, scaffolding = 'full' }) {
   const isMobile = useIsMobile();
   const prefersReducedData = usePrefersReducedData();
+  const previewId = useId();
   const level = SCAFFOLDING[scaffolding] || SCAFFOLDING.full;
   const defaultTab = scaffolding === 'starter' || scaffolding === 'requirements' ? 'editor' : 'code';
 
   const [tab, setTab] = useState(defaultTab);
   const [copied, setCopied] = useState(false);
   const [editorCode, setEditorCode] = useState(code);
+  const [previewCode, setPreviewCode] = useState(code);
   const [aiExplaining, setAiExplaining] = useState(false);
   const [aiExplanation, setAiExplanation] = useState('');
   const [showExplanation, setShowExplanation] = useState(false);
@@ -46,30 +51,69 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
   const [forceFullEditor, setForceFullEditor] = useState(false);
   const useTextareaEditor = isMobile || (prefersReducedData && !forceFullEditor);
   const editorRef = useRef(null);
+  const copyTimerRef = useRef(null);
+  const aiRequestControllerRef = useRef(null);
+  const previousTabRef = useRef(defaultTab);
+  const tabBaseId = useId();
 
   const isCSS = lang === 'css';
   const isJS = lang === 'js' || lang === 'react';
   const monacoLang = isJS ? 'javascript' : isCSS ? 'css' : 'html';
-  const COPY_FEEDBACK_MS = 2000;
 
   useEffect(() => {
     setEditorCode(code);
+    setPreviewCode(code);
     setAiExplanation('');
     setShowExplanation(false);
     setTab(scaffolding === 'starter' || scaffolding === 'requirements' ? 'editor' : 'code');
   }, [code, scaffolding]);
+
+  useEffect(() => {
+    const previousTab = previousTabRef.current;
+    previousTabRef.current = tab;
+
+    if (tab !== 'preview') return undefined;
+
+    if (previousTab !== 'preview') {
+      setPreviewCode(editorCode);
+      return undefined;
+    }
+
+    const previewTimer = window.setTimeout(() => {
+      setPreviewCode(editorCode);
+    }, PREVIEW_SYNC_DELAY_MS);
+
+    return () => window.clearTimeout(previewTimer);
+  }, [editorCode, tab]);
+
+  useEffect(() => () => {
+    if (copyTimerRef.current) {
+      window.clearTimeout(copyTimerRef.current);
+    }
+
+    aiRequestControllerRef.current?.abort();
+  }, []);
 
   const handleCopy = async () => {
     const textToCopy = tab === 'editor' ? editorCode : code;
     if (navigator.clipboard) {
       await navigator.clipboard.writeText(textToCopy);
       setCopied(true);
-      setTimeout(() => setCopied(false), COPY_FEEDBACK_MS);
+
+      if (copyTimerRef.current) {
+        window.clearTimeout(copyTimerRef.current);
+      }
+
+      copyTimerRef.current = window.setTimeout(() => {
+        copyTimerRef.current = null;
+        setCopied(false);
+      }, COPY_FEEDBACK_MS);
     }
   };
 
   const handleReset = () => {
     setEditorCode(code);
+    setPreviewCode(code);
     setAiExplanation('');
     setShowExplanation(false);
   };
@@ -82,7 +126,7 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
     setEditorCode(value || '');
   }, []);
 
-  function buildPreview(sourceCode) {
+  const buildPreview = useCallback((sourceCode) => {
     if (isJS) {
       const consoleScript = buildCodePreviewConsoleScript(sourceCode);
       return `<!DOCTYPE html><html><head><style>${IFRAME_STYLES} .console-line{font-family:monospace;font-size:13px;padding:3px 0;border-bottom:1px solid #1a1a2e;color:#e0e0e0}.prefix{color:#5a5a7a;margin-right:8px}pre.output{background:#0a0a14;padding:16px;border-radius:8px;margin:0;overflow:auto}</style></head><body><pre class="output" id="out"></pre><script>${consoleScript}<\/script></body></html>`;
@@ -93,10 +137,13 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
     }
 
     return `<!DOCTYPE html><html><head><style>${IFRAME_STYLES}</style></head><body>${sourceCode}</body></html>`;
-  }
+  }, [isCSS, isJS]);
 
   async function explainCode() {
     if (aiExplaining) return;
+
+    const requestController = new AbortController();
+    aiRequestControllerRef.current = requestController;
     setAiExplaining(true);
     setShowExplanation(true);
     setAiExplanation('');
@@ -105,19 +152,41 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
       const explanation = await explainCodeRequest({
         system: `You are the CodeHerWay code explainer - a direct, encouraging mentor for women learning web development. Explain the following ${monacoLang.toUpperCase()} code clearly for a beginner. Be concise (3-5 short paragraphs). Explain what each important part does. If there are mistakes, point them out kindly. Use the CodeHerWay voice: no gatekeeping, no jargon without explanation.`,
         code: editorCode,
+        signal: requestController.signal,
       });
 
+      if (requestController.signal.aborted) return;
       setAiExplanation(explanation || 'Could not explain this code. Try modifying it and asking again.');
-    } catch {
+    } catch (error) {
+      if (error?.code === AI_ERROR_CODES.ABORTED || error?.name === 'AbortError') {
+        return;
+      }
+
       setAiExplanation('Connection issue - check your internet and try again.');
     } finally {
-      setAiExplaining(false);
+      if (aiRequestControllerRef.current === requestController) {
+        aiRequestControllerRef.current = null;
+        setAiExplaining(false);
+      }
     }
   }
 
+  const previewDocument = useMemo(() => buildPreview(previewCode), [buildPreview, previewCode]);
   const tabIcon = isJS ? 'f' : isCSS ? '{ }' : '<>';
   const previewLabel = isJS ? 'Run' : 'Preview';
-  const previewSource = tab === 'code' ? code : editorCode;
+  const visibleTabs = [
+    ...(scaffolding !== 'requirements'
+      ? [{ id: 'code', label: `${tabIcon} Code` }]
+      : []),
+    {
+      id: 'editor',
+      label: scaffolding === 'requirements' ? '✏️ Write Code' : 'Editor',
+    },
+    { id: 'preview', label: previewLabel },
+  ];
+  const getTabId = (tabId) => `${tabBaseId}-${tabId}-tab`;
+  const getPanelId = (tabId) => `${tabBaseId}-${tabId}-panel`;
+
   const guidanceCopy =
     scaffolding === 'requirements'
       ? 'Start with one small piece, run it, then add the next requirement.'
@@ -126,6 +195,31 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
         : tab === 'editor'
           ? `Change one small detail, then ${previewLabel.toLowerCase()} the result before moving on.`
           : 'Read the sample first, then try one small change in the editor.';
+
+  const handleTabKeyDown = (event) => {
+    const currentIndex = visibleTabs.findIndex((item) => item.id === tab);
+    if (currentIndex < 0) return;
+
+    const lastIndex = visibleTabs.length - 1;
+    const keyActions = {
+      ArrowRight: currentIndex === lastIndex ? 0 : currentIndex + 1,
+      ArrowDown: currentIndex === lastIndex ? 0 : currentIndex + 1,
+      ArrowLeft: currentIndex === 0 ? lastIndex : currentIndex - 1,
+      ArrowUp: currentIndex === 0 ? lastIndex : currentIndex - 1,
+      Home: 0,
+      End: lastIndex,
+    };
+
+    if (!(event.key in keyActions)) return;
+    event.preventDefault();
+
+    const nextTab = visibleTabs[keyActions[event.key]].id;
+    setTab(nextTab);
+    event.currentTarget
+      .parentElement
+      ?.querySelector(`[data-code-preview-tab="${nextTab}"]`)
+      ?.focus();
+  };
 
   return (
     <div className="code-preview">
@@ -138,52 +232,36 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
         </div>
       )}
 
-      <div className="code-preview-guidance" id="code-preview-guidance" role="note">
+      <div className="code-preview-guidance" id={`${previewId}-guidance`} role="note">
         <span className="code-preview-guidance-label">Next step</span>
         <span>{guidanceCopy}</span>
       </div>
 
-      <div
-        className="code-preview-tabs"
-        role="tablist"
-        aria-label="Code practice views"
-        aria-describedby="code-preview-guidance"
-      >
-        {scaffolding !== 'requirements' && (
-          <button
-            type="button"
-            id="code-preview-tab-code"
-            className={`code-preview-tab ${tab === 'code' ? 'on' : ''}`}
-            role="tab"
-            aria-selected={tab === 'code'}
-            aria-controls="code-preview-panel-code"
-            onClick={() => setTab('code')}
-          >
-            {tabIcon} Code
-          </button>
-        )}
-        <button
-          type="button"
-          id="code-preview-tab-editor"
-          className={`code-preview-tab ${tab === 'editor' ? 'on' : ''}`}
-          role="tab"
-          aria-selected={tab === 'editor'}
-          aria-controls="code-preview-panel-editor"
-          onClick={() => setTab('editor')}
-        >
-          {scaffolding === 'requirements' ? '✏️ Write Code' : 'Editor'}
-        </button>
-        <button
-          type="button"
-          id="code-preview-tab-preview"
-          className={`code-preview-tab ${tab === 'preview' ? 'on' : ''}`}
-          role="tab"
-          aria-selected={tab === 'preview'}
-          aria-controls="code-preview-panel-preview"
-          onClick={() => setTab('preview')}
-        >
-          {previewLabel}
-        </button>
+
+      <div className="code-preview-tabs">
+        <div
+          className="code-preview-tablist"
+          role="tablist"
+          aria-label="Code practice views"
+          aria-describedby={`${previewId}-guidance`}
+        >          {visibleTabs.map((item) => (
+            <button
+              key={item.id}
+              id={getTabId(item.id)}
+              type="button"
+              role="tab"
+              className={`code-preview-tab ${tab === item.id ? 'on' : ''}`}
+              aria-selected={tab === item.id}
+              aria-controls={getPanelId(item.id)}
+              tabIndex={tab === item.id ? 0 : -1}
+              data-code-preview-tab={item.id}
+              onClick={() => setTab(item.id)}
+              onKeyDown={handleTabKeyDown}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
 
         <div className="code-preview-actions">
           {tab === 'editor' && editorCode !== code && (
@@ -211,9 +289,10 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
 
       {tab === 'code' && (
         <pre
-          id="code-preview-panel-code"
+          id={getPanelId('code')}
           className="code-preview-code"
           role="tabpanel"
+          aria-labelledby={getTabId('code')}
           tabIndex={0}
           aria-label={`${monacoLang.toUpperCase()} code sample`}
         >
@@ -223,10 +302,10 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
 
       {tab === 'editor' && (
         <div
-          id="code-preview-panel-editor"
+          id={getPanelId('editor')}
           className="code-preview-editor-wrap"
           role="tabpanel"
-          aria-labelledby="code-preview-tab-editor"
+          aria-labelledby={getTabId('editor')}
         >
           {useTextareaEditor ? (
             <>
@@ -303,13 +382,13 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
 
       {tab === 'preview' && (
         <div
-          id="code-preview-panel-preview"
+          id={getPanelId('preview')}
           role="tabpanel"
-          aria-labelledby="code-preview-tab-preview"
+          aria-labelledby={getTabId('preview')}
         >
           <iframe
             className="code-preview-iframe"
-            srcDoc={buildPreview(previewSource)}
+            srcDoc={previewDocument}
             title={isJS ? 'Code output' : isCSS ? 'CSS preview' : 'HTML preview'}
             sandbox="allow-scripts"
           />
@@ -318,4 +397,3 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
     </div>
   );
 });
-

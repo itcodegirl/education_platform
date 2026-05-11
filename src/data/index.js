@@ -9,7 +9,7 @@ import { COURSE_METADATA } from './metadata';
 import { resolveQuizLessonId } from './quizLessonIdResolver';
 
 export { COURSE_METADATA } from './metadata';
-export { loadCourse, COURSE_LOADER_IDS } from './loaders';
+export { loadCourse, loadCourseRuntime, COURSE_LOADER_IDS } from './loaders';
 export { BADGE_DEFS } from './badges';
 
 // Mutable compatibility shell. CourseContentProvider fills modules

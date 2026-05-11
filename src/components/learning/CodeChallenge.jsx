@@ -7,7 +7,7 @@
 // buildChallengePreview. This file is layout only.
 // ═══════════════════════════════════════════════
 
-import { useRef, useState, lazy, Suspense } from 'react';
+import { useRef, useState, lazy, Suspense, useEffect, useMemo } from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { usePrefersReducedData } from '../../hooks/usePrefersReducedData';
 import { useChallengeSession } from '../../hooks/useChallengeSession';
@@ -23,6 +23,8 @@ const MonacoEditor = lazy(() =>
     .then((module) => module.initializeMonacoLoader())
     .then(() => import('@monaco-editor/react'))
 );
+
+const PREVIEW_SYNC_DELAY_MS = 180;
 
 export function CodeChallenge({ challenge, lang, onComplete }) {
   const isMobile = useIsMobile();
@@ -56,6 +58,23 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
   } = session;
 
   const monacoLang = lang === 'js' || lang === 'react' ? 'javascript' : lang === 'css' ? 'css' : 'html';
+  const [previewCode, setPreviewCode] = useState(code);
+
+  useEffect(() => {
+    if (previewCode === code) return undefined;
+
+    const previewTimer = window.setTimeout(() => {
+      setPreviewCode(code);
+    }, PREVIEW_SYNC_DELAY_MS);
+
+    return () => window.clearTimeout(previewTimer);
+  }, [code, previewCode]);
+
+  const previewDocument = useMemo(() => buildChallengePreview({
+    sourceCode: previewCode,
+    lang,
+    previewHTML: challenge.previewHTML,
+  }), [challenge.previewHTML, lang, previewCode]);
 
   return (
     <div className="cc-challenge">
@@ -105,7 +124,7 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
           <div className="cc-pane-header">
             <span>✏️ Your Code</span>
             <button type="button" className="cc-reset-btn" onClick={reset}>
-              Retry Reset
+              Reset code
             </button>
           </div>
           {useLightEditor ? (
@@ -155,11 +174,7 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
           <iframe
             ref={iframeRef}
             className="cc-preview-iframe"
-            srcDoc={buildChallengePreview({
-              sourceCode: code,
-              lang,
-              previewHTML: challenge.previewHTML,
-            })}
+            srcDoc={previewDocument}
             // useChallengeSession.runTests waits on this to fire before
             // grading any DOM-based tests, so the test never inspects
             // an iframe document that's still loading the previous code.

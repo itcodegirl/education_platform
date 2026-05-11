@@ -4,9 +4,8 @@
 // ===============================================
 
 import { useCallback, useMemo, useEffect, useState } from "react";
-import { useFetcher } from "react-router-dom";
 import { COURSES } from "../data";
-import { useTheme, useAuth, useProgressData, useXP, useCourseContent } from "../providers";
+import { useTheme, useAuth, useProgressData, useXP, useCourseContent, useSR } from "../providers";
 import { useNavigation } from "../hooks/useNavigation";
 import { usePanels } from "../hooks/usePanels";
 import { useKeyboardNav } from "../hooks/useKeyboardNav";
@@ -15,9 +14,8 @@ import { useIsMobile } from "../hooks/useIsMobile";
 import { useMobileKeyboardOpen } from "../hooks/useMobileKeyboardOpen";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
-import { useFetcherSyncFailure } from "../hooks/useFetcherSyncFailure";
 import { useLessonViewTracking } from "../hooks/useLessonViewTracking";
-import { useLessonMarkDone } from "../hooks/useLessonMarkDone";
+import { useMarkLessonDone } from "../hooks/useMarkLessonDone";
 import { useLearningToolActions } from "../hooks/useLearningToolActions";
 import { estimateReadingTime, getLevel } from "../utils/helpers";
 import { trackEvent } from "../lib/analytics";
@@ -26,7 +24,11 @@ import {
   getLessonKeyVariants,
   hasLessonCompletion,
 } from "../utils/lessonKeys";
-import { buildLegacyQuizKey, buildStableQuizKey } from "../utils/quizKeys";
+import {
+  buildLegacyQuizKey,
+  buildStableQuizKey,
+  getBestQuizScoreValue,
+} from "../utils/quizKeys";
 import {
   getCurrentStepCopy,
   getLessonPositionLabel,
@@ -36,6 +38,8 @@ import {
 } from "../utils/lessonNavCopy";
 import { getLessonCompletionActionCopy } from "../utils/lessonCompletionCopy";
 import { getSyncStatusCopy } from "../utils/syncStatusCopy";
+import { getLessonMasteryStatus } from "../utils/lessonMasteryStatus";
+import { getDailyLearningLoopSteps } from "../utils/dailyLearningLoop";
 
 // Layout components
 import { Sidebar } from "../components/layout/Sidebar";
@@ -48,6 +52,7 @@ import { MobileToolsSheet } from "../components/layout/MobileToolsSheet";
 import { OfflineIndicator } from "../components/layout/OfflineIndicator";
 import { FirstRunGuide } from "../components/layout/FirstRunGuide";
 import { LessonFocusStrip } from "../components/layout/LessonFocusStrip";
+import { DailyLearningLoop } from "../components/layout/DailyLearningLoop";
 
 // Learning components
 import { LessonView } from "../components/learning/LessonView";
@@ -74,19 +79,18 @@ export function AppLayout() {
     dataLoaded,
     lastPosition,
     loadError,
+    quizScores = {},
     syncFailed = 0,
     pendingSyncWrites = 0,
     syncRetryInFlight = false,
-    markSyncFailed = () => {},
-    enqueuePendingSyncWrite = () => false,
     retryPendingSyncWrites = () => {},
   } = useProgressData();
   const { xpTotal = 0, streak = 0, pausedStreak = null, dailyCount = 0 } = useXP();
+  const { srCards = [] } = useSR();
 
   const nav = useNavigation();
   const panels = usePanels({ dataLoaded, user, lastPosition });
   const learn = useLearning();
-  const progressMutation = useFetcher();
   const isMobile = useIsMobile(901);
   const mobileKeyboardOpen = useMobileKeyboardOpen(isMobile);
   const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage(
@@ -251,6 +255,25 @@ export function AppLayout() {
   const legacyModuleQuizKey = buildLegacyQuizKey('m', mod.id);
   const lessonQuizKey = buildStableQuizKey('l', course.id, les.id);
   const legacyLessonQuizKey = buildLegacyQuizKey('l', les.id);
+  const lessonQuizScore = getBestQuizScoreValue(quizScores, [
+    lessonQuizKey,
+    legacyLessonQuizKey,
+  ]);
+  const lessonMasteryStatus = getLessonMasteryStatus({
+    hasLessonQuiz: Boolean(lessonQuiz),
+    isLessonDone: isDone,
+    scoreValue: lessonQuizScore,
+  });
+  const dueReviewCount = useMemo(() => {
+    const now = Date.now();
+    return srCards.filter((card) => Number(card?.nextReview || 0) <= now).length;
+  }, [srCards]);
+  const learningLoopSteps = getDailyLearningLoopSteps({
+    isLessonDone: isDone,
+    hasLessonQuiz: Boolean(lessonQuiz),
+    masteryStatus: lessonMasteryStatus,
+    dueReviewCount,
+  });
   const { title: currentStepTitle, copy: currentStepCopy } = getCurrentStepCopy({
     isLast,
     showModQuiz,
@@ -276,22 +299,20 @@ export function AppLayout() {
   }, [isCourseComplete, isDone, panels]);
 
   // --- Actions ------------------------------
-  useFetcherSyncFailure(
-    progressMutation,
-    { markSyncFailed, enqueuePendingSyncWrite },
-    'lesson progress',
-  );
-  const { marking, handleMarkDone } = useLessonMarkDone({
-    completedSet,
-    stableLessonKey,
-    legacyLessonKey,
+  const markDoneAnalyticsContext = useMemo(() => ({
     courseId: course.id,
     moduleId: mod.id,
     lessonId: les.id,
-    mutationActionPath,
-    progressMutation,
-    toggleLessonDone: learn.toggleLessonDone,
     lessonViewStartRef,
+  }), [course.id, les.id, lessonViewStartRef, mod.id]);
+
+  const { marking, handleMarkDone, mutationState } = useMarkLessonDone({
+    completedSet,
+    stableLessonKey,
+    legacyLessonKey,
+    mutationActionPath,
+    toggleLessonDone: learn.toggleLessonDone,
+    analyticsContext: markDoneAnalyticsContext,
   });
   const topbarCompletionCopy = getLessonCompletionActionCopy({
     isDone,
@@ -306,7 +327,7 @@ export function AppLayout() {
     syncFailed,
     syncRetryInFlight,
     marking,
-    mutationState: progressMutation.state,
+    mutationState,
   });
   const handleRetrySync = useCallback(() => {
     retryPendingSyncWrites();
@@ -463,8 +484,14 @@ export function AppLayout() {
                 lessonPosition={lessonPosition}
                 currentStepTitle={currentStepTitle}
                 currentStepCopy={currentStepCopy}
+                masteryStatus={lessonMasteryStatus}
                 syncStatus={syncStatus}
                 onRetrySync={syncStatus.actionLabel ? handleRetrySync : undefined}
+              />
+              <DailyLearningLoop
+                steps={learningLoopSteps}
+                onOpenReview={() => handleOpenTool('sr')}
+                onOpenChallenges={() => handleOpenTool('challenges')}
               />
               <LessonView
                 lesson={les}

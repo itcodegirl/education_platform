@@ -203,6 +203,67 @@
   text-align: center;
 }
 
+@media (max-width: 600px) {
+  .gp-topbar {
+    align-items: center;
+    gap: 10px;
+    padding:
+      max(10px, env(safe-area-inset-top, 0px))
+      max(14px, env(safe-area-inset-right, 0px))
+      10px
+      max(14px, env(safe-area-inset-left, 0px));
+  }
+
+  .gp-back {
+    min-height: 44px;
+    padding-inline: 14px;
+  }
+
+  .gp-badge {
+    min-height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  .gp-content {
+    padding:
+      16px
+      max(14px, env(safe-area-inset-right, 0px))
+      calc(28px + env(safe-area-inset-bottom, 0px))
+      max(14px, env(safe-area-inset-left, 0px));
+  }
+
+  .gp-banner {
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px;
+    margin-bottom: 16px;
+    border-radius: 14px;
+  }
+
+  .gp-banner p {
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .gp-cta {
+    margin-top: 28px;
+    padding: 28px 16px;
+    border-radius: 16px;
+  }
+
+  .gp-cta h3 {
+    font-size: 18px;
+  }
+
+  .gp-cta-btn {
+    width: 100%;
+    min-height: 48px;
+  }
+}
+
 /* ─── Roadmap Panel ─────────────────────────────── */
 .roadmap-panel {
   max-width: 720px;
@@ -470,6 +531,7 @@
   .nav-row,
   .theme-toggle,
   .quiz-container,
+  .code-preview-toolbar,
   .code-preview-tabs,
   .code-preview-iframe,
   .bottom-tools,

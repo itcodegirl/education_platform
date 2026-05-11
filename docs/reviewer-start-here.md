@@ -15,10 +15,11 @@ This is the fastest path for a recruiter or technical reviewer to understand Cod
 2. Skim the honest limits in [KNOWN_LIMITATIONS.md](../KNOWN_LIMITATIONS.md).
 3. Review the staged plan in [docs/repair-roadmap.md](./repair-roadmap.md).
 4. For product narrative, read [docs/portfolio-case-study.md](./portfolio-case-study.md).
-5. For architecture, read [docs/architecture.md](./architecture.md).
-6. For a fast walkthrough, use [docs/reviewer-demo-script.md](./reviewer-demo-script.md).
-7. For current trust boundaries, read [docs/trust-boundaries.md](./trust-boundaries.md).
-8. If reviewing open PRs or older branches, use [docs/branch-triage.md](./branch-triage.md).
+5. For claim-to-code proof points, use [docs/reviewer-evidence-map.md](./reviewer-evidence-map.md).
+6. For architecture, read [docs/architecture.md](./architecture.md).
+7. For a fast walkthrough, use [docs/reviewer-demo-script.md](./reviewer-demo-script.md).
+8. For current trust boundaries, read [docs/trust-boundaries.md](./trust-boundaries.md).
+9. If reviewing open PRs or older branches, use [docs/branch-triage.md](./branch-triage.md).
 
 ## Trust Boundaries
 
@@ -44,6 +45,7 @@ Focused checks:
 
 ```bash
 npm run lint
+npm run typecheck
 npm run check:js-source
 npm run build
 npm run audit:staging-runbook
@@ -52,7 +54,7 @@ npm run test:unit
 npm run audit:quizzes
 ```
 
-`npm run check:js-source` is a JS-only source policy check. This repo does not currently run TypeScript type checking.
+`npm run typecheck` and `npm run check:js-source` both enforce the JS-only source policy. This repo does not run TypeScript type checking because the implementation is intentionally HTML/CSS/JavaScript/React.
 
 ## Best Code Areas To Inspect
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { CodePreview } from './CodePreview';
 
 vi.mock('../../hooks/useIsMobile', () => ({
@@ -61,15 +61,29 @@ describe('CodePreview', () => {
     expect(frame.getAttribute('srcdoc')).toContain('<main>Preview Me</main>');
   });
 
+
   it('marks active practice views as tabs for assistive technology', () => {
     render(<CodePreview code="<h1>Hello</h1>" lang="html" scaffolding="full" />);
 
-    expect(screen.getByRole('tablist', { name: /code practice views/i })).toBeInTheDocument();
+    const tablist = screen.getByRole('tablist', { name: /code practice views/i });
+    expect(tablist).toBeInTheDocument();
+    expect(within(tablist).getAllByRole('tab')).toHaveLength(3);
+    expect(tablist).not.toContainElement(screen.getByRole('button', { name: /copy code to clipboard/i }));
     expect(screen.getByRole('tab', { name: /code/i })).toHaveAttribute('aria-selected', 'true');
 
     fireEvent.click(screen.getByRole('tab', { name: /editor/i }));
 
     expect(screen.getByRole('tab', { name: /editor/i })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByText(/change one small detail/i)).toBeInTheDocument();
+  });
+
+  it('supports arrow-key navigation across preview tabs', () => {
+    render(<CodePreview code="<main>Preview Me</main>" lang="html" scaffolding="full" />);
+
+    const codeTab = screen.getByRole('tab', { name: /code/i });
+    fireEvent.keyDown(codeTab, { key: 'ArrowRight' });
+
+    expect(screen.getByRole('tab', { name: /editor/i })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel', { name: /editor/i })).toBeInTheDocument();
   });
 });

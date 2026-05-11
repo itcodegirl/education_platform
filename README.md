@@ -46,6 +46,7 @@ Current baseline checks:
 - `npm run check` (lint, JS-source policy, Playwright project-reference audit, Supabase static policy readiness, staging runbook audit, production build, bundle budget, lesson-label audit, strict quiz audit, learning-content flow audit, and unit tests)
 - `npm run build`
 - `npm run lint`
+- `npm run typecheck` (JS-only source policy alias; this project intentionally does not run the TypeScript compiler)
 - `npm run check:js-source` (JS-only source policy; this project does not run TypeScript type checking)
 - `npm run check:supabase-readiness` (static migration/privacy/reward-ledger readiness gate)
 - `npm run audit:staging-runbook` (static guard that keeps the live Supabase validation runbook complete and honest)
@@ -128,6 +129,7 @@ This project is intended to demonstrate:
 Reviewer shortcuts:
 
 - Reviewer start: [docs/reviewer-start-here.md](./docs/reviewer-start-here.md)
+- Claim-to-code evidence map: [docs/reviewer-evidence-map.md](./docs/reviewer-evidence-map.md)
 - Reviewer demo script: [docs/reviewer-demo-script.md](./docs/reviewer-demo-script.md)
 - Branch and PR triage: [docs/branch-triage.md](./docs/branch-triage.md)
 - Product story: [docs/portfolio-case-study.md](./docs/portfolio-case-study.md)

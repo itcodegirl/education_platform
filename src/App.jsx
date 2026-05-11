@@ -4,8 +4,8 @@
 //
 // The router has its own RouteErrorBoundary for errors thrown
 // inside a route, but anything that throws *outside* the router
-// (a provider's first render, an InstallPrompt render, the
-// ToastProvider) used to bring down the whole app to a blank
+// (a provider's first render or the InstallPrompt render) used to
+// bring down the whole app to a blank
 // page. Wrapping at this level guarantees a visible fallback
 // screen with retry/reload, no matter where in the tree the
 // crash originated.
@@ -22,9 +22,10 @@ import './styles/public-app.css';
 
 export default function App() {
   useEffect(() => {
-    void import('./lib/analytics').then((module) => {
-      module.initializeAnalytics();
-    });
+    void import('./lib/analytics')
+      .then((module) => {
+        module.initializeAnalytics();
+      });
   }, []);
 
   return (

@@ -16,7 +16,7 @@ Tasks:
 - Align README, Known Limitations, repair roadmap, and package scripts.
 - Correct challenge-grading disclosure.
 - Rename certificate/export copy to Progress Summary unless verification exists.
-- Rename typecheck or add real type checking.
+- Expose `npm run typecheck` as an honest JS-only source-policy gate.
 - Update public copy to say single-device rewards are local today.
 
 Expected result:

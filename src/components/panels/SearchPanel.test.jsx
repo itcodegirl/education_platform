@@ -1,6 +1,8 @@
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SearchPanel } from './SearchPanel';
+
+const mockUseCourseContent = vi.fn();
 
 vi.mock('../../data/reference/search-manifest.generated', () => ({
   SEARCH_INDEX_MANIFEST: [
@@ -21,25 +23,55 @@ vi.mock('../../hooks/useFocusTrap', () => ({
   useFocusTrap: () => {},
 }));
 
+vi.mock('../../providers/CourseContentProvider', () => ({
+  useCourseContent: () => mockUseCourseContent(),
+}));
+
 describe('SearchPanel', () => {
+  beforeEach(() => {
+    mockUseCourseContent.mockReturnValue({
+      ensureAllLoaded: vi.fn(),
+      loadedCourseIds: ['html'],
+      allCoursesLoaded: true,
+    });
+  });
+
+  it('waits to hydrate the full search index until the learner starts a real search', () => {
+    const ensureAllLoaded = vi.fn();
+    mockUseCourseContent.mockReturnValue({
+      ensureAllLoaded,
+      loadedCourseIds: ['html'],
+      allCoursesLoaded: false,
+    });
+
+    render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
+
+    expect(ensureAllLoaded).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByRole('searchbox', { name: /Search lessons/i }), {
+      target: { value: 'fl' },
+    });
+
+    expect(ensureAllLoaded).toHaveBeenCalledTimes(1);
+  });
   it('shows starter guidance before the query reaches two characters', () => {
     render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
 
     expect(
       screen.getByText(/Search all lessons/i),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Type at least two letters/i)).toBeInTheDocument();
+    expect(screen.getByText(/Type at least two letters from a lesson/i)).toBeInTheDocument();
   });
 
   it('shows a clear no-results message when query has no matches', () => {
     render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
 
-    fireEvent.change(screen.getByRole('combobox', { name: /Search lessons/i }), {
+    fireEvent.change(screen.getByRole('searchbox', { name: /Search lessons/i }), {
       target: { value: 'zzz' },
     });
 
     expect(
-      screen.getByText(/No results for/i),
+      screen.getByText(/No results for/i, { selector: 'strong' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^clear search$/i })).toBeInTheDocument();
   });
@@ -50,7 +82,7 @@ describe('SearchPanel', () => {
 
     render(<SearchPanel isOpen onClose={onClose} onNavigate={onNavigate} />);
 
-    const input = screen.getByRole('combobox', { name: /Search lessons/i });
+    const input = screen.getByRole('searchbox', { name: /Search lessons/i });
     fireEvent.change(input, {
       target: { value: 'flexbox' },
     });
@@ -60,10 +92,11 @@ describe('SearchPanel', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+
   it('uses mobile-friendly search input controls', () => {
     render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
 
-    const input = screen.getByRole('combobox', { name: /Search lessons/i });
+    const input = screen.getByRole('searchbox', { name: /Search lessons/i });
     expect(input).toHaveAttribute('type', 'search');
     expect(input).toHaveAttribute('inputmode', 'search');
     expect(input).toHaveAttribute('enterkeyhint', 'search');
@@ -77,5 +110,19 @@ describe('SearchPanel', () => {
 
     expect(input).toHaveValue('');
     expect(input).toHaveFocus();
+  });
+
+  it('announces keyboard result selection without combobox option roles', () => {
+    render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
+
+    const input = screen.getByRole('searchbox', { name: /Search lessons/i });
+    fireEvent.change(input, {
+      target: { value: 'flexbox' },
+    });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+    expect(screen.getByRole('status')).toHaveTextContent(/Flexbox Basics selected/i);
+    expect(screen.queryByRole('option')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Flexbox Basics/i })).toBeInTheDocument();
   });
 });

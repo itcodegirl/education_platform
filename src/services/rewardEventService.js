@@ -268,10 +268,8 @@ export async function awardBackendRewardEvent(payload, options = {}) {
 
   try {
     const { data, error } = await client.rpc('award_reward_event', {
-      p_event_key: normalizedPayload.eventKey,
       p_event_type: normalizedPayload.eventType,
       p_entity_id: normalizedPayload.entityId,
-      p_xp_amount: normalizedPayload.xpAmount,
       p_metadata: normalizedPayload.metadata,
       p_source: normalizedPayload.source,
     });

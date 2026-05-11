@@ -87,5 +87,38 @@ describe('SRPanel', () => {
     expect(screen.getByText(/Progress sync: saved on this device/i)).toBeInTheDocument();
     expect(screen.getByText(/review queue, and challenges are single-device today/i)).toBeInTheDocument();
   });
+
+  it('announces answer feedback and waits for the learner to advance', () => {
+    const updateSRCard = vi.fn();
+
+    mockUseSR.mockReturnValue({
+      getDueSRCards: () => [
+        {
+          question: 'Which element is the main page heading?',
+          source: 'HTML',
+          options: ['h1', 'span'],
+          correct: 0,
+          explanation: 'Use h1 for the primary heading.',
+        },
+      ],
+      updateSRCard,
+      addToSRQueue: vi.fn(),
+      srCards: [],
+    });
+
+    render(<SRPanel isOpen onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /h1/i }));
+
+    expect(screen.getAllByRole('status').some((status) => (
+      /correct\. strong recall/i.test(status.textContent)
+    ))).toBe(true);
+    expect(screen.getByText(/Card 1 of 1/i)).toBeInTheDocument();
+    expect(updateSRCard).toHaveBeenCalledWith('Which element is the main page heading?', true);
+
+    fireEvent.click(screen.getByRole('button', { name: /next card/i }));
+
+    expect(screen.getByText(/Session complete\./i)).toBeInTheDocument();
+  });
 });
 

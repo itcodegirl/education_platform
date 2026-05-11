@@ -242,7 +242,7 @@
 
 .cc-solution-btn:hover {
   border-color: var(--purple);
-  color: var(--purple);
+  color: var(--purple-text);
 }
 
 .cc-solution-warning {
@@ -571,7 +571,7 @@
   color: var(--pink);
 }
 
-.challenge-recommendation {
+.challenge-path-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -583,16 +583,7 @@
   background: rgba(78, 205, 196, 0.06);
 }
 
-.challenge-recommendation.is-complete {
-  border-color: var(--border);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.challenge-recommendation-copy {
-  min-width: 0;
-}
-
-.challenge-recommendation-kicker {
+.challenge-path-kicker {
   margin: 0 0 4px;
   color: var(--cyan);
   font-family: 'Poppins', sans-serif;
@@ -602,7 +593,7 @@
   text-transform: uppercase;
 }
 
-.challenge-recommendation-title {
+.challenge-path-title {
   margin: 0;
   color: var(--text);
   font-family: 'Poppins', sans-serif;
@@ -610,25 +601,21 @@
   font-weight: 700;
 }
 
-.challenge-recommendation-reason {
+.challenge-path-copy {
   margin: 6px 0 0;
   color: var(--text-dim);
   font-size: 13px;
   line-height: 1.5;
 }
 
-.challenge-recommendation-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
+.challenge-path-meta {
+  margin: 8px 0 0;
   color: var(--text-muted);
   font-family: 'Poppins', sans-serif;
   font-size: 11px;
-  text-transform: uppercase;
 }
 
-.challenge-recommendation-cta {
+.challenge-path-cta {
   flex-shrink: 0;
   padding: 10px 14px;
   border: 1px solid rgba(78, 205, 196, 0.42);
@@ -642,18 +629,18 @@
   transition: all 0.15s;
 }
 
-.challenge-recommendation-cta:hover {
+.challenge-path-cta:hover {
   border-color: var(--cyan);
   background: rgba(78, 205, 196, 0.18);
 }
 
 @media (max-width: 720px) {
-  .challenge-recommendation {
+  .challenge-path-card {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .challenge-recommendation-cta {
+  .challenge-path-cta {
     width: 100%;
   }
 }
@@ -748,6 +735,13 @@
   font-size: 12px;
   color: var(--text-dim);
   line-height: 1.5;
+}
+
+.challenge-card-target {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.45;
 }
 
 .challenge-card-meta {
