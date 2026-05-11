@@ -462,10 +462,20 @@ export async function saveQuizScore(uid, quizKey, score, options = {}) {
 }
 
 // ─── XP ─────────────────────────────────────
-export function updateXP(uid, total) {
+// Uses a read-before-write max to prevent stale queued writes from
+// overwriting a higher total earned on another device. The extra
+// read adds one round-trip but protects cross-device correctness.
+export async function updateXP(uid, total) {
+  const { data } = await supabase
+    .from('xp')
+    .select('total')
+    .eq('user_id', uid)
+    .maybeSingle();
+  const serverTotal = typeof data?.total === 'number' ? data.total : 0;
+  const safeTotal = Math.max(total, serverTotal);
   return supabase.from('xp').upsert({
     user_id: uid,
-    total,
+    total: safeTotal,
     updated_at: new Date().toISOString(),
   });
 }

@@ -375,6 +375,15 @@ describe('updateXP', () => {
       expect.objectContaining({ user_id: UID, total: 500, updated_at: expect.any(String) }),
     );
   });
+
+  it('does not overwrite a higher server total with a lower local total', async () => {
+    const chain = makeChain({ total: 1000 });
+    mockFrom.mockReturnValue(chain);
+    await updateXP(UID, 500);
+    expect(chain.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({ user_id: UID, total: 1000, updated_at: expect.any(String) }),
+    );
+  });
 });
 
 describe('awardBadge', () => {
