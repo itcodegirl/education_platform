@@ -125,6 +125,14 @@ export function auditAuthE2EReadiness({
     }
   });
 
+  if (!authSmokeScriptText.includes('AUTH_E2E_SKIPPED')) {
+    addIssue(
+      issues,
+      'scripts/run-auth-e2e-smoke.mjs',
+      'Authenticated smoke runner must label local skips with AUTH_E2E_SKIPPED.',
+    );
+  }
+
   if (/test\.skip\(true,\s*authReady\.reason\)/.test(authSetupSpecText)) {
     addIssue(
       issues,

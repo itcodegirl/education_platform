@@ -31,6 +31,7 @@ steps:
 `;
 
 const validAuthSmokeScript = `
+console.log('AUTH_E2E_SKIPPED');
 const AUTH_SMOKE_SCOPES = Object.freeze({
   learning: {
     specs: [
@@ -112,6 +113,21 @@ describe('authenticated E2E readiness audit', () => {
       {
         source: 'package.json scripts.test:e2e:smoke:lesson',
         message: 'Scoped authenticated smoke script must run node scripts/run-auth-e2e-smoke.mjs lesson.',
+      },
+    ]);
+  });
+
+  it('guards local authenticated smoke skips from looking like signed-in passes', () => {
+    const result = auditAuthE2EReadiness({
+      packageJsonText: packageJsonText(),
+      authSmokeScriptText: validAuthSmokeScript.replace("console.log('AUTH_E2E_SKIPPED');", ''),
+      workflowFiles: [{ filePath: '.github/workflows/e2e-smoke.yml', text: validWorkflow }],
+    });
+
+    expect(result.issues).toEqual([
+      {
+        source: 'scripts/run-auth-e2e-smoke.mjs',
+        message: 'Authenticated smoke runner must label local skips with AUTH_E2E_SKIPPED.',
       },
     ]);
   });
