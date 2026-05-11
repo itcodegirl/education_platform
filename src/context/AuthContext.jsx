@@ -19,6 +19,7 @@ const AuthContext = createContext({
   signInWithGoogle: async () => ({ data: null, error: null }),
   forgotPassword: async () => ({ data: null, error: null }),
   signOut: async () => ({ error: null }),
+  authBackendReady: true,
 });
 
 export function AuthProvider({ children }) {
@@ -183,6 +184,7 @@ export function AuthProvider({ children }) {
     signInWithGoogle: handleGoogle,
     forgotPassword,
     signOut: handleSignOut,
+    authBackendReady: authService.isAuthBackendConfigured(),
   }), [user, profile, profileError, loading, profileLoading, refreshProfile]);
 
   return (
