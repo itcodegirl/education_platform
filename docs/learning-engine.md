@@ -183,6 +183,12 @@ a practice match and show "best after" context, but the recommendation is
 soft guidance only; challenges remain optional and do not lock lesson
 navigation.
 
+`src/utils/dailyLearningLoop.js` combines the active lesson state, quick-check
+mastery guidance, spaced-repetition due count, and challenge entry point into
+the lesson-level "Today's learning loop" surface. This is display-only
+scaffolding: it helps learners choose a useful next action without creating
+hard gates or new reward rules.
+
 ## 6. XP, streaks, daily goal, badges
 
 `recordDailyActivity` (in `ProgressContext`) is the single owner of:

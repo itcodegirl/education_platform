@@ -143,6 +143,117 @@
   border-color: rgba(255,167,38,0.42);
   background: rgba(255,167,38,0.16);
 }
+.daily-loop {
+  margin: 0 0 24px;
+  padding: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.025);
+}
+.daily-loop-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+.daily-loop-kicker {
+  margin: 0 0 3px;
+  color: var(--cyan);
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.daily-loop-title {
+  margin: 0;
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+}
+.daily-loop-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.daily-loop-action {
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-surface);
+  color: var(--text);
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+}
+.daily-loop-action:hover,
+.daily-loop-action:focus-visible {
+  border-color: var(--cyan);
+}
+.daily-loop-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.daily-loop-step {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-deep);
+}
+.daily-loop-step-label {
+  display: block;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.daily-loop-step-state {
+  display: block;
+  margin-top: 3px;
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+}
+.daily-loop-step-detail {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.daily-loop-step-done {
+  border-color: rgba(78,205,196,0.24);
+}
+.daily-loop-step-done .daily-loop-step-state {
+  color: var(--cyan);
+}
+.daily-loop-step-attention {
+  border-color: rgba(255,167,38,0.26);
+}
+.daily-loop-step-attention .daily-loop-step-state {
+  color: var(--amber);
+}
+.daily-loop-step-active {
+  border-color: rgba(255,107,157,0.24);
+}
+@media (max-width: 760px) {
+  .daily-loop-head {
+    flex-direction: column;
+  }
+  .daily-loop-actions {
+    width: 100%;
+  }
+  .daily-loop-action {
+    flex: 1;
+  }
+  .daily-loop-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 .lesson-surface {
   position: relative;
   padding: clamp(22px, 3vw, 36px);

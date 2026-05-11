@@ -6,7 +6,7 @@
 import { useCallback, useMemo, useEffect, useState } from "react";
 import { useFetcher } from "react-router-dom";
 import { COURSES } from "../data";
-import { useTheme, useAuth, useProgressData, useXP, useCourseContent } from "../providers";
+import { useTheme, useAuth, useProgressData, useXP, useCourseContent, useSR } from "../providers";
 import { useNavigation } from "../hooks/useNavigation";
 import { usePanels } from "../hooks/usePanels";
 import { useKeyboardNav } from "../hooks/useKeyboardNav";
@@ -41,6 +41,7 @@ import {
 import { getLessonCompletionActionCopy } from "../utils/lessonCompletionCopy";
 import { getSyncStatusCopy } from "../utils/syncStatusCopy";
 import { getLessonMasteryStatus } from "../utils/lessonMasteryStatus";
+import { getDailyLearningLoopSteps } from "../utils/dailyLearningLoop";
 
 // Layout components
 import { Sidebar } from "../components/layout/Sidebar";
@@ -53,6 +54,7 @@ import { MobileToolsSheet } from "../components/layout/MobileToolsSheet";
 import { OfflineIndicator } from "../components/layout/OfflineIndicator";
 import { FirstRunGuide } from "../components/layout/FirstRunGuide";
 import { LessonFocusStrip } from "../components/layout/LessonFocusStrip";
+import { DailyLearningLoop } from "../components/layout/DailyLearningLoop";
 
 // Learning components
 import { LessonView } from "../components/learning/LessonView";
@@ -88,6 +90,7 @@ export function AppLayout() {
     retryPendingSyncWrites = () => {},
   } = useProgressData();
   const { xpTotal = 0, streak = 0, pausedStreak = null, dailyCount = 0 } = useXP();
+  const { srCards = [] } = useSR();
 
   const nav = useNavigation();
   const panels = usePanels({ dataLoaded, user, lastPosition });
@@ -265,6 +268,16 @@ export function AppLayout() {
     hasLessonQuiz: Boolean(lessonQuiz),
     isLessonDone: isDone,
     scoreValue: lessonQuizScore,
+  });
+  const dueReviewCount = useMemo(() => {
+    const now = Date.now();
+    return srCards.filter((card) => Number(card?.nextReview || 0) <= now).length;
+  }, [srCards]);
+  const learningLoopSteps = getDailyLearningLoopSteps({
+    isLessonDone: isDone,
+    hasLessonQuiz: Boolean(lessonQuiz),
+    masteryStatus: lessonMasteryStatus,
+    dueReviewCount,
   });
   const { title: currentStepTitle, copy: currentStepCopy } = getCurrentStepCopy({
     isLast,
@@ -481,6 +494,11 @@ export function AppLayout() {
                 masteryStatus={lessonMasteryStatus}
                 syncStatus={syncStatus}
                 onRetrySync={syncStatus.actionLabel ? handleRetrySync : undefined}
+              />
+              <DailyLearningLoop
+                steps={learningLoopSteps}
+                onOpenReview={() => handleOpenTool('sr')}
+                onOpenChallenges={() => handleOpenTool('challenges')}
               />
               <LessonView
                 lesson={les}
