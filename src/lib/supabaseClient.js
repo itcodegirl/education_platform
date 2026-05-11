@@ -1,9 +1,8 @@
-import { createClient } from '@supabase/supabase-js';
 import {
   SUPABASE_CONFIG_ERROR_MESSAGE,
   getOptionalSupabaseBrowserConfig,
-  supabaseAuthOptions,
 } from './supabaseConfig';
+import { getLazySupabaseClient } from './lazySupabaseClient';
 
 const config = getOptionalSupabaseBrowserConfig();
 
@@ -80,7 +79,5 @@ export const supabaseConfigStatus = Object.freeze({
 });
 
 export const supabase = config.configured
-  ? createClient(config.url, config.anonKey, {
-      auth: supabaseAuthOptions,
-    })
+  ? getLazySupabaseClient()
   : createUnavailableSupabaseClient();
