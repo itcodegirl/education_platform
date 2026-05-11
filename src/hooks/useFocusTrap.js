@@ -104,6 +104,7 @@ export function useFocusTrap(containerRef, options) {
         if (onEscape) {
           e.preventDefault();
           e.stopPropagation();
+          e.stopImmediatePropagation?.();
           onEscape();
         }
         return;
@@ -155,6 +156,5 @@ export function useFocusTrap(containerRef, options) {
         previouslyFocused.focus();
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, onEscape]);
+  }, [containerRef, enabled, initialFocus, lockBodyScroll, onEscape]);
 }

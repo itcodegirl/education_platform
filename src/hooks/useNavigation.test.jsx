@@ -26,6 +26,14 @@ const { MOCK_COURSES, MOCK_QUIZ_MAP, mockUseCourseContent } = vi.hoisted(() => {
             { id: 'l-forms', title: 'Forms', content: '', code: '' },
           ],
         },
+        {
+          id: 202,
+          title: 'Numeric Module',
+          emoji: 'route',
+          lessons: [
+            { id: 'l-number', title: 'Numeric Route Module', content: '', code: '' },
+          ],
+        },
       ],
     },
     {
@@ -165,6 +173,17 @@ describe('useNavigation initial state', () => {
       expect(result.current.showModQuiz).toBe(false);
     });
   });
+
+  it('hydrates numeric module ids from string route segments', async () => {
+    window.history.replaceState(null, '', '/learn/html/202/l-number');
+    const { result } = renderHook(() => useNavigation());
+    await waitFor(() => {
+      expect(result.current.courseIdx).toBe(0);
+      expect(result.current.modIdx).toBe(2);
+      expect(result.current.lesIdx).toBe(0);
+      expect(result.current.les.id).toBe('l-number');
+    });
+  });
 });
 
 describe('useNavigation go()', () => {
@@ -192,6 +211,12 @@ describe('useNavigation go()', () => {
 
     expect(window.matchMedia).toHaveBeenCalledWith('(prefers-reduced-motion: reduce)');
     expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'auto' });
+  });
+
+  it('writes numeric module ids into stable lesson routes', () => {
+    const { result } = renderHook(() => useNavigation());
+    act(() => result.current.go(2, 0));
+    expect(window.location.pathname).toBe('/learn/html/202/l-number');
   });
 
   it('changes the active lesson id immediately when selecting a different lesson', () => {
