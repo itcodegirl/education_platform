@@ -1,10 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { DailyLearningLoop } from './DailyLearningLoop';
 
 const steps = [
   { key: 'lesson', label: 'Lesson', state: 'Done', detail: 'Reading saved.', tone: 'done' },
-  { key: 'review', label: 'Review', state: '2 due', detail: 'Clear review.', tone: 'attention' },
+  {
+    key: 'review',
+    label: 'Review',
+    state: '2 due',
+    detail: 'Clear review.',
+    tone: 'attention',
+    isCurrent: true,
+  },
 ];
 
 describe('DailyLearningLoop', () => {
@@ -24,6 +31,10 @@ describe('DailyLearningLoop', () => {
 
     expect(screen.getByRole('region', { name: /today's learning loop/i })).toHaveTextContent('Keep progress useful');
     expect(screen.getByText('2 due')).toBeInTheDocument();
+    const list = screen.getByRole('list', { name: /learning flow steps/i });
+    const reviewStep = within(list).getByText('Review').closest('li');
+    expect(reviewStep).toHaveAttribute('aria-current', 'step');
+    expect(reviewStep).toHaveTextContent('Current');
 
     fireEvent.click(screen.getByRole('button', { name: /review/i }));
     fireEvent.click(screen.getByRole('button', { name: /challenges/i }));
@@ -32,5 +43,12 @@ describe('DailyLearningLoop', () => {
     expect(onOpenChallenges).toHaveBeenCalledTimes(1);
     expect(onAction).toHaveBeenCalledWith('review');
     expect(onAction).toHaveBeenCalledWith('challenges');
+  });
+
+  it('does not render inert action buttons when handlers are absent', () => {
+    render(<DailyLearningLoop steps={steps} />);
+
+    expect(screen.queryByRole('button', { name: /review/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /challenges/i })).not.toBeInTheDocument();
   });
 });
