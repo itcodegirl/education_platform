@@ -57,7 +57,6 @@ function runPlaywright(scopeName) {
 
 const scopeName = process.argv[2] || 'learning';
 getPlaywrightArgs(scopeName);
-
 const envFile = await loadAuthE2EEnvFile();
 if (envFile.loaded) {
   console.log(`Loaded authenticated E2E env from ${path.basename(envFile.filePath)} (${envFile.keys.length} keys).`);

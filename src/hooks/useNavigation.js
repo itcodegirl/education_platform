@@ -69,6 +69,22 @@ function findSavedPosition(lastPosition) {
   return resolveSavedPosition(lastPosition, COURSES);
 }
 
+function savedCourseLabelMatches(course, savedLabel = '') {
+  if (!course?.label || !savedLabel) return false;
+  if (savedLabel === course.label) return true;
+  if (savedLabel === `${course.icon} ${course.label}`) return true;
+  return savedLabel.includes(course.label);
+}
+
+function getSavedPositionCourseId(lastPosition) {
+  if (lastPosition?.courseId) return lastPosition.courseId;
+  if (!lastPosition?.course) return '';
+
+  return COURSES.find((courseEntry) =>
+    savedCourseLabelMatches(courseEntry, lastPosition.course),
+  )?.id || '';
+}
+
 function getInitialNavigationState() {
   if (typeof window === 'undefined') {
     return {
@@ -422,7 +438,25 @@ export function useNavigation() {
     selectLessonPosition(courseIdx, mi, moduleData.lessons.length - 1, true);
   }, [courseIdx, modules, selectLessonPosition]);
 
-  const resumeFromPosition = useCallback((lastPosition) => {
+  const resumeFromPosition = useCallback(async (lastPosition) => {
+    const savedCourseId = getSavedPositionCourseId(lastPosition);
+    if (savedCourseId) {
+      const savedCourseIndex = COURSES.findIndex((entry) => entry.id === savedCourseId);
+      const needsLoad = savedCourseIndex >= 0 && !COURSES[savedCourseIndex]?.modules?.length;
+
+      if (needsLoad) {
+        try {
+          await ensureLoaded(savedCourseId);
+        } catch (error) {
+          logNavigationDiagnostic('resume-course-load-failed', {
+            selectedCourseId: savedCourseId,
+            errorMessage: error?.message || 'Course failed to load',
+          });
+          return false;
+        }
+      }
+    }
+
     const saved = findSavedPosition(lastPosition);
     if (!saved) return false;
 
@@ -433,7 +467,7 @@ export function useNavigation() {
       saved.isModuleQuiz,
       { replace: true },
     );
-  }, [selectLessonPosition]);
+  }, [ensureLoaded, selectLessonPosition]);
 
   return {
     courseIdx, modIdx, lesIdx, showModQuiz,

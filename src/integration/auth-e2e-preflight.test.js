@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { readFile } from 'node:fs/promises';
 import {
   loadAuthE2EEnvFile,
   parseAuthE2EEnvFile,
@@ -103,7 +104,6 @@ describe('authenticated E2E preflight', () => {
     expect(result.message).toContain('Authenticated E2E preflight passed');
     expect(result.message).not.toContain('secret-project-ref');
   });
-
   it('reports missing config without requiring local runs to fail', () => {
     const result = validateAuthE2EEnv({});
 
@@ -193,5 +193,12 @@ describe('authenticated E2E preflight', () => {
     expect(result.message).toContain('Reason: ENOTFOUND');
     expect(result.message).not.toContain('secret-project-ref');
     expect(result.message).not.toContain(validEnv.VITE_SUPABASE_ANON_KEY);
+  });
+
+  it('lets the CLI drain naturally after async network checks', async () => {
+    const scriptText = await readFile('scripts/auth-e2e-preflight.mjs', 'utf8');
+
+    expect(scriptText).not.toContain('process.exit(');
+    expect(scriptText).toContain('process.exitCode');
   });
 });

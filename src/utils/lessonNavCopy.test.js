@@ -114,7 +114,7 @@ describe('getNextStepHint', () => {
   it('matches the four user-facing states', () => {
     expect(getNextStepHint({ isLast: true, showModQuiz: false, isDone: true })).toMatch(/Track complete/);
     expect(getNextStepHint({ isLast: false, showModQuiz: true, isDone: false })).toMatch(/save this checkpoint/);
-    expect(getNextStepHint({ isLast: false, showModQuiz: false, isDone: false })).toMatch(/Complete the lesson/);
+    expect(getNextStepHint({ isLast: false, showModQuiz: false, isDone: false })).toMatch(/saves reading progress/i);
     expect(getNextStepHint({ isLast: false, showModQuiz: false, isDone: true })).toMatch(/Saved/);
   });
 });
@@ -144,7 +144,7 @@ describe('getCurrentStepCopy', () => {
       }),
     ).toEqual({
       title: 'Continue learning',
-      copy: 'Read this lesson, try the build, then use Complete lesson to save progress.',
+      copy: 'Read this lesson, try the build, then use Complete lesson to save reading progress.',
     });
   });
 

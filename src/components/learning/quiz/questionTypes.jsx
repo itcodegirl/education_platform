@@ -148,10 +148,15 @@ function CodeQuestion({ q, answer, onAnswer, submitted }) {
 
 function BugQuestion({ q, answer, onAnswer, submitted }) {
   const isCorrect = isAnswerCorrect(q, answer);
+  const prompt = q.question || 'Which line has the bug?';
+  const groupName = `qq-bug-${q.id || prompt.replace(/\W+/g, '-').toLowerCase()}`;
+  const promptId = `${groupName}-prompt`;
+
   return (
     <>
-      <p className="qq-text">{q.question || 'Which line has the bug?'}</p>
-      <div className="qq-bug-lines">
+      <p id={promptId} className="qq-text">{prompt}</p>
+      <fieldset className="qq-bug-lines" aria-describedby={promptId}>
+        <legend className="sr-only">{prompt}</legend>
         {q.lines.map((line, li) => {
           let cls = 'qq-bug-line';
           const isSelected = answer === li;
@@ -160,6 +165,7 @@ function BugQuestion({ q, answer, onAnswer, submitted }) {
           if (isSelected) cls += ' picked';
           if (submitted && li === q.correct) cls += ' is-correct';
           if (isWrongSelected) cls += ' is-wrong';
+          if (submitted) cls += ' disabled';
           const stateLabel = getChoiceStateLabel({
             isSelected,
             submitted,
@@ -167,25 +173,30 @@ function BugQuestion({ q, answer, onAnswer, submitted }) {
             isWrongSelected,
           });
           return (
-            <button
+            <label
               key={li}
-              type="button"
               className={cls}
-              onClick={() => onAnswer(li)}
-              disabled={submitted}
-              aria-pressed={isSelected}
-              aria-label={getChoiceAriaLabel({
-                prefix: `Line ${li + 1}`,
-                text: line,
-                stateLabel,
-              })}
             >
+              <input
+                className="qq-radio-native"
+                type="radio"
+                name={groupName}
+                value={li}
+                checked={isSelected}
+                onChange={() => onAnswer(li)}
+                disabled={submitted}
+                aria-label={getChoiceAriaLabel({
+                  prefix: `Line ${li + 1}`,
+                  text: line,
+                  stateLabel,
+                })}
+              />
               <span className="qq-line-num">{li + 1}</span>
               <code>{line}</code>
-            </button>
+            </label>
           );
         })}
-      </div>
+      </fieldset>
     </>
   );
 }

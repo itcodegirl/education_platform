@@ -494,44 +494,30 @@ export const Sidebar = memo(function Sidebar({
                 {
                   key: 'bookmarks',
                   icon: '★',
-                  label: 'Saved lessons',
-                  hint: 'Return to lessons you chose to keep close.',
                 },
                 {
                   key: 'sr',
                   icon: '↻',
-                  label: 'Review queue',
-                  hint: 'Practice cards that are due today.',
                 },
                 {
                   key: 'glossary',
                   icon: 'Aa',
-                  label: 'Glossary',
-                  hint: 'Look up a term when lesson language gets dense.',
                 },
                 {
                   key: 'cheatsheet',
                   icon: '{}',
-                  label: 'Cheat sheets',
-                  hint: 'Quick syntax reminders for the current track.',
                 },
                 {
                   key: 'projects',
                   icon: '<>',
-                  label: 'Build projects',
-                  hint: 'Use after a few lessons to make portfolio work.',
                 },
                 {
                   key: 'challenges',
                   icon: '✓',
-                  label: 'Challenges',
-                  hint: 'Hands-on practice when you want a stretch.',
                 },
                 {
                   key: 'badges',
                   icon: '☆',
-                  label: 'Badges',
-                  hint: 'Milestones earned inside CodeHerWay.',
                 },
               ].filter((t) =>
                 isLearningToolAvailable(t.key, hasCompletedProgress),
@@ -597,6 +583,7 @@ export const Sidebar = memo(function Sidebar({
                       setExpandedMod(isExpanded ? -1 : mi);
                     }}
                     disabled={!isModUnlocked}
+                    title={!isModUnlocked ? 'Finish the previous module to unlock' : undefined}
                     aria-expanded={isExpanded}
                     aria-label={`${module.title} module${isModUnlocked ? `, ${modDone}/${module.lessons.length} lessons completed` : ', locked until the previous module is complete'}`}
                   >
@@ -622,6 +609,7 @@ export const Sidebar = memo(function Sidebar({
                             className={`lesson-list-btn ${mi === modIdx && li === lesIdx && !showModQuiz ? 'act' : ''} ${isDone ? 'dn' : ''} ${!unlocked ? 'locked' : ''}`}
                             onClick={() => handleLessonSelect(module, lesson, mi, li, unlocked)}
                             disabled={!unlocked}
+                            title={!unlocked ? 'Complete the previous lesson to unlock' : undefined}
                             aria-label={`${lesson.title} lesson, ${lessonState.toLowerCase()}${!unlocked ? ' until the previous lesson is complete' : ''}`}
                             aria-current={mi === modIdx && li === lesIdx && !showModQuiz ? 'page' : undefined}
                           >

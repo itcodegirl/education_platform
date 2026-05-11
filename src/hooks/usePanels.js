@@ -14,6 +14,16 @@ function getPanelFromHistoryState(state) {
   return state?.[PANEL_HISTORY_KEY] || state?.[LEGACY_PANEL_HISTORY_KEY] || null;
 }
 
+function parseStoredBoolean(rawValue) {
+  if (rawValue === null || rawValue === undefined) return false;
+
+  try {
+    return JSON.parse(rawValue) === true;
+  } catch {
+    return rawValue === 'true' || rawValue === '1';
+  }
+}
+
 function createPanelHistoryState(name) {
   const currentState = { ...(window.history.state || {}) };
   delete currentState[LEGACY_PANEL_HISTORY_KEY];
@@ -25,8 +35,9 @@ function hasCompletedOnboarding(user) {
   const userId = user?.id || '';
   const scopedKey = getLearnerStorageKey('chw-onboarded', userId);
   const legacyKey = getLegacyStorageKey('chw-onboarded');
+  const scopedValue = window.localStorage.getItem(scopedKey);
 
-  if (window.localStorage.getItem(scopedKey) !== null) return true;
+  if (scopedValue !== null) return parseStoredBoolean(scopedValue);
 
   const legacyValue = window.localStorage.getItem(legacyKey);
   if (legacyValue === null) return false;
@@ -39,7 +50,7 @@ function hasCompletedOnboarding(user) {
     // already saw onboarding in the current browser.
   }
 
-  return true;
+  return parseStoredBoolean(legacyValue);
 }
 
 export function usePanels({ dataLoaded, user, lastPosition }) {

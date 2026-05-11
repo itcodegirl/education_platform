@@ -276,14 +276,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 
   if (result.ok) {
     console.log(result.message);
-    process.exit(0);
-  }
-
-  if (!result.required) {
+    process.exitCode = 0;
+  } else if (!result.required) {
     console.log(`Skipping authenticated E2E preflight locally: ${result.message}`);
-    process.exit(0);
+    process.exitCode = 0;
+  } else {
+    console.error(result.message);
+    process.exitCode = 1;
   }
-
-  console.error(result.message);
-  process.exit(1);
 }

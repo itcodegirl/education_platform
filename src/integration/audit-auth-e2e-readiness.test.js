@@ -115,4 +115,29 @@ describe('authenticated E2E readiness audit', () => {
       },
     ]);
   });
+
+  it('guards authenticated setup from hiding configured auth failures as skips', () => {
+    const result = auditAuthE2EReadiness({
+      packageJsonText: packageJsonText(),
+      authSmokeScriptText: validAuthSmokeScript,
+      authSetupSpecText: `
+        if (!authReady.ok) {
+          markAuthUnavailable(authReady.reason);
+          test.skip(true, authReady.reason);
+        }
+      `,
+      workflowFiles: [{ filePath: '.github/workflows/e2e-smoke.yml', text: validWorkflow }],
+    });
+
+    expect(result.issues).toEqual([
+      {
+        source: 'tests/e2e/authenticated.setup.spec.js',
+        message: 'Authenticated setup must fail, not skip, when configured credentials cannot reach the learner shell.',
+      },
+      {
+        source: 'tests/e2e/authenticated.setup.spec.js',
+        message: 'Authenticated setup must throw authReady.reason after marking configured auth unavailable.',
+      },
+    ]);
+  });
 });

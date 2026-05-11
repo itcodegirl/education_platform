@@ -182,7 +182,7 @@
   display: block;
   width: 100%;
   margin-top: 12px;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 12px;
   color: var(--text-dim);
   font-size: 14px;
@@ -1061,6 +1061,92 @@
   color: var(--pink);
   margin-top: 16px;
   letter-spacing: 1px;
+}
+
+/* Recommended-next-track callout above the action buttons. Borrows
+   the course's accent color so the visual cue carries the meaning
+   without relying on text scale. */
+.cc-next-track {
+  margin-top: 16px;
+  margin-bottom: 4px;
+}
+
+.cc-next-track-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.cc-next-track-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 2px solid var(--border-bright);
+  border-radius: 12px;
+  background: var(--bg-card);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: transform 0.18s var(--ease-out), border-color 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out);
+}
+
+.cc-next-track-btn:hover,
+.cc-next-track-btn:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+.cc-next-track-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.cc-next-track-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cc-next-track-title {
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+}
+
+.cc-next-track-sub {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.cc-next-track-arrow {
+  font-size: 20px;
+  color: var(--text-dim);
+  transition: transform 0.18s var(--ease-out);
+}
+
+.cc-next-track-btn:hover .cc-next-track-arrow,
+.cc-next-track-btn:focus-visible .cc-next-track-arrow {
+  transform: translateX(2px);
+  color: var(--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-next-track-btn,
+  .cc-next-track-arrow {
+    transition: none;
+  }
+  .cc-next-track-btn:hover,
+  .cc-next-track-btn:focus-visible {
+    transform: none;
+  }
 }
 
 .cc-actions {

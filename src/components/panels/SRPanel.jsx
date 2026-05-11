@@ -170,6 +170,9 @@ export function SRPanel({ isOpen, onClose }) {
                   ? `${queue.length} card${queue.length > 1 ? "s are" : " is"} scheduled for later. Nothing needs attention right now.`
                   : "No review cards are due yet. Complete quizzes or use the form above to create one focused card."}
               </p>
+              <button type="button" className="empty-state-action" onClick={onClose}>
+                Back to lesson
+              </button>
             </div>
           ) : currentIdx >= due.length ? (
             <>

@@ -78,7 +78,7 @@ export function getLessonProductFrame(lesson, options = {}) {
       lesson?.bridge?.preview,
       nextTitle && `Continue with ${nextTitle}.`,
       lesson?.challenge?.bonusChallenge,
-      `Mark the lesson complete, then take the quick check or continue forward.`,
+      `Use Complete lesson to save reading progress, then take the quick check or continue forward.`,
     ),
   };
 }

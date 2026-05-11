@@ -76,6 +76,28 @@ Leave `E2E_AUTH_REQUIRED=false` for normal local development if you want
 missing credentials to self-skip. Set it to `true` when validating that
 the authenticated setup is complete.
 
+## Troubleshooting Authenticated Setup
+
+Playwright output lines that start with `-` are skipped tests, not passing
+authenticated coverage. When all four E2E values are configured, the setup
+spec should fail loudly instead of skipping if the learner cannot reach the
+signed-in app shell.
+
+- `Configured E2E test account is signed in but disabled.` means the dedicated
+  learner can authenticate, but its `profiles.is_disabled` flag or equivalent
+  admin state blocks access. Re-enable the test learner or use a non-disabled
+  dedicated E2E account.
+- `Configured E2E test account signed in, but its profile could not be
+  verified.` means auth succeeded but the app could not read the learner
+  profile. Check the E2E `profiles` row, profile grants, and profile RLS
+  policies before trusting the smoke result.
+- `Could not find the table 'public.progress' in the schema cache` means the
+  E2E Supabase project is missing the base schema or its schema cache has not
+  refreshed after migration. Apply `supabase-schema.sql` and the additive
+  migrations, then retry after the project can read `public.progress`.
+
+Treat a skipped authenticated E2E run as a known limitation, not as a signed-in test pass.
+
 ## Artifact Inspection
 
 On failed E2E runs, download the workflow artifact named one of:
