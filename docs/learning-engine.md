@@ -194,6 +194,11 @@ the lesson-level "Today's learning loop" surface. This is display-only
 scaffolding: it helps learners choose a useful next action without creating
 hard gates or new reward rules.
 
+`src/utils/learningAnalyticsPayloads.js` keeps learner-action analytics
+payloads small and non-sensitive. Learning-loop clicks and challenge
+workspace/completion events track ids, readiness labels, and counts, but do
+not send learner source code or reflection text.
+
 ## 6. XP, streaks, daily goal, badges
 
 `recordDailyActivity` (in `ProgressContext`) is the single owner of:

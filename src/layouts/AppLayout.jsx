@@ -42,6 +42,7 @@ import { getLessonCompletionActionCopy } from "../utils/lessonCompletionCopy";
 import { getSyncStatusCopy } from "../utils/syncStatusCopy";
 import { getLessonMasteryStatus } from "../utils/lessonMasteryStatus";
 import { getDailyLearningLoopSteps } from "../utils/dailyLearningLoop";
+import { getLearningLoopActionPayload } from "../utils/learningAnalyticsPayloads";
 
 // Layout components
 import { Sidebar } from "../components/layout/Sidebar";
@@ -356,6 +357,18 @@ export function AppLayout() {
     panels,
     hasCompletedProgress,
   });
+  const handleLearningLoopAction = useCallback((action) => {
+    trackEvent('learning_loop_action_clicked', getLearningLoopActionPayload({
+      action,
+      course,
+      moduleData: mod,
+      lesson: les,
+      dueReviewCount,
+      isLessonDone: isDone,
+      hasLessonQuiz: Boolean(lessonQuiz),
+      masteryStatus: lessonMasteryStatus,
+    }));
+  }, [course, dueReviewCount, isDone, les, lessonMasteryStatus, lessonQuiz, mod]);
 
   useEffect(() => {
     setMobileToolsOpen(false);
@@ -499,6 +512,7 @@ export function AppLayout() {
                 steps={learningLoopSteps}
                 onOpenReview={() => handleOpenTool('sr')}
                 onOpenChallenges={() => handleOpenTool('challenges')}
+                onAction={handleLearningLoopAction}
               />
               <LessonView
                 lesson={les}

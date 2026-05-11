@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { getChallengesForCourse } from '../../data/challenges';
 import { COURSES } from '../../data';
 import { CodeChallenge } from '../learning/CodeChallenge';
@@ -8,6 +8,8 @@ import { useLearning } from '../../hooks/useLearning';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 import { getChallengeProgressionPlan } from '../../utils/challengeProgression';
 import { getChallengeEvidenceSummary } from '../../utils/challengeEvidence';
+import { getChallengeAnalyticsPayload } from '../../utils/learningAnalyticsPayloads';
+import { trackEvent } from '../../lib/analytics';
 
 export function ChallengesPanel({ courseId, lang, onClose }) {
   const challenges = getChallengesForCourse(courseId);
@@ -32,6 +34,16 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
     [activeChallenge, completed],
   );
   const modalRef = useRef(null);
+
+  const openChallenge = useCallback((challenge, source) => {
+    setActiveChallenge(challenge);
+    trackEvent('challenge_workspace_opened', getChallengeAnalyticsPayload({
+      challenge,
+      courseId,
+      source,
+      isCompleted: completed.has(challenge?.id),
+    }));
+  }, [completed, courseId]);
 
   useFocusTrap(modalRef, { enabled: true, onEscape: onClose });
 
@@ -115,6 +127,12 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
               challenge={activeChallenge}
               lang={lang}
               onComplete={() => {
+                trackEvent('challenge_completed', getChallengeAnalyticsPayload({
+                  challenge: activeChallenge,
+                  courseId,
+                  source: 'workspace',
+                  isCompleted: completed.has(activeChallenge?.id),
+                }));
                 // completeChallenge is async (it awaits awardRewardOnce),
                 // but we deliberately don't block the UI on reward sync —
                 // see the commit history around 'prevent reward processing
@@ -193,7 +211,7 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
                   <button
                     type="button"
                     className="challenge-path-cta"
-                    onClick={() => setActiveChallenge(challengePlan.recommended)}
+                    onClick={() => openChallenge(challengePlan.recommended, 'recommendation')}
                     aria-label={`Start recommended challenge: ${challengePlan.recommended.title}`}
                   >
                     Start recommended
@@ -214,7 +232,7 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
                     type="button"
                     key={challenge.id}
                     className={`challenge-card ${completed.has(challenge.id) ? 'done' : ''}`}
-                    onClick={() => setActiveChallenge(challenge)}
+                    onClick={() => openChallenge(challenge, 'list')}
                   >
                     <div className="challenge-card-top">
                       <span className={`challenge-card-icon ${completed.has(challenge.id) ? 'is-done' : 'is-open'}`}>

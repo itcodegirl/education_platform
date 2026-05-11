@@ -4,8 +4,19 @@ export const DailyLearningLoop = memo(function DailyLearningLoop({
   steps,
   onOpenReview,
   onOpenChallenges,
+  onAction,
 }) {
   if (!Array.isArray(steps) || steps.length === 0) return null;
+
+  const handleOpenReview = () => {
+    onAction?.('review');
+    onOpenReview?.();
+  };
+
+  const handleOpenChallenges = () => {
+    onAction?.('challenges');
+    onOpenChallenges?.();
+  };
 
   return (
     <section className="daily-loop" aria-label="Today's learning loop">
@@ -15,10 +26,10 @@ export const DailyLearningLoop = memo(function DailyLearningLoop({
           <h2 className="daily-loop-title">Keep progress useful</h2>
         </div>
         <div className="daily-loop-actions">
-          <button type="button" className="daily-loop-action" onClick={onOpenReview}>
+          <button type="button" className="daily-loop-action" onClick={handleOpenReview}>
             Review
           </button>
-          <button type="button" className="daily-loop-action" onClick={onOpenChallenges}>
+          <button type="button" className="daily-loop-action" onClick={handleOpenChallenges}>
             Challenges
           </button>
         </div>

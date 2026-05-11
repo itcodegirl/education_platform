@@ -2,9 +2,10 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { ChallengesPanel } from './ChallengesPanel';
 
-const { mockUseProgressData, mockUseLearning } = vi.hoisted(() => ({
+const { mockUseProgressData, mockUseLearning, mockTrackEvent } = vi.hoisted(() => ({
   mockUseProgressData: vi.fn(),
   mockUseLearning: vi.fn(),
+  mockTrackEvent: vi.fn(),
 }));
 
 vi.mock('../../data/challenges', () => ({
@@ -56,6 +57,10 @@ vi.mock('../../hooks/useLearning', () => ({
   useLearning: () => mockUseLearning(),
 }));
 
+vi.mock('../../lib/analytics', () => ({
+  trackEvent: (...args) => mockTrackEvent(...args),
+}));
+
 describe('ChallengesPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -99,6 +104,17 @@ describe('ChallengesPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: /complete build a card/i }));
 
     expect(completeChallenge).toHaveBeenCalledWith('challenge-1');
+    expect(mockTrackEvent).toHaveBeenCalledWith('challenge_workspace_opened', expect.objectContaining({
+      challengeId: 'challenge-1',
+      courseId: 'html',
+      source: 'recommendation',
+      requirementCount: 2,
+      testCount: 2,
+    }));
+    expect(mockTrackEvent).toHaveBeenCalledWith('challenge_completed', expect.objectContaining({
+      challengeId: 'challenge-1',
+      source: 'workspace',
+    }));
   });
 
   it('shows challenge evidence scope inside the challenge workspace', () => {
