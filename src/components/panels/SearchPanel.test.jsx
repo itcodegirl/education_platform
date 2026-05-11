@@ -46,18 +46,18 @@ describe('SearchPanel', () => {
     expect(
       screen.getByText(/Search all lessons/i),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Type at least two letters/i)).toBeInTheDocument();
+    expect(screen.getByText(/Type at least two letters from a lesson/i)).toBeInTheDocument();
   });
 
   it('shows a clear no-results message when query has no matches', () => {
     render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
 
-    fireEvent.change(screen.getByRole('combobox', { name: /Search lessons/i }), {
+    fireEvent.change(screen.getByRole('textbox', { name: /Search lessons/i }), {
       target: { value: 'zzz' },
     });
 
     expect(
-      screen.getByText(/No results for/i),
+      screen.getByText(/No results for/i, { selector: 'strong' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /clear search/i })).toBeInTheDocument();
   });
@@ -68,7 +68,7 @@ describe('SearchPanel', () => {
 
     render(<SearchPanel isOpen onClose={onClose} onNavigate={onNavigate} />);
 
-    const input = screen.getByRole('combobox', { name: /Search lessons/i });
+    const input = screen.getByRole('textbox', { name: /Search lessons/i });
     fireEvent.change(input, {
       target: { value: 'flexbox' },
     });
@@ -76,5 +76,19 @@ describe('SearchPanel', () => {
 
     expect(onNavigate).toHaveBeenCalledWith(1, 0, 2);
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('announces keyboard result selection without combobox option roles', () => {
+    render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
+
+    const input = screen.getByRole('textbox', { name: /Search lessons/i });
+    fireEvent.change(input, {
+      target: { value: 'flexbox' },
+    });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+    expect(screen.getByRole('status')).toHaveTextContent(/Flexbox Basics selected/i);
+    expect(screen.queryByRole('option')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Flexbox Basics/i })).toBeInTheDocument();
   });
 });

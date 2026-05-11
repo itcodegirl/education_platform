@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useCallback, lazy, Suspense, useEffect, memo } from 'react';
+﻿import { useState, useRef, useCallback, lazy, Suspense, useEffect, memo, useId } from 'react';
 import { IFRAME_STYLES } from '../../utils/iframeStyles';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { usePrefersReducedData } from '../../hooks/usePrefersReducedData';
@@ -44,6 +44,7 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
   const [forceFullEditor, setForceFullEditor] = useState(false);
   const useTextareaEditor = isMobile || (prefersReducedData && !forceFullEditor);
   const editorRef = useRef(null);
+  const tabBaseId = useId();
 
   const isCSS = lang === 'css';
   const isJS = lang === 'js' || lang === 'react';
@@ -116,6 +117,43 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
   const tabIcon = isJS ? 'f' : isCSS ? '{ }' : '<>';
   const previewLabel = isJS ? 'Run' : 'Preview';
   const previewSource = tab === 'code' ? code : editorCode;
+  const visibleTabs = [
+    ...(scaffolding !== 'requirements'
+      ? [{ id: 'code', label: `${tabIcon} Code` }]
+      : []),
+    {
+      id: 'editor',
+      label: scaffolding === 'requirements' ? '✏️ Write Code' : 'Editor',
+    },
+    { id: 'preview', label: previewLabel },
+  ];
+  const getTabId = (tabId) => `${tabBaseId}-${tabId}-tab`;
+  const getPanelId = (tabId) => `${tabBaseId}-${tabId}-panel`;
+
+  const handleTabKeyDown = (event) => {
+    const currentIndex = visibleTabs.findIndex((item) => item.id === tab);
+    if (currentIndex < 0) return;
+
+    const lastIndex = visibleTabs.length - 1;
+    const keyActions = {
+      ArrowRight: currentIndex === lastIndex ? 0 : currentIndex + 1,
+      ArrowDown: currentIndex === lastIndex ? 0 : currentIndex + 1,
+      ArrowLeft: currentIndex === 0 ? lastIndex : currentIndex - 1,
+      ArrowUp: currentIndex === 0 ? lastIndex : currentIndex - 1,
+      Home: 0,
+      End: lastIndex,
+    };
+
+    if (!(event.key in keyActions)) return;
+    event.preventDefault();
+
+    const nextTab = visibleTabs[keyActions[event.key]].id;
+    setTab(nextTab);
+    event.currentTarget
+      .parentElement
+      ?.querySelector(`[data-code-preview-tab="${nextTab}"]`)
+      ?.focus();
+  };
 
   return (
     <div className="code-preview">
@@ -129,17 +167,25 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
       )}
 
       <div className="code-preview-tabs">
-        {scaffolding !== 'requirements' && (
-          <button type="button" className={`code-preview-tab ${tab === 'code' ? 'on' : ''}`} onClick={() => setTab('code')}>
-            {tabIcon} Code
-          </button>
-        )}
-        <button type="button" className={`code-preview-tab ${tab === 'editor' ? 'on' : ''}`} onClick={() => setTab('editor')}>
-          {scaffolding === 'requirements' ? '✏️ Write Code' : 'Editor'}
-        </button>
-        <button type="button" className={`code-preview-tab ${tab === 'preview' ? 'on' : ''}`} onClick={() => setTab('preview')}>
-          {previewLabel}
-        </button>
+        <div className="code-preview-tablist" role="tablist" aria-label="Code preview views">
+          {visibleTabs.map((item) => (
+            <button
+              key={item.id}
+              id={getTabId(item.id)}
+              type="button"
+              role="tab"
+              className={`code-preview-tab ${tab === item.id ? 'on' : ''}`}
+              aria-selected={tab === item.id}
+              aria-controls={getPanelId(item.id)}
+              tabIndex={tab === item.id ? 0 : -1}
+              data-code-preview-tab={item.id}
+              onClick={() => setTab(item.id)}
+              onKeyDown={handleTabKeyDown}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
 
         <div className="code-preview-actions">
           {tab === 'editor' && editorCode !== code && (
@@ -167,7 +213,10 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
 
       {tab === 'code' && (
         <pre
+          id={getPanelId('code')}
           className="code-preview-code"
+          role="tabpanel"
+          aria-labelledby={getTabId('code')}
           tabIndex={0}
           aria-label={`${monacoLang.toUpperCase()} code sample`}
         >
@@ -176,7 +225,12 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
       )}
 
       {tab === 'editor' && (
-        <div className="code-preview-editor-wrap">
+        <div
+          id={getPanelId('editor')}
+          className="code-preview-editor-wrap"
+          role="tabpanel"
+          aria-labelledby={getTabId('editor')}
+        >
           {useTextareaEditor ? (
             <>
               <textarea
@@ -251,12 +305,18 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
       )}
 
       {tab === 'preview' && (
-        <iframe
-          className="code-preview-iframe"
-          srcDoc={buildPreview(previewSource)}
-          title={isJS ? 'Code output' : isCSS ? 'CSS preview' : 'HTML preview'}
-          sandbox="allow-scripts"
-        />
+        <div
+          id={getPanelId('preview')}
+          role="tabpanel"
+          aria-labelledby={getTabId('preview')}
+        >
+          <iframe
+            className="code-preview-iframe"
+            srcDoc={buildPreview(previewSource)}
+            title={isJS ? 'Code output' : isCSS ? 'CSS preview' : 'HTML preview'}
+            sandbox="allow-scripts"
+          />
+        </div>
       )}
     </div>
   );

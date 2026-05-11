@@ -265,6 +265,9 @@ function OrderQuestion({ q, answer, onAnswer, submitted }) {
       <div className="qq-order-list">
         {items.map((itemIdx, pos) => {
           let cls = 'qq-order-item';
+          const currentPosition = pos + 1;
+          const upTarget = Math.max(1, pos);
+          const downTarget = Math.min(items.length, pos + 2);
           if (submitted) {
             cls += q.correct[pos] === itemIdx ? ' is-correct' : ' is-wrong';
           }
@@ -279,7 +282,7 @@ function OrderQuestion({ q, answer, onAnswer, submitted }) {
                     className="qq-order-btn"
                     onClick={() => moveUp(pos)}
                     disabled={pos === 0}
-                    aria-label={`Move ${q.items[itemIdx]} from position ${pos + 1} to position ${pos}`}
+                    aria-label={`Move ${q.items[itemIdx]} from position ${currentPosition} to position ${upTarget}`}
                   >
                     ↑
                   </button>
@@ -288,7 +291,7 @@ function OrderQuestion({ q, answer, onAnswer, submitted }) {
                     className="qq-order-btn"
                     onClick={() => moveDown(pos)}
                     disabled={pos === items.length - 1}
-                    aria-label={`Move ${q.items[itemIdx]} from position ${pos + 1} to position ${pos + 2}`}
+                    aria-label={`Move ${q.items[itemIdx]} from position ${currentPosition} to position ${downTarget}`}
                   >
                     ↓
                   </button>
