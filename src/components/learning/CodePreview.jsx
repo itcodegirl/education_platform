@@ -196,47 +196,49 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
         <span>{guidanceCopy}</span>
       </div>
 
-      <div
-        className="code-preview-tabs"
-        role="tablist"
-        aria-label="Code practice views"
-        aria-describedby={`${previewId}-guidance`}
-      >
-        {scaffolding !== 'requirements' && (
+      <div className="code-preview-toolbar">
+        <div
+          className="code-preview-tabs"
+          role="tablist"
+          aria-label="Code practice views"
+          aria-describedby={`${previewId}-guidance`}
+        >
+          {scaffolding !== 'requirements' && (
+            <button
+              type="button"
+              id={`${previewId}-tab-code`}
+              className={`code-preview-tab ${tab === 'code' ? 'on' : ''}`}
+              role="tab"
+              aria-selected={tab === 'code'}
+              aria-controls={`${previewId}-panel-code`}
+              onClick={() => setTab('code')}
+            >
+              {tabIcon} Code
+            </button>
+          )}
           <button
             type="button"
-            id={`${previewId}-tab-code`}
-            className={`code-preview-tab ${tab === 'code' ? 'on' : ''}`}
+            id={`${previewId}-tab-editor`}
+            className={`code-preview-tab ${tab === 'editor' ? 'on' : ''}`}
             role="tab"
-            aria-selected={tab === 'code'}
-            aria-controls={`${previewId}-panel-code`}
-            onClick={() => setTab('code')}
+            aria-selected={tab === 'editor'}
+            aria-controls={`${previewId}-panel-editor`}
+            onClick={() => setTab('editor')}
           >
-            {tabIcon} Code
+            {scaffolding === 'requirements' ? '✏️ Write Code' : 'Editor'}
           </button>
-        )}
-        <button
-          type="button"
-          id={`${previewId}-tab-editor`}
-          className={`code-preview-tab ${tab === 'editor' ? 'on' : ''}`}
-          role="tab"
-          aria-selected={tab === 'editor'}
-          aria-controls={`${previewId}-panel-editor`}
-          onClick={() => setTab('editor')}
-        >
-          {scaffolding === 'requirements' ? '✏️ Write Code' : 'Editor'}
-        </button>
-        <button
-          type="button"
-          id={`${previewId}-tab-preview`}
-          className={`code-preview-tab ${tab === 'preview' ? 'on' : ''}`}
-          role="tab"
-          aria-selected={tab === 'preview'}
-          aria-controls={`${previewId}-panel-preview`}
-          onClick={() => setTab('preview')}
-        >
-          {previewLabel}
-        </button>
+          <button
+            type="button"
+            id={`${previewId}-tab-preview`}
+            className={`code-preview-tab ${tab === 'preview' ? 'on' : ''}`}
+            role="tab"
+            aria-selected={tab === 'preview'}
+            aria-controls={`${previewId}-panel-preview`}
+            onClick={() => setTab('preview')}
+          >
+            {previewLabel}
+          </button>
+        </div>
 
         <div className="code-preview-actions">
           {tab === 'editor' && editorCode !== code && (
