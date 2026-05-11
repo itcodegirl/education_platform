@@ -46,12 +46,15 @@ export function CheatsheetPanel({ isOpen, onClose, currentCourse }) {
           </button>
         </div>
 
-        <div className="cs-btn-row">
+        <div className="cs-btn-row" role="group" aria-label="Cheat sheet course tracks">
           {courseKeys.map((courseKey) => (
             <button
               type="button"
               key={courseKey}
               className={`cs-trigger ${courseKey === activeCourse ? "active" : ""}`}
+              aria-pressed={courseKey === activeCourse}
+              aria-controls="cheatsheet-panel-content"
+              aria-label={`Show ${courseKey.toUpperCase()} cheat sheet`}
               onClick={() => setActiveCourse(courseKey)}
             >
               {courseKey.toUpperCase()}
@@ -59,7 +62,12 @@ export function CheatsheetPanel({ isOpen, onClose, currentCourse }) {
           ))}
         </div>
 
-        <div className="cheatsheet-body">
+        <div
+          id="cheatsheet-panel-content"
+          className="cheatsheet-body"
+          role="region"
+          aria-label={`${displayCourse} cheat sheet content`}
+        >
           <p className="panel-meta">
             Switch stacks to keep syntax, tags, and common patterns close while
             you work through lessons.
@@ -75,14 +83,14 @@ export function CheatsheetPanel({ isOpen, onClose, currentCourse }) {
             sections.map((section, index) => (
               <div key={index} className="cs-section">
                 <h3>{section.title}</h3>
-                <div className="cs-grid">
+                <ul className="cs-grid" aria-label={`${section.title} references`}>
                   {section.items.map(([syntax, desc], itemIndex) => (
-                    <div key={itemIndex} className="cs-item">
+                    <li key={itemIndex} className="cs-item">
                       <code>{syntax}</code>
                       <div className="cs-desc">{desc}</div>
-                    </div>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
             ))
           )}
