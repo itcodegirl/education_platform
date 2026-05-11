@@ -69,7 +69,9 @@ if (!preflight.ok) {
     process.exit(1);
   }
 
+  console.log(`AUTH_E2E_SKIPPED (${preflight.reason || 'not_required'}): authenticated smoke did not run.`);
   console.log(`Skipping authenticated E2E smoke locally: ${preflight.message}`);
+  console.log('This is not a signed-in validation pass.');
   process.exit(0);
 }
 

@@ -101,6 +101,8 @@ describe('authenticated E2E preflight', () => {
     const result = await runAuthE2EPreflight(env, { checkReachability });
 
     expect(result.ok).toBe(true);
+    expect(result.status).toBe('passed');
+    expect(result.reason).toBe('reachable');
     expect(result.message).toContain('Authenticated E2E preflight passed');
     expect(result.message).not.toContain('secret-project-ref');
   });
@@ -165,6 +167,8 @@ describe('authenticated E2E preflight', () => {
     });
 
     expect(result.ok).toBe(true);
+    expect(result.status).toBe('passed');
+    expect(result.reason).toBe('reachable');
     expect(result.message).toContain('Authenticated E2E preflight passed');
     expect(result.message).toContain('https://[redacted-host]');
     expect(result.message).not.toContain('secret-project-ref');
@@ -188,7 +192,9 @@ describe('authenticated E2E preflight', () => {
     });
 
     expect(result.ok).toBe(false);
+    expect(result.status).toBe('failed');
     expect(result.required).toBe(true);
+    expect(result.reason).toBe('ENOTFOUND');
     expect(result.message).toContain('Supabase host is unreachable');
     expect(result.message).toContain('Reason: ENOTFOUND');
     expect(result.message).not.toContain('secret-project-ref');
