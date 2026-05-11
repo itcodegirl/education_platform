@@ -190,7 +190,7 @@ export function AdminDashboard({ onClose }) {
             onClick={() => window.location.reload()}
             aria-label="Reload the admin dashboard"
           >
-            Retry Retry
+            Retry
           </button>
         </div>
       </div>

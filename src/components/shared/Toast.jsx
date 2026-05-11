@@ -7,9 +7,22 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 
 const ToastContext = createContext({ show: () => {} });
+const DEFAULT_TOAST_DURATION_MS = 2500;
+
+function normalizeToastOptions(options) {
+  if (typeof options === 'number') {
+    return { duration: options, tone: 'status' };
+  }
+
+  const tone = options?.tone || options?.variant || 'status';
+  return {
+    duration: options?.duration ?? DEFAULT_TOAST_DURATION_MS,
+    tone: ['alert', 'assertive', 'danger', 'error'].includes(tone) ? 'error' : tone,
+  };
+}
 
 export function ToastProvider({ children }) {
-  const [message, setMessage] = useState(null);
+  const [toast, setToast] = useState(null);
   const [visible, setVisible] = useState(false);
   const hideTimerRef = useRef(null);
   const clearTimerRef = useRef(null);
@@ -25,13 +38,14 @@ export function ToastProvider({ children }) {
     }
   }, []);
 
-  const show = useCallback((text, duration = 2500) => {
+  const show = useCallback((text, options = DEFAULT_TOAST_DURATION_MS) => {
+    const { duration, tone } = normalizeToastOptions(options);
     clearToastTimers();
-    setMessage(text);
+    setToast({ text, tone });
     setVisible(true);
     hideTimerRef.current = setTimeout(() => setVisible(false), duration);
     clearTimerRef.current = setTimeout(() => {
-      setMessage(null);
+      setToast(null);
       hideTimerRef.current = null;
       clearTimerRef.current = null;
     }, duration + 300);
@@ -42,14 +56,14 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={{ show }}>
       {children}
-      {message && (
+      {toast && (
         <div
-          className={`toast ${visible ? 'toast-in' : 'toast-out'}`}
-          role="status"
-          aria-live="polite"
+          className={`toast toast-${toast.tone} ${visible ? 'toast-in' : 'toast-out'}`}
+          role={toast.tone === 'error' ? 'alert' : 'status'}
+          aria-live={toast.tone === 'error' ? 'assertive' : 'polite'}
           aria-atomic="true"
         >
-          {message}
+          {toast.text}
         </div>
       )}
     </ToastContext.Provider>

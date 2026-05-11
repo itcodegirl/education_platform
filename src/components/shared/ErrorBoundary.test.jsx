@@ -11,9 +11,9 @@
 // ═══════════════════════════════════════════════
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React, { useState } from 'react';
-import { ErrorBoundary } from './ErrorBoundary';
+import { ErrorBoundary, didResetKeysChange, shouldRevealErrorDetails } from './ErrorBoundary';
 
 let suppressExpectedBoundaryErrors;
 
@@ -44,6 +44,17 @@ function BombChild({ shouldThrow, message = 'test error' }) {
 }
 
 describe('ErrorBoundary', () => {
+  it('detects when reset keys changed', () => {
+    expect(didResetKeysChange(['search'], ['search'])).toBe(false);
+    expect(didResetKeysChange(['search'], ['challenges'])).toBe(true);
+    expect(didResetKeysChange(['search'], ['search', 'open'])).toBe(true);
+  });
+
+  it('keeps raw error details out of production fallbacks', () => {
+    expect(shouldRevealErrorDetails({ DEV: true })).toBe(true);
+    expect(shouldRevealErrorDetails({ DEV: false })).toBe(false);
+  });
+
   it('renders children normally when no error is thrown', () => {
     render(
       <ErrorBoundary>
@@ -63,6 +74,26 @@ describe('ErrorBoundary', () => {
     expect(screen.getByText('Something went wrong')).toBeInTheDocument();
     expect(screen.getByText('boom')).toBeInTheDocument();
     expect(screen.queryByTestId('child')).not.toBeInTheDocument();
+  });
+
+  it('resets the fallback when resetKeys change', async () => {
+    function Controlled({ panelName }) {
+      return (
+        <ErrorBoundary resetKeys={[panelName]}>
+          <BombChild shouldThrow={panelName === 'broken-panel'} message="boom" />
+        </ErrorBoundary>
+      );
+    }
+
+    const { rerender } = render(<Controlled panelName="broken-panel" />);
+    expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+
+    rerender(<Controlled panelName="safe-panel" />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('child')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Something went wrong')).not.toBeInTheDocument();
   });
 
   it('renders a retry button that resets the error state', () => {

@@ -43,6 +43,14 @@ function redactUrl(url) {
   return `${url.protocol}//[redacted-host]`;
 }
 
+function getFailureStatus(required) {
+  return required ? 'failed' : 'skipped';
+}
+
+function summarizeProblemCodes(problems = []) {
+  return problems.map((problem) => problem.code).filter(Boolean).join(',') || 'unknown';
+}
+
 function stripMatchingQuotes(value) {
   if (value.length < 2) return value;
   const first = value[0];
@@ -237,6 +245,9 @@ export async function runAuthE2EPreflight(env = process.env, options = {}) {
     return {
       ok: false,
       required: validation.required,
+      status: getFailureStatus(validation.required),
+      reason: summarizeProblemCodes(validation.problems),
+      missing: validation.missing,
       message: [
         'Authenticated E2E preflight failed.',
         ...validation.problems.map((problem) => problem.message),
@@ -250,12 +261,16 @@ export async function runAuthE2EPreflight(env = process.env, options = {}) {
     return {
       ok: true,
       required: validation.required,
+      status: 'passed',
+      reason: 'reachable',
       message: `Authenticated E2E preflight passed for ${redactUrl(validation.url)} (HTTP ${reachability.status}).`,
     };
   } catch (error) {
     return {
       ok: false,
       required: validation.required,
+      status: getFailureStatus(validation.required),
+      reason: error?.code || error?.name || 'unreachable_supabase',
       message: [
         'Authenticated E2E preflight failed.',
         `Supabase host is unreachable for ${redactUrl(validation.url)}.`,

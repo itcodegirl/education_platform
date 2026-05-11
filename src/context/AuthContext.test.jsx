@@ -88,6 +88,11 @@ describe('AuthProvider', () => {
     expect(screen.getByTestId('user')).toHaveTextContent('no-user');
     expect(screen.getByTestId('auth-backend')).toHaveTextContent('connected');
 
+    await waitFor(() => {
+      expect(mockOnAuthStateChange).toHaveBeenCalledTimes(1);
+      expect(mockGetInitialSession).toHaveBeenCalledTimes(1);
+    });
+
     await act(async () => {
       session.resolve({ id: 'user-1' });
       await session.promise;
@@ -105,6 +110,10 @@ describe('AuthProvider', () => {
     mockGetInitialSession.mockReturnValue(session.promise);
 
     renderAuthProvider();
+
+    await waitFor(() => {
+      expect(mockOnAuthStateChange).toHaveBeenCalledTimes(1);
+    });
 
     await act(async () => {
       authCallback(null);
@@ -165,6 +174,20 @@ describe('AuthProvider', () => {
       expect(screen.getByTestId('user')).toHaveTextContent('user-1');
       expect(screen.getByTestId('profile')).toHaveTextContent('no-profile');
       expect(screen.getByTestId('profile-error')).toHaveTextContent('profile lookup failed');
+    });
+  });
+
+  it('treats a missing profile row as an account verification failure', async () => {
+    mockGetInitialSession.mockResolvedValue({ id: 'user-1' });
+    mockLoadProfile.mockRejectedValue(new Error('Profile record not found.'));
+
+    renderAuthProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('loading')).toHaveTextContent('ready');
+      expect(screen.getByTestId('user')).toHaveTextContent('user-1');
+      expect(screen.getByTestId('profile')).toHaveTextContent('no-profile');
+      expect(screen.getByTestId('profile-error')).toHaveTextContent('Profile record not found.');
     });
   });
 });

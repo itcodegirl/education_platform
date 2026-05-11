@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildSearchIndexFromCourses } from './search-index';
+import { buildSearchIndexFromCourses } from './search-index-core';
 
 describe('buildSearchIndexFromCourses', () => {
   it('indexes structured lesson search coverage', () => {
