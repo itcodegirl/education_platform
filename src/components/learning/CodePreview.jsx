@@ -194,7 +194,6 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
           ? `Change one small detail, then ${previewLabel.toLowerCase()} the result before moving on.`
           : 'Read the sample first, then try one small change in the editor.';
 
-
   const handleTabKeyDown = (event) => {
     const currentIndex = visibleTabs.findIndex((item) => item.id === tab);
     if (currentIndex < 0) return;
