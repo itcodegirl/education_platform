@@ -1,0 +1,90 @@
+/* Mobile performance tuning: keep touch scrolling stable on lower-power
+   devices while preserving the desktop visual system. */
+
+@media (max-width: 900px) {
+  .main-shell {
+    touch-action: pan-y;
+  }
+
+  .sidebar,
+  .sidebar-scroll,
+  .search-results,
+  .mobile-tools-sheet,
+  .cheatsheet-body {
+    overscroll-behavior-y: contain;
+  }
+
+  .code-preview-code,
+  .qq-code,
+  .lb-instructions-code {
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@supports (content-visibility: auto) {
+  @media (max-width: 900px) {
+    .lesson-quiz-wrap,
+    .quiz-container,
+    .code-preview,
+    .ai-tutor-panel,
+    .notes-panel {
+      content-visibility: auto;
+      contain-intrinsic-size: auto 360px;
+    }
+
+    .code-preview {
+      contain-intrinsic-size: auto 420px;
+    }
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .overlay,
+  .topbar,
+  .sidebar,
+  .pp,
+  .sidebar-tab-flyout,
+  .bottom-tools,
+  .lesson-nav,
+  .mobile-tools-sheet,
+  .search-overlay {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .search-overlay {
+    background: rgba(2, 2, 10, 0.86);
+  }
+
+  .code-preview-tab,
+  .nav-btn,
+  .mark-btn,
+  .tool-btn,
+  .theme-toggle,
+  .challenge-card,
+  .ob-card,
+  .cc-card,
+  .welcome-card,
+  .ai-send,
+  .cc-run-btn {
+    will-change: auto;
+  }
+
+  .concept-item:hover,
+  .gl-term:hover,
+  .project-card:hover,
+  .badge-card:hover,
+  .sr-opt:hover:not(:disabled),
+  .bookmark-item:hover,
+  .tool-btn:hover,
+  .lesson-action-btn:hover,
+  .qq-opt:hover:not(:disabled):not(.disabled),
+  .qq-opt:not(.disabled):hover,
+  .quiz-submit:not(:disabled):hover,
+  .quiz-retry:hover,
+  .search-result:hover,
+  .search-result.active {
+    transform: none;
+  }
+}
