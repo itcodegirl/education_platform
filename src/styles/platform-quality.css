@@ -345,8 +345,21 @@ img {
 
 .lesson-quiz-wrap {
   max-width: var(--content-max);
-  margin: 0 auto;
-  padding: 0 clamp(14px, 2vw, var(--space-7));
+  margin: var(--space-6) auto 0;
+  padding: var(--space-5) clamp(14px, 2vw, var(--space-7)) 0;
+  border-top: 1px solid var(--border);
+}
+
+/* Eyebrow label that frames the lesson quiz as a learning
+   checkpoint, not a competing CTA alongside the lesson-nav row. */
+.lesson-quiz-eyebrow {
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 0 0 var(--space-3);
 }
 
 .sr-progress-label {
@@ -1669,11 +1682,12 @@ img {
   color: var(--text-muted);
 }
 
-/* Locked lessons */
+/* Locked lessons — keep pointer-events active so hover tooltip and keyboard
+   focus remain discoverable. Actual navigation is prevented by the
+   aria-disabled + early-return in the click handler. */
 .lesson-list-btn.locked {
   opacity: 0.35;
   cursor: not-allowed;
-  pointer-events: none;
 }
 
 .lesson-list-btn.locked .lesson-list-chk {

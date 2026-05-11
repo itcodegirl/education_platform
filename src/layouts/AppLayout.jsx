@@ -473,7 +473,21 @@ export function AppLayout() {
                 nextTitle={nextTitle}
               />
               {lessonQuiz && (
-                <div className="lesson-quiz-wrap">
+                // Wrapped in a labeled <section> so the lesson quiz
+                // reads as a distinct checkpoint, not a competing CTA
+                // alongside the lesson-nav row below. The divider +
+                // eyebrow are pure visual hierarchy; QuizView itself
+                // is unchanged.
+                <section
+                  className="lesson-quiz-wrap"
+                  aria-labelledby="lesson-quiz-eyebrow"
+                >
+                  <p
+                    id="lesson-quiz-eyebrow"
+                    className="lesson-quiz-eyebrow"
+                  >
+                    Pause and check what stuck
+                  </p>
                   <QuizView
                     quiz={lessonQuiz}
                     accent={course.accent}
@@ -481,7 +495,7 @@ export function AppLayout() {
                     quizKey={lessonQuizKey}
                     legacyQuizKeys={[legacyLessonQuizKey]}
                   />
-                </div>
+                </section>
               )}
             </>
           )}

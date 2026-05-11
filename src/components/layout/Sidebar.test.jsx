@@ -110,14 +110,14 @@ describe('Sidebar', () => {
     renderSidebar();
 
     const secondLesson = screen.getByRole('button', { name: /lesson two/i });
-    expect(secondLesson).toBeDisabled();
+    expect(secondLesson).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('shows visible lesson readiness states', () => {
     renderSidebar();
 
     expect(screen.getByRole('button', { name: /lesson one lesson, ready/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /lesson two lesson, locked/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /lesson two lesson, locked/i })).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByText('Ready')).toBeInTheDocument();
     expect(screen.getByText('Locked')).toBeInTheDocument();
   });

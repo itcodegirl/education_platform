@@ -83,6 +83,28 @@ describe('resolveSavedPosition', () => {
     });
   });
 
+  it('resolves a stable-id-only save (post-migration shape with no legacy labels)', () => {
+    // Future state: writers stop sending course/mod/les labels and
+    // only persist the stable triple + isModuleQuiz. The resolver
+    // must succeed without any legacy fields present.
+    expect(
+      resolveSavedPosition(
+        {
+          courseId: 'html',
+          moduleId: 'm2',
+          lessonId: 'l3',
+          isModuleQuiz: false,
+        },
+        courses,
+      ),
+    ).toEqual({
+      courseIndex: 0,
+      moduleIndex: 1,
+      lessonIndex: 0,
+      isModuleQuiz: false,
+    });
+  });
+
   it('restoresStableModuleQuizPosition', () => {
     expect(
       resolveSavedPosition(
