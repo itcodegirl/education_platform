@@ -18,25 +18,25 @@ import { closeRouteOrGoHome, toPathFromLegacyHash } from './routeUtils';
 import { RouteErrorBoundary } from './RouteErrorBoundary';
 
 const Styleguide = lazy(() =>
-  import('../components/shared/Styleguide').then((m) => ({ default: m.Styleguide })),
+  import('../components/shared/Styleguide').then((module) => ({ default: module.Styleguide })),
 );
-const PublicProfile = lazy(() =>
-  import('../components/shared/PublicProfile').then((m) => ({ default: m.PublicProfile })),
+const PublicProfilePageRoute = lazy(() =>
+  import('./PublicProfileRoute').then((module) => ({ default: module.PublicProfileRoute })),
 );
 const ProtectedAppProvidersLayout = lazy(() =>
-  import('./ProtectedAppRoutes').then((m) => ({ default: m.ProtectedAppProvidersLayout })),
+  import('./ProtectedAppRoutes').then((module) => ({ default: module.ProtectedAppProvidersLayout })),
 );
 const ProtectedHomeRoute = lazy(() =>
-  import('./ProtectedAppRoutes').then((m) => ({ default: m.ProtectedHomeRoute })),
+  import('./ProtectedAppRoutes').then((module) => ({ default: module.ProtectedHomeRoute })),
 );
 const ProtectedLearnRoute = lazy(() =>
-  import('./ProtectedAppRoutes').then((m) => ({ default: m.ProtectedLearnRoute })),
+  import('./ProtectedAppRoutes').then((module) => ({ default: module.ProtectedLearnRoute })),
 );
 const ProtectedProfileRoute = lazy(() =>
-  import('./ProtectedAppRoutes').then((m) => ({ default: m.ProtectedProfileRoute })),
+  import('./ProtectedAppRoutes').then((module) => ({ default: module.ProtectedProfileRoute })),
 );
 const ProtectedAdminDashboardRoute = lazy(() =>
-  import('./ProtectedAppRoutes').then((m) => ({ default: m.ProtectedAdminDashboardRoute })),
+  import('./ProtectedAppRoutes').then((module) => ({ default: module.ProtectedAdminDashboardRoute })),
 );
 
 export async function learnRouteAction(args) {
@@ -156,7 +156,7 @@ function StyleguideRoute() {
   );
 }
 
-function PublicProfileRoute() {
+function PublicProfileRouteShell() {
   const { theme } = useTheme();
   const { handle } = useLoaderData();
 
@@ -169,7 +169,7 @@ function PublicProfileRoute() {
           </RouteLoadingScreen>
         )}
       >
-        <PublicProfile handle={handle} onClose={closeRouteOrGoHome} />
+        <PublicProfilePageRoute handle={handle} onClose={closeRouteOrGoHome} />
       </Suspense>
     </div>
   );
@@ -290,7 +290,7 @@ export const appRouter = createBrowserRouter([
     errorElement: <RouteErrorBoundary />,
     children: [
       { path: STYLEGUIDE_SEGMENT, element: <StyleguideRoute /> },
-      { path: PUBLIC_PROFILE_SEGMENT, loader: publicProfileRouteLoader, element: <PublicProfileRoute /> },
+      { path: PUBLIC_PROFILE_SEGMENT, loader: publicProfileRouteLoader, element: <PublicProfileRouteShell /> },
       {
         element: <ProtectedAppShellRoute />,
         children: [

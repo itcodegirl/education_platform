@@ -8,6 +8,14 @@ import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 import { COURSE_CATALOG } from '../../data/reference/course-catalog';
 import '../../styles/feature-profile.css';
 
+function getPublicProfileSaveError(error) {
+  if ((error?.code || '').startsWith('23')) {
+    return 'That handle is already taken. Try another.';
+  }
+
+  return 'Could not save public profile settings. Check your connection and try again.';
+}
+
 export const ProfilePage = memo(function ProfilePage({ onClose }) {
   const { user, profile, signOut } = useAuth();
   const { theme } = useTheme();
@@ -70,22 +78,26 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
       return;
     }
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        is_public: nextIsPublic,
-        public_handle: nextIsPublic ? cleanHandle : null,
-      })
-      .eq('id', user.id);
+    let saveError = null;
 
-    setPublicSaving(false);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          is_public: nextIsPublic,
+          public_handle: nextIsPublic ? cleanHandle : null,
+        })
+        .eq('id', user.id);
 
-    if (error) {
-      if ((error.code || '').startsWith('23')) {
-        setPublicError('That handle is already taken. Try another.');
-      } else {
-        setPublicError(error.message || 'Could not save.');
-      }
+      saveError = error;
+    } catch {
+      saveError = {};
+    } finally {
+      setPublicSaving(false);
+    }
+
+    if (saveError) {
+      setPublicError(getPublicProfileSaveError(saveError));
       return;
     }
 

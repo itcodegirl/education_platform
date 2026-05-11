@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getCachedSearchIndex, loadSearchIndex } from '../../data/reference/search-index';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useCourseContent } from '../../providers/CourseContentProvider';
 
 export function SearchPanel({ isOpen, onClose, onNavigate }) {
   const [query, setQuery] = useState('');
@@ -11,6 +12,8 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
   const [loadAttempt, setLoadAttempt] = useState(0);
   const inputRef = useRef(null);
   const modalRef = useRef(null);
+  const hasRequestedFullIndexRef = useRef(false);
+  const { ensureAllLoaded, allCoursesLoaded } = useCourseContent();
   const normalizedQuery = query.toLowerCase();
 
   useEffect(() => {
@@ -43,6 +46,15 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
       cancelled = true;
     };
   }, [isOpen, loadAttempt, searchIndex.length]);
+
+  useEffect(() => {
+    if (!isOpen || normalizedQuery.length < 2 || allCoursesLoaded || hasRequestedFullIndexRef.current) {
+      return;
+    }
+
+    hasRequestedFullIndexRef.current = true;
+    void ensureAllLoaded();
+  }, [allCoursesLoaded, ensureAllLoaded, isOpen, normalizedQuery]);
 
   useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
 
@@ -129,11 +141,11 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
       ? 'Preparing the lesson search index.'
       : indexLoadError
         ? indexLoadError
-    : results.length === 0
-      ? `No results for ${query}.`
-      : activeIndex >= 0
-        ? `${results[activeIndex].title} selected. Press Enter to open.`
-        : `${results.length} result${results.length === 1 ? '' : 's'}`;
+        : results.length === 0
+          ? `No results for ${query}.`
+          : activeIndex >= 0
+            ? `${results[activeIndex].title} selected. Press Enter to open.`
+            : `${results.length} result${results.length === 1 ? '' : 's'}${allCoursesLoaded ? '' : ' (loading more courses)'}`;
 
   return (
     <div
@@ -177,7 +189,6 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
             inputMode="search"
             enterKeyHint="search"
             spellCheck="false"
-
             aria-controls="search-results-list"
           />
           {query && (
@@ -206,7 +217,7 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
         >
           <div
             id="search-results-status"
-            className={results.length > 0 ? "search-meta" : "sr-only"}
+            className={results.length > 0 ? 'search-meta' : 'sr-only'}
             role="status"
             aria-live="polite"
             aria-atomic="true"
@@ -266,47 +277,45 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
               </button>
             </div>
           ) : (
-            <>
-              <ul className="search-results-list" role="list">
-                {results.map((result, index) => (
-                  <li key={`${result.course}-${result.module}-${result.title}-${index}`}>
-                    <button
-                      id={`search-result-${index}`}
-                      type="button"
-                      className={`search-result ${activeIndex === index ? "active" : ""}`}
-                      onClick={() => handleClick(result)}
-                      onMouseEnter={() => setActiveIndex(index)}
-                    >
-                      <span className="sr-icon" aria-hidden="true">{result.icon}</span>
-                      <div className="sr-body">
-                        <div
-                          className="sr-title"
+            <ul className="search-results-list" role="list">
+              {results.map((result, index) => (
+                <li key={`${result.course}-${result.module}-${result.title}-${index}`}>
+                  <button
+                    id={`search-result-${index}`}
+                    type="button"
+                    className={`search-result ${activeIndex === index ? 'active' : ''}`}
+                    onClick={() => handleClick(result)}
+                    onMouseEnter={() => setActiveIndex(index)}
+                  >
+                    <span className="sr-icon" aria-hidden="true">{result.icon}</span>
+                    <div className="sr-body">
+                      <div
+                        className="sr-title"
+                        dangerouslySetInnerHTML={{
+                          __html: highlight(result.title),
+                        }}
+                      />
+                      <div className="sr-path">
+                        {result.course} {'>'}{' '}
+                        <span
                           dangerouslySetInnerHTML={{
-                            __html: highlight(result.title),
+                            __html: highlight(result.module),
                           }}
                         />
-                        <div className="sr-path">
-                          {result.course} {'>'}{' '}
-                          <span
-                            dangerouslySetInnerHTML={{
-                              __html: highlight(result.module),
-                            }}
-                          />
-                        </div>
-                        {result.keywords && (
-                          <div
-                            className="sr-snippet"
-                            dangerouslySetInnerHTML={{
-                              __html: highlight(result.keywords.slice(0, 80)),
-                            }}
-                          />
-                        )}
                       </div>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </>
+                      {result.keywords && (
+                        <div
+                          className="sr-snippet"
+                          dangerouslySetInnerHTML={{
+                            __html: highlight(result.keywords.slice(0, 80)),
+                          }}
+                        />
+                      )}
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
       </div>
