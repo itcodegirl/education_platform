@@ -18,6 +18,7 @@ The command verifies that the repo still contains:
 - Explicit anon `select` revokes for raw profile/progress/reward-adjacent tables.
 - Reward event ledger migrations and the `award_reward_event(...)` RPC that derives ownership from `auth.uid()`.
 - The idempotency guard for `(user_id, event_key)` reward events.
+- The hardened reward catalog migration that derives backend XP and canonical reward event keys server-side.
 - Unique Supabase migration timestamp prefixes, so no migration is skipped
   or mis-reconciled by version.
 
@@ -48,6 +49,7 @@ For a fresh Supabase project, apply `supabase-schema.sql` first, then apply the 
 5. `supabase/migrations/202605060003_harden_profile_updates.sql`
 6. `supabase/migrations/202605070001_add_stable_last_position_columns.sql`
 7. `supabase/migrations/202605070002_harden_public_profile_privacy.sql`
+8. `supabase/migrations/202605110001_harden_reward_event_trust_boundaries.sql`
 
 For an existing project, apply only migrations that have not already run. Every listed file is intended to be additive/idempotent, but production operators should still record the run date, project ref, and deploy SHA.
 

@@ -626,6 +626,12 @@
 .search-input::placeholder { color:var(--text-muted); }
 .search-hint { font-size:11px; color:var(--text-muted); font-family:'Poppins', sans-serif; background:var(--bg-surface); padding:2px 8px; border-radius:4px; }
 .search-results { overflow-y:auto; flex:1; padding:8px; }
+.search-results-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.search-results-list li { margin: 0; }
 .search-support {
   padding: 8px 12px 12px;
 }

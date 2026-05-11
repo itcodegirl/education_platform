@@ -10,6 +10,7 @@ Implemented:
 - Local retry/reconciliation queue and diagnostics.
 - `supabase/migrations/202604250001_create_reward_events.sql`
 - `supabase/migrations/202604250002_add_award_reward_event_rpc.sql`
+- `supabase/migrations/202605110001_harden_reward_event_trust_boundaries.sql`
 - `src/services/rewardEventService.js`
 - Feature-gated integration from the reward runtime to the backend award RPC.
 - Safe fallback to local reward behavior when backend sync is disabled, unavailable, or failed.
@@ -52,7 +53,7 @@ The backend supports the same reward types as the local reward engine:
 - `QUIZ_PERFECT`
 - `CHALLENGE_COMPLETE`
 
-XP amounts are still defined by existing app policy. This backend phase does not change XP values.
+XP amounts still match existing app policy, but the backend now mirrors those values in `public.reward_catalog` and derives the award amount inside the RPC. Browser code should not choose XP values for backend awards.
 
 ## RLS And Write Policy
 
@@ -64,19 +65,17 @@ Direct browser access is intentionally narrow:
 - Admins can read all reward events through the existing admin helper policy.
 - Direct browser insert/update/delete policies are not added.
 
-Reward writes should go through `public.award_reward_event()`, which derives identity from `auth.uid()` and does the event insert plus XP increment atomically.
+Reward writes should go through `public.award_reward_event()`, which derives identity from `auth.uid()`, derives canonical event keys and XP from `public.reward_catalog`, and does the event insert plus XP increment atomically.
 
 ## Atomic Award RPC
 
 `public.award_reward_event()` accepts:
 
-- `learner_id`
-- `event_type`
-- `event_key`
-- `metadata`
-- `entity_id`
-- `xp_amount`
-- `source`
+- `p_event_type`
+- `p_entity_id`
+- `p_metadata`
+- `p_source`
+- optional compatibility fields `p_event_key` and `p_xp_amount`
 
 It returns:
 
@@ -86,7 +85,7 @@ It returns:
 - `total_xp`
 - `reason` when failed
 
-The RPC never accepts `user_id` from the client. It accepts `learner_id` only as a client-side consistency check, derives canonical identity from `auth.uid()`, and rejects learner mismatches.
+The RPC never accepts `user_id` or `learner_id` from the client. It derives canonical identity from `auth.uid()`. Older callers may still pass event keys or XP amounts, but those values are treated as assertions and rejected if they do not match the server-derived event key or catalog XP.
 
 ## Frontend Wrapper
 
