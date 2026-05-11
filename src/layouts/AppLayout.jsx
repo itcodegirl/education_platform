@@ -85,6 +85,7 @@ export function AppLayout() {
   const nav = useNavigation();
   const panels = usePanels({ dataLoaded, user, lastPosition });
   const learn = useLearning();
+  const progressMutation = useFetcher();
   const isMobile = useIsMobile(901);
   const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage(
     "chw-sidebar-collapsed",
@@ -272,7 +273,6 @@ export function AppLayout() {
   }, [isCourseComplete, isDone, panels]);
 
   // --- Actions ------------------------------
-  const progressMutation = useFetcher();
   useFetcherSyncFailure(
     progressMutation,
     { markSyncFailed, enqueuePendingSyncWrite },
@@ -550,7 +550,6 @@ export function AppLayout() {
     </div>
   );
 }
-
 
 
 
