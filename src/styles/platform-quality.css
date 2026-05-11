@@ -1682,11 +1682,12 @@ img {
   color: var(--text-muted);
 }
 
-/* Locked lessons */
+/* Locked lessons — keep pointer-events active so hover tooltip and keyboard
+   focus remain discoverable. Actual navigation is prevented by the
+   aria-disabled + early-return in the click handler. */
 .lesson-list-btn.locked {
   opacity: 0.35;
   cursor: not-allowed;
-  pointer-events: none;
 }
 
 .lesson-list-btn.locked .lesson-list-chk {
