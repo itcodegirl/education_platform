@@ -8,7 +8,7 @@ import {
   useLocation,
   useNavigate,
 } from 'react-router-dom';
-import { COURSE_LOADER_IDS, loadCourse } from '../data';
+import { COURSE_LOADER_IDS, loadCourseRuntime } from '../data';
 import { useAuth } from '../providers/AuthProvider';
 import { useTheme } from '../providers/ThemeProvider';
 import { AuthLayout } from '../layouts/AuthLayout';
@@ -247,7 +247,7 @@ export async function learnRouteLoader({ params }) {
   }
 
   try {
-    const loadedCourse = await loadCourse(courseId);
+    const loadedCourse = await loadCourseRuntime(courseId);
     const moduleMatch = loadedCourse.modules.find((module) => module.id === moduleId);
     if (!moduleMatch) {
       throw new Error('Unknown module');
