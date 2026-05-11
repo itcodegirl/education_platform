@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useCallback, lazy, Suspense, useEffect, memo } from 'react';
+﻿import { useState, useRef, useCallback, lazy, Suspense, useEffect, memo, useId } from 'react';
 import { IFRAME_STYLES } from '../../utils/iframeStyles';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { usePrefersReducedData } from '../../hooks/usePrefersReducedData';
@@ -28,6 +28,7 @@ const SCAFFOLDING = {
 export const CodePreview = memo(function CodePreview({ code, lang, scaffolding = 'full' }) {
   const isMobile = useIsMobile();
   const prefersReducedData = usePrefersReducedData();
+  const previewId = useId();
   const level = SCAFFOLDING[scaffolding] || SCAFFOLDING.full;
   const defaultTab = scaffolding === 'starter' || scaffolding === 'requirements' ? 'editor' : 'code';
 
@@ -128,16 +129,40 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
         </div>
       )}
 
-      <div className="code-preview-tabs">
+      <div className="code-preview-tabs" role="tablist" aria-label="Code practice views">
         {scaffolding !== 'requirements' && (
-          <button type="button" className={`code-preview-tab ${tab === 'code' ? 'on' : ''}`} onClick={() => setTab('code')}>
+          <button
+            type="button"
+            id={`${previewId}-tab-code`}
+            className={`code-preview-tab ${tab === 'code' ? 'on' : ''}`}
+            role="tab"
+            aria-selected={tab === 'code'}
+            aria-controls={`${previewId}-panel-code`}
+            onClick={() => setTab('code')}
+          >
             {tabIcon} Code
           </button>
         )}
-        <button type="button" className={`code-preview-tab ${tab === 'editor' ? 'on' : ''}`} onClick={() => setTab('editor')}>
+        <button
+          type="button"
+          id={`${previewId}-tab-editor`}
+          className={`code-preview-tab ${tab === 'editor' ? 'on' : ''}`}
+          role="tab"
+          aria-selected={tab === 'editor'}
+          aria-controls={`${previewId}-panel-editor`}
+          onClick={() => setTab('editor')}
+        >
           {scaffolding === 'requirements' ? '✏️ Write Code' : 'Editor'}
         </button>
-        <button type="button" className={`code-preview-tab ${tab === 'preview' ? 'on' : ''}`} onClick={() => setTab('preview')}>
+        <button
+          type="button"
+          id={`${previewId}-tab-preview`}
+          className={`code-preview-tab ${tab === 'preview' ? 'on' : ''}`}
+          role="tab"
+          aria-selected={tab === 'preview'}
+          aria-controls={`${previewId}-panel-preview`}
+          onClick={() => setTab('preview')}
+        >
           {previewLabel}
         </button>
 
@@ -167,7 +192,10 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
 
       {tab === 'code' && (
         <pre
+          id={`${previewId}-panel-code`}
           className="code-preview-code"
+          role="tabpanel"
+          aria-labelledby={`${previewId}-tab-code`}
           tabIndex={0}
           aria-label={`${monacoLang.toUpperCase()} code sample`}
         >
@@ -176,7 +204,12 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
       )}
 
       {tab === 'editor' && (
-        <div className="code-preview-editor-wrap">
+        <div
+          id={`${previewId}-panel-editor`}
+          className="code-preview-editor-wrap"
+          role="tabpanel"
+          aria-labelledby={`${previewId}-tab-editor`}
+        >
           {useTextareaEditor ? (
             <>
               <textarea
@@ -251,12 +284,18 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
       )}
 
       {tab === 'preview' && (
-        <iframe
-          className="code-preview-iframe"
-          srcDoc={buildPreview(previewSource)}
-          title={isJS ? 'Code output' : isCSS ? 'CSS preview' : 'HTML preview'}
-          sandbox="allow-scripts"
-        />
+        <div
+          id={`${previewId}-panel-preview`}
+          role="tabpanel"
+          aria-labelledby={`${previewId}-tab-preview`}
+        >
+          <iframe
+            className="code-preview-iframe"
+            srcDoc={buildPreview(previewSource)}
+            title={isJS ? 'Code output' : isCSS ? 'CSS preview' : 'HTML preview'}
+            sandbox="allow-scripts"
+          />
+        </div>
       )}
     </div>
   );
