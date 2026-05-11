@@ -4,20 +4,9 @@
    import order. Domain styles live in focused modules.
    ================================================= */
 
-/* Brand fonts are self-hosted in src/main.jsx via @fontsource. */
-
-/* Foundations */
-@import './tokens.css';
-@import './base.css';
-@import './animations.css';
-
-/* Feature modules */
-@import './auth.css';
 @import './sidebar.css';
 @import './lessons.css';
 @import './panels.css';
-@import './landing.css';
-@import './responsive.css';
 
 /* Legacy App.css split into maintainable domains (order-sensitive) */
 @import './shell-layout.css';
@@ -27,5 +16,4 @@
 @import './feature-admin.css';
 @import './feature-challenges.css';
 @import './feature-mobile-fixes.css';
-@import './resilience-states.css';
 @import './platform-quality.css';

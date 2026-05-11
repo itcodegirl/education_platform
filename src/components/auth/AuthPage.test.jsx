@@ -16,17 +16,20 @@ const {
   forgotPasswordMock: vi.fn(),
 }));
 
-vi.mock('../../providers', () => ({
-  useTheme: () => ({
-    theme: 'dark',
-    toggle: vi.fn(),
-  }),
+vi.mock('../../providers/AuthProvider', () => ({
   useAuth: () => ({
     signIn: signInMock,
     signUp: signUpMock,
     signInWithGithub: signInWithGithubMock,
     signInWithGoogle: signInWithGoogleMock,
     forgotPassword: forgotPasswordMock,
+  }),
+}));
+
+vi.mock('../../providers/ThemeProvider', () => ({
+  useTheme: () => ({
+    theme: 'dark',
+    toggle: vi.fn(),
   }),
 }));
 
