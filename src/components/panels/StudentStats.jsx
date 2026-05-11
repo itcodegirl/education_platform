@@ -1,7 +1,11 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useProgressData, useXP, useSR, BADGE_DEFS, useCourseContent } from '../../providers';
 import { COURSES } from '../../data';
-import { getChallengesForCourse } from '../../data/challenges';
+import {
+  areChallengesLoaded,
+  getChallengesForCourse,
+  loadAllChallenges,
+} from '../../data/challenges';
 import { getLevel, getXPInLevel, XP_PER_LEVEL } from '../../utils/helpers';
 import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
 import { findQuizEntityTitle, quizKeyBelongsToCourse } from '../../utils/quizCourseOwnership';
@@ -26,11 +30,47 @@ export function StudentStats({ isOpen, onClose }) {
   const { xpTotal, streak, pausedStreak = null, dailyCount, earnedBadges } = useXP();
   const { srCards, bookmarks, notes } = useSR();
   const { ensureAllLoaded } = useCourseContent();
+  const [challengeCatalogReady, setChallengeCatalogReady] = useState(
+    () => COURSES.every((course) => areChallengesLoaded(course.id)),
+  );
   const modalRef = useRef(null);
 
   useEffect(() => {
     ensureAllLoaded();
   }, [ensureAllLoaded]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!isOpen) return () => {
+      cancelled = true;
+    };
+
+    const alreadyLoaded = COURSES.every((course) => areChallengesLoaded(course.id));
+    setChallengeCatalogReady(alreadyLoaded);
+
+    if (alreadyLoaded) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    void loadAllChallenges()
+      .then(() => {
+        if (!cancelled) {
+          setChallengeCatalogReady(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setChallengeCatalogReady(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
 
   const stats = useMemo(() => {
     const level = getLevel(xpTotal);
@@ -208,6 +248,11 @@ export function StudentStats({ isOpen, onClose }) {
           </p>
           )}
           <p className="panel-meta">{PROGRESS_SYNC_COPY}</p>
+          {!challengeCatalogReady && (
+            <p className="panel-meta" aria-live="polite">
+              Loading challenge history across all courses so the mastery snapshot stays accurate.
+            </p>
+          )}
 
           {stats.totalDone > 0 && (
             <section className="ss-next-step" aria-label="Recommended next step">
@@ -284,7 +329,7 @@ export function StudentStats({ isOpen, onClose }) {
                           Quiz avg: {course.averageQuizPercent}%
                         </span>
                       )}
-                      {course.challengeTotal > 0 && (
+                      {challengeCatalogReady && course.challengeTotal > 0 && (
                         <span className="ss-challenge-badge">
                           Challenges: {course.challengeDone}/{course.challengeTotal}
                         </span>
@@ -317,10 +362,14 @@ export function StudentStats({ isOpen, onClose }) {
               </div>
               <div className="ss-mastery-card">
                 <span className="ss-mastery-value">
-                  {stats.masteryEvidence.completedChallenges}/{stats.masteryEvidence.totalChallenges}
+                  {challengeCatalogReady
+                    ? `${stats.masteryEvidence.completedChallenges}/${stats.masteryEvidence.totalChallenges}`
+                    : '...'}
                 </span>
                 <span className="ss-mastery-label">Applied challenges</span>
-                <span className="ss-mastery-sub">Tests passed in this browser</span>
+                <span className="ss-mastery-sub">
+                  {challengeCatalogReady ? 'Tests passed in this browser' : 'Loading challenge history'}
+                </span>
               </div>
               <div className="ss-mastery-card">
                 <span className="ss-mastery-value">{stats.masteryEvidence.dueReviewCards}</span>
