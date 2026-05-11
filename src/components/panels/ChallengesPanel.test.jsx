@@ -8,6 +8,7 @@ const {
   mockLoadChallengesForCourse,
   mockUseProgressData,
   mockUseLearning,
+  mockTrackEvent,
   challengeFixture,
 } = vi.hoisted(() => {
   const challengeFixture = {
@@ -15,7 +16,8 @@ const {
     title: 'Build a Card',
     description: 'Create a reusable card.',
     difficulty: 'beginner',
-    tests: [{ label: 'has card' }],
+    requirements: ['Use a card container', 'Render a heading'],
+    tests: [{ label: 'has card' }, { label: 'has heading' }],
   };
 
   return {
@@ -24,6 +26,7 @@ const {
     mockLoadChallengesForCourse: vi.fn(),
     mockUseProgressData: vi.fn(),
     mockUseLearning: vi.fn(),
+    mockTrackEvent: vi.fn(),
     challengeFixture,
   };
 });
@@ -68,6 +71,10 @@ vi.mock('../../providers', () => ({
 
 vi.mock('../../hooks/useLearning', () => ({
   useLearning: () => mockUseLearning(),
+}));
+
+vi.mock('../../lib/analytics', () => ({
+  trackEvent: (...args) => mockTrackEvent(...args),
 }));
 
 describe('ChallengesPanel', () => {
@@ -117,6 +124,31 @@ describe('ChallengesPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: /complete build a card/i }));
 
     expect(completeChallenge).toHaveBeenCalledWith('challenge-1');
+    expect(mockTrackEvent).toHaveBeenCalledWith('challenge_workspace_opened', expect.objectContaining({
+      challengeId: 'challenge-1',
+      courseId: 'html',
+      source: 'recommendation',
+      requirementCount: 2,
+      testCount: 2,
+    }));
+    expect(mockTrackEvent).toHaveBeenCalledWith('challenge_completed', expect.objectContaining({
+      challengeId: 'challenge-1',
+      source: 'workspace',
+    }));
+  });
+
+  it('shows challenge evidence scope inside the challenge workspace', () => {
+    mockUseProgressData.mockReturnValue({ challengeCompletions: ['challenge-1'] });
+
+    render(<ChallengesPanel courseId="html" lang="html" onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /build a card/i }));
+
+    expect(screen.getByRole('region', { name: /challenge evidence summary/i })).toHaveTextContent('Evidence ready');
+    expect(screen.getByText('2 requirements')).toBeInTheDocument();
+    expect(screen.getByText('2 automated checks')).toBeInTheDocument();
+    expect(screen.getByText(/not a verified credential/i)).toBeInTheDocument();
+    expect(screen.getByText(/What would you improve before showing this in a portfolio/i)).toBeInTheDocument();
   });
 
   it('shows the local-first progress sync scope in the challenge list', () => {

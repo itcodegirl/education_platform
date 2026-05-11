@@ -344,11 +344,16 @@ export function StudentStats({ isOpen, onClose }) {
           <div className="ss-section ss-mastery-section">
             <div className="ss-section-heading-row">
               <h3 className="ss-section-title">Mastery Evidence</h3>
-              <span className="ss-mastery-status">{stats.masteryEvidence.status}</span>
+              <span className={`ss-mastery-status ss-mastery-status-${stats.masteryEvidence.stage}`}>
+                {stats.masteryEvidence.stageLabel}
+              </span>
             </div>
             <p className="ss-section-copy">
               Lesson completion shows exposure. Mastery evidence comes from quick checks, applied
               challenges, and review cards that bring weak spots back later.
+            </p>
+            <p className="ss-evidence-next">
+              {stats.masteryEvidence.nextEvidenceAction}
             </p>
             <div className="ss-mastery-grid">
               <div className="ss-mastery-card">

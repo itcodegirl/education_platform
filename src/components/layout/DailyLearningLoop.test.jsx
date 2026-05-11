@@ -18,12 +18,14 @@ describe('DailyLearningLoop', () => {
   it('renders learner workflow steps and actions', () => {
     const onOpenReview = vi.fn();
     const onOpenChallenges = vi.fn();
+    const onAction = vi.fn();
 
     render(
       <DailyLearningLoop
         steps={steps}
         onOpenReview={onOpenReview}
         onOpenChallenges={onOpenChallenges}
+        onAction={onAction}
       />,
     );
 
@@ -39,6 +41,8 @@ describe('DailyLearningLoop', () => {
 
     expect(onOpenReview).toHaveBeenCalledTimes(1);
     expect(onOpenChallenges).toHaveBeenCalledTimes(1);
+    expect(onAction).toHaveBeenCalledWith('review');
+    expect(onAction).toHaveBeenCalledWith('challenges');
   });
 
   it('does not render inert action buttons when handlers are absent', () => {
