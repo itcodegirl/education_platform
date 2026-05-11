@@ -144,6 +144,10 @@ Per `docs/reward-progress-policy.md`:
   translate a score into learner-facing next actions: explain, review,
   retry, or apply in a challenge. This keeps quizzes instructional even
   when XP has already been earned.
+- `src/utils/lessonMasteryStatus.js` converts the saved quick-check score
+  into display-only guidance in the lesson focus strip. It can recommend a
+  first pass, quick-check evidence, review loop, or ready signal, but it
+  does not lock navigation or certify mastery.
 
 ## 5. Challenge completion
 
@@ -173,10 +177,17 @@ Idempotency guarantees:
 - `markChallengeCompleted(id)` returns false if already in the set, so
   the reward block doesn't run twice
 
-Challenge recommendation is display-only. `src/utils/challengeProgress.js`
-selects the next open challenge for the current course and shows completion
-coverage in the Challenges panel. It does not gate lessons or imply external
-credential verification.
+`src/utils/challengeProgression.js` connects each course challenge to a
+course module target for display and recommendation. The panel can suggest
+a practice match and show "best after" context, but the recommendation is
+soft guidance only; challenges remain optional and do not lock lesson
+navigation.
+
+`src/utils/dailyLearningLoop.js` combines the active lesson state, quick-check
+mastery guidance, spaced-repetition due count, and challenge entry point into
+the lesson-level "Today's learning loop" surface. This is display-only
+scaffolding: it helps learners choose a useful next action without creating
+hard gates or new reward rules.
 
 ## 6. XP, streaks, daily goal, badges
 

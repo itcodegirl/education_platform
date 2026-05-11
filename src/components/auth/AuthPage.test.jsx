@@ -18,11 +18,7 @@ const {
   authBackendReadyState: { value: true },
 }));
 
-vi.mock('../../providers', () => ({
-  useTheme: () => ({
-    theme: 'dark',
-    toggle: vi.fn(),
-  }),
+vi.mock('../../providers/AuthProvider', () => ({
   useAuth: () => ({
     signIn: signInMock,
     signUp: signUpMock,
@@ -30,6 +26,13 @@ vi.mock('../../providers', () => ({
     signInWithGoogle: signInWithGoogleMock,
     forgotPassword: forgotPasswordMock,
     authBackendReady: authBackendReadyState.value,
+  }),
+}));
+
+vi.mock('../../providers/ThemeProvider', () => ({
+  useTheme: () => ({
+    theme: 'dark',
+    toggle: vi.fn(),
   }),
 }));
 

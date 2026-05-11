@@ -1,5 +1,5 @@
 ﻿import { useRef, useState } from 'react';
-import { useAuth } from '../../providers';
+import { useAuth } from '../../providers/AuthProvider';
 import { ThemeToggle } from '../layout/ThemeToggle';
 import { LandingHeroIntro, LandingHeroStory } from './LandingHero';
 import { AuthConfirmSent } from './AuthConfirmSent';

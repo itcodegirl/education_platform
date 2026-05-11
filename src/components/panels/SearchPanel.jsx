@@ -8,17 +8,24 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
   const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef(null);
   const modalRef = useRef(null);
+  const hasRequestedFullIndexRef = useRef(false);
   const { ensureAllLoaded, loadedCourseIds, allCoursesLoaded } = useCourseContent();
-
-  useEffect(() => {
-    ensureAllLoaded();
-  }, [ensureAllLoaded]);
+  const normalizedQuery = query.toLowerCase();
 
   const searchIndex = useMemo(
     () => buildSearchIndex(),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [loadedCourseIds],
   );
+
+  useEffect(() => {
+    if (!isOpen || normalizedQuery.length < 2 || allCoursesLoaded || hasRequestedFullIndexRef.current) {
+      return;
+    }
+
+    hasRequestedFullIndexRef.current = true;
+    void ensureAllLoaded();
+  }, [allCoursesLoaded, ensureAllLoaded, isOpen, normalizedQuery]);
 
   useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
 
@@ -36,7 +43,6 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
     return () => clearTimeout(focusTimer);
   }, [isOpen]);
 
-  const normalizedQuery = query.toLowerCase();
   const results = normalizedQuery.length >= 2
     ? searchIndex
         .filter((entry) =>

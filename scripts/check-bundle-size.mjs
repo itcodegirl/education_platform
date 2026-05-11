@@ -1,103 +1,74 @@
 /* global console, process */
-import fs from 'node:fs';
 import path from 'node:path';
+import {
+  collectBundleBudgetReport,
+  formatKb,
+  INITIAL_ENTRY_BUDGETS,
+} from './bundleBudgetPolicy.mjs';
 
 const assetsDir = path.resolve(process.cwd(), 'dist', 'assets');
 const indexHtmlPath = path.resolve(process.cwd(), 'dist', 'index.html');
 
-const budgets = [
-  {
-    label: 'main app chunk',
-    match: (file) => /^index-.*\.js$/i.test(file),
-    maxKb: 550,
-  },
-  {
-    label: 'monaco editor api lazy chunk',
-    match: (file) => /^vendor-monaco-editor-api-.*\.js$/i.test(file),
-    maxKb: 1900,
-  },
-  {
-    label: 'monaco/editor chunk',
-    match: (file) => /^vendor-monaco-.*\.js$/i.test(file),
-    maxKb: 1900,
-  },
-  {
-    label: 'general chunk',
-    match: () => true,
-    maxKb: 700,
-  },
-];
+const report = collectBundleBudgetReport({ assetsDir, indexHtmlPath });
 
-const formatKb = (bytes) => `${(bytes / 1024).toFixed(2)} kB`;
-
-if (!fs.existsSync(assetsDir)) {
-  console.error('Bundle budget check failed: dist/assets not found. Run `npm run build` first.');
-  process.exit(1);
-}
-
-if (!fs.existsSync(indexHtmlPath)) {
-  console.error('Bundle budget check failed: dist/index.html not found. Run `npm run build` first.');
-  process.exit(1);
-}
-
-const indexHtml = fs.readFileSync(indexHtmlPath, 'utf8');
-const preloadedMonacoChunks = Array.from(
-  indexHtml.matchAll(/<link\b[^>]*\brel=["']modulepreload["'][^>]*\bhref=["'][^"']*vendor-monaco-[^"']+\.js["'][^>]*>/gi),
-  (match) => match[0],
-);
-
-if (preloadedMonacoChunks.length > 0) {
-  console.error('Bundle budget check failed: Monaco editor chunks must stay lazy.');
-  preloadedMonacoChunks.forEach((tag) => {
-    console.error(`- Unexpected initial Monaco preload: ${tag}`);
+if (report.fatalErrors.length > 0) {
+  report.fatalErrors.forEach((message) => {
+    console.error(`Bundle budget check failed: ${message}`);
   });
   process.exit(1);
 }
 
-const jsFiles = fs
-  .readdirSync(assetsDir)
-  .filter((file) => file.toLowerCase().endsWith('.js'));
-
-if (jsFiles.length === 0) {
-  console.error('Bundle budget check failed: no JavaScript assets found in dist/assets.');
+if (report.forbiddenPreloadFailures.length > 0) {
+  console.error('Bundle budget check failed: lazy/protected assets were unexpectedly referenced by the entry HTML.');
+  report.forbiddenPreloadFailures.forEach((failure) => {
+    console.error(`- ${failure.label}: ${failure.tag}`);
+  });
   process.exit(1);
 }
 
-const sizeReport = jsFiles.map((file) => {
-  const fullPath = path.join(assetsDir, file);
-  const sizeBytes = fs.statSync(fullPath).size;
-  const budget = budgets.find(({ match }) => match(file));
+if (report.missingRequiredFailures.length > 0) {
+  console.error('Bundle budget check failed: required build artifacts were not found.');
+  report.missingRequiredFailures.forEach((label) => {
+    console.error(`- Missing ${label}`);
+  });
+  process.exit(1);
+}
 
-  return {
-    file,
-    sizeBytes,
-    sizeKb: sizeBytes / 1024,
-    budget,
-    overByKb: sizeBytes / 1024 - budget.maxKb,
-  };
-});
+if (report.initialBudgetFailures.length > 0) {
+  report.initialBudgetFailures.forEach((failure) => {
+    console.error(
+      `Bundle budget check failed: ${failure.label} ${formatKb(failure.actualBytes)} exceeds ${failure.maxKb} kB.`,
+    );
+  });
+  process.exit(1);
+}
 
-const failures = sizeReport.filter((entry) => entry.overByKb > 0);
-
-sizeReport
+report.sizeReport
   .slice()
   .sort((a, b) => b.sizeBytes - a.sizeBytes)
-  .slice(0, 8)
+  .slice(0, 10)
   .forEach((entry, index) => {
-    const marker = failures.includes(entry) ? 'FAIL' : 'OK';
+    const marker = report.sizeFailures.includes(entry) ? 'FAIL' : 'OK';
+    const gzipBudget = entry.budget.gzipMaxKb ? `, gzip budget ${entry.budget.gzipMaxKb} kB` : '';
     console.log(
-      `${String(index + 1).padStart(2, '0')}. [${marker}] ${entry.file} -> ${formatKb(entry.sizeBytes)} (budget ${entry.budget.maxKb} kB: ${entry.budget.label})`,
+      `${String(index + 1).padStart(2, '0')}. [${marker}] ${entry.file} -> ${formatKb(entry.sizeBytes)} raw, ${formatKb(entry.gzipBytes)} gzip (budget ${entry.budget.maxKb} kB${gzipBudget}: ${entry.budget.label})`,
     );
   });
 
-if (failures.length > 0) {
+if (report.sizeFailures.length > 0) {
   console.error('\nBundle budget check failed for:');
-  failures.forEach((entry) => {
-    console.error(
-      `- ${entry.file}: ${formatKb(entry.sizeBytes)} exceeds ${entry.budget.maxKb} kB by ${entry.overByKb.toFixed(2)} kB`,
-    );
+  report.sizeFailures.forEach((entry) => {
+    const rawMessage = entry.rawOverByKb > 0
+      ? `raw exceeds ${entry.budget.maxKb} kB by ${entry.rawOverByKb.toFixed(2)} kB`
+      : null;
+    const gzipMessage = entry.gzipOverByKb > 0
+      ? `gzip exceeds ${entry.budget.gzipMaxKb} kB by ${entry.gzipOverByKb.toFixed(2)} kB`
+      : null;
+    console.error(`- ${entry.file}: ${[rawMessage, gzipMessage].filter(Boolean).join('; ')}`);
   });
   process.exit(1);
 }
 
 console.log('\nBundle budget check passed.');
+console.log(`Initial JS gzip: ${formatKb(report.initialJsGzipBytes)} (budget ${INITIAL_ENTRY_BUDGETS.jsGzipKb} kB)`);
+console.log(`Initial CSS gzip: ${formatKb(report.initialCssGzipBytes)} (budget ${INITIAL_ENTRY_BUDGETS.cssGzipKb} kB)`);

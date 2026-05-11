@@ -40,6 +40,25 @@ describe('SearchPanel', () => {
     ]);
   });
 
+  it('waits to hydrate the full search index until the learner starts a real search', () => {
+    const ensureAllLoaded = vi.fn();
+    mockUseCourseContent.mockReturnValue({
+      ensureAllLoaded,
+      loadedCourseIds: ['html'],
+      allCoursesLoaded: false,
+    });
+
+    render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
+
+    expect(ensureAllLoaded).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByRole('searchbox', { name: /Search lessons/i }), {
+      target: { value: 'fl' },
+    });
+
+    expect(ensureAllLoaded).toHaveBeenCalledTimes(1);
+  });
+
   it('shows starter guidance before the query reaches two characters', () => {
     render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
 

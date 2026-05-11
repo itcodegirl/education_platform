@@ -13,17 +13,12 @@ const {
   mockSupabaseFrom: vi.fn(),
 }));
 
-vi.mock('../providers', () => ({
+vi.mock('../providers/AuthProvider', () => ({
   useAuth: mockUseAuth,
+}));
+
+vi.mock('../providers/ThemeProvider', () => ({
   useTheme: mockUseTheme,
-  useProgressData: () => ({
-    dataLoaded: true,
-    loadError: null,
-    retryLoad: vi.fn(),
-  }),
-  useCourseContent: () => ({
-    ensureLoaded: vi.fn(),
-  }),
 }));
 
 vi.mock('../lib/supabaseClient', () => ({
