@@ -127,6 +127,7 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
           <span className="search-icon">🔍</span>
           <input
             ref={inputRef}
+            type="search"
             className="search-input"
             placeholder="Search lessons, modules, and concepts..."
             aria-label="Search lessons"
@@ -134,12 +135,30 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleInputKeyDown}
+            autoComplete="off"
+            inputMode="search"
+            enterKeyHint="search"
+            spellCheck="false"
             aria-autocomplete="list"
             aria-controls="search-results-list"
             aria-activedescendant={activeIndex >= 0 ? `search-result-${activeIndex}` : undefined}
             role="combobox"
             aria-expanded={results.length > 0}
           />
+          {query && (
+            <button
+              type="button"
+              className="search-clear"
+              aria-label="Clear search query"
+              onClick={() => {
+                setQuery('');
+                setActiveIndex(-1);
+                inputRef.current?.focus();
+              }}
+            >
+              Clear
+            </button>
+          )}
           <span id="search-shortcut-hint" className="search-hint">
             Enter opens the top result, Esc closes this panel
           </span>

@@ -1,0 +1,68 @@
+/* Mobile shell hardening: loaded late so these rules win over legacy
+   desktop-first shell declarations without rewriting older modules. */
+@media (max-width: 900px) {
+  .sidebar-shell {
+    display: contents;
+  }
+
+  .main-shell {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    padding-bottom: calc(128px + env(safe-area-inset-bottom, 0px));
+    scroll-padding-top: calc(var(--topbar-height) + env(safe-area-inset-top, 0px));
+    scroll-padding-bottom: calc(128px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .lesson-nav,
+  .theme-toggle {
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+
+  .lesson-nav-prev,
+  .lesson-nav-tools {
+    flex: 0 0 clamp(46px, 14vw, 58px);
+  }
+
+  .lesson-nav-done {
+    flex: 1 1 0;
+  }
+
+  .lesson-nav-next {
+    flex: 1.15 1 0;
+  }
+
+  .shell.keyboard-open .lesson-nav {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(calc(100% + env(safe-area-inset-bottom, 0px)));
+  }
+
+  .shell.keyboard-open .theme-toggle {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(120%);
+  }
+
+  .shell.keyboard-open .main-shell {
+    padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+    scroll-padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (max-width: 400px) {
+  .lesson-nav-prev,
+  .lesson-nav-tools {
+    flex-basis: 44px;
+  }
+
+  .lesson-nav-prev .lesson-nav-label,
+  .lesson-nav-tools .lesson-nav-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+}
