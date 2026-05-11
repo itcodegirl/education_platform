@@ -51,7 +51,14 @@ describe('ChallengesPanel', () => {
 
     render(<ChallengesPanel courseId="html" lang="html" onClose={vi.fn()} />);
 
-    expect(screen.getByText('Completed')).toBeInTheDocument();
+    expect(screen.getByText('Completed here')).toBeInTheDocument();
+  });
+
+  it('reassures learners when no challenges have been completed yet', () => {
+    render(<ChallengesPanel courseId="html" lang="html" onClose={vi.fn()} />);
+
+    expect(screen.getByText(/No completed challenges yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/same-browser CodeHerWay progress/i)).toBeInTheDocument();
   });
 
   it('routes challenge completion through the learning engine', () => {
@@ -61,8 +68,16 @@ describe('ChallengesPanel', () => {
     render(<ChallengesPanel courseId="html" lang="html" onClose={vi.fn()} />);
 
     fireEvent.click(screen.getByRole('button', { name: /build a card/i }));
+    expect(screen.getByText(/not external verification/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /complete build a card/i }));
 
     expect(completeChallenge).toHaveBeenCalledWith('challenge-1');
+  });
+
+  it('shows the local-first progress sync scope in the challenge list', () => {
+    render(<ChallengesPanel courseId="html" lang="html" onClose={vi.fn()} />);
+
+    expect(screen.getByText(/Progress sync: saved on this device/i)).toBeInTheDocument();
+    expect(screen.getByText(/challenges are single-device today/i)).toBeInTheDocument();
   });
 });

@@ -80,7 +80,7 @@ describe('appRouter ProtectedRoute', () => {
 
     renderProtectedRoute();
 
-    expect(screen.getByText(/Checking your account session/i)).toBeInTheDocument();
+    expect(screen.getByText(/Opening your learning dashboard/i)).toBeInTheDocument();
     expect(screen.queryByText('auth-layout')).not.toBeInTheDocument();
     expect(screen.queryByText('private-content')).not.toBeInTheDocument();
   });
@@ -96,7 +96,7 @@ describe('appRouter ProtectedRoute', () => {
 
     renderProtectedRoute();
 
-    expect(screen.getByText(/Checking your account session/i)).toBeInTheDocument();
+    expect(screen.getByText(/Opening your learning dashboard/i)).toBeInTheDocument();
     expect(screen.queryByText('auth-layout')).not.toBeInTheDocument();
     expect(screen.queryByText('private-content')).not.toBeInTheDocument();
   });
@@ -127,6 +127,23 @@ describe('appRouter ProtectedRoute', () => {
     renderProtectedRoute();
 
     expect(screen.getByText('private-content')).toBeInTheDocument();
+  });
+
+  it('blocks the dashboard when profile verification fails', () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: 'user-1' },
+      profile: null,
+      profileError: 'profile lookup failed',
+      loading: false,
+      profileLoading: false,
+      refreshProfile: vi.fn(),
+      signOut: vi.fn(),
+    });
+
+    renderProtectedRoute();
+
+    expect(screen.getByText(/could not verify your account/i)).toBeInTheDocument();
+    expect(screen.queryByText('private-content')).not.toBeInTheDocument();
   });
 });
 

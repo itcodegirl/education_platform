@@ -9,6 +9,7 @@ vi.mock('../lib/analytics', () => ({
 }));
 
 import {
+  trackProgressSyncFailure,
   trackProgressSyncQueued,
   trackProgressSyncReplay,
 } from './progressSyncTelemetry';
@@ -76,6 +77,32 @@ describe('progressSyncTelemetry', () => {
       failedOperation: 'saveNote',
       failedLabel: 'lesson note',
       failedAttemptCount: 4,
+    });
+  });
+
+  it('tracks visible sync failures by coarse source only', () => {
+    trackProgressSyncFailure({
+      label: 'reward event processor:quiz:html-intro-private-key',
+      pendingCount: 3,
+      lessonKey: 'private-lesson-key',
+      rawError: 'database detail',
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('progress_sync_failure_visible', {
+      source: 'reward_event',
+      pendingCount: 3,
+    });
+  });
+
+  it('classifies localStorage write failures without exposing the storage key', () => {
+    trackProgressSyncFailure({
+      label: 'localStorage write:chw-tasks',
+      pendingCount: 2,
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('progress_sync_failure_visible', {
+      source: 'local_storage',
+      pendingCount: 2,
     });
   });
 });

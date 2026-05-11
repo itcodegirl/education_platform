@@ -43,7 +43,7 @@ export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx }) {
 
           {!allCoursesLoaded && (
             <p className="roadmap-loading" aria-live="polite">
-              Loading the rest of your roadmap so progress stays accurate across every track...
+              Loading the rest of your roadmap so progress stays accurate across every track.
             </p>
           )}
 
@@ -97,8 +97,8 @@ export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx }) {
                         type="button"
                         className={`rm-mod ${moduleComplete ? 'done' : moduleStarted ? 'partial' : ''}`}
                         style={moduleComplete ? { borderColor: course.accent } : undefined}
-                        onClick={() => {
-                          onNavigate(courseIndex, moduleIndex);
+                        onClick={async () => {
+                          await onNavigate(courseIndex, moduleIndex);
                           onClose();
                         }}
                         title={`${module.title} (${moduleDone}/${module.lessons.length})`}

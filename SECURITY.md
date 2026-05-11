@@ -37,7 +37,7 @@ commits and forks are out of scope.
 | Learner accounts | Account takeover via XSS, session theft, OAuth redirect hijack | HTML-escaping in all `dangerouslySetInnerHTML` sinks, strict CSP, short-lived Supabase sessions, Supabase URL allowlist for OAuth |
 | Learner data (progress, notes) | Cross-tenant read/write | Row-Level Security on every Supabase table (`auth.uid() = user_id`) |
 | OpenAI API key | Exfiltration, free LLM abuse | Key is server-only, never shipped to the browser; Netlify Function gateway requires a valid Supabase session, applies per-user rate limiting, caps payload size, and prepends a mandatory server-side guardrail prompt |
-| Admin surface | Privilege escalation | Admin flag stored in `profiles.is_admin`; enforced by RLS `is_admin()` function, not by the client; admin UI is a convenience layer, not a security boundary. Direct UPDATEs to `is_admin` are blocked by a Postgres trigger; promotions must go through the `set_user_admin()` SECURITY DEFINER RPC, which refuses self-edits and writes to `admin_audit_log` |
+| Admin surface | Privilege escalation | Admin and account-status flags live in `profiles.is_admin` and `profiles.is_disabled`; enforced by RLS and audited RPCs, not by the client. Direct UPDATEs to those fields are blocked by Postgres guards; promotions must go through `set_user_admin()` and disable/enable actions must go through `set_user_disabled()`, both of which refuse self-edits and write to `admin_audit_log` |
 | Learner code playground | Escape from the code sandbox to the parent origin | `<iframe sandbox="allow-scripts">` with **no** `allow-same-origin`, so learner code cannot read the parent origin, cookies, or `localStorage` |
 | Build pipeline | Malicious dependencies, supply-chain compromise | `package-lock.json` is committed; `npm audit` runs in CI; dependency updates go through PR review |
 
@@ -79,6 +79,12 @@ Configured in `netlify.toml`:
 - All row access is gated by Supabase RLS. Admin reads are gated by a
   `SECURITY DEFINER` SQL function (`is_admin()`) that reads from
   `profiles.is_admin`.
+- Learners can update only safe presentation fields on their own
+  profile: `display_name`, `avatar_url`, `is_public`, and
+  `public_handle`.
+- `is_admin` and `is_disabled` are locked admin/security fields.
+  Direct browser updates are rejected; admin changes must go through
+  audited RPCs (`set_user_admin()` and `set_user_disabled()`).
 
 ### AI proxy (`netlify/functions/ai.js`)
 
@@ -105,7 +111,7 @@ Configured in `netlify.toml`:
 - Same auth + rate-limit + fail-closed posture as the AI proxy.
 - The `system` prompt is **pinned server-side** — the client only
   sends `{ topic, concept }`. The topic is checked against a small
-  allowlist (`html`, `css`, `js`, `react`, `python`) and the concept
+  allowlist (`html`, `css`, `js`, `react`) and the concept
   is capped at 200 chars.
 - Model output is parsed, code-fence-stripped, and validated against a
   strict schema (`question` / `code?` / `options[4]` / `correct 0..3`
@@ -125,9 +131,9 @@ Configured in `netlify.toml`:
 - Handles are validated client- and server-side (2–30 chars,
   `[A-Za-z0-9_-]`). Unique constraint on `public_handle` prevents
   squatting collisions.
-- Updates to `is_public` / `public_handle` still go through the
-  existing "Users manage own profiles" RLS policy (`auth.uid() = id`),
-  so users cannot flip another user's visibility.
+- Updates to `is_public` / `public_handle` are still limited to the
+  caller's own profile row (`auth.uid() = id`), and the client only has
+  column-level update rights for safe presentation fields.
 
 ### Scheduled jobs
 

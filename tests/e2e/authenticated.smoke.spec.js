@@ -1,13 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { getAuthSkipReason, getMissingAuthEnv } from './authE2E.js';
+import { signInIfAuthScreen } from './authHelpers.js';
 
-const requiredEnv = [
-  'VITE_SUPABASE_URL',
-  'VITE_SUPABASE_ANON_KEY',
-  'E2E_EMAIL',
-  'E2E_PASSWORD',
-];
-
-const missingEnv = requiredEnv.filter((name) => !process.env[name]);
+const missingEnv = getMissingAuthEnv();
 
 test.describe('authenticated smoke', () => {
   test.setTimeout(90000);
@@ -19,9 +14,11 @@ test.describe('authenticated smoke', () => {
 
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(
-      testInfo.project.name === 'mobile-chrome',
+      testInfo.project.name !== 'authenticated-chromium',
       'Authenticated smoke currently runs on desktop Chromium only.'
     );
+    const authSkipReason = getAuthSkipReason();
+    test.skip(Boolean(authSkipReason), authSkipReason);
 
     const diagnostics = {
       consoleErrors: [],
@@ -44,12 +41,7 @@ test.describe('authenticated smoke', () => {
     });
 
     await page.goto('/');
-
-    if (await page.getByLabel('Email').isVisible().catch(() => false)) {
-      await page.getByLabel('Email').fill(process.env.E2E_EMAIL);
-      await page.getByLabel('Password').fill(process.env.E2E_PASSWORD);
-      await page.getByRole('button', { name: /log in/i }).last().click();
-    }
+    await signInIfAuthScreen(page);
 
     await waitForAuthenticatedShell(page, diagnostics);
 
@@ -142,6 +134,10 @@ async function getTerminalStateError(page) {
   }
 
   if (await page.locator('.disabled-screen').isVisible().catch(() => false)) {
+    const disabledText = await page.locator('.disabled-screen').textContent().catch(() => '');
+    if (/could not verify your account/i.test(disabledText || '')) {
+      return new Error('Authenticated smoke user signed in, but the profile could not be verified. Check the E2E profiles row and profile RLS policies.');
+    }
     return new Error('Authenticated smoke user is signed in but the account is disabled.');
   }
 

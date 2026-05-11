@@ -1,5 +1,7 @@
 ﻿import { memo } from 'react';
 
+import { getLessonCompletionActionCopy } from '../../utils/lessonCompletionCopy';
+
 export const LessonNavBar = memo(function LessonNavBar({
   onPrev,
   onNext,
@@ -13,20 +15,25 @@ export const LessonNavBar = memo(function LessonNavBar({
   hasModuleQuiz,
   accent,
   lessonPosition,
+  nextTitle,
+  onOpenTools,
+  toolsOpen = false,
 }) {
   const nextLabel = isLast
     ? 'Track complete'
     : isLastLesson && hasModuleQuiz && !showModQuiz
-      ? 'Module quiz'
-      : 'Next lesson';
+      ? 'Take quiz'
+      : 'Continue';
 
   const nextAriaLabel = isLast
     ? 'Finish this lesson flow'
     : isLastLesson && hasModuleQuiz && !showModQuiz
       ? 'Go to module quiz'
-      : 'Go to next lesson';
+      : nextTitle
+        ? `Continue to next lesson: ${nextTitle}`
+        : 'Continue to next lesson';
 
-  const doneAriaLabel = isDone ? 'Unmark lesson as complete' : 'Mark this lesson complete';
+  const doneCopy = getLessonCompletionActionCopy({ isDone, marking, surface: 'nav' });
 
   return (
     <nav className="lesson-nav" aria-label="Lesson navigation">
@@ -50,13 +57,27 @@ export const LessonNavBar = memo(function LessonNavBar({
           className={`lesson-nav-btn lesson-nav-done ui-btn ui-btn-secondary ${isDone ? 'is-done' : ''}`}
           onClick={onMarkDone}
           disabled={marking}
-          aria-label={doneAriaLabel}
+          aria-label={doneCopy.ariaLabel}
           aria-pressed={isDone}
         >
           <span className="lesson-nav-icon" aria-hidden="true">
             {marking ? '…' : isDone ? '✓' : '◌'}
           </span>
-          <span className="lesson-nav-label">{marking ? 'Saving' : isDone ? 'Completed' : 'Mark complete'}</span>
+          <span className="lesson-nav-label">{doneCopy.label}</span>
+        </button>
+      )}
+
+      {onOpenTools && (
+        <button
+          type="button"
+          className={`lesson-nav-btn lesson-nav-tools ui-btn ui-btn-secondary ${toolsOpen ? 'is-open' : ''}`}
+          onClick={onOpenTools}
+          aria-label="Open learning tools"
+          aria-expanded={toolsOpen}
+          aria-haspopup="dialog"
+          aria-controls="mobile-tools-sheet"
+        >
+          <span className="lesson-nav-label">Tools</span>
         </button>
       )}
 

@@ -8,8 +8,8 @@ import { useXP } from '../../providers';
 import { useAutoDismissReveal } from '../../hooks/useAutoDismissReveal';
 
 const FADE_OUT_MS = 400;
-const VISIBLE_MS_DEFAULT = 1500;
-const VISIBLE_MS_LEVEL_UP = 2500;
+const VISIBLE_MS_DEFAULT = 1200;
+const VISIBLE_MS_LEVEL_UP = 1800;
 
 export function XPPopup() {
   const { xpPopup, clearXPPopup } = useXP();
@@ -32,8 +32,9 @@ export function XPPopup() {
     >
       <div className="xp-gain">+{xpPopup.amount} XP</div>
       <div className="xp-reason">{xpPopup.reason}</div>
+      <div className="xp-scope">Motivational progress</div>
       {xpPopup.newLevel && (
-        <div className="xp-lvlup">🎉 Level Up! Level {xpPopup.newLevel}</div>
+        <div className="xp-lvlup">Level {xpPopup.newLevel} reached</div>
       )}
     </div>
   );

@@ -12,8 +12,9 @@ export function CheatsheetPanel({ isOpen, onClose, currentCourse }) {
 
   if (!isOpen) return null;
 
-  const sections = CHEATSHEETS[activeCourse] || CHEATSHEETS.html;
+  const sections = CHEATSHEETS[activeCourse] || [];
   const courseKeys = Object.keys(CHEATSHEETS);
+  const displayCourse = (activeCourse || 'reference').toUpperCase();
 
   return (
     <div
@@ -27,13 +28,13 @@ export function CheatsheetPanel({ isOpen, onClose, currentCourse }) {
         className="search-modal"
         role="dialog"
         aria-modal="true"
-        aria-label={`${activeCourse.toUpperCase()} cheat sheet`}
+        aria-label={`${displayCourse} cheat sheet`}
         tabIndex={-1}
       >
         <div className="cheatsheet-head">
           <div className="panel-title-group">
             <p className="panel-kicker">Quick reference</p>
-            <h2>📋 {activeCourse.toUpperCase()} Cheat Sheet</h2>
+            <h2>📋 {displayCourse} Cheat Sheet</h2>
           </div>
           <button
             type="button"
@@ -63,19 +64,28 @@ export function CheatsheetPanel({ isOpen, onClose, currentCourse }) {
             Switch stacks to keep syntax, tags, and common patterns close while
             you work through lessons.
           </p>
-          {sections.map((section, index) => (
-            <div key={index} className="cs-section">
-              <h3>{section.title}</h3>
-              <div className="cs-grid">
-                {section.items.map(([syntax, desc], itemIndex) => (
-                  <div key={itemIndex} className="cs-item">
-                    <code>{syntax}</code>
-                    <div className="cs-desc">{desc}</div>
-                  </div>
-                ))}
-              </div>
+          {sections.length === 0 ? (
+            <div className="sr-empty">
+              <p><strong>No quick references available for this track yet.</strong></p>
+              <p className="empty-state-msg">
+                Stay with the lesson content for now. Reference cards will appear here when this track has them.
+              </p>
             </div>
-          ))}
+          ) : (
+            sections.map((section, index) => (
+              <div key={index} className="cs-section">
+                <h3>{section.title}</h3>
+                <div className="cs-grid">
+                  {section.items.map(([syntax, desc], itemIndex) => (
+                    <div key={itemIndex} className="cs-item">
+                      <code>{syntax}</code>
+                      <div className="cs-desc">{desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

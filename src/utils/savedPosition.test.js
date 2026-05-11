@@ -46,6 +46,62 @@ const courses = [
 ];
 
 describe('resolveSavedPosition', () => {
+  it('restoresStableLessonPositionAfterLessonTitleRename', () => {
+    const renamedCourses = [
+      {
+        ...courses[0],
+        modules: [
+          {
+            ...courses[0].modules[0],
+            lessons: [
+              { ...courses[0].modules[0].lessons[0], title: 'Document anatomy' },
+              { ...courses[0].modules[0].lessons[1], title: 'Text structure' },
+            ],
+          },
+        ],
+      },
+    ];
+
+    expect(
+      resolveSavedPosition(
+        {
+          courseId: 'html',
+          moduleId: 'm1',
+          lessonId: 'l2',
+          isModuleQuiz: false,
+          course: 'Old label',
+          mod: 'Old module',
+          les: 'Old lesson title',
+        },
+        renamedCourses,
+      ),
+    ).toEqual({
+      courseIndex: 0,
+      moduleIndex: 0,
+      lessonIndex: 1,
+      isModuleQuiz: false,
+    });
+  });
+
+  it('restoresStableModuleQuizPosition', () => {
+    expect(
+      resolveSavedPosition(
+        {
+          courseId: 'html',
+          moduleId: 'm1',
+          lessonId: 'l1',
+          isModuleQuiz: true,
+        },
+        courses,
+      ),
+    ).toEqual({
+      courseIndex: 0,
+      moduleIndex: 0,
+      lessonIndex: 1,
+      isModuleQuiz: true,
+    });
+  });
+
   it('returns null when the saved payload is incomplete', () => {
     expect(resolveSavedPosition(null, courses)).toBeNull();
     expect(resolveSavedPosition({ course: '', mod: '', les: '' }, courses)).toBeNull();
@@ -54,7 +110,7 @@ describe('resolveSavedPosition', () => {
     ).toBeNull();
   });
 
-  it('resolves the modern emoji+label form AppLayout writes', () => {
+  it('fallsBackToLegacySavedPositionLabels', () => {
     expect(
       resolveSavedPosition(
         {

@@ -39,7 +39,6 @@ export const RichLessonBody = memo(function RichLessonBody({
         {isRichFormat && lesson.concepts && (
           <>
             <h2 className="sl-section-title">
-              <span aria-hidden="true">💡 </span>
               Core ideas
             </h2>
             <p className="sl-section-intro">
@@ -63,14 +62,14 @@ export const RichLessonBody = memo(function RichLessonBody({
 
       {isRichFormat && lesson.output && (
         <div className="box output-box">
-          <div className="box-label">▶ What you should see</div>
+          <div className="box-label">What you should see</div>
           <p>{lesson.output}</p>
         </div>
       )}
 
       {isRichFormat && lesson.tasks && lesson.tasks.length > 0 && (
         <div className="box tasks-box">
-          <div className="box-label"><span aria-hidden="true">✅ </span>Your turn</div>
+          <div className="box-label">Your turn</div>
           <div className="tasks-list">
             {lesson.tasks.map((task, index) => {
               const isChecked = checkedTasks.has(index);
@@ -82,7 +81,7 @@ export const RichLessonBody = memo(function RichLessonBody({
                     onChange={() => onToggleTask(index)}
                     aria-label={task}
                   />
-                  <span className="task-check">{isChecked ? '✓' : ''}</span>
+                  <span className="task-check" aria-hidden="true">{isChecked ? '✓' : ''}</span>
                   <span className="task-text">{task}</span>
                 </label>
               );
@@ -96,14 +95,14 @@ export const RichLessonBody = memo(function RichLessonBody({
 
       {lesson.tip && (
         <div className="box tip">
-          <div className="box-label"><span aria-hidden="true">💡 </span>Pro Tip</div>
+          <div className="box-label">Pro Tip</div>
           <p>{lesson.tip}</p>
         </div>
       )}
 
       {lesson.challenge && typeof lesson.challenge === 'string' && (
         <div className="box chal">
-          <div className="box-label"><span aria-hidden="true">🔥 </span>Stretch challenge</div>
+          <div className="box-label">Stretch challenge</div>
           <p>{lesson.challenge}</p>
         </div>
       )}
@@ -115,9 +114,8 @@ export const RichLessonBody = memo(function RichLessonBody({
             className={`devfession-toggle ${showDevFession ? 'open' : ''}`}
             onClick={onToggleDevFession}
             aria-expanded={showDevFession}
-            aria-label="Toggle Dev_Fession — a real developer confession"
+            aria-label="Toggle Dev_Fession - a real developer confession"
           >
-            <span className="devfession-icon" aria-hidden="true">🤫</span>
             <span>Dev_Fession</span>
             <span className="devfession-sub">What real developers trip over here</span>
             <span className="devfession-arrow" aria-hidden="true">

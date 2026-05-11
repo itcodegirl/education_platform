@@ -4,7 +4,7 @@
 // ===============================================================
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { COURSES, QUIZ_MAP } from '../data';
+import { COURSES, getQuiz } from '../data';
 import { useCourseContent } from '../providers';
 import { navigateTo, toPathFromLegacyHash } from '../routes/routeUtils';
 import { buildLearnPath, parseLearnPath } from '../routes/routePaths';
@@ -23,7 +23,7 @@ const EMPTY_COURSE = { id: '', label: '', icon: '', accent: '', modules: [EMPTY_
 
 function getScopedQuiz(type, courseId, entityId) {
   if (!courseId || !entityId) return undefined;
-  return QUIZ_MAP.get(`${type}:${courseId}:${entityId}`);
+  return getQuiz(courseId, type, entityId);
 }
 
 function findPathPosition(pathname) {
@@ -67,6 +67,22 @@ function findPathPosition(pathname) {
 // COURSES catalog so the hook's call sites stay readable.
 function findSavedPosition(lastPosition) {
   return resolveSavedPosition(lastPosition, COURSES);
+}
+
+function savedCourseLabelMatches(course, savedLabel = '') {
+  if (!course?.label || !savedLabel) return false;
+  if (savedLabel === course.label) return true;
+  if (savedLabel === `${course.icon} ${course.label}`) return true;
+  return savedLabel.includes(course.label);
+}
+
+function getSavedPositionCourseId(lastPosition) {
+  if (lastPosition?.courseId) return lastPosition.courseId;
+  if (!lastPosition?.course) return '';
+
+  return COURSES.find((courseEntry) =>
+    savedCourseLabelMatches(courseEntry, lastPosition.course),
+  )?.id || '';
 }
 
 function getInitialNavigationState() {
@@ -343,6 +359,41 @@ export function useNavigation() {
     selectLessonPosition(ci, 0, 0, false);
   }, [scrollTop, selectLessonPosition]);
 
+  const goToCourseModule = useCallback(async (ci, mi, li = 0) => {
+    if (ci < 0 || ci >= COURSES.length) return false;
+
+    const targetCourse = COURSES[ci];
+    if (!targetCourse) return false;
+
+    if (!targetCourse.modules?.length) {
+      try {
+        await ensureLoaded(targetCourse.id);
+      } catch (error) {
+        logNavigationDiagnostic('selection-course-load-failed', {
+          selectedCourseId: targetCourse.id,
+          errorMessage: error?.message || 'Course failed to load',
+        });
+        return false;
+      }
+    }
+
+    const loadedCourse = COURSES[ci];
+    const targetModule = loadedCourse?.modules?.[mi];
+    const targetLessonIndex = Number.isInteger(li) ? li : 0;
+    const targetLesson = targetModule?.lessons?.[targetLessonIndex];
+    if (!loadedCourse || !targetModule || !targetLesson) {
+      logNavigationDiagnostic('selection-skipped', {
+        reason: 'missing-loaded-target',
+        targetCourseIndex: ci,
+        targetModuleIndex: mi,
+        targetLessonIndex,
+      });
+      return false;
+    }
+
+    return selectLessonPosition(ci, mi, targetLessonIndex, false);
+  }, [ensureLoaded, selectLessonPosition]);
+
   const next = useCallback(() => {
     if (showModQuiz) {
       setShowModQuiz(false);
@@ -387,7 +438,25 @@ export function useNavigation() {
     selectLessonPosition(courseIdx, mi, moduleData.lessons.length - 1, true);
   }, [courseIdx, modules, selectLessonPosition]);
 
-  const resumeFromPosition = useCallback((lastPosition) => {
+  const resumeFromPosition = useCallback(async (lastPosition) => {
+    const savedCourseId = getSavedPositionCourseId(lastPosition);
+    if (savedCourseId) {
+      const savedCourseIndex = COURSES.findIndex((entry) => entry.id === savedCourseId);
+      const needsLoad = savedCourseIndex >= 0 && !COURSES[savedCourseIndex]?.modules?.length;
+
+      if (needsLoad) {
+        try {
+          await ensureLoaded(savedCourseId);
+        } catch (error) {
+          logNavigationDiagnostic('resume-course-load-failed', {
+            selectedCourseId: savedCourseId,
+            errorMessage: error?.message || 'Course failed to load',
+          });
+          return false;
+        }
+      }
+    }
+
     const saved = findSavedPosition(lastPosition);
     if (!saved) return false;
 
@@ -398,7 +467,7 @@ export function useNavigation() {
       saved.isModuleQuiz,
       { replace: true },
     );
-  }, [selectLessonPosition]);
+  }, [ensureLoaded, selectLessonPosition]);
 
   return {
     courseIdx, modIdx, lesIdx, showModQuiz,
@@ -406,7 +475,7 @@ export function useNavigation() {
     lessonKey, lessonQuiz, moduleQuiz,
     courseTotal, isFirst, isLast, isLastLesson,
     mainRef,
-    go, next, prev, switchCourse, goToSearch, goToModQuiz, resumeFromPosition,
+    go, next, prev, switchCourse, goToCourseModule, goToSearch, goToModQuiz, resumeFromPosition,
     setShowModQuiz,
   };
 }

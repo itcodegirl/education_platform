@@ -1,13 +1,27 @@
 // ═══════════════════════════════════════════════
-// PROGRESS CONTEXT — lesson completion, quizzes, XP, streaks, badges
-// XPContext definition lives in xpContext.jsx
-// SRContext definition + SR/bookmark/note callbacks live in srContext.jsx
+// PROGRESS CONTEXT — XP, streak, badges, daily goals
+// Account progress syncs to Supabase when reachable; a same-browser
+// retry queue preserves optimistic writes until cloud confirmation.
 // ═══════════════════════════════════════════════
 
 import { createContext, useContext, useCallback, useEffect, useRef, useState, useMemo } from 'react';
-
-const PROGRESS_BROADCAST_CHANNEL = 'codeherway:progress';
 import { useAuth } from './AuthContext';
+import {
+  buildNotesMap,
+  findExistingBookmark,
+  getSavedNote,
+  isBookmarkedLesson,
+  normalizeProgressLessonKey,
+  removeEquivalentBookmarks,
+} from './progressSavedLessonHelpers';
+import { createEmptyLastPosition, mapLastPositionRow } from './lastPositionState';
+import {
+  buildSkippedRetryResult,
+  getLocalStorageSyncFailureLabel,
+  hasPendingSyncWrites,
+  shouldReplayHydratedQueue,
+} from './progressSyncState';
+import { collectRecoverableLoadWarnings } from './progressSyncWarningHelpers';
 import {
   DAILY_GOAL,
   getActiveDailyCount,
@@ -26,14 +40,16 @@ import {
   replayProgressWriteQueue,
 } from '../services/progressWriteQueue';
 import {
+  trackProgressSyncFailure,
   trackProgressSyncQueued,
   trackProgressSyncReplay,
 } from '../services/progressSyncTelemetry';
 import { getProgressWriteFailure } from '../services/progressWriteRuntime';
-import { isPerfectQuizScore, rewardKeys } from '../services/rewardPolicy';
+import { isPerfectQuizScore, isQuizScoreValueImprovement, rewardKeys } from '../services/rewardPolicy';
 import { LOCAL_STORAGE_SYNC_ERROR_EVENT } from '../hooks/useLocalStorage';
 import { useTodayKey } from '../hooks/useTodayKey';
 import { findNewlyEarnedBadges } from '../services/badgeRules';
+import { nextSRCardState } from '../services/srAlgorithm';
 import {
   normalizeRewardHistory,
   normalizeStringList as normalizeStringSet,
@@ -42,13 +58,11 @@ import {
   writeChallengeCompletions,
   writeRewardHistory,
 } from '../utils/learnerLocalStore';
-import { XPContext, useXP } from './xpContext';
-import { SRContext, useSRSlice, useSR } from './srContext';
 
-// Re-export sub-context hooks so all consumers can continue importing
-// from this single file without path changes.
-export { useXP } from './xpContext';
-export { useSR } from './srContext';
+// BADGE_DEFS is imported above from '../data/badges' (the canonical
+// catalog home) and re-exported via providers/ProgressProvider, so
+// existing `import { BADGE_DEFS } from '../../providers'` call sites
+// keep working without going through this file.
 
 const ProgressContext = createContext({
   completed: [],
@@ -62,13 +76,18 @@ const ProgressContext = createContext({
   trackCourseVisit: () => {},
   dataLoaded: false,
   loadError: null,
+  loadWarnings: [],
   retryLoad: () => {},
+  clearLoadWarnings: () => {},
   rewardHistory: [],
   hasRewardBeenAwarded: () => false,
   markRewardAwarded: () => false,
   challengeCompletions: [],
   isChallengeCompleted: () => false,
   markChallengeCompleted: () => false,
+  // Count of DB writes that failed since the last successful read.
+  // Used by the UI to show a "sync failed" banner; the optimistic
+  // state is still the source of truth for the current session.
   syncFailed: 0,
   pendingSyncWrites: 0,
   syncRetryInFlight: false,
@@ -77,6 +96,39 @@ const ProgressContext = createContext({
   enqueuePendingSyncWrite: () => false,
   retryPendingSyncWrites: async () => ({ processed: 0, remaining: 0 }),
 });
+
+const XPContext = createContext({
+  xpTotal: 0,
+  awardXP: () => {},
+  xpPopup: null,
+  clearXPPopup: () => {},
+  streak: 0,
+  // pausedStreak is null when there is no lapsed streak to revive.
+  // Shape when present: { days: number, lastDate: 'YYYY-MM-DD' }.
+  pausedStreak: null,
+  dailyCount: 0,
+  recordDailyActivity: () => {},
+  earnedBadges: [],
+  newBadge: null,
+  clearNewBadge: () => {},
+});
+
+const SRContext = createContext({
+  srCards: [],
+  addToSRQueue: () => {},
+  updateSRCard: () => {},
+  getDueSRCards: () => [],
+  bookmarks: [],
+  toggleBookmark: () => {},
+  isBookmarked: () => false,
+  notes: {},
+  saveNote: () => {},
+  getNote: () => '',
+});
+
+// Per-learner localStorage helpers (reward history, challenge
+// completions, normalization) live in utils/learnerLocalStore so
+// they can be unit-tested independently of the provider.
 
 export function ProgressProvider({ children }) {
   const { user } = useAuth();
@@ -87,13 +139,21 @@ export function ProgressProvider({ children }) {
   // active-daily-count guards so they recompute when the wall
   // clock crosses midnight inside an open tab.
   const todayKey = useTodayKey();
+  // Counter for DB writes that have failed since the last successful
+  // load. The optimistic state is still the source of truth for the
+  // session — this is just so the UI can surface "your progress did
+  // not save to the cloud" instead of silently losing writes.
   const [syncFailed, setSyncFailed] = useState(0);
   const [pendingSyncWrites, setPendingSyncWrites] = useState(0);
   const [syncRetryInFlight, setSyncRetryInFlight] = useState(false);
   const pendingSyncWritesRef = useRef(0);
   const hydratePendingQueueRef = useRef(false);
 
-  const markSyncFailed = useCallback(() => {
+  const markSyncFailed = useCallback((label = 'sync-write') => {
+    trackProgressSyncFailure({
+      label,
+      pendingCount: pendingSyncWritesRef.current,
+    });
     setSyncFailed((count) => count + 1);
   }, []);
 
@@ -139,26 +199,75 @@ export function ProgressProvider({ children }) {
     }
   }, [markSyncFailed, syncPendingQueueCount, userId]);
 
+  // Per-resource write chain map. Writes that share a resourceKey
+  // are serialized so a rapid toggle (addLesson → removeLesson →
+  // addLesson on the same lessonKey) lands in submit order on the
+  // server. Writes with different resourceKeys still run in parallel.
+  // The XP path uses its own xpWriteChainRef and stays unchanged so
+  // its serialize-then-resolve semantics are preserved.
+  const writeChainsRef = useRef(new Map());
+
+  // Reset chains when the active learner changes — a chain captured
+  // the old userId and would otherwise resolve a write against a
+  // stale identity.
+  useEffect(() => {
+    writeChainsRef.current = new Map();
+  }, [userId]);
+
   // Supabase write helper. Optimistic state is updated BEFORE this is
   // called, so we catch and report failures rather than rollback.
-  const dbWrite = useCallback(async (write, label = 'db-write') => {
+  // Previously this silently swallowed all errors, which made every
+  // sync failure invisible — a real correctness bug flagged in the
+  // portfolio audit. Now we:
+  //   1. console.warn in dev so the developer sees it immediately
+  //   2. bump the syncFailed counter exposed via context so the UI
+  //      can show a "sync failed, your work is still saved locally"
+  //      banner. Calling retryLoad() will reset the counter.
+  //   3. accept a human-readable label so the warning identifies
+  //      which service call failed.
+  //   4. accept an optional resourceKey to serialize concurrent
+  //      writes against the same resource without blocking writes
+  //      against unrelated resources.
+  const dbWrite = useCallback(async (write, label = 'db-write', options = {}) => {
     if (!userId) return { queued: false, skipped: true };
 
-    try {
-      const result = await executeProgressWrite(userId, write);
-      const failure = getProgressWriteFailure(result);
-      if (failure) throw failure;
-      return { queued: false, skipped: false };
-    } catch (err) {
-      if (import.meta.env.DEV) {
-        console.warn(
-          `[ProgressContext] ${label} failed — optimistic state kept:`,
-          err,
-        );
+    const performWrite = async () => {
+      try {
+        const result = await executeProgressWrite(userId, write);
+        const failure = getProgressWriteFailure(result);
+        if (failure) throw failure;
+        return { queued: false, skipped: false };
+      } catch (err) {
+        if (import.meta.env.DEV) {
+          console.warn(
+            `[ProgressContext] ${label} failed — optimistic state kept:`,
+            err,
+          );
+        }
+        const queued = enqueuePendingSyncWrite(write, label);
+        return { queued, skipped: false };
       }
-      const queued = enqueuePendingSyncWrite(write, label);
-      return { queued, skipped: false };
+    };
+
+    const resourceKey = options?.resourceKey;
+    if (!resourceKey) {
+      return performWrite();
     }
+
+    const chains = writeChainsRef.current;
+    const previous = chains.get(resourceKey) || Promise.resolve();
+    const next = previous.catch(() => {}).then(performWrite);
+    chains.set(resourceKey, next);
+    // Drop the entry only when we're still the tail of the chain so
+    // a follow-up enqueue can append to the in-flight tail rather
+    // than starting a fresh chain in parallel with an in-progress
+    // write for the same resource.
+    next.finally(() => {
+      if (chains.get(resourceKey) === next) {
+        chains.delete(resourceKey);
+      }
+    });
+    return next;
   }, [enqueuePendingSyncWrite, userId]);
 
   const clearSyncFailed = useCallback(() => setSyncFailed(0), []);
@@ -167,14 +276,12 @@ export function ProgressProvider({ children }) {
     reloadAfterSuccess = false,
     trigger = 'manual',
   } = {}) => {
-    if (!userId || syncRetryInFlight || pendingSyncWritesRef.current === 0) {
-      return {
-        processed: 0,
-        remaining: pendingSyncWritesRef.current,
-        queue: readProgressWriteQueue(userId),
-        failedItem: null,
-        error: null,
-      };
+    if (!userId || syncRetryInFlight || !hasPendingSyncWrites(pendingSyncWritesRef.current)) {
+      return buildSkippedRetryResult({
+        userId,
+        pendingCount: pendingSyncWritesRef.current,
+        readQueue: readProgressWriteQueue,
+      });
     }
 
     setSyncRetryInFlight(true);
@@ -227,9 +334,7 @@ export function ProgressProvider({ children }) {
     if (typeof window === 'undefined') return;
 
     const handleLocalStorageFailure = (event) => {
-      const key = typeof event.detail?.key === 'string' ? event.detail.key : 'unknown-key';
-      const phase = typeof event.detail?.phase === 'string' ? event.detail.phase : 'unknown';
-      markSyncFailed(`localStorage ${phase}:${key}`);
+      markSyncFailed(getLocalStorageSyncFailureLabel(event.detail));
     };
 
     window.addEventListener(LOCAL_STORAGE_SYNC_ERROR_EVENT, handleLocalStorageFailure);
@@ -253,7 +358,7 @@ export function ProgressProvider({ children }) {
     if (typeof window === 'undefined' || !userId) return undefined;
 
     const handleOnline = () => {
-      if (pendingSyncWritesRef.current > 0) {
+      if (hasPendingSyncWrites(pendingSyncWritesRef.current)) {
         retryPendingSyncWrites({ trigger: 'online' });
       }
     };
@@ -262,31 +367,23 @@ export function ProgressProvider({ children }) {
     return () => window.removeEventListener('online', handleOnline);
   }, [retryPendingSyncWrites, userId]);
 
-  // ─── SR slice ─────────────────────────────────
-  // SR/bookmark/note state and callbacks live in srContext.jsx.
-  // Setters are exposed so the load effect and resetUserState can
-  // populate / clear them without coupling the SR module to the
-  // load orchestration logic here.
-  const {
-    srCards, setSrCards,
-    bookmarks, setBookmarks,
-    notes, setNotes,
-    addToSRQueue, updateSRCard, getDueSRCards,
-    toggleBookmark, isBookmarked,
-    saveNote, getNote,
-  } = useSRSlice({ user, dbWrite });
-
   // ─── State ─────────────────────────────────────
   const [completed, setCompleted] = useState([]);
   const [quizScores, setQuizScores] = useState({});
+  const quizScoresRef = useRef({});
   const [xpTotal, setXpTotal] = useState(0);
+  const xpTotalRef = useRef(0);
+  const xpWriteChainRef = useRef(Promise.resolve());
   const [streak, setStreak] = useState(0);
   const [streakLastDate, setStreakLastDate] = useState('');
   const [dailyCount, setDailyCount] = useState(0);
   const [dailyDate, setDailyDate] = useState('');
   const [earnedBadges, setEarnedBadges] = useState({});
+  const [srCards, setSrCards] = useState([]);
+  const [bookmarks, setBookmarks] = useState([]);
+  const [notes, setNotes] = useState({});
   const [coursesVisited, setCoursesVisited] = useState([]);
-  const [lastPosition, setLastPosition] = useState({ course: '', mod: '', les: '', time: 0 });
+  const [lastPosition, setLastPosition] = useState(createEmptyLastPosition);
   const [rewardHistory, setRewardHistory] = useState([]);
   const rewardHistoryRef = useRef(new Set());
   const [challengeCompletions, setChallengeCompletions] = useState([]);
@@ -295,23 +392,41 @@ export function ProgressProvider({ children }) {
   // Same ref-mirroring pattern as streakStateRef. Two recordDailyActivity
   // calls in the same React batch would otherwise both read the stale
   // closure-captured dailyCount/dailyDate and lose an increment. The ref
-  // updates synchronously so the second call sees the first call's value.
+  // updates synchronously so the second call sees the first call's
+  // value.
   const dailyStateRef = useRef({ count: 0, date: '' });
   // XP popups are queued so back-to-back awards each get their full
-  // dismissal animation.
+  // dismissal animation. Without this, a perfect-quiz flow that awards
+  // +30 XP (base) then +50 XP (perfect bonus) in the same tick would
+  // overwrite the first popup before the user ever saw it.
+  // The exposed `xpPopup` value is the head of the queue; `clearXPPopup`
+  // shifts the head off so the next award (if any) takes its place.
   const [xpPopupQueue, setXpPopupQueue] = useState([]);
   const xpPopup = xpPopupQueue[0] || null;
-  // Badge unlock queue: a single checkBadges() call can earn multiple
-  // badges, and each celebration is a 4.5s full-screen modal.
+  // Same queue pattern for badge unlock celebrations: a single
+  // checkBadges() call can earn multiple badges (e.g. hitting a streak
+  // milestone and a lesson-count milestone in the same action), and the
+  // BadgeUnlock celebration is a 4.5s full-screen modal — overwriting it
+  // would silently drop a real reward the learner just earned.
   const [newBadgeQueue, setNewBadgeQueue] = useState([]);
   const newBadge = newBadgeQueue[0] || null;
   const [dataLoaded, setDataLoaded] = useState(false);
   const [loadError, setLoadError] = useState(null);
+  const [loadWarnings, setLoadWarnings] = useState([]);
+  const clearLoadWarnings = useCallback(() => setLoadWarnings([]), [setLoadWarnings]);
 
   useEffect(() => {
-    if (!userId || !dataLoaded || loadError) return;
-    if (!hydratePendingQueueRef.current || pendingSyncWrites === 0) return;
-    if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+    const isOnline = typeof navigator === 'undefined' || navigator.onLine;
+    const shouldReplay = shouldReplayHydratedQueue({
+      userId,
+      dataLoaded,
+      loadError,
+      hydratePendingQueue: hydratePendingQueueRef.current,
+      pendingSyncWrites,
+      isOnline,
+    });
+
+    if (!shouldReplay) return;
 
     hydratePendingQueueRef.current = false;
     retryPendingSyncWrites({ reloadAfterSuccess: true, trigger: 'session-replay' });
@@ -335,10 +450,10 @@ export function ProgressProvider({ children }) {
         if (import.meta.env.DEV) {
           console.warn('[ProgressContext] reward history write failed:', err);
         }
-        setSyncFailed((count) => count + 1);
+        markSyncFailed('reward-history-local');
       }
     }
-  }, []);
+  }, [markSyncFailed]);
 
   const replaceChallengeCompletions = useCallback((userId, challengeIds, { persist = false } = {}) => {
     const normalizedChallengeIds = normalizeStringSet(challengeIds);
@@ -352,14 +467,17 @@ export function ProgressProvider({ children }) {
         if (import.meta.env.DEV) {
           console.warn('[ProgressContext] challenge completion write failed:', err);
         }
-        setSyncFailed((count) => count + 1);
+        markSyncFailed('challenge-completions-local');
       }
     }
-  }, []);
+  }, [markSyncFailed]);
 
   const resetUserState = useCallback(() => {
     setCompleted([]);
     setQuizScores({});
+    quizScoresRef.current = {};
+    xpTotalRef.current = 0;
+    xpWriteChainRef.current = Promise.resolve();
     setXpTotal(0);
     setStreak(0);
     setStreakLastDate('');
@@ -372,14 +490,14 @@ export function ProgressProvider({ children }) {
     setBookmarks([]);
     setNotes({});
     setCoursesVisited([]);
-    setLastPosition({ course: '', mod: '', les: '', time: 0 });
+    setLastPosition(createEmptyLastPosition());
     rewardHistoryRef.current = new Set();
     setRewardHistory([]);
     challengeCompletionsRef.current = new Set();
     setChallengeCompletions([]);
     setXpPopupQueue([]);
     setNewBadgeQueue([]);
-  }, [setSrCards, setBookmarks, setNotes]);
+  }, []);
 
   // ─── Load all data from Supabase on login ──────
   useEffect(() => {
@@ -387,6 +505,7 @@ export function ProgressProvider({ children }) {
       resetUserState();
       setDataLoaded(false);
       setLoadError(null);
+      setLoadWarnings([]);
       return;
     }
 
@@ -395,20 +514,27 @@ export function ProgressProvider({ children }) {
     const loadAll = async () => {
       const uid = user.id;
       setLoadError(null);
+      setLoadWarnings([]);
 
       try {
       // Parallel fetch all tables
       const results = await progressService.fetchAllUserData(uid);
       if (cancelled) return;
-      const { progress: progressRes, quiz: quizRes, xp: xpRes, streak: streakRes,
-        daily: dailyRes, badges: badgesRes, sr: srRes, bookmarks: bookmarkRes,
-        notes: notesRes, visited: visitedRes, position: posRes } = results;
+      if (results.criticalError) {
+        throw new Error(results.criticalError.message);
+      }
 
-      const completedLessonKeys = progressRes.data?.map(r => r.lesson_key) || [];
+      setLoadWarnings(collectRecoverableLoadWarnings(results.recoverableErrors));
+
+      const { progress, quiz, xp, streak, daily, badges: badgeRows, sr, bookmarks: bookmarkRows,
+        notes: noteRows, visited, position } = results.data;
+
+      const completedLessonKeys = progress.map(r => r.lesson_key);
       setCompleted(completedLessonKeys);
 
       const scores = {};
-      quizRes.data?.forEach(r => { scores[r.quiz_key] = r.score; });
+      quiz.forEach(r => { scores[r.quiz_key] = r.score; });
+      quizScoresRef.current = scores;
       setQuizScores(scores);
 
       const storedRewardHistory = readRewardHistory(uid);
@@ -444,9 +570,11 @@ export function ProgressProvider({ children }) {
         },
       );
 
-      setXpTotal(xpRes.data?.total || 0);
+      const loadedXpTotal = xp?.total || 0;
+      xpTotalRef.current = loadedXpTotal;
+      setXpTotal(loadedXpTotal);
 
-      const sd = streakRes.data;
+      const sd = streak;
       if (sd) {
         const loadedStreak = sd.days || 0;
         const loadedLastDate = sd.last_date || '';
@@ -464,7 +592,7 @@ export function ProgressProvider({ children }) {
         streakStateRef.current = { days: 0, lastDate: '' };
       }
 
-      const dd = dailyRes.data;
+      const dd = daily;
       const today = getTodayString();
       if (dd && dd.goal_date === today) {
         const loadedCount = dd.count || 0;
@@ -477,11 +605,11 @@ export function ProgressProvider({ children }) {
         dailyStateRef.current = { count: 0, date: today };
       }
 
-      const badges = {};
-      badgesRes.data?.forEach(r => { badges[r.badge_id] = { date: r.earned_at?.slice(0, 10) }; });
-      setEarnedBadges(badges);
+      const loadedBadges = {};
+      badgeRows.forEach(r => { loadedBadges[r.badge_id] = { date: r.earned_at?.slice(0, 10) }; });
+      setEarnedBadges(loadedBadges);
 
-      setSrCards(srRes.data?.map(r => ({
+      setSrCards(sr.map(r => ({
         question: r.question,
         code: r.code,
         options: r.options,
@@ -492,29 +620,21 @@ export function ProgressProvider({ children }) {
         nextReview: new Date(r.next_review).getTime(),
         interval: r.interval_days,
         ease: r.ease,
-      })) || []);
+      })));
 
-      setBookmarks(bookmarkRes.data || []);
+      setBookmarks(bookmarkRows);
 
-      const notesMap = {};
-      notesRes.data?.forEach(r => { notesMap[r.lesson_key] = r.content; });
-      setNotes(notesMap);
+      setNotes(buildNotesMap(noteRows));
 
-      setCoursesVisited(visitedRes.data?.map(r => r.course_id) || []);
+      setCoursesVisited(visited.map(r => r.course_id));
 
-      if (posRes.data) {
-        setLastPosition({
-          course: posRes.data.course || '',
-          mod: posRes.data.mod || '',
-          les: posRes.data.les || '',
-          time: posRes.data.updated_at ? new Date(posRes.data.updated_at).getTime() : 0,
-        });
-      }
+      setLastPosition(mapLastPositionRow(position));
 
       setDataLoaded(true);
       } catch (err) {
         if (cancelled) return;
         console.error('Failed to load data:', err);
+        setLoadWarnings([]);
         setLoadError(err.message || 'Could not connect to database');
         setDataLoaded(true); // still mark loaded so UI isn't stuck
       }
@@ -529,63 +649,72 @@ export function ProgressProvider({ children }) {
   // ─── Progress ─────────────────────────────────
   const completedSet = useMemo(() => new Set(completed), [completed]);
 
-  // Cross-tab sync: broadcast lesson toggles to sibling tabs so the sidebar
-  // stays in sync without a full reload. XP/streak are intentionally excluded —
-  // awarding XP twice across tabs is worse than a stale count.
-  const broadcastChannel = useRef(null);
-  useEffect(() => {
-    if (typeof BroadcastChannel === 'undefined') return undefined;
-    broadcastChannel.current = new BroadcastChannel(PROGRESS_BROADCAST_CHANNEL);
-    broadcastChannel.current.onmessage = (e) => {
-      if (e.data?.type === 'lesson_toggled') {
-        const { lessonKey: remoteKey, completed: remoteCompleted } = e.data;
-        setCompleted(prev => {
-          const has = prev.includes(remoteKey);
-          if (remoteCompleted && !has) return [...prev, remoteKey];
-          if (!remoteCompleted && has) return prev.filter(k => k !== remoteKey);
-          return prev;
-        });
-      }
-    };
-    return () => {
-      broadcastChannel.current?.close();
-      broadcastChannel.current = null;
-    };
-  }, []);
-
   const toggleLesson = useCallback(async (lessonKey, options = {}) => {
     if (!user) return;
+    const normalizedLessonKey = typeof lessonKey === 'string' ? lessonKey.trim() : '';
+    if (!normalizedLessonKey) return;
     const skipRemote = Boolean(options?.skipRemote);
-    const has = completedSet.has(lessonKey);
+    const has = completedSet.has(normalizedLessonKey);
+    // Serialize concurrent toggles for the SAME lesson so an
+    // addLesson → removeLesson → addLesson sequence lands in the
+    // submitted order on the server. Toggles for different lessons
+    // still run in parallel.
+    const resourceKey = `lesson:${normalizedLessonKey}`;
 
     if (has) {
-      setCompleted(prev => prev.filter(k => k !== lessonKey));
+      setCompleted(prev => prev.filter(k => k !== normalizedLessonKey));
       if (!skipRemote) {
-        dbWrite(createProgressWrite('removeLesson', { lessonKey }), 'removeLesson');
+        dbWrite(
+          createProgressWrite('removeLesson', { lessonKey: normalizedLessonKey }),
+          'removeLesson',
+          { resourceKey },
+        );
       }
     } else {
-      setCompleted(prev => [...prev, lessonKey]);
+      setCompleted(prev => {
+        if (prev.includes(normalizedLessonKey)) return prev;
+        return [...prev, normalizedLessonKey];
+      });
       if (!skipRemote) {
-        dbWrite(createProgressWrite('addLesson', { lessonKey }), 'addLesson');
+        dbWrite(
+          createProgressWrite('addLesson', { lessonKey: normalizedLessonKey }),
+          'addLesson',
+          { resourceKey },
+        );
       }
     }
-    broadcastChannel.current?.postMessage({ type: 'lesson_toggled', lessonKey, completed: !has });
   }, [user, completedSet, dbWrite]);
 
   const saveQuizScore = useCallback(async (quizKey, score) => {
     if (!user) return;
-    setQuizScores(prev => ({ ...prev, [quizKey]: score }));
-    dbWrite(createProgressWrite('saveQuizScore', { quizKey, score }), 'saveQuizScore');
+    const normalizedQuizKey = typeof quizKey === 'string' ? quizKey.trim() : '';
+    if (!normalizedQuizKey) return;
+
+    const currentScore = quizScoresRef.current[normalizedQuizKey];
+    if (!isQuizScoreValueImprovement(currentScore, score)) {
+      return;
+    }
+
+    const nextScores = { ...quizScoresRef.current, [normalizedQuizKey]: score };
+    quizScoresRef.current = nextScores;
+    setQuizScores(nextScores);
+    dbWrite(
+      createProgressWrite('saveQuizScore', { quizKey: normalizedQuizKey, score }),
+      'saveQuizScore',
+      { resourceKey: `quiz:${normalizedQuizKey}` },
+    );
   }, [user, dbWrite]);
 
   // ─── XP ───────────────────────────────────────
   const awardXP = useCallback(async (amount, reason, options = {}) => {
     if (!user) return;
     const skipRemote = Boolean(options?.skipRemote);
-    const oldLevel = getLevel(xpTotal);
-    const newTotal = xpTotal + amount;
+    const oldTotal = xpTotalRef.current;
+    const oldLevel = getLevel(oldTotal);
+    const newTotal = oldTotal + amount;
     const newLevel = getLevel(newTotal);
 
+    xpTotalRef.current = newTotal;
     setXpTotal(newTotal);
     setXpPopupQueue((queue) => [
       ...queue,
@@ -597,10 +726,16 @@ export function ProgressProvider({ children }) {
     ]);
 
     if (!skipRemote) {
-      dbWrite(createProgressWrite('updateXP', { total: newTotal }), 'updateXP');
+      const write = createProgressWrite('updateXP', { total: newTotal });
+      xpWriteChainRef.current = xpWriteChainRef.current
+        .catch(() => {})
+        .then(() => dbWrite(write, 'updateXP'));
+      await xpWriteChainRef.current;
     }
-  }, [user, xpTotal, dbWrite]);
+  }, [user, dbWrite]);
 
+  // Shifts the currently-displayed popup off the queue. If more popups
+  // are queued, the next one becomes the new head and renders next.
   const clearXPPopup = useCallback(() => {
     setXpPopupQueue((queue) => (queue.length > 0 ? queue.slice(1) : queue));
   }, []);
@@ -625,11 +760,11 @@ export function ProgressProvider({ children }) {
       if (import.meta.env.DEV) {
         console.warn('[ProgressContext] reward history write failed:', err);
       }
-      setSyncFailed((count) => count + 1);
+      markSyncFailed('reward-history-local');
     }
 
     return true;
-  }, [user]);
+  }, [markSyncFailed, user]);
 
   const isChallengeCompleted = useCallback((challengeId) => {
     if (typeof challengeId !== 'string' || !challengeId.trim()) return false;
@@ -652,11 +787,11 @@ export function ProgressProvider({ children }) {
       if (import.meta.env.DEV) {
         console.warn('[ProgressContext] challenge completion write failed:', err);
       }
-      setSyncFailed((count) => count + 1);
+      markSyncFailed('challenge-completions-local');
     }
 
     return true;
-  }, [user]);
+  }, [markSyncFailed, user]);
 
   // ─── Daily Goal ───────────────────────────────
   const recordDailyActivity = useCallback(async () => {
@@ -703,52 +838,215 @@ export function ProgressProvider({ children }) {
   // services/badgeRules.js. This callback's only job is to build a
   // context snapshot from current state, ask findNewlyEarnedBadges
   // what's freshly earned, and then persist + celebrate it.
+  //
+  // Primitives are derived once per state change so the callback +
+  // effect deps never touch unstable object identities (quizScores,
+  // notes, bookmarks, earnedBadges). Without this guard, a single
+  // note save creates a new `notes` object → effect refires →
+  // checkBadges reruns even when no badge-relevant input moved.
+  const completedCount = completed.length;
+  const quizCount = useMemo(() => Object.keys(quizScores).length, [quizScores]);
+  const hasPerfectQuiz = useMemo(
+    () => Object.values(quizScores).some((v) => {
+      const [a, b] = typeof v === 'string' ? v.split('/') : [];
+      return a === b && parseInt(a, 10) > 0;
+    }),
+    [quizScores],
+  );
+  const coursesVisitedCount = coursesVisited.length;
+  const bookmarkCount = bookmarks.length;
+  const noteCount = useMemo(() => Object.keys(notes).length, [notes]);
+  const earnedBadgesRef = useRef(earnedBadges);
+  useEffect(() => {
+    earnedBadgesRef.current = earnedBadges;
+  }, [earnedBadges]);
+
   const checkBadges = useCallback(async () => {
     if (!user) return;
 
     const ctx = {
-      completedCount: completed.length,
-      quizCount: Object.keys(quizScores).length,
-      hasPerfect: Object.values(quizScores).some((v) => {
-        const [a, b] = v.split('/');
-        return a === b && parseInt(a) > 0;
-      }),
+      completedCount,
+      quizCount,
+      hasPerfect: hasPerfectQuiz,
       xpTotal,
       streak,
-      coursesVisitedCount: coursesVisited.length,
+      coursesVisitedCount,
       dailyCount: dailyDate === getTodayString() ? dailyCount : 0,
       hour: new Date().getHours(),
-      bookmarkCount: bookmarks.length,
-      noteCount: Object.keys(notes).length,
+      bookmarkCount,
+      noteCount,
     };
 
-    const newlyEarned = findNewlyEarnedBadges(ctx, earnedBadges);
+    const currentEarnedBadges = earnedBadgesRef.current;
+    const newlyEarned = findNewlyEarnedBadges(ctx, currentEarnedBadges);
     if (newlyEarned.length === 0) return;
 
-    const updated = { ...earnedBadges };
+    const updated = { ...currentEarnedBadges };
     const today = getTodayString();
     for (const badge of newlyEarned) {
       updated[badge.id] = { date: today };
+      // dbWrite expects a createProgressWrite envelope so writes can be
+      // queued + replayed by the same-browser sync queue. Match the
+      // pattern used by every other dbWrite call in this file.
       dbWrite(createProgressWrite('awardBadge', { badgeId: badge.id }), `awardBadge:${badge.id}`);
     }
 
     setEarnedBadges(updated);
+    // Enqueue every newly earned badge so each one gets its own
+    // celebration in turn, instead of all but the first being lost.
     setNewBadgeQueue((queue) => [...queue, ...newlyEarned]);
-  }, [user, completed, quizScores, xpTotal, streak, coursesVisited, dailyCount, dailyDate, earnedBadges, bookmarks, notes, dbWrite]);
+  }, [
+    user,
+    completedCount,
+    quizCount,
+    hasPerfectQuiz,
+    xpTotal,
+    streak,
+    coursesVisitedCount,
+    dailyCount,
+    dailyDate,
+    bookmarkCount,
+    noteCount,
+    dbWrite,
+  ]);
 
   useEffect(() => {
     if (dataLoaded) checkBadges();
-  }, [dataLoaded, checkBadges, completed.length, quizScores, xpTotal, dailyCount, bookmarks.length, notes]);
+  }, [dataLoaded, checkBadges]);
 
   const clearNewBadge = useCallback(() => {
     setNewBadgeQueue((queue) => (queue.length > 0 ? queue.slice(1) : queue));
   }, []);
 
+  // ─── Spaced Repetition ────────────────────────
+  const addToSRQueue = useCallback(async (cards) => {
+    if (!user) return;
+    const existing = new Set(srCards.map(c => c.question));
+    const newCards = cards.filter(c => !existing.has(c.question));
+
+    setSrCards(prev => [...prev, ...newCards]);
+
+    for (const card of newCards) {
+      dbWrite(createProgressWrite('addSRCard', { card }), 'addSRCard');
+    }
+  }, [user, srCards, dbWrite]);
+
+  const updateSRCard = useCallback(async (question, correct) => {
+    if (!user) return;
+
+    const currentCard = srCards.find((c) => c.question === question);
+    if (!currentCard) return;
+
+    // The SM-2-style scheduling math lives in services/srAlgorithm so
+    // it's unit-testable in isolation. This callback only does state +
+    // persistence.
+    const { interval, ease, nextReview } = nextSRCardState({ card: currentCard, correct });
+    const updatedCard = { ...currentCard, interval, ease, nextReview };
+
+    setSrCards((prev) => prev.map((card) => (card.question === question ? updatedCard : card)));
+
+    dbWrite(
+      createProgressWrite('updateSRCard', {
+        question,
+        updates: {
+          next_review: new Date(updatedCard.nextReview).toISOString(),
+          interval_days: updatedCard.interval,
+          ease: updatedCard.ease,
+        },
+      }),
+      'updateSRCard',
+      { resourceKey: `sr-card:${question}` },
+    );
+  }, [user, srCards, dbWrite]);
+
+  const getDueSRCards = useCallback(() => {
+    return srCards.filter(c => c.nextReview <= Date.now());
+  }, [srCards]);
+
+  // ─── Bookmarks (NEW) ─────────────────────────
+  const toggleBookmark = useCallback(async (lessonKey, courseId, lessonTitle, options = {}) => {
+    if (!user) return;
+    const skipRemote = Boolean(options?.skipRemote);
+    const normalizedLessonKey = normalizeProgressLessonKey(lessonKey);
+    const existing = findExistingBookmark(bookmarks, normalizedLessonKey);
+    const resourceKey = `bookmark:${normalizedLessonKey}`;
+
+    if (existing) {
+      setBookmarks((prev) => removeEquivalentBookmarks(prev, normalizedLessonKey));
+      if (!skipRemote) {
+        const removalKeys = new Set([existing.lesson_key, normalizedLessonKey]);
+        removalKeys.forEach((key) => {
+          dbWrite(
+            createProgressWrite('removeBookmark', { lessonKey: key }),
+            'removeBookmark',
+            { resourceKey },
+          );
+        });
+      }
+    } else {
+      const newBookmark = {
+        lesson_key: normalizedLessonKey,
+        course_id: courseId,
+        lesson_title: lessonTitle,
+        created_at: new Date().toISOString(),
+      };
+      setBookmarks(prev => [...prev, newBookmark]);
+      if (!skipRemote) {
+        dbWrite(
+          createProgressWrite('addBookmark', {
+            bookmark: {
+              lessonKey: normalizedLessonKey,
+              courseId,
+              lessonTitle,
+            },
+          }),
+          'addBookmark',
+          { resourceKey },
+        );
+      }
+    }
+  }, [user, bookmarks, dbWrite]);
+
+  const isBookmarked = useCallback((lessonKey) => {
+    const normalizedLessonKey = normalizeProgressLessonKey(lessonKey);
+    return isBookmarkedLesson(bookmarks, normalizedLessonKey);
+  }, [bookmarks]);
+
+  // ─── Notes (NEW) ─────────────────────────────
+  const saveNote = useCallback(async (lessonKey, content) => {
+    if (!user) return;
+    const normalizedLessonKey = normalizeProgressLessonKey(lessonKey);
+    setNotes(prev => ({ ...prev, [normalizedLessonKey]: content }));
+    // Note saves are debounced upstream but a fast typist can still
+    // queue two saves for the same lesson; serialize so the latest
+    // text wins.
+    dbWrite(
+      createProgressWrite('saveNote', {
+        lessonKey: normalizedLessonKey,
+        content,
+      }),
+      'saveNote',
+      { resourceKey: `note:${normalizedLessonKey}` },
+    );
+  }, [user, dbWrite]);
+
+  const getNote = useCallback((lessonKey) => {
+    const normalizedLessonKey = normalizeProgressLessonKey(lessonKey);
+    return getSavedNote(notes, lessonKey, normalizedLessonKey);
+  }, [notes]);
+
   // ─── Position ─────────────────────────────────
   const savePosition = useCallback(async (pos) => {
     if (!user) return;
     setLastPosition(prev => ({ ...prev, ...pos, time: Date.now() }));
-    dbWrite(createProgressWrite('savePosition', { position: pos }), 'savePosition');
+    // Position is single-row per learner; serializing means a faster
+    // navigation never overwrites a slower one with stale "previous"
+    // coordinates.
+    dbWrite(
+      createProgressWrite('savePosition', { position: pos }),
+      'savePosition',
+      { resourceKey: 'last-position' },
+    );
   }, [user, dbWrite]);
 
   // ─── Courses Visited ──────────────────────────
@@ -762,9 +1060,12 @@ export function ProgressProvider({ children }) {
   const retryLoad = useCallback(() => {
     setDataLoaded(false);
     setLoadError(null);
+    setLoadWarnings([]);
+    // A fresh load replaces optimistic state with canonical DB state,
+    // so any stale "sync failed" counter is irrelevant after this.
     setSyncFailed(0);
     setLoadVersion((version) => version + 1);
-  }, []);
+  }, [setLoadWarnings]);
 
   const progressValue = useMemo(() => ({
     completed,
@@ -778,7 +1079,9 @@ export function ProgressProvider({ children }) {
     trackCourseVisit,
     dataLoaded,
     loadError,
+    loadWarnings,
     retryLoad,
+    clearLoadWarnings,
     rewardHistory,
     hasRewardBeenAwarded,
     markRewardAwarded,
@@ -804,7 +1107,9 @@ export function ProgressProvider({ children }) {
     trackCourseVisit,
     dataLoaded,
     loadError,
+    loadWarnings,
     retryLoad,
+    clearLoadWarnings,
     rewardHistory,
     hasRewardBeenAwarded,
     markRewardAwarded,
@@ -823,10 +1128,14 @@ export function ProgressProvider({ children }) {
   // Display the streak only when it's still active. The persisted
   // value is the streak as of the learner's last activity, so a
   // learner who skipped two days would otherwise still see the
-  // stale "5 day streak" pill until they did another activity.
+  // stale "5 day streak" pill until they did another activity. The
+  // pure helper returns 0 when lastDate < yesterday.
   //
   // todayKey drives the memo invalidation so the guards recompute
   // when wall-clock time crosses UTC midnight inside an open tab.
+  // Using it directly inside the helper call (instead of just as a
+  // dep) keeps the date snapshot the memo captured consistent
+  // through the call chain, and quiets exhaustive-deps.
   const activeStreak = useMemo(
     () => getActiveStreakDays(streak, streakLastDate, todayKey, getYesterdayString()),
     [streak, streakLastDate, todayKey],
@@ -836,6 +1145,9 @@ export function ProgressProvider({ children }) {
     [streak, streakLastDate, todayKey],
   );
   // Display the daily count only when it matches today's date.
+  // The persisted dailyCount is from the LAST day the learner did
+  // activity — yesterday's "3 lessons today" would otherwise leak
+  // into today's topbar and lie that the daily goal is met.
   const activeDailyCount = useMemo(
     () => getActiveDailyCount(dailyCount, dailyDate, todayKey),
     [dailyCount, dailyDate, todayKey],
@@ -906,12 +1218,10 @@ export function useProgressData() {
   return useContext(ProgressContext);
 }
 
-// Backward-compatible aggregate hook for older consumers.
-// Prefer useProgressData/useXP/useSR in new code to avoid
-// cross-domain re-renders.
-export function useProgress() {
-  const progress = useProgressData();
-  const xp = useXP();
-  const sr = useSR();
-  return useMemo(() => ({ ...progress, ...xp, ...sr }), [progress, xp, sr]);
+export function useXP() {
+  return useContext(XPContext);
+}
+
+export function useSR() {
+  return useContext(SRContext);
 }

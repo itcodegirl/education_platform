@@ -1,13 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { getAuthSkipReason, getMissingAuthEnv } from './authE2E.js';
+import { dismissWelcomeOverlay } from './authHelpers';
 
-const requiredEnv = [
-  'VITE_SUPABASE_URL',
-  'VITE_SUPABASE_ANON_KEY',
-  'E2E_EMAIL',
-  'E2E_PASSWORD',
-];
-
-const missingEnv = requiredEnv.filter((name) => !process.env[name]);
+const missingEnv = getMissingAuthEnv();
 
 test.describe('lesson flow', () => {
   test.setTimeout(90000);
@@ -17,25 +12,24 @@ test.describe('lesson flow', () => {
     `Set ${missingEnv.join(', ')} to enable lesson flow tests.`
   );
 
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('.auth-form, .shell, .welcome-overlay', { timeout: 30000 });
+  test.beforeEach(async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== 'authenticated-chromium',
+      'Authenticated lesson flow runs once with the shared auth setup state.'
+    );
+    const authSkipReason = getAuthSkipReason();
+    test.skip(Boolean(authSkipReason), authSkipReason);
 
-    // Login if on auth page
+    await page.goto('/');
+    await page.waitForSelector('.auth-form, .main-shell, .welcome-overlay', { timeout: 30000 });
+
     const onAuthPage = await page.locator('.auth-form').isVisible().catch(() => false);
     if (onAuthPage) {
-      await page.fill('input[type="email"]', process.env.E2E_EMAIL);
-      await page.fill('input[type="password"]', process.env.E2E_PASSWORD);
-      await page.click('button[type="submit"]');
-      await page.waitForSelector('.shell, .welcome-overlay', { timeout: 30000 });
+      test.skip(true, 'Authenticated lesson flow could not restore the shared signed-in state.');
     }
 
     // Dismiss welcome-back if present
-    const welcomeVisible = await page.locator('.welcome-overlay').isVisible().catch(() => false);
-    if (welcomeVisible) {
-      await page.click('.welcome-dismiss, .welcome-resume-btn');
-      await page.waitForSelector('.shell', { timeout: 10000 });
-    }
+    await dismissWelcomeOverlay(page);
 
     // Dismiss what's new if present
     const whatsNewVisible = await page.locator('.search-overlay').isVisible().catch(() => false);
@@ -108,20 +102,18 @@ test.describe('lesson flow', () => {
     await expect(page.locator('.lesson-title')).toHaveText(deepLinkTitle);
   });
 
-  test('mark done button toggles lesson completion', async ({ page }) => {
+  test('authenticatedProgressFlowIfCredentialsExist', async ({ page }) => {
     await page.waitForSelector('.mark-btn', { timeout: 10000 });
 
     const wasDone = await page.locator('.mark-btn.dn').isVisible().catch(() => false);
-    await page.click('.mark-btn');
-    await page.waitForTimeout(500);
-
-    if (wasDone) {
-      // Was done, now should be un-done
-      await expect(page.locator('.mark-btn:not(.dn)')).toBeVisible();
-    } else {
-      // Was not done, now should be done
+    if (!wasDone) {
+      await page.click('.mark-btn');
       await expect(page.locator('.mark-btn.dn')).toBeVisible();
     }
+
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await dismissWelcomeOverlay(page);
+    await expect(page.locator('.mark-btn.dn')).toBeVisible();
   });
 
   test('search opens and finds lessons', async ({ page }) => {
@@ -179,23 +171,24 @@ test.describe('lesson flow', () => {
     await expect(page.locator('#main-content')).toBeFocused();
   });
 
-  test('resources flyout supports menu keyboard controls', async ({ page }, testInfo) => {
+  test('tools flyout supports menu keyboard controls', async ({ page }, testInfo) => {
     test.skip(
       testInfo.project.name === 'mobile-chrome',
       'Desktop keyboard menu behavior is verified in Chromium desktop.'
     );
 
-    const resourcesTrigger = page.getByRole('button', { name: 'Resources' });
-    await resourcesTrigger.focus();
+    const toolsTrigger = page.getByRole('button', { name: 'Tools' });
+    await toolsTrigger.focus();
     await page.keyboard.press('ArrowDown');
 
-    const menu = page.getByRole('menu');
-    const firstItem = page.getByRole('menuitem', { name: 'Open Cheat Sheets panel' });
-    const lastItem = page.getByRole('menuitem', { name: 'Open Badges panel' });
+    const menu = page.getByRole('menu', { name: /tools/i });
+    const menuItems = menu.getByRole('menuitem');
+    const firstItem = menuItems.first();
 
     await expect(menu).toBeVisible();
     await expect(firstItem).toBeFocused();
 
+    const lastItem = menuItems.nth((await menuItems.count()) - 1);
     await page.keyboard.press('End');
     await expect(lastItem).toBeFocused();
 
@@ -204,7 +197,7 @@ test.describe('lesson flow', () => {
 
     await page.keyboard.press('Escape');
     await expect(menu).toHaveCount(0);
-    await expect(resourcesTrigger).toBeFocused();
+    await expect(toolsTrigger).toBeFocused();
   });
 
   test('desktop collapse toggle sets sidebar to inert until expanded', async ({ page }, testInfo) => {

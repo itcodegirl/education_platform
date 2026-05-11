@@ -145,15 +145,38 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
           </span>
         </div>
 
-        <div className="search-results" id="search-results-list" role="listbox" aria-label="Search results">
+        <div
+          className="search-results"
+          id="search-results-list"
+          role={results.length > 0 ? 'listbox' : undefined}
+          aria-label="Search results"
+        >
           {normalizedQuery.length < 2 ? (
             <div className="search-empty">
-              {allCoursesLoaded
-                ? 'Start typing to search across all courses'
-                : 'Start typing to search — loading additional courses…'}
+              <p><strong>Search all lessons</strong></p>
+              <p className="empty-state-msg">
+                {allCoursesLoaded
+                  ? 'Type at least two letters from a lesson, module, language, or concept.'
+                  : 'Type at least two letters. More courses are still loading into search.'}
+              </p>
             </div>
           ) : results.length === 0 ? (
-            <div className="search-empty">No results for &ldquo;{query}&rdquo;</div>
+            <div className="search-empty">
+              <p><strong>No results for &ldquo;{query}&rdquo;</strong></p>
+              <p className="empty-state-msg">
+                Try a broader term like HTML, layout, state, quiz, or the name of a course.
+              </p>
+              <button
+                type="button"
+                className="empty-state-action"
+                onClick={() => {
+                  setQuery('');
+                  inputRef.current?.focus();
+                }}
+              >
+                Clear search
+              </button>
+            </div>
           ) : (
             <>
               <div className="search-meta">

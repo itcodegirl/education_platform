@@ -34,7 +34,9 @@
 /* ─── Guest Preview ─────────────────────────────── */
 .guest-preview {
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--bg-deep);
+  padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
 }
 
 .guest-preview-loading {
@@ -65,9 +67,6 @@
   padding: 12px 24px;
   background: var(--bg-dark);
   border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 10;
 }
 
 .gp-back {
@@ -112,7 +111,7 @@
 .gp-content {
   max-width: var(--content-max);
   margin: 0 auto;
-  padding: 24px;
+  padding: 24px 24px calc(40px + env(safe-area-inset-bottom, 0px));
 }
 
 .gp-banner {
@@ -183,7 +182,7 @@
   display: block;
   width: 100%;
   margin-top: 12px;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 12px;
   color: var(--text-dim);
   font-size: 14px;
@@ -908,8 +907,8 @@
   max-width: 480px;
   background: var(--bg-dark);
   border: 1px solid var(--border);
-  border-radius: 24px;
-  padding: 40px 32px;
+  border-radius: 18px;
+  padding: 32px 28px;
   text-align: center;
   transform: scale(0.85);
   opacity: 0;
@@ -926,10 +925,15 @@
 }
 
 .cc-trophy {
-  font-size: 64px;
-  display: inline-block;
-  filter: drop-shadow(0 0 24px rgba(255, 167, 38, 0.4));
-  animation: float 2s ease-in-out infinite;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--border-bright);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 28px;
 }
 
 .cc-header {
@@ -954,7 +958,7 @@
 
 .cc-title {
   font-family: 'Poppins', sans-serif;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   background: linear-gradient(90deg, var(--pink), var(--amber));
   -webkit-background-clip: text;
@@ -987,7 +991,7 @@
   position: relative;
   background: var(--bg-surface);
   border: 2px solid var(--border);
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 28px 24px;
   overflow: hidden;
 }
@@ -1002,14 +1006,14 @@
 }
 
 .cc-cert-icon {
-  font-size: 36px;
+  font-size: 30px;
   margin-bottom: 8px;
 }
 
 .cc-cert-label {
   font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 3px;
+  letter-spacing: 0;
   color: var(--text-muted);
   font-family: 'Poppins', sans-serif;
   margin-bottom: 4px;
@@ -1017,7 +1021,7 @@
 
 .cc-cert-course {
   font-family: 'Poppins', sans-serif;
-  font-size: 24px;
+  font-size: 21px;
   font-weight: 700;
   margin-bottom: 12px;
 }
@@ -1041,12 +1045,108 @@
   margin-top: 12px;
 }
 
+.cc-cert-note {
+  margin-top: 10px;
+  color: var(--amber);
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
 .cc-cert-brand {
   font-family: 'Poppins', sans-serif;
   font-size: 12px;
   color: var(--pink);
   margin-top: 16px;
   letter-spacing: 1px;
+}
+
+/* Recommended-next-track callout above the action buttons. Borrows
+   the course's accent color so the visual cue carries the meaning
+   without relying on text scale. */
+.cc-next-track {
+  margin-top: 16px;
+  margin-bottom: 4px;
+}
+
+.cc-next-track-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.cc-next-track-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 2px solid var(--border-bright);
+  border-radius: 12px;
+  background: var(--bg-card);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: transform 0.18s var(--ease-out), border-color 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out);
+}
+
+.cc-next-track-btn:hover,
+.cc-next-track-btn:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+.cc-next-track-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.cc-next-track-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cc-next-track-title {
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+}
+
+.cc-next-track-sub {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.cc-next-track-arrow {
+  font-size: 20px;
+  color: var(--text-dim);
+  transition: transform 0.18s var(--ease-out);
+}
+
+.cc-next-track-btn:hover .cc-next-track-arrow,
+.cc-next-track-btn:focus-visible .cc-next-track-arrow {
+  transform: translateX(2px);
+  color: var(--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-next-track-btn,
+  .cc-next-track-arrow {
+    transition: none;
+  }
+  .cc-next-track-btn:hover,
+  .cc-next-track-btn:focus-visible {
+    transform: none;
+  }
 }
 
 .cc-actions {
@@ -1100,10 +1200,10 @@
 
 .cc-close-btn {
   padding: 14px 24px;
-  border: none;
+  border: 1px solid var(--border);
   border-radius: 10px;
-  background: var(--pink);
-  color: var(--bg-deep);
+  background: var(--bg-surface);
+  color: var(--text);
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
@@ -1112,8 +1212,8 @@
 }
 
 .cc-close-btn:hover {
-  filter: brightness(1.15);
-  box-shadow: 0 4px 20px var(--pink-dim);
+  border-color: var(--border-bright);
+  color: var(--pink);
   transform: translateY(-1px);
 }
 
@@ -1159,6 +1259,41 @@
 }
 
 /* ─── Structured Lesson Format ────────────────── */
+.lesson-product-frame {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0 0 32px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.lesson-product-frame-item {
+  min-width: 0;
+  padding: 12px 14px;
+  background: rgba(8, 8, 15, 0.56);
+}
+
+.lesson-product-frame-label {
+  margin: 0 0 8px;
+  color: var(--cyan);
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.lesson-product-frame-copy {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 .sl-section-title {
   font-family: 'Poppins', sans-serif;
   font-size: clamp(16px, 1rem + 0.3vw, 18px);
@@ -1428,6 +1563,10 @@
 }
 
 @media (max-width: 600px) {
+  .lesson-product-frame {
+    grid-template-columns: 1fr;
+  }
+
   .sl-comparison {
     grid-template-columns: 1fr;
   }
@@ -1552,19 +1691,19 @@
 
 /* ─── 32. Lesson transition ───────────────────── */
 .lesson-surface {
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.22s ease-out;
 }
 
 .lesson-head {
-  animation: slideInLeft 0.3s ease-out;
+  animation: fadeIn 0.2s ease-out;
 }
 
 .lesson-body {
-  animation: fadeIn 0.4s ease-out 0.1s both;
+  animation: fadeIn 0.24s ease-out 0.05s both;
 }
 
 .box {
-  animation: slideInLeft 0.35s ease-out 0.2s both;
+  animation: fadeIn 0.22s ease-out 0.08s both;
 }
 
 /* ─── Modal mobile additions ─────────────────── */

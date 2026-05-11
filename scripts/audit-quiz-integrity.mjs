@@ -475,11 +475,14 @@ function summarizeReports(reports) {
 }
 
 function strictIssueCount(total) {
+  // Intentional variant groups and classified orphans are not blocking —
+  // they have been reviewed and registered. Only count the unreviewed
+  // or unclassified items that genuinely need attention.
   return (
     total.duplicateRawQuizIds +
     total.duplicateActiveLessonIds +
-    total.suspiciousLessonVariantGroups +
     total.duplicateScopedModuleKeys +
+    total.suspiciousLessonVariantGroups +
     total.unclassifiedOrphanLessonQuizzes +
     total.orphanModuleQuizzes +
     total.lessonsWithNoQuiz +

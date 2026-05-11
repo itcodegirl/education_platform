@@ -1,7 +1,6 @@
 ﻿import { lazy, Suspense, useEffect } from 'react';
 import {
   createBrowserRouter,
-  json,
   Navigate,
   Outlet,
   redirect,
@@ -9,11 +8,8 @@ import {
   useLocation,
   useNavigate,
 } from 'react-router-dom';
-import { COURSE_LOADER_IDS, COURSES, loadCourse } from '../data';
-import { supabase } from '../lib/supabaseClient';
+import { COURSE_LOADER_IDS, loadCourse } from '../data';
 import { useAuth, useCourseContent, useProgressData, useTheme } from '../providers';
-import { createRecoverableLearnActionWrite } from './learnRouteRecovery';
-import { resolveStableLessonKeyAcrossCourses } from '../utils/lessonKeys';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { AppLayout } from '../layouts/AppLayout';
 import { LessonSkeleton, ConnectionError } from '../components/shared/SkeletonLoader';
@@ -22,6 +18,9 @@ import { AdminRoute } from './guards/AdminRoute';
 import { APP_ROUTES, parsePublicProfilePath } from './routePaths';
 import { closeRouteOrGoHome, toPathFromLegacyHash } from './routeUtils';
 import { RouteErrorBoundary } from './RouteErrorBoundary';
+import { learnRouteAction } from './learnRouteActions';
+
+export { learnRouteAction } from './learnRouteActions';
 
 const AdminDashboard = lazy(() =>
   import('../components/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })),
@@ -61,6 +60,26 @@ function DisabledAccountScreen({ theme, onSignOut }) {
   );
 }
 
+function AccountCheckErrorScreen({ theme, onRetry, onSignOut }) {
+  return (
+    <div className={`loading-screen ${theme}`} role="alert" aria-live="assertive">
+      <div className="disabled-screen">
+        <span className="disabled-icon" aria-hidden="true">!</span>
+        <h2 className="disabled-title">We could not verify your account</h2>
+        <p className="disabled-msg">
+          Your lessons are safe, but CodeHerWay needs to confirm your profile before opening the learning dashboard.
+        </p>
+        <button type="button" className="disabled-logout" onClick={onRetry}>
+          Try Again
+        </button>
+        <button type="button" className="disabled-link" onClick={onSignOut}>
+          Log Out
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function AppDataGate({ theme, dataLoaded, loadError, retryLoad }) {
   if (loadError) {
     return (
@@ -95,17 +114,28 @@ function AppDataGate({ theme, dataLoaded, loadError, retryLoad }) {
 
 export function ProtectedRoute({ children }) {
   const { theme } = useTheme();
-  const { user, profile, loading: authLoading, profileLoading, signOut } = useAuth();
+  const {
+    user,
+    profile,
+    profileError,
+    loading: authLoading,
+    profileLoading,
+    refreshProfile,
+    signOut,
+  } = useAuth();
 
   if (authLoading || (user && profileLoading)) {
     return (
       <RouteLoadingScreen theme={theme} size="lg">
-        <p style={{ marginTop: '16px', opacity: 0.5 }}>Checking your account session...</p>
+        <p style={{ marginTop: '16px', opacity: 0.5 }}>Opening your learning dashboard...</p>
       </RouteLoadingScreen>
     );
   }
 
   if (!user) return <AuthLayout />;
+  if (profileError) {
+    return <AccountCheckErrorScreen theme={theme} onRetry={refreshProfile} onSignOut={signOut} />;
+  }
   if (profile?.is_disabled) {
     return <DisabledAccountScreen theme={theme} onSignOut={signOut} />;
   }
@@ -150,7 +180,7 @@ function StyleguideRoute() {
       <Suspense
         fallback={(
           <RouteLoadingScreen theme={theme}>
-            <p>Loading styleguide...</p>
+            <p>Opening styleguide...</p>
           </RouteLoadingScreen>
         )}
       >
@@ -169,7 +199,7 @@ function PublicProfileRoute() {
       <Suspense
         fallback={(
           <RouteLoadingScreen theme={theme}>
-            <p>Loading public profile...</p>
+            <p>Opening public profile...</p>
           </RouteLoadingScreen>
         )}
       >
@@ -188,7 +218,7 @@ function ProfileRoute() {
         <Suspense
           fallback={(
             <RouteLoadingScreen theme={theme}>
-              <p>Loading profile...</p>
+              <p>Opening profile...</p>
             </RouteLoadingScreen>
           )}
         >
@@ -217,7 +247,7 @@ function AdminDashboardRoute() {
           <Suspense
             fallback={(
               <RouteLoadingScreen theme={theme}>
-                <p>Loading admin dashboard...</p>
+                <p>Opening admin dashboard...</p>
               </RouteLoadingScreen>
             )}
           >
@@ -271,135 +301,6 @@ export async function learnRouteLoader({ params }) {
   } catch {
     throw redirect(APP_ROUTES.home);
   }
-}
-
-export async function learnRouteAction({ request }) {
-
-  const contentType = request.headers.get('content-type') || '';
-  let payload = {};
-
-  try {
-    if (contentType.includes('application/json')) {
-      payload = await request.json();
-    } else {
-      const formData = await request.formData();
-      payload = Object.fromEntries(formData.entries());
-    }
-  } catch {
-    return json({ ok: false, error: 'Invalid action payload' }, { status: 400 });
-  }
-
-  const intent = typeof payload.intent === 'string' ? payload.intent : '';
-  const mode = typeof payload.mode === 'string' ? payload.mode : 'toggle';
-
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-  if (userError || !user?.id) {
-    return json({ ok: false, error: 'Authentication required' }, { status: 401 });
-  }
-
-  if (intent === 'toggle-progress') {
-    const rawLessonKey = typeof payload.lessonKey === 'string' ? payload.lessonKey.trim() : '';
-    if (!rawLessonKey) {
-      return json({ ok: false, error: 'Missing lesson key' }, { status: 400 });
-    }
-
-    const recoverableWrite = createRecoverableLearnActionWrite(intent, payload);
-
-    const stableLessonKey = resolveStableLessonKeyAcrossCourses(rawLessonKey, COURSES);
-    const lessonKey = stableLessonKey || rawLessonKey;
-    const candidateKeys = [...new Set([lessonKey, rawLessonKey])];
-    const shouldComplete = mode === 'complete' ? true : mode === 'uncomplete' ? false : undefined;
-
-    const { data: existing, error: existingError } = await supabase
-      .from('progress')
-      .select('lesson_key')
-      .eq('user_id', user.id)
-      .in('lesson_key', candidateKeys);
-    if (existingError) {
-      return json({ ok: false, intent, error: existingError.message, recoverableWrite }, { status: 500 });
-    }
-
-    const hasCompletion = Array.isArray(existing) && existing.length > 0;
-    const nextCompleted = typeof shouldComplete === 'boolean' ? shouldComplete : !hasCompletion;
-
-    if (nextCompleted) {
-      const { error } = await supabase
-        .from('progress')
-        .upsert({ user_id: user.id, lesson_key: lessonKey, completed_at: new Date().toISOString() });
-      if (error) return json({ ok: false, intent, error: error.message, recoverableWrite }, { status: 500 });
-    } else {
-      const { error } = await supabase
-        .from('progress')
-        .delete()
-        .eq('user_id', user.id)
-        .in('lesson_key', candidateKeys);
-      if (error) return json({ ok: false, intent, error: error.message, recoverableWrite }, { status: 500 });
-    }
-
-    return json({
-      ok: true,
-      intent,
-      lessonKey,
-      completed: nextCompleted,
-    });
-  }
-
-  if (intent === 'toggle-bookmark') {
-    const rawLessonKey = typeof payload.lessonKey === 'string' ? payload.lessonKey.trim() : '';
-    const courseId = typeof payload.courseId === 'string' ? payload.courseId : '';
-    const lessonTitle = typeof payload.lessonTitle === 'string' ? payload.lessonTitle : '';
-    if (!rawLessonKey || !courseId || !lessonTitle) {
-      return json({ ok: false, error: 'Missing bookmark fields' }, { status: 400 });
-    }
-
-    const recoverableWrite = createRecoverableLearnActionWrite(intent, payload);
-
-    const stableLessonKey = resolveStableLessonKeyAcrossCourses(rawLessonKey, COURSES);
-    const lessonKey = stableLessonKey || rawLessonKey;
-    const candidateKeys = [...new Set([lessonKey, rawLessonKey])];
-    const shouldSave = mode === 'save' ? true : mode === 'remove' ? false : undefined;
-
-    const { data: existing, error: existingError } = await supabase
-      .from('bookmarks')
-      .select('lesson_key')
-      .eq('user_id', user.id)
-      .in('lesson_key', candidateKeys);
-    if (existingError) {
-      return json({ ok: false, intent, error: existingError.message, recoverableWrite }, { status: 500 });
-    }
-
-    const hasBookmark = Array.isArray(existing) && existing.length > 0;
-    const nextSaved = typeof shouldSave === 'boolean' ? shouldSave : !hasBookmark;
-
-    if (nextSaved) {
-      const { error } = await supabase.from('bookmarks').upsert({
-        user_id: user.id,
-        lesson_key: lessonKey,
-        course_id: courseId,
-        lesson_title: lessonTitle,
-      });
-      if (error) return json({ ok: false, intent, error: error.message, recoverableWrite }, { status: 500 });
-    } else {
-      const { error } = await supabase
-        .from('bookmarks')
-        .delete()
-        .eq('user_id', user.id)
-        .in('lesson_key', candidateKeys);
-      if (error) return json({ ok: false, intent, error: error.message, recoverableWrite }, { status: 500 });
-    }
-
-    return json({
-      ok: true,
-      intent,
-      lessonKey,
-      saved: nextSaved,
-    });
-  }
-
-  return json({ ok: false, error: 'Unknown action intent' }, { status: 400 });
 }
 
 const STYLEGUIDE_SEGMENT = APP_ROUTES.styleguide.replace(/^\//, '');

@@ -10,7 +10,9 @@ export default [
 			'node_modules/**',
 			'playwright-report/**',
 			'test-results/**',
+			'.codex-worktrees/**',
 			'.codex-backup-wrong-local/**',
+			'aura-weather/**',
 			'Cinova/**',
 			'codeherway-ceo-os/**',
 			'supabase/.temp/**',
@@ -59,7 +61,24 @@ export default [
 		},
 	},
 	{
-		files: ['**/*.test.{js,jsx}', 'tests/**/*.{js,jsx}'],
+		files: ['**/*.test.{js,jsx}', 'tests/**/*.{js,jsx}', '**/*.spec.{js,jsx}'],
+		languageOptions: {
+			globals: {
+				...globals.browser,
+				...globals.node,
+				// Vitest globals (test, it, describe, expect, beforeEach, afterEach, etc.)
+				vi: 'readonly',
+				vitest: 'readonly',
+				describe: 'readonly',
+				it: 'readonly',
+				test: 'readonly',
+				expect: 'readonly',
+				beforeAll: 'readonly',
+				afterAll: 'readonly',
+				beforeEach: 'readonly',
+				afterEach: 'readonly',
+			},
+		},
 		rules: {
 			'no-unused-vars': 'off',
 		},

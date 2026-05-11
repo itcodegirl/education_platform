@@ -115,7 +115,19 @@
   transition: all 0.15s;
 }
 .sidebar-collapse:hover { border-color: var(--purple); color: var(--purple); background: rgba(180,74,255,0.1); }
-.sidebar-close { display: none; background: none; border: none; color: var(--text-dim); font-size: 18px; cursor: pointer; }
+.sidebar-close {
+  display: none;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-dim);
+  font-size: 18px;
+  cursor: pointer;
+}
 
 /* ─── Profile Popover ─── */
 .pp {
@@ -237,6 +249,7 @@
 .cs-option {
   width: 100%;
   display: flex; align-items: center; gap: 10px;
+  min-height: 44px;
   padding: 9px 12px;
   border-radius: 8px;
   border: none;
@@ -284,7 +297,21 @@
   text-transform: uppercase;
   letter-spacing: 0.15em;
 }
-.sidebar-roadmap-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px 4px; border-radius: var(--radius-sm); opacity: 0.5; transition: opacity 0.2s; }
+.sidebar-roadmap-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
 .sidebar-roadmap-btn:hover { opacity: 1; }
 .sidebar-roadmap-btn.active {
   opacity: 1;
@@ -308,6 +335,7 @@
 .module-group:not(.expanded) { border: 1px solid transparent; }
 .module-group-btn {
   width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+  min-height: 48px;
   background: none; border: none; color: var(--text); cursor: pointer; text-align: left; transition: all 0.15s;
   border-radius: 12px;
 }
@@ -335,6 +363,7 @@
 .lesson-list { padding: 4px 0 8px; animation: fadeIn 0.15s ease-out; }
 .lesson-list-btn {
   width: 100%; display: flex; align-items: center; gap: 10px; padding: 7px 14px 7px 60px;
+  min-height: 44px;
   background: none; border: none;
   color: var(--text-dim); cursor: pointer; text-align: left;
   font-size: 13px; transition: all 0.15s;
@@ -344,11 +373,35 @@
 .lesson-list-btn.act { color: var(--cyan); font-weight: 600; }
 .lesson-list-btn.dn .lesson-list-chk { color: var(--cyan); }
 .lesson-list-chk { font-size: 12px; width: 14px; flex-shrink: 0; transition: color 0.2s; color: var(--text-muted); }
+.lesson-list-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lesson-list-state {
+  margin-left: auto;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.lesson-list-btn.act .lesson-list-state,
+.lesson-list-btn.dn .lesson-list-state {
+  color: var(--cyan);
+  background: rgba(0, 229, 255, 0.1);
+}
 .lesson-list-btn.locked { opacity: 0.3; pointer-events: none; }
 .lesson-list-quiz { color: var(--text-muted) !important; font-style: italic; }
 .lesson-list-quiz.act { color: var(--text) !important; font-style: normal; font-weight: 600; }
 
-/* ─── Sidebar tab bar (Courses + Resources) ─── */
+/* ─── Sidebar tab bar (Courses + Tools) ─── */
 /* Replaces the old course switcher at the top of the sidebar. Two
    symmetric pill buttons side-by-side; each opens a small popout card
    below. Only one popout can be open at a time. The active-course
@@ -483,11 +536,13 @@
   to   { opacity: 1; transform: translateX(0); }
 }
 
-/* Resources tool row — parallel to .cs-option but for tool actions. */
+/* Tools row — parallel to .cs-option but for tool actions. */
 .sidebar-tab-opt {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
+  width: 100%;
+  min-height: 44px;
   padding: 10px 12px;
   background: transparent;
   border: none;
@@ -519,6 +574,18 @@
 .sidebar-tab-opt-label {
   font-weight: 600;
 }
+.sidebar-tab-opt-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.sidebar-tab-opt-hint {
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.35;
+  font-weight: 400;
+}
 
 /* ─── Collapsed sidebar: icons only ─── */
 .sidebar.collapsed .sidebar-tabs {
@@ -539,12 +606,18 @@
 }
 
 .lock-label {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: flex-start; gap: 8px;
   padding: 6px 10px;
   cursor: pointer; font-size: 11px; color: var(--text-muted); user-select: none;
 }
+.lock-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 .lock-label input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--cyan); cursor: pointer; }
-.lock-text { font-family: 'Inter', sans-serif; }
+.lock-text { font-family: 'Inter', sans-serif; color: var(--text-dim); font-weight: 600; }
+.lock-help { line-height: 1.35; }
 
 /* ─── Collapsed sidebar ─── */
 @media (min-width: 901px) {

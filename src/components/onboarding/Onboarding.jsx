@@ -1,5 +1,5 @@
 ﻿import { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { useLearnerLocalStorage } from '../../hooks/useLearnerLocalStorage';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { trackEvent } from '../../lib/analytics';
 
@@ -28,13 +28,13 @@ const STEPS = [
   },
   {
     icon: '03',
-    eyebrow: 'Your momentum',
-    title: 'Your momentum stays visible',
-    subtitle: 'The signed-in shell is designed to help you continue, review, and finish.',
+    eyebrow: 'First session',
+    title: 'Your first session has one path',
+    subtitle: 'Start with the lesson in front of you, then let the next step reveal itself.',
     points: [
-      'Bookmarks, glossary, cheat sheets, and search make it easy to return quickly.',
-      'Review Queue and challenges turn gaps into deliberate practice instead of frustration.',
-      'Progress, streaks, and badges celebrate consistency without pretending learning is linear.',
+      'Read the learning frame so you know the goal before the details.',
+      'Build the example, check the preview, and use notes only when they help.',
+      'Save lesson reading progress, take the quick check, then continue to the next lesson.',
     ],
   },
 ];
@@ -42,7 +42,7 @@ const STEPS = [
 export function Onboarding({ isOpen, onClose, displayName }) {
   const [step, setStep] = useState(0);
   const [show, setShow] = useState(false);
-  const [, setOnboarded] = useLocalStorage('chw-onboarded', false);
+  const [, setOnboarded] = useLearnerLocalStorage('chw-onboarded', false);
   const dialogRef = useRef(null);
   const headingRef = useRef(null);
   const headingId = useId();

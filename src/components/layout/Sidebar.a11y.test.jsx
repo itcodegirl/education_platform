@@ -23,7 +23,7 @@ vi.mock('../../hooks/useFocusTrap', () => ({
 }));
 
 vi.mock('../../data', () => ({
-  QUIZ_MAP: new Map(),
+  hasQuiz: () => false,
 }));
 
 vi.mock('./ProfilePopover', () => ({
@@ -85,6 +85,9 @@ describe('Sidebar accessibility', () => {
 
   it('has no detectable accessibility violations in the default state', async () => {
     const { container } = renderSidebar();
+    // Keep color-contrast in real-browser Playwright coverage. JSDOM
+    // does not compute rendered contrast reliably enough for this unit
+    // check to be authoritative.
     const results = await axe(container, {
       rules: {
         'color-contrast': { enabled: false },

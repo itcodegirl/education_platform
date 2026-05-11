@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { PROJECTS } from '../../data/reference/projects';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
-export function ProjectsPanel({ isOpen, onClose, currentCourse }) {
+export function ProjectsPanel({ isOpen, onClose, currentCourse, hasCompletedProgress = true }) {
   const [activeCourse, setActiveCourse] = useState(currentCourse);
   const modalRef = useRef(null);
 
@@ -47,7 +47,19 @@ export function ProjectsPanel({ isOpen, onClose, currentCourse }) {
           <p className="panel-meta">
             Use these as your next proof-of-work build when you want to ship, stretch, and connect lessons to portfolio-ready output.
           </p>
-          {projects.map((project, index) => (
+          {!hasCompletedProgress ? (
+            <div className="sr-empty">
+              <span className="sr-empty-icon" aria-hidden="true">&lt;/&gt;</span>
+              <p><strong>Projects unlock after your first completed lesson.</strong></p>
+              <p className="empty-state-msg">
+                Finish one lesson first so the project list feels like a next step,
+                not another tab competing for attention.
+              </p>
+              <button type="button" className="empty-state-action" onClick={onClose}>
+                Back to current lesson
+              </button>
+            </div>
+          ) : projects.map((project, index) => (
             <div key={`${project.title}-${index}`} className="project-card">
               <h4>{project.title}</h4>
               <span className={`proj-diff proj-${project.diff}`}>{project.diff}</span>

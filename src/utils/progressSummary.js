@@ -1,6 +1,6 @@
-﻿// ===============================================
-// CERTIFICATE GENERATOR - Downloadable PDF
-// Creates a branded CodeHerWay completion certificate
+// ===============================================
+// PROGRESS SUMMARY GENERATOR - Downloadable PDF
+// Creates a branded CodeHerWay course progress summary
 // Uses jsPDF (client-side, no server needed)
 // ===============================================
 
@@ -28,7 +28,7 @@ const COURSE_COLORS = {
   react: COLORS.purple,
 };
 
-export async function generateCertificate({ studentName, courseName, courseId, lessonCount, completionDate }) {
+export async function generateProgressSummary({ studentName, courseName, courseId, lessonCount, completionDate }) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({
     orientation: 'landscape',
@@ -85,11 +85,11 @@ export async function generateCertificate({ studentName, courseName, courseId, l
   doc.setFont('courier', 'bold');
   doc.text('<Code>Her</Way>', W / 2 + 1, 38, { align: 'center' });
 
-  // --- Certificate of Completion --------------
+  // --- Progress summary title -----------------
   doc.setFontSize(11);
   doc.setTextColor(...COLORS.textMuted);
   doc.setFont('helvetica', 'normal');
-  doc.text('CERTIFICATE OF COMPLETION', W / 2, 52, { align: 'center' });
+  doc.text('PROGRESS SUMMARY', W / 2, 52, { align: 'center' });
 
   // Decorative line under title
   doc.setDrawColor(...accent);
@@ -102,11 +102,11 @@ export async function generateCertificate({ studentName, courseName, courseId, l
   doc.setFont('courier', 'bold');
   doc.text(courseName, W / 2, 74, { align: 'center' });
 
-  // --- "Awarded to" ---------------------------
+  // --- Learner label --------------------------
   doc.setFontSize(10);
   doc.setTextColor(...COLORS.textDim);
   doc.setFont('helvetica', 'normal');
-  doc.text('Awarded to', W / 2, 88, { align: 'center' });
+  doc.text('Prepared for', W / 2, 88, { align: 'center' });
 
   // --- Student Name ---------------------------
   doc.setFontSize(24);
@@ -125,44 +125,52 @@ export async function generateCertificate({ studentName, courseName, courseId, l
   doc.setTextColor(...COLORS.textDim);
   doc.setFont('helvetica', 'normal');
   doc.text(
-    `has successfully completed all ${lessonCount} lessons`,
+    `records current app completion of all ${lessonCount} lessons`,
     W / 2, 118, { align: 'center' }
   );
   doc.text(
     `in the ${courseName} course on CodeHerWay.`,
     W / 2, 125, { align: 'center' }
   );
+  doc.text(
+    'Reflects current app progress; not server-authoritative.',
+    W / 2, 132, { align: 'center' }
+  );
 
   // --- Skills summary line --------------------
   const skillsText = getSkillsSummary(courseId);
   doc.setFontSize(9);
   doc.setTextColor(...COLORS.textMuted);
-  doc.text(skillsText, W / 2, 135, { align: 'center' });
+  doc.text(skillsText, W / 2, 140, { align: 'center' });
 
   // --- Bottom section -------------------------
   // Date
   doc.setFontSize(10);
   doc.setTextColor(...COLORS.textDim);
   doc.setFont('helvetica', 'normal');
-  doc.text('Date of Completion', W / 2 - 55, 158, { align: 'center' });
+  doc.text('Summary date', W / 2 - 55, 158, { align: 'center' });
   doc.setTextColor(...COLORS.white);
   doc.setFont('courier', 'bold');
   doc.text(completionDate, W / 2 - 55, 166, { align: 'center' });
 
-  // Verification ID
-  const verifyId = generateVerifyId(studentName, courseId);
+  // Summary ID
+  const summaryId = generateSummaryId(studentName, courseId);
   doc.setFontSize(10);
   doc.setTextColor(...COLORS.textDim);
   doc.setFont('helvetica', 'normal');
-  doc.text('Certificate ID', W / 2 + 55, 158, { align: 'center' });
+  doc.text('Progress Summary ID', W / 2 + 55, 158, { align: 'center' });
   doc.setTextColor(...COLORS.white);
   doc.setFont('courier', 'bold');
-  doc.text(verifyId, W / 2 + 55, 166, { align: 'center' });
+  doc.text(summaryId, W / 2 + 55, 166, { align: 'center' });
 
   // --- Footer ---------------------------------
   doc.setFontSize(8);
   doc.setTextColor(...COLORS.textMuted);
   doc.setFont('helvetica', 'normal');
+  doc.text(
+    'Progress summary based on current app completion state. Not a verified credential.',
+    W / 2, H - 34, { align: 'center' }
+  );
   doc.text(
     'CodeHerWay.com  *  Where women code, lead, and rewrite the future of tech',
     W / 2, H - 28, { align: 'center' }
@@ -176,7 +184,7 @@ export async function generateCertificate({ studentName, courseName, courseId, l
   doc.circle(W / 2 + 30, 148, 0.8, 'F');
 
   // --- Save -----------------------------------
-  const fileName = `CodeHerWay-${courseName.replace(/\s+/g, '-')}-Certificate.pdf`;
+  const fileName = `CodeHerWay-${courseName.replace(/\s+/g, '-')}-Progress-Summary.pdf`;
   doc.save(fileName);
 }
 
@@ -190,7 +198,7 @@ function roundedRectStroke(doc, x, y, w, h, r) {
   doc.roundedRect(x, y, w, h, r, r, 'S');
 }
 
-function generateVerifyId(name, courseId) {
+function generateSummaryId(name, courseId) {
   const hash = (name || 'user').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
   const now = Date.now().toString(36).slice(-4).toUpperCase();
   const prefix = courseId?.toUpperCase().slice(0, 3) || 'CHW';
@@ -211,6 +219,4 @@ function getSkillsSummary(courseId) {
       return 'Skills: Web Development Fundamentals';
   }
 }
-
-
 
