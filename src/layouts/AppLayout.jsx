@@ -564,6 +564,3 @@ export function AppLayout() {
     </div>
   );
 }
-
-
-
