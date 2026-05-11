@@ -31,6 +31,7 @@ const PREVIEW_SYNC_DELAY_MS = 180;
 export const CodePreview = memo(function CodePreview({ code, lang, scaffolding = 'full' }) {
   const isMobile = useIsMobile();
   const prefersReducedData = usePrefersReducedData();
+  const previewId = useId();
   const level = SCAFFOLDING[scaffolding] || SCAFFOLDING.full;
   const defaultTab = scaffolding === 'starter' || scaffolding === 'requirements' ? 'editor' : 'code';
 
@@ -48,10 +49,10 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
   const [forceFullEditor, setForceFullEditor] = useState(false);
   const useTextareaEditor = isMobile || (prefersReducedData && !forceFullEditor);
   const editorRef = useRef(null);
-  const tabBaseId = useId();
   const copyTimerRef = useRef(null);
   const aiRequestControllerRef = useRef(null);
   const previousTabRef = useRef(defaultTab);
+  const tabBaseId = useId();
 
   const isCSS = lang === 'css';
   const isJS = lang === 'js' || lang === 'react';
@@ -193,6 +194,7 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
           ? `Change one small detail, then ${previewLabel.toLowerCase()} the result before moving on.`
           : 'Read the sample first, then try one small change in the editor.';
 
+
   const handleTabKeyDown = (event) => {
     const currentIndex = visibleTabs.findIndex((item) => item.id === tab);
     if (currentIndex < 0) return;
@@ -229,18 +231,18 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
         </div>
       )}
 
-      <div className="code-preview-guidance" id="code-preview-guidance" role="note">
+      <div className="code-preview-guidance" id={`${previewId}-guidance`} role="note">
         <span className="code-preview-guidance-label">Next step</span>
         <span>{guidanceCopy}</span>
       </div>
 
-      <div
-        className="code-preview-tabs"
-        role="tablist"
-        aria-label="Code practice views"
-        aria-describedby="code-preview-guidance"
-      >
-        <div className="code-preview-tablist">
+      <div className="code-preview-tabs">
+        <div
+          className="code-preview-tablist"
+          role="tablist"
+          aria-label="Code practice views"
+          aria-describedby={`${previewId}-guidance`}
+        >
           {visibleTabs.map((item) => (
             <button
               key={item.id}

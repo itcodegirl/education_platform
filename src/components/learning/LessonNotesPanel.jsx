@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSR } from '../../providers';
 
 const SAVE_DEBOUNCE_MS = 800;
+const NOTE_MAX_CHARS = 2000;
 
 export function LessonNotesPanel({ lessonKey }) {
   const { saveNote, getNote } = useSR();
@@ -56,6 +57,8 @@ export function LessonNotesPanel({ lessonKey }) {
 
   const savedText = getNote(lessonKey);
   const isDirty = noteText !== savedText;
+  const saveState = isDirty ? 'saving' : noteText ? 'saved' : 'idle';
+  const saveLabel = isDirty ? 'Saving note...' : noteText ? 'Saved locally' : 'Ready';
 
   return (
     <div className="notes-panel">
@@ -64,11 +67,11 @@ export function LessonNotesPanel({ lessonKey }) {
         <div className="notes-head-copy">
           <span className="notes-title">Lesson notes</span>
           <span className="notes-sub">
-            Saves to your account when cloud sync is available; queued changes stay in this browser until confirmed.
+            Private notes save locally first, then cloud sync catches up when available.
           </span>
         </div>
-        <span className="notes-saved" aria-live="polite" aria-atomic="true">
-          {isDirty ? 'Saving...' : noteText ? 'Saved here' : ''}
+        <span className={`notes-saved notes-saved-${saveState}`} aria-live="polite" aria-atomic="true">
+          {saveLabel}
         </span>
       </div>
       {!noteText && (
@@ -82,8 +85,18 @@ export function LessonNotesPanel({ lessonKey }) {
         onChange={handleChange}
         placeholder="Summarize the pattern, write the gotcha, or leave yourself the next step to try."
         rows={4}
+        maxLength={NOTE_MAX_CHARS}
         aria-label="Lesson notes"
+        aria-describedby="lesson-notes-helper lesson-notes-count"
       />
+      <div className="notes-foot">
+        <span id="lesson-notes-helper">
+          Saved in this browser first; queued cloud sync retries automatically.
+        </span>
+        <span id="lesson-notes-count" className="notes-count">
+          {noteText.length}/{NOTE_MAX_CHARS}
+        </span>
+      </div>
     </div>
   );
 }

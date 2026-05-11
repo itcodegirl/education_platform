@@ -10,7 +10,7 @@
 // system prompt + send the request.
 // ═══════════════════════════════════════════════
 
-import { useId, useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { askChallengeTutor, AI_ERROR_CODES } from '../../../services/aiService';
 
 const SUGGESTION_PROMPTS = [
@@ -63,11 +63,12 @@ export function ChallengeAIPanel({ challenge, monacoLang, code, results, isOpen 
   const [reply, setReply] = useState('');
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState('');
+
+  const requestControllerRef = useRef(null);
   const headingId = useId();
   const inputId = useId();
   const statusId = useId();
   const responseId = useId();
-  const requestControllerRef = useRef(null);
 
   useEffect(() => () => {
     requestControllerRef.current?.abort();

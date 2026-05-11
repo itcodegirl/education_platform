@@ -21,6 +21,22 @@ describe('LessonFocusStrip', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Saved');
   });
 
+  it('shows optional mastery guidance without replacing sync status', () => {
+    render(
+      <LessonFocusStrip
+        {...baseProps}
+        masteryStatus={{
+          tone: 'review',
+          label: 'Review loop',
+          detail: 'Quick check 60%. Review the missed explanations before continuing.',
+        }}
+      />,
+    );
+
+    expect(screen.getByText('Review loop')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Saved');
+  });
+
   it('shows a retry action when queued sync writes can be retried', () => {
     const onRetrySync = vi.fn();
 

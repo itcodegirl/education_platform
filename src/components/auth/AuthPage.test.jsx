@@ -138,6 +138,23 @@ describe('AuthPage', () => {
     ).toBeInTheDocument();
   });
 
+
+  it('keeps lesson preview available when accounts are not configured', () => {
+    authBackendReadyState.value = false;
+    const onPreview = vi.fn();
+
+    render(<AuthPage onPreview={onPreview} />);
+
+    expect(
+      screen.getByText(/Accounts are not connected in this environment yet/i),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /create free account/i })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('button', { name: /preview a lesson before signing in/i }));
+
+    expect(onPreview).toHaveBeenCalledTimes(1);
+  });
+
   it('does not smooth-scroll the auth form when reduced motion is requested', () => {
     const scrollIntoView = vi.fn();
     Object.defineProperty(window.HTMLElement.prototype, 'scrollIntoView', {
@@ -168,22 +185,6 @@ describe('AuthPage', () => {
 
     expect(screen.getByRole('tab', { name: /login/i })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('tabpanel', { name: /login/i })).toBeInTheDocument();
-  });
-
-  it('keeps lesson preview available when accounts are not configured', () => {
-    authBackendReadyState.value = false;
-    const onPreview = vi.fn();
-
-    render(<AuthPage onPreview={onPreview} />);
-
-    expect(
-      screen.getByText(/Accounts are not connected in this environment yet/i),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /create free account/i })).toBeDisabled();
-
-    fireEvent.click(screen.getByRole('button', { name: /preview a lesson before signing in/i }));
-
-    expect(onPreview).toHaveBeenCalledTimes(1);
   });
 });
 

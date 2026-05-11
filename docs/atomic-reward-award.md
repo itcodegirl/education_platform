@@ -6,7 +6,6 @@ The local reward retry/reconciliation branch and the Supabase backend reward bra
 
 `public.award_reward_event()` is the server-authoritative reward path. It prevents duplicate XP across devices by using `public.reward_events` as the idempotency ledger, `public.reward_catalog` as the server-owned reward allowlist, and `public.xp` as the aggregate XP total.
 
-The current hardened path also uses `public.reward_catalog` to derive the canonical event key prefix and XP amount on the server. The browser sends the event type, entity id, metadata, and source; legacy `p_event_key` and `p_xp_amount` inputs remain accepted only as compatibility checks and are rejected if they do not match the catalog-derived values.
 
 The local reward ledger, queue, diagnostics, and legacy reward history remain the default and fallback behavior.
 

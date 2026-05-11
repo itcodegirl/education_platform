@@ -154,11 +154,8 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
             inputMode="search"
             enterKeyHint="search"
             spellCheck="false"
-            aria-autocomplete="list"
+
             aria-controls="search-results-list"
-            aria-activedescendant={activeIndex >= 0 ? `search-result-${activeIndex}` : undefined}
-            role="combobox"
-            aria-expanded={results.length > 0}
           />
           {query && (
             <button
