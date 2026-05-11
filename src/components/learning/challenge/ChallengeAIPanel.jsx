@@ -10,7 +10,7 @@
 // system prompt + send the request.
 // ═══════════════════════════════════════════════
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { askChallengeTutor, AI_ERROR_CODES } from '../../../services/aiService';
 
 const SUGGESTION_PROMPTS = [
@@ -64,6 +64,10 @@ export function ChallengeAIPanel({ challenge, monacoLang, code, results, isOpen 
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState('');
   const requestControllerRef = useRef(null);
+  const headingId = useId();
+  const inputId = useId();
+  const statusId = useId();
+  const responseId = useId();
 
   useEffect(() => () => {
     requestControllerRef.current?.abort();
@@ -120,17 +124,40 @@ export function ChallengeAIPanel({ challenge, monacoLang, code, results, isOpen 
 
   if (!isOpen) return null;
 
+  const inputDescription = reply ? `${statusId} ${responseId}` : statusId;
+
   return (
-    <div id="challenge-ai-panel" className="cc-ai-panel">
-      <div className="cc-ai-header">
+    <div
+      id="challenge-ai-panel"
+      className="cc-ai-panel"
+      role="region"
+      aria-labelledby={headingId}
+      aria-busy={loading}
+    >
+      <div className="cc-ai-header" id={headingId}>
         <span>🤖 AI Tutor - Challenge Help</span>
       </div>
 
       {reply && (
-        <div className="cc-ai-response">{renderTutorReply(reply)}</div>
+        <div
+          id={responseId}
+          className="cc-ai-response"
+          role="status"
+          aria-live="polite"
+          aria-atomic="false"
+        >
+          {renderTutorReply(reply)}
+        </div>
       )}
 
       <div className="cc-ai-input-row">
+        <div id={statusId} className="sr-only" role="status" aria-live="polite">
+          {loading
+            ? 'AI tutor is responding.'
+            : reply
+              ? 'AI tutor response ready.'
+              : 'Ask for challenge guidance.'}
+        </div>
         <div className="cc-ai-suggestions">
           {!reply && SUGGESTION_PROMPTS.map((s, i) => (
             <button key={i} type="button" className="cc-ai-suggestion" onClick={() => ask(s)}>
@@ -139,13 +166,18 @@ export function ChallengeAIPanel({ challenge, monacoLang, code, results, isOpen 
           ))}
         </div>
         <div className="cc-ai-custom">
+          <label className="sr-only" htmlFor={inputId}>
+            Ask about this challenge
+          </label>
           <input
+            id={inputId}
             className="cc-ai-input"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') submitInput(); }}
             placeholder="Ask about this challenge..."
             disabled={loading}
+            aria-describedby={inputDescription}
           />
           <button
             type="button"

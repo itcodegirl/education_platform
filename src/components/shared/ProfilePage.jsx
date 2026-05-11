@@ -296,6 +296,8 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
                   placeholder="jenna"
                   maxLength={30}
                   disabled={publicSaving}
+                  aria-invalid={Boolean(publicError)}
+                  aria-describedby="pp-handle-help pp-public-status"
                 />
                 <button
                   type="button"
@@ -306,6 +308,9 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
                   {publicSaving ? 'Saving…' : 'Publish'}
                 </button>
               </div>
+              <p id="pp-handle-help" className="sr-only">
+                Use 2 to 30 characters: letters, numbers, dashes, or underscores.
+              </p>
               {publicHandle && !publicError && publicSaved && (
                 <a
                   className="pp-public-link"
@@ -319,10 +324,17 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
             </div>
           )}
 
-          {publicError && <div className="pp-public-error">{publicError}</div>}
-          {publicSaved && !publicError && (
-            <div className="pp-public-success">Saved.</div>
-          )}
+          <div
+            id="pp-public-status"
+            role={publicError ? 'alert' : 'status'}
+            aria-live={publicError ? 'assertive' : 'polite'}
+            aria-atomic="true"
+          >
+            {publicError && <div className="pp-public-error">{publicError}</div>}
+            {publicSaved && !publicError && (
+              <div className="pp-public-success">Saved.</div>
+            )}
+          </div>
         </div>
 
         <h3 className="pp-section-title">Quiet signals</h3>

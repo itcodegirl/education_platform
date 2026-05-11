@@ -10,6 +10,10 @@ const PASSWORD_MIN_LENGTH = 8;
 const DISPLAY_NAME_MAX_LENGTH = 60;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+function prefersReducedMotion() {
+  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+}
+
 export function AuthPage({ onPreview }) {
   const {
     signIn,
@@ -43,13 +47,33 @@ export function AuthPage({ onPreview }) {
     fieldRef.current?.focus();
   };
 
-  const setModeAndClearError = (nextMode) => {
+  const setModeAndClearError = (nextMode, { focusField = true } = {}) => {
     setMode(nextMode);
     setError('');
     setInfo('');
     setTouched({ email: false, password: false, displayName: false });
+    if (!focusField) return;
     window.requestAnimationFrame(() => {
       focusPrimaryAuthField(nextMode);
+    });
+  };
+
+  const handleAuthTabKeyDown = (event) => {
+    const keyToMode = {
+      ArrowLeft: mode === 'login' ? 'signup' : 'login',
+      ArrowRight: mode === 'login' ? 'signup' : 'login',
+      Home: 'login',
+      End: 'signup',
+    };
+
+    if (!(event.key in keyToMode)) return;
+    event.preventDefault();
+    const nextMode = keyToMode[event.key];
+    setModeAndClearError(nextMode, { focusField: false });
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById(nextMode === 'login' ? 'auth-tab-login' : 'auth-tab-signup')
+        ?.focus();
     });
   };
 
@@ -60,11 +84,16 @@ export function AuthPage({ onPreview }) {
     // On desktop the card is already in the first viewport - scroll is a
     // no-op. On mobile it scrolls the form into view. Either way, focus
     // the primary field so keyboard users land in the right place.
-    authCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    // Defer focus until after the smooth scroll settles.
+    const reduceMotion = prefersReducedMotion();
+    authCardRef.current?.scrollIntoView({
+      behavior: reduceMotion ? 'auto' : 'smooth',
+      block: 'center',
+    });
+
+    const focusDelay = reduceMotion ? 0 : 450;
     window.setTimeout(() => {
       focusPrimaryAuthField(nextMode);
-    }, 450);
+    }, focusDelay);
   };
 
   const handleSubmit = async (e) => {
@@ -240,23 +269,29 @@ export function AuthPage({ onPreview }) {
 
           <div className="auth-tabs" role="tablist" aria-label="Authentication mode">
             <button
+              id="auth-tab-login"
               type="button"
               role="tab"
               aria-selected={mode === 'login'}
               aria-controls="auth-form-panel"
+              tabIndex={mode === 'login' ? 0 : -1}
               className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
               onClick={() => setModeAndClearError('login')}
+              onKeyDown={handleAuthTabKeyDown}
               disabled={isAuthBusy}
             >
               Login
             </button>
             <button
+              id="auth-tab-signup"
               type="button"
               role="tab"
               aria-selected={mode === 'signup'}
               aria-controls="auth-form-panel"
+              tabIndex={mode === 'signup' ? 0 : -1}
               className={`auth-tab ${mode === 'signup' ? 'active' : ''}`}
               onClick={() => setModeAndClearError('signup')}
+              onKeyDown={handleAuthTabKeyDown}
               disabled={isAuthBusy}
             >
               Create account
@@ -277,14 +312,18 @@ export function AuthPage({ onPreview }) {
             </div>
           )}
 
-          <form
+          <div
             id="auth-form-panel"
-            className="auth-form"
-            onSubmit={handleSubmit}
+            role="tabpanel"
+            aria-labelledby={mode === 'login' ? 'auth-tab-login' : 'auth-tab-signup'}
             aria-busy={isAuthBusy}
-            noValidate
           >
-            {mode === 'signup' && (
+            <form
+              className="auth-form"
+              onSubmit={handleSubmit}
+              noValidate
+            >
+              {mode === 'signup' && (
               <div className="auth-field">
                 <label htmlFor="auth-display-name">Display Name</label>
                 <input
@@ -422,8 +461,9 @@ export function AuthPage({ onPreview }) {
                 : mode === 'login'
                   ? 'Log in'
                   : 'Create free account'}
-            </button>
-          </form>
+              </button>
+            </form>
+          </div>
 
           <div className="auth-divider">
             <span>or</span>

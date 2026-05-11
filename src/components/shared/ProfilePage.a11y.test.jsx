@@ -1,7 +1,7 @@
 /* @vitest-environment jsdom */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { axe } from 'vitest-axe';
 import { ProfilePage } from './ProfilePage';
 
@@ -107,5 +107,21 @@ describe('ProfilePage accessibility', () => {
       },
     });
     expect(results.violations).toEqual([]);
+  });
+
+  it('connects public handle validation feedback to the field', async () => {
+    mockMaybeSingle.mockResolvedValue({
+      data: { is_public: true, public_handle: '' },
+      error: null,
+    });
+
+    render(<ProfilePage onClose={vi.fn()} />);
+
+    const handle = await screen.findByRole('textbox', { name: /handle/i });
+    fireEvent.click(screen.getByRole('button', { name: /publish/i }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/handle must be 2-30 chars/i);
+    expect(handle).toHaveAttribute('aria-invalid', 'true');
+    expect(handle).toHaveAccessibleDescription(/use 2 to 30 characters/i);
   });
 });

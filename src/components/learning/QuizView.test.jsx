@@ -278,6 +278,35 @@ describe('QuizView', () => {
     });
   });
 
+  it('orderQuizControlsAnnounceMovedItemAndPosition', () => {
+    render(
+      <QuizView
+        quiz={{
+          questions: [
+            {
+              id: 'order-1',
+              type: 'order',
+              question: 'Put the page layers in order.',
+              items: ['HTML', 'CSS', 'JavaScript'],
+              correct: [0, 1, 2],
+              explanation: 'Start with structure, then styles, then behavior.',
+            },
+          ],
+        }}
+        accent="#4ecdc4"
+        label="Order Check"
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: /Move CSS from position 2 to position 1/i,
+      }),
+    );
+
+    expect(screen.getByText(/CSS moved to position 1 of 3/i)).toBeInTheDocument();
+  });
+
   it('does not award quiz XP again on retry after both quiz rewards are earned', async () => {
     const awarded = new Set();
     const awardXP = vi.fn();
