@@ -83,7 +83,7 @@ export function useFocusTrap(containerRef, options) {
         if (onEscape) {
           event.preventDefault();
           event.stopPropagation();
-          event.stopImmediatePropagation?.();
+          event.stopImmediatePropagation();
           onEscape();
         }
         return;

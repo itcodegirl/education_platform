@@ -88,6 +88,11 @@ describe('AuthProvider', () => {
     expect(screen.getByTestId('user')).toHaveTextContent('no-user');
     expect(screen.getByTestId('auth-backend')).toHaveTextContent('connected');
 
+    await waitFor(() => {
+      expect(mockOnAuthStateChange).toHaveBeenCalledTimes(1);
+      expect(mockGetInitialSession).toHaveBeenCalledTimes(1);
+    });
+
     await act(async () => {
       session.resolve({ id: 'user-1' });
       await session.promise;
@@ -105,6 +110,10 @@ describe('AuthProvider', () => {
     mockGetInitialSession.mockReturnValue(session.promise);
 
     renderAuthProvider();
+
+    await waitFor(() => {
+      expect(mockOnAuthStateChange).toHaveBeenCalledTimes(1);
+    });
 
     await act(async () => {
       authCallback(null);
