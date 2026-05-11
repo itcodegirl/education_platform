@@ -10,8 +10,8 @@
 // system prompt + send the request.
 // ═══════════════════════════════════════════════
 
-import { useEffect, useId, useRef, useState } from 'react';
-import { askChallengeTutor, AI_ERROR_CODES } from '../../../services/aiService';
+
+import { useEffect, useId, useRef, useState } from 'react';import { askChallengeTutor, AI_ERROR_CODES } from '../../../services/aiService';
 
 const SUGGESTION_PROMPTS = [
   'What am I doing wrong?',

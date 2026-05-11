@@ -235,14 +235,14 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
         <span>{guidanceCopy}</span>
       </div>
 
+
       <div className="code-preview-tabs">
         <div
           className="code-preview-tablist"
           role="tablist"
           aria-label="Code practice views"
           aria-describedby={`${previewId}-guidance`}
-        >
-          {visibleTabs.map((item) => (
+        >          {visibleTabs.map((item) => (
             <button
               key={item.id}
               id={getTabId(item.id)}
