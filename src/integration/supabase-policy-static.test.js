@@ -30,6 +30,7 @@ describe('supabase policy sql static checks', () => {
     const createEventsMigration = readText('../../supabase/migrations/202604250001_create_reward_events.sql');
     const awardRpcMigration = readText('../../supabase/migrations/202604250002_add_award_reward_event_rpc.sql');
     const idempotencyGuardMigration = readText('../../supabase/migrations/202605060002_guard_reward_event_idempotency.sql');
+    const hardenedAwardRpcMigration = readText('../../supabase/migrations/202605110001_harden_reward_event_trust_boundaries.sql');
 
     expect(createEventsMigration).toMatch(/unique\s*\(\s*user_id\s*,\s*event_key\s*\)/i);
     expect(idempotencyGuardMigration).toMatch(/create unique index if not exists reward_events_user_event_key_key/i);
@@ -39,11 +40,24 @@ describe('supabase policy sql static checks', () => {
     expect(createEventsMigration).toMatch(/for select\s+using\s*\(\s*auth\.uid\(\)\s*=\s*user_id\s*\)/i);
     expect(createEventsMigration).toMatch(/Reward writes should go through public\.award_reward_event\(\)/i);
 
-    expect(awardRpcMigration).toMatch(/v_user_id uuid := auth\.uid\(\)/i);
-    expect(awardRpcMigration).not.toMatch(/p_user_id|p_learner_id/i);
-    expect(awardRpcMigration).toMatch(/if v_user_id is null then/i);
-    expect(awardRpcMigration).toMatch(/on conflict\s*\(\s*user_id\s*,\s*event_key\s*\)\s*do nothing/i);
-    expect(awardRpcMigration).toMatch(/grant execute on function public\.award_reward_event[\s\S]*to authenticated/i);
+    [awardRpcMigration, hardenedAwardRpcMigration].forEach((sql) => {
+      expect(sql).toMatch(/v_user_id uuid := auth\.uid\(\)/i);
+      expect(sql).not.toMatch(/p_user_id|p_learner_id/i);
+      expect(sql).toMatch(/if v_user_id is null then/i);
+      expect(sql).toMatch(/on conflict\s*\(\s*user_id\s*,\s*event_key\s*\)\s*do nothing/i);
+      expect(sql).toMatch(/grant execute on function public\.award_reward_event[\s\S]*to authenticated/i);
+    });
+
+    expect(hardenedAwardRpcMigration).toMatch(/create table if not exists public\.reward_catalog/i);
+    expect(hardenedAwardRpcMigration).toMatch(/primary key\s*\(\s*event_type\s*,\s*entity_id\s*\)/i);
+    expect(hardenedAwardRpcMigration).toMatch(/revoke insert,\s*update,\s*delete on table public\.reward_catalog from anon,\s*authenticated/i);
+    expect(hardenedAwardRpcMigration).toMatch(/select catalog\.xp_amount[\s\S]*into v_expected_xp/i);
+    expect(hardenedAwardRpcMigration).toMatch(/unknown_reward_entity/i);
+    expect(hardenedAwardRpcMigration).toMatch(/v_expected_event_key :=/i);
+    expect(hardenedAwardRpcMigration).toMatch(/event_key_mismatch/i);
+    expect(hardenedAwardRpcMigration).toMatch(/xp_amount_mismatch/i);
+    expect(hardenedAwardRpcMigration).toMatch(/p_xp_amount is not null and p_xp_amount <> v_expected_xp/i);
+    expect(hardenedAwardRpcMigration).toMatch(/values \(\s*v_user_id,\s*v_expected_xp,\s*now\(\)\s*\)/i);
   });
 
   it('publicProfileDoesNotExposeRawProgressRows', () => {

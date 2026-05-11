@@ -42,6 +42,7 @@ copying older SQL snippets from prior portfolio branches:
 5. `supabase/migrations/202605060003_harden_profile_updates.sql`
 6. `supabase/migrations/202605070001_add_stable_last_position_columns.sql`
 7. `supabase/migrations/202605070002_harden_public_profile_privacy.sql`
+8. `supabase/migrations/202605110001_harden_reward_event_trust_boundaries.sql`
 
 Public profile note: use `public.public_profiles` for aggregate
 portfolio snapshots. Do not add public select policies on
