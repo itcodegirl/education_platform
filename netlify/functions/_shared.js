@@ -66,6 +66,46 @@ export async function verifyUser(token) {
  *   false — quota exceeded, return 429
  *   null  — RPC failed / unreachable (caller decides)
  */
+async function isProfileDisabled(token, userId) {
+	const { url, key } = getSupabaseConfig();
+	if (!url || !key || !userId) return true;
+
+	const params = new URLSearchParams({
+		select: 'is_disabled',
+		id: `eq.${userId}`,
+		limit: '1',
+	});
+
+	try {
+		const res = await fetch(`${url}/rest/v1/profiles?${params.toString()}`, {
+			headers: {
+				Authorization: `Bearer ${token}`,
+				apikey: key,
+			},
+		});
+		if (!res.ok) return true;
+
+		const rows = await res.json().catch(() => null);
+		if (!Array.isArray(rows) || rows.length !== 1) return true;
+		return rows[0]?.is_disabled === true;
+	} catch {
+		return true;
+	}
+}
+
+/**
+ * Validate a Supabase JWT and fail closed if the profile is disabled or
+ * cannot be checked. User-facing Netlify functions should use this so
+ * admin account suspension is enforced server-side.
+ */
+export async function verifyActiveUser(token) {
+	const user = await verifyUser(token);
+	if (!user?.id) return null;
+
+	const disabled = await isProfileDisabled(token, user.id);
+	return disabled ? null : user;
+}
+
 export async function consumeQuotaPersistent(token) {
 	const { url, key } = getSupabaseConfig();
 	if (!url || !key) return null;

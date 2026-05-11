@@ -19,7 +19,7 @@
 //   6. Role whitelist for messages.
 // ===============================================
 
-import { json, verifyUser, consumeQuotaPersistent, createRateLimiter } from './_shared.js';
+import { json, verifyActiveUser, consumeQuotaPersistent, createRateLimiter } from './_shared.js';
 
 const OPENAI_URL = 'https://api.openai.com/v1/responses';
 
@@ -89,7 +89,7 @@ export async function handler(event) {
     return json(401, { error: 'Authentication required' });
   }
 
-  const user = await verifyUser(token);
+  const user = await verifyActiveUser(token);
   if (!user || !user.id) {
     return json(401, { error: 'Invalid or expired session' });
   }
