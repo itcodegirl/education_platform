@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router-dom';
 import { APP_ROUTES } from './routePaths';
 
@@ -35,13 +36,31 @@ export function RouteErrorBoundary() {
   const error = useRouteError();
   const navigate = useNavigate();
   const { title, message } = getErrorSummary(error);
+  const titleRef = useRef(null);
+
+  useEffect(() => {
+    titleRef.current?.focus();
+  }, []);
 
   return (
-    <div className="eb-screen">
+    <main
+      className="eb-screen"
+      role="alert"
+      aria-live="assertive"
+      aria-labelledby="route-error-title"
+      aria-describedby="route-error-message"
+    >
       <div className="eb-card">
         <span className="eb-icon" aria-hidden="true">⚠︎</span>
-        <h2 className="eb-title">{title}</h2>
-        <p className="eb-msg">{message}</p>
+        <h2
+          id="route-error-title"
+          className="eb-title"
+          ref={titleRef}
+          tabIndex={-1}
+        >
+          {title}
+        </h2>
+        <p id="route-error-message" className="eb-msg">{message}</p>
 
         {isRouteErrorResponse(error) && (
           <div className="eb-detail">
@@ -68,6 +87,6 @@ export function RouteErrorBoundary() {
           </button>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
