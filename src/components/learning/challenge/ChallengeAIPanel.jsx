@@ -68,7 +68,6 @@ export function ChallengeAIPanel({ challenge, monacoLang, code, results, isOpen 
   const inputId = useId();
   const statusId = useId();
   const responseId = useId();
-
   useEffect(() => () => {
     requestControllerRef.current?.abort();
   }, []);
