@@ -33,6 +33,7 @@ describe('SRPanel', () => {
     render(<SRPanel isOpen onClose={onClose} />);
 
     expect(screen.getByText(/All caught up\./i)).toBeInTheDocument();
+    expect(screen.getByText(/No review load yet/i)).toBeInTheDocument();
     expect(
       screen.getByText(/No review cards are due yet/i),
     ).toBeInTheDocument();
@@ -50,7 +51,34 @@ describe('SRPanel', () => {
 
     render(<SRPanel isOpen onClose={vi.fn()} />);
 
+    expect(screen.getByText(/Nothing due now/i)).toBeInTheDocument();
+    expect(screen.getByText(/2 later/i)).toBeInTheDocument();
     expect(screen.getByText(/2 cards are scheduled for later\. Nothing needs attention right now\./i)).toBeInTheDocument();
+  });
+
+  it('suggests a small review burst when cards are due', () => {
+    mockUseSR.mockReturnValue({
+      getDueSRCards: () => [
+        {
+          question: 'What tag creates a paragraph?',
+          source: 'Quick Check',
+          options: ['<p>', '<h1>'],
+          correct: 0,
+        },
+      ],
+      updateSRCard: vi.fn(),
+      addToSRQueue: vi.fn(),
+      srCards: [
+        { question: 'What tag creates a paragraph?', nextReview: 0 },
+        { question: 'What tag creates a link?', nextReview: Date.now() + 1000 },
+      ],
+    });
+
+    render(<SRPanel isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText(/1 due now/i)).toBeInTheDocument();
+    expect(screen.getByText(/Do 1 card in this burst/i)).toBeInTheDocument();
+    expect(screen.getByText(/1 later/i)).toBeInTheDocument();
   });
 
   it('shows the local-first progress sync scope', () => {

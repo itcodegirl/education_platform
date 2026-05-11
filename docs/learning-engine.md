@@ -140,6 +140,10 @@ Per `docs/reward-progress-policy.md`:
 - Submitting a quiz is a streak-qualifying action — including retries —
   so `recordDailyActivity` runs unconditionally on submit. This is
   intentional engagement design, documented in the policy.
+- The post-submit feedback loop uses `src/utils/quizFeedback.js` to
+  translate a score into learner-facing next actions: explain, review,
+  retry, or apply in a challenge. This keeps quizzes instructional even
+  when XP has already been earned.
 
 ## 5. Challenge completion
 
@@ -169,6 +173,11 @@ Idempotency guarantees:
 - `markChallengeCompleted(id)` returns false if already in the set, so
   the reward block doesn't run twice
 
+Challenge recommendation is display-only. `src/utils/challengeProgress.js`
+selects the next open challenge for the current course and shows completion
+coverage in the Challenges panel. It does not gate lessons or imply external
+credential verification.
+
 ## 6. XP, streaks, daily goal, badges
 
 `recordDailyActivity` (in `ProgressContext`) is the single owner of:
@@ -191,7 +200,30 @@ provider's `checkBadges` runs after every progress change and enqueues
 freshly-earned badges into `newBadgeQueue` so the BadgeUnlock celebration
 plays one at a time even when several badges land in the same action.
 
-## 7. Persistence layers
+## 7. Mastery evidence display
+
+The progress panel intentionally separates motivational progress from
+learning evidence:
+
+- **Lesson completion** means exposure: the learner read the lesson and
+  saved their place.
+- **Quiz checks at 80%+** count as confidence evidence for the topic.
+- **Applied challenges** count as practice evidence when the local tests
+  pass.
+- **Review cards due now** represent retention load, not failure.
+
+`src/utils/masteryProgress.js` owns the display summary. It does not award
+XP, gate navigation, or certify mastery. Its job is to help learners and
+reviewers see whether completed lessons are being reinforced by checks,
+application, and spaced review.
+
+`src/utils/reviewLoad.js` summarizes the spaced-repetition queue into a
+small review rhythm: what is due now, what is scheduled later, and how many
+cards make a useful short burst. The roadmap uses display-only module labels
+(`Current`, `Upcoming`, `In progress`, `Complete`) so course progress is
+easier to scan without adding hard locks.
+
+## 8. Persistence layers
 
 | Surface                        | Local                                | Backend                 | Recovery                          |
 | ------------------------------ | ------------------------------------ | ----------------------- | --------------------------------- |
@@ -214,7 +246,7 @@ session. `dbWrite` runs async and queues failures into
 `progressWriteQueue`; the queue replays on online/visibilitychange and on
 the next session start.
 
-## 8. Reward event types — two namespaces
+## 9. Reward event types — two namespaces
 
 Two `REWARD_EVENT_TYPES` constants exist intentionally:
 
@@ -233,7 +265,7 @@ they front different storage shapes. A future refactor could collapse
 them, but doing so requires migrating the legacy reward-key strings
 already persisted in learner localStorage — out of scope for now.
 
-## 9. Backend boundaries
+## 10. Backend boundaries
 
 Currently persisted to Supabase:
 
@@ -254,7 +286,7 @@ Local-only by design (not migration candidates):
 - Sidebar collapse, theme, lock mode, install dismiss seen, what's new seen
 - Reward retry queue intermediate state
 
-## 10. Known engine risks
+## 11. Known engine risks
 
 - **Quiz retries qualify for streak/dailyCount per policy.** A learner
   could in principle re-submit a quiz with garbage answers to fake the
@@ -274,7 +306,7 @@ Local-only by design (not migration candidates):
 - **Challenge completions are localStorage-only.** A learner who clears
   storage loses their challenge history, including dedup state.
 
-## 11. Where to start when changing the engine
+## 12. Where to start when changing the engine
 
 - Reward policy → `src/services/rewardPolicy.js` (single source of truth
   for XP amounts, reward keys, retry rules).

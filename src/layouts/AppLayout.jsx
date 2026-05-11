@@ -11,6 +11,7 @@ import { usePanels } from "../hooks/usePanels";
 import { useKeyboardNav } from "../hooks/useKeyboardNav";
 import { useLearning } from "../hooks/useLearning";
 import { useIsMobile } from "../hooks/useIsMobile";
+import { useMobileKeyboardOpen } from "../hooks/useMobileKeyboardOpen";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useLessonViewTracking } from "../hooks/useLessonViewTracking";
@@ -82,6 +83,7 @@ export function AppLayout() {
   const panels = usePanels({ dataLoaded, user, lastPosition });
   const learn = useLearning();
   const isMobile = useIsMobile(901);
+  const mobileKeyboardOpen = useMobileKeyboardOpen(isMobile);
   const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage(
     "chw-sidebar-collapsed",
     false,
@@ -153,6 +155,7 @@ export function AppLayout() {
     user?.email?.split("@")[0] ||
     null;
   const isSidebarOpen = isMobile ? panels.sidebar : true;
+  const shellClassName = `shell ${theme}${mobileKeyboardOpen ? ' keyboard-open' : ''}`;
 
   useEffect(() => {
     if (isMobile) {
@@ -346,7 +349,7 @@ export function AppLayout() {
   // prevents the hot path from rendering empty lesson data.
   if (!activeCourseReady) {
     return (
-      <div className={`shell ${theme}`} data-course={activeCourseMeta?.id || 'html'}>
+      <div className={shellClassName} data-course={activeCourseMeta?.id || 'html'}>
         <a className="skip-link" href="#main-content">Skip to main content</a>
         <EmailVerifyBanner />
         <OfflineIndicator />
@@ -365,7 +368,7 @@ export function AppLayout() {
   }
 
   return (
-    <div className={`shell ${theme}`} data-course={course.id}>
+    <div className={shellClassName} data-course={course.id}>
       <a className="skip-link" href="#main-content">Skip to main content</a>
       <EmailVerifyBanner />
       <OfflineIndicator />

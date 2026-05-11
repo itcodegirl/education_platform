@@ -15,8 +15,10 @@ The command verifies that the repo still contains:
 - Stable saved-position columns on `public.last_position`: `course_id`, `module_id`, `lesson_id`, `is_module_quiz`.
 - The additive stable resume migration: `supabase/migrations/202605070001_add_stable_last_position_columns.sql`.
 - Aggregate-only public profile exposure through `public.public_profiles`.
+- Admin rollups filtered by `public.is_admin()` with invoker-aware view semantics.
 - Explicit anon `select` revokes for raw profile/progress/reward-adjacent tables.
 - Reward event ledger migrations and the `award_reward_event(...)` RPC that derives ownership from `auth.uid()`.
+- The `reward_catalog` migration that lets the RPC derive XP and reject unknown reward entities.
 - The idempotency guard for `(user_id, event_key)` reward events.
 - The hardened reward catalog migration that derives backend XP and canonical reward event keys server-side.
 - Unique Supabase migration timestamp prefixes, so no migration is skipped
@@ -50,6 +52,7 @@ For a fresh Supabase project, apply `supabase-schema.sql` first, then apply the 
 6. `supabase/migrations/202605070001_add_stable_last_position_columns.sql`
 7. `supabase/migrations/202605070002_harden_public_profile_privacy.sql`
 8. `supabase/migrations/202605110001_harden_reward_event_trust_boundaries.sql`
+9. `supabase/migrations/202605110002_lock_admin_user_rollups.sql`
 
 For an existing project, apply only migrations that have not already run. Every listed file is intended to be additive/idempotent, but production operators should still record the run date, project ref, and deploy SHA.
 

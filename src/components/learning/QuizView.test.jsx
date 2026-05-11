@@ -215,6 +215,34 @@ describe('QuizView', () => {
     });
   });
 
+  it('shows an actionable feedback loop after a missed quiz question', async () => {
+    const addToSRQueue = vi.fn();
+    mockUseSR.mockReturnValue({ addToSRQueue });
+
+    render(
+      <QuizView
+        quiz={quiz}
+        accent="#4ecdc4"
+        label="Quick Check"
+        quizKey="html-foundations-quiz"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('radio', { name: /<p>/i }));
+    fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Feedback loop: Foundation review/i)).toBeInTheDocument();
+      expect(screen.getByText(/rebuild the lesson example/i)).toBeInTheDocument();
+      expect(addToSRQueue).toHaveBeenCalledWith([
+        expect.objectContaining({
+          question: 'Which tag creates a top-level heading?',
+          source: 'Quick Check',
+        }),
+      ]);
+    });
+  });
+
   it('bugQuizChoicesUseNativeSingleAnswerSemantics', async () => {
     const bugQuiz = {
       questions: [

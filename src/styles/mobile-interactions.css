@@ -1,0 +1,126 @@
+/* Mobile interaction hardening: loaded last to normalize touch,
+   overlay, and modal ergonomics without disturbing desktop layout. */
+
+.search-clear {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.search-clear:hover,
+.search-clear:focus-visible {
+  border-color: var(--cyan);
+  color: var(--text);
+}
+
+@media (max-width: 900px) {
+  .sidebar-avatar {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  .sidebar-tab,
+  .pp-profile-btn,
+  .pp-signout {
+    min-height: 44px;
+  }
+
+  .lock-label {
+    min-height: 44px;
+    align-items: center;
+    padding: 10px;
+  }
+
+  .lock-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 auto;
+  }
+
+  .mobile-tools-close {
+    min-height: 44px;
+    padding-inline: 16px;
+  }
+
+  .mobile-tools-item {
+    min-height: 56px;
+  }
+
+  .search-overlay {
+    align-items: stretch;
+    padding:
+      max(8px, env(safe-area-inset-top, 0px))
+      max(8px, env(safe-area-inset-right, 0px))
+      max(8px, env(safe-area-inset-bottom, 0px))
+      max(8px, env(safe-area-inset-left, 0px));
+  }
+
+  .search-modal {
+    width: 100%;
+    max-height: calc(100dvh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    border-radius: 16px;
+  }
+
+  .search-input-wrap {
+    gap: 8px;
+    padding: 12px 14px;
+  }
+
+  .search-input {
+    min-width: 0;
+  }
+
+  .search-hint {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .search-results {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .search-result {
+    min-height: 56px;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 400px) {
+  .search-head {
+    padding: 14px 14px 10px;
+  }
+
+  .search-title {
+    font-size: 16px;
+  }
+
+  .search-icon {
+    display: none;
+  }
+
+  .search-clear {
+    min-width: 44px;
+    padding-inline: 10px;
+  }
+
+  .mobile-tools-grid {
+    grid-template-columns: 1fr;
+  }
+}

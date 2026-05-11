@@ -44,6 +44,7 @@ Focused checks:
 
 ```bash
 npm run lint
+npm run typecheck
 npm run check:js-source
 npm run build
 npm run audit:staging-runbook
@@ -52,7 +53,7 @@ npm run test:unit
 npm run audit:quizzes
 ```
 
-`npm run check:js-source` is a JS-only source policy check. This repo does not currently run TypeScript type checking.
+`npm run typecheck` and `npm run check:js-source` both enforce the JS-only source policy. This repo does not run TypeScript type checking because the implementation is intentionally HTML/CSS/JavaScript/React.
 
 ## Best Code Areas To Inspect
 

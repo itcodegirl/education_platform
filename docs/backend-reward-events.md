@@ -53,7 +53,7 @@ The backend supports the same reward types as the local reward engine:
 - `QUIZ_PERFECT`
 - `CHALLENGE_COMPLETE`
 
-XP amounts still match existing app policy, but the backend now mirrors those values in `public.reward_catalog` and derives the award amount inside the RPC. Browser code should not choose XP values for backend awards.
+XP amounts are mirrored into `public.reward_catalog` and derived by the RPC. Browser clients should send the reward type and entity only; they must not be trusted to choose XP.
 
 ## RLS And Write Policy
 
@@ -65,7 +65,7 @@ Direct browser access is intentionally narrow:
 - Admins can read all reward events through the existing admin helper policy.
 - Direct browser insert/update/delete policies are not added.
 
-Reward writes should go through `public.award_reward_event()`, which derives identity from `auth.uid()`, derives canonical event keys and XP from `public.reward_catalog`, and does the event insert plus XP increment atomically.
+Reward writes should go through `public.award_reward_event()`, which derives identity from `auth.uid()`, validates the rewardable entity against `public.reward_catalog`, derives XP on the server, and does the event insert plus XP increment atomically.
 
 ## Atomic Award RPC
 
@@ -75,7 +75,7 @@ Reward writes should go through `public.award_reward_event()`, which derives ide
 - `p_entity_id`
 - `p_metadata`
 - `p_source`
-- optional compatibility fields `p_event_key` and `p_xp_amount`
+- Optional compatibility fields: `p_event_key`, `p_xp_amount`
 
 It returns:
 
@@ -85,7 +85,7 @@ It returns:
 - `total_xp`
 - `reason` when failed
 
-The RPC never accepts `user_id` or `learner_id` from the client. It derives canonical identity from `auth.uid()`. Older callers may still pass event keys or XP amounts, but those values are treated as assertions and rejected if they do not match the server-derived event key or catalog XP.
+The RPC never accepts `user_id` or `learner_id` from the client. It derives canonical identity from `auth.uid()`, derives the canonical event key, rejects event-key mismatches, rejects XP mismatches, and rejects unknown reward entities.
 
 ## Frontend Wrapper
 
@@ -119,7 +119,8 @@ Before enabling backend reward sync in an environment:
 2. Apply the reward migration files in order.
 3. Confirm `public.award_reward_event()` is executable by authenticated users only.
 4. Confirm direct client writes to `reward_events` are blocked.
-5. Run authenticated duplicate-award tests against a real Supabase project.
-6. Set `VITE_REWARD_BACKEND_SYNC_ENABLED=true` only after validation passes.
+5. Confirm `public.reward_catalog` contains the expected lesson, quiz, and challenge entities.
+6. Run authenticated duplicate-award and forged-XP tests against a real Supabase project.
+7. Set `VITE_REWARD_BACKEND_SYNC_ENABLED=true` only after validation passes.
 
 Keep the flag disabled for local demos or projects that have not applied the migrations.

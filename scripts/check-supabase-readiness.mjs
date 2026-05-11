@@ -70,8 +70,8 @@ const REQUIRED_ARTIFACTS = [
     checks: [
       ['reward catalog table', /create\s+table\s+if\s+not\s+exists\s+public\.reward_catalog/i],
       ['reward catalog RLS', /alter\s+table\s+public\.reward_catalog\s+enable\s+row\s+level\s+security/i],
-      ['server-derived event key', /v_event_key\s*:=\s*concat\(v_catalog\.event_key_prefix/i],
-      ['server-derived XP', /v_catalog\.xp_amount/i],
+      ['server-derived event key', /v_expected_event_key\s*:=/i],
+      ['server-derived XP', /v_expected_xp/i],
       ['forged event key rejection', /event_key_mismatch/i],
       ['forged XP rejection', /xp_amount_mismatch/i],
     ],

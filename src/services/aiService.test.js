@@ -74,6 +74,17 @@ describe('callAI error classification', () => {
     });
   });
 
+  it('throws ABORTED when the request is canceled', async () => {
+    const controller = new AbortController();
+    globalThis.fetch.mockRejectedValueOnce(new DOMException('The operation was aborted.', 'AbortError'));
+
+    await expect(
+      askChallengeTutor({ system: 's', question: 'q', signal: controller.signal }),
+    ).rejects.toMatchObject({
+      code: AI_ERROR_CODES.ABORTED,
+    });
+  });
+
   it('throws EMAIL_NOT_VERIFIED when the server returns 403 with the EMAIL_NOT_VERIFIED code', async () => {
     globalThis.fetch.mockResolvedValueOnce({
       ok: false,

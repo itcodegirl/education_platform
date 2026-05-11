@@ -8,8 +8,8 @@ describe('LandingHeroIntro', () => {
 
     render(<LandingHeroIntro onStart={vi.fn()} onPreview={onPreview} compact />);
 
-    expect(screen.getByRole('button', { name: /create a free account/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /preview the first lesson/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /preview the first lesson/i })).toHaveTextContent(/start first lesson/i);
+    expect(screen.getByRole('button', { name: /create a free account/i })).toHaveTextContent(/create account/i);
     expect(screen.queryByRole('link', { name: /design system/i })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /preview the first lesson/i }));

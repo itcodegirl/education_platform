@@ -8,17 +8,24 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
   const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef(null);
   const modalRef = useRef(null);
+  const hasRequestedFullIndexRef = useRef(false);
   const { ensureAllLoaded, loadedCourseIds, allCoursesLoaded } = useCourseContent();
-
-  useEffect(() => {
-    ensureAllLoaded();
-  }, [ensureAllLoaded]);
+  const normalizedQuery = query.toLowerCase();
 
   const searchIndex = useMemo(
     () => buildSearchIndex(),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [loadedCourseIds],
   );
+
+  useEffect(() => {
+    if (!isOpen || normalizedQuery.length < 2 || allCoursesLoaded || hasRequestedFullIndexRef.current) {
+      return;
+    }
+
+    hasRequestedFullIndexRef.current = true;
+    void ensureAllLoaded();
+  }, [allCoursesLoaded, ensureAllLoaded, isOpen, normalizedQuery]);
 
   useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
 
@@ -36,7 +43,6 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
     return () => clearTimeout(focusTimer);
   }, [isOpen]);
 
-  const normalizedQuery = query.toLowerCase();
   const results = normalizedQuery.length >= 2
     ? searchIndex
         .filter((entry) =>
@@ -136,6 +142,7 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
           <span className="search-icon" aria-hidden="true">🔍</span>
           <input
             ref={inputRef}
+            type="search"
             className="search-input"
             placeholder="Search lessons, modules, and concepts..."
             aria-label="Search lessons"
@@ -143,8 +150,30 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleInputKeyDown}
+            autoComplete="off"
+            inputMode="search"
+            enterKeyHint="search"
+            spellCheck="false"
+            aria-autocomplete="list"
             aria-controls="search-results-list"
+            aria-activedescendant={activeIndex >= 0 ? `search-result-${activeIndex}` : undefined}
+            role="combobox"
+            aria-expanded={results.length > 0}
           />
+          {query && (
+            <button
+              type="button"
+              className="search-clear"
+              aria-label="Clear search query"
+              onClick={() => {
+                setQuery('');
+                setActiveIndex(-1);
+                inputRef.current?.focus();
+              }}
+            >
+              Clear
+            </button>
+          )}
           <span id="search-shortcut-hint" className="search-hint">
             Enter opens the top result, Esc closes this panel
           </span>

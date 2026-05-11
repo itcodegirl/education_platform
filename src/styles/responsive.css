@@ -110,6 +110,7 @@
   .qq { padding: 14px var(--quiz-inline-pad); gap: 12px; }
   .quiz-submit { width: auto; margin: 12px var(--quiz-inline-pad) 16px; }
   .quiz-results { padding: 16px var(--quiz-inline-pad); flex-wrap: wrap; }
+  .quiz-result-body { min-width: 100%; }
   .quiz-next-step { width: 100%; }
   .quiz-score-num { font-size: 22px; }
   .topbar-actions .read-time { display: none; }
