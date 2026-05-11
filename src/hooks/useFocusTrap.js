@@ -100,6 +100,8 @@ export function useFocusTrap(containerRef, options) {
     const handleKey = (e) => {
       if (e.key === 'Escape') {
         if (onEscape) {
+          e.preventDefault();
+          e.stopPropagation();
           onEscape();
         }
         return;

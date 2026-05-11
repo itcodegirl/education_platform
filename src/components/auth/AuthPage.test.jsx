@@ -175,6 +175,16 @@ describe('AuthPage', () => {
       block: 'center',
     });
   });
+
+  it('supports arrow-key navigation between auth tabs', () => {
+    render(<AuthPage onPreview={vi.fn()} />);
+
+    const signupTab = screen.getByRole('tab', { name: /create account/i });
+    fireEvent.keyDown(signupTab, { key: 'ArrowLeft' });
+
+    expect(screen.getByRole('tab', { name: /login/i })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel', { name: /login/i })).toBeInTheDocument();
+  });
 });
 
 
