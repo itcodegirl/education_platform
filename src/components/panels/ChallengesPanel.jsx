@@ -1,5 +1,9 @@
-import { useMemo, useRef, useState } from 'react';
-import { getChallengesForCourse } from '../../data/challenges';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  areChallengesLoaded,
+  getChallengesForCourse,
+  loadChallengesForCourse,
+} from '../../data/challenges';
 import { COURSES } from '../../data';
 import { CodeChallenge } from '../learning/CodeChallenge';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
@@ -7,9 +11,12 @@ import { useProgressData } from '../../providers';
 import { useLearning } from '../../hooks/useLearning';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 import { getChallengeProgressionPlan } from '../../utils/challengeProgression';
+import '../../styles/feature-challenges.css';
 
 export function ChallengesPanel({ courseId, lang, onClose }) {
-  const challenges = getChallengesForCourse(courseId);
+  const [challenges, setChallenges] = useState(() => getChallengesForCourse(courseId));
+  const [challengeLoadError, setChallengeLoadError] = useState('');
+  const [isLoadingChallenges, setIsLoadingChallenges] = useState(() => !areChallengesLoaded(courseId));
   const [activeChallenge, setActiveChallenge] = useState(null);
   const { challengeCompletions = [], completedSet = new Set() } = useProgressData();
   const learn = useLearning();
@@ -27,6 +34,41 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
   const modalRef = useRef(null);
 
   useFocusTrap(modalRef, { enabled: true, onEscape: onClose });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadChallenges() {
+      const cachedChallenges = getChallengesForCourse(courseId);
+      const cachedLoaded = areChallengesLoaded(courseId);
+
+      setChallenges(cachedChallenges);
+      setChallengeLoadError('');
+      setIsLoadingChallenges(!cachedLoaded);
+
+      if (cachedLoaded) return;
+
+      try {
+        const loadedChallenges = await loadChallengesForCourse(courseId);
+        if (cancelled) return;
+        setChallenges(loadedChallenges);
+      } catch (error) {
+        if (cancelled) return;
+        setChallengeLoadError(error?.message || 'Could not load challenges right now.');
+      } finally {
+        if (!cancelled) {
+          setIsLoadingChallenges(false);
+        }
+      }
+    }
+
+    setActiveChallenge(null);
+    loadChallenges();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [courseId]);
 
   if (activeChallenge) {
     return (
@@ -123,7 +165,41 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
             Completed labels reflect same-browser CodeHerWay progress. XP and badges stay motivational unless backend reward sync is enabled and verified.
           </p>
 
-          {challenges.length === 0 ? (
+          {challengeLoadError ? (
+            <div className="challenges-empty">
+              <p><strong>Challenges could not load right now.</strong></p>
+              <p className="challenges-empty-sub">
+                The lesson workspace is still safe. Reopen this panel or retry when the connection settles.
+              </p>
+              <button
+                type="button"
+                className="panel-back"
+                onClick={() => {
+                  setChallengeLoadError('');
+                  setIsLoadingChallenges(true);
+                  void loadChallengesForCourse(courseId)
+                    .then((loadedChallenges) => {
+                      setChallenges(loadedChallenges);
+                    })
+                    .catch((error) => {
+                      setChallengeLoadError(error?.message || 'Could not load challenges right now.');
+                    })
+                    .finally(() => {
+                      setIsLoadingChallenges(false);
+                    });
+                }}
+              >
+                Try again
+              </button>
+            </div>
+          ) : isLoadingChallenges ? (
+            <div className="challenges-empty">
+              <p><strong>Loading the challenge lab...</strong></p>
+              <p className="challenges-empty-sub">
+                Pulling in the hands-on practice track for this course.
+              </p>
+            </div>
+          ) : challenges.length === 0 ? (
             <div className="challenges-empty">
               <p><strong>No challenges are live for this course yet.</strong></p>
               <p className="challenges-empty-sub">

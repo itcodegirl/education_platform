@@ -99,5 +99,9 @@ export function useMarkLessonDone({
     analyticsContext,
   ]);
 
-  return { marking, handleMarkDone };
+  return {
+    marking,
+    handleMarkDone,
+    mutationState: progressMutation.state,
+  };
 }

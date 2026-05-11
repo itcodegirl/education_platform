@@ -20,6 +20,7 @@ The command verifies that the repo still contains:
 - Reward event ledger migrations and the `award_reward_event(...)` RPC that derives ownership from `auth.uid()`.
 - The `reward_catalog` migration that lets the RPC derive XP and reject unknown reward entities.
 - The idempotency guard for `(user_id, event_key)` reward events.
+- The hardened reward catalog migration that derives backend XP and canonical reward event keys server-side.
 - Unique Supabase migration timestamp prefixes, so no migration is skipped
   or mis-reconciled by version.
 

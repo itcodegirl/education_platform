@@ -8,6 +8,7 @@ const { mockUseProgressData, mockUseLearning } = vi.hoisted(() => ({
 }));
 
 vi.mock('../../data/challenges', () => ({
+  areChallengesLoaded: () => true,
   getChallengesForCourse: () => [
     {
       id: 'challenge-1',
@@ -17,6 +18,15 @@ vi.mock('../../data/challenges', () => ({
       tests: [{ label: 'has card' }],
     },
   ],
+  loadChallengesForCourse: vi.fn(async () => [
+    {
+      id: 'challenge-1',
+      title: 'Build a Card',
+      description: 'Create a reusable card.',
+      difficulty: 'beginner',
+      tests: [{ label: 'has card' }],
+    },
+  ]),
 }));
 
 vi.mock('../../data', () => ({
@@ -84,6 +94,7 @@ describe('ChallengesPanel', () => {
     expect(screen.getByText(/Best connected to/i)).toHaveTextContent('HTML Foundations');
     expect(screen.getByText(/Ready for practice: HTML Foundations/i)).toBeInTheDocument();
   });
+
 
   it('routes challenge completion through the learning engine', () => {
     const completeChallenge = vi.fn();

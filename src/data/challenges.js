@@ -1,21 +1,48 @@
 // ═══════════════════════════════════════════════
-// CHALLENGES INDEX — Re-exports from per-course files
+// CHALLENGES INDEX — Lazy per-course challenge loading
 // ═══════════════════════════════════════════════
 
-import { HTML_CHALLENGES } from './html/challenges';
-import { CSS_CHALLENGES } from './css/challenges';
-import { JS_CHALLENGES } from './js/challenges';
-import { REACT_CHALLENGES } from './react/challenges';
+import { COURSE_METADATA } from './metadata';
+import { loadCourseChallenges } from './loaders';
 
-export { HTML_CHALLENGES, CSS_CHALLENGES, JS_CHALLENGES, REACT_CHALLENGES };
+const challengeCache = new Map();
+const inFlight = new Map();
 
-const CHALLENGES = {
-  html: HTML_CHALLENGES,
-  css: CSS_CHALLENGES,
-  js: JS_CHALLENGES,
-  react: REACT_CHALLENGES,
-};
+export function areChallengesLoaded(courseId) {
+  return challengeCache.has(courseId);
+}
 
 export function getChallengesForCourse(courseId) {
-  return CHALLENGES[courseId] || [];
+  return challengeCache.get(courseId) || [];
+}
+
+export function loadChallengesForCourse(courseId) {
+  if (challengeCache.has(courseId)) {
+    return Promise.resolve(challengeCache.get(courseId));
+  }
+
+  let promise = inFlight.get(courseId);
+  if (!promise) {
+    promise = loadCourseChallenges(courseId)
+      .then((challenges) => {
+        const normalized = Array.isArray(challenges) ? challenges : [];
+        challengeCache.set(courseId, normalized);
+        return normalized;
+      })
+      .finally(() => {
+        inFlight.delete(courseId);
+      });
+
+    inFlight.set(courseId, promise);
+  }
+
+  return promise;
+}
+
+export async function loadAllChallenges() {
+  const loaded = await Promise.all(
+    COURSE_METADATA.map(async ({ id }) => [id, await loadChallengesForCourse(id)]),
+  );
+
+  return Object.fromEntries(loaded);
 }

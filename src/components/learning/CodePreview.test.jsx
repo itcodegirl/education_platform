@@ -61,6 +61,7 @@ describe('CodePreview', () => {
     expect(frame.getAttribute('srcdoc')).toContain('<main>Preview Me</main>');
   });
 
+
   it('marks active practice views as tabs for assistive technology', () => {
     render(<CodePreview code="<h1>Hello</h1>" lang="html" scaffolding="full" />);
 

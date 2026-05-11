@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { LOCAL_STORAGE_SYNC_ERROR_EVENT, useLocalStorage } from './useLocalStorage';
 
 function StorageWriter() {
@@ -12,7 +12,7 @@ function StorageWriter() {
 }
 
 describe('useLocalStorage', () => {
-  it('emits a sanitized sync-failure event when localStorage writes fail', () => {
+  it('emits a sanitized sync-failure event when localStorage writes fail', async () => {
     const handler = vi.fn();
     const setItemSpy = vi
       .spyOn(Storage.prototype, 'setItem')
@@ -26,11 +26,11 @@ describe('useLocalStorage', () => {
       render(<StorageWriter />);
       fireEvent.click(screen.getByRole('button', { name: /write/i }));
 
-      expect(handler).toHaveBeenCalledWith(
+      await waitFor(() => expect(handler).toHaveBeenCalledWith(
         expect.objectContaining({
           detail: { key: 'test-storage-key', phase: 'write' },
         }),
-      );
+      ));
     } finally {
       window.removeEventListener(LOCAL_STORAGE_SYNC_ERROR_EVENT, handler);
       setItemSpy.mockRestore();

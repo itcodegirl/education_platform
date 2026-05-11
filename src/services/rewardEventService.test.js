@@ -277,7 +277,6 @@ describe('rewardEventService', () => {
     await awardBackendRewardEvent(payload, { client, enabled: true });
 
     expect(client.rpc).toHaveBeenCalledWith('award_reward_event', {
-      p_event_key: event.key,
       p_event_type: REWARD_EVENT_TYPES.LESSON_COMPLETE,
       p_entity_id: 'lesson-01',
       p_metadata: { rewardKey: 'lesson_complete:lesson-01' },

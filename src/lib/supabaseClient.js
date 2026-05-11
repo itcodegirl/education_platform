@@ -2,7 +2,7 @@ import {
   SUPABASE_CONFIG_ERROR_MESSAGE,
   getOptionalSupabaseBrowserConfig,
 } from './supabaseConfig';
-import { getLazySupabaseClient } from './lazySupabaseClient';
+import { getCachedSupabaseBrowserClient } from './supabaseBrowserClient';
 
 const config = getOptionalSupabaseBrowserConfig();
 
@@ -79,5 +79,5 @@ export const supabaseConfigStatus = Object.freeze({
 });
 
 export const supabase = config.configured
-  ? getLazySupabaseClient()
+  ? getCachedSupabaseBrowserClient(config)
   : createUnavailableSupabaseClient();

@@ -138,6 +138,7 @@ describe('AuthPage', () => {
     ).toBeInTheDocument();
   });
 
+
   it('keeps lesson preview available when accounts are not configured', () => {
     authBackendReadyState.value = false;
     const onPreview = vi.fn();
