@@ -63,10 +63,28 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
   const welcomeShown = useRef(false);
   const prevCompleted = useRef(0);
   const panelRef = useRef(null);
+  const confettiTimerRef = useRef(null);
+
+  const scheduleConfettiReset = (duration) => {
+    if (confettiTimerRef.current) {
+      window.clearTimeout(confettiTimerRef.current);
+    }
+
+    confettiTimerRef.current = window.setTimeout(() => {
+      confettiTimerRef.current = null;
+      setConfetti(false);
+    }, duration);
+  };
 
   useEffect(() => {
     panelRef.current = panel;
   }, [panel]);
+
+  useEffect(() => () => {
+    if (confettiTimerRef.current) {
+      window.clearTimeout(confettiTimerRef.current);
+    }
+  }, []);
 
   // Welcome back OR onboarding (once per session)
   useEffect(() => {
@@ -89,6 +107,10 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
     setShowOnboarding(false);
     setShowCourseComplete(false);
     setConfetti(false);
+    if (confettiTimerRef.current) {
+      window.clearTimeout(confettiTimerRef.current);
+      confettiTimerRef.current = null;
+    }
   }, [user]);
 
   // Keep panel state aligned with browser navigation so Back closes
@@ -113,7 +135,7 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
     const prev = prevCompleted.current;
     if (prev > 0 && MILESTONES.some((m) => prev < m && completedCount >= m)) {
       setConfetti(true);
-      setTimeout(() => setConfetti(false), TIMING.confettiDuration);
+      scheduleConfettiReset(TIMING.confettiDuration);
     }
     prevCompleted.current = completedCount;
   };
@@ -122,7 +144,7 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
   const triggerCourseComplete = () => {
     setShowCourseComplete(true);
     setConfetti(true);
-    setTimeout(() => setConfetti(false), TIMING.courseConfettiDuration);
+    scheduleConfettiReset(TIMING.courseConfettiDuration);
   };
 
   const closePanel = () => {

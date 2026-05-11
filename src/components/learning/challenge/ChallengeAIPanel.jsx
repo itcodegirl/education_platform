@@ -10,7 +10,7 @@
 // system prompt + send the request.
 // ═══════════════════════════════════════════════
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { askChallengeTutor, AI_ERROR_CODES } from '../../../services/aiService';
 
 const SUGGESTION_PROMPTS = [
@@ -63,17 +63,30 @@ export function ChallengeAIPanel({ challenge, monacoLang, code, results, isOpen 
   const [reply, setReply] = useState('');
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState('');
+  const requestControllerRef = useRef(null);
+
+  useEffect(() => () => {
+    requestControllerRef.current?.abort();
+  }, []);
 
   async function ask(question) {
     if (loading) return;
+
+    const requestController = new AbortController();
+    requestControllerRef.current = requestController;
     setLoading(true);
     try {
       const text = await askChallengeTutor({
         system: buildSystemPrompt({ challenge, monacoLang, code, results }),
         question,
+        signal: requestController.signal,
       });
+      if (requestController.signal.aborted) return;
       setReply(text || 'Could not process that. Try rephrasing!');
     } catch (error) {
+      if (error?.code === AI_ERROR_CODES.ABORTED || error?.name === 'AbortError') {
+        return;
+      }
       // Reuse the AIServiceError contract so the same error code maps to
       // the same user-facing message everywhere AI is invoked.
       const code = error?.code || AI_ERROR_CODES.UNKNOWN;
@@ -91,7 +104,10 @@ export function ChallengeAIPanel({ challenge, monacoLang, code, results, isOpen 
                   : error?.userMessage || 'AI tutor is temporarily unavailable. Please try again in a moment.';
       setReply(message);
     } finally {
-      setLoading(false);
+      if (requestControllerRef.current === requestController) {
+        requestControllerRef.current = null;
+        setLoading(false);
+      }
     }
   }
 

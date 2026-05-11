@@ -15,6 +15,7 @@ export const AI_ERROR_CODES = Object.freeze({
   PAYLOAD_TOO_LARGE: 'PAYLOAD_TOO_LARGE',
   RATE_LIMITED: 'RATE_LIMITED',
   SERVER_UNAVAILABLE: 'SERVER_UNAVAILABLE',
+  ABORTED: 'ABORTED',
   NETWORK: 'NETWORK',
   UNKNOWN: 'UNKNOWN',
 });
@@ -25,6 +26,7 @@ const DEFAULT_USER_MESSAGES = Object.freeze({
   [AI_ERROR_CODES.PAYLOAD_TOO_LARGE]: 'That message is too long. Shorten it and try again.',
   [AI_ERROR_CODES.RATE_LIMITED]: 'You are sending requests too quickly. Wait a moment and try again.',
   [AI_ERROR_CODES.SERVER_UNAVAILABLE]: 'CodeHerWay AI tutor is temporarily unavailable. Please try again soon.',
+  [AI_ERROR_CODES.ABORTED]: 'AI request canceled.',
   [AI_ERROR_CODES.NETWORK]: 'You appear offline right now. Reconnect and try again.',
   [AI_ERROR_CODES.UNKNOWN]: 'AI request failed. Please try again in a moment.',
 });
@@ -53,7 +55,7 @@ function classifyHttpStatus(status, body) {
   return AI_ERROR_CODES.UNKNOWN;
 }
 
-async function callAI(payload) {
+async function callAI(payload, { signal } = {}) {
   // Get the current session token to authenticate the request
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.access_token) {
@@ -72,8 +74,12 @@ async function callAI(payload) {
         Authorization: `Bearer ${session.access_token}`,
       },
       body: JSON.stringify(payload),
+      signal,
     });
   } catch (cause) {
+    if (cause?.name === 'AbortError' || signal?.aborted) {
+      throw new AIServiceError({ code: AI_ERROR_CODES.ABORTED, cause });
+    }
     // fetch() rejects only on network failure (DNS, offline, CORS, etc).
     // HTTP 4xx/5xx still resolve with response.ok === false.
     throw new AIServiceError({ code: AI_ERROR_CODES.NETWORK, cause });
@@ -99,23 +105,24 @@ export function askLessonTutor({
   system,
   history,
   question,
+  signal,
 }) {
   return callAI({
     system,
     messages: [...history, { role: 'user', content: question }],
     maxTokens: 1000,
-  });
+  }, { signal });
 }
 
 /**
  * Request a concise beginner-friendly explanation of a code snippet.
  */
-export function explainCode({ system, code }) {
+export function explainCode({ system, code, signal }) {
   return callAI({
     system,
     messages: [{ role: 'user', content: code }],
     maxTokens: 800,
-  });
+  }, { signal });
 }
 
 /**
@@ -124,12 +131,13 @@ export function explainCode({ system, code }) {
 export function askChallengeTutor({
   system,
   question,
+  signal,
 }) {
   return callAI({
     system,
     messages: [{ role: 'user', content: question }],
     maxTokens: 600,
-  });
+  }, { signal });
 }
 
 

@@ -135,4 +135,33 @@ describe('usePanels history sync', () => {
     expect(localStorageMock.setItem).toHaveBeenCalledWith('chw-onboarded:learner-a', 'false');
     expect(localStorageMock.removeItem).toHaveBeenCalledWith('chw-onboarded');
   });
+
+  it('clears pending confetti timers on unmount', () => {
+    vi.useFakeTimers();
+
+    const { result, unmount } = renderHook(() =>
+      usePanels({
+        dataLoaded: true,
+        user: { id: 'learner-a' },
+        lastPosition: null,
+      }),
+    );
+
+    act(() => {
+      result.current.checkMilestone(1);
+      result.current.checkMilestone(5);
+    });
+
+    expect(result.current.confetti).toBe(true);
+
+    unmount();
+
+    expect(() => {
+      act(() => {
+        vi.runOnlyPendingTimers();
+      });
+    }).not.toThrow();
+
+    vi.useRealTimers();
+  });
 });
