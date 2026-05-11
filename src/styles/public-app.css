@@ -15,6 +15,8 @@
 @import './auth.css';
 @import './landing.css';
 
-/* Shared app states and public responsive rules */
+/* Shared public route states */
 @import './resilience-states.css';
 @import './responsive.css';
+@import './public-route-shell.css';
+@import './install-prompt.css';
