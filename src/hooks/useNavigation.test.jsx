@@ -368,6 +368,37 @@ describe('useNavigation goToCourseModule()', () => {
   });
 });
 
+describe('useNavigation goToSearch()', () => {
+  it('loads the target course before selecting a search or bookmark result', async () => {
+    const originalModules = MOCK_COURSES[1].modules;
+    MOCK_COURSES[1].modules = [];
+    const ensureLoaded = vi.fn(async (courseId) => {
+      expect(courseId).toBe('css');
+      MOCK_COURSES[1].modules = originalModules;
+      return MOCK_COURSES[1];
+    });
+    mockUseCourseContent.mockReturnValue({ ensureLoaded });
+
+    try {
+      const { result } = renderHook(() => useNavigation());
+      let navigated = false;
+
+      await act(async () => {
+        navigated = await result.current.goToSearch(1, 0, 0);
+      });
+
+      expect(navigated).toBe(true);
+      expect(ensureLoaded).toHaveBeenCalledWith('css');
+      expect(result.current.courseIdx).toBe(1);
+      expect(result.current.modIdx).toBe(0);
+      expect(result.current.lesIdx).toBe(0);
+      expect(window.location.pathname).toBe('/learn/css/selectors/l-class');
+    } finally {
+      MOCK_COURSES[1].modules = originalModules;
+    }
+  });
+});
+
 describe('useNavigation resumeFromPosition()', () => {
   it('restores valid saved position and returns true', async () => {
     const { result } = renderHook(() => useNavigation());

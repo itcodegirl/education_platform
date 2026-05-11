@@ -8,6 +8,11 @@ export const LessonFocusStrip = memo(function LessonFocusStrip({
   syncStatus,
   onRetrySync,
 }) {
+  const urgentSyncTone = syncStatus.tone === 'warning' || syncStatus.tone === 'queued';
+  const syncRole = urgentSyncTone ? 'alert' : 'status';
+  const syncLiveMode = urgentSyncTone ? 'assertive' : 'polite';
+  const syncBusy = syncStatus.tone === 'saving';
+
   return (
     <section className="lesson-focus-strip" aria-label="Current lesson step">
       <span className="lesson-focus-eyebrow">{lessonPosition}</span>
@@ -22,9 +27,10 @@ export const LessonFocusStrip = memo(function LessonFocusStrip({
       <span className="lesson-sync-row">
         <span
           className={`lesson-sync-status lesson-sync-status-${syncStatus.tone}`}
-          role="status"
-          aria-live="polite"
+          role={syncRole}
+          aria-live={syncLiveMode}
           aria-atomic="true"
+          aria-busy={syncBusy ? 'true' : undefined}
         >
           <span className="lesson-sync-dot" aria-hidden="true" />
           <span className="lesson-sync-copy">

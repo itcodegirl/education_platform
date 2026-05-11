@@ -177,7 +177,6 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
             inputMode="search"
             enterKeyHint="search"
             spellCheck="false"
-
             aria-controls="search-results-list"
           />
           {query && (
@@ -206,7 +205,7 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
         >
           <div
             id="search-results-status"
-            className={results.length > 0 ? "search-meta" : "sr-only"}
+            className={results.length > 0 ? 'search-meta' : 'sr-only'}
             role="status"
             aria-live="polite"
             aria-atomic="true"
@@ -266,47 +265,45 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
               </button>
             </div>
           ) : (
-            <>
-              <ul className="search-results-list" role="list">
-                {results.map((result, index) => (
-                  <li key={`${result.course}-${result.module}-${result.title}-${index}`}>
-                    <button
-                      id={`search-result-${index}`}
-                      type="button"
-                      className={`search-result ${activeIndex === index ? "active" : ""}`}
-                      onClick={() => handleClick(result)}
-                      onMouseEnter={() => setActiveIndex(index)}
-                    >
-                      <span className="sr-icon" aria-hidden="true">{result.icon}</span>
-                      <div className="sr-body">
-                        <div
-                          className="sr-title"
+            <ul className="search-results-list" role="list">
+              {results.map((result, index) => (
+                <li key={`${result.course}-${result.module}-${result.title}-${index}`}>
+                  <button
+                    id={`search-result-${index}`}
+                    type="button"
+                    className={`search-result ${activeIndex === index ? 'active' : ''}`}
+                    onClick={() => handleClick(result)}
+                    onMouseEnter={() => setActiveIndex(index)}
+                  >
+                    <span className="sr-icon" aria-hidden="true">{result.icon}</span>
+                    <div className="sr-body">
+                      <div
+                        className="sr-title"
+                        dangerouslySetInnerHTML={{
+                          __html: highlight(result.title),
+                        }}
+                      />
+                      <div className="sr-path">
+                        {result.course} {'>'}{' '}
+                        <span
                           dangerouslySetInnerHTML={{
-                            __html: highlight(result.title),
+                            __html: highlight(result.module),
                           }}
                         />
-                        <div className="sr-path">
-                          {result.course} {'>'}{' '}
-                          <span
-                            dangerouslySetInnerHTML={{
-                              __html: highlight(result.module),
-                            }}
-                          />
-                        </div>
-                        {result.keywords && (
-                          <div
-                            className="sr-snippet"
-                            dangerouslySetInnerHTML={{
-                              __html: highlight(result.keywords.slice(0, 80)),
-                            }}
-                          />
-                        )}
                       </div>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </>
+                      {result.keywords && (
+                        <div
+                          className="sr-snippet"
+                          dangerouslySetInnerHTML={{
+                            __html: highlight(result.keywords.slice(0, 80)),
+                          }}
+                        />
+                      )}
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
       </div>

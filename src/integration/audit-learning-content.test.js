@@ -148,4 +148,28 @@ describe('learning content audit', () => {
       message: expect.stringContaining('Lesson has shallow instructional scaffolding'),
     });
   });
+
+  it('flags route-ambiguous course content ids before they break deep links', () => {
+    const fixture = makeFixture();
+    fixture.courseMetadata[0] = { ...fixture.courseMetadata[0], id: ' html' };
+    fixture.loaded[0].data.modules[0].id = 'html/basics';
+    fixture.loaded[0].data.modules[0].lessons[0] = makeLesson('quiz');
+
+    const result = analyzeLearningContent(fixture);
+
+    expect(result.issues).toEqual(expect.arrayContaining([
+      {
+        path: 'metadata. html',
+        message: 'Course id must not include leading or trailing whitespace.',
+      },
+      {
+        path: 'html.modules[0]',
+        message: 'Module id "html/basics" contains URL separator characters.',
+      },
+      {
+        path: 'html.html/basics.lessons[0]',
+        message: 'Lesson id "quiz" is reserved for lesson routing.',
+      },
+    ]));
+  });
 });

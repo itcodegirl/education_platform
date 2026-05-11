@@ -3,23 +3,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 
-const { mockUseProgressData, mockUseXP, mockUseSR, mockUseCourseContent } = vi.hoisted(() => ({
+const { mockUseProgressData, mockUseXP, mockUseSR } = vi.hoisted(() => ({
   mockUseProgressData: vi.fn(),
   mockUseXP: vi.fn(),
   mockUseSR: vi.fn(),
-  mockUseCourseContent: vi.fn(),
 }));
 
 vi.mock('../../providers', () => ({
   useProgressData: () => mockUseProgressData(),
   useXP: () => mockUseXP(),
   useSR: () => mockUseSR(),
-  useCourseContent: () => mockUseCourseContent(),
   BADGE_DEFS: [],
 }));
 
-vi.mock('../../data', () => ({
-  COURSES: [
+vi.mock('../../data/reference/course-catalog', () => ({
+  COURSE_CATALOG: [
     {
       id: 'html',
       label: 'HTML',
@@ -59,7 +57,6 @@ import { StudentStats } from './StudentStats';
 beforeEach(() => {
   mockUseProgressData.mockReturnValue({ completed: [], quizScores: {}, challengeCompletions: [] });
   mockUseSR.mockReturnValue({ srCards: [], bookmarks: [], notes: {} });
-  mockUseCourseContent.mockReturnValue({ ensureAllLoaded: vi.fn() });
 });
 
 describe('StudentStats streak card', () => {

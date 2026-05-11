@@ -16,7 +16,7 @@ export function getSyncStatusCopy({
     return {
       tone: 'local',
       label: 'Saved locally',
-      detail: 'This preview saves in this browser. Sign in to sync lessons, bookmarks, notes, and account progress; rewards remain motivational until backend sync is verified.',
+      detail: 'This browser keeps your lesson place. Sign in to sync lessons, bookmarks, and notes across devices.',
     };
   }
 
@@ -33,8 +33,8 @@ export function getSyncStatusCopy({
       tone: syncRetryInFlight ? 'saving' : 'queued',
       label: syncRetryInFlight ? 'Retrying cloud sync' : 'Cloud sync queued',
       detail: syncRetryInFlight
-        ? `${pluralizeUpdate(pendingSyncWrites)} retrying now. Your current session stays visible while cloud sync catches up.`
-        : `Saved locally. We will retry ${pluralizeUpdate(pendingSyncWrites)} when you are back online.`,
+        ? `${pluralizeUpdate(pendingSyncWrites)} retrying now. Keep this tab open while cloud sync catches up.`
+        : `Saved in this browser. We will retry ${pluralizeUpdate(pendingSyncWrites)} when you are back online.`,
       actionLabel: syncRetryInFlight ? '' : 'Retry now',
       actionAriaLabel: syncRetryInFlight ? '' : 'Retry queued progress updates now',
     };
@@ -44,7 +44,7 @@ export function getSyncStatusCopy({
     return {
       tone: 'warning',
       label: 'Sync needs retry',
-      detail: 'Your current session is safe, but cloud sync needs another try when the connection is stable.',
+      detail: 'Your current session is safe in this browser. Cloud sync needs another try when the connection is stable.',
     };
   }
 
@@ -65,8 +65,8 @@ export function getSyncStatusCopy({
   }
 
   return {
-    tone: 'synced',
-    label: 'Saved to account',
-    detail: 'Lessons, bookmarks, notes, and account progress are ready to sync when the cloud is reachable. Rewards remain motivational until backend sync is verified.',
-  };
+      tone: 'synced',
+      label: 'Saved to account',
+      detail: 'Account progress is current. New lesson activity will sync when the cloud is reachable.',
+    };
 }

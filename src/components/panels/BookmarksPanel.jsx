@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
-import { useSR, useCourseContent } from '../../providers';
-import { COURSES } from '../../data';
+import { useRef } from 'react';
+import { useSR } from '../../providers';
+import { COURSE_CATALOG } from '../../data/reference/course-catalog';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useRemoveBookmark } from '../../hooks/useToggleBookmark';
 import { findLessonByKey } from '../../utils/lessonKeys';
@@ -37,18 +37,10 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
   const { handleRemoveBookmark } = useRemoveBookmark();
   const modalRef = useRef(null);
   useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
-  // Bookmarks can point to any course. Trigger a full load so that
-  // when the user clicks one, handleClick below can resolve the
-  // moduleIndex + lessonIndex synchronously.
-  const { ensureAllLoaded, courses = [] } = useCourseContent();
-  const sourceCourses = courses.length > 0 ? courses : COURSES;
-  useEffect(() => {
-    if (isOpen) ensureAllLoaded();
-  }, [isOpen, ensureAllLoaded]);
   if (!isOpen) return null;
 
   const handleClick = (bookmark) => {
-    const target = findBookmarkTarget(bookmark, sourceCourses);
+    const target = findBookmarkTarget(bookmark, COURSE_CATALOG);
     if (!target) return;
     onNavigate(target.courseIndex, target.moduleIndex, target.lessonIndex);
     onClose();

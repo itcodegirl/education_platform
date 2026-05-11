@@ -8,7 +8,7 @@ describe('getSyncStatusCopy', () => {
     expect(getSyncStatusCopy({ user: null })).toEqual({
       tone: 'local',
       label: 'Saved locally',
-      detail: 'This preview saves in this browser. Sign in to sync lessons, bookmarks, notes, and account progress; rewards remain motivational until backend sync is verified.',
+      detail: 'This browser keeps your lesson place. Sign in to sync lessons, bookmarks, and notes across devices.',
     });
   });
 
@@ -16,7 +16,7 @@ describe('getSyncStatusCopy', () => {
     expect(getSyncStatusCopy({ user, dataLoaded: true, pendingSyncWrites: 2 })).toEqual({
       tone: 'queued',
       label: 'Cloud sync queued',
-      detail: 'Saved locally. We will retry 2 updates when you are back online.',
+      detail: 'Saved in this browser. We will retry 2 updates when you are back online.',
       actionLabel: 'Retry now',
       actionAriaLabel: 'Retry queued progress updates now',
     });
@@ -26,7 +26,7 @@ describe('getSyncStatusCopy', () => {
     expect(getSyncStatusCopy({ user, dataLoaded: true, pendingSyncWrites: 1, syncRetryInFlight: true })).toEqual({
       tone: 'saving',
       label: 'Retrying cloud sync',
-      detail: '1 update retrying now. Your current session stays visible while cloud sync catches up.',
+      detail: '1 update retrying now. Keep this tab open while cloud sync catches up.',
       actionLabel: '',
       actionAriaLabel: '',
     });
@@ -34,7 +34,7 @@ describe('getSyncStatusCopy', () => {
     expect(getSyncStatusCopy({ user, dataLoaded: true, syncFailed: 1 })).toEqual({
       tone: 'warning',
       label: 'Sync needs retry',
-      detail: 'Your current session is safe, but cloud sync needs another try when the connection is stable.',
+      detail: 'Your current session is safe in this browser. Cloud sync needs another try when the connection is stable.',
     });
 
     expect(getSyncStatusCopy({ user, dataLoaded: true, loadError: new Error('offline') })).toEqual({
@@ -48,7 +48,7 @@ describe('getSyncStatusCopy', () => {
     expect(getSyncStatusCopy({ user, dataLoaded: true, syncFailed: 2 })).toEqual({
       tone: 'warning',
       label: 'Sync needs retry',
-      detail: 'Your current session is safe, but cloud sync needs another try when the connection is stable.',
+      detail: 'Your current session is safe in this browser. Cloud sync needs another try when the connection is stable.',
     });
   });
 
@@ -64,7 +64,7 @@ describe('getSyncStatusCopy', () => {
     expect(getSyncStatusCopy({ user, dataLoaded: true })).toEqual({
       tone: 'synced',
       label: 'Saved to account',
-      detail: 'Lessons, bookmarks, notes, and account progress are ready to sync when the cloud is reachable. Rewards remain motivational until backend sync is verified.',
+      detail: 'Account progress is current. New lesson activity will sync when the cloud is reachable.',
     });
   });
 });

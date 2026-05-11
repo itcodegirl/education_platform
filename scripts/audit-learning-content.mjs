@@ -1,10 +1,11 @@
 /* global console */
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
-import { createServer } from 'vite';
+import { withViteAuditRuntime } from './vite-audit-runtime.mjs';
 
 const EXPECTED_COURSE_IDS = Object.freeze(['html', 'css', 'js', 'react']);
 const KNOWN_DIFFICULTIES = new Set(['beginner', 'intermediate', 'advanced']);
+const RESERVED_LESSON_ROUTE_SEGMENTS = new Set(['quiz']);
 
 function isNonEmptyString(value) {
   return typeof value === 'string' && value.trim().length > 0;
@@ -22,16 +23,29 @@ function addWarning(warnings, path, message) {
   warnings.push({ path, message });
 }
 
-async function loadAllCourseData() {
-  const viteServer = await createServer({
-    logLevel: 'silent',
-    server: { middlewareMode: true },
-    appType: 'custom',
-  });
+function getRouteIdIssue(entityName, value, { reservedSegments = new Set() } = {}) {
+  if (value === undefined || value === null || value === '') return null;
 
-  try {
-    const { COURSE_METADATA } = await viteServer.ssrLoadModule('/src/data/metadata.js');
-    const { loadCourse } = await viteServer.ssrLoadModule('/src/data/loaders.js');
+  const id = String(value);
+  if (id.trim() !== id) {
+    return `${entityName} id must not include leading or trailing whitespace.`;
+  }
+
+  if (/[/?#]/.test(id)) {
+    return `${entityName} id "${id}" contains URL separator characters.`;
+  }
+
+  if (reservedSegments.has(id)) {
+    return `${entityName} id "${id}" is reserved for lesson routing.`;
+  }
+
+  return null;
+}
+
+async function loadAllCourseData() {
+  return withViteAuditRuntime(async ({ importModule }) => {
+    const { COURSE_METADATA } = await importModule('/src/data/metadata.js');
+    const { loadCourse } = await importModule('/src/data/loaders.js');
 
     const loaded = [];
     for (const courseMeta of COURSE_METADATA) {
@@ -39,9 +53,7 @@ async function loadAllCourseData() {
       loaded.push({ courseMeta, data });
     }
     return { courseMetadata: COURSE_METADATA, loaded };
-  } finally {
-    await viteServer.close();
-  }
+  });
 }
 
 function hasLearnerContent(lesson) {
@@ -148,6 +160,10 @@ function analyzeMetadata(courseMetadata, issues, warnings) {
       addIssue(issues, 'metadata', 'Course metadata entry is missing an id.');
       continue;
     }
+    const routeIdIssue = getRouteIdIssue('Course', course.id);
+    if (routeIdIssue) {
+      addIssue(issues, `metadata.${course.id}`, routeIdIssue);
+    }
     if (ids.has(course.id)) {
       addIssue(issues, `metadata.${course.id}`, 'Course id is duplicated.');
     }
@@ -185,6 +201,10 @@ function analyzeLessons(courseId, modules, lessonIndexes, issues, warnings) {
       addIssue(issues, modulePath, 'Module is missing an id.');
     } else {
       const moduleKey = String(moduleData.id);
+      const routeIdIssue = getRouteIdIssue('Module', moduleData.id);
+      if (routeIdIssue) {
+        addIssue(issues, modulePath, routeIdIssue);
+      }
       if (moduleIds.has(moduleKey)) {
         addIssue(issues, `${courseId}.${moduleKey}`, 'Module id is duplicated within this course.');
       }
@@ -211,6 +231,12 @@ function analyzeLessons(courseId, modules, lessonIndexes, issues, warnings) {
         addIssue(issues, lessonPath, 'Lesson is missing an id.');
       } else {
         const lessonKey = String(lesson.id);
+        const routeIdIssue = getRouteIdIssue('Lesson', lesson.id, {
+          reservedSegments: RESERVED_LESSON_ROUTE_SEGMENTS,
+        });
+        if (routeIdIssue) {
+          addIssue(issues, lessonPath, routeIdIssue);
+        }
         if (lessonIds.has(lessonKey)) {
           addIssue(issues, `${courseId}.${lessonKey}`, 'Lesson id is duplicated within this course.');
         }

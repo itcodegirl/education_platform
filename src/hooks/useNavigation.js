@@ -428,9 +428,9 @@ export function useNavigation() {
     else if (modIdx > 0) go(modIdx - 1, modules[modIdx - 1].lessons.length - 1);
   }, [courseIdx, modIdx, lesIdx, showModQuiz, modules, go, selectLessonPosition]);
 
-  const goToSearch = useCallback((ci, mi, li) => {
-    selectLessonPosition(ci, mi, li, false);
-  }, [selectLessonPosition]);
+  const goToSearch = useCallback((ci, mi, li) =>
+    goToCourseModule(ci, mi, li),
+  [goToCourseModule]);
 
   const goToModQuiz = useCallback((mi) => {
     const moduleData = modules[mi];
