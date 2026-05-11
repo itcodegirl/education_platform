@@ -79,6 +79,42 @@ describe('SearchPanel', () => {
     });
   });
 
+  it('retries full course hydration after a failed request', async () => {
+    const ensureAllLoaded = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('network'))
+      .mockResolvedValueOnce(undefined);
+
+    mockUseCourseContent.mockReturnValue({
+      ensureAllLoaded,
+      loadedCourseIds: ['html'],
+      allCoursesLoaded: false,
+    });
+
+    render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(mockLoadSearchIndex).toHaveBeenCalledTimes(1);
+    });
+
+    const input = screen.getByRole('searchbox', { name: /Search lessons/i });
+    fireEvent.change(input, {
+      target: { value: 'fl' },
+    });
+
+    await waitFor(() => {
+      expect(ensureAllLoaded).toHaveBeenCalledTimes(1);
+    });
+
+    fireEvent.change(input, {
+      target: { value: 'flex' },
+    });
+
+    await waitFor(() => {
+      expect(ensureAllLoaded).toHaveBeenCalledTimes(2);
+    });
+  });
+
   it('shows starter guidance before the query reaches two characters', () => {
     mockGetCachedSearchIndex.mockReturnValue(sampleIndex);
 

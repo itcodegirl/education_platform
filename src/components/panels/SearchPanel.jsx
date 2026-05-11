@@ -53,7 +53,9 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
     }
 
     hasRequestedFullIndexRef.current = true;
-    void ensureAllLoaded();
+    void Promise.resolve(ensureAllLoaded()).catch(() => {
+      hasRequestedFullIndexRef.current = false;
+    });
   }, [allCoursesLoaded, ensureAllLoaded, isOpen, normalizedQuery]);
 
   useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
