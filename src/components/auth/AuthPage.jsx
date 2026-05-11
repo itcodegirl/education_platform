@@ -17,6 +17,7 @@ export function AuthPage({ onPreview }) {
     signInWithGithub,
     signInWithGoogle,
     forgotPassword,
+    authBackendReady = true,
   } = useAuth();
   const [mode, setMode] = useState('signup'); // 'login' | 'signup'
   const [email, setEmail] = useState('');
@@ -71,6 +72,11 @@ export function AuthPage({ onPreview }) {
     setError('');
     setInfo('');
 
+    if (!authBackendReady) {
+      setInfo('Account features are unavailable in this build. You can still preview the first lesson.');
+      return;
+    }
+
     const normalizedEmail = email.trim();
     const normalizedDisplayName = displayName.trim();
 
@@ -118,6 +124,12 @@ export function AuthPage({ onPreview }) {
   };
 
   const handleForgotPassword = async () => {
+    if (!authBackendReady) {
+      setInfo('Password reset is unavailable until account services are configured.');
+      setError('');
+      return;
+    }
+
     const normalizedEmail = email.trim();
     if (!normalizedEmail) {
       setError('Enter your email first, then select Forgot password.');
@@ -153,6 +165,12 @@ export function AuthPage({ onPreview }) {
   const handleSocialSignIn = async (providerName, signInWithProvider) => {
     setError('');
     setInfo('');
+
+    if (!authBackendReady) {
+      setInfo(`${providerName} sign-in is unavailable until account services are configured.`);
+      return;
+    }
+
     setSocialLoading(providerName);
 
     try {
@@ -183,6 +201,7 @@ export function AuthPage({ onPreview }) {
     ? 'Display name is required.'
     : '';
   const isAuthBusy = loading || sendingReset || Boolean(socialLoading);
+  const isAuthDisabled = isAuthBusy || !authBackendReady;
 
   if (confirmSent) {
     return (
@@ -248,6 +267,11 @@ export function AuthPage({ onPreview }) {
               ? 'Create your account to unlock every course and start learning in one session.'
               : 'Already using CodeHerWay? Sign in to resume where you left off, or reset your password if needed.'}
           </p>
+          {!authBackendReady && (
+            <div className="auth-error ui-status ui-status-info" role="status" aria-live="polite">
+              Account features are not configured in this build. Preview the first lesson while setup is completed.
+            </div>
+          )}
 
           <form
             id="auth-form-panel"
@@ -271,7 +295,7 @@ export function AuthPage({ onPreview }) {
                   onBlur={() => setTouched((prev) => ({ ...prev, displayName: true }))}
                   required
                   maxLength={DISPLAY_NAME_MAX_LENGTH}
-                  disabled={isAuthBusy}
+                  disabled={isAuthDisabled}
                   aria-describedby="auth-display-name-help"
                   aria-invalid={Boolean(displayNameInlineError)}
                 />
@@ -298,7 +322,7 @@ export function AuthPage({ onPreview }) {
                 onChange={(e) => setEmail(e.target.value)}
                 onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
                 required
-                disabled={isAuthBusy}
+                disabled={isAuthDisabled}
                 aria-describedby="auth-email-help"
                 aria-invalid={Boolean(emailInlineError)}
               />
@@ -324,7 +348,7 @@ export function AuthPage({ onPreview }) {
                 onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
                 required
                 minLength={PASSWORD_MIN_LENGTH}
-                disabled={isAuthBusy}
+                disabled={isAuthDisabled}
                 aria-describedby="auth-password-help"
                 aria-invalid={Boolean(passwordInlineError)}
               />
@@ -344,7 +368,7 @@ export function AuthPage({ onPreview }) {
                     type="button"
                     className="auth-reset-link"
                     onClick={handleForgotPassword}
-                    disabled={isAuthBusy}
+                    disabled={isAuthDisabled}
                   >
                     {sendingReset ? 'Sending reset link...' : 'Forgot password?'}
                   </button>
@@ -379,7 +403,7 @@ export function AuthPage({ onPreview }) {
             <button
               className="auth-submit ui-btn ui-btn-primary"
               type="submit"
-              disabled={isAuthBusy}
+              disabled={isAuthDisabled}
               aria-busy={loading}
               aria-describedby={
                 [error ? 'auth-form-error' : null, info ? 'auth-form-info' : null]
@@ -406,7 +430,7 @@ export function AuthPage({ onPreview }) {
             signInWithGithub={signInWithGithub}
             signInWithGoogle={signInWithGoogle}
             socialLoading={socialLoading}
-            disabled={isAuthBusy}
+            disabled={isAuthDisabled}
           />
 
           {onPreview && (

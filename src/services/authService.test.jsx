@@ -7,6 +7,7 @@ vi.mock('../lib/supabaseClient', () => ({
       onAuthStateChange: vi.fn(),
     },
   },
+  supabaseConfigStatus: { configured: true },
 }));
 
 import { supabase } from '../lib/supabaseClient';

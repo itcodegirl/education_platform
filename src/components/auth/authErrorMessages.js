@@ -18,5 +18,8 @@ export function getFriendlyAuthError(message, fallback) {
   if (normalized.includes('network') || normalized.includes('failed to fetch')) {
     return 'Connection failed. Check your internet and try again.';
   }
+  if (normalized.includes('supabase is not configured') || normalized.includes('missing supabase')) {
+    return 'Account features are unavailable in this build. You can still preview the first lesson.';
+  }
   return message || fallback;
 }

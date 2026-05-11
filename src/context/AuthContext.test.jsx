@@ -23,6 +23,7 @@ vi.mock('../services/authService', () => ({
   signInWithGoogle: vi.fn(),
   requestPasswordReset: vi.fn(),
   signOut: mockSignOut,
+  isAuthBackendConfigured: () => true,
 }));
 
 import { AuthProvider, useAuth } from './AuthContext';

@@ -8,12 +8,14 @@ const {
   signInWithGithubMock,
   signInWithGoogleMock,
   forgotPasswordMock,
+  authBackendReadyMock,
 } = vi.hoisted(() => ({
   signInMock: vi.fn(),
   signUpMock: vi.fn(),
   signInWithGithubMock: vi.fn(),
   signInWithGoogleMock: vi.fn(),
   forgotPasswordMock: vi.fn(),
+  authBackendReadyMock: { value: true },
 }));
 
 vi.mock('../../providers', () => ({
@@ -27,6 +29,7 @@ vi.mock('../../providers', () => ({
     signInWithGithub: signInWithGithubMock,
     signInWithGoogle: signInWithGoogleMock,
     forgotPassword: forgotPasswordMock,
+    authBackendReady: authBackendReadyMock.value,
   }),
 }));
 
@@ -50,6 +53,7 @@ describe('AuthPage', () => {
     signInWithGithubMock.mockReset();
     signInWithGoogleMock.mockReset();
     forgotPasswordMock.mockReset();
+    authBackendReadyMock.value = true;
 
     signInMock.mockResolvedValue({ error: null });
     signUpMock.mockResolvedValue({ error: null });
@@ -120,6 +124,25 @@ describe('AuthPage', () => {
     expect(
       screen.getByText(/Unable to continue with GitHub right now/i),
     ).toBeInTheDocument();
+  });
+
+  it('keeps preview available and disables auth controls when the backend is not configured', () => {
+    const onPreview = vi.fn();
+    authBackendReadyMock.value = false;
+
+    render(<AuthPage onPreview={onPreview} />);
+
+    expect(
+      screen.getByText(/Account features are not configured in this build/i),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/email/i)).toBeDisabled();
+    expect(screen.getByLabelText(/password/i)).toBeDisabled();
+    expect(screen.getByRole('button', { name: /^create free account$/i })).toBeDisabled();
+
+    const previewButton = screen.getByRole('button', { name: /preview a lesson before signing in/i });
+    expect(previewButton).toBeEnabled();
+    fireEvent.click(previewButton);
+    expect(onPreview).toHaveBeenCalledTimes(1);
   });
 });
 

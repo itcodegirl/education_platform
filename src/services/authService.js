@@ -3,7 +3,11 @@
 // Context calls these; this file owns the DB logic.
 // ═══════════════════════════════════════════════
 
-import { supabase } from '../lib/supabaseClient';
+import { supabase, supabaseConfigStatus } from '../lib/supabaseClient';
+
+export function isAuthBackendConfigured() {
+  return supabaseConfigStatus.configured;
+}
 
 export async function getInitialSession() {
   const { data: { session }, error } = await supabase.auth.getSession();
