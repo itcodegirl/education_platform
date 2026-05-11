@@ -7,6 +7,12 @@ export function getDailyLearningLoopSteps({
   const reviewCount = Math.max(0, Number.isFinite(Number(dueReviewCount)) ? Number(dueReviewCount) : 0);
   const quizReady = masteryStatus?.isReady === true;
   const needsQuizReview = masteryStatus?.tone === 'review' || masteryStatus?.tone === 'attention';
+  const currentStepKey = getCurrentStepKey({
+    isLessonDone,
+    hasLessonQuiz,
+    quizReady,
+    reviewCount,
+  });
 
   return [
     {
@@ -47,5 +53,20 @@ export function getDailyLearningLoopSteps({
       detail: 'Use one small challenge to prove the skill in code.',
       tone: 'neutral',
     },
-  ];
+  ].map((step) => ({
+    ...step,
+    isCurrent: step.key === currentStepKey,
+  }));
+}
+
+function getCurrentStepKey({
+  isLessonDone,
+  hasLessonQuiz,
+  quizReady,
+  reviewCount,
+}) {
+  if (!isLessonDone) return 'lesson';
+  if (hasLessonQuiz && !quizReady) return 'quiz';
+  if (reviewCount > 0) return 'review';
+  return 'apply';
 }

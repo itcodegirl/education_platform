@@ -138,6 +138,9 @@ describe('appRouter ProtectedRoute', () => {
     renderProtectedRoute();
 
     expect(screen.getByText(/could not verify your account/i)).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveAccessibleDescription(/lessons are safe/i);
+    expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /log out/i })).toBeInTheDocument();
     expect(screen.queryByText('private-content')).not.toBeInTheDocument();
   });
 
@@ -153,6 +156,11 @@ describe('appRouter ProtectedRoute', () => {
     renderProtectedRoute();
 
     expect(screen.getByText(/account disabled/i)).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveAccessibleDescription(/contact support/i);
+    expect(screen.getByRole('link', { name: /contact support/i })).toHaveAttribute(
+      'href',
+      'mailto:hello@codeherway.com',
+    );
     expect(screen.getByRole('button', { name: /log out/i })).toBeInTheDocument();
     expect(screen.queryByText('private-content')).not.toBeInTheDocument();
   });

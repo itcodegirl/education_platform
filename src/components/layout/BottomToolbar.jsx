@@ -28,6 +28,20 @@ export const BottomToolbar = memo(function BottomToolbar({
     if (restoreFocus) triggerRef.current?.focus();
   }, []);
 
+  const getMenuItems = useCallback(() => {
+    if (!menuRef.current) return [];
+    return Array.from(
+      menuRef.current.querySelectorAll('[role="menuitem"], [role="menuitemcheckbox"]'),
+    );
+  }, []);
+
+  const focusMenuItem = useCallback((index) => {
+    const items = getMenuItems();
+    if (items.length === 0) return;
+    const nextIndex = (index + items.length) % items.length;
+    items[nextIndex]?.focus();
+  }, [getMenuItems]);
+
   const primaryTools = useMemo(
     () => [
       {
@@ -128,6 +142,11 @@ export const BottomToolbar = memo(function BottomToolbar({
   }, [isMenuOpen, closeMenu]);
 
   useEffect(() => {
+    if (!isMenuOpen) return;
+    focusMenuItem(0);
+  }, [focusMenuItem, isMenuOpen]);
+
+  useEffect(() => {
     setIsMenuOpen(false);
   }, [activePanel]);
 
@@ -135,6 +154,48 @@ export const BottomToolbar = memo(function BottomToolbar({
     closeMenu(true);
     action();
   };
+
+  const handleMenuBlur = useCallback((event) => {
+    if (!menuRef.current?.contains(event.relatedTarget)) {
+      closeMenu(false);
+    }
+  }, [closeMenu]);
+
+  const handleMenuKeyDown = useCallback((event) => {
+    const items = getMenuItems();
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeMenu(true);
+      return;
+    }
+
+    if (items.length === 0) return;
+
+    const currentIndex = items.indexOf(document.activeElement);
+    const moveFocus = (nextIndex) => {
+      event.preventDefault();
+      focusMenuItem(nextIndex);
+    };
+
+    switch (event.key) {
+      case "ArrowDown":
+      case "ArrowRight":
+        moveFocus(currentIndex + 1);
+        break;
+      case "ArrowUp":
+      case "ArrowLeft":
+        moveFocus(currentIndex <= 0 ? items.length - 1 : currentIndex - 1);
+        break;
+      case "Home":
+        moveFocus(0);
+        break;
+      case "End":
+        moveFocus(items.length - 1);
+        break;
+      default:
+        break;
+    }
+  }, [closeMenu, focusMenuItem, getMenuItems]);
 
   return (
     <div
@@ -158,13 +219,14 @@ export const BottomToolbar = memo(function BottomToolbar({
         </button>
       ))}
 
-      <div className="tool-menu-wrap" ref={menuRef}>
+      <div className="tool-menu-wrap" ref={menuRef} onBlur={handleMenuBlur}>
         <button
           ref={triggerRef}
           type="button"
           className={`tool-btn ${isMenuOpen || isSecondaryPanelActive ? "active" : ""}`}
           title="Learning tools"
           aria-label={isMenuOpen ? "Close learning tools" : "Open learning tools"}
+          aria-controls="learning-tools-menu"
           aria-expanded={isMenuOpen}
           aria-haspopup="menu"
           onClick={() => setIsMenuOpen((open) => !open)}
@@ -174,7 +236,13 @@ export const BottomToolbar = memo(function BottomToolbar({
         </button>
 
         {isMenuOpen && (
-          <div className="tool-menu" role="menu" aria-label="Learning tools">
+          <div
+            id="learning-tools-menu"
+            className="tool-menu"
+            role="menu"
+            aria-label="Learning tools"
+            onKeyDown={handleMenuKeyDown}
+          >
             {visibleSecondaryTools.map((tool) => {
               const isPanelTool = tool.key !== "print";
               const isActive = activePanel === tool.key;

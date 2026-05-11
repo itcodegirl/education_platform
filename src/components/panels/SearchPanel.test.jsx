@@ -1,8 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { SearchPanel } from './SearchPanel';
-
-const mockUseCourseContent = vi.fn();
 
 const { mockLoadSearchIndex, mockGetCachedSearchIndex } = vi.hoisted(() => ({
   mockLoadSearchIndex: vi.fn(),
@@ -16,10 +14,6 @@ vi.mock('../../data/reference/search-index', () => ({
 
 vi.mock('../../hooks/useFocusTrap', () => ({
   useFocusTrap: () => {},
-}));
-
-vi.mock('../../providers/CourseContentProvider', () => ({
-  useCourseContent: () => mockUseCourseContent(),
 }));
 
 describe('SearchPanel', () => {
@@ -37,14 +31,8 @@ describe('SearchPanel', () => {
   ];
 
   beforeEach(() => {
-    vi.clearAllMocks();
     mockGetCachedSearchIndex.mockReturnValue([]);
     mockLoadSearchIndex.mockResolvedValue(sampleIndex);
-    mockUseCourseContent.mockReturnValue({
-      ensureAllLoaded: vi.fn(),
-      loadedCourseIds: ['html'],
-      allCoursesLoaded: true,
-    });
   });
 
   it('loads the lightweight search manifest when the panel opens', async () => {
@@ -52,66 +40,6 @@ describe('SearchPanel', () => {
 
     await waitFor(() => {
       expect(mockLoadSearchIndex).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it('waits to hydrate the full search index until the learner starts a real search', async () => {
-    const ensureAllLoaded = vi.fn();
-    mockUseCourseContent.mockReturnValue({
-      ensureAllLoaded,
-      loadedCourseIds: ['html'],
-      allCoursesLoaded: false,
-    });
-
-    render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
-
-    await waitFor(() => {
-      expect(mockLoadSearchIndex).toHaveBeenCalledTimes(1);
-    });
-    expect(ensureAllLoaded).not.toHaveBeenCalled();
-
-    fireEvent.change(screen.getByRole('searchbox', { name: /Search lessons/i }), {
-      target: { value: 'fl' },
-    });
-
-    await waitFor(() => {
-      expect(ensureAllLoaded).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it('retries full course hydration after a failed request', async () => {
-    const ensureAllLoaded = vi
-      .fn()
-      .mockRejectedValueOnce(new Error('network'))
-      .mockResolvedValueOnce(undefined);
-
-    mockUseCourseContent.mockReturnValue({
-      ensureAllLoaded,
-      loadedCourseIds: ['html'],
-      allCoursesLoaded: false,
-    });
-
-    render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
-
-    await waitFor(() => {
-      expect(mockLoadSearchIndex).toHaveBeenCalledTimes(1);
-    });
-
-    const input = screen.getByRole('searchbox', { name: /Search lessons/i });
-    fireEvent.change(input, {
-      target: { value: 'fl' },
-    });
-
-    await waitFor(() => {
-      expect(ensureAllLoaded).toHaveBeenCalledTimes(1);
-    });
-
-    fireEvent.change(input, {
-      target: { value: 'flex' },
-    });
-
-    await waitFor(() => {
-      expect(ensureAllLoaded).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -162,6 +90,7 @@ describe('SearchPanel', () => {
     expect(onNavigate).toHaveBeenCalledWith(1, 0, 2);
     expect(onClose).toHaveBeenCalled();
   });
+
 
   it('uses mobile-friendly search input controls', async () => {
     render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);

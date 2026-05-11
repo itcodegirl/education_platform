@@ -1,4 +1,4 @@
-﻿import { useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../providers/AuthProvider';
 import { ThemeToggle } from '../layout/ThemeToggle';
 import { LandingHeroIntro, LandingHeroStory } from './LandingHero';
@@ -41,6 +41,15 @@ export function AuthPage({ onPreview }) {
   const authCardRef = useRef(null);
   const emailRef = useRef(null);
   const displayNameRef = useRef(null);
+  const passwordRef = useRef(null);
+  const formStatusRef = useRef(null);
+  const shouldFocusFormErrorRef = useRef(false);
+
+  useEffect(() => {
+    if (!error || !shouldFocusFormErrorRef.current) return;
+    shouldFocusFormErrorRef.current = false;
+    formStatusRef.current?.focus();
+  }, [error]);
 
   const focusPrimaryAuthField = (nextMode) => {
     const fieldRef = nextMode === 'signup' ? displayNameRef : emailRef;
@@ -77,6 +86,11 @@ export function AuthPage({ onPreview }) {
     });
   };
 
+  const showFormError = (message, { focusSummary = true } = {}) => {
+    shouldFocusFormErrorRef.current = focusSummary;
+    setError(message);
+  };
+
   const scrollToAuth = (nextMode) => {
     if (nextMode) {
       setModeAndClearError(nextMode);
@@ -102,7 +116,7 @@ export function AuthPage({ onPreview }) {
     setInfo('');
 
     if (!authBackendReady) {
-      setError('Accounts are not connected in this environment. You can still preview the first lesson.');
+      showFormError('Accounts are not connected in this environment. You can still preview the first lesson.');
       return;
     }
 
@@ -119,6 +133,7 @@ export function AuthPage({ onPreview }) {
     if (password.length < PASSWORD_MIN_LENGTH) {
       setTouched((prev) => ({ ...prev, password: true }));
       setError(`Password must be at least ${PASSWORD_MIN_LENGTH} characters.`);
+      passwordRef.current?.focus();
       return;
     }
 
@@ -135,18 +150,18 @@ export function AuthPage({ onPreview }) {
       if (mode === 'signup') {
         const { error: err } = await signUp(normalizedEmail, password, normalizedDisplayName);
         if (err) {
-          setError(getFriendlyAuthError(err.message, 'Unable to create your account right now.'));
+          showFormError(getFriendlyAuthError(err.message, 'Unable to create your account right now.'));
         } else {
           setConfirmSent(true);
         }
       } else {
         const { error: err } = await signIn(normalizedEmail, password);
         if (err) {
-          setError(getFriendlyAuthError(err.message, 'Unable to sign in right now.'));
+          showFormError(getFriendlyAuthError(err.message, 'Unable to sign in right now.'));
         }
       }
     } catch {
-      setError('Connection failed. Check your internet and try again.');
+      showFormError('Connection failed. Check your internet and try again.');
     } finally {
       setLoading(false);
     }
@@ -154,13 +169,14 @@ export function AuthPage({ onPreview }) {
 
   const handleForgotPassword = async () => {
     if (!authBackendReady) {
-      setError('Password reset is unavailable because accounts are not connected in this environment.');
+      showFormError('Password reset is unavailable because accounts are not connected in this environment.');
       setInfo('');
       return;
     }
 
     const normalizedEmail = email.trim();
     if (!normalizedEmail) {
+      setTouched((prev) => ({ ...prev, email: true }));
       setError('Enter your email first, then select Forgot password.');
       setInfo('');
       emailRef.current?.focus();
@@ -180,12 +196,12 @@ export function AuthPage({ onPreview }) {
     try {
       const { error: err } = await forgotPassword(normalizedEmail);
       if (err) {
-        setError(getFriendlyAuthError(err.message, 'Unable to send a reset link right now.'));
+        showFormError(getFriendlyAuthError(err.message, 'Unable to send a reset link right now.'));
       } else {
         setInfo(`Password reset link sent to ${normalizedEmail}. Check your inbox and spam folder. The link expires for security.`);
       }
     } catch {
-      setError('Unable to send a reset link right now.');
+      showFormError('Unable to send a reset link right now.');
     } finally {
       setSendingReset(false);
     }
@@ -196,7 +212,7 @@ export function AuthPage({ onPreview }) {
     setInfo('');
 
     if (!authBackendReady) {
-      setError(`Unable to continue with ${providerName} because accounts are not connected in this environment.`);
+      showFormError(`Unable to continue with ${providerName} because accounts are not connected in this environment.`);
       return;
     }
 
@@ -205,7 +221,7 @@ export function AuthPage({ onPreview }) {
     try {
       const { error: err } = await signInWithProvider();
       if (err) {
-        setError(getFriendlyAuthError(
+        showFormError(getFriendlyAuthError(
           err.message,
           `Unable to continue with ${providerName} right now. Try email sign-in or try again in a moment.`
         ));
@@ -213,19 +229,23 @@ export function AuthPage({ onPreview }) {
         setInfo(`Opening ${providerName} sign-in...`);
       }
     } catch {
-      setError(`Unable to continue with ${providerName} right now. Try email sign-in or try again in a moment.`);
+      showFormError(`Unable to continue with ${providerName} right now. Try email sign-in or try again in a moment.`);
     } finally {
       setSocialLoading('');
     }
   };
 
-  const emailInlineError = (touched.email || email.trim().length >= 3) && email.trim() && !EMAIL_PATTERN.test(email.trim())
-    ? 'Enter a valid email format (example: you@example.com).'
-    : '';
+  const emailInlineError = touched.email && !email.trim()
+    ? 'Email is required.'
+    : (touched.email || email.trim().length >= 3) && email.trim() && !EMAIL_PATTERN.test(email.trim())
+      ? 'Enter a valid email format (example: you@example.com).'
+      : '';
   const remainingPasswordChars = Math.max(PASSWORD_MIN_LENGTH - password.length, 0);
-  const passwordInlineError = password.length > 0 && password.length < PASSWORD_MIN_LENGTH
-    ? `${password.length}/${PASSWORD_MIN_LENGTH} characters. Add ${remainingPasswordChars} more to continue.`
-    : '';
+  const passwordInlineError = touched.password && !password
+    ? 'Password is required.'
+    : password.length > 0 && password.length < PASSWORD_MIN_LENGTH
+      ? `${password.length}/${PASSWORD_MIN_LENGTH} characters. Add ${remainingPasswordChars} more to continue.`
+      : '';
   const displayNameInlineError = mode === 'signup' && touched.displayName && !displayName.trim()
     ? 'Display name is required.'
     : '';
@@ -322,7 +342,35 @@ export function AuthPage({ onPreview }) {
               className="auth-form"
               onSubmit={handleSubmit}
               noValidate
+              aria-describedby={
+                [error ? 'auth-form-error' : null, info ? 'auth-form-info' : null]
+                  .filter(Boolean)
+                  .join(' ') || undefined
+              }
             >
+              {error && (
+                <div
+                  id="auth-form-error"
+                  ref={formStatusRef}
+                  className="auth-error ui-status ui-status-error"
+                  role="alert"
+                  aria-live="assertive"
+                  tabIndex={-1}
+                >
+                  <strong>There is a problem with this form.</strong>
+                  <span>{error}</span>
+                </div>
+              )}
+              {info && (
+                <div
+                  id="auth-form-info"
+                  className="auth-success ui-status ui-status-success"
+                  role="status"
+                  aria-live="polite"
+                >
+                  {info}
+                </div>
+              )}
               {mode === 'signup' && (
               <div className="auth-field">
                 <label htmlFor="auth-display-name">Display Name</label>
@@ -387,6 +435,7 @@ export function AuthPage({ onPreview }) {
                 placeholder="********"
                 autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                 value={password}
+                ref={passwordRef}
                 onChange={(e) => setPassword(e.target.value)}
                 onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
                 required
@@ -420,27 +469,6 @@ export function AuthPage({ onPreview }) {
                   Use your account email above. We&apos;ll send a secure reset link.
                 </p>
               </>
-            )}
-
-            {error && (
-              <div
-                id="auth-form-error"
-                className="auth-error ui-status ui-status-error"
-                role="alert"
-                aria-live="assertive"
-              >
-                {error}
-              </div>
-            )}
-            {info && (
-              <div
-                id="auth-form-info"
-                className="auth-success ui-status ui-status-success"
-                role="status"
-                aria-live="polite"
-              >
-                {info}
-              </div>
             )}
 
             <button

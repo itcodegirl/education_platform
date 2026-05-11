@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getCachedSearchIndex, loadSearchIndex } from '../../data/reference/search-index';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
-import { useCourseContent } from '../../providers/CourseContentProvider';
 
 export function SearchPanel({ isOpen, onClose, onNavigate }) {
   const [query, setQuery] = useState('');
@@ -12,8 +11,6 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
   const [loadAttempt, setLoadAttempt] = useState(0);
   const inputRef = useRef(null);
   const modalRef = useRef(null);
-  const hasRequestedFullIndexRef = useRef(false);
-  const { ensureAllLoaded, allCoursesLoaded } = useCourseContent();
   const normalizedQuery = query.toLowerCase();
 
   useEffect(() => {
@@ -46,17 +43,6 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
       cancelled = true;
     };
   }, [isOpen, loadAttempt, searchIndex.length]);
-
-  useEffect(() => {
-    if (!isOpen || normalizedQuery.length < 2 || allCoursesLoaded || hasRequestedFullIndexRef.current) {
-      return;
-    }
-
-    hasRequestedFullIndexRef.current = true;
-    void Promise.resolve(ensureAllLoaded()).catch(() => {
-      hasRequestedFullIndexRef.current = false;
-    });
-  }, [allCoursesLoaded, ensureAllLoaded, isOpen, normalizedQuery]);
 
   useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
 
@@ -143,11 +129,11 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
       ? 'Preparing the lesson search index.'
       : indexLoadError
         ? indexLoadError
-        : results.length === 0
-          ? `No results for ${query}.`
-          : activeIndex >= 0
-            ? `${results[activeIndex].title} selected. Press Enter to open.`
-            : `${results.length} result${results.length === 1 ? '' : 's'}${allCoursesLoaded ? '' : '. Additional courses are still loading.'}`;
+    : results.length === 0
+      ? `No results for ${query}.`
+      : activeIndex >= 0
+        ? `${results[activeIndex].title} selected. Press Enter to open.`
+        : `${results.length} result${results.length === 1 ? '' : 's'}`;
 
   return (
     <div

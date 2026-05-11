@@ -271,6 +271,11 @@
   font-size: 14px;
 }
 
+.route-loading-message {
+  margin-top: 16px;
+  opacity: 0.55;
+}
+
 @media (max-width: 600px) {
   .auth-card {
     border-radius: 18px;

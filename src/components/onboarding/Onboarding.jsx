@@ -28,13 +28,13 @@ const STEPS = [
   },
   {
     icon: '03',
-    eyebrow: 'First session',
-    title: 'Your first session has one path',
-    subtitle: 'Start with the lesson in front of you, then let the next step reveal itself.',
+    eyebrow: 'Momentum',
+    title: 'Let the next step stay obvious',
+    subtitle: 'After each save, follow the highlighted step instead of opening every tool.',
     points: [
-      'Read the goal.',
-      'Try the build.',
-      'Save reading progress with Complete lesson, then continue.',
+      'If a quick check appears, use it to confirm what stuck.',
+      'If review is due, clear the short queue before adding more.',
+      'If everything is clear, try one small challenge.',
     ],
   },
 ];
@@ -150,14 +150,14 @@ export function Onboarding({ isOpen, onClose, displayName }) {
           {current.subtitle}
         </p>
 
-        <div className="ob-points">
+        <ul className="ob-points" aria-label={`${current.title} guidance`}>
           {current.points.map((point) => (
-            <div key={point} className="ob-point">
-              <span className="ob-point-bullet">-</span>
+            <li key={point} className="ob-point">
+              <span className="ob-point-bullet" aria-hidden="true">-</span>
               <span>{point}</span>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
 
         <p id="onboarding-kicker" className="ob-kicker">
           {isLast

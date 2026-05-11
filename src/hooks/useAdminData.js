@@ -100,11 +100,11 @@ export function useAdminData(user) {
       try {
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('is_admin')
+          .select('is_admin, is_disabled')
           .eq('id', user.id)
           .maybeSingle();
         if (error) throw error;
-        if (!cancelled) setIsAdmin(!!profile?.is_admin);
+        if (!cancelled) setIsAdmin(Boolean(profile?.is_admin && !profile?.is_disabled));
       } catch {
         if (!cancelled) setIsAdmin(false);
       } finally {
