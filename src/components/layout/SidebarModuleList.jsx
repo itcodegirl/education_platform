@@ -67,7 +67,7 @@ export const SidebarModuleList = memo(function SidebarModuleList({
                   if (!isModUnlocked) return;
                   onToggleExpand(isExpanded ? -1 : mi);
                 }}
-                disabled={!isModUnlocked}
+                aria-disabled={!isModUnlocked}
                 title={!isModUnlocked ? 'Finish the previous module to unlock' : undefined}
                 aria-expanded={isExpanded}
                 aria-label={`${module.title} module${isModUnlocked ? `, ${modDone}/${module.lessons.length} lessons completed` : ', locked until the previous module is complete'}`}
