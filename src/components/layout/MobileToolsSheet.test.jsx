@@ -68,12 +68,13 @@ describe('MobileToolsSheet', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps the backdrop out of the tab order while preserving pointer close', () => {
+  it('keeps the backdrop out of the accessibility tree while preserving pointer close', () => {
     const { onClose } = renderSheet();
     const scrim = document.querySelector('.mobile-tools-scrim');
 
     expect(scrim).toHaveAttribute('aria-hidden', 'true');
-    expect(scrim).toHaveAttribute('tabindex', '-1');
+    expect(scrim).not.toHaveAttribute('role');
+    expect(scrim).not.toHaveAttribute('tabindex');
 
     fireEvent.click(scrim);
 

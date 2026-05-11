@@ -122,7 +122,7 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
           <div className="cc-pane-header">
             <span>✏️ Your Code</span>
             <button type="button" className="cc-reset-btn" onClick={reset}>
-              Retry Reset
+              Reset code
             </button>
           </div>
           {useLightEditor ? (

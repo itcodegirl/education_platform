@@ -50,12 +50,9 @@ export const MobileToolsSheet = memo(function MobileToolsSheet({
 
   return (
     <>
-      <button
-        type="button"
+      <div
         className="mobile-tools-scrim"
-        aria-label="Close learning tools"
         aria-hidden="true"
-        tabIndex={-1}
         onClick={onClose}
       />
       <section

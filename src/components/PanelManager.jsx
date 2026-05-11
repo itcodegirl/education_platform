@@ -87,7 +87,10 @@ function ActivePanelBoundary({ panelName, context }) {
   if (!renderPanel) return null;
 
   return (
-    <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>
+    <ErrorBoundary
+      resetKeys={[panelName]}
+      fallback={({ retry }) => <PanelError retry={retry} />}
+    >
       {renderPanel(context)}
     </ErrorBoundary>
   );
