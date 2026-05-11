@@ -225,6 +225,33 @@
   font-family: 'Inter', sans-serif;
 }
 
+.auth-preview-btn {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  min-height: 44px;
+  padding: 0 12px;
+  color: var(--text-dim);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.auth-preview-btn:hover {
+  color: var(--text);
+}
+
+.auth-preview-wrap {
+  margin-top: 10px;
+}
+
+.auth-preview-note {
+  margin: 8px 2px 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-muted);
+  text-align: center;
+}
+
 /* ─── 5. Loading Screen ───────────────────────── */
 .loading-screen {
   min-height: 100vh;
