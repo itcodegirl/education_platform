@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useProgressData, useXP, useSR, BADGE_DEFS, useCourseContent } from '../../providers';
 import { COURSES } from '../../data';
+import { getChallengesForCourse } from '../../data/challenges';
 import { getLevel, getXPInLevel, XP_PER_LEVEL } from '../../utils/helpers';
 import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
 import { findQuizEntityTitle, quizKeyBelongsToCourse } from '../../utils/quizCourseOwnership';
+import { summarizeMasteryEvidence } from '../../utils/masteryProgress';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 import { parseQuizScore } from '../../services/rewardPolicy';
@@ -20,7 +22,7 @@ function toQuizResult([key, scoreValue]) {
 }
 
 export function StudentStats({ isOpen, onClose }) {
-  const { completed, quizScores } = useProgressData();
+  const { completed, quizScores, challengeCompletions = [] } = useProgressData();
   const { xpTotal, streak, pausedStreak = null, dailyCount, earnedBadges } = useXP();
   const { srCards, bookmarks, notes } = useSR();
   const { ensureAllLoaded } = useCourseContent();
@@ -36,11 +38,22 @@ export function StudentStats({ isOpen, onClose }) {
     const xpPercent = Math.round((xpInLevel / XP_PER_LEVEL) * 100);
     const completedSet = new Set(completed);
     const quizEntries = Object.entries(quizScores || {});
+    const completedChallengeIds = new Set(challengeCompletions);
+    const allChallenges = COURSES.flatMap((course) =>
+      getChallengesForCourse(course.id).map((challenge) => ({
+        ...challenge,
+        courseId: course.id,
+      })),
+    );
 
     const courseStats = COURSES.map((course) => {
       const totalLessons = course.modules.reduce((sum, module) => sum + module.lessons.length, 0);
       const done = getCourseCompletedLessonCount(completedSet, course);
       const percent = totalLessons > 0 ? Math.round((done / totalLessons) * 100) : 0;
+      const courseChallenges = getChallengesForCourse(course.id);
+      const completedChallenges = courseChallenges.filter((challenge) =>
+        completedChallengeIds.has(challenge.id),
+      ).length;
 
       const quizResults = quizEntries
         .filter(([key]) => quizKeyBelongsToCourse(key, course))
@@ -61,10 +74,15 @@ export function StudentStats({ isOpen, onClose }) {
         percent,
         quizzesTaken: quizResults.length,
         averageQuizPercent,
+        challengeTotal: courseChallenges.length,
+        challengeDone: completedChallenges,
       };
     });
 
-    const allResults = quizEntries.map(toQuizResult).filter(Boolean);
+    const ownedQuizEntries = quizEntries.filter(([key]) =>
+      COURSES.some((course) => quizKeyBelongsToCourse(key, course)),
+    );
+    const allResults = ownedQuizEntries.map(toQuizResult).filter(Boolean);
 
     const overallQuizPercent = allResults.length > 0
       ? Math.round(allResults.reduce((sum, result) => sum + result.percent, 0) / allResults.length)
@@ -77,6 +95,13 @@ export function StudentStats({ isOpen, onClose }) {
     const totalLessons = courseStats.reduce((sum, course) => sum + course.totalLessons, 0);
     const totalDone = courseStats.reduce((sum, course) => sum + course.done, 0);
     const totalPercent = totalLessons > 0 ? Math.round((totalDone / totalLessons) * 100) : 0;
+    const masteryEvidence = summarizeMasteryEvidence({
+      quizResults: allResults,
+      completedLessonCount: totalDone,
+      challengeCompletions,
+      challenges: allChallenges,
+      srCards,
+    });
 
     return {
       level,
@@ -89,6 +114,7 @@ export function StudentStats({ isOpen, onClose }) {
       courseStats,
       overallQuizPercent,
       quizzesTaken: allResults.length,
+      masteryEvidence,
       strongest,
       weakest,
       streak,
@@ -101,7 +127,7 @@ export function StudentStats({ isOpen, onClose }) {
       bookmarkCount: bookmarks.length,
       noteCount: Object.keys(notes).length,
     };
-  }, [bookmarks, completed, earnedBadges, notes, quizScores, srCards, streak, pausedStreak, dailyCount, xpTotal]);
+  }, [bookmarks, challengeCompletions, completed, earnedBadges, notes, quizScores, srCards, streak, pausedStreak, dailyCount, xpTotal]);
 
   useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
 
@@ -214,14 +240,62 @@ export function StudentStats({ isOpen, onClose }) {
                   </div>
                   <div className="ss-course-meta">
                     <span className="ss-course-pct">{course.percent}%</span>
-                    {course.averageQuizPercent !== null && (
-                      <span className="ss-quiz-badge" style={{ color: quizColor(course.averageQuizPercent) }}>
-                        Quiz avg: {course.averageQuizPercent}%
-                      </span>
-                    )}
+                    <span className="ss-course-signals">
+                      {course.averageQuizPercent !== null && (
+                        <span className="ss-quiz-badge" style={{ color: quizColor(course.averageQuizPercent) }}>
+                          Quiz avg: {course.averageQuizPercent}%
+                        </span>
+                      )}
+                      {course.challengeTotal > 0 && (
+                        <span className="ss-challenge-badge">
+                          Challenges: {course.challengeDone}/{course.challengeTotal}
+                        </span>
+                      )}
+                    </span>
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div className="ss-section ss-mastery-section">
+            <div className="ss-section-heading-row">
+              <h3 className="ss-section-title">Mastery Evidence</h3>
+              <span className="ss-mastery-status">{stats.masteryEvidence.status}</span>
+            </div>
+            <p className="ss-section-copy">
+              Lesson completion shows exposure. Mastery evidence comes from quick checks, applied
+              challenges, and review cards that bring weak spots back later.
+            </p>
+            <div className="ss-mastery-grid">
+              <div className="ss-mastery-card">
+                <span className="ss-mastery-value">
+                  {stats.masteryEvidence.quizChecksPassed}/{stats.masteryEvidence.quizChecksAttempted}
+                </span>
+                <span className="ss-mastery-label">Quiz checks at 80%+</span>
+                <span className="ss-mastery-sub">
+                  {stats.masteryEvidence.quizChecksNeedsReview} need another pass
+                </span>
+              </div>
+              <div className="ss-mastery-card">
+                <span className="ss-mastery-value">
+                  {stats.masteryEvidence.completedChallenges}/{stats.masteryEvidence.totalChallenges}
+                </span>
+                <span className="ss-mastery-label">Applied challenges</span>
+                <span className="ss-mastery-sub">Tests passed in this browser</span>
+              </div>
+              <div className="ss-mastery-card">
+                <span className="ss-mastery-value">{stats.masteryEvidence.dueReviewCards}</span>
+                <span className="ss-mastery-label">Review due now</span>
+                <span className="ss-mastery-sub">
+                  {stats.masteryEvidence.totalReviewCards} cards in rotation
+                </span>
+              </div>
+              <div className="ss-mastery-card">
+                <span className="ss-mastery-value">{stats.masteryEvidence.evidenceCoverage}%</span>
+                <span className="ss-mastery-label">Evidence coverage</span>
+                <span className="ss-mastery-sub">Signals compared with completed lessons</span>
+              </div>
             </div>
           </div>
 

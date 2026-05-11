@@ -191,7 +191,24 @@ provider's `checkBadges` runs after every progress change and enqueues
 freshly-earned badges into `newBadgeQueue` so the BadgeUnlock celebration
 plays one at a time even when several badges land in the same action.
 
-## 7. Persistence layers
+## 7. Mastery evidence display
+
+The progress panel intentionally separates motivational progress from
+learning evidence:
+
+- **Lesson completion** means exposure: the learner read the lesson and
+  saved their place.
+- **Quiz checks at 80%+** count as confidence evidence for the topic.
+- **Applied challenges** count as practice evidence when the local tests
+  pass.
+- **Review cards due now** represent retention load, not failure.
+
+`src/utils/masteryProgress.js` owns the display summary. It does not award
+XP, gate navigation, or certify mastery. Its job is to help learners and
+reviewers see whether completed lessons are being reinforced by checks,
+application, and spaced review.
+
+## 8. Persistence layers
 
 | Surface                        | Local                                | Backend                 | Recovery                          |
 | ------------------------------ | ------------------------------------ | ----------------------- | --------------------------------- |
@@ -214,7 +231,7 @@ session. `dbWrite` runs async and queues failures into
 `progressWriteQueue`; the queue replays on online/visibilitychange and on
 the next session start.
 
-## 8. Reward event types — two namespaces
+## 9. Reward event types — two namespaces
 
 Two `REWARD_EVENT_TYPES` constants exist intentionally:
 
@@ -233,7 +250,7 @@ they front different storage shapes. A future refactor could collapse
 them, but doing so requires migrating the legacy reward-key strings
 already persisted in learner localStorage — out of scope for now.
 
-## 9. Backend boundaries
+## 10. Backend boundaries
 
 Currently persisted to Supabase:
 
@@ -254,7 +271,7 @@ Local-only by design (not migration candidates):
 - Sidebar collapse, theme, lock mode, install dismiss seen, what's new seen
 - Reward retry queue intermediate state
 
-## 10. Known engine risks
+## 11. Known engine risks
 
 - **Quiz retries qualify for streak/dailyCount per policy.** A learner
   could in principle re-submit a quiz with garbage answers to fake the
@@ -274,7 +291,7 @@ Local-only by design (not migration candidates):
 - **Challenge completions are localStorage-only.** A learner who clears
   storage loses their challenge history, including dedup state.
 
-## 11. Where to start when changing the engine
+## 12. Where to start when changing the engine
 
 - Reward policy → `src/services/rewardPolicy.js` (single source of truth
   for XP amounts, reward keys, retry rules).
