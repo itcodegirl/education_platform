@@ -2,6 +2,15 @@ import * as progressService from './progressService';
 import { getProgressWriteFailure } from './progressWriteRuntime';
 
 const STORAGE_KEY_PREFIX = 'chw-progress-write-queue:';
+const MAX_QUEUE_ITEMS = 100;
+const MAX_QUEUE_ITEM_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+const MAX_FUTURE_SKEW_MS = 10 * 60 * 1000;
+const MAX_SHORT_TEXT_LENGTH = 500;
+const MAX_NOTE_LENGTH = 20_000;
+const MAX_XP_TOTAL = 1_000_000;
+const MAX_STREAK_DAYS = 3650;
+const MAX_DAILY_COUNT = 500;
+const MAX_VARIANT_KEYS = 12;
 
 const PROGRESS_WRITE_HANDLERS = Object.freeze({
   addLesson: {
@@ -80,6 +89,209 @@ function createWriteId() {
   return `pw_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function cleanText(value, { maxLength = MAX_SHORT_TEXT_LENGTH, required = true } = {}) {
+  if (typeof value !== 'string') return required ? null : '';
+  const trimmed = value.trim();
+  if (!trimmed) return required ? null : '';
+  if (trimmed.length > maxLength) return null;
+  return trimmed;
+}
+
+function cleanInteger(value, { min = 0, max = Number.MAX_SAFE_INTEGER } = {}) {
+  const number = Number(value);
+  if (!Number.isFinite(number) || !Number.isInteger(number)) return null;
+  if (number < min || number > max) return null;
+  return number;
+}
+
+function cleanNumber(value, { min = 0, max = Number.MAX_SAFE_INTEGER } = {}) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return null;
+  if (number < min || number > max) return null;
+  return number;
+}
+
+function cleanDate(value) {
+  const text = cleanText(value, { maxLength: 10 });
+  if (!text || !/^\d{4}-\d{2}-\d{2}$/.test(text)) return null;
+  const parsed = Date.parse(`${text}T00:00:00.000Z`);
+  return Number.isFinite(parsed) ? text : null;
+}
+
+function cleanTimestamp(value) {
+  const text = cleanText(value, { maxLength: 40 });
+  if (!text) return null;
+  const parsed = Date.parse(text);
+  return Number.isFinite(parsed) ? new Date(parsed).toISOString() : null;
+}
+
+function cleanStringArray(values, limit = MAX_VARIANT_KEYS) {
+  if (!Array.isArray(values)) return [];
+  return Array.from(
+    new Set(
+      values
+        .slice(0, limit)
+        .map((value) => cleanText(value))
+        .filter(Boolean),
+    ),
+  );
+}
+
+function cleanQuizScore(score) {
+  if (typeof score === 'number') {
+    return cleanNumber(score, { min: 0, max: 100 });
+  }
+
+  const text = cleanText(score, { maxLength: 40 });
+  if (!text) return null;
+
+  if (/^\d{1,3}\/\d{1,3}$/.test(text)) {
+    const [earned, total] = text.split('/').map(Number);
+    if (total > 0 && earned >= 0 && earned <= total) return text;
+    return null;
+  }
+
+  const numeric = Number(text);
+  return Number.isFinite(numeric) && numeric >= 0 && numeric <= 100 ? text : null;
+}
+
+function cleanSRCard(card) {
+  if (!card || typeof card !== 'object' || Array.isArray(card)) return null;
+  const question = cleanText(card.question);
+  if (!question) return null;
+
+  return {
+    question,
+    code: cleanText(card.code, { maxLength: MAX_NOTE_LENGTH, required: false }) || null,
+    options: Array.isArray(card.options) ? card.options.slice(0, 12) : [],
+    correct: card.correct,
+    explanation: cleanText(card.explanation, { maxLength: MAX_NOTE_LENGTH, required: false }),
+    source: cleanText(card.source, { required: false }),
+  };
+}
+
+function cleanSRUpdates(updates) {
+  if (!updates || typeof updates !== 'object' || Array.isArray(updates)) return null;
+
+  const next = {};
+  const nextReview = cleanTimestamp(updates.next_review);
+  const intervalDays = cleanInteger(updates.interval_days, { min: 0, max: MAX_STREAK_DAYS });
+  const ease = cleanNumber(updates.ease, { min: 1, max: 5 });
+
+  if (nextReview) next.next_review = nextReview;
+  if (intervalDays !== null) next.interval_days = intervalDays;
+  if (ease !== null) next.ease = ease;
+
+  return Object.keys(next).length > 0 ? next : null;
+}
+
+function cleanPosition(position) {
+  if (!position || typeof position !== 'object' || Array.isArray(position)) return null;
+
+  const course = cleanInteger(position.course, { min: 0, max: 100 });
+  const mod = cleanInteger(position.mod, { min: 0, max: 1000 });
+  const les = cleanInteger(position.les, { min: 0, max: 1000 });
+  if (course === null || mod === null || les === null) return null;
+
+  return {
+    course,
+    mod,
+    les,
+    courseId: cleanText(position.courseId, { required: false }),
+    moduleId: cleanText(position.moduleId, { required: false }),
+    lessonId: cleanText(position.lessonId, { required: false }),
+    isModuleQuiz: Boolean(position.isModuleQuiz),
+  };
+}
+
+function cleanBookmark(bookmark) {
+  if (!bookmark || typeof bookmark !== 'object' || Array.isArray(bookmark)) return null;
+
+  const lessonKey = cleanText(bookmark.lessonKey);
+  const courseId = cleanText(bookmark.courseId);
+  const lessonTitle = cleanText(bookmark.lessonTitle);
+  if (!lessonKey || !courseId || !lessonTitle) return null;
+
+  return { lessonKey, courseId, lessonTitle };
+}
+
+function sanitizePayload(operation, payload) {
+  switch (operation) {
+    case 'addLesson':
+    case 'removeLesson': {
+      const lessonKey = cleanText(payload.lessonKey);
+      return lessonKey ? { lessonKey } : null;
+    }
+    case 'removeLessonVariants': {
+      const lessonKeys = cleanStringArray(payload.lessonKeys);
+      if (lessonKeys.length === 0) return null;
+      const dedupeLessonKey = cleanText(payload.dedupeLessonKey, { required: false });
+      return { lessonKeys, dedupeLessonKey: dedupeLessonKey || lessonKeys[0] };
+    }
+    case 'saveQuizScore': {
+      const quizKey = cleanText(payload.quizKey);
+      const score = cleanQuizScore(payload.score);
+      return quizKey && score !== null ? { quizKey, score } : null;
+    }
+    case 'updateXP': {
+      const total = cleanInteger(payload.total, { min: 0, max: MAX_XP_TOTAL });
+      return total !== null ? { total } : null;
+    }
+    case 'updateStreak': {
+      const days = cleanInteger(payload.days, { min: 0, max: MAX_STREAK_DAYS });
+      const lastDate = cleanDate(payload.lastDate);
+      return days !== null && lastDate ? { days, lastDate } : null;
+    }
+    case 'updateDailyGoal': {
+      const goalDate = cleanDate(payload.goalDate);
+      const count = cleanInteger(payload.count, { min: 0, max: MAX_DAILY_COUNT });
+      return goalDate && count !== null ? { goalDate, count } : null;
+    }
+    case 'awardBadge': {
+      const badgeId = cleanText(payload.badgeId);
+      return badgeId ? { badgeId } : null;
+    }
+    case 'addSRCard': {
+      const card = cleanSRCard(payload.card);
+      return card ? { card } : null;
+    }
+    case 'updateSRCard': {
+      const question = cleanText(payload.question);
+      const updates = cleanSRUpdates(payload.updates);
+      return question && updates ? { question, updates } : null;
+    }
+    case 'addBookmark': {
+      const bookmark = cleanBookmark(payload.bookmark);
+      return bookmark ? { bookmark } : null;
+    }
+    case 'removeBookmark': {
+      const lessonKey = cleanText(payload.lessonKey);
+      return lessonKey ? { lessonKey } : null;
+    }
+    case 'removeBookmarkVariants': {
+      const lessonKeys = cleanStringArray(payload.lessonKeys);
+      if (lessonKeys.length === 0) return null;
+      const dedupeLessonKey = cleanText(payload.dedupeLessonKey, { required: false });
+      return { lessonKeys, dedupeLessonKey: dedupeLessonKey || lessonKeys[0] };
+    }
+    case 'saveNote': {
+      const lessonKey = cleanText(payload.lessonKey);
+      const content = cleanText(payload.content, { maxLength: MAX_NOTE_LENGTH, required: false });
+      return lessonKey ? { lessonKey, content } : null;
+    }
+    case 'savePosition': {
+      const position = cleanPosition(payload.position);
+      return position ? { position } : null;
+    }
+    case 'trackCourseVisit': {
+      const courseId = cleanText(payload.courseId);
+      return courseId ? { courseId } : null;
+    }
+    default:
+      return null;
+  }
+}
+
 function getQueueHandler(operation) {
   const handler = PROGRESS_WRITE_HANDLERS[operation];
   if (!handler) {
@@ -113,22 +325,33 @@ function normalizeQueueItem(item) {
   }
 
   const payload = normalizePayload(item.payload);
-  const dedupeKey = handler.dedupeKey(payload);
+  const sanitizedPayload = sanitizePayload(item.operation, payload);
+  if (!sanitizedPayload) return null;
+
+  const createdAt =
+    typeof item.createdAt === 'string' && item.createdAt.trim()
+      ? item.createdAt.trim()
+      : new Date().toISOString();
+  const createdAtMs = Date.parse(createdAt);
+  const now = Date.now();
+  if (!Number.isFinite(createdAtMs)) return null;
+  if (createdAtMs < now - MAX_QUEUE_ITEM_AGE_MS) return null;
+  if (createdAtMs > now + MAX_FUTURE_SKEW_MS) return null;
+
+  const dedupeKey = handler.dedupeKey(sanitizedPayload);
+  const attemptCount = cleanInteger(item.attemptCount, { min: 0, max: 1000 });
 
   return {
     id: typeof item.id === 'string' && item.id.trim() ? item.id.trim() : createWriteId(),
     operation: item.operation,
-    payload,
+    payload: sanitizedPayload,
     dedupeKey: typeof dedupeKey === 'string' ? dedupeKey : '',
     label:
       typeof item.label === 'string' && item.label.trim()
         ? item.label.trim()
         : item.operation,
-    createdAt:
-      typeof item.createdAt === 'string' && item.createdAt.trim()
-        ? item.createdAt
-        : new Date().toISOString(),
-    attemptCount: Number.isFinite(item.attemptCount) ? Number(item.attemptCount) : 0,
+    createdAt,
+    attemptCount: attemptCount ?? 0,
     lastAttemptAt:
       typeof item.lastAttemptAt === 'string' && item.lastAttemptAt.trim()
         ? item.lastAttemptAt
@@ -143,8 +366,9 @@ function normalizeQueueItem(item) {
 function compactProgressWriteQueue(items) {
   const normalized = [];
   const dedupeIndexByKey = new Map();
+  const sourceItems = Array.isArray(items) ? items : [];
 
-  for (const item of items) {
+  for (const item of sourceItems.slice(-MAX_QUEUE_ITEMS * 2)) {
     const normalizedItem = normalizeQueueItem(item);
     if (!normalizedItem) continue;
 
@@ -165,7 +389,7 @@ function compactProgressWriteQueue(items) {
     normalized.push(normalizedItem);
   }
 
-  return normalized;
+  return normalized.slice(-MAX_QUEUE_ITEMS);
 }
 
 export function getProgressWriteQueueStorageKey(userId) {
@@ -175,11 +399,15 @@ export function getProgressWriteQueueStorageKey(userId) {
 export function createProgressWrite(operation, payload, options = {}) {
   const handler = getQueueHandler(operation);
   const normalizedPayload = normalizePayload(payload);
+  const sanitizedPayload = sanitizePayload(operation, normalizedPayload);
+  if (!sanitizedPayload) {
+    throw new Error(`Invalid progress write payload for operation: ${operation}`);
+  }
   return {
     id: createWriteId(),
     operation,
-    payload: normalizedPayload,
-    dedupeKey: handler.dedupeKey(normalizedPayload),
+    payload: sanitizedPayload,
+    dedupeKey: handler.dedupeKey(sanitizedPayload),
     label:
       typeof options.label === 'string' && options.label.trim()
         ? options.label.trim()

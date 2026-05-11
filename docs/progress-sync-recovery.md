@@ -37,6 +37,8 @@ Queued writes retry through three paths:
 
 The queue uses last-write-wins compaction for overwrite-style writes such as XP totals, notes, daily-goal counters, and last position, while keeping distinct operations that must replay separately.
 
+Queued writes are validated again when read from localStorage. The replay path drops unsupported operations, malformed payloads, stale entries, future-dated entries, oversized notes, and out-of-range XP/streak/daily-goal values before making Supabase calls. This does not make localStorage authoritative; it prevents corrupted or tampered queue data from becoming a replay source.
+
 ## Observability
 
 When analytics is configured, sync recovery emits privacy-safe events:
@@ -55,6 +57,7 @@ The learner-facing banner also distinguishes between queued writes, active retry
 - retry/import for route-fetcher mutations that do not return a recoverable write descriptor
 - reward backend replay/import beyond the existing reward-event work
 - production alerting or backend observability for repeated sync failures
+- server-authoritative XP, streak, badge, or challenge validation while backend reward sync remains disabled
 
 Because of those limits, the product can now honestly claim same-browser retry for direct progress writes plus recoverable lesson progress/bookmark route mutations, but it should not claim universal cloud recovery for every failed mutation.
 

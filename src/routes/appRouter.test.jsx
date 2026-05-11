@@ -140,6 +140,22 @@ describe('appRouter ProtectedRoute', () => {
     expect(screen.getByText(/could not verify your account/i)).toBeInTheDocument();
     expect(screen.queryByText('private-content')).not.toBeInTheDocument();
   });
+
+  it('blocks protected content for disabled profiles', () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: 'user-1' },
+      profile: { is_disabled: true },
+      loading: false,
+      profileLoading: false,
+      signOut: vi.fn(),
+    });
+
+    renderProtectedRoute();
+
+    expect(screen.getByText(/account disabled/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /log out/i })).toBeInTheDocument();
+    expect(screen.queryByText('private-content')).not.toBeInTheDocument();
+  });
 });
 
 describe('appRouter learnRouteAction', () => {
