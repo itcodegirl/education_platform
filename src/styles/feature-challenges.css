@@ -242,7 +242,7 @@
 
 .cc-solution-btn:hover {
   border-color: var(--purple);
-  color: var(--purple);
+  color: var(--purple-text);
 }
 
 .cc-solution-warning {
