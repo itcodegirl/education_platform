@@ -42,9 +42,9 @@ describe('MobileToolsSheet', () => {
 
     expect(screen.getByRole('dialog', { name: /learning tools/i })).toBeInTheDocument();
     expect(screen.getByText(/keep the lesson first/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /search: find a lesson/i })).toHaveTextContent('Find a lesson');
-    expect(screen.getByRole('button', { name: /progress: course status/i })).toHaveTextContent('Course status');
-    expect(screen.getByRole('button', { name: /search: find a lesson/i })).toHaveTextContent('S');
+    expect(screen.getByRole('button', { name: /^search$/i })).toHaveAccessibleDescription('Find a lesson');
+    expect(screen.getByRole('button', { name: /progress/i })).toHaveAccessibleDescription('Course status');
+    expect(screen.getByRole('button', { name: /^search$/i })).toHaveTextContent('S');
     expect(mockUseFocusTrap).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({ enabled: true, initialFocus: 'first-tabbable' }),
@@ -80,12 +80,30 @@ describe('MobileToolsSheet', () => {
     expect(screen.queryByRole('dialog', { name: /learning tools/i })).not.toBeInTheDocument();
   });
 
-  it('keeps a tool visible but disabled when its handler is missing', () => {
-    renderSheet({
+  it('keeps an unavailable tool visible, described, and inert', () => {
+    const { onClose } = renderSheet({
       tools: [{ key: 'projects', icon: '<>', label: 'Projects', helper: 'Build ideas' }],
     });
+    const unavailableTool = screen.getByRole('button', { name: /projects/i });
 
-    expect(screen.getByRole('button', { name: /projects: build ideas/i })).toBeDisabled();
+    expect(unavailableTool).toHaveAttribute('aria-disabled', 'true');
+    expect(unavailableTool).toHaveAccessibleDescription(/Build ideas.*Unavailable until you make learning progress\./i);
+
+    fireEvent.click(unavailableTool);
+
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('exposes tool groups with accessible section names', () => {
+    renderSheet({
+      tools: [
+        { key: 'search', icon: 'S', label: 'Search', helper: 'Find a lesson', onSelect: vi.fn() },
+        { key: 'glossary', icon: 'Aa', label: 'Glossary', helper: 'Plain meanings', onSelect: vi.fn() },
+      ],
+    });
+
+    expect(screen.getByRole('region', { name: /use now/i })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /support when needed/i })).toBeInTheDocument();
   });
 
   it('groups support tools below the tools used during the lesson', () => {

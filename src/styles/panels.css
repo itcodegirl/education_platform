@@ -1012,7 +1012,7 @@
   cursor: pointer;
 }
 
-.mobile-tools-item:disabled {
+.mobile-tools-item[aria-disabled="true"] {
   cursor: not-allowed;
   opacity: 0.55;
 }
