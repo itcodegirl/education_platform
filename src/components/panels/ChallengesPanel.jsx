@@ -7,6 +7,7 @@ import { useProgressData } from '../../providers';
 import { useLearning } from '../../hooks/useLearning';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 import { getChallengeProgressionPlan } from '../../utils/challengeProgression';
+import '../../styles/feature-challenges.css';
 
 export function ChallengesPanel({ courseId, lang, onClose }) {
   const challenges = getChallengesForCourse(courseId);

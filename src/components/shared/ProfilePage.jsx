@@ -6,6 +6,7 @@ import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { supabase } from '../../lib/supabaseClient';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
+import '../../styles/feature-profile.css';
 
 export const ProfilePage = memo(function ProfilePage({ onClose }) {
   const { user, profile, signOut } = useAuth();

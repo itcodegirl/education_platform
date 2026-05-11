@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const MONACO_CSS_LINK_RE = /<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref=["'][^"']*vendor-monaco-[^"']+\.css["'][^>]*>\s*/gi;
 
@@ -66,7 +69,6 @@ function getManualChunkName(id) {
 const fontPackageScopes = ['@fontsource', '@fontsource-variable'];
 
 function getDevServerFsAllowList() {
-  const projectRoot = path.resolve(__dirname);
   const dependencyRoots = [
     path.resolve(projectRoot, 'node_modules'),
     path.resolve(projectRoot, '..', '..', 'node_modules'),
@@ -102,7 +104,7 @@ export default defineConfig({
   plugins: [react(), stripInitialMonacoCssLinks()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(projectRoot, './src'),
     },
   },
   server: {
