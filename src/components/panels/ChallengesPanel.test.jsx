@@ -2,31 +2,36 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { ChallengesPanel } from './ChallengesPanel';
 
-const { mockUseProgressData, mockUseLearning } = vi.hoisted(() => ({
-  mockUseProgressData: vi.fn(),
-  mockUseLearning: vi.fn(),
-}));
+const {
+  mockAreChallengesLoaded,
+  mockGetChallengesForCourse,
+  mockLoadChallengesForCourse,
+  mockUseProgressData,
+  mockUseLearning,
+  challengeFixture,
+} = vi.hoisted(() => {
+  const challengeFixture = {
+    id: 'challenge-1',
+    title: 'Build a Card',
+    description: 'Create a reusable card.',
+    difficulty: 'beginner',
+    tests: [{ label: 'has card' }],
+  };
+
+  return {
+    mockAreChallengesLoaded: vi.fn(),
+    mockGetChallengesForCourse: vi.fn(),
+    mockLoadChallengesForCourse: vi.fn(),
+    mockUseProgressData: vi.fn(),
+    mockUseLearning: vi.fn(),
+    challengeFixture,
+  };
+});
 
 vi.mock('../../data/challenges', () => ({
-  areChallengesLoaded: () => true,
-  getChallengesForCourse: () => [
-    {
-      id: 'challenge-1',
-      title: 'Build a Card',
-      description: 'Create a reusable card.',
-      difficulty: 'beginner',
-      tests: [{ label: 'has card' }],
-    },
-  ],
-  loadChallengesForCourse: vi.fn(async () => [
-    {
-      id: 'challenge-1',
-      title: 'Build a Card',
-      description: 'Create a reusable card.',
-      difficulty: 'beginner',
-      tests: [{ label: 'has card' }],
-    },
-  ]),
+  areChallengesLoaded: mockAreChallengesLoaded,
+  getChallengesForCourse: mockGetChallengesForCourse,
+  loadChallengesForCourse: mockLoadChallengesForCourse,
 }));
 
 vi.mock('../../data', () => ({
@@ -68,6 +73,9 @@ vi.mock('../../hooks/useLearning', () => ({
 describe('ChallengesPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAreChallengesLoaded.mockReturnValue(true);
+    mockGetChallengesForCourse.mockReturnValue([challengeFixture]);
+    mockLoadChallengesForCourse.mockResolvedValue([challengeFixture]);
     mockUseProgressData.mockReturnValue({ challengeCompletions: [] });
     mockUseLearning.mockReturnValue({ completeChallenge: vi.fn() });
   });
@@ -115,5 +123,25 @@ describe('ChallengesPanel', () => {
 
     expect(screen.getByText(/Progress sync: saved on this device/i)).toBeInTheDocument();
     expect(screen.getByText(/challenges are single-device today/i)).toBeInTheDocument();
+  });
+
+  it('lets learners retry when the lazy challenge list fails to load', async () => {
+    mockAreChallengesLoaded.mockReturnValue(false);
+    mockGetChallengesForCourse.mockReturnValue([]);
+    mockLoadChallengesForCourse
+      .mockRejectedValueOnce(new Error('Chunk load failed'))
+      .mockResolvedValueOnce([challengeFixture]);
+
+    render(<ChallengesPanel courseId="html" lang="html" onClose={vi.fn()} />);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/Challenges could not load right now/i);
+    expect(screen.getByText(/lesson workspace is still safe/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Chunk load failed/i)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /try again/i }));
+
+    expect(screen.getByRole('status')).toHaveTextContent(/Loading the challenge lab/i);
+    expect(await screen.findByRole('button', { name: /start recommended challenge: build a card/i })).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });
