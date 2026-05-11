@@ -23,39 +23,65 @@ export const MobileToolsSheet = memo(function MobileToolsSheet({
   const supportTools = tools.filter((tool) => !PRIMARY_TOOL_KEYS.has(tool.key));
   const hasGroupedTools = primaryTools.length > 0 && supportTools.length > 0;
 
-  const renderTool = (tool) => (
-    <button
-      key={tool.key}
-      type="button"
-      className={`mobile-tools-item ${activePanel === tool.key ? 'active' : ''}`}
-      aria-label={`${tool.label}${tool.helper ? `: ${tool.helper}` : ''}`}
-      aria-pressed={activePanel === tool.key}
-      disabled={typeof tool.onSelect !== 'function'}
-      onClick={() => {
-        onClose();
-        tool.onSelect?.();
-      }}
-    >
-      {tool.icon && (
-        <span className="mobile-tools-item-icon" aria-hidden="true">
-          {tool.icon}
+  const renderTool = (tool) => {
+    const isUnavailable = typeof tool.onSelect !== 'function';
+    const labelId = `mobile-tool-${tool.key}-label`;
+    const helperId = tool.helper ? `mobile-tool-${tool.key}-helper` : undefined;
+    const unavailableId = isUnavailable ? `mobile-tool-${tool.key}-unavailable` : undefined;
+    const describedBy = [helperId, unavailableId].filter(Boolean).join(' ') || undefined;
+
+    return (
+      <button
+        key={tool.key}
+        type="button"
+        className={`mobile-tools-item ${activePanel === tool.key ? 'active' : ''}`}
+        aria-labelledby={labelId}
+        aria-describedby={describedBy}
+        aria-pressed={activePanel === tool.key}
+        aria-disabled={isUnavailable}
+        onClick={() => {
+          if (isUnavailable) return;
+          onClose();
+          tool.onSelect();
+        }}
+      >
+        {tool.icon && (
+          <span className="mobile-tools-item-icon" aria-hidden="true">
+            {tool.icon}
+          </span>
+        )}
+        <span className="mobile-tools-item-copy">
+          <span id={labelId} className="mobile-tools-item-label">{tool.label}</span>
+          {tool.helper && (
+            <span id={helperId} className="mobile-tools-item-helper">{tool.helper}</span>
+          )}
+          {isUnavailable && (
+            <span id={unavailableId} className="sr-only">
+              Unavailable until you make learning progress.
+            </span>
+          )}
         </span>
-      )}
-      <span className="mobile-tools-item-copy">
-        <span className="mobile-tools-item-label">{tool.label}</span>
-        {tool.helper && <span className="mobile-tools-item-helper">{tool.helper}</span>}
-      </span>
-    </button>
+      </button>
+    );
+  };
+
+  const renderSection = (label, sectionTools) => (
+    <section
+      className="mobile-tools-section"
+      aria-label={label}
+    >
+      {hasGroupedTools && <p className="mobile-tools-section-title">{label}</p>}
+      <div className="mobile-tools-section-grid">
+        {sectionTools.map(renderTool)}
+      </div>
+    </section>
   );
 
   return (
     <>
-      <button
-        type="button"
+      <div
         className="mobile-tools-scrim"
-        aria-label="Close learning tools"
         aria-hidden="true"
-        tabIndex={-1}
         onClick={onClose}
       />
       <section
@@ -90,20 +116,10 @@ export const MobileToolsSheet = memo(function MobileToolsSheet({
           ) : (
             <>
               {primaryTools.length > 0 && (
-                <div className="mobile-tools-section" aria-label={hasGroupedTools ? 'Use now' : 'Available tools'}>
-                  {hasGroupedTools && <p className="mobile-tools-section-title">Use now</p>}
-                  <div className="mobile-tools-section-grid">
-                    {primaryTools.map(renderTool)}
-                  </div>
-                </div>
+                renderSection(hasGroupedTools ? 'Use now' : 'Available tools', primaryTools)
               )}
               {supportTools.length > 0 && (
-                <div className="mobile-tools-section" aria-label={hasGroupedTools ? 'Support when needed' : 'Available tools'}>
-                  {hasGroupedTools && <p className="mobile-tools-section-title">Support when needed</p>}
-                  <div className="mobile-tools-section-grid">
-                    {supportTools.map(renderTool)}
-                  </div>
-                </div>
+                renderSection(hasGroupedTools ? 'Support when needed' : 'Available tools', supportTools)
               )}
             </>
           )}

@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const MONACO_CSS_LINK_RE = /<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref=["'][^"']*vendor-monaco-[^"']+\.css["'][^>]*>\s*/gi;
 
@@ -55,6 +58,10 @@ function getManualChunkName(id) {
   }
 
   // Course content is dynamically imported through src/data/loaders.js.
+  if (moduleId.includes('/src/data/html/challenges')) return 'data-html-challenges';
+  if (moduleId.includes('/src/data/css/challenges')) return 'data-css-challenges';
+  if (moduleId.includes('/src/data/js/challenges')) return 'data-js-challenges';
+  if (moduleId.includes('/src/data/react/challenges')) return 'data-react-challenges';
   if (moduleId.includes('/src/data/html/')) return 'data-html';
   if (moduleId.includes('/src/data/css/')) return 'data-css';
   if (moduleId.includes('/src/data/js/')) return 'data-js';
@@ -66,7 +73,6 @@ function getManualChunkName(id) {
 const fontPackageScopes = ['@fontsource', '@fontsource-variable'];
 
 function getDevServerFsAllowList() {
-  const projectRoot = path.resolve(__dirname);
   const dependencyRoots = [
     path.resolve(projectRoot, 'node_modules'),
     path.resolve(projectRoot, '..', '..', 'node_modules'),
@@ -102,7 +108,7 @@ export default defineConfig({
   plugins: [react(), stripInitialMonacoCssLinks()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(projectRoot, './src'),
     },
   },
   server: {

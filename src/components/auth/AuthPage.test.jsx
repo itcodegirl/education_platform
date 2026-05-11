@@ -95,6 +95,52 @@ describe('AuthPage', () => {
     ).toBeInTheDocument();
   });
 
+  it('marks required auth fields invalid and moves focus to the first invalid field', () => {
+    render(<AuthPage onPreview={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /create free account/i }));
+
+    const emailInput = screen.getByLabelText(/email/i);
+    const formSummary = screen
+      .getByText(/there is a problem with this form/i)
+      .closest('[role="alert"]');
+
+    expect(emailInput).toHaveFocus();
+    expect(emailInput).toHaveAttribute('aria-invalid', 'true');
+    expect(emailInput).toHaveAccessibleDescription(/email is required/i);
+    expect(formSummary).toHaveTextContent(/there is a problem with this form/i);
+  });
+
+  it('moves focus to password when password length blocks submission', () => {
+    render(<AuthPage onPreview={vi.fn()} />);
+
+    fireEvent.change(screen.getByLabelText(/display name/i), { target: { value: 'Jenna' } });
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'jenna@example.com' } });
+    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'short' } });
+    fireEvent.click(screen.getByRole('button', { name: /create free account/i }));
+
+    const passwordInput = screen.getByLabelText(/password/i);
+    expect(passwordInput).toHaveFocus();
+    expect(passwordInput).toHaveAttribute('aria-invalid', 'true');
+    expect(passwordInput).toHaveAccessibleDescription(/add 3 more/i);
+  });
+
+  it('focuses the form error summary for backend authentication failures', async () => {
+    signInMock.mockResolvedValueOnce({ error: { message: 'Invalid login credentials' } });
+
+    render(<AuthPage onPreview={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('tab', { name: /login/i }));
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'jenna@example.com' } });
+    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'validpass' } });
+    fireEvent.click(screen.getByRole('button', { name: /log in/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveFocus();
+    });
+    expect(screen.getByRole('alert')).toHaveTextContent(/email or password is incorrect/i);
+  });
+
   it('prevents reset flow when forgot-password email format is invalid', () => {
     render(<AuthPage onPreview={vi.fn()} />);
 
@@ -137,6 +183,7 @@ describe('AuthPage', () => {
       screen.getByText(/Unable to continue with GitHub right now/i),
     ).toBeInTheDocument();
   });
+
 
   it('keeps lesson preview available when accounts are not configured', () => {
     authBackendReadyState.value = false;

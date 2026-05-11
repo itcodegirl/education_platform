@@ -38,11 +38,16 @@ vi.mock('../../data', () => ({
 }));
 
 vi.mock('../../data/challenges', () => ({
+  areChallengesLoaded: () => true,
   getChallengesForCourse: (courseId) => {
     if (courseId === 'html') return [{ id: 'html-challenge-1', title: 'HTML Challenge' }];
     if (courseId === 'css') return [{ id: 'css-challenge-1', title: 'CSS Challenge' }];
     return [];
   },
+  loadAllChallenges: vi.fn(async () => ({
+    html: [{ id: 'html-challenge-1', title: 'HTML Challenge' }],
+    css: [{ id: 'css-challenge-1', title: 'CSS Challenge' }],
+  })),
 }));
 
 vi.mock('../../hooks/useFocusTrap', () => ({
@@ -231,6 +236,8 @@ describe('StudentStats streak card', () => {
 
     expect(screen.getByText('Mastery Evidence')).toBeInTheDocument();
     expect(screen.getByText(/Lesson completion shows exposure/i)).toBeInTheDocument();
+    expect(screen.getByText('Review evidence due')).toBeInTheDocument();
+    expect(screen.getByText(/retry one missed quick check/i)).toBeInTheDocument();
     expect(screen.getByText('Quiz checks at 80%+')).toBeInTheDocument();
     expect(screen.getByText('Applied challenges')).toBeInTheDocument();
     expect(screen.getByText('Review due now')).toBeInTheDocument();

@@ -106,10 +106,12 @@
 
 .ob-points {
   text-align: left;
-  margin-bottom: 28px;
+  margin: 0 0 28px;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  list-style: none;
 }
 
 .ob-point {

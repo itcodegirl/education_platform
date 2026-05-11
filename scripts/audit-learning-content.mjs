@@ -73,6 +73,49 @@ function hasDurationSignal(lesson) {
   return isNonEmptyString(lesson.duration) || Number.isFinite(Number(lesson.metadata?.estimatedTime));
 }
 
+function getInstructionalScaffoldStatus(lesson) {
+  return {
+    objective:
+      hasItems(lesson.hook?.accomplishments) ||
+      isNonEmptyString(lesson.do?.title) ||
+      isNonEmptyString(lesson.build?.goal),
+    explanation:
+      isNonEmptyString(lesson.content) ||
+      hasItems(lesson.concepts) ||
+      hasItems(lesson.understand?.concepts),
+    guidedPractice:
+      isNonEmptyString(lesson.code) ||
+      hasItems(lesson.tasks) ||
+      hasItems(lesson.do?.steps),
+    independentPractice: hasPracticePrompt(lesson),
+    consolidation:
+      isNonEmptyString(lesson.output) ||
+      isNonEmptyString(lesson.understand?.keyTakeaway) ||
+      hasItems(lesson.summary?.capabilities),
+    transfer:
+      isNonEmptyString(lesson.bridge?.preview) ||
+      isNonEmptyString(lesson.challenge?.mission),
+  };
+}
+
+function analyzeInstructionalScaffolding(lesson, lessonPath, warnings) {
+  const status = getInstructionalScaffoldStatus(lesson);
+  const entries = Object.entries(status);
+  const presentCount = entries.filter(([, present]) => present).length;
+
+  if (presentCount >= 4) return;
+
+  const missing = entries
+    .filter(([, present]) => !present)
+    .map(([name]) => name);
+
+  addWarning(
+    warnings,
+    lessonPath,
+    `Lesson has shallow instructional scaffolding (${presentCount}/6); missing ${missing.join(', ')}.`,
+  );
+}
+
 function buildLessonIndexes(loaded) {
   const courseIds = new Set();
   const lessonsByCourse = new Map();
@@ -189,6 +232,7 @@ function analyzeLessons(courseId, modules, lessonIndexes, issues, warnings) {
       if (!hasPracticePrompt(lesson)) {
         addWarning(warnings, lessonPath, 'Lesson has no obvious practice prompt.');
       }
+      analyzeInstructionalScaffolding(lesson, lessonPath, warnings);
 
       lessonEntries.push({ lesson, lessonPath });
     });
@@ -328,6 +372,16 @@ function analyzeChallenges(courseId, challenges, issues, warnings) {
     }
     if (!hasItems(challenge.tests)) {
       addIssue(issues, challengePath, 'Challenge is missing tests.');
+    } else {
+      challenge.tests.forEach((test, testIndex) => {
+        const testPath = `${challengePath}.tests[${testIndex}]`;
+        if (!isNonEmptyString(test?.label)) {
+          addIssue(issues, testPath, 'Challenge test is missing a learner-facing label.');
+        }
+        if (typeof test?.check !== 'function') {
+          addIssue(issues, testPath, 'Challenge test is missing an executable check function.');
+        }
+      });
     }
     if (!isNonEmptyString(challenge.starter)) {
       addWarning(warnings, challengePath, 'Challenge is missing starter code.');

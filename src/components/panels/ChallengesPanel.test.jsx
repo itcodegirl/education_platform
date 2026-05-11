@@ -2,21 +2,39 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { ChallengesPanel } from './ChallengesPanel';
 
-const { mockUseProgressData, mockUseLearning } = vi.hoisted(() => ({
-  mockUseProgressData: vi.fn(),
-  mockUseLearning: vi.fn(),
-}));
+const {
+  mockAreChallengesLoaded,
+  mockGetChallengesForCourse,
+  mockLoadChallengesForCourse,
+  mockUseProgressData,
+  mockUseLearning,
+  mockTrackEvent,
+  challengeFixture,
+} = vi.hoisted(() => {
+  const challengeFixture = {
+    id: 'challenge-1',
+    title: 'Build a Card',
+    description: 'Create a reusable card.',
+    difficulty: 'beginner',
+    requirements: ['Use a card container', 'Render a heading'],
+    tests: [{ label: 'has card' }, { label: 'has heading' }],
+  };
+
+  return {
+    mockAreChallengesLoaded: vi.fn(),
+    mockGetChallengesForCourse: vi.fn(),
+    mockLoadChallengesForCourse: vi.fn(),
+    mockUseProgressData: vi.fn(),
+    mockUseLearning: vi.fn(),
+    mockTrackEvent: vi.fn(),
+    challengeFixture,
+  };
+});
 
 vi.mock('../../data/challenges', () => ({
-  getChallengesForCourse: () => [
-    {
-      id: 'challenge-1',
-      title: 'Build a Card',
-      description: 'Create a reusable card.',
-      difficulty: 'beginner',
-      tests: [{ label: 'has card' }],
-    },
-  ],
+  areChallengesLoaded: mockAreChallengesLoaded,
+  getChallengesForCourse: mockGetChallengesForCourse,
+  loadChallengesForCourse: mockLoadChallengesForCourse,
 }));
 
 vi.mock('../../data', () => ({
@@ -55,9 +73,16 @@ vi.mock('../../hooks/useLearning', () => ({
   useLearning: () => mockUseLearning(),
 }));
 
+vi.mock('../../lib/analytics', () => ({
+  trackEvent: (...args) => mockTrackEvent(...args),
+}));
+
 describe('ChallengesPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockAreChallengesLoaded.mockReturnValue(true);
+    mockGetChallengesForCourse.mockReturnValue([challengeFixture]);
+    mockLoadChallengesForCourse.mockResolvedValue([challengeFixture]);
     mockUseProgressData.mockReturnValue({ challengeCompletions: [] });
     mockUseLearning.mockReturnValue({ completeChallenge: vi.fn() });
   });
@@ -85,6 +110,7 @@ describe('ChallengesPanel', () => {
     expect(screen.getByText(/Ready for practice: HTML Foundations/i)).toBeInTheDocument();
   });
 
+
   it('routes challenge completion through the learning engine', () => {
     const completeChallenge = vi.fn();
     mockUseLearning.mockReturnValue({ completeChallenge });
@@ -98,6 +124,31 @@ describe('ChallengesPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: /complete build a card/i }));
 
     expect(completeChallenge).toHaveBeenCalledWith('challenge-1');
+    expect(mockTrackEvent).toHaveBeenCalledWith('challenge_workspace_opened', expect.objectContaining({
+      challengeId: 'challenge-1',
+      courseId: 'html',
+      source: 'recommendation',
+      requirementCount: 2,
+      testCount: 2,
+    }));
+    expect(mockTrackEvent).toHaveBeenCalledWith('challenge_completed', expect.objectContaining({
+      challengeId: 'challenge-1',
+      source: 'workspace',
+    }));
+  });
+
+  it('shows challenge evidence scope inside the challenge workspace', () => {
+    mockUseProgressData.mockReturnValue({ challengeCompletions: ['challenge-1'] });
+
+    render(<ChallengesPanel courseId="html" lang="html" onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /build a card/i }));
+
+    expect(screen.getByRole('region', { name: /challenge evidence summary/i })).toHaveTextContent('Evidence ready');
+    expect(screen.getByText('2 requirements')).toBeInTheDocument();
+    expect(screen.getByText('2 automated checks')).toBeInTheDocument();
+    expect(screen.getByText(/not a verified credential/i)).toBeInTheDocument();
+    expect(screen.getByText(/What would you improve before showing this in a portfolio/i)).toBeInTheDocument();
   });
 
   it('shows the local-first progress sync scope in the challenge list', () => {
@@ -105,5 +156,25 @@ describe('ChallengesPanel', () => {
 
     expect(screen.getByText(/Progress sync: saved on this device/i)).toBeInTheDocument();
     expect(screen.getByText(/challenges are single-device today/i)).toBeInTheDocument();
+  });
+
+  it('lets learners retry when the lazy challenge list fails to load', async () => {
+    mockAreChallengesLoaded.mockReturnValue(false);
+    mockGetChallengesForCourse.mockReturnValue([]);
+    mockLoadChallengesForCourse
+      .mockRejectedValueOnce(new Error('Chunk load failed'))
+      .mockResolvedValueOnce([challengeFixture]);
+
+    render(<ChallengesPanel courseId="html" lang="html" onClose={vi.fn()} />);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/Challenges could not load right now/i);
+    expect(screen.getByText(/lesson workspace is still safe/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Chunk load failed/i)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /try again/i }));
+
+    expect(screen.getByRole('status')).toHaveTextContent(/Loading the challenge lab/i);
+    expect(await screen.findByRole('button', { name: /start recommended challenge: build a card/i })).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 });

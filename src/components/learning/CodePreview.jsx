@@ -10,7 +10,9 @@ import { buildCodePreviewConsoleScript } from './codePreviewConsoleScript';
 // MonacoEnvironment) before @monaco-editor/react is evaluated. Both
 // end up in the same lazy chunk, keeping Monaco out of the main bundle.
 const MonacoEditor = lazy(() =>
-  import('../../lib/monacoLoader').then(() => import('@monaco-editor/react'))
+  import('../../lib/monacoLoader')
+    .then((module) => module.initializeMonacoLoader())
+    .then(() => import('@monaco-editor/react'))
 );
 
 const SCAFFOLDING = {
@@ -172,14 +174,6 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
   const previewDocument = useMemo(() => buildPreview(previewCode), [buildPreview, previewCode]);
   const tabIcon = isJS ? 'f' : isCSS ? '{ }' : '<>';
   const previewLabel = isJS ? 'Run' : 'Preview';
-  const guidanceCopy =
-    scaffolding === 'requirements'
-      ? 'Start with one small piece, run it, then add the next requirement.'
-      : tab === 'preview'
-        ? 'Check what changed. If it feels off, return to the editor and adjust one thing.'
-        : tab === 'editor'
-          ? `Change one small detail, then ${previewLabel.toLowerCase()} the result before moving on.`
-          : 'Read the sample first, then try one small change in the editor.';
   const visibleTabs = [
     ...(scaffolding !== 'requirements'
       ? [{ id: 'code', label: `${tabIcon} Code` }]
@@ -192,6 +186,15 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
   ];
   const getTabId = (tabId) => `${tabBaseId}-${tabId}-tab`;
   const getPanelId = (tabId) => `${tabBaseId}-${tabId}-panel`;
+
+  const guidanceCopy =
+    scaffolding === 'requirements'
+      ? 'Start with one small piece, run it, then add the next requirement.'
+      : tab === 'preview'
+        ? 'Check what changed. If it feels off, return to the editor and adjust one thing.'
+        : tab === 'editor'
+          ? `Change one small detail, then ${previewLabel.toLowerCase()} the result before moving on.`
+          : 'Read the sample first, then try one small change in the editor.';
 
   const handleTabKeyDown = (event) => {
     const currentIndex = visibleTabs.findIndex((item) => item.id === tab);
@@ -234,14 +237,14 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
         <span>{guidanceCopy}</span>
       </div>
 
+
       <div className="code-preview-tabs">
         <div
           className="code-preview-tablist"
           role="tablist"
           aria-label="Code practice views"
           aria-describedby={`${previewId}-guidance`}
-        >
-          {visibleTabs.map((item) => (
+        >          {visibleTabs.map((item) => (
             <button
               key={item.id}
               id={getTabId(item.id)}

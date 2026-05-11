@@ -22,6 +22,7 @@ These commands verify that the repo still contains:
 - The `reward_catalog` migration that lets the RPC derive XP and reject unknown reward entities.
 - Reward catalog seed entries that stay aligned with the checked-in curriculum lessons, quizzes, and challenges.
 - The idempotency guard for `(user_id, event_key)` reward events.
+- The hardened reward catalog migration that derives backend XP and canonical reward event keys server-side.
 - Unique Supabase migration timestamp prefixes, so no migration is skipped
   or mis-reconciled by version.
 

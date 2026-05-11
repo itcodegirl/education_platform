@@ -65,6 +65,18 @@ const REQUIRED_ARTIFACTS = [
     ],
   },
   {
+    path: 'supabase/migrations/202605110001_harden_reward_event_trust_boundaries.sql',
+    label: 'reward trust boundary hardening migration',
+    checks: [
+      ['reward catalog table', /create\s+table\s+if\s+not\s+exists\s+public\.reward_catalog/i],
+      ['reward catalog RLS', /alter\s+table\s+public\.reward_catalog\s+enable\s+row\s+level\s+security/i],
+      ['server-derived event key', /v_expected_event_key\s*:=/i],
+      ['server-derived XP', /v_expected_xp/i],
+      ['forged event key rejection', /event_key_mismatch/i],
+      ['forged XP rejection', /xp_amount_mismatch/i],
+    ],
+  },
+  {
     path: 'supabase/migrations/202605060003_harden_profile_updates.sql',
     label: 'profile safe-field hardening migration',
     checks: [

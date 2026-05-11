@@ -8,40 +8,46 @@ import {
   useLocation,
   useNavigate,
 } from 'react-router-dom';
-import { COURSE_LOADER_IDS, loadCourse } from '../data';
+import { COURSE_LOADER_IDS, loadCourseRuntime } from '../data';
 import { useAuth } from '../providers/AuthProvider';
 import { useTheme } from '../providers/ThemeProvider';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { Logo } from '../components/shared/Logo';
-import { APP_ROUTES, parsePublicProfilePath } from './routePaths';
+import { APP_ROUTES, parsePublicProfilePath, routeIdMatches } from './routePaths';
 import { closeRouteOrGoHome, toPathFromLegacyHash } from './routeUtils';
 import { RouteErrorBoundary } from './RouteErrorBoundary';
 
 const Styleguide = lazy(() =>
-  import('../components/shared/Styleguide').then((m) => ({ default: m.Styleguide })),
+  import('../components/shared/Styleguide').then((module) => ({ default: module.Styleguide })),
 );
-const PublicProfile = lazy(() =>
-  import('../components/shared/PublicProfile').then((m) => ({ default: m.PublicProfile })),
+const PublicProfilePageRoute = lazy(() =>
+  import('./PublicProfileRoute').then((module) => ({ default: module.PublicProfileRoute })),
 );
 const ProtectedAppProvidersLayout = lazy(() =>
-  import('./ProtectedAppRoutes').then((m) => ({ default: m.ProtectedAppProvidersLayout })),
+  import('./ProtectedAppRoutes').then((module) => ({ default: module.ProtectedAppProvidersLayout })),
 );
 const ProtectedHomeRoute = lazy(() =>
-  import('./ProtectedAppRoutes').then((m) => ({ default: m.ProtectedHomeRoute })),
+  import('./ProtectedAppRoutes').then((module) => ({ default: module.ProtectedHomeRoute })),
 );
 const ProtectedLearnRoute = lazy(() =>
-  import('./ProtectedAppRoutes').then((m) => ({ default: m.ProtectedLearnRoute })),
+  import('./ProtectedAppRoutes').then((module) => ({ default: module.ProtectedLearnRoute })),
 );
 const ProtectedProfileRoute = lazy(() =>
-  import('./ProtectedAppRoutes').then((m) => ({ default: m.ProtectedProfileRoute })),
+  import('./ProtectedAppRoutes').then((module) => ({ default: module.ProtectedProfileRoute })),
 );
 const ProtectedAdminDashboardRoute = lazy(() =>
-  import('./ProtectedAppRoutes').then((m) => ({ default: m.ProtectedAdminDashboardRoute })),
+  import('./ProtectedAppRoutes').then((module) => ({ default: module.ProtectedAdminDashboardRoute })),
 );
 
 export async function learnRouteAction(args) {
   const module = await import('./learnRouteActions');
   return module.learnRouteAction(args);
+}
+
+function loadedCourseHasModuleQuiz(loadedCourse, moduleId) {
+  return (loadedCourse.quizzes || []).some((quiz) =>
+    quiz?.moduleId != null && routeIdMatches(quiz.moduleId, moduleId),
+  );
 }
 
 function RouteLoadingScreen({ theme, size = 'sm', children }) {
@@ -189,7 +195,7 @@ function StyleguideRoute() {
   );
 }
 
-function PublicProfileRoute() {
+function PublicProfileRouteShell() {
   const { theme } = useTheme();
   const { handle } = useLoaderData();
 
@@ -202,7 +208,7 @@ function PublicProfileRoute() {
           </RouteLoadingScreen>
         )}
       >
-        <PublicProfile handle={handle} onClose={closeRouteOrGoHome} />
+        <PublicProfilePageRoute handle={handle} onClose={closeRouteOrGoHome} />
       </Suspense>
     </div>
   );
@@ -286,14 +292,18 @@ export async function learnRouteLoader({ params }) {
   }
 
   try {
-    const loadedCourse = await loadCourse(courseId);
-    const moduleMatch = loadedCourse.modules.find((module) => module.id === moduleId);
+    const loadedCourse = await loadCourseRuntime(courseId);
+    const moduleMatch = loadedCourse.modules.find((module) => routeIdMatches(module.id, moduleId));
     if (!moduleMatch) {
       throw new Error('Unknown module');
     }
 
-    if (lessonId !== 'quiz') {
-      const lessonMatch = moduleMatch.lessons.find((lesson) => lesson.id === lessonId);
+    if (lessonId === 'quiz') {
+      if (!loadedCourseHasModuleQuiz(loadedCourse, moduleMatch.id)) {
+        throw new Error('Unknown module quiz');
+      }
+    } else {
+      const lessonMatch = moduleMatch.lessons.find((lesson) => routeIdMatches(lesson.id, lessonId));
       if (!lessonMatch) {
         throw new Error('Unknown lesson');
       }
@@ -319,7 +329,7 @@ export const appRouter = createBrowserRouter([
     errorElement: <RouteErrorBoundary />,
     children: [
       { path: STYLEGUIDE_SEGMENT, element: <StyleguideRoute /> },
-      { path: PUBLIC_PROFILE_SEGMENT, loader: publicProfileRouteLoader, element: <PublicProfileRoute /> },
+      { path: PUBLIC_PROFILE_SEGMENT, loader: publicProfileRouteLoader, element: <PublicProfileRouteShell /> },
       {
         element: <ProtectedAppShellRoute />,
         children: [

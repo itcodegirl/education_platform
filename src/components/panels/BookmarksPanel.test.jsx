@@ -69,6 +69,23 @@ describe('BookmarksPanel', () => {
     expect(screen.getByRole('button', { name: /Back to lesson/i })).toBeInTheDocument();
   });
 
+  it('treats missing bookmark data as an empty saved list', () => {
+    mockUseSR.mockReturnValue({
+      toggleBookmark: vi.fn(),
+    });
+
+    render(
+      <BookmarksPanel
+        isOpen
+        onClose={vi.fn()}
+        onNavigate={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('heading', { name: /Bookmarks \(0\)/i })).toBeInTheDocument();
+    expect(screen.getByText(/No saved lessons yet/i)).toBeInTheDocument();
+  });
+
   it('opens a stable-key bookmark and routes to the resolved lesson indices', () => {
     const onNavigate = vi.fn();
     const onClose = vi.fn();
@@ -88,6 +105,10 @@ describe('BookmarksPanel', () => {
         onNavigate={onNavigate}
       />,
     );
+
+    const savedList = screen.getByRole('list', { name: /saved lessons/i });
+    expect(savedList).toBeInTheDocument();
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
 
     fireEvent.click(screen.getByRole('button', { name: /open what is html/i }));
     expect(onNavigate).toHaveBeenCalledWith(0, 0, 0);

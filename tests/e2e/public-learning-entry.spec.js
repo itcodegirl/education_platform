@@ -99,7 +99,7 @@ test.describe('public learner entry', () => {
     await expect(page.locator('.guest-preview')).toBeVisible({ timeout: 30000 });
     await expect(page.getByText(/Preview Mode/i)).toBeVisible();
     await expect(page.locator('.lesson-title')).toBeVisible();
-    await expect(page.locator('.gp-cta')).toContainText(/keep your place/i);
+    await expect(page.locator('.gp-cta')).toContainText(/track your progress/i);
     await expect(page.locator('.gp-cta')).toContainText(/save notes and bookmarks/i);
 
     await page.getByRole('button', { name: /create free account/i }).click();

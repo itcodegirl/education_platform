@@ -19,7 +19,9 @@ import { defineMonacoTheme, MONACO_THEME_NAME, MONACO_OPTIONS } from '../../util
 // MonacoEnvironment) before @monaco-editor/react is evaluated. Both
 // end up in the same lazy chunk, keeping Monaco out of the main bundle.
 const MonacoEditor = lazy(() =>
-  import('../../lib/monacoLoader').then(() => import('@monaco-editor/react'))
+  import('../../lib/monacoLoader')
+    .then((module) => module.initializeMonacoLoader())
+    .then(() => import('@monaco-editor/react'))
 );
 
 const PREVIEW_SYNC_DELAY_MS = 180;
@@ -122,7 +124,7 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
           <div className="cc-pane-header">
             <span>✏️ Your Code</span>
             <button type="button" className="cc-reset-btn" onClick={reset}>
-              Retry Reset
+              Reset code
             </button>
           </div>
           {useLightEditor ? (

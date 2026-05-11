@@ -183,11 +183,21 @@ a practice match and show "best after" context, but the recommendation is
 soft guidance only; challenges remain optional and do not lock lesson
 navigation.
 
+`src/utils/challengeEvidence.js` turns a challenge's requirements and
+automated checks into a learner-facing evidence summary. It is meant to help
+learners talk about what they built and what the grader verified, while still
+stating that same-browser challenge progress is not an external credential.
+
 `src/utils/dailyLearningLoop.js` combines the active lesson state, quick-check
 mastery guidance, spaced-repetition due count, and challenge entry point into
 the lesson-level "Today's learning loop" surface. This is display-only
 scaffolding: it helps learners choose a useful next action without creating
 hard gates or new reward rules.
+
+`src/utils/learningAnalyticsPayloads.js` keeps learner-action analytics
+payloads small and non-sensitive. Learning-loop clicks and challenge
+workspace/completion events track ids, readiness labels, and counts, but do
+not send learner source code or reflection text.
 
 ## 6. XP, streaks, daily goal, badges
 
@@ -331,3 +341,6 @@ Local-only by design (not migration candidates):
 - Badge rules → `src/services/badgeRules.js`.
 - Display-only guards → `src/utils/helpers.js`
   (`getActiveStreakDays`, `getActiveDailyCount`, `getPausedStreak`).
+- Content quality gates → `scripts/audit-learning-content.mjs`, which checks
+  stable ids, quiz explanations, challenge test metadata, and lesson
+  scaffolding signals before content changes ship.

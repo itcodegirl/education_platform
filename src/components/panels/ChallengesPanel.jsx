@@ -1,5 +1,9 @@
-import { useMemo, useRef, useState } from 'react';
-import { getChallengesForCourse } from '../../data/challenges';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  areChallengesLoaded,
+  getChallengesForCourse,
+  loadChallengesForCourse,
+} from '../../data/challenges';
 import { COURSES } from '../../data';
 import { CodeChallenge } from '../learning/CodeChallenge';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
@@ -7,9 +11,17 @@ import { useProgressData } from '../../providers';
 import { useLearning } from '../../hooks/useLearning';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 import { getChallengeProgressionPlan } from '../../utils/challengeProgression';
+import { getChallengeEvidenceSummary } from '../../utils/challengeEvidence';
+import { getChallengeAnalyticsPayload } from '../../utils/learningAnalyticsPayloads';
+import { trackEvent } from '../../lib/analytics';
+import '../../styles/feature-challenges.css';
+
+const CHALLENGE_LOAD_ERROR_COPY = 'The lesson workspace is still safe. Try again when your connection settles.';
 
 export function ChallengesPanel({ courseId, lang, onClose }) {
-  const challenges = getChallengesForCourse(courseId);
+  const [challenges, setChallenges] = useState(() => getChallengesForCourse(courseId));
+  const [challengeLoadError, setChallengeLoadError] = useState('');
+  const [isLoadingChallenges, setIsLoadingChallenges] = useState(() => !areChallengesLoaded(courseId));
   const [activeChallenge, setActiveChallenge] = useState(null);
   const { challengeCompletions = [], completedSet = new Set() } = useProgressData();
   const learn = useLearning();
@@ -24,9 +36,66 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
     }),
     [challengeCompletions, challenges, completedSet, course],
   );
+  const activeEvidence = useMemo(
+    () => getChallengeEvidenceSummary(activeChallenge, {
+      isCompleted: completed.has(activeChallenge?.id),
+    }),
+    [activeChallenge, completed],
+  );
   const modalRef = useRef(null);
+  const loadRequestRef = useRef(0);
+
+  const openChallenge = useCallback((challenge, source) => {
+    setActiveChallenge(challenge);
+    trackEvent('challenge_workspace_opened', getChallengeAnalyticsPayload({
+      challenge,
+      courseId,
+      source,
+      isCompleted: completed.has(challenge?.id),
+    }));
+  }, [completed, courseId]);
 
   useFocusTrap(modalRef, { enabled: true, onEscape: onClose });
+
+  const refreshChallengeList = useCallback(async ({ resetActive = false } = {}) => {
+    const requestId = loadRequestRef.current + 1;
+    loadRequestRef.current = requestId;
+    const cachedChallenges = getChallengesForCourse(courseId);
+    const cachedLoaded = areChallengesLoaded(courseId);
+
+    if (resetActive) {
+      setActiveChallenge(null);
+    }
+    setChallenges(cachedChallenges);
+    setChallengeLoadError('');
+    setIsLoadingChallenges(!cachedLoaded);
+
+    if (cachedLoaded) return;
+
+    try {
+      const loadedChallenges = await loadChallengesForCourse(courseId);
+      if (loadRequestRef.current !== requestId) return;
+      setChallenges(loadedChallenges);
+    } catch (error) {
+      if (loadRequestRef.current !== requestId) return;
+      if (import.meta.env.DEV) {
+        console.warn('[ChallengesPanel] challenge load failed:', error);
+      }
+      setChallengeLoadError(CHALLENGE_LOAD_ERROR_COPY);
+    } finally {
+      if (loadRequestRef.current === requestId) {
+        setIsLoadingChallenges(false);
+      }
+    }
+  }, [courseId]);
+
+  useEffect(() => {
+    void refreshChallengeList({ resetActive: true });
+
+    return () => {
+      loadRequestRef.current += 1;
+    };
+  }, [refreshChallengeList]);
 
   if (activeChallenge) {
     return (
@@ -67,10 +136,53 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
             <p className="panel-meta panel-meta-trust">
               Completion is CodeHerWay app progress in this browser, not external verification.
             </p>
+            <section
+              className={`challenge-evidence ${activeEvidence.isCompleted ? 'is-complete' : ''}`}
+              aria-label="Challenge evidence summary"
+            >
+              <div className="challenge-evidence-head">
+                <div>
+                  <p className="challenge-evidence-kicker">Evidence summary</p>
+                  <h3 className="challenge-evidence-title">{activeEvidence.statusLabel}</h3>
+                  <p className="challenge-evidence-copy">{activeEvidence.statusDetail}</p>
+                </div>
+                <div className="challenge-evidence-pills" aria-label="Evidence scope">
+                  {activeEvidence.proofItems.map((item) => (
+                    <span key={item}>{item}</span>
+                  ))}
+                </div>
+              </div>
+              {activeEvidence.capabilityItems.length > 0 && (
+                <div className="challenge-evidence-grid">
+                  <div>
+                    <p className="challenge-evidence-label">Skill evidence</p>
+                    <ul className="challenge-evidence-list">
+                      {activeEvidence.capabilityItems.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="challenge-evidence-label">Portfolio reflection</p>
+                    <ul className="challenge-evidence-list">
+                      {activeEvidence.reflectionPrompts.map((prompt) => (
+                        <li key={prompt}>{prompt}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </section>
             <CodeChallenge
               challenge={activeChallenge}
               lang={lang}
               onComplete={() => {
+                trackEvent('challenge_completed', getChallengeAnalyticsPayload({
+                  challenge: activeChallenge,
+                  courseId,
+                  source: 'workspace',
+                  isCompleted: completed.has(activeChallenge?.id),
+                }));
                 // completeChallenge is async (it awaits awardRewardOnce),
                 // but we deliberately don't block the UI on reward sync —
                 // see the commit history around 'prevent reward processing
@@ -123,7 +235,28 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
             Completed labels reflect same-browser CodeHerWay progress. XP and badges stay motivational unless backend reward sync is enabled and verified.
           </p>
 
-          {challenges.length === 0 ? (
+          {challengeLoadError ? (
+            <div className="challenges-empty" role="alert" aria-live="assertive">
+              <p><strong>Challenges could not load right now.</strong></p>
+              <p className="challenges-empty-sub">
+                {challengeLoadError}
+              </p>
+              <button
+                type="button"
+                className="panel-back"
+                onClick={() => void refreshChallengeList()}
+              >
+                Try again
+              </button>
+            </div>
+          ) : isLoadingChallenges ? (
+            <div className="challenges-empty" role="status" aria-live="polite" aria-busy="true">
+              <p><strong>Loading the challenge lab...</strong></p>
+              <p className="challenges-empty-sub">
+                Pulling in the hands-on practice track for this course.
+              </p>
+            </div>
+          ) : challenges.length === 0 ? (
             <div className="challenges-empty">
               <p><strong>No challenges are live for this course yet.</strong></p>
               <p className="challenges-empty-sub">
@@ -149,7 +282,7 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
                   <button
                     type="button"
                     className="challenge-path-cta"
-                    onClick={() => setActiveChallenge(challengePlan.recommended)}
+                    onClick={() => openChallenge(challengePlan.recommended, 'recommendation')}
                     aria-label={`Start recommended challenge: ${challengePlan.recommended.title}`}
                   >
                     Start recommended
@@ -170,7 +303,7 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
                     type="button"
                     key={challenge.id}
                     className={`challenge-card ${completed.has(challenge.id) ? 'done' : ''}`}
-                    onClick={() => setActiveChallenge(challenge)}
+                    onClick={() => openChallenge(challenge, 'list')}
                   >
                     <div className="challenge-card-top">
                       <span className={`challenge-card-icon ${completed.has(challenge.id) ? 'is-done' : 'is-open'}`}>
