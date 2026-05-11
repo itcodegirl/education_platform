@@ -5,6 +5,7 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useProgressData } from '../../providers';
 import { useLearning } from '../../hooks/useLearning';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
+import { getChallengePracticePlan } from '../../utils/challengeProgress';
 
 export function ChallengesPanel({ courseId, lang, onClose }) {
   const challenges = getChallengesForCourse(courseId);
@@ -12,6 +13,10 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
   const { challengeCompletions = [] } = useProgressData();
   const learn = useLearning();
   const completed = useMemo(() => new Set(challengeCompletions), [challengeCompletions]);
+  const challengePlan = useMemo(
+    () => getChallengePracticePlan(challenges, completed),
+    [challenges, completed],
+  );
   const modalRef = useRef(null);
 
   useFocusTrap(modalRef, { enabled: true, onEscape: onClose });
@@ -121,6 +126,36 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
             </div>
           ) : (
             <>
+              <div className={`challenge-recommendation ${challengePlan.recommendedChallenge ? '' : 'is-complete'}`}>
+                <div className="challenge-recommendation-copy">
+                  <p className="challenge-recommendation-kicker">
+                    {challengePlan.recommendedChallenge ? 'Recommended next challenge' : 'Challenge practice complete'}
+                  </p>
+                  <h3 className="challenge-recommendation-title">
+                    {challengePlan.recommendedChallenge?.title || 'All available challenges completed'}
+                  </h3>
+                  <p className="challenge-recommendation-reason">{challengePlan.reason}</p>
+                  <div className="challenge-recommendation-meta">
+                    <span>{challengePlan.progressLabel}</span>
+                    {challengePlan.recommendedChallenge && (
+                      <>
+                        <span>{challengePlan.recommendedChallenge.difficulty}</span>
+                        <span>{challengePlan.recommendedChallenge.tests?.length || 0} tests</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                {challengePlan.recommendedChallenge && (
+                  <button
+                    type="button"
+                    className="challenge-recommendation-cta"
+                    onClick={() => setActiveChallenge(challengePlan.recommendedChallenge)}
+                    aria-label={`Start recommended challenge: ${challengePlan.recommendedChallenge.title}`}
+                  >
+                    Start recommended
+                  </button>
+                )}
+              </div>
               {completed.size === 0 && (
                 <div className="challenges-empty challenges-empty-compact">
                   <p><strong>No completed challenges yet.</strong></p>

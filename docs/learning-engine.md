@@ -173,6 +173,11 @@ Idempotency guarantees:
 - `markChallengeCompleted(id)` returns false if already in the set, so
   the reward block doesn't run twice
 
+Challenge recommendation is display-only. `src/utils/challengeProgress.js`
+selects the next open challenge for the current course and shows completion
+coverage in the Challenges panel. It does not gate lessons or imply external
+credential verification.
+
 ## 6. XP, streaks, daily goal, badges
 
 `recordDailyActivity` (in `ProgressContext`) is the single owner of:
