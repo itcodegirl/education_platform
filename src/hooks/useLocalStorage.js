@@ -17,31 +17,74 @@
 // sync-failure event for the progress shell to surface.
 // ═══════════════════════════════════════════════
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 export const LOCAL_STORAGE_SYNC_ERROR_EVENT = 'chw:local-storage-sync-error';
 
 function notifyLocalStorageError(key, phase) {
   if (typeof window === 'undefined') return;
-  window.dispatchEvent(new window.CustomEvent(LOCAL_STORAGE_SYNC_ERROR_EVENT, {
-    detail: { key, phase },
-  }));
+  const dispatch = () => {
+    window.dispatchEvent(new window.CustomEvent(LOCAL_STORAGE_SYNC_ERROR_EVENT, {
+      detail: { key, phase },
+    }));
+  };
+
+  if (typeof window.queueMicrotask === 'function') {
+    window.queueMicrotask(dispatch);
+    return;
+  }
+
+  window.setTimeout(dispatch, 0);
 }
 
-function readInitial(key, initialValue) {
+function readInitial(key, initialValue, options = {}) {
   if (typeof window === 'undefined') return initialValue;
   try {
     const raw = window.localStorage.getItem(key);
-    if (raw === null) return initialValue;
-    return JSON.parse(raw);
+    if (raw !== null) return JSON.parse(raw);
+
+    if (options.fallbackKey) {
+      const fallbackRaw = window.localStorage.getItem(options.fallbackKey);
+      if (fallbackRaw !== null) {
+        if (options.migrateFallback) {
+          window.localStorage.setItem(key, fallbackRaw);
+          if (options.removeFallbackAfterMigration) {
+            window.localStorage.removeItem(options.fallbackKey);
+          }
+        }
+        return JSON.parse(fallbackRaw);
+      }
+    }
+
+    return initialValue;
   } catch {
     notifyLocalStorageError(key, 'read');
     return initialValue;
   }
 }
 
-export function useLocalStorage(key, initialValue) {
-  const [value, setValue] = useState(() => readInitial(key, initialValue));
+export function useLocalStorage(key, initialValue, options = {}) {
+  const {
+    fallbackKey = null,
+    migrateFallback = false,
+    removeFallbackAfterMigration = false,
+  } = options;
+  const previousKeyRef = useRef(key);
+  const [value, setValue] = useState(() => readInitial(key, initialValue, options));
+
+  useEffect(() => {
+    if (previousKeyRef.current === key) return;
+    previousKeyRef.current = key;
+    setValue(readInitial(key, initialValue, {
+      fallbackKey,
+      migrateFallback,
+      removeFallbackAfterMigration,
+    }));
+    // initialValue is intentionally not a dependency: callers often
+    // pass object literals, and key changes are the only moment when
+    // this hook should reseed from storage.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fallbackKey, key, migrateFallback, removeFallbackAfterMigration]);
 
   // Keep tabs in sync when the same key changes in another tab.
   useEffect(() => {

@@ -24,7 +24,7 @@ import process from 'node:process';
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { createServer } from 'vite';
+import { withViteAuditRuntime } from './vite-audit-runtime.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SNAPSHOT_PATH = path.join(__dirname, 'lesson-label-snapshot.json');
@@ -33,15 +33,9 @@ const args = new Set(process.argv.slice(2));
 const updateMode = args.has('--update');
 
 async function loadAllCourseData() {
-  const viteServer = await createServer({
-    logLevel: 'silent',
-    server: { middlewareMode: true },
-    appType: 'custom',
-  });
-
-  try {
-    const { COURSE_METADATA } = await viteServer.ssrLoadModule('/src/data/metadata.js');
-    const { loadCourse } = await viteServer.ssrLoadModule('/src/data/loaders.js');
+  return withViteAuditRuntime(async ({ importModule }) => {
+    const { COURSE_METADATA } = await importModule('/src/data/metadata.js');
+    const { loadCourse } = await importModule('/src/data/loaders.js');
 
     const loaded = [];
     for (const courseMeta of COURSE_METADATA) {
@@ -49,9 +43,7 @@ async function loadAllCourseData() {
       loaded.push({ courseMeta, data });
     }
     return loaded;
-  } finally {
-    await viteServer.close();
-  }
+  });
 }
 
 function buildLabelMap(loaded) {

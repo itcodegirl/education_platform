@@ -146,6 +146,7 @@ function HeroPanel({ panel, index }) {
 
 export function LandingHeroIntro({ onStart, onPreview, compact = false }) {
   const [introRef, introInView] = useInView({ threshold: 0.1 });
+  const startIsPrimary = !onPreview;
 
   return (
     <section
@@ -160,27 +161,29 @@ export function LandingHeroIntro({ onStart, onPreview, compact = false }) {
       <p className="lh-lede">
         CodeHerWay takes you from <span className="lh-inline-code">&lt;h1&gt;Hi&lt;/h1&gt;</span> to a
         shipped React app in one clear, opinionated lesson at a time. Write
-        the code, see it run, ask the tutor when you&apos;re stuck.
+        the code, see it run, and keep moving with one clear next step.
       </p>
       <div className="lh-cta-row">
-        {onStart && (
-          <button
-            type="button"
-            className="lh-cta ui-btn ui-btn-primary ui-btn-pill"
-            onClick={onStart}
-            aria-label="Create a free account and start your first lesson"
-          >
-            Create free account
-          </button>
-        )}
         {onPreview && (
           <button
             type="button"
-            className="lh-cta-ghost ui-btn ui-btn-secondary"
+            className="lh-cta ui-btn ui-btn-primary ui-btn-pill"
             onClick={onPreview}
             aria-label="Preview the first lesson before creating an account"
           >
-            Preview first lesson
+            Start first lesson
+          </button>
+        )}
+        {onStart && (
+          <button
+            type="button"
+            className={startIsPrimary
+              ? 'lh-cta ui-btn ui-btn-primary ui-btn-pill'
+              : 'lh-cta-ghost ui-btn ui-btn-secondary'}
+            onClick={onStart}
+            aria-label="Create a free account"
+          >
+            Create account
           </button>
         )}
       </div>

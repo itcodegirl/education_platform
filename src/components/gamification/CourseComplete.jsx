@@ -1,22 +1,41 @@
 ﻿import { useEffect, useRef, useState } from 'react';
-import { generateCertificate } from '../../utils/certificate';
+import { generateProgressSummary } from '../../utils/progressSummary';
 import { useToast } from '../shared/Toast';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
-import { COMPLETION_EXPORT_COPY, PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
+import { PROGRESS_SUMMARY_COPY, PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 
-export function CourseComplete({ isOpen, onClose, course, displayName, lessonCount }) {
+// Curriculum order (HTML → CSS → JS → React) doubles as the natural
+// "what's next" recommendation. The pure helper is exported so the
+// recommendation can be unit-tested without mounting the dialog.
+export function getNextRecommendedTrack(currentCourseId, courses) {
+  if (!Array.isArray(courses) || courses.length === 0) return null;
+  const idx = courses.findIndex((c) => c.id === currentCourseId);
+  if (idx === -1 || idx >= courses.length - 1) return null;
+  return courses[idx + 1] || null;
+}
+
+export function CourseComplete({ isOpen, onClose, course, displayName, lessonCount, courses, onSelectNextCourse }) {
   const [show, setShow] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const toast = useToast();
   const modalRef = useRef(null);
+  // Capture the element that had focus when the modal opened so we can
+  // restore it when the modal closes (WCAG 2.4.3 Focus Order).
+  const returnFocusRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
+      returnFocusRef.current = document.activeElement;
       const timer = setTimeout(() => setShow(true), 200);
       return () => clearTimeout(timer);
     }
 
     setShow(false);
+    // Return focus to the element that triggered the modal.
+    if (returnFocusRef.current && typeof returnFocusRef.current.focus === 'function') {
+      returnFocusRef.current.focus();
+      returnFocusRef.current = null;
+    }
     return undefined;
   }, [isOpen]);
 
@@ -30,10 +49,18 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
     day: 'numeric',
   });
 
+  const nextTrack = getNextRecommendedTrack(course?.id, courses);
+  const handleStartNextTrack = () => {
+    if (typeof onSelectNextCourse === 'function' && nextTrack) {
+      onSelectNextCourse(nextTrack.id);
+    }
+    onClose();
+  };
+
   const handleDownload = async () => {
     setDownloading(true);
     try {
-      await generateCertificate({
+      await generateProgressSummary({
         studentName: displayName || 'Learner',
         courseName: course.label,
         courseId: course.id,
@@ -41,7 +68,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
         completionDate: today,
       });
     } catch {
-      toast.show('Learner export failed — try again in a moment.');
+      toast.show('Progress Summary failed — try again in a moment.', { tone: 'error' });
     } finally {
       setTimeout(() => setDownloading(false), 1000);
     }
@@ -74,7 +101,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
             to turn effort into visible progress.
           </p>
           <p id="cc-progress-sync" className="cc-kicker">
-            {PROGRESS_SYNC_COPY} {COMPLETION_EXPORT_COPY} This is learner progress, not a third-party certificate.
+            {PROGRESS_SYNC_COPY} {PROGRESS_SUMMARY_COPY} This is learner progress, not a third-party certificate.
           </p>
         </div>
 
@@ -82,7 +109,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
           <div className="cc-cert-inner">
             <div className="cc-cert-border" style={{ borderColor: course.accent }} />
             <div className="cc-cert-icon">{course.icon}</div>
-            <div className="cc-cert-label">Learner export of completion</div>
+            <div className="cc-cert-label">Progress Summary</div>
             <div className="cc-cert-course" style={{ color: course.accent }}>
               {course.label}
             </div>
@@ -107,6 +134,25 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
           </div>
         </div>
 
+        {nextTrack && (
+          <div className="cc-next-track" aria-label={`Recommended next track: ${nextTrack.label}`}>
+            <p className="cc-next-track-label">Recommended next</p>
+            <button
+              type="button"
+              className="cc-next-track-btn"
+              onClick={handleStartNextTrack}
+              style={{ borderColor: nextTrack.accent }}
+            >
+              <span className="cc-next-track-icon" aria-hidden="true">{nextTrack.icon}</span>
+              <span className="cc-next-track-text">
+                <span className="cc-next-track-title">Start {nextTrack.label}</span>
+                <span className="cc-next-track-sub">Builds on what you just shipped.</span>
+              </span>
+              <span className="cc-next-track-arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
+        )}
+
         <div className="cc-actions">
           <button
             type="button"
@@ -115,7 +161,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
             disabled={downloading}
             aria-busy={downloading}
           >
-            {downloading ? 'Generating…' : 'Download learner export (PDF)'}
+            {downloading ? 'Generating…' : 'Download Progress Summary (PDF)'}
           </button>
 
           <button type="button" className="cc-share-btn" onClick={async () => {
@@ -132,9 +178,9 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
             if (navigator.clipboard) {
               try {
                 await navigator.clipboard.writeText(text);
-                toast.show('Copied progress update to clipboard.');
+                toast.show('Copied progress update to clipboard.', { tone: 'success' });
               } catch {
-                toast.show('Could not copy. Try the Download button instead.');
+                toast.show('Could not copy. Try the Download button instead.', { tone: 'error' });
               }
             }
           }}>

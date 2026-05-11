@@ -2,10 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BookmarksPanel } from './BookmarksPanel';
 
-const { mockUseSR, mockUseProgressData, mockUseCourseContent } = vi.hoisted(() => ({
+const { mockUseSR, mockUseProgressData } = vi.hoisted(() => ({
   mockUseSR: vi.fn(),
   mockUseProgressData: vi.fn(),
-  mockUseCourseContent: vi.fn(),
 }));
 const { mockBookmarkSubmit } = vi.hoisted(() => ({
   mockBookmarkSubmit: vi.fn(),
@@ -14,7 +13,18 @@ const { mockBookmarkSubmit } = vi.hoisted(() => ({
 vi.mock('../../providers', () => ({
   useSR: () => mockUseSR(),
   useProgressData: () => mockUseProgressData(),
-  useCourseContent: () => mockUseCourseContent(),
+}));
+
+vi.mock('../../data/reference/course-catalog', () => ({
+  COURSE_CATALOG: [{
+    id: 'html',
+    label: 'HTML',
+    modules: [{
+      id: 'basics',
+      title: 'Basics',
+      lessons: [{ id: 'l-what', title: 'What is HTML?' }],
+    }],
+  }],
 }));
 
 vi.mock('react-router-dom', () => ({
@@ -27,16 +37,6 @@ vi.mock('../../hooks/useFocusTrap', () => ({
 }));
 
 describe('BookmarksPanel', () => {
-  const mockCourses = [{
-    id: 'html',
-    label: 'HTML',
-    modules: [{
-      id: 'basics',
-      title: 'Basics',
-      lessons: [{ id: 'l-what', title: 'What is HTML?' }],
-    }],
-  }];
-
   beforeEach(() => {
     mockBookmarkSubmit.mockReset();
     mockUseSR.mockReturnValue({
@@ -45,10 +45,6 @@ describe('BookmarksPanel', () => {
     });
     mockUseProgressData.mockReturnValue({
       markSyncFailed: vi.fn(),
-    });
-    mockUseCourseContent.mockReturnValue({
-      ensureAllLoaded: vi.fn(),
-      courses: mockCourses,
     });
   });
 
@@ -67,6 +63,23 @@ describe('BookmarksPanel', () => {
       screen.getByText(/Use the Save button in a lesson header/i),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Back to lesson/i })).toBeInTheDocument();
+  });
+
+  it('treats missing bookmark data as an empty saved list', () => {
+    mockUseSR.mockReturnValue({
+      toggleBookmark: vi.fn(),
+    });
+
+    render(
+      <BookmarksPanel
+        isOpen
+        onClose={vi.fn()}
+        onNavigate={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('heading', { name: /Bookmarks \(0\)/i })).toBeInTheDocument();
+    expect(screen.getByText(/No saved lessons yet/i)).toBeInTheDocument();
   });
 
   it('opens a stable-key bookmark and routes to the resolved lesson indices', () => {
@@ -88,6 +101,10 @@ describe('BookmarksPanel', () => {
         onNavigate={onNavigate}
       />,
     );
+
+    const savedList = screen.getByRole('list', { name: /saved lessons/i });
+    expect(savedList).toBeInTheDocument();
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
 
     fireEvent.click(screen.getByRole('button', { name: /open what is html/i }));
     expect(onNavigate).toHaveBeenCalledWith(0, 0, 0);

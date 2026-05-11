@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { COURSES } from '../../data';
-import { useCourseContent } from '../../providers';
+import { useCourseContent } from '../../providers/CourseContentProvider';
 import { renderMarkdown } from '../../utils/markdown';
 import { CodePreview } from '../learning/CodePreview';
 
@@ -21,7 +21,7 @@ export function GuestPreview({ onBack }) {
   if (!htmlReady || !firstLesson) {
     return (
       <main className="guest-preview guest-preview-loading" aria-live="polite" role="status">
-        <p>Loading lesson preview...</p>
+        <p>Opening lesson preview...</p>
       </main>
     );
   }
@@ -44,8 +44,8 @@ export function GuestPreview({ onBack }) {
         <div className="gp-banner">
           <span className="gp-banner-icon" aria-hidden="true">&#128640;</span>
           <p>
-            You&apos;re previewing the first lesson. Create a free account when you&apos;re
-            ready to track progress, earn badges, and unlock the AI tutor.
+            You&apos;re previewing the first lesson. Build the tiny page first,
+            then create a free account if you want to save your spot.
           </p>
         </div>
 
@@ -151,8 +151,9 @@ export function GuestPreview({ onBack }) {
         <section className="gp-cta" aria-label="Preview call to action">
           <h3>Ready to keep going?</h3>
           <p>
-            Create a free account to continue through the full lesson library,
-            track and save your progress, earn badges, and use the AI tutor.
+            Create a free account to track your progress, keep your place,
+            save notes and bookmarks, and continue through the courses when
+            you come back.
           </p>
           <button type="button" className="gp-cta-btn ui-btn ui-btn-primary ui-btn-pill" onClick={onBack} aria-label="Create free account">
             Create free account
@@ -162,4 +163,3 @@ export function GuestPreview({ onBack }) {
     </main>
   );
 }
-

@@ -17,6 +17,49 @@
 // by older builds still resume correctly.
 
 export function resolveSavedPosition(lastPosition, courses) {
+  const stablePosition = resolveStableSavedPosition(lastPosition, courses);
+  if (stablePosition) return stablePosition;
+
+  return resolveLegacySavedPosition(lastPosition, courses);
+}
+
+function resolveStableSavedPosition(lastPosition, courses) {
+  if (!lastPosition?.courseId || !lastPosition?.moduleId) {
+    return null;
+  }
+  if (!lastPosition.isModuleQuiz && !lastPosition.lessonId) {
+    return null;
+  }
+  if (!Array.isArray(courses) || courses.length === 0) {
+    return null;
+  }
+
+  const courseIndex = courses.findIndex((course) => course.id === lastPosition.courseId);
+  if (courseIndex === -1) return null;
+
+  const course = courses[courseIndex];
+  const moduleIndex = course.modules?.findIndex((module) => module.id === lastPosition.moduleId) ?? -1;
+  if (moduleIndex === -1) return null;
+
+  const lessons = course.modules[moduleIndex].lessons || [];
+  if (lessons.length === 0) return null;
+
+  if (lastPosition.isModuleQuiz) {
+    return {
+      courseIndex,
+      moduleIndex,
+      lessonIndex: lessons.length - 1,
+      isModuleQuiz: true,
+    };
+  }
+
+  const lessonIndex = lessons.findIndex((lesson) => lesson.id === lastPosition.lessonId);
+  if (lessonIndex === -1) return null;
+
+  return { courseIndex, moduleIndex, lessonIndex, isModuleQuiz: false };
+}
+
+function resolveLegacySavedPosition(lastPosition, courses) {
   if (!lastPosition?.course || !lastPosition?.mod || !lastPosition?.les) {
     return null;
   }

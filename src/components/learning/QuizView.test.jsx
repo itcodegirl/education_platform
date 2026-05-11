@@ -21,11 +21,20 @@ vi.mock('../../providers', () => ({
 vi.mock('../../engine/rewards/rewardRuntime', () => ({
   awardRewardOnce: vi.fn(async ({
     legacyRewardKey,
+    hasRewardBeenAwarded = () => false,
     markRewardAwarded = () => false,
     awardXP = () => {},
     xpAmount = 0,
     reason = '',
   }) => {
+    if (hasRewardBeenAwarded(legacyRewardKey)) {
+      return {
+        rewardResult: {
+          xpAwarded: 0,
+        },
+      };
+    }
+
     const awarded = markRewardAwarded(legacyRewardKey);
     if (awarded) {
       awardXP(xpAmount, reason);
@@ -94,7 +103,7 @@ describe('QuizView', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /<h1>/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /<h1>/i }));
     fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
 
     await waitFor(() => {
@@ -102,6 +111,7 @@ describe('QuizView', () => {
       expect(
         screen.getByText(/Best score saved to your progress/i),
       ).toBeInTheDocument();
+      expect(screen.getByText(/XP is awarded once per quiz milestone/i)).toBeInTheDocument();
     });
   });
 
@@ -124,7 +134,7 @@ describe('QuizView', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /<p>/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /<p>/i }));
     fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
 
     await waitFor(() => {
@@ -133,7 +143,52 @@ describe('QuizView', () => {
     expect(saveQuizScore).not.toHaveBeenCalled();
   });
 
-  it('quiz.a11y.selected-answer-announced', async () => {
+  it('quizRetryDoesNotDuplicateXp when only legacy quiz rewards exist', async () => {
+    const awardXP = vi.fn();
+    const saveQuizScore = vi.fn();
+    const legacyBaseRewardKey = rewardKeys.quizComplete('l:h1-1');
+    const legacyPerfectRewardKey = rewardKeys.quizPerfect('l:h1-1');
+    const hasRewardBeenAwarded = vi.fn((rewardKey) =>
+      rewardKey === legacyBaseRewardKey || rewardKey === legacyPerfectRewardKey,
+    );
+    const markRewardAwarded = vi.fn(() => true);
+
+    mockUseProgressData.mockReturnValue({
+      quizScores: { 'l:h1-1': '1/1' },
+      saveQuizScore,
+      hasRewardBeenAwarded,
+      markRewardAwarded,
+      markSyncFailed: vi.fn(),
+    });
+    mockUseXP.mockReturnValue({
+      awardXP,
+      recordDailyActivity: vi.fn(),
+    });
+
+    render(
+      <QuizView
+        quiz={quiz}
+        accent="#4ecdc4"
+        label="Quick Check"
+        quizKey="l:html:h1-1"
+        legacyQuizKeys={['l:h1-1']}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('radio', { name: /<h1>/i }));
+    fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/XP already earned/i)).toBeInTheDocument();
+    });
+    expect(saveQuizScore).not.toHaveBeenCalled();
+    expect(awardXP).not.toHaveBeenCalled();
+    expect(markRewardAwarded).not.toHaveBeenCalled();
+    expect(hasRewardBeenAwarded).toHaveBeenCalledWith(legacyBaseRewardKey);
+    expect(hasRewardBeenAwarded).toHaveBeenCalledWith(legacyPerfectRewardKey);
+  });
+
+  it('quizChoicesExposeAccessibleSingleAnswerSemantics', async () => {
     render(
       <QuizView
         quiz={quiz}
@@ -143,21 +198,116 @@ describe('QuizView', () => {
       />,
     );
 
-    const wrongAnswer = screen.getByRole('button', { name: /B: <p>/i });
+    expect(screen.getByText(/separately from lesson completion/i)).toBeInTheDocument();
+
+    expect(screen.getByRole('group', { name: /which tag creates a top-level heading/i })).toBeInTheDocument();
+    const wrongAnswer = screen.getByRole('radio', { name: /B: <p>/i });
     fireEvent.click(wrongAnswer);
-    expect(wrongAnswer).toHaveAttribute('aria-pressed', 'true');
+    expect(wrongAnswer).toBeChecked();
 
     fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /A: <h1>, correct answer/i })).toBeDisabled();
+      expect(screen.getByRole('radio', { name: /A: <h1>, correct answer/i })).toBeDisabled();
       expect(
-        screen.getByRole('button', { name: /B: <p>, selected, incorrect answer/i }),
+        screen.getByRole('radio', { name: /B: <p>, selected, incorrect answer/i }),
       ).toBeDisabled();
     });
   });
 
-  it('quizRetryDoesNotDuplicateXp', async () => {
+  it('shows an actionable feedback loop after a missed quiz question', async () => {
+    const addToSRQueue = vi.fn();
+    mockUseSR.mockReturnValue({ addToSRQueue });
+
+    render(
+      <QuizView
+        quiz={quiz}
+        accent="#4ecdc4"
+        label="Quick Check"
+        quizKey="html-foundations-quiz"
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('radio', { name: /<p>/i }));
+    fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Feedback loop: Foundation review/i)).toBeInTheDocument();
+      expect(screen.getByText(/rebuild the lesson example/i)).toBeInTheDocument();
+      expect(addToSRQueue).toHaveBeenCalledWith([
+        expect.objectContaining({
+          question: 'Which tag creates a top-level heading?',
+          source: 'Quick Check',
+        }),
+      ]);
+    });
+  });
+
+  it('bugQuizChoicesUseNativeSingleAnswerSemantics', async () => {
+    const bugQuiz = {
+      questions: [
+        {
+          id: 'bug-1',
+          type: 'bug',
+          question: 'Which line has the bug?',
+          lines: ['const total = 1 + 1;', 'return totl;'],
+          correct: 1,
+          explanation: 'The return statement uses a misspelled variable name.',
+        },
+      ],
+    };
+
+    render(
+      <QuizView
+        quiz={bugQuiz}
+        accent="#4ecdc4"
+        label="Bug Check"
+        quizKey="bug-check"
+      />,
+    );
+
+    expect(screen.getByRole('group', { name: /which line has the bug/i })).toBeInTheDocument();
+    const bugLine = screen.getByRole('radio', { name: /Line 2: return totl;/i });
+    fireEvent.click(bugLine);
+    expect(bugLine).toBeChecked();
+
+    fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('radio', { name: /Line 2: return totl;, selected, correct answer/i })).toBeDisabled();
+    });
+  });
+
+  it('orderQuizControlsAnnounceMovedItemAndPosition', () => {
+    render(
+      <QuizView
+        quiz={{
+          questions: [
+            {
+              id: 'order-1',
+              type: 'order',
+              question: 'Put the page layers in order.',
+              items: ['HTML', 'CSS', 'JavaScript'],
+              correct: [0, 1, 2],
+              explanation: 'Start with structure, then styles, then behavior.',
+            },
+          ],
+        }}
+        accent="#4ecdc4"
+        label="Order Check"
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: /Move CSS from position 2 to position 1/i,
+      }),
+    );
+
+    expect(screen.getByText(/CSS moved to position 1 of 3/i)).toBeInTheDocument();
+  });
+
+  it('does not award quiz XP again on retry after both quiz rewards are earned', async () => {
     const awarded = new Set();
     const awardXP = vi.fn();
     const recordDailyActivity = vi.fn();
@@ -189,11 +339,11 @@ describe('QuizView', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /<h1>/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /<h1>/i }));
     fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
     await waitFor(() => expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument());
     fireEvent.click(screen.getByRole('button', { name: /retry/i }));
-    fireEvent.click(screen.getByRole('button', { name: /<h1>/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /<h1>/i }));
     fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
 
     await waitFor(() => {
@@ -293,7 +443,7 @@ describe('QuizView', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /<h1>/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /<h1>/i }));
     const submitButton = screen.getByRole('button', { name: /submit answers/i });
     fireEvent.click(submitButton);
     fireEvent.click(submitButton);
@@ -323,7 +473,7 @@ describe('QuizView', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /<h1>/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /<h1>/i }));
     fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
 
     await waitFor(() => {

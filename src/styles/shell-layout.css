@@ -7,7 +7,10 @@
 /* ─── 6. Shell Layout ──────────────────────────── */
 .shell {
   display: flex;
+  width: 100%;
+  max-width: 100vw;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background:
     radial-gradient(circle at 15% 15%, rgba(167, 139, 250, 0.08), transparent 24%),
@@ -33,7 +36,10 @@
 /* ─── 8. Main Content & Topbar ─────────────────── */
 .main-shell {
   flex: 1;
+  min-width: 0;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   background:
     radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.03), transparent 30%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent 18%),
@@ -907,16 +913,18 @@
   --border-bright: #b0b0c0;
   --text: #1a1a2e;
   --text-dim: #555570;
-  --text-muted: #8888a0;
-  --pink: #e0558a;
-  --pink-dim: #e0558a25;
-  --pink-glow: #e0558a15;
-  --cyan: #0d9488;
-  --cyan-dim: #0d948815;
-  --amber: #d97706;
-  --amber-dim: #d9770615;
+  --text-muted: #66667a;
+  --pink: #b4235f;
+  --pink-dim: #b4235f25;
+  --pink-glow: #b4235f15;
+  --cyan: #006a78;
+  --cyan-dim: #006a7815;
+  --amber: #9a4b00;
+  --amber-dim: #9a4b0015;
   --purple: #7c3aed;
   --purple-dim: #7c3aed15;
+  --pink-text: var(--pink);
+  --purple-text: var(--purple);
 }
 
 /* Code blocks stay dark in light mode (industry standard) */
@@ -1174,7 +1182,6 @@
   border-color: var(--purple);
   color: var(--purple);
 }
-
 
 
 

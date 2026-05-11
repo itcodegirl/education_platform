@@ -1,6 +1,6 @@
 /* global console */
 import process from 'node:process';
-import { createServer } from 'vite';
+import { withViteAuditRuntime } from './vite-audit-runtime.mjs';
 import { resolveQuizLessonId } from '../src/data/quizLessonIdResolver.js';
 import {
   COURSE_ORPHAN_CLASSIFICATION_POLICIES,
@@ -512,15 +512,9 @@ function printEngineStabilizationSummary(totals) {
 }
 
 async function loadAllCourseData() {
-  const viteServer = await createServer({
-    logLevel: 'silent',
-    server: { middlewareMode: true },
-    appType: 'custom',
-  });
-
-  try {
-    const { COURSE_METADATA } = await viteServer.ssrLoadModule('/src/data/metadata.js');
-    const { loadCourse } = await viteServer.ssrLoadModule('/src/data/loaders.js');
+  return withViteAuditRuntime(async ({ importModule }) => {
+    const { COURSE_METADATA } = await importModule('/src/data/metadata.js');
+    const { loadCourse } = await importModule('/src/data/loaders.js');
 
     const loaded = [];
     for (const courseMeta of COURSE_METADATA) {
@@ -531,9 +525,7 @@ async function loadAllCourseData() {
       });
     }
     return loaded;
-  } finally {
-    await viteServer.close();
-  }
+  });
 }
 
 async function main() {

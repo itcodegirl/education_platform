@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 
-const { MOCK_COURSES, MOCK_QUIZ_MAP } = vi.hoisted(() => {
+const { MOCK_COURSES, MOCK_QUIZ_MAP, mockUseCourseContent } = vi.hoisted(() => {
   const courses = [
     {
       id: 'html',
@@ -24,6 +24,14 @@ const { MOCK_COURSES, MOCK_QUIZ_MAP } = vi.hoisted(() => {
           emoji: 'rocket',
           lessons: [
             { id: 'l-forms', title: 'Forms', content: '', code: '' },
+          ],
+        },
+        {
+          id: 202,
+          title: 'Numeric Module',
+          emoji: 'route',
+          lessons: [
+            { id: 'l-number', title: 'Numeric Route Module', content: '', code: '' },
           ],
         },
       ],
@@ -53,12 +61,16 @@ const { MOCK_COURSES, MOCK_QUIZ_MAP } = vi.hoisted(() => {
     ['l:css:l-class', { id: 'q-css-class', questions: [] }],
   ]);
 
-  return { MOCK_COURSES: courses, MOCK_QUIZ_MAP: quizMap };
+  return { MOCK_COURSES: courses, MOCK_QUIZ_MAP: quizMap, mockUseCourseContent: vi.fn() };
 });
 
 vi.mock('../data', () => ({
   COURSES: MOCK_COURSES,
   getQuiz: (courseId, type, entityId) => MOCK_QUIZ_MAP.get(`${type}:${courseId}:${entityId}`),
+}));
+
+vi.mock('../providers', () => ({
+  useCourseContent: () => mockUseCourseContent(),
 }));
 
 import { useNavigation } from './useNavigation';
@@ -90,6 +102,10 @@ function installNavigationStorage(initialValue = null) {
 
 beforeEach(() => {
   vi.restoreAllMocks();
+  window.matchMedia.mockReturnValue({ matches: false });
+  mockUseCourseContent.mockReturnValue({
+    ensureLoaded: vi.fn(async () => null),
+  });
   installNavigationStorage();
   window.history.replaceState(null, '', '/');
 });
@@ -157,6 +173,17 @@ describe('useNavigation initial state', () => {
       expect(result.current.showModQuiz).toBe(false);
     });
   });
+
+  it('hydrates numeric module ids from string route segments', async () => {
+    window.history.replaceState(null, '', '/learn/html/202/l-number');
+    const { result } = renderHook(() => useNavigation());
+    await waitFor(() => {
+      expect(result.current.courseIdx).toBe(0);
+      expect(result.current.modIdx).toBe(2);
+      expect(result.current.lesIdx).toBe(0);
+      expect(result.current.les.id).toBe('l-number');
+    });
+  });
 });
 
 describe('useNavigation go()', () => {
@@ -172,6 +199,24 @@ describe('useNavigation go()', () => {
     const { result } = renderHook(() => useNavigation());
     act(() => result.current.go(0, 1));
     expect(window.location.pathname).toBe('/learn/html/basics/l-tags');
+  });
+
+  it('reducedMotionUsesAutoScrollBehavior', () => {
+    window.matchMedia.mockReturnValue({ matches: true });
+    const scrollTo = vi.fn();
+    const { result } = renderHook(() => useNavigation());
+    result.current.mainRef.current = { scrollTo };
+
+    act(() => result.current.go(0, 1));
+
+    expect(window.matchMedia).toHaveBeenCalledWith('(prefers-reduced-motion: reduce)');
+    expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'auto' });
+  });
+
+  it('writes numeric module ids into stable lesson routes', () => {
+    const { result } = renderHook(() => useNavigation());
+    act(() => result.current.go(2, 0));
+    expect(window.location.pathname).toBe('/learn/html/202/l-number');
   });
 
   it('changes the active lesson id immediately when selecting a different lesson', () => {
@@ -291,12 +336,75 @@ describe('useNavigation switchCourse()', () => {
   });
 });
 
+describe('useNavigation goToCourseModule()', () => {
+  it('roadmapNavigationLoadsTargetCourseBeforeSelectingModule', async () => {
+    const originalModules = MOCK_COURSES[1].modules;
+    MOCK_COURSES[1].modules = [];
+    const ensureLoaded = vi.fn(async (courseId) => {
+      expect(courseId).toBe('css');
+      MOCK_COURSES[1].modules = originalModules;
+      return MOCK_COURSES[1];
+    });
+    mockUseCourseContent.mockReturnValue({ ensureLoaded });
+
+    try {
+      const { result } = renderHook(() => useNavigation());
+      let navigated = false;
+
+      await act(async () => {
+        navigated = await result.current.goToCourseModule(1, 0, 0);
+      });
+
+      expect(navigated).toBe(true);
+      expect(ensureLoaded).toHaveBeenCalledWith('css');
+      expect(result.current.courseIdx).toBe(1);
+      expect(result.current.modIdx).toBe(0);
+      expect(result.current.lesIdx).toBe(0);
+      expect(result.current.les.id).toBe('l-class');
+      expect(window.location.pathname).toBe('/learn/css/selectors/l-class');
+    } finally {
+      MOCK_COURSES[1].modules = originalModules;
+    }
+  });
+});
+
+describe('useNavigation goToSearch()', () => {
+  it('loads the target course before selecting a search or bookmark result', async () => {
+    const originalModules = MOCK_COURSES[1].modules;
+    MOCK_COURSES[1].modules = [];
+    const ensureLoaded = vi.fn(async (courseId) => {
+      expect(courseId).toBe('css');
+      MOCK_COURSES[1].modules = originalModules;
+      return MOCK_COURSES[1];
+    });
+    mockUseCourseContent.mockReturnValue({ ensureLoaded });
+
+    try {
+      const { result } = renderHook(() => useNavigation());
+      let navigated = false;
+
+      await act(async () => {
+        navigated = await result.current.goToSearch(1, 0, 0);
+      });
+
+      expect(navigated).toBe(true);
+      expect(ensureLoaded).toHaveBeenCalledWith('css');
+      expect(result.current.courseIdx).toBe(1);
+      expect(result.current.modIdx).toBe(0);
+      expect(result.current.lesIdx).toBe(0);
+      expect(window.location.pathname).toBe('/learn/css/selectors/l-class');
+    } finally {
+      MOCK_COURSES[1].modules = originalModules;
+    }
+  });
+});
+
 describe('useNavigation resumeFromPosition()', () => {
-  it('restores valid saved position and returns true', () => {
+  it('restores valid saved position and returns true', async () => {
     const { result } = renderHook(() => useNavigation());
     let resumed;
-    act(() => {
-      resumed = result.current.resumeFromPosition({
+    await act(async () => {
+      resumed = await result.current.resumeFromPosition({
         course: 'HTML',
         mod: 'Basics',
         les: 'Tags',
@@ -308,11 +416,11 @@ describe('useNavigation resumeFromPosition()', () => {
     expect(result.current.lesIdx).toBe(1);
   });
 
-  it('restores module quiz position', () => {
+  it('restores module quiz position', async () => {
     const { result } = renderHook(() => useNavigation());
     let resumed;
-    act(() => {
-      resumed = result.current.resumeFromPosition({
+    await act(async () => {
+      resumed = await result.current.resumeFromPosition({
         course: 'HTML',
         mod: 'Basics',
         les: 'Module Quiz',
@@ -322,20 +430,57 @@ describe('useNavigation resumeFromPosition()', () => {
     expect(result.current.showModQuiz).toBe(true);
   });
 
-  it('returns false for null position', () => {
+  it('loads a stable saved course before resolving resume coordinates', async () => {
+    const originalModules = MOCK_COURSES[1].modules;
+    MOCK_COURSES[1].modules = [];
+    const ensureLoaded = vi.fn(async (courseId) => {
+      expect(courseId).toBe('css');
+      MOCK_COURSES[1].modules = originalModules;
+      return MOCK_COURSES[1];
+    });
+    mockUseCourseContent.mockReturnValue({ ensureLoaded });
+
+    try {
+      const { result } = renderHook(() => useNavigation());
+      let resumed = false;
+
+      await act(async () => {
+        resumed = await result.current.resumeFromPosition({
+          courseId: 'css',
+          moduleId: 'selectors',
+          lessonId: 'l-class',
+          isModuleQuiz: false,
+          course: 'Renamed course',
+          mod: 'Renamed module',
+          les: 'Renamed lesson',
+        });
+      });
+
+      expect(resumed).toBe(true);
+      expect(ensureLoaded).toHaveBeenCalledWith('css');
+      expect(result.current.courseIdx).toBe(1);
+      expect(result.current.modIdx).toBe(0);
+      expect(result.current.lesIdx).toBe(0);
+      expect(window.location.pathname).toBe('/learn/css/selectors/l-class');
+    } finally {
+      MOCK_COURSES[1].modules = originalModules;
+    }
+  });
+
+  it('returns false for null position', async () => {
     const { result } = renderHook(() => useNavigation());
     let resumed;
-    act(() => {
-      resumed = result.current.resumeFromPosition(null);
+    await act(async () => {
+      resumed = await result.current.resumeFromPosition(null);
     });
     expect(resumed).toBe(false);
   });
 
-  it('returns false when course label is unknown', () => {
+  it('returns false when course label is unknown', async () => {
     const { result } = renderHook(() => useNavigation());
     let resumed;
-    act(() => {
-      resumed = result.current.resumeFromPosition({
+    await act(async () => {
+      resumed = await result.current.resumeFromPosition({
         course: 'NoSuchCourse',
         mod: 'Basics',
         les: 'Tags',

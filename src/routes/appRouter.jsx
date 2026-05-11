@@ -1,4 +1,4 @@
-﻿import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import {
   createBrowserRouter,
   Navigate,
@@ -8,36 +8,51 @@ import {
   useLocation,
   useNavigate,
 } from 'react-router-dom';
-import { COURSE_LOADER_IDS, loadCourse } from '../data';
-import { useAuth, useCourseContent, useProgressData, useTheme } from '../providers';
+import { COURSE_LOADER_IDS, loadCourseRuntime } from '../data';
+import { useAuth } from '../providers/AuthProvider';
+import { useTheme } from '../providers/ThemeProvider';
 import { AuthLayout } from '../layouts/AuthLayout';
-import { AppLayout } from '../layouts/AppLayout';
-import { LessonSkeleton, ConnectionError } from '../components/shared/SkeletonLoader';
 import { Logo } from '../components/shared/Logo';
-import { AdminRoute } from './guards/AdminRoute';
-import { APP_ROUTES, parsePublicProfilePath } from './routePaths';
+import { APP_ROUTES, parsePublicProfilePath, routeIdMatches } from './routePaths';
 import { closeRouteOrGoHome, toPathFromLegacyHash } from './routeUtils';
 import { RouteErrorBoundary } from './RouteErrorBoundary';
-import { learnRouteAction } from './learnRouteActions';
 
-export { learnRouteAction } from './learnRouteActions';
-
-const AdminDashboard = lazy(() =>
-  import('../components/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })),
-);
-const ProfilePage = lazy(() =>
-  import('../components/shared/ProfilePage').then((m) => ({ default: m.ProfilePage })),
-);
 const Styleguide = lazy(() =>
-  import('../components/shared/Styleguide').then((m) => ({ default: m.Styleguide })),
+  import('../components/shared/Styleguide').then((module) => ({ default: module.Styleguide })),
 );
-const PublicProfile = lazy(() =>
-  import('../components/shared/PublicProfile').then((m) => ({ default: m.PublicProfile })),
+const PublicProfilePageRoute = lazy(() =>
+  import('./PublicProfileRoute').then((module) => ({ default: module.PublicProfileRoute })),
 );
+const ProtectedAppProvidersLayout = lazy(() =>
+  import('./ProtectedAppRoutes').then((module) => ({ default: module.ProtectedAppProvidersLayout })),
+);
+const ProtectedHomeRoute = lazy(() =>
+  import('./ProtectedAppRoutes').then((module) => ({ default: module.ProtectedHomeRoute })),
+);
+const ProtectedLearnRoute = lazy(() =>
+  import('./ProtectedAppRoutes').then((module) => ({ default: module.ProtectedLearnRoute })),
+);
+const ProtectedProfileRoute = lazy(() =>
+  import('./ProtectedAppRoutes').then((module) => ({ default: module.ProtectedProfileRoute })),
+);
+const ProtectedAdminDashboardRoute = lazy(() =>
+  import('./ProtectedAppRoutes').then((module) => ({ default: module.ProtectedAdminDashboardRoute })),
+);
+
+export async function learnRouteAction(args) {
+  const module = await import('./learnRouteActions');
+  return module.learnRouteAction(args);
+}
+
+function loadedCourseHasModuleQuiz(loadedCourse, moduleId) {
+  return (loadedCourse.quizzes || []).some((quiz) =>
+    quiz?.moduleId != null && routeIdMatches(quiz.moduleId, moduleId),
+  );
+}
 
 function RouteLoadingScreen({ theme, size = 'sm', children }) {
   return (
-    <div className={`loading-screen ${theme}`} role="status" aria-live="polite">
+    <div className={`loading-screen ${theme}`} role="status" aria-live="polite" aria-busy="true">
       <div className="loading-pulse">
         {size === 'lg' ? <Logo size="lg" showTagline /> : <Logo size={size} />}
         {children}
@@ -46,70 +61,77 @@ function RouteLoadingScreen({ theme, size = 'sm', children }) {
   );
 }
 
-function DisabledAccountScreen({ theme, onSignOut }) {
+function LoadingMessage({ children }) {
+  return <p className="route-loading-message">{children}</p>;
+}
+
+function AccountStatusScreen({
+  actions,
+  icon,
+  idPrefix,
+  message,
+  theme,
+  title,
+}) {
+  const titleId = `${idPrefix}-title`;
+  const descriptionId = `${idPrefix}-desc`;
+
   return (
-    <div className={`loading-screen ${theme}`} role="status" aria-live="polite">
+    <div
+      className={`loading-screen ${theme}`}
+      role="alert"
+      aria-live="assertive"
+      aria-labelledby={titleId}
+      aria-describedby={descriptionId}
+    >
       <div className="disabled-screen">
-        <span className="disabled-icon" aria-hidden="true">⊘</span>
-        <h2 className="disabled-title">Account disabled</h2>
-        <p className="disabled-msg">Your account has been disabled. Contact support if this is a mistake.</p>
-        <a href="mailto:hello@codeherway.com" className="disabled-link">Contact support</a>
-        <button type="button" className="disabled-logout" onClick={onSignOut}>Log out</button>
+        <span className="disabled-icon" aria-hidden="true">{icon}</span>
+        <h2 id={titleId} className="disabled-title">{title}</h2>
+        <p id={descriptionId} className="disabled-msg">{message}</p>
+        <div className="disabled-actions">
+          {actions}
+        </div>
       </div>
     </div>
+  );
+}
+
+function DisabledAccountScreen({ theme, onSignOut }) {
+  return (
+    <AccountStatusScreen
+      theme={theme}
+      idPrefix="disabled-account"
+      icon="!"
+      title="Account disabled"
+      message="Your account has been disabled. Contact support if this is a mistake."
+      actions={(
+        <>
+          <a href="mailto:hello@codeherway.com" className="disabled-link">Contact support</a>
+          <button type="button" className="disabled-logout" onClick={onSignOut}>Log out</button>
+        </>
+      )}
+    />
   );
 }
 
 function AccountCheckErrorScreen({ theme, onRetry, onSignOut }) {
   return (
-    <div className={`loading-screen ${theme}`} role="alert" aria-live="assertive">
-      <div className="disabled-screen">
-        <span className="disabled-icon" aria-hidden="true">!</span>
-        <h2 className="disabled-title">We could not verify your account</h2>
-        <p className="disabled-msg">
-          Your lessons are safe, but CodeHerWay needs to confirm your profile before opening the learning dashboard.
-        </p>
-        <button type="button" className="disabled-logout" onClick={onRetry}>
-          Try Again
-        </button>
-        <button type="button" className="disabled-link" onClick={onSignOut}>
-          Log Out
-        </button>
-      </div>
-    </div>
+    <AccountStatusScreen
+      theme={theme}
+      idPrefix="account-check-error"
+      icon="!"
+      title="We could not verify your account"
+      message="Your lessons are safe, but CodeHerWay needs to confirm your profile before opening the learning dashboard."
+      actions={(
+        <>
+          <button type="button" className="disabled-link" onClick={onRetry}>
+            Try again
+          </button>
+          <button type="button" className="disabled-logout" onClick={onSignOut}>Log out</button>
+        </>
+      )}
+    />
   );
-}
-
-function AppDataGate({ theme, dataLoaded, loadError, retryLoad }) {
-  if (loadError) {
-    return (
-      <div className={`loading-screen ${theme}`}>
-        <ConnectionError onRetry={retryLoad} />
-      </div>
-    );
-  }
-
-  if (!dataLoaded) {
-    return (
-      <div className={`shell ${theme}`} role="status" aria-live="polite">
-        <div className="sidebar skeleton-sidebar-wrap">
-          <div className="skeleton-brand-area"><div className="skeleton-line skeleton-w60 skeleton-h16"></div></div>
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="skeleton-module">
-              <div className="skeleton-line skeleton-w80 skeleton-h14"></div>
-              <div className="skeleton-line skeleton-w50 skeleton-h10"></div>
-            </div>
-          ))}
-        </div>
-        <div className="main-shell">
-          <div className="topbar"><div className="skeleton-line skeleton-w40 skeleton-h14"></div></div>
-          <div className="lesson-container"><LessonSkeleton /></div>
-        </div>
-      </div>
-    );
-  }
-
-  return <AppLayout />;
 }
 
 export function ProtectedRoute({ children }) {
@@ -127,7 +149,7 @@ export function ProtectedRoute({ children }) {
   if (authLoading || (user && profileLoading)) {
     return (
       <RouteLoadingScreen theme={theme} size="lg">
-        <p style={{ marginTop: '16px', opacity: 0.5 }}>Checking your account session...</p>
+        <LoadingMessage>Opening your learning dashboard...</LoadingMessage>
       </RouteLoadingScreen>
     );
   }
@@ -141,23 +163,6 @@ export function ProtectedRoute({ children }) {
   }
 
   return children;
-}
-
-function ProtectedAppDataRoute({ preloadCourseId = '' }) {
-  const { theme } = useTheme();
-  const { dataLoaded, loadError, retryLoad } = useProgressData();
-  const { ensureLoaded } = useCourseContent();
-
-  useEffect(() => {
-    if (!preloadCourseId) return;
-    ensureLoaded(preloadCourseId);
-  }, [ensureLoaded, preloadCourseId]);
-
-  return (
-    <ProtectedRoute>
-      <AppDataGate theme={theme} dataLoaded={dataLoaded} loadError={loadError} retryLoad={retryLoad} />
-    </ProtectedRoute>
-  );
 }
 
 function RouteShell() {
@@ -180,7 +185,7 @@ function StyleguideRoute() {
       <Suspense
         fallback={(
           <RouteLoadingScreen theme={theme}>
-            <p>Loading styleguide...</p>
+            <LoadingMessage>Opening styleguide...</LoadingMessage>
           </RouteLoadingScreen>
         )}
       >
@@ -190,7 +195,7 @@ function StyleguideRoute() {
   );
 }
 
-function PublicProfileRoute() {
+function PublicProfileRouteShell() {
   const { theme } = useTheme();
   const { handle } = useLoaderData();
 
@@ -199,73 +204,76 @@ function PublicProfileRoute() {
       <Suspense
         fallback={(
           <RouteLoadingScreen theme={theme}>
-            <p>Loading public profile...</p>
+            <LoadingMessage>Opening public profile...</LoadingMessage>
           </RouteLoadingScreen>
         )}
       >
-        <PublicProfile handle={handle} onClose={closeRouteOrGoHome} />
+        <PublicProfilePageRoute handle={handle} onClose={closeRouteOrGoHome} />
       </Suspense>
     </div>
   );
 }
 
-function ProfileRoute() {
+function ProtectedShellLoadingScreen({ message }) {
+  const { theme } = useTheme();
+
+  return (
+    <RouteLoadingScreen theme={theme}>
+      <LoadingMessage>{message}</LoadingMessage>
+    </RouteLoadingScreen>
+  );
+}
+
+function ProtectedAppShellRoute() {
   const { theme } = useTheme();
 
   return (
     <ProtectedRoute>
-      <div className={theme}>
-        <Suspense
-          fallback={(
-            <RouteLoadingScreen theme={theme}>
-              <p>Loading profile...</p>
-            </RouteLoadingScreen>
-          )}
-        >
-          <ProfilePage onClose={closeRouteOrGoHome} />
-        </Suspense>
-      </div>
+      <Suspense
+        fallback={(
+          <RouteLoadingScreen theme={theme} size="lg">
+            <LoadingMessage>Preparing your learning dashboard...</LoadingMessage>
+          </RouteLoadingScreen>
+        )}
+      >
+        <ProtectedAppProvidersLayout />
+      </Suspense>
     </ProtectedRoute>
   );
 }
 
-function AdminDashboardRoute() {
-  const { theme } = useTheme();
-  const { dataLoaded, loadError, retryLoad } = useProgressData();
-
+function HomeRoute() {
   return (
-    <ProtectedRoute>
-      <AdminRoute
-        fallback={<AppDataGate theme={theme} dataLoaded={dataLoaded} loadError={loadError} retryLoad={retryLoad} />}
-        loadingFallback={(
-          <RouteLoadingScreen theme={theme}>
-            <p>Checking admin access...</p>
-          </RouteLoadingScreen>
-        )}
-      >
-        <div className={theme}>
-          <Suspense
-            fallback={(
-              <RouteLoadingScreen theme={theme}>
-                <p>Loading admin dashboard...</p>
-              </RouteLoadingScreen>
-            )}
-          >
-            <AdminDashboard onClose={closeRouteOrGoHome} />
-          </Suspense>
-        </div>
-      </AdminRoute>
-    </ProtectedRoute>
+    <Suspense fallback={<ProtectedShellLoadingScreen message="Loading your lesson workspace..." />}>
+      <ProtectedHomeRoute />
+    </Suspense>
   );
 }
 
 function LearnRoute() {
   const { courseId } = useLoaderData();
-  return <ProtectedAppDataRoute preloadCourseId={courseId} />;
+
+  return (
+    <Suspense fallback={<ProtectedShellLoadingScreen message="Loading this lesson..." />}>
+      <ProtectedLearnRoute preloadCourseId={courseId} />
+    </Suspense>
+  );
 }
 
-function HomeRoute() {
-  return <ProtectedAppDataRoute />;
+function ProfileRouteShell() {
+  return (
+    <Suspense fallback={<ProtectedShellLoadingScreen message="Opening profile..." />}>
+      <ProtectedProfileRoute />
+    </Suspense>
+  );
+}
+
+function AdminDashboardRouteShell() {
+  return (
+    <Suspense fallback={<ProtectedShellLoadingScreen message="Opening admin dashboard..." />}>
+      <ProtectedAdminDashboardRoute />
+    </Suspense>
+  );
 }
 
 export async function publicProfileRouteLoader({ params }) {
@@ -284,14 +292,18 @@ export async function learnRouteLoader({ params }) {
   }
 
   try {
-    const loadedCourse = await loadCourse(courseId);
-    const moduleMatch = loadedCourse.modules.find((module) => module.id === moduleId);
+    const loadedCourse = await loadCourseRuntime(courseId);
+    const moduleMatch = loadedCourse.modules.find((module) => routeIdMatches(module.id, moduleId));
     if (!moduleMatch) {
       throw new Error('Unknown module');
     }
 
-    if (lessonId !== 'quiz') {
-      const lessonMatch = moduleMatch.lessons.find((lesson) => lesson.id === lessonId);
+    if (lessonId === 'quiz') {
+      if (!loadedCourseHasModuleQuiz(loadedCourse, moduleMatch.id)) {
+        throw new Error('Unknown module quiz');
+      }
+    } else {
+      const lessonMatch = moduleMatch.lessons.find((lesson) => routeIdMatches(lesson.id, lessonId));
       if (!lessonMatch) {
         throw new Error('Unknown lesson');
       }
@@ -316,14 +328,18 @@ export const appRouter = createBrowserRouter([
     element: <RouteShell />,
     errorElement: <RouteErrorBoundary />,
     children: [
-      { index: true, element: <HomeRoute /> },
       { path: STYLEGUIDE_SEGMENT, element: <StyleguideRoute /> },
-      { path: PUBLIC_PROFILE_SEGMENT, loader: publicProfileRouteLoader, element: <PublicProfileRoute /> },
-      { path: PROFILE_SEGMENT, element: <ProfileRoute /> },
-      { path: ADMIN_SEGMENT, element: <AdminDashboardRoute /> },
-      { path: LEARN_SEGMENT, loader: learnRouteLoader, action: learnRouteAction, element: <LearnRoute /> },
+      { path: PUBLIC_PROFILE_SEGMENT, loader: publicProfileRouteLoader, element: <PublicProfileRouteShell /> },
+      {
+        element: <ProtectedAppShellRoute />,
+        children: [
+          { index: true, element: <HomeRoute /> },
+          { path: PROFILE_SEGMENT, element: <ProfileRouteShell /> },
+          { path: ADMIN_SEGMENT, element: <AdminDashboardRouteShell /> },
+          { path: LEARN_SEGMENT, loader: learnRouteLoader, action: learnRouteAction, element: <LearnRoute /> },
+        ],
+      },
       { path: '*', element: <Navigate to={APP_ROUTES.home} replace /> },
     ],
   },
 ]);
-

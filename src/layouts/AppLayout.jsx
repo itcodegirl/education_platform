@@ -4,19 +4,19 @@
 // ===============================================
 
 import { useCallback, useMemo, useEffect, useState } from "react";
-import { useFetcher } from "react-router-dom";
-import { COURSES, buildScopedQuizKey } from "../data";
-import { useTheme, useAuth, useProgressData, useXP, useCourseContent } from "../providers";
+import { COURSES } from "../data";
+import { useTheme, useAuth, useProgressData, useXP, useCourseContent, useSR } from "../providers";
 import { useNavigation } from "../hooks/useNavigation";
 import { usePanels } from "../hooks/usePanels";
 import { useKeyboardNav } from "../hooks/useKeyboardNav";
 import { useLearning } from "../hooks/useLearning";
 import { useIsMobile } from "../hooks/useIsMobile";
+import { useMobileKeyboardOpen } from "../hooks/useMobileKeyboardOpen";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
-import { useFetcherSyncFailure } from "../hooks/useFetcherSyncFailure";
 import { useLessonViewTracking } from "../hooks/useLessonViewTracking";
-import { useLessonMarkDone } from "../hooks/useLessonMarkDone";
+import { useMarkLessonDone } from "../hooks/useMarkLessonDone";
+import { useLearningToolActions } from "../hooks/useLearningToolActions";
 import { estimateReadingTime, getLevel } from "../utils/helpers";
 import { trackEvent } from "../lib/analytics";
 import {
@@ -25,21 +25,35 @@ import {
   hasLessonCompletion,
 } from "../utils/lessonKeys";
 import {
+  buildLegacyQuizKey,
+  buildStableQuizKey,
+  getBestQuizScoreValue,
+} from "../utils/quizKeys";
+import {
+  getCurrentStepCopy,
   getLessonPositionLabel,
   getNextLessonTitle,
   getNextStepHint,
   getPrevLessonTitle,
 } from "../utils/lessonNavCopy";
+import { getLessonCompletionActionCopy } from "../utils/lessonCompletionCopy";
 import { getSyncStatusCopy } from "../utils/syncStatusCopy";
+import { getLessonMasteryStatus } from "../utils/lessonMasteryStatus";
+import { getDailyLearningLoopSteps } from "../utils/dailyLearningLoop";
+import { getLearningLoopActionPayload } from "../utils/learningAnalyticsPayloads";
 
 // Layout components
 import { Sidebar } from "../components/layout/Sidebar";
-import { Breadcrumb } from "../components/layout/Breadcrumb";
+import { LessonShellTopbar } from "../components/layout/LessonShellTopbar";
 import { ThemeToggle } from "../components/layout/ThemeToggle";
 import { BottomToolbar } from "../components/layout/BottomToolbar";
 import { LessonNavBar } from "../components/layout/LessonNavBar";
+import { LessonPagination } from "../components/layout/LessonPagination";
 import { MobileToolsSheet } from "../components/layout/MobileToolsSheet";
 import { OfflineIndicator } from "../components/layout/OfflineIndicator";
+import { FirstRunGuide } from "../components/layout/FirstRunGuide";
+import { LessonFocusStrip } from "../components/layout/LessonFocusStrip";
+import { DailyLearningLoop } from "../components/layout/DailyLearningLoop";
 
 // Learning components
 import { LessonView } from "../components/learning/LessonView";
@@ -66,18 +80,20 @@ export function AppLayout() {
     dataLoaded,
     lastPosition,
     loadError,
+    quizScores = {},
     syncFailed = 0,
     pendingSyncWrites = 0,
     syncRetryInFlight = false,
-    markSyncFailed = () => {},
-    enqueuePendingSyncWrite = () => false,
+    retryPendingSyncWrites = () => {},
   } = useProgressData();
   const { xpTotal = 0, streak = 0, pausedStreak = null, dailyCount = 0 } = useXP();
+  const { srCards = [] } = useSR();
 
   const nav = useNavigation();
-  const panels = usePanels({ dataLoaded, user: true, lastPosition });
+  const panels = usePanels({ dataLoaded, user, lastPosition });
   const learn = useLearning();
   const isMobile = useIsMobile(901);
+  const mobileKeyboardOpen = useMobileKeyboardOpen(isMobile);
   const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage(
     "chw-sidebar-collapsed",
     false,
@@ -129,23 +145,31 @@ export function AppLayout() {
   const lessonQuizKey = buildScopedQuizKey('l', course.id, les.id);
   const legacyLessonQuizKey = `l:${les.id}`;
   const isDone = hasLessonCompletion(completedSet, course, mod, les);
+  // Reading-time estimate is the prose path only. Including the
+  // code block would inflate the figure (~200 wpm reading prose is
+  // not the same as scanning code) and surface a misleading number
+  // in the topbar pill.
   const readTime = useMemo(
-    () => estimateReadingTime((les.content || '') + (les.code || '')),
-    [les.content, les.code],
+    () => estimateReadingTime(les.content || ''),
+    [les.content],
   );
   const level = useMemo(() => getLevel(xpTotal), [xpTotal]);
   const hasProgress = completed.length > 0 || Number(lastPosition?.time) > 0;
+  const hasCompletedProgress = completed.length > 0;
   const showStarterGuide = !hasProgress && !showModQuiz;
-  // "Builder" was the previous fallback. It's well-meaning but
-  // reads as scripted. "there" reads as a normal greeting when no
-  // display name is set ("Keep building, there.") and avoids
-  // gendered or jargon-y framing.
+  // Resolved display name when one exists; null otherwise. Surfaces
+  // that need a textual fallback ("Continue learning, there." reads
+  // cold) decide locally how to handle the null case — the topbar
+  // drops the salutation entirely; FirstRunGuide uses an open-form
+  // sentence that doesn't require a name. This avoids cycling through
+  // awkward placeholders ("Builder" / "there") that read as scripted.
   const learnerName =
-    profile?.display_name ||
-    user?.user_metadata?.display_name ||
+    profile?.display_name?.trim() ||
+    user?.user_metadata?.display_name?.trim() ||
     user?.email?.split("@")[0] ||
-    "there";
+    null;
   const isSidebarOpen = isMobile ? panels.sidebar : true;
+  const shellClassName = `shell ${theme}${mobileKeyboardOpen ? ' keyboard-open' : ''}`;
 
   useEffect(() => {
     if (isMobile) {
@@ -169,6 +193,10 @@ export function AppLayout() {
         course: `${course.icon} ${course.label}`,
         mod: `${mod.emoji} ${mod.title}`,
         les: showModQuiz ? "Module Quiz" : les.title,
+        courseId: course.id,
+        moduleId: mod.id,
+        lessonId: les.id,
+        isModuleQuiz: showModQuiz,
       });
       trackCourseVisit(course.id);
     }
@@ -177,8 +205,10 @@ export function AppLayout() {
     course.id,
     course.label,
     dataLoaded,
+    les.id,
     les.title,
     mod.emoji,
+    mod.id,
     mod.title,
     savePosition,
     showModQuiz,
@@ -226,18 +256,35 @@ export function AppLayout() {
   )}/${encodeURIComponent(showModQuiz ? 'quiz' : les.id)}`;
 
   const nextStepHint = getNextStepHint({ isLast, showModQuiz, isDone });
-  const currentStepTitle = showModQuiz
-    ? 'Take the module quiz'
-    : isDone
-      ? 'Next step ready'
-      : 'Read, then mark done';
-  const currentStepCopy = showModQuiz
-    ? 'Submit the quiz when ready. Your best score saves, and retries do not duplicate XP.'
-    : isDone
-      ? nextTitle
-        ? `Progress is saved here. Use Next to start: ${nextTitle}.`
-        : 'Progress is saved here. Review another lesson or switch tracks when you are ready.'
-      : 'Read the frame, build the example, then use Mark done so this step saves.';
+  const moduleQuizKey = buildStableQuizKey('m', course.id, mod.id);
+  const legacyModuleQuizKey = buildLegacyQuizKey('m', mod.id);
+  const lessonQuizKey = buildStableQuizKey('l', course.id, les.id);
+  const legacyLessonQuizKey = buildLegacyQuizKey('l', les.id);
+  const lessonQuizScore = getBestQuizScoreValue(quizScores, [
+    lessonQuizKey,
+    legacyLessonQuizKey,
+  ]);
+  const lessonMasteryStatus = getLessonMasteryStatus({
+    hasLessonQuiz: Boolean(lessonQuiz),
+    isLessonDone: isDone,
+    scoreValue: lessonQuizScore,
+  });
+  const dueReviewCount = useMemo(() => {
+    const now = Date.now();
+    return srCards.filter((card) => Number(card?.nextReview || 0) <= now).length;
+  }, [srCards]);
+  const learningLoopSteps = getDailyLearningLoopSteps({
+    isLessonDone: isDone,
+    hasLessonQuiz: Boolean(lessonQuiz),
+    masteryStatus: lessonMasteryStatus,
+    dueReviewCount,
+  });
+  const { title: currentStepTitle, copy: currentStepCopy } = getCurrentStepCopy({
+    isLast,
+    showModQuiz,
+    isDone,
+    nextTitle,
+  });
 
   // --- Lesson view analytics ----------------
   const lessonViewStartRef = useLessonViewTracking({
@@ -257,23 +304,25 @@ export function AppLayout() {
   }, [isCourseComplete, isDone, panels]);
 
   // --- Actions ------------------------------
-  const progressMutation = useFetcher();
-  useFetcherSyncFailure(
-    progressMutation,
-    { markSyncFailed, enqueuePendingSyncWrite },
-    'lesson progress',
-  );
-  const { marking, handleMarkDone } = useLessonMarkDone({
-    completedSet,
-    stableLessonKey,
-    legacyLessonKey,
+  const markDoneAnalyticsContext = useMemo(() => ({
     courseId: course.id,
     moduleId: mod.id,
     lessonId: les.id,
-    mutationActionPath,
-    progressMutation,
-    toggleLessonDone: learn.toggleLessonDone,
     lessonViewStartRef,
+  }), [course.id, les.id, lessonViewStartRef, mod.id]);
+
+  const { marking, handleMarkDone, mutationState } = useMarkLessonDone({
+    completedSet,
+    stableLessonKey,
+    legacyLessonKey,
+    mutationActionPath,
+    toggleLessonDone: learn.toggleLessonDone,
+    analyticsContext: markDoneAnalyticsContext,
+  });
+  const topbarCompletionCopy = getLessonCompletionActionCopy({
+    isDone,
+    marking,
+    surface: 'topbar',
   });
   const syncStatus = getSyncStatusCopy({
     user,
@@ -283,8 +332,11 @@ export function AppLayout() {
     syncFailed,
     syncRetryInFlight,
     marking,
-    mutationState: progressMutation.state,
+    mutationState,
   });
+  const handleRetrySync = useCallback(() => {
+    retryPendingSyncWrites();
+  }, [retryPendingSyncWrites]);
 
   const handleNextLesson = useCallback(() => {
     trackEvent('lesson_next_clicked', {
@@ -298,83 +350,22 @@ export function AppLayout() {
     goNextLesson();
   }, [course.id, goNextLesson, isLastLesson, les.id, mod.id, moduleQuiz, showModQuiz]);
 
-  const handleOpenTool = useCallback(
-    (tool) => panels.togglePanel(tool),
-    [panels],
-  );
-
-  const toolbarHandlers = useMemo(
-    () => ({
-      onCheatsheet: () => panels.togglePanel("cheatsheet"),
-      onGlossary: () => panels.togglePanel("glossary"),
-      onProjects: () => panels.togglePanel("projects"),
-      onBadges: () => panels.togglePanel("badges"),
-      onSR: () => panels.togglePanel("sr"),
-      onBookmarks: () => panels.togglePanel("bookmarks"),
-      onChallenges: () => panels.togglePanel("challenges"),
-      onStats: () => panels.togglePanel("stats"),
-    }),
-    [panels],
-  );
-  const mobileTools = useMemo(
-    () => [
-      {
-        key: "search",
-        label: "Search",
-        helper: "Find a lesson",
-        onSelect: () => panels.togglePanel("search"),
-      },
-      {
-        key: "bookmarks",
-        label: "Saved",
-        helper: "Saved lessons",
-        onSelect: toolbarHandlers.onBookmarks,
-      },
-      {
-        key: "stats",
-        label: "Progress",
-        helper: "Course status",
-        onSelect: toolbarHandlers.onStats,
-      },
-      {
-        key: "sr",
-        label: "Review",
-        helper: "Spaced practice",
-        onSelect: toolbarHandlers.onSR,
-      },
-      {
-        key: "challenges",
-        label: "Challenges",
-        helper: "Hands-on builds",
-        onSelect: toolbarHandlers.onChallenges,
-      },
-      {
-        key: "cheatsheet",
-        label: "Cheat sheets",
-        helper: "Quick references",
-        onSelect: toolbarHandlers.onCheatsheet,
-      },
-      {
-        key: "glossary",
-        label: "Glossary",
-        helper: "Term lookup",
-        onSelect: toolbarHandlers.onGlossary,
-      },
-      {
-        key: "projects",
-        label: "Projects",
-        helper: "Build ideas",
-        onSelect: toolbarHandlers.onProjects,
-      },
-      {
-        key: "badges",
-        label: "Badges",
-        helper: "In-app milestones",
-        onSelect: toolbarHandlers.onBadges,
-      },
-    ],
-    [panels, toolbarHandlers],
-  );
+  const { handleOpenTool, toolbarHandlers, mobileTools } = useLearningToolActions({
+    panels,
+    hasCompletedProgress,
+  });
+  const handleLearningLoopAction = useCallback((action) => {
+    trackEvent('learning_loop_action_clicked', getLearningLoopActionPayload({
+      action,
+      course,
+      moduleData: mod,
+      lesson: les,
+      dueReviewCount,
+      isLessonDone: isDone,
+      hasLessonQuiz: Boolean(lessonQuiz),
+      masteryStatus: lessonMasteryStatus,
+    }));
+  }, [course, dueReviewCount, isDone, les, lessonMasteryStatus, lessonQuiz, mod]);
 
   useEffect(() => {
     setMobileToolsOpen(false);
@@ -403,7 +394,7 @@ export function AppLayout() {
   // prevents the hot path from rendering empty lesson data.
   if (!activeCourseReady) {
     return (
-      <div className={`shell ${theme}`} data-course={activeCourseMeta?.id || 'html'}>
+      <div className={shellClassName} data-course={activeCourseMeta?.id || 'html'}>
         <a className="skip-link" href="#main-content">Skip to main content</a>
         <EmailVerifyBanner />
         <OfflineIndicator />
@@ -422,7 +413,7 @@ export function AppLayout() {
   }
 
   return (
-    <div className={`shell ${theme}`} data-course={course.id}>
+    <div className={shellClassName} data-course={course.id}>
       <a className="skip-link" href="#main-content">Skip to main content</a>
       <EmailVerifyBanner />
       <OfflineIndicator />
@@ -448,110 +439,42 @@ export function AppLayout() {
         }}
         onOpenTool={handleOpenTool}
         activePanel={panels.panel}
+        hasCompletedProgress={hasCompletedProgress}
       />
 
       <main className="main-shell" ref={mainRef} id="main-content" tabIndex={-1}>
-        <header className="topbar">
-          <div className="topbar-inner">
-            <button
-              type="button"
-              className="ham"
-              onClick={() => {
-                if (isMobile) {
-                  panels.setSidebar(true);
-                  return;
-                }
-                setSidebarCollapsed((value) => !value);
-              }}
-              aria-label={isMobile ? "Open course navigation" : sidebarCollapsed ? "Expand course navigation" : "Collapse course navigation"}
-              aria-controls="course-sidebar"
-              aria-expanded={isMobile ? panels.sidebar : !sidebarCollapsed}
-            >
-              <span className="ham-glyph" aria-hidden="true">
-                {isMobile ? '☰' : sidebarCollapsed ? '›' : '‹'}
-              </span>
-              <span className="ham-label">
-                {isMobile ? 'Menu' : sidebarCollapsed ? 'Expand' : 'Collapse'}
-              </span>
-            </button>
-            <Breadcrumb
-              course={course}
-              mod={mod}
-              lesTitle={les.title}
-              showModQuiz={showModQuiz}
-              lessonPosition={lessonPosition}
-            />
-            <div className="topbar-status" aria-label="Current learning status">
-              <span className="topbar-greeting">Keep building, {learnerName}.</span>
-              {!showModQuiz && (
-                <span className="topbar-pill" aria-label={`Estimated read time: ${readTime}`}>
-                  {readTime} read
-                </span>
-              )}
-              {/* Hide the level + completion pills entirely until the
-                  learner has earned something. A first-run learner
-                  used to see "Lv 1 · 0% track" before they'd done
-                  anything, which read as "you have achieved
-                  nothing" instead of a status. */}
-              {xpTotal > 0 && (
-                <span className="topbar-pill" aria-label={`Level ${level}`}>Lv {level}</span>
-              )}
-              {coursePct > 0 && (
-                <span className="topbar-pill" aria-label={`Course completion ${coursePct} percent`}>
-                  {coursePct}% track
-                </span>
-              )}
-              {streak > 0 ? (
-                <span className="topbar-pill streak" aria-label={`${streak} day streak`}>
-                  Streak: {streak} day{streak === 1 ? '' : 's'}
-                </span>
-              ) : pausedStreak ? (
-                /* Streak just lapsed. Surface the prior run as a
-                   subtle recovery cue so the topbar doesn't simply
-                   forget the streak existed. Click goes to the
-                   profile so the learner can see history; intent is
-                   visible signaling, not nagging. */
-                <span
-                  className="topbar-pill paused"
-                  aria-label={`${pausedStreak.days} day streak paused`}
-                  title="Pick up your streak with one more lesson today"
-                >
-                  Streak paused: {pausedStreak.days} day{pausedStreak.days === 1 ? '' : 's'}
-                </span>
-              ) : null}
-              {dailyCount > 0 && (
-                <span className="topbar-pill warm" aria-label={`Lessons done today: ${dailyCount}`}>
-                  {dailyCount} lesson{dailyCount === 1 ? '' : 's'} today
-                </span>
-              )}
-            </div>
-            <div className="topbar-actions">
-              <button
-                type="button"
-                className={`search-trigger ui-btn ui-btn-secondary ${panels.panel === "search" ? "active" : ""}`}
-                onClick={() => panels.togglePanel("search")}
-                aria-label="Open lesson search"
-                aria-pressed={panels.panel === "search"}
-              >
-                <span className="search-trigger-label">Search</span>
-                <span className="search-trigger-mobile-hint">Tap to search</span>
-                <kbd>Ctrl+K</kbd>
-              </button>
-              {!showModQuiz && (
-              <button
-                  type="button"
-                  className={`mark-btn ${isDone ? "dn" : ""}`}
-                  onClick={handleMarkDone}
-                  disabled={marking}
-                  aria-label={marking ? "Saving lesson progress" : isDone ? "Mark lesson as not done" : "Mark lesson done and save progress"}
-                  aria-pressed={isDone}
-                >
-                  {marking ? "Saving…" : isDone ? "✓ Done" : "Mark done"}
-                </button>
-              )}
-            </div>
-          </div>
-        </header>
+        <LessonShellTopbar
+          isMobile={isMobile}
+          sidebarCollapsed={sidebarCollapsed}
+          isSidebarOpen={panels.sidebar}
+          onHamburgerClick={() => {
+            if (isMobile) {
+              panels.setSidebar(true);
+              return;
+            }
+            setSidebarCollapsed((value) => !value);
+          }}
+          course={course}
+          mod={mod}
+          les={les}
+          showModQuiz={showModQuiz}
+          lessonPosition={lessonPosition}
+          learnerName={learnerName}
+          readTime={readTime}
+          xpTotal={xpTotal}
+          level={level}
+          coursePct={coursePct}
+          streak={streak}
+          pausedStreak={pausedStreak}
+          dailyCount={dailyCount}
+          isSearchActive={panels.panel === 'search'}
+          onToggleSearch={() => panels.togglePanel('search')}
+          isDone={isDone}
+          marking={marking}
+          onMarkDone={handleMarkDone}
+          markDoneAriaLabel={topbarCompletionCopy.ariaLabel}
+          markDoneLabel={topbarCompletionCopy.label}
+        />
 
         <div className="lesson-container">
           {showModQuiz && moduleQuiz ? (
@@ -573,43 +496,21 @@ export function AppLayout() {
             </div>
           ) : (
             <>
-              {showStarterGuide && (
-                <section className="first-run-guide" aria-label="Getting started">
-                  <div className="frg-content">
-                    <p className="frg-kicker">First login</p>
-                    <h2 className="frg-title">
-                      Welcome to your learning path, {learnerName}.
-                    </h2>
-                    <p className="frg-copy">
-                      Start with the lesson in front of you. Read it, build the example,
-                      then use <strong>Mark done</strong> so your progress and next step stay clear.
-                    </p>
-                    <p className="frg-sub">When you are ready, the sidebar lets you switch courses or revisit earlier lessons.</p>
-                  </div>
-                  <ol className="frg-steps" aria-label="First session steps">
-                    <li>Read the learning frame.</li>
-                    <li>Build the example and check the result.</li>
-                    <li>Mark complete, then take the quick check.</li>
-                  </ol>
-                </section>
-              )}
-              <section className="lesson-focus-strip" aria-label="Current lesson step">
-                <span className="lesson-focus-eyebrow">{lessonPosition}</span>
-                <strong>{currentStepTitle}</strong>
-                <span>{currentStepCopy}</span>
-                <span
-                  className={`lesson-sync-status lesson-sync-status-${syncStatus.tone}`}
-                  role="status"
-                  aria-live="polite"
-                  aria-atomic="true"
-                >
-                  <span className="lesson-sync-dot" aria-hidden="true" />
-                  <span className="lesson-sync-copy">
-                    <span className="lesson-sync-label">{syncStatus.label}</span>
-                    <span className="lesson-sync-detail">{syncStatus.detail}</span>
-                  </span>
-                </span>
-              </section>
+              {showStarterGuide && <FirstRunGuide learnerName={learnerName} />}
+              <LessonFocusStrip
+                lessonPosition={lessonPosition}
+                currentStepTitle={currentStepTitle}
+                currentStepCopy={currentStepCopy}
+                masteryStatus={lessonMasteryStatus}
+                syncStatus={syncStatus}
+                onRetrySync={syncStatus.actionLabel ? handleRetrySync : undefined}
+              />
+              <DailyLearningLoop
+                steps={learningLoopSteps}
+                onOpenReview={() => handleOpenTool('sr')}
+                onOpenChallenges={() => handleOpenTool('challenges')}
+                onAction={handleLearningLoopAction}
+              />
               <LessonView
                 lesson={les}
                 emoji={mod.emoji}
@@ -620,7 +521,21 @@ export function AppLayout() {
                 nextTitle={nextTitle}
               />
               {lessonQuiz && (
-                <div className="lesson-quiz-wrap">
+                // Wrapped in a labeled <section> so the lesson quiz
+                // reads as a distinct checkpoint, not a competing CTA
+                // alongside the lesson-nav row below. The divider +
+                // eyebrow are pure visual hierarchy; QuizView itself
+                // is unchanged.
+                <section
+                  className="lesson-quiz-wrap"
+                  aria-labelledby="lesson-quiz-eyebrow"
+                >
+                  <p
+                    id="lesson-quiz-eyebrow"
+                    className="lesson-quiz-eyebrow"
+                  >
+                    Pause and check what stuck
+                  </p>
                   <QuizView
                     quiz={lessonQuiz}
                     accent={course.accent}
@@ -628,54 +543,21 @@ export function AppLayout() {
                     quizKey={lessonQuizKey}
                     legacyQuizKeys={[legacyLessonQuizKey]}
                   />
-                </div>
+                </section>
               )}
             </>
           )}
         </div>
 
-        <nav className="nav-row" aria-label="Lesson pagination">
-          <button
-            type="button"
-            className="nav-btn ui-btn ui-btn-secondary"
-            onClick={nav.prev}
-            disabled={isFirst}
-            aria-label={prevTitle ? `Previous lesson: ${prevTitle}` : 'Previous lesson'}
-          >
-            <span className="nav-btn-dir" aria-hidden="true">←</span>
-            <span className="nav-btn-text">
-              {prevTitle ? (
-                <>
-                  <span className="nav-btn-label">Previous lesson</span>
-                  <span className="nav-btn-title">{prevTitle}</span>
-                </>
-              ) : 'Previous lesson'}
-            </span>
-          </button>
-          <button
-            type="button"
-            className="nav-btn nx ui-btn ui-btn-primary"
-            onClick={handleNextLesson}
-            disabled={isLast}
-            style={{ background: course.accent }}
-            aria-label={
-              isLast ? 'Course complete' :
-              nextTitle ? `Next: ${nextTitle}` : 'Next lesson'
-            }
-          >
-            <span className="nav-btn-text">
-              {isLast ? (
-                'Track complete'
-              ) : nextTitle ? (
-                <>
-                  <span className="nav-btn-label">Up next</span>
-                  <span className="nav-btn-title">{nextTitle}</span>
-                </>
-              ) : 'Next lesson'}
-            </span>
-            <span className="nav-btn-dir" aria-hidden="true">→</span>
-          </button>
-        </nav>
+        <LessonPagination
+          onPrev={nav.prev}
+          onNext={handleNextLesson}
+          prevTitle={prevTitle}
+          nextTitle={nextTitle}
+          isFirst={isFirst}
+          isLast={isLast}
+          accent={course.accent}
+        />
         <p className="nav-guidance" role="status" aria-live="polite">
           {nextStepHint}
         </p>
@@ -696,11 +578,16 @@ export function AppLayout() {
           hasModuleQuiz={!!moduleQuiz}
           accent={course.accent}
           lessonPosition={lessonPosition}
+          nextTitle={nextTitle}
           onOpenTools={() => setMobileToolsOpen((open) => !open)}
           toolsOpen={mobileToolsOpen}
         />
       ) : (
-        <BottomToolbar activePanel={panels.panel} {...toolbarHandlers} />
+        <BottomToolbar
+          activePanel={panels.panel}
+          hasCompletedProgress={hasCompletedProgress}
+          {...toolbarHandlers}
+        />
       )}
       <MobileToolsSheet
         isOpen={isMobile && mobileToolsOpen}
@@ -716,6 +603,7 @@ export function AppLayout() {
         course={course}
         profile={profile}
         completed={completed}
+        hasCompletedProgress={hasCompletedProgress}
         lastPosition={lastPosition}
         courseTotal={courseTotal}
       />
@@ -724,8 +612,3 @@ export function AppLayout() {
     </div>
   );
 }
-
-
-
-
-

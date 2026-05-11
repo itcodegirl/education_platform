@@ -94,7 +94,7 @@ describe('CodeChallenge', () => {
     render(<CodeChallenge challenge={baseChallenge} lang="html" />);
 
     // Textarea fallback (Code editor) is rendered, not the Monaco
-    // "Loading editor..." Suspense fallback.
+    // "Opening editor..." Suspense fallback.
     expect(screen.getByLabelText(/code editor/i)).toHaveProperty('tagName', 'TEXTAREA');
     // The opt-in escape hatch is offered on desktop.
     expect(
@@ -135,5 +135,31 @@ describe('CodeChallenge', () => {
     expect(screen.getByText(/some checks inspect your code/i)).toBeInTheDocument();
     expect(screen.getByText(/safe preview snapshot/i)).toBeInTheDocument();
     expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('explains what the challenge grader checks before running tests', () => {
+    render(<CodeChallenge challenge={baseChallenge} lang="html" />);
+
+    expect(screen.getByText(/This grader checks specific requirements/i)).toBeInTheDocument();
+    expect(screen.getByText(/matched the expected checks/i)).toBeInTheDocument();
+  });
+
+  it('uses a clear reset label in the challenge editor', () => {
+    render(<CodeChallenge challenge={baseChallenge} lang="html" />);
+
+    expect(screen.getByRole('button', { name: /reset code/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /retry reset/i })).not.toBeInTheDocument();
+  });
+
+  it('explains challenge grader limits without overstating mastery', async () => {
+    render(<CodeChallenge challenge={baseChallenge} lang="html" />);
+
+    fireEvent.load(screen.getByTitle(/challenge preview/i));
+    fireEvent.click(screen.getByRole('button', { name: /run tests/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Some checks inspect the preview DOM or computed styles/i)).toBeInTheDocument();
+    });
+    expect(screen.getByText(/not that the whole skill is verified/i)).toBeInTheDocument();
   });
 });

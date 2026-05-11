@@ -114,6 +114,10 @@ create table if not exists public.last_position (
   course text,
   mod text,
   les text,
+  course_id text,
+  module_id text,
+  lesson_id text,
+  is_module_quiz boolean default false,
   updated_at timestamptz default now()
 );
 
@@ -228,7 +232,11 @@ create policy "Admins read all streaks" on public.streaks for select using (is_a
 create policy "Admins read all badges" on public.badges for select using (is_admin());
 
 -- Admin user table with pre-aggregated user stats.
-create or replace view public.admin_user_rollups as
+alter table public.profiles add column if not exists is_disabled boolean default false;
+
+create or replace view public.admin_user_rollups
+with (security_invoker = true)
+as
 select
   p.id,
   p.display_name,
@@ -251,7 +259,8 @@ left join (
   select user_id, count(*)::int as badges_earned
   from public.badges
   group by user_id
-) badge_counts on badge_counts.user_id = p.id;
+) badge_counts on badge_counts.user_id = p.id
+where public.is_admin();
 
 grant select on public.admin_user_rollups to authenticated;
 
@@ -651,12 +660,11 @@ grant execute on function public.consume_ai_quota() to authenticated;
 -- count, and badge count. Opt-in defaults to false;
 -- everything else stays private.
 --
--- Design: we DON'T add a public RLS policy directly
--- to `profiles`, `xp`, `streaks`, etc. (that would
--- risk over-exposing columns). Instead we create a
--- `public_profiles` VIEW that projects only the
--- fields we want public, and grant SELECT on that
--- view to `anon`.
+-- Design: we DON'T add public RLS policies directly
+-- to learner-owned tables like `progress`, because raw
+-- rows include private lesson keys. Instead we create a
+-- `public_profiles` VIEW that projects only aggregate
+-- fields and grant SELECT on that view to `anon`.
 
 alter table public.profiles
   add column if not exists is_public boolean default false;
@@ -670,7 +678,8 @@ create index if not exists idx_profiles_public_handle_lower
   on public.profiles (lower(public_handle))
   where is_public = true;
 
-create or replace view public.public_profiles as
+create or replace view public.public_profiles
+with (security_invoker = false) as
 select
   p.id                    as id,
   p.display_name          as display_name,
@@ -696,74 +705,29 @@ left join (
 where p.is_public = true
   and coalesce(p.is_disabled, false) = false;
 
--- Views inherit RLS from their base tables, so we also need to grant
--- SELECT on the view itself to the anon role. Base-table RLS continues
--- to protect raw rows; only the projected columns above are exposed.
+-- The view exposes aggregates only. Raw progress rows, lesson keys,
+-- badge rows, XP rows, and streak rows are not an intentional public
+-- API surface.
 grant select on public.public_profiles to anon, authenticated;
 
--- And we need a policy on `profiles` that lets `anon` read the specific
--- public columns via the view. Postgres RLS doesn't do column-level
--- grants in a policy, so we add a row-level "is_public = true" policy
--- and rely on the VIEW to limit the columns.
+-- Drop legacy public base-table policies so public profile pages stay
+-- aggregate-only through the view above.
+-- The following policies are intentionally not recreated.
 drop policy if exists "Public profiles readable by anyone" on public.profiles;
-create policy "Public profiles readable by anyone"
-  on public.profiles
-  for select
-  using (is_public = true and coalesce(is_disabled, false) = false);
 
--- Same for the joined tables — only the minimum columns projected by
--- the view are reachable, but the base-table RLS still needs a path.
 drop policy if exists "Public xp readable" on public.xp;
-create policy "Public xp readable"
-  on public.xp
-  for select
-  using (
-    exists (
-      select 1 from public.profiles
-      where profiles.id = xp.user_id
-        and profiles.is_public = true
-        and coalesce(profiles.is_disabled, false) = false
-    )
-  );
 
 drop policy if exists "Public streaks readable" on public.streaks;
-create policy "Public streaks readable"
-  on public.streaks
-  for select
-  using (
-    exists (
-      select 1 from public.profiles
-      where profiles.id = streaks.user_id
-        and profiles.is_public = true
-        and coalesce(profiles.is_disabled, false) = false
-    )
-  );
 
 drop policy if exists "Public progress count readable" on public.progress;
-create policy "Public progress count readable"
-  on public.progress
-  for select
-  using (
-    exists (
-      select 1 from public.profiles
-      where profiles.id = progress.user_id
-        and profiles.is_public = true
-        and coalesce(profiles.is_disabled, false) = false
-    )
-  );
 
 drop policy if exists "Public badges count readable" on public.badges;
-create policy "Public badges count readable"
-  on public.badges
-  for select
-  using (
-    exists (
-      select 1 from public.profiles
-      where profiles.id = badges.user_id
-        and profiles.is_public = true
-        and coalesce(profiles.is_disabled, false) = false
-    )
-  );
+
+revoke select on table public.profiles from anon;
+revoke select on table public.xp from anon;
+revoke select on table public.streaks from anon;
+revoke select on table public.progress from anon;
+revoke select on table public.badges from anon;
 
 -- Users can still only UPDATE their own is_public / public_handle
 -- columns through the existing "Users manage own profiles" policy —

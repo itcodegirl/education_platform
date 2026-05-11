@@ -26,6 +26,7 @@ import { REWARD_EVENT_TYPES } from '../engine/rewards/rewardEventTypes';
 import { createRewardEvent } from '../engine/rewards/rewardEvents';
 import { awardRewardOnce } from '../engine/rewards/rewardRuntime';
 import { isAnswerCorrect } from '../components/learning/quiz/questionTypes';
+import { getBestQuizScoreValue, getQuizKeyCandidates } from '../utils/quizKeys';
 
 // Build a spaced-repetition card from a wrong answer.
 // fill/order don't translate to flashcards cleanly so the caller
@@ -43,16 +44,6 @@ function toReviewCard(q, label) {
     interval: 1,
     ease: 2.5,
   };
-}
-
-function normalizeQuizKeys(quizKey, legacyQuizKeys = []) {
-  return Array.from(
-    new Set(
-      [quizKey, ...legacyQuizKeys]
-        .filter((key) => typeof key === 'string' && key.trim())
-        .map((key) => key.trim()),
-    ),
-  );
 }
 
 export function useQuizSession({ quiz, label, quizKey, legacyQuizKeys = [] }) {
@@ -73,14 +64,21 @@ export function useQuizSession({ quiz, label, quizKey, legacyQuizKeys = [] }) {
   const submitLockedRef = useRef(false);
 
   const backendRewardSyncEnabled = Boolean(user?.id) && isBackendRewardSyncEnabled();
-  const quizKeys = useMemo(
-    () => normalizeQuizKeys(quizKey, legacyQuizKeys),
-    [quizKey, legacyQuizKeys],
+  const quizKeyCandidates = useMemo(
+    () => getQuizKeyCandidates(quizKey, legacyQuizKeys),
+    [legacyQuizKeys, quizKey],
   );
-  const savedBestScore = useMemo(
-    () => getBestQuizScoreForKeys(quizScores, quizKeys),
-    [quizScores, quizKeys],
-  );
+  const savedQuizScore = getBestQuizScoreValue(quizScores, quizKeyCandidates);
+
+  const hasEquivalentQuizRewardBeenAwarded = useCallback((rewardKey, equivalentRewardKeys) => {
+    if (equivalentRewardKeys.includes(rewardKey)) {
+      return equivalentRewardKeys.some((candidateRewardKey) =>
+        hasRewardBeenAwarded(candidateRewardKey),
+      );
+    }
+
+    return hasRewardBeenAwarded(rewardKey);
+  }, [hasRewardBeenAwarded]);
 
   const setAnswer = useCallback((qId, value) => {
     setSubmitted((isSubmitted) => {
@@ -122,7 +120,7 @@ export function useQuizSession({ quiz, label, quizKey, legacyQuizKeys = [] }) {
     );
     const pct = quizPercent(score, total);
 
-    if (quizKey && isQuizScoreImprovement(savedBestScore, score, total)) {
+    if (quizKey && isQuizScoreImprovement(savedQuizScore, score, total)) {
       saveQuizScore(quizKey, formatQuizScore(score, total));
     }
 
@@ -130,11 +128,9 @@ export function useQuizSession({ quiz, label, quizKey, legacyQuizKeys = [] }) {
 
     if (quizKey) {
       const completionRewardKey = rewardKeys.quizComplete(quizKey);
-      const completionRewardKeys = quizKeys.map((key) => rewardKeys.quizComplete(key));
-      const hasCompletionReward = completionRewardKeys.some((key) => hasRewardBeenAwarded(key));
-      if (hasCompletionReward && !hasRewardBeenAwarded(completionRewardKey)) {
-        markRewardAwarded(completionRewardKey);
-      }
+      const equivalentCompletionRewardKeys = quizKeyCandidates.map((candidateQuizKey) =>
+        rewardKeys.quizComplete(candidateQuizKey),
+      );
       const completionResult = await awardRewardOnce({
         learnerKey: user?.id || '',
         event: createRewardEvent({
@@ -145,9 +141,7 @@ export function useQuizSession({ quiz, label, quizKey, legacyQuizKeys = [] }) {
         }),
         legacyRewardKey: completionRewardKey,
         hasRewardBeenAwarded: (rewardKey) =>
-          rewardKey === completionRewardKey
-            ? completionRewardKeys.some((key) => hasRewardBeenAwarded(key))
-            : hasRewardBeenAwarded(rewardKey),
+          hasEquivalentQuizRewardBeenAwarded(rewardKey, equivalentCompletionRewardKeys),
         markRewardAwarded,
         awardXP,
         xpAmount: REWARD_XP.quizComplete,
@@ -159,11 +153,9 @@ export function useQuizSession({ quiz, label, quizKey, legacyQuizKeys = [] }) {
 
       if (pct === 100) {
         const perfectRewardKey = rewardKeys.quizPerfect(quizKey);
-        const perfectRewardKeys = quizKeys.map((key) => rewardKeys.quizPerfect(key));
-        const hasPerfectReward = perfectRewardKeys.some((key) => hasRewardBeenAwarded(key));
-        if (hasPerfectReward && !hasRewardBeenAwarded(perfectRewardKey)) {
-          markRewardAwarded(perfectRewardKey);
-        }
+        const equivalentPerfectRewardKeys = quizKeyCandidates.map((candidateQuizKey) =>
+          rewardKeys.quizPerfect(candidateQuizKey),
+        );
         const perfectResult = await awardRewardOnce({
           learnerKey: user?.id || '',
           event: createRewardEvent({
@@ -174,9 +166,7 @@ export function useQuizSession({ quiz, label, quizKey, legacyQuizKeys = [] }) {
           }),
           legacyRewardKey: perfectRewardKey,
           hasRewardBeenAwarded: (rewardKey) =>
-            rewardKey === perfectRewardKey
-              ? perfectRewardKeys.some((key) => hasRewardBeenAwarded(key))
-              : hasRewardBeenAwarded(rewardKey),
+            hasEquivalentQuizRewardBeenAwarded(rewardKey, equivalentPerfectRewardKeys),
           markRewardAwarded,
           awardXP,
           xpAmount: REWARD_XP.quizPerfect,
@@ -213,11 +203,11 @@ export function useQuizSession({ quiz, label, quizKey, legacyQuizKeys = [] }) {
     answers,
     submitted,
     quizKey,
-    quizKeys,
-    savedBestScore,
+    quizKeyCandidates,
     label,
     user?.id,
-    hasRewardBeenAwarded,
+    savedQuizScore,
+    hasEquivalentQuizRewardBeenAwarded,
     markRewardAwarded,
     markSyncFailed,
     backendRewardSyncEnabled,

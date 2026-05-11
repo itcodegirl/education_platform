@@ -155,7 +155,7 @@
   font-family: 'Space Mono', ui-monospace, monospace;
   font-size: var(--text-xs);
   text-decoration: none;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 14px;
   border-style: solid;
   border-color: rgba(255, 255, 255, 0.2);
@@ -447,6 +447,30 @@
 
 /* ─── Mobile ────────────────────────────────── */
 @media (max-width: 768px) {
+  .auth-page.auth-with-hero {
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .auth-top {
+    padding:
+      max(28px, env(safe-area-inset-top, 0px))
+      max(14px, env(safe-area-inset-right, 0px))
+      calc(32px + env(safe-area-inset-bottom, 0px))
+      max(14px, env(safe-area-inset-left, 0px));
+    gap: var(--space-4);
+    scroll-padding-bottom: calc(180px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .auth-top .auth-card {
+    scroll-margin-block: 16px;
+  }
+
+  .auth-top .auth-card:focus-within {
+    scroll-margin-bottom: calc(180px + env(safe-area-inset-bottom, 0px));
+  }
+
   .lh-panel,
   .lh-panel.lh-panel-reverse {
     grid-template-columns: 1fr;

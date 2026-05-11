@@ -12,10 +12,6 @@ import layoutMastery from './modules/layout-mastery.json';
 import responsiveDesign from './modules/responsive-design.json';
 import advancedStyling from './modules/advanced-styling.json';
 
-// Old modules kept for advanced track (not loaded in core course)
-// import { module as whatCssActuallyIs } from './modules/what-css-actually-is.js';
-// ...
-
 export const CSS_MODULES = [
   cssFoundations,
   layoutMastery,

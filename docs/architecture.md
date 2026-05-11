@@ -23,6 +23,22 @@ Browser (React 18 + Vite)
   +-- OpenAI Responses API (server-side only)
 ```
 
+```mermaid
+flowchart LR
+  Learner["Learner Browser"] --> Router["React Router Shell"]
+  Router --> Learning["Learning UI + Panels"]
+  Router --> Auth["Auth Context"]
+  Learning --> Local["Local-first progress, rewards, retry queues"]
+  Learning --> Supabase["Supabase Auth + Postgres"]
+  Auth --> Supabase
+  Learning --> Netlify["Netlify Functions"]
+  Netlify --> OpenAI["OpenAI Responses API"]
+  Supabase --> RLS["Row Level Security"]
+  Local -. "same-browser fallback" .-> Learning
+```
+
+Reviewer shortcut: the product is intentionally local-first for learner reward trust today, with Supabase-backed identity/progress scaffolding and feature-gated backend reward sync. The diagram separates demo-ready browser behavior from the backend systems that must be validated before production reward authority is claimed.
+
 Design invariants:
 
 1. No secrets in the browser bundle.
@@ -161,6 +177,7 @@ Live token preview route: `/styleguide`.
 | Local dev | Vite | `npm run dev` |
 | Production build | Vite + Rollup | `npm run build` |
 | Lint | ESLint | `npm run lint` |
+| Standard typecheck command | JS source policy alias | `npm run typecheck` |
 | Unit tests | Vitest | `npm run test:unit` |
 | Integration/E2E | Playwright | `npm run test:integration` |
 | Bundle budgets | custom script | `npm run check:bundle` |
@@ -175,7 +192,7 @@ Live token preview route: `/styleguide`.
 - Domain-aware chunking in `vite.config.js` keeps first paint focused.
 - Monaco editor is lazy loaded so first-run users do not pay editor cost up front.
 - Admin views are lazy loaded and route-gated.
-- Chunk budget checks (`npm run check:bundle`) protect against silent regressions.
+- Chunk budget checks (`npm run check:bundle`) protect against silent regressions. Monaco budget changes should be handled as explicit performance work; see `docs/pr-admin-readiness.md`.
 
 ---
 

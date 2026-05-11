@@ -1,0 +1,71 @@
+/* ===============================================
+   PWA INSTALL PROMPT
+   =============================================== */
+
+.install-prompt {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 998;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, var(--pink), #ff3cac);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  animation: slideDown 0.3s ease-out;
+  box-shadow: 0 2px 16px rgba(255, 107, 157, 0.3);
+}
+
+.install-icon {
+  font-size: 18px;
+}
+
+.install-text {
+  flex: 1;
+}
+
+.install-btn {
+  padding: 6px 16px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.install-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.install-dismiss {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.install-dismiss:hover {
+  color: #fff;
+}
+
+@media (max-width: 500px) {
+  .install-prompt {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  .install-btn {
+    font-size: 11px;
+    padding: 5px 12px;
+  }
+}

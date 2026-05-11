@@ -4,15 +4,18 @@ This project is actively stabilized and is not yet production-grade. The followi
 
 ## Tooling / Verification
 
-- The local quality gate covers lint, production build, bundle budget, and unit tests through `npm run check`.
+- The local quality gate covers lint, JS-only source policy, production build, bundle budget, and unit tests through `npm run check`.
+- `npm run typecheck` is intentionally a JS-only source-policy alias for `npm run check:js-source`. This project does not run TypeScript type checking because TypeScript is not part of the approved stack.
 - Authenticated E2E scenarios are skipped when auth credentials are not configured in environment variables.
 - Public E2E scenarios cover the landing/auth shell, accessibility smoke, visual snapshots, and the first-lesson preview path. Signed-in learner persistence still requires configured Supabase test credentials.
 - Authenticated Playwright storage state is intentionally ignored under `playwright/.auth/` to avoid committing local session files.
+- Lighthouse and Playwright (a11y/E2E) gates run in GitHub Actions, not in `npm run check:quality`. The corresponding workflows are `.github/workflows/lighthouse-ci.yml` and `.github/workflows/e2e-smoke.yml`; both fire on every pull request. Running them locally requires a Chromium install (`npx playwright install chromium` or a system Chrome). Sandbox / restricted environments without browser-binary download access should rely on the GitHub Actions runs for these gates.
 
 ## Learning Integrity
 
-- Progress sync: saved on this device. Lesson completions and bookmarks may sync when connected; XP, streaks, badges, review queue, and challenges are single-device today.
+- Progress sync: saved on this device. Lesson completions, bookmarks, and notes may sync when connected; XP, streaks, badges, review queue, and challenges are single-device today.
 - Saved learning position resolves persisted course/module/lesson labels back to indices via strict-equal match first, then falls back to substring match. The DB column still stores the human-readable label string; if a label is renamed without a paired migration, the lookup may still drop a learner back to the first lesson of the course rather than tracking the renamed lesson. `npm run audit:lesson-labels` (wired into `npm run check:quality`) now snapshots every active lesson title and blocks PRs that rename or remove an existing `(courseId, moduleId, lessonId)` triple until the C2 stable-ID migration lands. Intentional renames must ship with a paired progress migration and `node scripts/check-lesson-labels.mjs --update` in the same PR.
+- Saved learning position now writes stable `courseId`, `moduleId`, `lessonId`, and `isModuleQuiz` fields while preserving the older human-readable labels for compatibility. Resume prefers the stable identifiers, loads the saved course before resolving if needed, and only falls back to label matching for legacy rows. The resolver is now also covered by a stable-id-only test (`src/utils/savedPosition.test.js` → "resolves a stable-id-only save (post-migration shape with no legacy labels)") that proves the resume path is safe once the writer drops labels in a future cleanup PR.
 - Streak count: the persisted streak in the DB is the value as of the learner's most recent activity. The UI applies an active-streak guard (`getActiveStreakDays` in `src/utils/helpers.js`) so a learner who has missed more than one day sees `0` instead of the stale value. The DB write path is unchanged; the next activity inside the today/yesterday window resumes the saved count cleanly. Companion `getPausedStreak` surfaces the lapsed value as a positive recovery cue across all three streak-display surfaces: the WelcomeBack overlay pill, the always-visible topbar pill, and the ProfilePopover stat block. `useTodayKey` re-evaluates these guards when the wall clock crosses UTC midnight inside an open tab.
 - Daily count: same shape as the streak guard. Persisted `dailyCount` + `dailyDate` reflect the LAST day the learner did activity. `getActiveDailyCount` returns 0 when `dailyDate` isn't today so the topbar / profile-popover don't lie that the daily goal is already met when the learner returns the next day. Persisted state is unchanged so `recordDailyActivity` rebuilds the count correctly the moment the next activity lands.
 - Learning identity/data model hardening is still pending. The local retry/reconciliation reward engine and Supabase backend reward branch have been unified, but production cross-device reward trust still requires applying migrations, validating the RPC/RLS behavior against a real Supabase project, and deciding local import/backfill policy.
@@ -29,7 +32,7 @@ This project is actively stabilized and is not yet production-grade. The followi
 - Reward engine diagnostics can summarize local ledger/queue health, but they are developer-facing and do not replace backend observability.
 - Additive Supabase migrations define `reward_events` and `award_reward_event`, and the frontend has a feature-gated backend reward service wrapper. Backend reward sync remains disabled by default so demos and existing local fallback behavior are preserved.
 - Cross-device reward idempotency is backend-ready but not production-complete until those migrations are applied, the feature flag is enabled intentionally, and authenticated duplicate-award behavior is verified.
-- Portfolio completion certificate exports reflect current app progress and are not server-authoritative yet.
+- Progress Summary PDF downloads reflect current app progress and are not server-authoritative yet.
 - Challenge completion persistence is same-device/localStorage-backed and should not be treated as secure certification.
 - Challenge auto-grading: all HTML challenges now use live DOM-based graders (`iframe.contentDocument` queries via `querySelector`). A learner can no longer pass structural tests by typing a tag inside an HTML comment — the parser strips comments before `querySelector` runs. CSS challenges use a mixed approach: structural properties (display, padding, gap, background-color) are verified via `iframe.contentWindow.getComputedStyle`, while pseudo-selector (`:hover`, `:focus`), `@keyframes`, and `@media` tests remain source-regex — these require interaction or viewport simulation that is not available in a static iframe snapshot. JavaScript and React challenges use console output capture and are not affected by the DOM migration. The CodeChallenge UI still states the grading basis explicitly so the limitation stays visible to learners.
 - Direct optimistic progress writes from `ProgressContext` now have same-browser queue replay, including reconnect retry and next-session replay in the same browser.
@@ -41,7 +44,7 @@ This project is actively stabilized and is not yet production-grade. The followi
 
 ## Search / Content
 
-- Search indexing may not yet cover every structured lesson field.
+- Search indexing covers structured lesson content, including hooks, steps, concepts, definitions, analogies, challenge requirements, summaries, bridge text, quiz explanations, and glossary terms. It is still a lightweight in-browser index rather than a ranked search service.
 - Content is source-file based and does not yet use a full CMS workflow.
 
 ## Security / Production Hardening

@@ -6,6 +6,16 @@
 import { Component } from 'react';
 import { reportException } from '../../lib/sentry';
 
+export function didResetKeysChange(prevResetKeys = [], resetKeys = []) {
+  if (prevResetKeys === resetKeys) return false;
+  if (prevResetKeys.length !== resetKeys.length) return true;
+  return resetKeys.some((key, index) => !Object.is(key, prevResetKeys[index]));
+}
+
+export function shouldRevealErrorDetails(env = import.meta.env) {
+  return Boolean(env?.DEV);
+}
+
 export class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
@@ -24,6 +34,12 @@ export class ErrorBoundary extends Component {
     // pollute the user's devtools.
     if (import.meta.env.DEV) {
       console.error('CodeHerWay render error:', error, errorInfo);
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.state.hasError && didResetKeysChange(prevProps.resetKeys, this.props.resetKeys)) {
+      this.handleRetry();
     }
   }
 
@@ -53,7 +69,7 @@ export class ErrorBoundary extends Component {
             <p className="eb-msg">
               Your learning screen could not finish loading. Your local progress is still kept where possible.
             </p>
-            {this.state.error?.message && (
+            {shouldRevealErrorDetails() && this.state.error?.message && (
               <div className="eb-detail">
                 <code>{this.state.error.message}</code>
               </div>

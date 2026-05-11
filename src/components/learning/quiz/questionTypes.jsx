@@ -16,6 +16,8 @@
 // `submitted` freezes the UI into the post-grade state.
 // ═══════════════════════════════════════════════
 
+import { useState } from 'react';
+
 // ─── Correctness check (also exported for the session hook) ──
 export function isAnswerCorrect(q, answer) {
   if (answer === undefined || answer === null) return false;
@@ -55,13 +57,25 @@ function getChoiceAriaLabel({ prefix, text, stateLabel }) {
   return stateLabel ? `${label}, ${stateLabel}` : label;
 }
 
-function MCQuestion({ q, answer, onAnswer, submitted }) {
+function ChoiceRadioGroup({
+  q,
+  answer,
+  onAnswer,
+  submitted,
+  prompt,
+  code = null,
+  renderOption,
+}) {
   const isCorrect = isAnswerCorrect(q, answer);
+  const groupName = `qq-${q.id || prompt.replace(/\W+/g, '-').toLowerCase()}`;
+  const promptId = `${groupName}-prompt`;
+
   return (
     <>
-      <p className="qq-text">{q.question}</p>
-      {q.code && <pre className="qq-code"><code>{q.code}</code></pre>}
-      <div className="qq-opts">
+      <p id={promptId} className="qq-text">{prompt}</p>
+      {code && <pre className="qq-code"><code>{code}</code></pre>}
+      <fieldset className="qq-opts" aria-describedby={promptId}>
+        <legend className="sr-only">{prompt}</legend>
         {q.options.map((opt, oi) => {
           let cls = 'qq-opt';
           const isSelected = answer === oi;
@@ -70,6 +84,7 @@ function MCQuestion({ q, answer, onAnswer, submitted }) {
           if (isSelected) cls += ' picked';
           if (submitted && oi === q.correct) cls += ' is-correct';
           if (isWrongSelected) cls += ' is-wrong';
+          if (submitted) cls += ' disabled';
           const stateLabel = getChoiceStateLabel({
             isSelected,
             submitted,
@@ -77,80 +92,73 @@ function MCQuestion({ q, answer, onAnswer, submitted }) {
             isWrongSelected,
           });
           return (
-            <button
+            <label
               key={oi}
-              type="button"
               className={cls}
-              onClick={() => onAnswer(oi)}
-              disabled={submitted}
-              aria-pressed={isSelected}
-              aria-label={getChoiceAriaLabel({
-                prefix: String.fromCharCode(65 + oi),
-                text: opt,
-                stateLabel,
-              })}
             >
+              <input
+                className="qq-radio-native"
+                type="radio"
+                name={groupName}
+                value={oi}
+                checked={isSelected}
+                onChange={() => onAnswer(oi)}
+                disabled={submitted}
+                aria-label={getChoiceAriaLabel({
+                  prefix: String.fromCharCode(65 + oi),
+                  text: opt,
+                  stateLabel,
+                })}
+              />
               <span className="qq-opt-letter">{String.fromCharCode(65 + oi)}</span>
-              <span>{opt}</span>
-            </button>
+              {renderOption(opt)}
+            </label>
           );
         })}
-      </div>
+      </fieldset>
     </>
   );
 }
 
-function CodeQuestion({ q, answer, onAnswer, submitted }) {
-  const isCorrect = isAnswerCorrect(q, answer);
+function MCQuestion({ q, answer, onAnswer, submitted }) {
   return (
-    <>
-      <p className="qq-text">What does this code output?</p>
-      <pre className="qq-code"><code>{q.code}</code></pre>
-      <div className="qq-opts">
-        {q.options.map((opt, oi) => {
-          let cls = 'qq-opt';
-          const isSelected = answer === oi;
-          const isCorrectChoice = submitted && oi === q.correct;
-          const isWrongSelected = submitted && isSelected && !isCorrect;
-          if (isSelected) cls += ' picked';
-          if (submitted && oi === q.correct) cls += ' is-correct';
-          if (isWrongSelected) cls += ' is-wrong';
-          const stateLabel = getChoiceStateLabel({
-            isSelected,
-            submitted,
-            isCorrectChoice,
-            isWrongSelected,
-          });
-          return (
-            <button
-              key={oi}
-              type="button"
-              className={cls}
-              onClick={() => onAnswer(oi)}
-              disabled={submitted}
-              aria-pressed={isSelected}
-              aria-label={getChoiceAriaLabel({
-                prefix: String.fromCharCode(65 + oi),
-                text: opt,
-                stateLabel,
-              })}
-            >
-              <span className="qq-opt-letter">{String.fromCharCode(65 + oi)}</span>
-              <code className="qq-opt-code">{opt}</code>
-            </button>
-          );
-        })}
-      </div>
-    </>
+    <ChoiceRadioGroup
+      q={q}
+      answer={answer}
+      onAnswer={onAnswer}
+      submitted={submitted}
+      prompt={q.question}
+      code={q.code}
+      renderOption={(opt) => <span>{opt}</span>}
+    />
+  );
+}
+
+function CodeQuestion({ q, answer, onAnswer, submitted }) {
+  return (
+    <ChoiceRadioGroup
+      q={q}
+      answer={answer}
+      onAnswer={onAnswer}
+      submitted={submitted}
+      prompt="What does this code output?"
+      code={q.code}
+      renderOption={(opt) => <code className="qq-opt-code">{opt}</code>}
+    />
   );
 }
 
 function BugQuestion({ q, answer, onAnswer, submitted }) {
   const isCorrect = isAnswerCorrect(q, answer);
+  const prompt = q.question || 'Which line has the bug?';
+  const groupName = `qq-bug-${q.id || prompt.replace(/\W+/g, '-').toLowerCase()}`;
+  const promptId = `${groupName}-prompt`;
+
   return (
     <>
-      <p className="qq-text">{q.question || 'Which line has the bug?'}</p>
-      <div className="qq-bug-lines">
+      <p id={promptId} className="qq-text">{prompt}</p>
+      <fieldset className="qq-bug-lines" aria-describedby={promptId}>
+        <legend className="sr-only">{prompt}</legend>
         {q.lines.map((line, li) => {
           let cls = 'qq-bug-line';
           const isSelected = answer === li;
@@ -159,6 +167,7 @@ function BugQuestion({ q, answer, onAnswer, submitted }) {
           if (isSelected) cls += ' picked';
           if (submitted && li === q.correct) cls += ' is-correct';
           if (isWrongSelected) cls += ' is-wrong';
+          if (submitted) cls += ' disabled';
           const stateLabel = getChoiceStateLabel({
             isSelected,
             submitted,
@@ -166,25 +175,30 @@ function BugQuestion({ q, answer, onAnswer, submitted }) {
             isWrongSelected,
           });
           return (
-            <button
+            <label
               key={li}
-              type="button"
               className={cls}
-              onClick={() => onAnswer(li)}
-              disabled={submitted}
-              aria-pressed={isSelected}
-              aria-label={getChoiceAriaLabel({
-                prefix: `Line ${li + 1}`,
-                text: line,
-                stateLabel,
-              })}
             >
+              <input
+                className="qq-radio-native"
+                type="radio"
+                name={groupName}
+                value={li}
+                checked={isSelected}
+                onChange={() => onAnswer(li)}
+                disabled={submitted}
+                aria-label={getChoiceAriaLabel({
+                  prefix: `Line ${li + 1}`,
+                  text: line,
+                  stateLabel,
+                })}
+              />
               <span className="qq-line-num">{li + 1}</span>
               <code>{line}</code>
-            </button>
+            </label>
           );
         })}
-      </div>
+      </fieldset>
     </>
   );
 }
@@ -222,27 +236,38 @@ function FillQuestion({ q, answer, onAnswer, submitted }) {
 function OrderQuestion({ q, answer, onAnswer, submitted }) {
   const items = answer || q.items.map((_, i) => i);
   const isCorrect = isAnswerCorrect(q, answer);
+  const [announcement, setAnnouncement] = useState('');
 
   const moveUp = (idx) => {
     if (submitted || idx === 0) return;
     const next = [...items];
+    const itemIdx = next[idx];
     [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
     onAnswer(next);
+    setAnnouncement(`${q.items[itemIdx]} moved to position ${idx} of ${items.length}.`);
   };
 
   const moveDown = (idx) => {
     if (submitted || idx === items.length - 1) return;
     const next = [...items];
+    const itemIdx = next[idx];
     [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
     onAnswer(next);
+    setAnnouncement(`${q.items[itemIdx]} moved to position ${idx + 2} of ${items.length}.`);
   };
 
   return (
     <>
       <p className="qq-text">{q.question || 'Put these in the correct order:'}</p>
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </div>
       <div className="qq-order-list">
         {items.map((itemIdx, pos) => {
           let cls = 'qq-order-item';
+          const currentPosition = pos + 1;
+          const upTarget = Math.max(1, pos);
+          const downTarget = Math.min(items.length, pos + 2);
           if (submitted) {
             cls += q.correct[pos] === itemIdx ? ' is-correct' : ' is-wrong';
           }
@@ -257,7 +282,7 @@ function OrderQuestion({ q, answer, onAnswer, submitted }) {
                     className="qq-order-btn"
                     onClick={() => moveUp(pos)}
                     disabled={pos === 0}
-                    aria-label={`Move item ${pos + 1} up`}
+                    aria-label={`Move ${q.items[itemIdx]} from position ${currentPosition} to position ${upTarget}`}
                   >
                     ↑
                   </button>
@@ -266,7 +291,7 @@ function OrderQuestion({ q, answer, onAnswer, submitted }) {
                     className="qq-order-btn"
                     onClick={() => moveDown(pos)}
                     disabled={pos === items.length - 1}
-                    aria-label={`Move item ${pos + 1} down`}
+                    aria-label={`Move ${q.items[itemIdx]} from position ${currentPosition} to position ${downTarget}`}
                   >
                     ↓
                   </button>

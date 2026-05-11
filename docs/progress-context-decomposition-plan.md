@@ -43,7 +43,7 @@ Recommended provider shape after migration:
 
 ## Recommended migration order
 
-1. Keep the current public API stable through `useProgressData`, `useXP`, `useSR`, and the legacy `useProgress` alias.
+1. Keep the current public API stable through `useProgressData`, `useXP`, and `useSR`. The legacy `useProgress` aggregate has already been removed (no remaining consumers).
 2. Continue extracting pure helpers first, especially for sync warnings, bookmarks, notes, and reward-local persistence.
 3. Move retry queue state and write orchestration into `useProgressSyncQueue`.
 4. Move reward history, challenge completion tracking, and XP popup queues into `useRewards`.

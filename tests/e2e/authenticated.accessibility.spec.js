@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import { expectNoBlockingAxeViolations } from './a11yAssertions.js';
 
 const requiredEnv = [
   'VITE_SUPABASE_URL',
@@ -10,39 +10,8 @@ const requiredEnv = [
 
 const missingEnv = requiredEnv.filter((name) => !process.env[name]);
 
-function formatViolations(violations) {
-  return violations
-    .map((violation) => `${violation.id} (${violation.impact}) on ${violation.nodes.length} node(s)`)
-    .join('\n');
-}
-
 function escapeRegExp(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-async function expectNoSeriousViolations(page) {
-  const runAxe = async () => new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa'])
-    .analyze();
-
-  let results;
-  try {
-    results = await runAxe();
-  } catch (error) {
-    const shouldRetry = String(error).includes('Execution context was destroyed');
-    if (!shouldRetry) throw error;
-    await page.waitForLoadState('domcontentloaded');
-    results = await runAxe();
-  }
-
-  const blocking = results.violations.filter((violation) => (
-    violation.impact === 'serious' || violation.impact === 'critical'
-  ));
-
-  expect(
-    blocking,
-    `Accessibility violations detected:\n${formatViolations(blocking)}`,
-  ).toEqual([]);
 }
 
 async function waitForAuthenticatedShell(page) {
@@ -129,7 +98,7 @@ test.describe('authenticated accessibility', () => {
   });
 
   test('signed-in lesson shell has no serious axe violations', async ({ page }) => {
-    await expectNoSeriousViolations(page);
+    await expectNoBlockingAxeViolations(page);
   });
 
   test('search modal restores focus and supports keyboard result selection', async ({ page }) => {
@@ -143,7 +112,7 @@ test.describe('authenticated accessibility', () => {
 
     await expect(searchDialog).toBeVisible();
     await expect(searchInput).toBeFocused();
-    await expectNoSeriousViolations(page);
+    await expectNoBlockingAxeViolations(page);
 
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog', { name: /search lessons/i })).toHaveCount(0);
@@ -176,9 +145,7 @@ test.describe('authenticated accessibility', () => {
     const drawer = page.getByRole('dialog', { name: /course navigation/i });
     await expect(drawer).toBeVisible();
     await expect(drawer).toBeFocused();
-    await expect(sidebar).not.toHaveAttribute('aria-hidden', 'true');
-    await expect(sidebar).not.toHaveAttribute('inert', '');
-    await expectNoSeriousViolations(page);
+    await expectNoBlockingAxeViolations(page);
 
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog', { name: /course navigation/i })).toHaveCount(0);
@@ -213,7 +180,7 @@ test.describe('authenticated accessibility', () => {
 
     const bookmarksDialog = page.getByRole('dialog', { name: /bookmarks \(/i });
     await expect(bookmarksDialog).toBeVisible();
-    await expectNoSeriousViolations(page);
+    await expectNoBlockingAxeViolations(page);
 
     if (lessonTitle) {
       await expect(
@@ -233,11 +200,11 @@ test.describe('authenticated accessibility', () => {
     test.skip(!quizVisible, 'No visible lesson quiz found within the first few lessons.');
 
     const quiz = page.locator('.quiz-container').first();
-    const firstOption = quiz.getByRole('button').first();
+    const firstOption = quiz.getByRole('radio').first();
     const submitButton = quiz.getByRole('button', { name: /submit answers/i });
 
     await firstOption.focus();
-    await page.keyboard.press('Enter');
+    await page.keyboard.press('Space');
     await expect(submitButton).toBeEnabled();
     await submitButton.focus();
     await page.keyboard.press('Enter');

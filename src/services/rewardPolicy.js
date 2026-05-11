@@ -142,6 +142,13 @@ export function getBestQuizScoreForKeys(quizScores = {}, quizKeys = []) {
   }, '');
 }
 
+export function isQuizScoreValueImprovement(currentScoreValue, nextScoreValue) {
+  const next = parseQuizScore(nextScoreValue);
+  if (!next) return false;
+
+  return isQuizScoreImprovement(currentScoreValue, next.score, next.total);
+}
+
 export const REWARD_POLICY = Object.freeze({
   xpAwardRules: Object.freeze({
     lessonCompletion: 'Award lesson XP once per stable lesson key.',

@@ -1,17 +1,12 @@
-import { useEffect, useRef } from 'react';
-import { COURSES } from '../../data';
-import { useProgressData, useCourseContent } from '../../providers';
+import { useRef } from 'react';
+import { useProgressData } from '../../providers';
+import { COURSE_CATALOG } from '../../data/reference/course-catalog';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { getCourseCompletedLessonCount, hasLessonCompletion } from '../../utils/lessonKeys';
 
-export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx }) {
+export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx, currentModuleIdx = -1 }) {
   const { completedSet = new Set() } = useProgressData();
-  const { ensureAllLoaded, allCoursesLoaded } = useCourseContent();
   const modalRef = useRef(null);
-
-  useEffect(() => {
-    ensureAllLoaded();
-  }, [ensureAllLoaded]);
 
   useFocusTrap(modalRef, { enabled: true, onEscape: onClose });
 
@@ -41,13 +36,7 @@ export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx }) {
             See every course, spot what is complete, and jump straight into the next module that needs you.
           </p>
 
-          {!allCoursesLoaded && (
-            <p className="roadmap-loading" aria-live="polite">
-              Loading the rest of your roadmap so progress stays accurate across every track...
-            </p>
-          )}
-
-          {COURSES.map((course, courseIndex) => {
+          {COURSE_CATALOG.map((course, courseIndex) => {
             const totalLessons = course.modules.reduce((sum, module) => sum + module.lessons.length, 0);
             const doneLessons = getCourseCompletedLessonCount(completedSet, course);
             const percent = totalLessons > 0 ? Math.round((doneLessons / totalLessons) * 100) : 0;
@@ -90,21 +79,30 @@ export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx }) {
                     ).length;
                     const moduleComplete = moduleDone === module.lessons.length;
                     const moduleStarted = moduleDone > 0 && !moduleComplete;
+                    const isCurrentModule = isCurrent && moduleIndex === currentModuleIdx;
+                    const moduleStatus = moduleComplete
+                      ? 'Complete'
+                      : isCurrentModule
+                        ? 'Current'
+                        : moduleStarted
+                          ? 'In progress'
+                          : 'Upcoming';
 
                     return (
                       <button
                         key={module.id}
                         type="button"
-                        className={`rm-mod ${moduleComplete ? 'done' : moduleStarted ? 'partial' : ''}`}
+                        className={`rm-mod ${moduleComplete ? 'done' : moduleStarted ? 'partial' : ''} ${isCurrentModule ? 'current' : ''}`}
                         style={moduleComplete ? { borderColor: course.accent } : undefined}
-                        onClick={() => {
-                          onNavigate(courseIndex, moduleIndex);
+                        onClick={async () => {
+                          await onNavigate(courseIndex, moduleIndex);
                           onClose();
                         }}
-                        title={`${module.title} (${moduleDone}/${module.lessons.length})`}
+                        title={`${module.title} (${moduleStatus}, ${moduleDone}/${module.lessons.length})`}
                       >
                         <span className="rm-mod-emoji">{moduleComplete ? '✓' : module.emoji}</span>
                         <span className="rm-mod-name">{module.title}</span>
+                        <span className="rm-mod-status">{moduleStatus}</span>
                         <span className="rm-mod-count">
                           {moduleDone}/{module.lessons.length}
                         </span>
@@ -113,7 +111,7 @@ export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx }) {
                   })}
                 </div>
 
-                {courseIndex < COURSES.length - 1 && (
+                {courseIndex < COURSE_CATALOG.length - 1 && (
                   <div className="rm-connector" aria-hidden="true">
                     <span>↓</span>
                   </div>

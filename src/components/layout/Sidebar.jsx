@@ -5,32 +5,17 @@
 
 import { useState, memo, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useProgressData, useAuth } from '../../providers';
-import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { useLearnerLocalStorage } from '../../hooks/useLearnerLocalStorage';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
-import { hasQuiz } from '../../data';
 import { ProfilePopover } from './ProfilePopover';
 import { Logo } from '../shared/Logo';
-import { getCourseCompletedLessonCount, hasLessonCompletion } from '../../utils/lessonKeys';
+import { SidebarModuleList } from './SidebarModuleList';
+import { SidebarLockToggle } from './SidebarLockToggle';
+import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
 import { logNavigationDiagnostic } from '../../utils/navigationDiagnostics';
+import { getLearningToolCopy, isLearningToolAvailable } from '../../constants/learningTools';
 
 const POPUP_MENU_ITEM_SELECTOR = '[role="menuitem"]';
-
-function isLessonUnlocked(course, modules, mi, li, completedSet) {
-  if (mi === 0 && li === 0) return true;
-
-  if (li > 0) {
-    const prevLesson = modules[mi].lessons[li - 1];
-    return hasLessonCompletion(completedSet, course, modules[mi], prevLesson);
-  }
-
-  if (mi > 0) {
-    const prevMod = modules[mi - 1];
-    const lastLesson = prevMod.lessons[prevMod.lessons.length - 1];
-    return hasLessonCompletion(completedSet, course, prevMod, lastLesson);
-  }
-
-  return true;
-}
 
 
 export const Sidebar = memo(function Sidebar({
@@ -49,13 +34,13 @@ export const Sidebar = memo(function Sidebar({
   onSelectModQuiz,
   onOpenTool,
   activePanel,
+  hasCompletedProgress = true,
 }) {
   const isDesktopCollapsed = !isMobile && isCollapsed;
-  const isMobileClosed = isMobile && !isOpen;
-  const isSidebarInert = isDesktopCollapsed || isMobileClosed;
+  const isNavInteractionHidden = isDesktopCollapsed || (isMobile && !isOpen);
   const { completed = [] } = useProgressData();
   const { user } = useAuth();
-  const [lockMode, setLockMode] = useLocalStorage('chw-lock-mode', false);
+  const [lockMode, setLockMode] = useLearnerLocalStorage('chw-lock-mode', false);
   const [popoverOpen, setPopoverOpen] = useState(false);
   // `activePopout` replaces the old `courseDropdownOpen` — a single
   // state for the Courses + Tools tab bar. Only one popout can be
@@ -238,6 +223,12 @@ export const Sidebar = memo(function Sidebar({
   }, [isMobileClosed]);
 
   useEffect(() => {
+    if (!isMobile || isOpen) return;
+    setPopoverOpen(false);
+    closePopout(false);
+  }, [closePopout, isMobile, isOpen]);
+
+  useEffect(() => {
     const navElement = document.getElementById('course-sidebar');
     if (!navElement) return undefined;
 
@@ -245,7 +236,7 @@ export const Sidebar = memo(function Sidebar({
       navElement.querySelectorAll('a[href], button, input, select, textarea, [tabindex]'),
     );
 
-    if (isSidebarInert) {
+    if (isNavInteractionHidden) {
       focusableElements.forEach((element) => {
         if (!element.hasAttribute('data-prev-tabindex')) {
           const previousTabIndex = element.getAttribute('tabindex');
@@ -268,7 +259,7 @@ export const Sidebar = memo(function Sidebar({
     });
 
     return undefined;
-  }, [isSidebarInert]);
+  }, [isNavInteractionHidden]);
 
   // While tab content is active, close it on click-outside or Escape.
   useEffect(() => {
@@ -307,6 +298,20 @@ export const Sidebar = memo(function Sidebar({
 
   const togglePopover = useCallback(() => setPopoverOpen((v) => !v), []);
   const closePopover = useCallback(() => setPopoverOpen(false), []);
+  const handleCourseSelect = useCallback((nextCourseIndex) => {
+    onSelectCourse(nextCourseIndex);
+    setActivePopout(null);
+    setPopoutPos(null);
+    if (isMobile) onClose();
+  }, [isMobile, onClose, onSelectCourse]);
+
+  const handleToolSelect = useCallback((toolKey) => {
+    onOpenTool(toolKey);
+    setActivePopout(null);
+    setPopoutPos(null);
+    if (isMobile) onClose();
+  }, [isMobile, onClose, onOpenTool]);
+
   const handleLessonSelect = useCallback((module, lesson, mi, li, unlocked) => {
     logNavigationDiagnostic('lesson-click-fired', {
       targetLessonId: lesson?.id || '',
@@ -329,6 +334,7 @@ export const Sidebar = memo(function Sidebar({
     enabled: isMobile && isOpen,
     onEscape: onClose,
     lockBodyScroll: true,
+    initialFocus: 'first-tabbable',
   });
 
   return (
@@ -343,15 +349,15 @@ export const Sidebar = memo(function Sidebar({
         aria-modal={isMobile && isOpen ? 'true' : undefined}
         aria-label={isMobile && isOpen ? 'Course navigation' : undefined}
         aria-hidden={isMobile ? !isOpen : undefined}
-        inert={isMobileClosed ? '' : undefined}
+        inert={isMobile && !isOpen ? '' : undefined}
         tabIndex={isMobile ? -1 : undefined}
       >
       <nav
         id="course-sidebar"
         className={`sidebar ${isOpen ? 'open' : ''} ${!isMobile && isCollapsed ? 'collapsed' : ''}`}
         aria-label="Course navigation"
-        aria-hidden={isSidebarInert ? 'true' : undefined}
-        inert={isSidebarInert ? '' : undefined}
+        aria-hidden={isNavInteractionHidden ? 'true' : undefined}
+        inert={isNavInteractionHidden ? '' : undefined}
       >
         {/* ─── Brand + Avatar row ─── */}
         <header className="sidebar-head">
@@ -464,11 +470,7 @@ export const Sidebar = memo(function Sidebar({
                   type="button"
                   role="menuitem"
                   className={`cs-option ${ci === courseIdx ? 'active' : ''}`}
-                  onClick={() => {
-                    onSelectCourse(ci);
-                    setActivePopout(null);
-                    setPopoutPos(null);
-                  }}
+                  onClick={() => handleCourseSelect(ci)}
                   style={{ '--cs-accent': c.accent }}
                   aria-label={`Switch to ${c.label} course`}
                 >
@@ -483,177 +485,76 @@ export const Sidebar = memo(function Sidebar({
                 {
                   key: 'bookmarks',
                   icon: '★',
-                  label: 'Saved lessons',
-                  hint: 'Return to lessons you chose to keep close.',
                 },
                 {
                   key: 'sr',
                   icon: '↻',
-                  label: 'Review queue',
-                  hint: 'Practice cards that are due today.',
                 },
                 {
                   key: 'glossary',
                   icon: 'Aa',
-                  label: 'Glossary',
-                  hint: 'Look up a term when lesson language gets dense.',
                 },
                 {
                   key: 'cheatsheet',
                   icon: '{}',
-                  label: 'Cheat sheets',
-                  hint: 'Quick syntax reminders for the current track.',
                 },
                 {
                   key: 'projects',
                   icon: '<>',
-                  label: 'Build projects',
-                  hint: 'Use after a few lessons to make portfolio work.',
                 },
                 {
                   key: 'challenges',
                   icon: '✓',
-                  label: 'Challenges',
-                  hint: 'Hands-on practice when you want a stretch.',
                 },
                 {
                   key: 'badges',
                   icon: '☆',
-                  label: 'Badges',
-                  hint: 'Milestones earned inside CodeHerWay.',
                 },
-              ].map((t) => (
+              ].filter((t) =>
+                isLearningToolAvailable(t.key, hasCompletedProgress),
+              ).map((t) => {
+                const copy = getLearningToolCopy(t.key);
+                const label = copy.label || t.label;
+                const hint = copy.sidebarHint || t.hint;
+                return (
                 <button
                   key={t.key}
                   type="button"
                   role="menuitem"
                   className={`sidebar-tab-opt ${activePanel === t.key ? 'active' : ''}`}
                   aria-pressed={activePanel === t.key}
-                  onClick={() => {
-                    onOpenTool(t.key);
-                    setActivePopout(null);
-                    setPopoutPos(null);
-                  }}
-                  aria-label={`Open ${t.label}`}
+                  onClick={() => handleToolSelect(t.key)}
+                  aria-label={`Open ${label}`}
                 >
                   <span className="sidebar-tab-opt-icon" aria-hidden="true">{t.icon}</span>
                   <span className="sidebar-tab-opt-copy">
-                    <span className="sidebar-tab-opt-label">{t.label}</span>
-                    <span className="sidebar-tab-opt-hint">{t.hint}</span>
+                    <span className="sidebar-tab-opt-label">{label}</span>
+                    <span className="sidebar-tab-opt-hint">{hint}</span>
                   </span>
                 </button>
-              ))}
+                );
+              })}
           </div>
         )}
 
         {/* ─── Module/Lesson Tree ─── */}
         <div className="sidebar-scroll">
-          <div className="sidebar-map-header">
-            <span className="sidebar-map-title">Modules</span>
-            <button
-              type="button"
-              className={`sidebar-roadmap-btn ${activePanel === 'roadmap' ? 'active' : ''}`}
-              onClick={() => onOpenTool('roadmap')}
-              aria-label="Open full learning roadmap"
-              title="Full roadmap"
-            >
-              🗺️
-            </button>
-          </div>
-          {/* The outer <nav aria-label="Course navigation"> already exposes
-              this region as a landmark — this inner list doesn't need its
-              own nested <nav> (would be noisy for screen readers). */}
-          <div className="sidebar-nav">
-            {modules.map((module, mi) => {
-              const modDone = module.lessons.filter((lesson) =>
-                hasLessonCompletion(completedSet, course, module, lesson),
-              ).length;
-              const isModUnlocked = !lockMode || isLessonUnlocked(course, modules, mi, 0, completedSet);
-
-              const isExpanded = expandedMod === mi;
-
-              return (
-                <div key={module.id} className={`module-group ${mi === modIdx ? 'act' : ''} ${isExpanded ? 'expanded' : ''} ${!isModUnlocked ? 'locked' : ''}`}>
-                  <button
-                    type="button"
-                    className="module-group-btn"
-                    onClick={() => {
-                      if (!isModUnlocked) return;
-                      // Toggle expand/collapse; if collapsing the current, just collapse
-                      setExpandedMod(isExpanded ? -1 : mi);
-                    }}
-                    disabled={!isModUnlocked}
-                    aria-expanded={isExpanded}
-                  aria-label={`${module.title} module${isModUnlocked ? `, ${modDone}/${module.lessons.length} lessons completed` : ', locked by sequence mode'}`}
-                  >
-                    <span className="module-group-emoji" aria-hidden="true">{isModUnlocked ? module.emoji : '🔒'}</span>
-                    <div className="module-group-info">
-                      <span className="module-group-name">{module.title}</span>
-                      <span className="module-group-sub">{modDone}/{module.lessons.length}</span>
-                    </div>
-                  </button>
-
-                  {isExpanded && (
-                    <div className="lesson-list">
-                      {module.lessons.map((lesson, li) => {
-                        const isDone = hasLessonCompletion(completedSet, course, module, lesson);
-                        const unlocked = !lockMode || isLessonUnlocked(course, modules, mi, li, completedSet);
-                        return (
-                          <button
-                            key={lesson.id}
-                            type="button"
-                            className={`lesson-list-btn ${mi === modIdx && li === lesIdx && !showModQuiz ? 'act' : ''} ${isDone ? 'dn' : ''} ${!unlocked ? 'locked' : ''}`}
-                            onClick={() => handleLessonSelect(module, lesson, mi, li, unlocked)}
-                            disabled={!unlocked}
-                            aria-label={`${lesson.title} lesson${isDone ? ', completed' : ''}${!unlocked ? ', locked' : ''}`}
-                            aria-current={mi === modIdx && li === lesIdx && !showModQuiz ? 'page' : undefined}
-                          >
-                            <span className="lesson-list-chk" aria-hidden="true">{isDone ? '✓' : unlocked ? '○' : '🔒'}</span>
-                            <span>{lesson.title}</span>
-                            {mi === modIdx && li === lesIdx && !showModQuiz && <span className="lesson-list-robot" aria-hidden="true">🤖</span>}
-                          </button>
-                        );
-                      })}
-                      {hasQuiz(course.id, 'm', module.id) && (
-                        <button
-                          type="button"
-                          className={`lesson-list-btn lesson-list-quiz ${showModQuiz && mi === modIdx ? 'act' : ''}`}
-                          onClick={() => onSelectModQuiz(mi)}
-                          aria-label={`Open module quiz for ${module.title}`}
-                        >
-                          <span className="lesson-list-chk" aria-hidden="true">📝</span>
-                          <span>Module Quiz</span>
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* The Tools grid was moved into the Tools popout at the
-              top of the sidebar (see .sidebar-tabs above). */}
-
-          {/* ─── Lock toggle ─── */}
-          <div className="sidebar-lock-row">
-            <label className="lock-label">
-            <input
-              type="checkbox"
-              checked={lockMode}
-              onChange={(e) => setLockMode(e.target.checked)}
-              aria-label="Toggle guided lesson order"
-            />
-            <span className="lock-copy">
-              <span className="lock-text">{lockMode ? 'Guided order on' : 'Open navigation'}</span>
-              <span className="lock-help">
-                {lockMode
-                  ? 'Lessons unlock step by step as you mark them done.'
-                  : 'You can browse lessons in any order.'}
-              </span>
-            </span>
-            </label>
-          </div>
+          <SidebarModuleList
+            course={course}
+            modules={modules}
+            modIdx={modIdx}
+            lesIdx={lesIdx}
+            showModQuiz={showModQuiz}
+            completedSet={completedSet}
+            expandedMod={expandedMod}
+            onToggleExpand={setExpandedMod}
+            lockMode={lockMode}
+            onLessonSelect={handleLessonSelect}
+            onSelectModQuiz={onSelectModQuiz}
+            activePanel={activePanel}
+            onOpenRoadmap={() => handleToolSelect('roadmap')}
+          />
+          <SidebarLockToggle lockMode={lockMode} onToggle={setLockMode} />
         </div>
       </nav>
       </div>

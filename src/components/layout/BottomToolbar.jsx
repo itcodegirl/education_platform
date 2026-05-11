@@ -1,5 +1,9 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSR } from "../../providers";
+import {
+  getLearningToolCopy,
+  isLearningToolAvailable,
+} from "../../constants/learningTools";
 
 export const BottomToolbar = memo(function BottomToolbar({
   activePanel,
@@ -11,6 +15,7 @@ export const BottomToolbar = memo(function BottomToolbar({
   onBookmarks,
   onChallenges,
   onStats,
+  hasCompletedProgress = true,
 }) {
   const { getDueSRCards, bookmarks } = useSR();
   const dueCount = getDueSRCards().length;
@@ -23,13 +28,27 @@ export const BottomToolbar = memo(function BottomToolbar({
     if (restoreFocus) triggerRef.current?.focus();
   }, []);
 
+  const getMenuItems = useCallback(() => {
+    if (!menuRef.current) return [];
+    return Array.from(
+      menuRef.current.querySelectorAll('[role="menuitem"], [role="menuitemcheckbox"]'),
+    );
+  }, []);
+
+  const focusMenuItem = useCallback((index) => {
+    const items = getMenuItems();
+    if (items.length === 0) return;
+    const nextIndex = (index + items.length) % items.length;
+    items[nextIndex]?.focus();
+  }, [getMenuItems]);
+
   const primaryTools = useMemo(
     () => [
       {
         key: "bookmarks",
-        label: "Saved",
-        title: "Saved lessons",
-        ariaLabel: "Open saved lessons",
+        label: getLearningToolCopy("bookmarks").shortLabel,
+        title: getLearningToolCopy("bookmarks").bottomTitle,
+        ariaLabel: getLearningToolCopy("bookmarks").bottomAriaLabel,
         icon: "★",
         onClick: onBookmarks,
         badge: bookmarks.length > 0 ? (
@@ -38,9 +57,9 @@ export const BottomToolbar = memo(function BottomToolbar({
       },
       {
         key: "stats",
-        label: "Progress",
-        title: "Your progress",
-        ariaLabel: "Open your progress",
+        label: getLearningToolCopy("stats").label,
+        title: getLearningToolCopy("stats").bottomTitle,
+        ariaLabel: getLearningToolCopy("stats").bottomAriaLabel,
         icon: "↗",
         onClick: onStats,
       },
@@ -52,33 +71,33 @@ export const BottomToolbar = memo(function BottomToolbar({
     () => [
       {
         key: "sr",
-        label: "Review queue",
+        label: getLearningToolCopy("sr").label,
         onClick: onSR,
         count: dueCount > 0 ? dueCount : null,
       },
       {
         key: "badges",
-        label: "Badges",
+        label: getLearningToolCopy("badges").label,
         onClick: onBadges,
       },
       {
         key: "challenges",
-        label: "Challenges",
+        label: getLearningToolCopy("challenges").label,
         onClick: onChallenges,
       },
       {
         key: "cheatsheet",
-        label: "Cheat sheets",
+        label: getLearningToolCopy("cheatsheet").label,
         onClick: onCheatsheet,
       },
       {
         key: "glossary",
-        label: "Glossary",
+        label: getLearningToolCopy("glossary").label,
         onClick: onGlossary,
       },
       {
         key: "projects",
-        label: "Build projects",
+        label: getLearningToolCopy("projects").label,
         onClick: onProjects,
       },
       {
@@ -88,6 +107,13 @@ export const BottomToolbar = memo(function BottomToolbar({
       },
     ],
     [dueCount, onBadges, onChallenges, onCheatsheet, onGlossary, onProjects, onSR],
+  );
+
+  const visibleSecondaryTools = useMemo(
+    () => secondaryTools.filter((tool) =>
+      tool.key === "print" || isLearningToolAvailable(tool.key, hasCompletedProgress),
+    ),
+    [hasCompletedProgress, secondaryTools],
   );
 
   const isSecondaryPanelActive = secondaryTools.some(
@@ -116,6 +142,11 @@ export const BottomToolbar = memo(function BottomToolbar({
   }, [isMenuOpen, closeMenu]);
 
   useEffect(() => {
+    if (!isMenuOpen) return;
+    focusMenuItem(0);
+  }, [focusMenuItem, isMenuOpen]);
+
+  useEffect(() => {
     setIsMenuOpen(false);
   }, [activePanel]);
 
@@ -123,6 +154,48 @@ export const BottomToolbar = memo(function BottomToolbar({
     closeMenu(true);
     action();
   };
+
+  const handleMenuBlur = useCallback((event) => {
+    if (!menuRef.current?.contains(event.relatedTarget)) {
+      closeMenu(false);
+    }
+  }, [closeMenu]);
+
+  const handleMenuKeyDown = useCallback((event) => {
+    const items = getMenuItems();
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeMenu(true);
+      return;
+    }
+
+    if (items.length === 0) return;
+
+    const currentIndex = items.indexOf(document.activeElement);
+    const moveFocus = (nextIndex) => {
+      event.preventDefault();
+      focusMenuItem(nextIndex);
+    };
+
+    switch (event.key) {
+      case "ArrowDown":
+      case "ArrowRight":
+        moveFocus(currentIndex + 1);
+        break;
+      case "ArrowUp":
+      case "ArrowLeft":
+        moveFocus(currentIndex <= 0 ? items.length - 1 : currentIndex - 1);
+        break;
+      case "Home":
+        moveFocus(0);
+        break;
+      case "End":
+        moveFocus(items.length - 1);
+        break;
+      default:
+        break;
+    }
+  }, [closeMenu, focusMenuItem, getMenuItems]);
 
   return (
     <div
@@ -146,13 +219,14 @@ export const BottomToolbar = memo(function BottomToolbar({
         </button>
       ))}
 
-      <div className="tool-menu-wrap" ref={menuRef}>
+      <div className="tool-menu-wrap" ref={menuRef} onBlur={handleMenuBlur}>
         <button
           ref={triggerRef}
           type="button"
           className={`tool-btn ${isMenuOpen || isSecondaryPanelActive ? "active" : ""}`}
           title="Learning tools"
-          aria-label="Open learning tools"
+          aria-label={isMenuOpen ? "Close learning tools" : "Open learning tools"}
+          aria-controls="learning-tools-menu"
           aria-expanded={isMenuOpen}
           aria-haspopup="menu"
           onClick={() => setIsMenuOpen((open) => !open)}
@@ -162,22 +236,33 @@ export const BottomToolbar = memo(function BottomToolbar({
         </button>
 
         {isMenuOpen && (
-          <div className="tool-menu" role="menu" aria-label="Learning tools">
-            {secondaryTools.map((tool) => (
-              <button
-                key={tool.key}
-                type="button"
-                className={`tool-menu-item ${activePanel === tool.key ? "active" : ""}`}
-                role="menuitem"
-                aria-pressed={activePanel === tool.key}
-                onClick={() => closeMenuAndRun(tool.onClick)}
-              >
-                {tool.label}
-                {tool.count ? (
-                  <span className="tool-menu-count">{tool.count}</span>
-                ) : null}
-              </button>
-            ))}
+          <div
+            id="learning-tools-menu"
+            className="tool-menu"
+            role="menu"
+            aria-label="Learning tools"
+            onKeyDown={handleMenuKeyDown}
+          >
+            {visibleSecondaryTools.map((tool) => {
+              const isPanelTool = tool.key !== "print";
+              const isActive = activePanel === tool.key;
+
+              return (
+                <button
+                  key={tool.key}
+                  type="button"
+                  className={`tool-menu-item ${isActive ? "active" : ""}`}
+                  role={isPanelTool ? "menuitemcheckbox" : "menuitem"}
+                  aria-checked={isPanelTool ? isActive : undefined}
+                  onClick={() => closeMenuAndRun(tool.onClick)}
+                >
+                  {tool.label}
+                  {tool.count ? (
+                    <span className="tool-menu-count">{tool.count}</span>
+                  ) : null}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>

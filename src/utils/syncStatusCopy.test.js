@@ -7,8 +7,8 @@ describe('getSyncStatusCopy', () => {
   it('does not claim cloud sync when the learner is not signed in', () => {
     expect(getSyncStatusCopy({ user: null })).toEqual({
       tone: 'local',
-      label: 'Same-device mode',
-      detail: 'Create an account to save lessons, bookmarks, and notes to the cloud. XP, streaks, badges, review cards, and challenges stay on this device today.',
+      label: 'Saved locally',
+      detail: 'This browser keeps your lesson place. Sign in to sync lessons, bookmarks, and notes across devices.',
     });
   });
 
@@ -16,7 +16,39 @@ describe('getSyncStatusCopy', () => {
     expect(getSyncStatusCopy({ user, dataLoaded: true, pendingSyncWrites: 2 })).toEqual({
       tone: 'queued',
       label: 'Cloud sync queued',
-      detail: '2 updates waiting in this browser. Keep this tab open when you reconnect.',
+      detail: 'Saved in this browser. We will retry 2 updates when you are back online.',
+      actionLabel: 'Retry now',
+      actionAriaLabel: 'Retry queued progress updates now',
+    });
+  });
+
+  it('syncStatusCopyCoversPendingRetryAndFailure', () => {
+    expect(getSyncStatusCopy({ user, dataLoaded: true, pendingSyncWrites: 1, syncRetryInFlight: true })).toEqual({
+      tone: 'saving',
+      label: 'Retrying cloud sync',
+      detail: '1 update retrying now. Keep this tab open while cloud sync catches up.',
+      actionLabel: '',
+      actionAriaLabel: '',
+    });
+
+    expect(getSyncStatusCopy({ user, dataLoaded: true, syncFailed: 1 })).toEqual({
+      tone: 'warning',
+      label: 'Sync needs retry',
+      detail: 'Your current session is safe in this browser. Cloud sync needs another try when the connection is stable.',
+    });
+
+    expect(getSyncStatusCopy({ user, dataLoaded: true, loadError: new Error('offline') })).toEqual({
+      tone: 'warning',
+      label: 'Cloud progress unavailable',
+      detail: 'Your current session is safe, but cloud sync needs retry before account progress is confirmed.',
+    });
+  });
+
+  it('progressSaveFailureShowsRecoveryMessage', () => {
+    expect(getSyncStatusCopy({ user, dataLoaded: true, syncFailed: 2 })).toEqual({
+      tone: 'warning',
+      label: 'Sync needs retry',
+      detail: 'Your current session is safe in this browser. Cloud sync needs another try when the connection is stable.',
     });
   });
 
@@ -31,16 +63,16 @@ describe('getSyncStatusCopy', () => {
   it('shows an active saving state while mark-done is submitting', () => {
     expect(getSyncStatusCopy({ user, dataLoaded: true, mutationState: 'submitting' })).toEqual({
       tone: 'saving',
-      label: 'Saving to cloud',
-      detail: 'Lesson progress is updating for this account.',
+      label: 'Saving to account',
+      detail: 'Saving this lesson reading step to your account.',
     });
   });
 
   it('names the normal account sync scope honestly', () => {
     expect(getSyncStatusCopy({ user, dataLoaded: true })).toEqual({
       tone: 'synced',
-      label: 'Account sync ready',
-      detail: 'Lessons, bookmarks, and notes save to your account when the cloud is reachable. XP, streaks, badges, review cards, and challenges stay on this device today.',
+      label: 'Saved to account',
+      detail: 'Account progress is current. New lesson activity will sync when the cloud is reachable.',
     });
   });
 });

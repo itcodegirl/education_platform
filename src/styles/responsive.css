@@ -32,7 +32,10 @@
   .nav-row { display: none; }
   .nav-guidance { display: none; }
   .mark-btn { display: none; }
-  .main-shell { padding-bottom: 80px; }
+  .main-shell {
+    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+    scroll-padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+  }
 
   /* Hide the old floating toolbar on mobile (tools moved to sidebar) */
   .bottom-tools { display: none; }
@@ -107,6 +110,7 @@
   .qq { padding: 14px var(--quiz-inline-pad); gap: 12px; }
   .quiz-submit { width: auto; margin: 12px var(--quiz-inline-pad) 16px; }
   .quiz-results { padding: 16px var(--quiz-inline-pad); flex-wrap: wrap; }
+  .quiz-result-body { min-width: 100%; }
   .quiz-next-step { width: 100%; }
   .quiz-score-num { font-size: 22px; }
   .topbar-actions .read-time { display: none; }
@@ -127,8 +131,19 @@
   .breadcrumb { padding: 6px 8px; border-radius: 10px; }
   .breadcrumb-lesson { font-size: 11px; }
 
-  .main-shell { padding-bottom: 88px; }
+  .main-shell {
+    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+    scroll-padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  }
   .lesson-nav { padding: 8px 10px; gap: 6px; }
+  .lesson-nav {
+    padding:
+      8px
+      max(10px, env(safe-area-inset-right, 0px))
+      calc(8px + env(safe-area-inset-bottom, 0px))
+      max(10px, env(safe-area-inset-left, 0px));
+    gap: 6px;
+  }
   .lesson-nav-btn { padding: 8px 4px; border-radius: 10px; min-height: 44px; }
   .lesson-nav-label { font-size: 11px; }
 

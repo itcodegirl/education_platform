@@ -79,7 +79,7 @@ string comparison.
 ## 3. Lesson completion
 
 ```
-User clicks "Mark done"
+User clicks "Complete lesson"
        │
        ▼
 useMarkLessonDone (hook)
@@ -140,6 +140,14 @@ Per `docs/reward-progress-policy.md`:
 - Submitting a quiz is a streak-qualifying action — including retries —
   so `recordDailyActivity` runs unconditionally on submit. This is
   intentional engagement design, documented in the policy.
+- The post-submit feedback loop uses `src/utils/quizFeedback.js` to
+  translate a score into learner-facing next actions: explain, review,
+  retry, or apply in a challenge. This keeps quizzes instructional even
+  when XP has already been earned.
+- `src/utils/lessonMasteryStatus.js` converts the saved quick-check score
+  into display-only guidance in the lesson focus strip. It can recommend a
+  first pass, quick-check evidence, review loop, or ready signal, but it
+  does not lock navigation or certify mastery.
 
 ## 5. Challenge completion
 
@@ -169,6 +177,28 @@ Idempotency guarantees:
 - `markChallengeCompleted(id)` returns false if already in the set, so
   the reward block doesn't run twice
 
+`src/utils/challengeProgression.js` connects each course challenge to a
+course module target for display and recommendation. The panel can suggest
+a practice match and show "best after" context, but the recommendation is
+soft guidance only; challenges remain optional and do not lock lesson
+navigation.
+
+`src/utils/challengeEvidence.js` turns a challenge's requirements and
+automated checks into a learner-facing evidence summary. It is meant to help
+learners talk about what they built and what the grader verified, while still
+stating that same-browser challenge progress is not an external credential.
+
+`src/utils/dailyLearningLoop.js` combines the active lesson state, quick-check
+mastery guidance, spaced-repetition due count, and challenge entry point into
+the lesson-level "Today's learning loop" surface. This is display-only
+scaffolding: it helps learners choose a useful next action without creating
+hard gates or new reward rules.
+
+`src/utils/learningAnalyticsPayloads.js` keeps learner-action analytics
+payloads small and non-sensitive. Learning-loop clicks and challenge
+workspace/completion events track ids, readiness labels, and counts, but do
+not send learner source code or reflection text.
+
 ## 6. XP, streaks, daily goal, badges
 
 `recordDailyActivity` (in `ProgressContext`) is the single owner of:
@@ -191,7 +221,30 @@ provider's `checkBadges` runs after every progress change and enqueues
 freshly-earned badges into `newBadgeQueue` so the BadgeUnlock celebration
 plays one at a time even when several badges land in the same action.
 
-## 7. Persistence layers
+## 7. Mastery evidence display
+
+The progress panel intentionally separates motivational progress from
+learning evidence:
+
+- **Lesson completion** means exposure: the learner read the lesson and
+  saved their place.
+- **Quiz checks at 80%+** count as confidence evidence for the topic.
+- **Applied challenges** count as practice evidence when the local tests
+  pass.
+- **Review cards due now** represent retention load, not failure.
+
+`src/utils/masteryProgress.js` owns the display summary. It does not award
+XP, gate navigation, or certify mastery. Its job is to help learners and
+reviewers see whether completed lessons are being reinforced by checks,
+application, and spaced review.
+
+`src/utils/reviewLoad.js` summarizes the spaced-repetition queue into a
+small review rhythm: what is due now, what is scheduled later, and how many
+cards make a useful short burst. The roadmap uses display-only module labels
+(`Current`, `Upcoming`, `In progress`, `Complete`) so course progress is
+easier to scan without adding hard locks.
+
+## 8. Persistence layers
 
 | Surface                        | Local                                | Backend                 | Recovery                          |
 | ------------------------------ | ------------------------------------ | ----------------------- | --------------------------------- |
@@ -214,7 +267,7 @@ session. `dbWrite` runs async and queues failures into
 `progressWriteQueue`; the queue replays on online/visibilitychange and on
 the next session start.
 
-## 8. Reward event types — two namespaces
+## 9. Reward event types — two namespaces
 
 Two `REWARD_EVENT_TYPES` constants exist intentionally:
 
@@ -233,7 +286,7 @@ they front different storage shapes. A future refactor could collapse
 them, but doing so requires migrating the legacy reward-key strings
 already persisted in learner localStorage — out of scope for now.
 
-## 9. Backend boundaries
+## 10. Backend boundaries
 
 Currently persisted to Supabase:
 
@@ -254,7 +307,7 @@ Local-only by design (not migration candidates):
 - Sidebar collapse, theme, lock mode, install dismiss seen, what's new seen
 - Reward retry queue intermediate state
 
-## 10. Known engine risks
+## 11. Known engine risks
 
 - **Quiz retries qualify for streak/dailyCount per policy.** A learner
   could in principle re-submit a quiz with garbage answers to fake the
@@ -274,7 +327,7 @@ Local-only by design (not migration candidates):
 - **Challenge completions are localStorage-only.** A learner who clears
   storage loses their challenge history, including dedup state.
 
-## 11. Where to start when changing the engine
+## 12. Where to start when changing the engine
 
 - Reward policy → `src/services/rewardPolicy.js` (single source of truth
   for XP amounts, reward keys, retry rules).
@@ -288,3 +341,6 @@ Local-only by design (not migration candidates):
 - Badge rules → `src/services/badgeRules.js`.
 - Display-only guards → `src/utils/helpers.js`
   (`getActiveStreakDays`, `getActiveDailyCount`, `getPausedStreak`).
+- Content quality gates → `scripts/audit-learning-content.mjs`, which checks
+  stable ids, quiz explanations, challenge test metadata, and lesson
+  scaffolding signals before content changes ship.

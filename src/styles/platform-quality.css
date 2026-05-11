@@ -8,18 +8,33 @@
    PERFORMANCE OPTIMIZATIONS + UX QUALITY STATES
    ═══════════════════════════════════════════════ */
 
-/* GPU acceleration for animated elements */
-.code-preview-tab,
-.nav-btn,
-.mark-btn,
-.tool-btn,
-.theme-toggle,
-.challenge-card,
-.ob-card,
-.cc-card,
-.welcome-card,
-.ai-send,
-.cc-run-btn {
+/* Promote only during interaction/visibility states. Keeping
+   will-change on many idle controls creates unnecessary compositor
+   layers and can hurt memory on lower-power mobile devices. */
+.code-preview-tab:hover,
+.code-preview-tab:focus-visible,
+.nav-btn:hover:not(:disabled),
+.nav-btn:focus-visible,
+.mark-btn:hover:not(:disabled),
+.mark-btn:focus-visible,
+.tool-btn:hover,
+.tool-btn:focus-visible,
+.theme-toggle:hover,
+.theme-toggle:focus-visible,
+.challenge-card:hover,
+.challenge-card:focus-within,
+.ob-card:hover,
+.ob-card:focus-within,
+.cc-card:hover,
+.cc-card:focus-within,
+.welcome-card:hover,
+.welcome-card:focus-within,
+.ai-send:hover:not(:disabled),
+.ai-send:focus-visible,
+.cc-run-btn:hover:not(:disabled),
+.cc-run-btn:focus-visible,
+.xp-popup.show,
+.badge-unlock.show {
   will-change: transform;
 }
 
@@ -44,10 +59,6 @@
 }
 
 .cc-challenge {
-  contain: layout;
-}
-
-.admin-container {
   contain: layout;
 }
 
@@ -345,8 +356,21 @@ img {
 
 .lesson-quiz-wrap {
   max-width: var(--content-max);
-  margin: 0 auto;
-  padding: 0 clamp(14px, 2vw, var(--space-7));
+  margin: var(--space-6) auto 0;
+  padding: var(--space-5) clamp(14px, 2vw, var(--space-7)) 0;
+  border-top: 1px solid var(--border);
+}
+
+/* Eyebrow label that frames the lesson quiz as a learning
+   checkpoint, not a competing CTA alongside the lesson-nav row. */
+.lesson-quiz-eyebrow {
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 0 0 var(--space-3);
 }
 
 .sr-progress-label {
@@ -354,6 +378,64 @@ img {
   font-size: var(--text-xs);
   color: var(--text-muted);
   margin-top: var(--space-3);
+}
+
+.sr-review-load {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-surface);
+}
+
+.sr-review-load-due {
+  border-color: rgba(245, 158, 11, 0.34);
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.sr-review-load-scheduled {
+  border-color: rgba(78, 205, 196, 0.24);
+  background: rgba(78, 205, 196, 0.06);
+}
+
+.sr-review-load-kicker {
+  display: block;
+  color: var(--cyan);
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.sr-review-load-title {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-base);
+  font-weight: 700;
+}
+
+.sr-review-load-detail {
+  margin: 4px 0 0;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}
+
+.sr-review-load-pill {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-xs);
+  font-weight: 700;
 }
 
 /* ═══════════════════════════════════════════════
@@ -369,7 +451,7 @@ img {
   background: var(--bg-surface);
   border: 1px solid var(--border);
   color: var(--text-dim);
-  margin-bottom: var(--space-2);
+  margin: 0 0 var(--space-2);
   font-family: 'Inter', sans-serif;
   font-weight: 600;
 }
@@ -386,6 +468,7 @@ img {
   display: flex;
   flex-direction: column;
   gap: 0;
+  padding: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -412,8 +495,15 @@ img {
   border-bottom: none;
 }
 
-.qq-bug-line:hover:not(:disabled) {
+.qq-bug-line:hover:not(.disabled) {
   background: var(--bg-surface);
+}
+
+.qq-bug-line:has(.qq-radio-native:focus-visible) {
+  outline: 2px solid var(--purple);
+  outline-offset: -2px;
+  position: relative;
+  z-index: 1;
 }
 
 .qq-bug-line.picked {
@@ -687,6 +777,55 @@ img {
   opacity: 0.85;
 }
 
+.ss-next-step {
+  margin-bottom: var(--space-5);
+  padding: var(--space-4);
+  border: 1px solid rgba(78, 205, 196, 0.24);
+  border-left: 3px solid var(--cyan);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, rgba(78, 205, 196, 0.09), rgba(255,255,255,0.02));
+}
+
+.ss-next-kicker {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--cyan);
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.ss-next-title {
+  margin: 0 0 var(--space-2);
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-base);
+}
+
+.ss-next-body {
+  margin: 0 0 var(--space-3);
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}
+
+.ss-next-action {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius-md);
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ss-next-action:hover {
+  border-color: var(--cyan);
+}
+
 /* Overview cards */
 .ss-cards {
   display: grid;
@@ -808,6 +947,7 @@ img {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-2);
   margin-top: var(--space-1);
 }
 
@@ -822,6 +962,110 @@ img {
   font-family: 'Poppins', sans-serif;
   font-size: var(--text-xs);
   font-weight: 600;
+}
+
+.ss-course-signals {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ss-challenge-badge {
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.ss-section-heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.ss-section-heading-row .ss-section-title {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.ss-section-copy {
+  margin: 0 0 var(--space-3);
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+
+.ss-mastery-status {
+  flex: 1;
+  max-width: 320px;
+  color: var(--text-dim);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  text-align: right;
+}
+
+.ss-mastery-status-review {
+  color: var(--warning);
+}
+
+.ss-mastery-status-applied {
+  color: var(--success);
+}
+
+.ss-evidence-next {
+  margin: calc(-1 * var(--space-2)) 0 var(--space-3);
+  color: var(--text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.ss-mastery-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.ss-mastery-card {
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ss-mastery-value {
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.ss-mastery-label {
+  color: var(--text);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  line-height: 1.35;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.ss-mastery-sub {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  line-height: 1.45;
 }
 
 /* Quiz donut */
@@ -1004,6 +1248,19 @@ img {
 
   .ss-activity-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ss-section-heading-row {
+    flex-direction: column;
+  }
+
+  .ss-mastery-status {
+    max-width: none;
+    text-align: left;
+  }
+
+  .ss-mastery-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .ss-quiz-overview {
@@ -1661,11 +1918,12 @@ img {
   color: var(--text-muted);
 }
 
-/* Locked lessons */
+/* Locked lessons — keep pointer-events active so hover tooltip and keyboard
+   focus remain discoverable. Actual navigation is prevented by the
+   aria-disabled + early-return in the click handler. */
 .lesson-list-btn.locked {
   opacity: 0.35;
   cursor: not-allowed;
-  pointer-events: none;
 }
 
 .lesson-list-btn.locked .lesson-list-chk {
@@ -2008,348 +2266,6 @@ img {
 /* ═══════════════════════════════════════════════
    PROFILE PAGE
    ═══════════════════════════════════════════════ */
-.pp-scroll {
-  overflow: auto;
-}
-
-.pp-container {
-  max-width: 680px;
-  width: 100%;
-  margin: 0 auto;
-  padding: clamp(16px, 3vw, 32px) clamp(14px, 2vw, 20px) 64px;
-}
-
-.pp-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 28px;
-}
-
-.pp-back-btn {
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--bg-surface);
-  color: var(--text-dim);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  transition: border-color 0.2s, transform 0.2s, color 0.2s;
-}
-
-.pp-signout-btn {
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: none;
-  color: var(--text-muted);
-  font-size: 13px;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  transition: border-color 0.2s, transform 0.2s, color 0.2s;
-}
-
-.pp-back-btn:hover,
-.pp-signout-btn:hover {
-  border-color: var(--border-bright);
-  color: var(--text);
-  transform: translateY(-1px);
-}
-
-.pp-avatar-section {
-  text-align: center;
-  margin-bottom: 32px;
-  padding: 30px 24px 24px;
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
-}
-
-.pp-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
-  padding: 0 12px;
-  margin-bottom: 16px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-muted);
-  font-family: 'Poppins', sans-serif;
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.pp-avatar-lg {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  margin: 0 auto 16px;
-  background: linear-gradient(135deg, var(--pink), var(--purple));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
-  font-weight: 700;
-  color: white;
-}
-
-.pp-name {
-  font-family: 'Poppins', sans-serif;
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-
-.pp-email {
-  color: var(--text-dim);
-  font-size: 14px;
-}
-
-.pp-joined {
-  color: var(--text-muted);
-  font-size: 12px;
-  margin-top: 4px;
-}
-
-.pp-hero-copy {
-  max-width: 50ch;
-  margin: 14px auto 0;
-  color: var(--text-dim);
-  font-size: 14px;
-  line-height: 1.65;
-}
-
-.pp-status-row {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 16px;
-}
-
-.pp-status-pill {
-  display: inline-flex;
-  align-items: center;
-  min-height: 30px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-dim);
-  font-family: 'Poppins', sans-serif;
-  font-size: 11px;
-}
-
-.pp-status-pill.warm {
-  border-color: rgba(78, 205, 196, 0.2);
-  background: rgba(78, 205, 196, 0.07);
-  color: var(--cyan);
-}
-
-.pp-status-pill.accent {
-  border-color: rgba(255, 107, 157, 0.25);
-  background: rgba(255, 107, 157, 0.08);
-  color: var(--pink);
-}
-
-.pp-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 32px;
-}
-
-.pp-stat-card {
-  text-align: center;
-  padding: 16px 8px;
-  border-radius: 12px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  transition: border-color 0.2s, transform 0.2s;
-}
-
-.pp-stat-card:hover {
-  border-color: var(--border-bright);
-  transform: translateY(-1px);
-}
-
-.pp-stat-value {
-  font-family: 'Poppins', sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.pp-stat-label {
-  font-size: 10px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-top: 4px;
-}
-
-.pp-activity-icon {
-  font-size: 20px;
-  margin-bottom: 4px;
-}
-
-.pp-xp-section {
-  margin-bottom: 32px;
-}
-
-.pp-xp-info {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: var(--text-dim);
-  margin-bottom: 8px;
-}
-
-.pp-xp-track {
-  height: 6px;
-  border-radius: 999px;
-  background: var(--bg-surface);
-  overflow: hidden;
-}
-
-.pp-xp-fill {
-  height: 100%;
-  border-radius: 3px;
-  background: var(--pink);
-  transition: width 0.5s;
-}
-
-.pp-section-title {
-  font-family: 'Poppins', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border);
-  letter-spacing: 0.02em;
-}
-
-.pp-course-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 32px;
-}
-
-.pp-course-row {
-  padding: 14px 16px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015));
-}
-
-.pp-course-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-.pp-course-name {
-  font-weight: 600;
-  font-size: 14px;
-  flex: 1;
-}
-
-.pp-course-count {
-  font-family: 'Poppins', sans-serif;
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.pp-badge-grid {
-  /* Rendered as a real <ul>/<li> for screen readers; reset the
-     default list styles so the grid layout is unchanged. */
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 10px;
-  margin-bottom: 32px;
-  list-style: none;
-  padding: 0;
-}
-
-.pp-badge-card {
-  text-align: center;
-  padding: 14px 8px;
-  border-radius: 10px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  transition: all 0.2s;
-}
-
-.pp-badge-card.earned {
-  border-color: var(--pink);
-}
-
-.pp-badge-card.locked {
-  opacity: 0.35;
-}
-
-.pp-badge-icon {
-  font-size: 28px;
-  margin-bottom: 4px;
-}
-
-.pp-badge-name {
-  font-size: 11px;
-  font-weight: 700;
-  font-family: 'Poppins', sans-serif;
-  color: var(--text-dim);
-}
-
-.pp-badge-name.earned {
-  color: var(--pink);
-}
-
-.pp-badge-desc {
-  font-size: 9px;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-
-.pp-activity-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-
-@media (max-width: 600px) {
-  .pp-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .pp-name {
-    font-size: 20px;
-  }
-
-  .pp-badge-grid {
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-  }
-
-  .pp-avatar-section {
-    padding: 24px 18px 20px;
-  }
-
-  .pp-status-row {
-    justify-content: flex-start;
-  }
-}
-
-@media (max-width: 400px) {
-  .pp-activity-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
 /* ═══════════════════════════════════════════════
    WHAT'S NEW MODAL
    ═══════════════════════════════════════════════ */
@@ -2433,6 +2349,49 @@ img {
 
 .wn-cta:hover {
   filter: brightness(1.15);
+}
+
+/* ═══════════════════════════════════════════════
+   SHARED EMPTY STATE — <EmptyState /> component
+   Used across panels, pages, and lists.
+   ═══════════════════════════════════════════════ */
+
+.empty-state {
+  text-align: center;
+  padding: 28px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.012));
+  color: var(--text-dim);
+}
+
+.empty-state-icon {
+  font-size: 44px;
+  display: block;
+  margin-bottom: 12px;
+  line-height: 1;
+}
+
+.empty-state-headline {
+  font-family: 'Poppins', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.empty-state-subtext {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin: 0 0 16px;
+  line-height: 1.6;
+}
+
+.empty-state-cta {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 

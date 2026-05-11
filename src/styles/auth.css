@@ -8,6 +8,7 @@
 /* ─── 4. Auth Page — Brand Aligned ────────────── */
 .auth-page {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -224,9 +225,37 @@
   font-family: 'Inter', sans-serif;
 }
 
+.auth-preview-btn {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  min-height: 44px;
+  padding: 0 12px;
+  color: var(--text-dim);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.auth-preview-btn:hover {
+  color: var(--text);
+}
+
+.auth-preview-wrap {
+  margin-top: 10px;
+}
+
+.auth-preview-note {
+  margin: 8px 2px 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-muted);
+  text-align: center;
+}
+
 /* ─── 5. Loading Screen ───────────────────────── */
 .loading-screen {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -240,6 +269,58 @@
   color: var(--text-muted);
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
+}
+
+.route-loading-message {
+  margin-top: 16px;
+  opacity: 0.55;
+}
+
+@media (max-width: 600px) {
+  .auth-card {
+    border-radius: 18px;
+    padding: 22px 16px;
+  }
+
+  .auth-brand {
+    margin-bottom: 22px;
+  }
+
+  .auth-form {
+    gap: 14px;
+  }
+
+  .auth-field,
+  .auth-submit,
+  .auth-social,
+  .auth-preview-wrap {
+    scroll-margin-bottom: calc(180px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .auth-field .ui-input {
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  .auth-tab,
+  .auth-submit,
+  .auth-social-btn,
+  .auth-preview-btn {
+    min-height: 48px;
+  }
+
+  .auth-social {
+    flex-direction: column;
+  }
+
+  .auth-inline-actions {
+    justify-content: flex-start;
+  }
+
+  .auth-reset-link {
+    min-height: 44px;
+    padding: 8px 0;
+  }
 }
 
 

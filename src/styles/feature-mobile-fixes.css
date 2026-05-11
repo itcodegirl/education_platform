@@ -305,7 +305,7 @@
   }
 
   .code-preview-tab {
-    min-height: 40px;
+    min-height: 44px;
   }
 
   .task-check {
@@ -323,7 +323,7 @@
 
   .cc-hint-btn,
   .cc-solution-btn {
-    min-height: 40px;
+    min-height: 44px;
   }
 
   .ai-send {
@@ -337,13 +337,13 @@
   }
 
   .ai-suggestion {
-    min-height: 36px;
+    min-height: 44px;
     display: flex;
     align-items: center;
   }
 
   .cc-ai-suggestion {
-    min-height: 36px;
+    min-height: 44px;
     display: flex;
     align-items: center;
   }

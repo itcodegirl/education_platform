@@ -19,10 +19,16 @@ test.describe('public auth shell', () => {
   test('switches into sign-up mode cleanly', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('.auth-card')).toBeVisible({ timeout: 30000 });
-    await expect(async () => {
-      await page.getByRole('tab', { name: /create account/i }).click();
-      await expect(page.getByLabel('Display Name')).toBeVisible();
-    }).toPass({ timeout: 15000 });
+    const loginTab = page.getByRole('tab', { name: /login/i });
+    const createAccountTab = page.getByRole('tab', { name: /create account/i });
+
+    await loginTab.click();
+    await expect(loginTab).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByLabel('Display Name')).toBeHidden();
+
+    await createAccountTab.click();
+    await expect(createAccountTab).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByLabel('Display Name')).toBeVisible();
 
     await expect(page.getByLabel('Email')).toBeVisible();
     await expect(page.getByLabel('Password')).toBeVisible();

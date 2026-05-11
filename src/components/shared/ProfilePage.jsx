@@ -1,11 +1,20 @@
 import { memo, useEffect, useMemo, useState } from 'react';
-import { useAuth, useCourseContent, useProgressData, useXP, useSR, useTheme, BADGE_DEFS } from '../../providers';
-import { COURSES } from '../../data';
+import { useAuth, useProgressData, useXP, useSR, useTheme, BADGE_DEFS } from '../../providers';
 import { XP_PER_LEVEL, getLevel, getXPInLevel } from '../../utils/helpers';
 import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { supabase } from '../../lib/supabaseClient';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
+import { COURSE_CATALOG } from '../../data/reference/course-catalog';
+import '../../styles/feature-profile.css';
+
+function getPublicProfileSaveError(error) {
+  if ((error?.code || '').startsWith('23')) {
+    return 'That handle is already taken. Try another.';
+  }
+
+  return 'Could not save public profile settings. Check your connection and try again.';
+}
 
 export const ProfilePage = memo(function ProfilePage({ onClose }) {
   const { user, profile, signOut } = useAuth();
@@ -13,13 +22,8 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
   const { completed = [] } = useProgressData();
   const { xpTotal = 0, streak = 0, pausedStreak = null, earnedBadges = {} } = useXP();
   const { bookmarks = [], notes = {} } = useSR();
-  const { ensureAllLoaded } = useCourseContent();
 
   useDocumentTitle('Your profile');
-
-  useEffect(() => {
-    ensureAllLoaded();
-  }, [ensureAllLoaded]);
 
   const [isPublic, setIsPublic] = useState(false);
   const [publicHandle, setPublicHandle] = useState('');
@@ -74,22 +78,26 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
       return;
     }
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        is_public: nextIsPublic,
-        public_handle: nextIsPublic ? cleanHandle : null,
-      })
-      .eq('id', user.id);
+    let saveError = null;
 
-    setPublicSaving(false);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          is_public: nextIsPublic,
+          public_handle: nextIsPublic ? cleanHandle : null,
+        })
+        .eq('id', user.id);
 
-    if (error) {
-      if ((error.code || '').startsWith('23')) {
-        setPublicError('That handle is already taken. Try another.');
-      } else {
-        setPublicError(error.message || 'Could not save.');
-      }
+      saveError = error;
+    } catch {
+      saveError = {};
+    } finally {
+      setPublicSaving(false);
+    }
+
+    if (saveError) {
+      setPublicError(getPublicProfileSaveError(saveError));
       return;
     }
 
@@ -114,7 +122,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
     : '';
   const completedSet = useMemo(() => new Set(completed), [completed]);
 
-  const courseStats = COURSES.map((course) => {
+  const courseStats = COURSE_CATALOG.map((course) => {
     const total = course.modules.reduce((sum, mod) => sum + mod.lessons.length, 0);
     const done = getCourseCompletedLessonCount(completedSet, course);
 
@@ -156,7 +164,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
           <div className="pp-status-row" aria-label="Current learning status">
             <span className="pp-status-pill">Level {level}</span>
             <span className="pp-status-pill warm">
-              {completedLessons}/{totalLessons} lessons shipped
+              {completedLessons}/{totalLessons} lessons completed
             </span>
             {streak > 0 ? (
               <span className="pp-status-pill accent">{streak} day streak</span>
@@ -252,11 +260,12 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
         <div className="pp-public-card">
           <div className="pp-public-head">
             <div>
-              <div className="pp-public-title">Let your progress speak for itself</div>
+              <div className="pp-public-title">Share a progress snapshot</div>
               <div className="pp-public-sub">
                 Create a read-only page at <code>/u/your-handle</code> that shows your
-                level, motivational XP, streak, lessons shipped, and badge count. No
-                email, notes, or private progress details are exposed.
+                level, motivational XP, streak, completed lessons, and badge count.
+                This is a learning snapshot, not a verified credential. No email,
+                notes, or private progress details are exposed.
               </div>
             </div>
             <label className="pp-public-switch">
@@ -295,6 +304,8 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
                   placeholder="jenna"
                   maxLength={30}
                   disabled={publicSaving}
+                  aria-invalid={Boolean(publicError)}
+                  aria-describedby="pp-handle-help pp-public-status"
                 />
                 <button
                   type="button"
@@ -305,6 +316,9 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
                   {publicSaving ? 'Saving…' : 'Publish'}
                 </button>
               </div>
+              <p id="pp-handle-help" className="sr-only">
+                Use 2 to 30 characters: letters, numbers, dashes, or underscores.
+              </p>
               {publicHandle && !publicError && publicSaved && (
                 <a
                   className="pp-public-link"
@@ -318,10 +332,17 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
             </div>
           )}
 
-          {publicError && <div className="pp-public-error">{publicError}</div>}
-          {publicSaved && !publicError && (
-            <div className="pp-public-success">Saved.</div>
-          )}
+          <div
+            id="pp-public-status"
+            role={publicError ? 'alert' : 'status'}
+            aria-live={publicError ? 'assertive' : 'polite'}
+            aria-atomic="true"
+          >
+            {publicError && <div className="pp-public-error">{publicError}</div>}
+            {publicSaved && !publicError && (
+              <div className="pp-public-success">Saved.</div>
+            )}
+          </div>
         </div>
 
         <h3 className="pp-section-title">Quiet signals</h3>

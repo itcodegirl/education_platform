@@ -15,8 +15,8 @@ export function getSyncStatusCopy({
   if (!user) {
     return {
       tone: 'local',
-      label: 'Same-device mode',
-      detail: 'Create an account to save lessons, bookmarks, and notes to the cloud. XP, streaks, badges, review cards, and challenges stay on this device today.',
+      label: 'Saved locally',
+      detail: 'This browser keeps your lesson place. Sign in to sync lessons, bookmarks, and notes across devices.',
     };
   }
 
@@ -24,7 +24,7 @@ export function getSyncStatusCopy({
     return {
       tone: 'warning',
       label: 'Cloud progress unavailable',
-      detail: 'This view is using the current browser session until account progress loads again.',
+      detail: 'Your current session is safe, but cloud sync needs retry before account progress is confirmed.',
     };
   }
 
@@ -32,23 +32,27 @@ export function getSyncStatusCopy({
     return {
       tone: syncRetryInFlight ? 'saving' : 'queued',
       label: syncRetryInFlight ? 'Retrying cloud sync' : 'Cloud sync queued',
-      detail: `${pluralizeUpdate(pendingSyncWrites)} waiting in this browser. Keep this tab open when you reconnect.`,
+      detail: syncRetryInFlight
+        ? `${pluralizeUpdate(pendingSyncWrites)} retrying now. Keep this tab open while cloud sync catches up.`
+        : `Saved in this browser. We will retry ${pluralizeUpdate(pendingSyncWrites)} when you are back online.`,
+      actionLabel: syncRetryInFlight ? '' : 'Retry now',
+      actionAriaLabel: syncRetryInFlight ? '' : 'Retry queued progress updates now',
     };
   }
 
   if (syncFailed > 0) {
     return {
       tone: 'warning',
-      label: 'Cloud not confirmed',
-      detail: 'Your latest in-tab progress is visible here; retry when the connection is stable.',
+      label: 'Sync needs retry',
+      detail: 'Your current session is safe in this browser. Cloud sync needs another try when the connection is stable.',
     };
   }
 
   if (marking || mutationState === 'submitting' || mutationState === 'loading') {
     return {
       tone: 'saving',
-      label: 'Saving to cloud',
-      detail: 'Lesson progress is updating for this account.',
+      label: 'Saving to account',
+      detail: 'Saving this lesson reading step to your account.',
     };
   }
 
@@ -61,8 +65,8 @@ export function getSyncStatusCopy({
   }
 
   return {
-    tone: 'synced',
-    label: 'Account sync ready',
-    detail: 'Lessons, bookmarks, and notes save to your account when the cloud is reachable. XP, streaks, badges, review cards, and challenges stay on this device today.',
-  };
+      tone: 'synced',
+      label: 'Saved to account',
+      detail: 'Account progress is current. New lesson activity will sync when the cloud is reachable.',
+    };
 }

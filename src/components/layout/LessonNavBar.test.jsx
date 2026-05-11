@@ -15,6 +15,7 @@ const baseProps = {
   hasModuleQuiz: false,
   accent: '#4ecdc4',
   lessonPosition: 'Lesson 1 of 4',
+  nextTitle: 'Lesson Two',
 };
 
 describe('LessonNavBar', () => {
@@ -22,8 +23,9 @@ describe('LessonNavBar', () => {
     render(<LessonNavBar {...baseProps} />);
 
     expect(screen.getByRole('button', { name: /go to previous lesson/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /mark this lesson done and save progress/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /go to next lesson/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /complete lesson and save reading progress/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /continue to next lesson: lesson two/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /continue to next lesson/i })).toHaveTextContent('Continue');
   });
 
   it('exposes a compact mobile tools trigger when provided', () => {
@@ -37,5 +39,13 @@ describe('LessonNavBar', () => {
 
     fireEvent.click(tools);
     expect(onOpenTools).toHaveBeenCalledTimes(1);
+  });
+
+  it('clarifies that completed state belongs to the lesson only', () => {
+    render(<LessonNavBar {...baseProps} isDone />);
+
+    const lessonButton = screen.getByRole('button', { name: /mark lesson reading progress as incomplete/i });
+    expect(lessonButton).toHaveTextContent(/lesson saved/i);
+    expect(lessonButton).not.toHaveTextContent(/^complete$/i);
   });
 });

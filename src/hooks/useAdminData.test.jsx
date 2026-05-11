@@ -39,7 +39,26 @@ describe('useAdminData', () => {
   it('fails closed when is_admin is false (no admin data fan-out)', async () => {
     mockFrom.mockImplementation((table) => {
       if (table === 'profiles') {
-        return makeChain({ data: { is_admin: false } });
+        return makeChain({ data: { is_admin: false, is_disabled: false } });
+      }
+      throw new Error(`Unexpected table fetch: ${table}`);
+    });
+    mockRpc.mockImplementation(() => Promise.resolve({ data: null, error: null }));
+
+    const { result } = renderHook(() => useAdminData({ id: 'user-1' }));
+
+    await waitFor(() => {
+      expect(result.current.checking).toBe(false);
+    });
+
+    expect(result.current.isAdmin).toBe(false);
+    expect(mockFrom.mock.calls.every(([table]) => table === 'profiles')).toBe(true);
+  });
+
+  it('fails closed when an admin profile is disabled', async () => {
+    mockFrom.mockImplementation((table) => {
+      if (table === 'profiles') {
+        return makeChain({ data: { is_admin: true, is_disabled: true } });
       }
       throw new Error(`Unexpected table fetch: ${table}`);
     });
@@ -62,7 +81,10 @@ describe('useAdminData', () => {
         const chain = {
           select: vi.fn(() => chain),
           eq: vi.fn(() => chain),
-          maybeSingle: vi.fn(() => Promise.resolve({ data: { is_admin: true }, error: null })),
+          maybeSingle: vi.fn(() => Promise.resolve({
+            data: { is_admin: true, is_disabled: false },
+            error: null,
+          })),
           order: vi.fn(() => chain),
           range: vi.fn(() => chain),
           gte: vi.fn(() => chain),

@@ -85,6 +85,9 @@ export function AdminUsersTab({ data, currentUserId, setData, usersPagination, u
       <UsersPager usersPagination={usersPagination} usersTotal={usersTotal} />
       <div className="admin-table-wrap">
         <table className="admin-table">
+          <caption className="sr-only">
+            Admin user accounts with account status, progress totals, and moderation actions.
+          </caption>
           <thead>
             <tr>
               <th>Name</th>

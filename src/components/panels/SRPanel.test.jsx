@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { SRPanel } from './SRPanel';
 
 const { mockUseSR } = vi.hoisted(() => ({
@@ -29,12 +29,16 @@ describe('SRPanel', () => {
   });
 
   it('shows all-caught-up guidance when no cards are due and queue is empty', () => {
-    render(<SRPanel isOpen onClose={vi.fn()} />);
+    const onClose = vi.fn();
+    render(<SRPanel isOpen onClose={onClose} />);
 
     expect(screen.getByText(/All caught up\./i)).toBeInTheDocument();
+    expect(screen.getByText(/No review load yet/i)).toBeInTheDocument();
     expect(
       screen.getByText(/No review cards are due yet/i),
     ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /back to lesson/i }));
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('shows scheduled-later context when queue has cards but none are due', () => {
@@ -47,7 +51,34 @@ describe('SRPanel', () => {
 
     render(<SRPanel isOpen onClose={vi.fn()} />);
 
+    expect(screen.getByText(/Nothing due now/i)).toBeInTheDocument();
+    expect(screen.getByText(/2 later/i)).toBeInTheDocument();
     expect(screen.getByText(/2 cards are scheduled for later\. Nothing needs attention right now\./i)).toBeInTheDocument();
+  });
+
+  it('suggests a small review burst when cards are due', () => {
+    mockUseSR.mockReturnValue({
+      getDueSRCards: () => [
+        {
+          question: 'What tag creates a paragraph?',
+          source: 'Quick Check',
+          options: ['<p>', '<h1>'],
+          correct: 0,
+        },
+      ],
+      updateSRCard: vi.fn(),
+      addToSRQueue: vi.fn(),
+      srCards: [
+        { question: 'What tag creates a paragraph?', nextReview: 0 },
+        { question: 'What tag creates a link?', nextReview: Date.now() + 1000 },
+      ],
+    });
+
+    render(<SRPanel isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText(/1 due now/i)).toBeInTheDocument();
+    expect(screen.getByText(/Do 1 card in this burst/i)).toBeInTheDocument();
+    expect(screen.getByText(/1 later/i)).toBeInTheDocument();
   });
 
   it('shows the local-first progress sync scope', () => {
@@ -55,6 +86,39 @@ describe('SRPanel', () => {
 
     expect(screen.getByText(/Progress sync: saved on this device/i)).toBeInTheDocument();
     expect(screen.getByText(/review queue, and challenges are single-device today/i)).toBeInTheDocument();
+  });
+
+  it('announces answer feedback and waits for the learner to advance', () => {
+    const updateSRCard = vi.fn();
+
+    mockUseSR.mockReturnValue({
+      getDueSRCards: () => [
+        {
+          question: 'Which element is the main page heading?',
+          source: 'HTML',
+          options: ['h1', 'span'],
+          correct: 0,
+          explanation: 'Use h1 for the primary heading.',
+        },
+      ],
+      updateSRCard,
+      addToSRQueue: vi.fn(),
+      srCards: [],
+    });
+
+    render(<SRPanel isOpen onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /h1/i }));
+
+    expect(screen.getAllByRole('status').some((status) => (
+      /correct\. strong recall/i.test(status.textContent)
+    ))).toBe(true);
+    expect(screen.getByText(/Card 1 of 1/i)).toBeInTheDocument();
+    expect(updateSRCard).toHaveBeenCalledWith('Which element is the main page heading?', true);
+
+    fireEvent.click(screen.getByRole('button', { name: /next card/i }));
+
+    expect(screen.getByText(/Session complete\./i)).toBeInTheDocument();
   });
 });
 

@@ -317,6 +317,24 @@ describe('createLearningEngine → submitQuiz', () => {
     expect(deps.awardXP).toHaveBeenCalledWith(60, 'Perfect quiz score!');
   });
 
+  it('quizRetryDoesNotDuplicateXp', async () => {
+    const earned = new Set();
+    deps.hasRewardBeenAwarded = vi.fn((rewardKey) => earned.has(rewardKey));
+    deps.markRewardAwarded = vi.fn((rewardKey) => {
+      if (earned.has(rewardKey)) return false;
+      earned.add(rewardKey);
+      return true;
+    });
+    const engine = createLearningEngine(deps);
+
+    await engine.submitQuiz('html|quiz|1', 10, 10);
+    await engine.submitQuiz('html|quiz|1', 10, 10);
+
+    expect(deps.awardXP).toHaveBeenCalledTimes(2);
+    expect(deps.awardXP).toHaveBeenCalledWith(40, 'Quiz completed');
+    expect(deps.awardXP).toHaveBeenCalledWith(60, 'Perfect quiz score!');
+  });
+
   it('records learner-scoped reward events for quiz base and perfect rewards', async () => {
     const rewardEventStorage = createMemoryStorage();
     deps.learnerKey = 'learner-123';

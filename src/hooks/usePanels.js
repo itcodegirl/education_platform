@@ -5,6 +5,53 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { TIMING, MILESTONES } from '../utils/helpers';
+import { getLearnerStorageKey, getLegacyStorageKey } from '../utils/learnerStorageKeys';
+
+const PANEL_HISTORY_KEY = 'chwPanel';
+const LEGACY_PANEL_HISTORY_KEY = 'cinovaPanel';
+
+function getPanelFromHistoryState(state) {
+  return state?.[PANEL_HISTORY_KEY] || state?.[LEGACY_PANEL_HISTORY_KEY] || null;
+}
+
+function parseStoredBoolean(rawValue) {
+  if (rawValue === null || rawValue === undefined) return false;
+
+  try {
+    return JSON.parse(rawValue) === true;
+  } catch {
+    return rawValue === 'true' || rawValue === '1';
+  }
+}
+
+function createPanelHistoryState(name) {
+  const currentState = { ...(window.history.state || {}) };
+  delete currentState[LEGACY_PANEL_HISTORY_KEY];
+  return { ...currentState, [PANEL_HISTORY_KEY]: name };
+}
+
+function hasCompletedOnboarding(user) {
+  if (typeof window === 'undefined') return false;
+  const userId = user?.id || '';
+  const scopedKey = getLearnerStorageKey('chw-onboarded', userId);
+  const legacyKey = getLegacyStorageKey('chw-onboarded');
+  const scopedValue = window.localStorage.getItem(scopedKey);
+
+  if (scopedValue !== null) return parseStoredBoolean(scopedValue);
+
+  const legacyValue = window.localStorage.getItem(legacyKey);
+  if (legacyValue === null) return false;
+
+  try {
+    window.localStorage.setItem(scopedKey, legacyValue);
+    if (userId) window.localStorage.removeItem(legacyKey);
+  } catch {
+    // If migration fails, the legacy value still means this learner
+    // already saw onboarding in the current browser.
+  }
+
+  return parseStoredBoolean(legacyValue);
+}
 
 export function usePanels({ dataLoaded, user, lastPosition }) {
   const [panel, setPanel] = useState(null);
@@ -16,10 +63,28 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
   const welcomeShown = useRef(false);
   const prevCompleted = useRef(0);
   const panelRef = useRef(null);
+  const confettiTimerRef = useRef(null);
+
+  const scheduleConfettiReset = (duration) => {
+    if (confettiTimerRef.current) {
+      window.clearTimeout(confettiTimerRef.current);
+    }
+
+    confettiTimerRef.current = window.setTimeout(() => {
+      confettiTimerRef.current = null;
+      setConfetti(false);
+    }, duration);
+  };
 
   useEffect(() => {
     panelRef.current = panel;
   }, [panel]);
+
+  useEffect(() => () => {
+    if (confettiTimerRef.current) {
+      window.clearTimeout(confettiTimerRef.current);
+    }
+  }, []);
 
   // Welcome back OR onboarding (once per session)
   useEffect(() => {
@@ -27,7 +92,7 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
       welcomeShown.current = true;
       if ((lastPosition?.time || 0) > 0) {
         setShowWelcome(true);
-      } else if (!localStorage.getItem('chw-onboarded')) {
+      } else if (!hasCompletedOnboarding(user)) {
         setShowOnboarding(true);
       }
     }
@@ -42,6 +107,10 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
     setShowOnboarding(false);
     setShowCourseComplete(false);
     setConfetti(false);
+    if (confettiTimerRef.current) {
+      window.clearTimeout(confettiTimerRef.current);
+      confettiTimerRef.current = null;
+    }
   }, [user]);
 
   // Keep panel state aligned with browser navigation so Back closes
@@ -50,7 +119,7 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
     if (typeof window === 'undefined') return undefined;
 
     const syncPanelFromHistory = () => {
-      const nextPanel = window.history.state?.cinovaPanel || null;
+      const nextPanel = getPanelFromHistoryState(window.history.state);
       if (panelRef.current !== nextPanel) {
         setPanel(nextPanel);
       }
@@ -66,7 +135,7 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
     const prev = prevCompleted.current;
     if (prev > 0 && MILESTONES.some((m) => prev < m && completedCount >= m)) {
       setConfetti(true);
-      setTimeout(() => setConfetti(false), TIMING.confettiDuration);
+      scheduleConfettiReset(TIMING.confettiDuration);
     }
     prevCompleted.current = completedCount;
   };
@@ -75,11 +144,11 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
   const triggerCourseComplete = () => {
     setShowCourseComplete(true);
     setConfetti(true);
-    setTimeout(() => setConfetti(false), TIMING.courseConfettiDuration);
+    scheduleConfettiReset(TIMING.courseConfettiDuration);
   };
 
   const closePanel = () => {
-    if (typeof window !== 'undefined' && window.history.state?.cinovaPanel) {
+    if (typeof window !== 'undefined' && getPanelFromHistoryState(window.history.state)) {
       window.history.back();
       return;
     }
@@ -92,7 +161,7 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
       return;
     }
 
-    const nextState = { ...(window.history.state || {}), cinovaPanel: name };
+    const nextState = createPanelHistoryState(name);
     window.history.pushState(nextState, '', window.location.href);
     setPanel(name);
   };
