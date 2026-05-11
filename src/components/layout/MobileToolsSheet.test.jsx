@@ -41,6 +41,7 @@ describe('MobileToolsSheet', () => {
     renderSheet();
 
     expect(screen.getByRole('dialog', { name: /learning tools/i })).toBeInTheDocument();
+    expect(screen.getByText(/keep the lesson first/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /search: find a lesson/i })).toHaveTextContent('Find a lesson');
     expect(screen.getByRole('button', { name: /progress: course status/i })).toHaveTextContent('Course status');
     expect(screen.getByRole('button', { name: /search: find a lesson/i })).toHaveTextContent('S');
@@ -70,7 +71,7 @@ describe('MobileToolsSheet', () => {
   it('shows a clear empty state when no tools are available', () => {
     renderSheet({ tools: [] });
 
-    expect(screen.getByText(/Complete the current lesson to unlock more learning tools/i)).toBeInTheDocument();
+    expect(screen.getByText(/More tools unlock after real progress/i)).toBeInTheDocument();
   });
 
   it('does not render while closed', () => {
@@ -85,5 +86,17 @@ describe('MobileToolsSheet', () => {
     });
 
     expect(screen.getByRole('button', { name: /projects: build ideas/i })).toBeDisabled();
+  });
+
+  it('groups support tools below the tools used during the lesson', () => {
+    renderSheet({
+      tools: [
+        { key: 'search', icon: 'S', label: 'Search', helper: 'Find a lesson', onSelect: vi.fn() },
+        { key: 'glossary', icon: 'Aa', label: 'Glossary', helper: 'Plain meanings', onSelect: vi.fn() },
+      ],
+    });
+
+    expect(screen.getByText('Use now')).toBeInTheDocument();
+    expect(screen.getByText('Support when needed')).toBeInTheDocument();
   });
 });

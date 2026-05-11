@@ -8,12 +8,14 @@ const {
   signInWithGithubMock,
   signInWithGoogleMock,
   forgotPasswordMock,
+  authBackendReadyState,
 } = vi.hoisted(() => ({
   signInMock: vi.fn(),
   signUpMock: vi.fn(),
   signInWithGithubMock: vi.fn(),
   signInWithGoogleMock: vi.fn(),
   forgotPasswordMock: vi.fn(),
+  authBackendReadyState: { value: true },
 }));
 
 vi.mock('../../providers', () => ({
@@ -27,6 +29,7 @@ vi.mock('../../providers', () => ({
     signInWithGithub: signInWithGithubMock,
     signInWithGoogle: signInWithGoogleMock,
     forgotPassword: forgotPasswordMock,
+    authBackendReady: authBackendReadyState.value,
   }),
 }));
 
@@ -56,6 +59,7 @@ describe('AuthPage', () => {
     signInWithGithubMock.mockResolvedValue({ error: null });
     signInWithGoogleMock.mockResolvedValue({ error: null });
     forgotPasswordMock.mockResolvedValue({ error: null });
+    authBackendReadyState.value = true;
 
     Object.defineProperty(window, 'requestAnimationFrame', {
       configurable: true,
@@ -120,6 +124,22 @@ describe('AuthPage', () => {
     expect(
       screen.getByText(/Unable to continue with GitHub right now/i),
     ).toBeInTheDocument();
+  });
+
+  it('keeps lesson preview available when accounts are not configured', () => {
+    authBackendReadyState.value = false;
+    const onPreview = vi.fn();
+
+    render(<AuthPage onPreview={onPreview} />);
+
+    expect(
+      screen.getByText(/Accounts are not connected in this environment yet/i),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /create free account/i })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('button', { name: /preview a lesson before signing in/i }));
+
+    expect(onPreview).toHaveBeenCalledTimes(1);
   });
 });
 

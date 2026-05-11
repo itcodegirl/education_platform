@@ -116,6 +116,14 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
   const tabIcon = isJS ? 'f' : isCSS ? '{ }' : '<>';
   const previewLabel = isJS ? 'Run' : 'Preview';
   const previewSource = tab === 'code' ? code : editorCode;
+  const guidanceCopy =
+    scaffolding === 'requirements'
+      ? 'Start with one small piece, run it, then add the next requirement.'
+      : tab === 'preview'
+        ? 'Check what changed. If it feels off, return to the editor and adjust one thing.'
+        : tab === 'editor'
+          ? `Change one small detail, then ${previewLabel.toLowerCase()} the result before moving on.`
+          : 'Read the sample first, then try one small change in the editor.';
 
   return (
     <div className="code-preview">
@@ -128,16 +136,50 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
         </div>
       )}
 
-      <div className="code-preview-tabs">
+      <div className="code-preview-guidance" id="code-preview-guidance" role="note">
+        <span className="code-preview-guidance-label">Next step</span>
+        <span>{guidanceCopy}</span>
+      </div>
+
+      <div
+        className="code-preview-tabs"
+        role="tablist"
+        aria-label="Code practice views"
+        aria-describedby="code-preview-guidance"
+      >
         {scaffolding !== 'requirements' && (
-          <button type="button" className={`code-preview-tab ${tab === 'code' ? 'on' : ''}`} onClick={() => setTab('code')}>
+          <button
+            type="button"
+            id="code-preview-tab-code"
+            className={`code-preview-tab ${tab === 'code' ? 'on' : ''}`}
+            role="tab"
+            aria-selected={tab === 'code'}
+            aria-controls="code-preview-panel-code"
+            onClick={() => setTab('code')}
+          >
             {tabIcon} Code
           </button>
         )}
-        <button type="button" className={`code-preview-tab ${tab === 'editor' ? 'on' : ''}`} onClick={() => setTab('editor')}>
+        <button
+          type="button"
+          id="code-preview-tab-editor"
+          className={`code-preview-tab ${tab === 'editor' ? 'on' : ''}`}
+          role="tab"
+          aria-selected={tab === 'editor'}
+          aria-controls="code-preview-panel-editor"
+          onClick={() => setTab('editor')}
+        >
           {scaffolding === 'requirements' ? '✏️ Write Code' : 'Editor'}
         </button>
-        <button type="button" className={`code-preview-tab ${tab === 'preview' ? 'on' : ''}`} onClick={() => setTab('preview')}>
+        <button
+          type="button"
+          id="code-preview-tab-preview"
+          className={`code-preview-tab ${tab === 'preview' ? 'on' : ''}`}
+          role="tab"
+          aria-selected={tab === 'preview'}
+          aria-controls="code-preview-panel-preview"
+          onClick={() => setTab('preview')}
+        >
           {previewLabel}
         </button>
 
@@ -167,7 +209,9 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
 
       {tab === 'code' && (
         <pre
+          id="code-preview-panel-code"
           className="code-preview-code"
+          role="tabpanel"
           tabIndex={0}
           aria-label={`${monacoLang.toUpperCase()} code sample`}
         >
@@ -176,7 +220,12 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
       )}
 
       {tab === 'editor' && (
-        <div className="code-preview-editor-wrap">
+        <div
+          id="code-preview-panel-editor"
+          className="code-preview-editor-wrap"
+          role="tabpanel"
+          aria-labelledby="code-preview-tab-editor"
+        >
           {useTextareaEditor ? (
             <>
               <textarea
@@ -251,12 +300,18 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
       )}
 
       {tab === 'preview' && (
-        <iframe
-          className="code-preview-iframe"
-          srcDoc={buildPreview(previewSource)}
-          title={isJS ? 'Code output' : isCSS ? 'CSS preview' : 'HTML preview'}
-          sandbox="allow-scripts"
-        />
+        <div
+          id="code-preview-panel-preview"
+          role="tabpanel"
+          aria-labelledby="code-preview-tab-preview"
+        >
+          <iframe
+            className="code-preview-iframe"
+            srcDoc={buildPreview(previewSource)}
+            title={isJS ? 'Code output' : isCSS ? 'CSS preview' : 'HTML preview'}
+            sandbox="allow-scripts"
+          />
+        </div>
       )}
     </div>
   );

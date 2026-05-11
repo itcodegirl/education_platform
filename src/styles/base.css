@@ -181,6 +181,12 @@ textarea:focus-visible,
   color: var(--cyan);
 }
 
+.ui-status-info {
+  background: rgba(255, 167, 38, 0.1);
+  border-color: rgba(255, 167, 38, 0.26);
+  color: #ffd69a;
+}
+
 .ui-empty {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
