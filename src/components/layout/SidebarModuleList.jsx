@@ -94,7 +94,7 @@ export const SidebarModuleList = memo(function SidebarModuleList({
                         type="button"
                         className={`lesson-list-btn ${isActive ? 'act' : ''} ${isDone ? 'dn' : ''} ${!unlocked ? 'locked' : ''}`}
                         onClick={() => onLessonSelect(module, lesson, mi, li, unlocked)}
-                        disabled={!unlocked}
+                        aria-disabled={!unlocked}
                         title={!unlocked ? 'Complete the previous lesson to unlock' : undefined}
                         aria-label={`${lesson.title} lesson, ${lessonState.toLowerCase()}${!unlocked ? ' until the previous lesson is complete' : ''}`}
                         aria-current={isActive ? 'page' : undefined}
