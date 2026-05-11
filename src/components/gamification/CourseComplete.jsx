@@ -68,7 +68,7 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
         completionDate: today,
       });
     } catch {
-      toast.show('Progress Summary failed — try again in a moment.');
+      toast.show('Progress Summary failed — try again in a moment.', { tone: 'error' });
     } finally {
       setTimeout(() => setDownloading(false), 1000);
     }
@@ -178,9 +178,9 @@ export function CourseComplete({ isOpen, onClose, course, displayName, lessonCou
             if (navigator.clipboard) {
               try {
                 await navigator.clipboard.writeText(text);
-                toast.show('Copied progress update to clipboard.');
+                toast.show('Copied progress update to clipboard.', { tone: 'success' });
               } catch {
-                toast.show('Could not copy. Try the Download button instead.');
+                toast.show('Could not copy. Try the Download button instead.', { tone: 'error' });
               }
             }
           }}>

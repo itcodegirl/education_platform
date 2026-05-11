@@ -13,6 +13,12 @@ function ToastHarness() {
       <button type="button" onClick={() => toast.show('Second saved', 1000)}>
         show second
       </button>
+      <button
+        type="button"
+        onClick={() => toast.show('Could not save', { duration: 1000, tone: 'error' })}
+      >
+        show error
+      </button>
     </>
   );
 }
@@ -50,5 +56,30 @@ describe('ToastProvider', () => {
       vi.advanceTimersByTime(700);
     });
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it('announces error toasts assertively without changing the success toast contract', () => {
+    vi.useFakeTimers();
+
+    render(
+      <ToastProvider>
+        <ToastHarness />
+      </ToastProvider>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'show error' }));
+
+    const alert = screen.getByRole('alert');
+    expect(alert).toHaveTextContent('Could not save');
+    expect(alert).toHaveAttribute('aria-live', 'assertive');
+    expect(alert).toHaveClass('toast-error');
+
+    act(() => {
+      vi.advanceTimersByTime(1300);
+    });
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'show first' }));
+    expect(screen.getByRole('status')).toHaveAttribute('aria-live', 'polite');
   });
 });
