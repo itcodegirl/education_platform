@@ -14,7 +14,8 @@ vi.mock('../../data/challenges', () => ({
       title: 'Build a Card',
       description: 'Create a reusable card.',
       difficulty: 'beginner',
-      tests: [{ label: 'has card' }],
+      requirements: ['Use a card container', 'Render a heading'],
+      tests: [{ label: 'has card' }, { label: 'has heading' }],
     },
   ],
 }));
@@ -98,6 +99,20 @@ describe('ChallengesPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: /complete build a card/i }));
 
     expect(completeChallenge).toHaveBeenCalledWith('challenge-1');
+  });
+
+  it('shows challenge evidence scope inside the challenge workspace', () => {
+    mockUseProgressData.mockReturnValue({ challengeCompletions: ['challenge-1'] });
+
+    render(<ChallengesPanel courseId="html" lang="html" onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /build a card/i }));
+
+    expect(screen.getByRole('region', { name: /challenge evidence summary/i })).toHaveTextContent('Evidence ready');
+    expect(screen.getByText('2 requirements')).toBeInTheDocument();
+    expect(screen.getByText('2 automated checks')).toBeInTheDocument();
+    expect(screen.getByText(/not a verified credential/i)).toBeInTheDocument();
+    expect(screen.getByText(/What would you improve before showing this in a portfolio/i)).toBeInTheDocument();
   });
 
   it('shows the local-first progress sync scope in the challenge list', () => {

@@ -7,6 +7,7 @@ import { useProgressData } from '../../providers';
 import { useLearning } from '../../hooks/useLearning';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 import { getChallengeProgressionPlan } from '../../utils/challengeProgression';
+import { getChallengeEvidenceSummary } from '../../utils/challengeEvidence';
 
 export function ChallengesPanel({ courseId, lang, onClose }) {
   const challenges = getChallengesForCourse(courseId);
@@ -23,6 +24,12 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
       completedChallengeIds: challengeCompletions,
     }),
     [challengeCompletions, challenges, completedSet, course],
+  );
+  const activeEvidence = useMemo(
+    () => getChallengeEvidenceSummary(activeChallenge, {
+      isCompleted: completed.has(activeChallenge?.id),
+    }),
+    [activeChallenge, completed],
   );
   const modalRef = useRef(null);
 
@@ -67,6 +74,43 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
             <p className="panel-meta panel-meta-trust">
               Completion is CodeHerWay app progress in this browser, not external verification.
             </p>
+            <section
+              className={`challenge-evidence ${activeEvidence.isCompleted ? 'is-complete' : ''}`}
+              aria-label="Challenge evidence summary"
+            >
+              <div className="challenge-evidence-head">
+                <div>
+                  <p className="challenge-evidence-kicker">Evidence summary</p>
+                  <h3 className="challenge-evidence-title">{activeEvidence.statusLabel}</h3>
+                  <p className="challenge-evidence-copy">{activeEvidence.statusDetail}</p>
+                </div>
+                <div className="challenge-evidence-pills" aria-label="Evidence scope">
+                  {activeEvidence.proofItems.map((item) => (
+                    <span key={item}>{item}</span>
+                  ))}
+                </div>
+              </div>
+              {activeEvidence.capabilityItems.length > 0 && (
+                <div className="challenge-evidence-grid">
+                  <div>
+                    <p className="challenge-evidence-label">Skill evidence</p>
+                    <ul className="challenge-evidence-list">
+                      {activeEvidence.capabilityItems.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="challenge-evidence-label">Portfolio reflection</p>
+                    <ul className="challenge-evidence-list">
+                      {activeEvidence.reflectionPrompts.map((prompt) => (
+                        <li key={prompt}>{prompt}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </section>
             <CodeChallenge
               challenge={activeChallenge}
               lang={lang}

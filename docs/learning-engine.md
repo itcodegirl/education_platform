@@ -183,6 +183,11 @@ a practice match and show "best after" context, but the recommendation is
 soft guidance only; challenges remain optional and do not lock lesson
 navigation.
 
+`src/utils/challengeEvidence.js` turns a challenge's requirements and
+automated checks into a learner-facing evidence summary. It is meant to help
+learners talk about what they built and what the grader verified, while still
+stating that same-browser challenge progress is not an external credential.
+
 `src/utils/dailyLearningLoop.js` combines the active lesson state, quick-check
 mastery guidance, spaced-repetition due count, and challenge entry point into
 the lesson-level "Today's learning loop" surface. This is display-only
