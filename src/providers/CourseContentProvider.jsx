@@ -20,7 +20,7 @@ import {
   getQuiz,
   getQuizVariants,
   hydrateLoadedCourse,
-  loadCourse,
+  loadCourseRuntime,
 } from '../data';
 
 const CourseContentContext = createContext({
@@ -69,7 +69,7 @@ export function CourseContentProvider({ children }) {
 
     let promise = inFlight.get(courseId);
     if (!promise) {
-      promise = loadCourse(courseId)
+      promise = loadCourseRuntime(courseId)
         .then((data) => {
           const loadedCourse = hydrateLoadedCourse(courseId, data);
           setLoadedCourseIds((prev) => {

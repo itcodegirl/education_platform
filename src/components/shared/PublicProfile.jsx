@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { Logo } from './Logo';
 import { XP_PER_LEVEL, getLevel, getXPInLevel } from '../../utils/helpers';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import '../../styles/public-profile.css';
 
 export function PublicProfile({ handle, onClose }) {
   const [state, setState] = useState({ loading: true, error: null, profile: null });
