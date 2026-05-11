@@ -8,9 +8,10 @@ Run this before opening or merging persistence-related PRs:
 
 ```bash
 npm run check:supabase-readiness
+npm run audit:reward-catalog
 ```
 
-The command verifies that the repo still contains:
+These commands verify that the repo still contains:
 
 - Stable saved-position columns on `public.last_position`: `course_id`, `module_id`, `lesson_id`, `is_module_quiz`.
 - The additive stable resume migration: `supabase/migrations/202605070001_add_stable_last_position_columns.sql`.
@@ -19,6 +20,7 @@ The command verifies that the repo still contains:
 - Explicit anon `select` revokes for raw profile/progress/reward-adjacent tables.
 - Reward event ledger migrations and the `award_reward_event(...)` RPC that derives ownership from `auth.uid()`.
 - The `reward_catalog` migration that lets the RPC derive XP and reject unknown reward entities.
+- Reward catalog seed entries that stay aligned with the checked-in curriculum lessons, quizzes, and challenges.
 - The idempotency guard for `(user_id, event_key)` reward events.
 - Unique Supabase migration timestamp prefixes, so no migration is skipped
   or mis-reconciled by version.
