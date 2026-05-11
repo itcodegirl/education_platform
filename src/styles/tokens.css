@@ -46,6 +46,11 @@
   --amber-dim: #ffa72630;
   --red: #ff5c7c;
 
+  /* Text-safe accent aliases. Brand colors still drive borders,
+     fills, and glows; these are for small text on dark surfaces. */
+  --pink-text: #ff80b5;
+  --purple-text: #c88cff;
+
   /* Semantic state tokens — alias the brand palette to clear intents.
      Use these (not raw --cyan / --amber / --red) when the meaning is
      "this succeeded / warned / failed", so a future palette change
