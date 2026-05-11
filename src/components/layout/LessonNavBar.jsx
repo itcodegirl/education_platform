@@ -77,6 +77,7 @@ export const LessonNavBar = memo(function LessonNavBar({
           aria-haspopup="dialog"
           aria-controls="mobile-tools-sheet"
         >
+          <span className="lesson-nav-icon" aria-hidden="true">...</span>
           <span className="lesson-nav-label">Tools</span>
         </button>
       )}
