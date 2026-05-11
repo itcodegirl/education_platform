@@ -11,7 +11,7 @@ Exit criteria:
 - README, Known Limitations, repair roadmap, package scripts, and public copy agree on current product status.
 - Challenge grading copy explains what the grader really checks.
 - Progress Summary copy does not imply verified certification.
-- The JS-only source policy is named honestly; no script claims TypeScript type checking unless real type checking exists.
+- The JS-only source policy is named honestly; `npm run typecheck` is documented as a JS-only source-policy alias, not TypeScript compilation.
 - Public copy says XP, badges, streaks, review queue, and challenge completions are single-device today.
 
 Evidence:
