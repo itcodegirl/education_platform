@@ -31,6 +31,7 @@ const PREVIEW_SYNC_DELAY_MS = 180;
 export const CodePreview = memo(function CodePreview({ code, lang, scaffolding = 'full' }) {
   const isMobile = useIsMobile();
   const prefersReducedData = usePrefersReducedData();
+  const previewId = useId();
   const level = SCAFFOLDING[scaffolding] || SCAFFOLDING.full;
   const defaultTab = scaffolding === 'starter' || scaffolding === 'requirements' ? 'editor' : 'code';
 
@@ -52,6 +53,7 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
   const copyTimerRef = useRef(null);
   const aiRequestControllerRef = useRef(null);
   const previousTabRef = useRef(defaultTab);
+  const tabBaseId = useId();
 
   const isCSS = lang === 'css';
   const isJS = lang === 'js' || lang === 'react';
@@ -192,6 +194,43 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
         : tab === 'editor'
           ? `Change one small detail, then ${previewLabel.toLowerCase()} the result before moving on.`
           : 'Read the sample first, then try one small change in the editor.';
+  const visibleTabs = [
+    ...(scaffolding !== 'requirements'
+      ? [{ id: 'code', label: `${tabIcon} Code` }]
+      : []),
+    {
+      id: 'editor',
+      label: scaffolding === 'requirements' ? '✏️ Write Code' : 'Editor',
+    },
+    { id: 'preview', label: previewLabel },
+  ];
+  const getTabId = (tabId) => `${tabBaseId}-${tabId}-tab`;
+  const getPanelId = (tabId) => `${tabBaseId}-${tabId}-panel`;
+
+  const handleTabKeyDown = (event) => {
+    const currentIndex = visibleTabs.findIndex((item) => item.id === tab);
+    if (currentIndex < 0) return;
+
+    const lastIndex = visibleTabs.length - 1;
+    const keyActions = {
+      ArrowRight: currentIndex === lastIndex ? 0 : currentIndex + 1,
+      ArrowDown: currentIndex === lastIndex ? 0 : currentIndex + 1,
+      ArrowLeft: currentIndex === 0 ? lastIndex : currentIndex - 1,
+      ArrowUp: currentIndex === 0 ? lastIndex : currentIndex - 1,
+      Home: 0,
+      End: lastIndex,
+    };
+
+    if (!(event.key in keyActions)) return;
+    event.preventDefault();
+
+    const nextTab = visibleTabs[keyActions[event.key]].id;
+    setTab(nextTab);
+    event.currentTarget
+      .parentElement
+      ?.querySelector(`[data-code-preview-tab="${nextTab}"]`)
+      ?.focus();
+  };
 
   const handleTabKeyDown = (event) => {
     const currentIndex = visibleTabs.findIndex((item) => item.id === tab);
@@ -229,7 +268,7 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
         </div>
       )}
 
-      <div className="code-preview-guidance" id="code-preview-guidance" role="note">
+      <div className="code-preview-guidance" id={`${previewId}-guidance`} role="note">
         <span className="code-preview-guidance-label">Next step</span>
         <span>{guidanceCopy}</span>
       </div>

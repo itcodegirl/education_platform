@@ -934,6 +934,7 @@
   color: #e0e0ec;
 }
 
+.shell.light .code-preview-toolbar,
 .shell.light .code-preview-tabs {
   background: #2a2a3e;
   border-color: #3a3a5e;

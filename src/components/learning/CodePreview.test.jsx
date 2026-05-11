@@ -82,4 +82,14 @@ describe('CodePreview', () => {
     expect(screen.getByRole('tab', { name: /editor/i })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByText(/change one small detail/i)).toBeInTheDocument();
   });
+
+  it('supports arrow-key navigation across preview tabs', () => {
+    render(<CodePreview code="<main>Preview Me</main>" lang="html" scaffolding="full" />);
+
+    const codeTab = screen.getByRole('tab', { name: /code/i });
+    fireEvent.keyDown(codeTab, { key: 'ArrowRight' });
+
+    expect(screen.getByRole('tab', { name: /editor/i })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel', { name: /editor/i })).toBeInTheDocument();
+  });
 });
