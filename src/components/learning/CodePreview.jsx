@@ -195,12 +195,13 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
         <span>{guidanceCopy}</span>
       </div>
 
-      <div
-        className="code-preview-tabs"
-        role="tablist"
-        aria-label="Code practice views"
-        aria-describedby="code-preview-guidance"
-      >
+      <div className="code-preview-controls">
+        <div
+          className="code-preview-tabs"
+          role="tablist"
+          aria-label="Code practice views"
+          aria-describedby="code-preview-guidance"
+        >
         {scaffolding !== 'requirements' && (
           <button
             type="button"
@@ -236,6 +237,7 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
         >
           {previewLabel}
         </button>
+        </div>
 
         <div className="code-preview-actions">
           {tab === 'editor' && editorCode !== code && (
