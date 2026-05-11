@@ -1,18 +1,20 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SearchPanel } from './SearchPanel';
 
-const { mockUseCourseContent, mockBuildSearchIndex } = vi.hoisted(() => ({
-  mockUseCourseContent: vi.fn(),
-  mockBuildSearchIndex: vi.fn(),
-}));
-
-vi.mock('../../providers', () => ({
-  useCourseContent: () => mockUseCourseContent(),
-}));
-
-vi.mock('../../data/reference/search-index', () => ({
-  buildSearchIndex: (...args) => mockBuildSearchIndex(...args),
+vi.mock('../../data/reference/search-manifest.generated', () => ({
+  SEARCH_INDEX_MANIFEST: [
+    {
+      title: 'Flexbox Basics',
+      module: 'Layout',
+      course: 'CSS',
+      keywords: 'flexbox gap justify align',
+      icon: 'C',
+      courseIdx: 1,
+      modIdx: 0,
+      lesIdx: 2,
+    },
+  ],
 }));
 
 vi.mock('../../hooks/useFocusTrap', () => ({
@@ -20,26 +22,6 @@ vi.mock('../../hooks/useFocusTrap', () => ({
 }));
 
 describe('SearchPanel', () => {
-  beforeEach(() => {
-    mockUseCourseContent.mockReturnValue({
-      ensureAllLoaded: vi.fn(),
-      loadedCourseIds: ['html'],
-      allCoursesLoaded: true,
-    });
-    mockBuildSearchIndex.mockReturnValue([
-      {
-        title: 'Flexbox Basics',
-        module: 'Layout',
-        course: 'CSS',
-        keywords: 'flexbox gap justify align',
-        icon: 'C',
-        courseIdx: 1,
-        modIdx: 0,
-        lesIdx: 2,
-      },
-    ]);
-  });
-
   it('shows starter guidance before the query reaches two characters', () => {
     render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
 

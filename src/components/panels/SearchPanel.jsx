@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { buildSearchIndex } from '../../data/reference/search-index';
-import { useCourseContent } from '../../providers';
+import { SEARCH_INDEX_MANIFEST } from '../../data/reference/search-manifest.generated';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 export function SearchPanel({ isOpen, onClose, onNavigate }) {
@@ -8,16 +7,10 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
   const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef(null);
   const modalRef = useRef(null);
-  const { ensureAllLoaded, loadedCourseIds, allCoursesLoaded } = useCourseContent();
-
-  useEffect(() => {
-    ensureAllLoaded();
-  }, [ensureAllLoaded]);
 
   const searchIndex = useMemo(
-    () => buildSearchIndex(),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [loadedCourseIds],
+    () => SEARCH_INDEX_MANIFEST,
+    [],
   );
 
   useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
@@ -174,9 +167,7 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
             <div className="search-empty">
               <p><strong>Search all lessons</strong></p>
               <p className="empty-state-msg">
-                {allCoursesLoaded
-                  ? 'Type at least two letters from a lesson, module, language, or concept.'
-                  : 'Type at least two letters. More courses are still loading into search.'}
+                Type at least two letters from a lesson, module, language, or concept.
               </p>
             </div>
           ) : results.length === 0 ? (
@@ -199,8 +190,7 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
           ) : (
             <>
               <div className="search-meta">
-                {results.length} result{results.length === 1 ? "" : "s"}
-                {!allCoursesLoaded && ' (loading more courses…)'}
+                {results.length} result{results.length === 1 ? '' : 's'}
               </div>
               {results.map((result, index) => (
                 <button
@@ -209,7 +199,7 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
                   type="button"
                   role="option"
                   aria-selected={activeIndex === index}
-                  className={`search-result ${activeIndex === index ? "active" : ""}`}
+                  className={`search-result ${activeIndex === index ? 'active' : ''}`}
                   onClick={() => handleClick(result)}
                   onMouseEnter={() => setActiveIndex(index)}
                 >
@@ -230,16 +220,16 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
                       />
                     </div>
                     {result.keywords && (
-                        <div
-                          className="sr-snippet"
-                          dangerouslySetInnerHTML={{
-                            __html: highlight(result.keywords.slice(0, 80)),
-                          }}
-                        />
-                      )}
-                    </div>
-                  </button>
-                ))}
+                      <div
+                        className="sr-snippet"
+                        dangerouslySetInnerHTML={{
+                          __html: highlight(result.keywords.slice(0, 80)),
+                        }}
+                      />
+                    )}
+                  </div>
+                </button>
+              ))}
             </>
           )}
         </div>
