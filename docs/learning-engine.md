@@ -217,6 +217,12 @@ XP, gate navigation, or certify mastery. Its job is to help learners and
 reviewers see whether completed lessons are being reinforced by checks,
 application, and spaced review.
 
+`src/utils/reviewLoad.js` summarizes the spaced-repetition queue into a
+small review rhythm: what is due now, what is scheduled later, and how many
+cards make a useful short burst. The roadmap uses display-only module labels
+(`Current`, `Upcoming`, `In progress`, `Complete`) so course progress is
+easier to scan without adding hard locks.
+
 ## 8. Persistence layers
 
 | Surface                        | Local                                | Backend                 | Recovery                          |

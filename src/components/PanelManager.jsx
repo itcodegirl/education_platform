@@ -77,6 +77,7 @@ const PANEL_REGISTRY = {
       onClose={panels.closePanel}
       onNavigate={(ci, mi) => nav.goToCourseModule(ci, mi, 0)}
       currentCourseIdx={nav.courseIdx}
+      currentModuleIdx={nav.modIdx}
     />
   ),
 };
