@@ -42,7 +42,7 @@ vi.mock('../components/shared/Logo', () => ({
   Logo: () => <span>logo</span>,
 }));
 
-import { ProtectedRoute, learnRouteAction } from './appRouter';
+import { ProtectedRoute, learnRouteAction, learnRouteLoader } from './appRouter';
 
 function renderProtectedRoute() {
   return render(
@@ -246,5 +246,43 @@ describe('appRouter learnRouteAction', () => {
       course_id: 'html',
       lesson_title: 'Intro',
     }));
+  });
+});
+
+describe('appRouter learnRouteLoader', () => {
+  it('accepts numeric module ids from real course content as route-safe strings', async () => {
+    const result = await learnRouteLoader({
+      params: {
+        courseId: 'html',
+        moduleId: '101',
+        lessonId: 'lesson-01',
+      },
+    });
+
+    expect(result).toEqual({
+      courseId: 'html',
+      moduleId: '101',
+      lessonId: 'lesson-01',
+    });
+  });
+
+  it('redirects module quiz links when the loaded module has no quiz', async () => {
+    let redirectResponse;
+
+    try {
+      await learnRouteLoader({
+        params: {
+          courseId: 'html',
+          moduleId: '101',
+          lessonId: 'quiz',
+        },
+      });
+    } catch (error) {
+      redirectResponse = error;
+    }
+
+    expect(redirectResponse).toBeInstanceOf(Response);
+    expect(redirectResponse.status).toBe(302);
+    expect(redirectResponse.headers.get('Location')).toBe('/');
   });
 });
