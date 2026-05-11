@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useProgressData, useXP, useSR, BADGE_DEFS, useCourseContent } from '../../providers';
-import { COURSES } from '../../data';
+import { useProgressData, useXP, useSR, BADGE_DEFS } from '../../providers';
 import {
   areChallengesLoaded,
   getChallengesForCourse,
   loadAllChallenges,
 } from '../../data/challenges';
+import { COURSE_CATALOG } from '../../data/reference/course-catalog';
 import { getLevel, getXPInLevel, XP_PER_LEVEL } from '../../utils/helpers';
 import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
 import { findQuizEntityTitle, quizKeyBelongsToCourse } from '../../utils/quizCourseOwnership';
@@ -29,15 +29,10 @@ export function StudentStats({ isOpen, onClose }) {
   const { completed, quizScores, challengeCompletions = [] } = useProgressData();
   const { xpTotal, streak, pausedStreak = null, dailyCount, earnedBadges } = useXP();
   const { srCards, bookmarks, notes } = useSR();
-  const { ensureAllLoaded } = useCourseContent();
   const [challengeCatalogReady, setChallengeCatalogReady] = useState(
-    () => COURSES.every((course) => areChallengesLoaded(course.id)),
+    () => COURSE_CATALOG.every((course) => areChallengesLoaded(course.id)),
   );
   const modalRef = useRef(null);
-
-  useEffect(() => {
-    ensureAllLoaded();
-  }, [ensureAllLoaded]);
 
   useEffect(() => {
     let cancelled = false;
@@ -46,7 +41,7 @@ export function StudentStats({ isOpen, onClose }) {
       cancelled = true;
     };
 
-    const alreadyLoaded = COURSES.every((course) => areChallengesLoaded(course.id));
+    const alreadyLoaded = COURSE_CATALOG.every((course) => areChallengesLoaded(course.id));
     setChallengeCatalogReady(alreadyLoaded);
 
     if (alreadyLoaded) {
@@ -79,14 +74,14 @@ export function StudentStats({ isOpen, onClose }) {
     const completedSet = new Set(completed);
     const quizEntries = Object.entries(quizScores || {});
     const completedChallengeIds = new Set(challengeCompletions);
-    const allChallenges = COURSES.flatMap((course) =>
+    const allChallenges = COURSE_CATALOG.flatMap((course) =>
       getChallengesForCourse(course.id).map((challenge) => ({
         ...challenge,
         courseId: course.id,
       })),
     );
 
-    const courseStats = COURSES.map((course) => {
+    const courseStats = COURSE_CATALOG.map((course) => {
       const totalLessons = course.modules.reduce((sum, module) => sum + module.lessons.length, 0);
       const done = getCourseCompletedLessonCount(completedSet, course);
       const percent = totalLessons > 0 ? Math.round((done / totalLessons) * 100) : 0;
@@ -120,7 +115,7 @@ export function StudentStats({ isOpen, onClose }) {
     });
 
     const ownedQuizEntries = quizEntries.filter(([key]) =>
-      COURSES.some((course) => quizKeyBelongsToCourse(key, course)),
+      COURSE_CATALOG.some((course) => quizKeyBelongsToCourse(key, course)),
     );
     const allResults = ownedQuizEntries.map(toQuizResult).filter(Boolean);
 
@@ -179,7 +174,7 @@ export function StudentStats({ isOpen, onClose }) {
     return '#ef4444';
   };
 
-  const findLessonTitle = (quizKey) => findQuizEntityTitle(quizKey, COURSES);
+  const findLessonTitle = (quizKey) => findQuizEntityTitle(quizKey, COURSE_CATALOG);
   const reviewTarget = stats.weakest[0] ? findLessonTitle(stats.weakest[0].key) : '';
   const nextAction = (() => {
     if (stats.srDue > 0) {

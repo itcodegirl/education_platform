@@ -6,11 +6,9 @@ import { axe } from 'vitest-axe';
 import { ProfilePage } from './ProfilePage';
 
 const {
-  mockEnsureAllLoaded,
   mockSignOut,
   mockMaybeSingle,
 } = vi.hoisted(() => ({
-  mockEnsureAllLoaded: vi.fn(),
   mockSignOut: vi.fn(),
   mockMaybeSingle: vi.fn(),
 }));
@@ -31,7 +29,6 @@ vi.mock('../../providers', () => ({
     signOut: mockSignOut,
   }),
   useTheme: () => ({ theme: 'dark' }),
-  useCourseContent: () => ({ ensureAllLoaded: mockEnsureAllLoaded }),
   useProgressData: () => ({ completed: ['c:html|m:m1|l:l1'] }),
   useXP: () => ({
     xpTotal: 150,
@@ -45,8 +42,8 @@ vi.mock('../../providers', () => ({
   }),
 }));
 
-vi.mock('../../data', () => ({
-  COURSES: [
+vi.mock('../../data/reference/course-catalog', () => ({
+  COURSE_CATALOG: [
     {
       id: 'html',
       label: 'HTML',
@@ -84,7 +81,6 @@ vi.mock('../../lib/supabaseClient', () => ({
 
 describe('ProfilePage accessibility', () => {
   beforeEach(() => {
-    mockEnsureAllLoaded.mockReset();
     mockSignOut.mockReset();
     mockMaybeSingle.mockReset();
     mockMaybeSingle.mockResolvedValue({

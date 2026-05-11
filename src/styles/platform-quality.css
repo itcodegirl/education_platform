@@ -8,18 +8,33 @@
    PERFORMANCE OPTIMIZATIONS + UX QUALITY STATES
    ═══════════════════════════════════════════════ */
 
-/* GPU acceleration for animated elements */
-.code-preview-tab,
-.nav-btn,
-.mark-btn,
-.tool-btn,
-.theme-toggle,
-.challenge-card,
-.ob-card,
-.cc-card,
-.welcome-card,
-.ai-send,
-.cc-run-btn {
+/* Promote only during interaction/visibility states. Keeping
+   will-change on many idle controls creates unnecessary compositor
+   layers and can hurt memory on lower-power mobile devices. */
+.code-preview-tab:hover,
+.code-preview-tab:focus-visible,
+.nav-btn:hover:not(:disabled),
+.nav-btn:focus-visible,
+.mark-btn:hover:not(:disabled),
+.mark-btn:focus-visible,
+.tool-btn:hover,
+.tool-btn:focus-visible,
+.theme-toggle:hover,
+.theme-toggle:focus-visible,
+.challenge-card:hover,
+.challenge-card:focus-within,
+.ob-card:hover,
+.ob-card:focus-within,
+.cc-card:hover,
+.cc-card:focus-within,
+.welcome-card:hover,
+.welcome-card:focus-within,
+.ai-send:hover:not(:disabled),
+.ai-send:focus-visible,
+.cc-run-btn:hover:not(:disabled),
+.cc-run-btn:focus-visible,
+.xp-popup.show,
+.badge-unlock.show {
   will-change: transform;
 }
 

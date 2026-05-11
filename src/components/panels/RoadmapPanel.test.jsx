@@ -2,13 +2,12 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { RoadmapPanel } from './RoadmapPanel';
 
-const { mockUseProgressData, mockUseCourseContent } = vi.hoisted(() => ({
+const { mockUseProgressData } = vi.hoisted(() => ({
   mockUseProgressData: vi.fn(),
-  mockUseCourseContent: vi.fn(),
 }));
 
-vi.mock('../../data', () => ({
-  COURSES: [
+vi.mock('../../data/reference/course-catalog', () => ({
+  COURSE_CATALOG: [
     {
       id: 'html',
       label: 'HTML',
@@ -34,7 +33,6 @@ vi.mock('../../data', () => ({
 
 vi.mock('../../providers', () => ({
   useProgressData: () => mockUseProgressData(),
-  useCourseContent: () => mockUseCourseContent(),
 }));
 
 vi.mock('../../hooks/useFocusTrap', () => ({
@@ -44,10 +42,6 @@ vi.mock('../../hooks/useFocusTrap', () => ({
 describe('RoadmapPanel', () => {
   beforeEach(() => {
     mockUseProgressData.mockReturnValue({ completedSet: new Set() });
-    mockUseCourseContent.mockReturnValue({
-      ensureAllLoaded: vi.fn(),
-      allCoursesLoaded: true,
-    });
   });
 
   it('labels the current module and upcoming modules', () => {

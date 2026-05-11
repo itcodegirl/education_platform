@@ -54,8 +54,27 @@ describe('LessonFocusStrip', () => {
       />,
     );
 
+    expect(screen.getByRole('alert')).toHaveTextContent('Cloud sync queued');
     fireEvent.click(screen.getByRole('button', { name: /retry queued progress updates now/i }));
 
     expect(onRetrySync).toHaveBeenCalledTimes(1);
+  });
+
+  it('marks active sync retry as busy without showing a retry button', () => {
+    render(
+      <LessonFocusStrip
+        {...baseProps}
+        syncStatus={{
+          tone: 'saving',
+          label: 'Retrying cloud sync',
+          detail: '1 update retrying now. Keep this tab open while cloud sync catches up.',
+        }}
+      />,
+    );
+
+    const status = screen.getByRole('status');
+    expect(status).toHaveAttribute('aria-busy', 'true');
+    expect(status).toHaveTextContent(/retrying cloud sync/i);
+    expect(screen.queryByRole('button', { name: /retry/i })).not.toBeInTheDocument();
   });
 });

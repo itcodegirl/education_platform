@@ -2,10 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BookmarksPanel } from './BookmarksPanel';
 
-const { mockUseSR, mockUseProgressData, mockUseCourseContent } = vi.hoisted(() => ({
+const { mockUseSR, mockUseProgressData } = vi.hoisted(() => ({
   mockUseSR: vi.fn(),
   mockUseProgressData: vi.fn(),
-  mockUseCourseContent: vi.fn(),
 }));
 const { mockBookmarkSubmit } = vi.hoisted(() => ({
   mockBookmarkSubmit: vi.fn(),
@@ -14,7 +13,18 @@ const { mockBookmarkSubmit } = vi.hoisted(() => ({
 vi.mock('../../providers', () => ({
   useSR: () => mockUseSR(),
   useProgressData: () => mockUseProgressData(),
-  useCourseContent: () => mockUseCourseContent(),
+}));
+
+vi.mock('../../data/reference/course-catalog', () => ({
+  COURSE_CATALOG: [{
+    id: 'html',
+    label: 'HTML',
+    modules: [{
+      id: 'basics',
+      title: 'Basics',
+      lessons: [{ id: 'l-what', title: 'What is HTML?' }],
+    }],
+  }],
 }));
 
 vi.mock('react-router-dom', () => ({
@@ -27,16 +37,6 @@ vi.mock('../../hooks/useFocusTrap', () => ({
 }));
 
 describe('BookmarksPanel', () => {
-  const mockCourses = [{
-    id: 'html',
-    label: 'HTML',
-    modules: [{
-      id: 'basics',
-      title: 'Basics',
-      lessons: [{ id: 'l-what', title: 'What is HTML?' }],
-    }],
-  }];
-
   beforeEach(() => {
     mockBookmarkSubmit.mockReset();
     mockUseSR.mockReturnValue({
@@ -45,10 +45,6 @@ describe('BookmarksPanel', () => {
     });
     mockUseProgressData.mockReturnValue({
       markSyncFailed: vi.fn(),
-    });
-    mockUseCourseContent.mockReturnValue({
-      ensureAllLoaded: vi.fn(),
-      courses: mockCourses,
     });
   });
 

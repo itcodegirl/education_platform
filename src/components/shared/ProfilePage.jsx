@@ -1,11 +1,11 @@
 import { memo, useEffect, useMemo, useState } from 'react';
-import { useAuth, useCourseContent, useProgressData, useXP, useSR, useTheme, BADGE_DEFS } from '../../providers';
-import { COURSES } from '../../data';
+import { useAuth, useProgressData, useXP, useSR, useTheme, BADGE_DEFS } from '../../providers';
 import { XP_PER_LEVEL, getLevel, getXPInLevel } from '../../utils/helpers';
 import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { supabase } from '../../lib/supabaseClient';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
+import { COURSE_CATALOG } from '../../data/reference/course-catalog';
 import '../../styles/feature-profile.css';
 
 export const ProfilePage = memo(function ProfilePage({ onClose }) {
@@ -14,13 +14,8 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
   const { completed = [] } = useProgressData();
   const { xpTotal = 0, streak = 0, pausedStreak = null, earnedBadges = {} } = useXP();
   const { bookmarks = [], notes = {} } = useSR();
-  const { ensureAllLoaded } = useCourseContent();
 
   useDocumentTitle('Your profile');
-
-  useEffect(() => {
-    ensureAllLoaded();
-  }, [ensureAllLoaded]);
 
   const [isPublic, setIsPublic] = useState(false);
   const [publicHandle, setPublicHandle] = useState('');
@@ -115,7 +110,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
     : '';
   const completedSet = useMemo(() => new Set(completed), [completed]);
 
-  const courseStats = COURSES.map((course) => {
+  const courseStats = COURSE_CATALOG.map((course) => {
     const total = course.modules.reduce((sum, mod) => sum + mod.lessons.length, 0);
     const done = getCourseCompletedLessonCount(completedSet, course);
 

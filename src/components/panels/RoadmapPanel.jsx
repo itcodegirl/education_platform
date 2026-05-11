@@ -1,17 +1,12 @@
-import { useEffect, useRef } from 'react';
-import { COURSES } from '../../data';
-import { useProgressData, useCourseContent } from '../../providers';
+import { useRef } from 'react';
+import { useProgressData } from '../../providers';
+import { COURSE_CATALOG } from '../../data/reference/course-catalog';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { getCourseCompletedLessonCount, hasLessonCompletion } from '../../utils/lessonKeys';
 
 export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx, currentModuleIdx = -1 }) {
   const { completedSet = new Set() } = useProgressData();
-  const { ensureAllLoaded, allCoursesLoaded } = useCourseContent();
   const modalRef = useRef(null);
-
-  useEffect(() => {
-    ensureAllLoaded();
-  }, [ensureAllLoaded]);
 
   useFocusTrap(modalRef, { enabled: true, onEscape: onClose });
 
@@ -41,13 +36,7 @@ export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx, currentMod
             See every course, spot what is complete, and jump straight into the next module that needs you.
           </p>
 
-          {!allCoursesLoaded && (
-            <p className="roadmap-loading" aria-live="polite">
-              Loading the rest of your roadmap so progress stays accurate across every track.
-            </p>
-          )}
-
-          {COURSES.map((course, courseIndex) => {
+          {COURSE_CATALOG.map((course, courseIndex) => {
             const totalLessons = course.modules.reduce((sum, module) => sum + module.lessons.length, 0);
             const doneLessons = getCourseCompletedLessonCount(completedSet, course);
             const percent = totalLessons > 0 ? Math.round((doneLessons / totalLessons) * 100) : 0;
@@ -122,7 +111,7 @@ export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx, currentMod
                   })}
                 </div>
 
-                {courseIndex < COURSES.length - 1 && (
+                {courseIndex < COURSE_CATALOG.length - 1 && (
                   <div className="rm-connector" aria-hidden="true">
                     <span>↓</span>
                   </div>
