@@ -341,3 +341,6 @@ Local-only by design (not migration candidates):
 - Badge rules → `src/services/badgeRules.js`.
 - Display-only guards → `src/utils/helpers.js`
   (`getActiveStreakDays`, `getActiveDailyCount`, `getPausedStreak`).
+- Content quality gates → `scripts/audit-learning-content.mjs`, which checks
+  stable ids, quiz explanations, challenge test metadata, and lesson
+  scaffolding signals before content changes ship.
