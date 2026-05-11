@@ -28,6 +28,9 @@ describe('mastery progress helpers', () => {
     expect(summary.dueReviewCards).toBe(1);
     expect(summary.evidenceSignals).toBe(3);
     expect(summary.evidenceCoverage).toBe(75);
+    expect(summary.stage).toBe('review');
+    expect(summary.stageLabel).toBe('Review evidence due');
+    expect(summary.nextEvidenceAction).toMatch(/retry one missed quick check/i);
   });
 
   it('accepts stored score strings when a caller does not pre-parse results', () => {
@@ -44,6 +47,7 @@ describe('mastery progress helpers', () => {
     expect(summary.quizChecksPassed).toBe(1);
     expect(summary.quizChecksNeedsReview).toBe(1);
     expect(summary.evidenceCoverage).toBe(50);
+    expect(summary.stage).toBe('review');
   });
 
   it('keeps zero-progress evidence honest', () => {
@@ -54,6 +58,22 @@ describe('mastery progress helpers', () => {
     });
 
     expect(summary.evidenceCoverage).toBe(0);
+    expect(summary.stage).toBe('not-started');
     expect(summary.status).toMatch(/start with one lesson/i);
+  });
+
+  it('marks applied evidence only when strong coverage includes challenge work', () => {
+    const summary = summarizeMasteryEvidence({
+      completedLessonCount: 2,
+      quizResults: [{ percent: 100 }],
+      challenges: [{ id: 'challenge-1' }],
+      challengeCompletions: ['challenge-1'],
+      srCards: [],
+    });
+
+    expect(summary.evidenceCoverage).toBe(100);
+    expect(summary.stage).toBe('applied');
+    expect(summary.stageLabel).toBe('Applied evidence');
+    expect(summary.nextEvidenceAction).toMatch(/portfolio note/i);
   });
 });
