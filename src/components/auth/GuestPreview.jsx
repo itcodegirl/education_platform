@@ -151,8 +151,9 @@ export function GuestPreview({ onBack }) {
         <section className="gp-cta" aria-label="Preview call to action">
           <h3>Ready to keep going?</h3>
           <p>
-            Create a free account to keep your place, save notes and bookmarks,
-            and continue through the courses when you come back.
+            Create a free account to track your progress, keep your place,
+            save notes and bookmarks, and continue through the courses when
+            you come back.
           </p>
           <button type="button" className="gp-cta-btn ui-btn ui-btn-primary ui-btn-pill" onClick={onBack} aria-label="Create free account">
             Create free account
