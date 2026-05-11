@@ -1,0 +1,117 @@
+/* =================================================
+   PUBLIC ROUTE SHARED STYLES
+   Small public-entry-only rules that were previously
+   bundled through protected stylesheets.
+   ================================================= */
+
+.loading-screen.light,
+.light {
+  --bg-deep: #f5f5f8;
+  --bg-dark: #ffffff;
+  --bg-card: #f0f0f5;
+  --bg-surface: #e8e8f0;
+  --border: #d0d0dd;
+  --border-bright: #b0b0c0;
+  --text: #1a1a2e;
+  --text-dim: #555570;
+  --text-muted: #8888a0;
+  --pink: #e0558a;
+  --pink-dim: #e0558a25;
+  --pink-glow: #e0558a15;
+  --cyan: #0d9488;
+  --cyan-dim: #0d948815;
+  --amber: #d97706;
+  --amber-dim: #d9770615;
+  --purple: #7c3aed;
+  --purple-dim: #7c3aed15;
+}
+
+.disabled-screen {
+  text-align: center;
+  padding: 80px 20px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.disabled-icon {
+  font-size: 64px;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.disabled-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 28px;
+  color: #ff6b6b;
+  margin-bottom: 12px;
+}
+
+.disabled-msg {
+  font-size: 16px;
+  color: var(--text-dim);
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+.disabled-link {
+  display: inline-block;
+  padding: 10px 24px;
+  border-radius: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--cyan);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+  margin-right: 12px;
+}
+
+.disabled-link:hover {
+  border-color: var(--cyan);
+  background: var(--cyan-dim);
+}
+
+.disabled-logout {
+  padding: 10px 24px;
+  border-radius: 8px;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.disabled-logout:hover {
+  border-color: #ff6b6b;
+  color: #ff6b6b;
+}
+
+.auth-preview-btn {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  min-height: 44px;
+  padding: 0 12px;
+  color: var(--text-dim);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.auth-preview-btn:hover {
+  color: var(--text);
+}
+
+.auth-preview-wrap {
+  margin-top: 10px;
+}
+
+.auth-preview-note {
+  margin: 8px 2px 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-muted);
+  text-align: center;
+}

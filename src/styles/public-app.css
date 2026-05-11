@@ -1,0 +1,22 @@
+/* =================================================
+   PUBLIC APP STYLES INDEX
+   Keeps the anonymous entry path focused on auth,
+   marketing, and shared resilience primitives.
+   ================================================= */
+
+/* Brand fonts are self-hosted in src/main.jsx via @fontsource. */
+
+/* Foundations */
+@import './tokens.css';
+@import './base.css';
+@import './animations.css';
+
+/* Public route surfaces */
+@import './auth.css';
+@import './landing.css';
+
+/* Shared public route states */
+@import './responsive.css';
+@import './resilience-states.css';
+@import './public-route-shell.css';
+@import './install-prompt.css';

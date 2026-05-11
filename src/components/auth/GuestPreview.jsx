@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { COURSES } from '../../data';
-import { useCourseContent } from '../../providers';
+import { useCourseContent } from '../../providers/CourseContentProvider';
 import { renderMarkdown } from '../../utils/markdown';
 import { CodePreview } from '../learning/CodePreview';
 

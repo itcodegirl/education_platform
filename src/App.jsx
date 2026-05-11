@@ -13,13 +13,13 @@
 
 import { useEffect } from 'react';
 import { RouterProvider } from 'react-router-dom';
-import { AuthProvider, ThemeProvider, ProgressProvider, CourseContentProvider } from './providers';
-import { ToastProvider } from './components/shared/Toast';
+import { AuthProvider } from './providers/AuthProvider';
+import { ThemeProvider } from './providers/ThemeProvider';
 import { InstallPrompt } from './components/shared/InstallPrompt';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { initializeAnalytics } from './lib/analytics';
 import { appRouter } from './routes/appRouter';
-import './styles/App.css';
+import './styles/public-app.css';
 
 export default function App() {
   useEffect(() => {
@@ -30,14 +30,8 @@ export default function App() {
     <ErrorBoundary>
       <AuthProvider>
         <ThemeProvider>
-          <ProgressProvider>
-            <CourseContentProvider>
-              <ToastProvider>
-                <InstallPrompt />
-                <RouterProvider router={appRouter} />
-              </ToastProvider>
-            </CourseContentProvider>
-          </ProgressProvider>
+          <InstallPrompt />
+          <RouterProvider router={appRouter} />
         </ThemeProvider>
       </AuthProvider>
     </ErrorBoundary>
