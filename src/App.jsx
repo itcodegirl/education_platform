@@ -17,13 +17,14 @@ import { AuthProvider } from './providers/AuthProvider';
 import { ThemeProvider } from './providers/ThemeProvider';
 import { InstallPrompt } from './components/shared/InstallPrompt';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
-import { initializeAnalytics } from './lib/analytics';
 import { appRouter } from './routes/appRouter';
 import './styles/public-app.css';
 
 export default function App() {
   useEffect(() => {
-    initializeAnalytics();
+    void import('./lib/analytics').then((module) => {
+      module.initializeAnalytics();
+    });
   }, []);
 
   return (

@@ -5,11 +5,14 @@ import path from 'node:path';
 const assetsDir = path.resolve(process.cwd(), 'dist', 'assets');
 const indexHtmlPath = path.resolve(process.cwd(), 'dist', 'index.html');
 
+const INITIAL_JS_BUDGET_KB = 320;
+const INITIAL_CSS_BUDGET_KB = 45;
+
 const budgets = [
   {
     label: 'main app chunk',
     match: (file) => /^index-.*\.js$/i.test(file),
-    maxKb: 550,
+    maxKb: 220,
   },
   {
     label: 'monaco editor api lazy chunk',
@@ -28,7 +31,41 @@ const budgets = [
   },
 ];
 
+const bannedInitialAssetPatterns = [
+  {
+    label: 'Monaco editor assets',
+    match: (file) => /^vendor-monaco-.*\.(js|css)$/i.test(file),
+  },
+  {
+    label: 'Supabase vendor preload',
+    match: (file) => /^vendor-supabase-.*\.js$/i.test(file),
+  },
+  {
+    label: 'Protected learning shell chunk',
+    match: (file) => /^ProtectedAppRoutes-.*\.js$/i.test(file),
+  },
+  {
+    label: 'Protected app CSS bundle',
+    match: (file) => /^App-.*\.css$/i.test(file),
+  },
+];
+
 const formatKb = (bytes) => `${(bytes / 1024).toFixed(2)} kB`;
+
+function extractAssetRefs(html, tagPattern) {
+  return Array.from(
+    html.matchAll(tagPattern),
+    (match) => match[1],
+  );
+}
+
+function getAssetSize(file) {
+  const fullPath = path.join(assetsDir, file);
+  if (!fs.existsSync(fullPath)) {
+    throw new Error(`Bundle budget check failed: missing asset "${file}" referenced by dist/index.html.`);
+  }
+  return fs.statSync(fullPath).size;
+}
 
 if (!fs.existsSync(assetsDir)) {
   console.error('Bundle budget check failed: dist/assets not found. Run `npm run build` first.');
@@ -41,16 +78,57 @@ if (!fs.existsSync(indexHtmlPath)) {
 }
 
 const indexHtml = fs.readFileSync(indexHtmlPath, 'utf8');
-const preloadedMonacoChunks = Array.from(
-  indexHtml.matchAll(/<link\b[^>]*\brel=["']modulepreload["'][^>]*\bhref=["'][^"']*vendor-monaco-[^"']+\.js["'][^>]*>/gi),
-  (match) => match[0],
+
+const entryScripts = extractAssetRefs(
+  indexHtml,
+  /<script\b[^>]*\bsrc=["']\/assets\/([^"']+)["'][^>]*><\/script>/gi,
+);
+const modulePreloads = extractAssetRefs(
+  indexHtml,
+  /<link\b[^>]*\brel=["']modulepreload["'][^>]*\bhref=["']\/assets\/([^"']+)["'][^>]*>/gi,
+);
+const stylesheets = extractAssetRefs(
+  indexHtml,
+  /<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref=["']\/assets\/([^"']+)["'][^>]*>/gi,
 );
 
-if (preloadedMonacoChunks.length > 0) {
-  console.error('Bundle budget check failed: Monaco editor chunks must stay lazy.');
-  preloadedMonacoChunks.forEach((tag) => {
-    console.error(`- Unexpected initial Monaco preload: ${tag}`);
+const initialJsAssets = [...new Set([...entryScripts, ...modulePreloads])];
+const initialCssAssets = [...new Set(stylesheets)];
+const initialAssets = [...new Set([...initialJsAssets, ...initialCssAssets])];
+
+const bannedInitialAssets = initialAssets
+  .map((file) => ({
+    file,
+    matches: bannedInitialAssetPatterns.filter(({ match }) => match(file)),
+  }))
+  .filter((entry) => entry.matches.length > 0);
+
+if (bannedInitialAssets.length > 0) {
+  console.error('Bundle budget check failed: the public entry is preloading protected or editor-only assets.');
+  bannedInitialAssets.forEach(({ file, matches }) => {
+    const labels = matches.map(({ label }) => label).join(', ');
+    console.error(`- ${file}: ${labels}`);
   });
+  process.exit(1);
+}
+
+const initialJsBytes = initialJsAssets.reduce((sum, file) => sum + getAssetSize(file), 0);
+const initialCssBytes = initialCssAssets.reduce((sum, file) => sum + getAssetSize(file), 0);
+
+console.log(`Initial JS: ${formatKb(initialJsBytes)} (budget ${INITIAL_JS_BUDGET_KB} kB)`);
+console.log(`Initial CSS: ${formatKb(initialCssBytes)} (budget ${INITIAL_CSS_BUDGET_KB} kB)`);
+
+if (initialJsBytes / 1024 > INITIAL_JS_BUDGET_KB) {
+  console.error(
+    `Bundle budget check failed: initial JS ${formatKb(initialJsBytes)} exceeds ${INITIAL_JS_BUDGET_KB} kB.`,
+  );
+  process.exit(1);
+}
+
+if (initialCssBytes / 1024 > INITIAL_CSS_BUDGET_KB) {
+  console.error(
+    `Bundle budget check failed: initial CSS ${formatKb(initialCssBytes)} exceeds ${INITIAL_CSS_BUDGET_KB} kB.`,
+  );
   process.exit(1);
 }
 
@@ -64,14 +142,12 @@ if (jsFiles.length === 0) {
 }
 
 const sizeReport = jsFiles.map((file) => {
-  const fullPath = path.join(assetsDir, file);
-  const sizeBytes = fs.statSync(fullPath).size;
+  const sizeBytes = getAssetSize(file);
   const budget = budgets.find(({ match }) => match(file));
 
   return {
     file,
     sizeBytes,
-    sizeKb: sizeBytes / 1024,
     budget,
     overByKb: sizeBytes / 1024 - budget.maxKb,
   };

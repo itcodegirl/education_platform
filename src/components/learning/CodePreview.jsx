@@ -10,7 +10,9 @@ import { buildCodePreviewConsoleScript } from './codePreviewConsoleScript';
 // MonacoEnvironment) before @monaco-editor/react is evaluated. Both
 // end up in the same lazy chunk, keeping Monaco out of the main bundle.
 const MonacoEditor = lazy(() =>
-  import('../../lib/monacoLoader').then(() => import('@monaco-editor/react'))
+  import('../../lib/monacoLoader')
+    .then((module) => module.initializeMonacoLoader())
+    .then(() => import('@monaco-editor/react'))
 );
 
 const SCAFFOLDING = {

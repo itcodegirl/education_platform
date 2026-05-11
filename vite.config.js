@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
@@ -80,8 +81,32 @@ function getDevServerFsAllowList() {
   ];
 }
 
+function stripInitialMonacoCssLinks(outDir = 'dist') {
+  return {
+    name: 'strip-initial-monaco-css-links',
+    apply: 'build',
+    closeBundle() {
+      const indexHtmlPath = path.resolve(__dirname, outDir, 'index.html');
+
+      if (!fs.existsSync(indexHtmlPath)) {
+        return;
+      }
+
+      const html = fs.readFileSync(indexHtmlPath, 'utf8');
+      const nextHtml = html.replace(
+        /\s*<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref=["']\/assets\/vendor-monaco-[^"']+\.css["'][^>]*>\s*/gi,
+        '\n',
+      );
+
+      if (nextHtml !== html) {
+        fs.writeFileSync(indexHtmlPath, nextHtml, 'utf8');
+      }
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), stripInitialMonacoCssLinks()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
