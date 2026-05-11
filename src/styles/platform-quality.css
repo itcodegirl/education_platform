@@ -369,6 +369,64 @@ img {
   margin-top: var(--space-3);
 }
 
+.sr-review-load {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-surface);
+}
+
+.sr-review-load-due {
+  border-color: rgba(245, 158, 11, 0.34);
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.sr-review-load-scheduled {
+  border-color: rgba(78, 205, 196, 0.24);
+  background: rgba(78, 205, 196, 0.06);
+}
+
+.sr-review-load-kicker {
+  display: block;
+  color: var(--cyan);
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.sr-review-load-title {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-base);
+  font-weight: 700;
+}
+
+.sr-review-load-detail {
+  margin: 4px 0 0;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}
+
+.sr-review-load-pill {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
 /* ═══════════════════════════════════════════════
    NEW QUIZ TYPES — Bug, Fill, Order, Code Output
    ═══════════════════════════════════════════════ */
@@ -708,6 +766,55 @@ img {
   opacity: 0.85;
 }
 
+.ss-next-step {
+  margin-bottom: var(--space-5);
+  padding: var(--space-4);
+  border: 1px solid rgba(78, 205, 196, 0.24);
+  border-left: 3px solid var(--cyan);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, rgba(78, 205, 196, 0.09), rgba(255,255,255,0.02));
+}
+
+.ss-next-kicker {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--cyan);
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.ss-next-title {
+  margin: 0 0 var(--space-2);
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-base);
+}
+
+.ss-next-body {
+  margin: 0 0 var(--space-3);
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}
+
+.ss-next-action {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius-md);
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ss-next-action:hover {
+  border-color: var(--cyan);
+}
+
 /* Overview cards */
 .ss-cards {
   display: grid;
@@ -829,6 +936,7 @@ img {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-2);
   margin-top: var(--space-1);
 }
 
@@ -843,6 +951,94 @@ img {
   font-family: 'Poppins', sans-serif;
   font-size: var(--text-xs);
   font-weight: 600;
+}
+
+.ss-course-signals {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ss-challenge-badge {
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.ss-section-heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.ss-section-heading-row .ss-section-title {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.ss-section-copy {
+  margin: 0 0 var(--space-3);
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+
+.ss-mastery-status {
+  flex: 1;
+  max-width: 320px;
+  color: var(--text-dim);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  text-align: right;
+}
+
+.ss-mastery-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.ss-mastery-card {
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ss-mastery-value {
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.ss-mastery-label {
+  color: var(--text);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  line-height: 1.35;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.ss-mastery-sub {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  line-height: 1.45;
 }
 
 /* Quiz donut */
@@ -1025,6 +1221,19 @@ img {
 
   .ss-activity-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ss-section-heading-row {
+    flex-direction: column;
+  }
+
+  .ss-mastery-status {
+    max-width: none;
+    text-align: left;
+  }
+
+  .ss-mastery-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .ss-quiz-overview {

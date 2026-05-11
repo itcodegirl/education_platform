@@ -22,7 +22,7 @@ describe('Onboarding', () => {
     fireEvent.click(screen.getByRole('button', { name: /go to step 3/i }));
 
     expect(screen.getByRole('heading', { name: /your first session has one path/i })).toBeInTheDocument();
-    expect(screen.getByText(/read the learning frame/i)).toBeInTheDocument();
-    expect(screen.getByText(/save lesson reading progress/i)).toBeInTheDocument();
+    expect(screen.getByText(/read the goal/i)).toBeInTheDocument();
+    expect(screen.getByText(/save reading progress with complete lesson/i)).toBeInTheDocument();
   });
 });

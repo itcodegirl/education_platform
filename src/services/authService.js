@@ -1,6 +1,8 @@
 // AUTH SERVICE - All Supabase auth operations
 // Context calls these; this file owns the DB logic.
 
+import { getOptionalSupabaseBrowserConfig } from '../lib/supabaseConfig';
+
 let supabaseClientPromise = null;
 
 async function getSupabaseClient() {
@@ -10,6 +12,10 @@ async function getSupabaseClient() {
   }
 
   return supabaseClientPromise;
+}
+
+export function isAuthBackendConfigured() {
+  return getOptionalSupabaseBrowserConfig().configured;
 }
 
 export async function getInitialSession() {

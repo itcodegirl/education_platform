@@ -6,24 +6,24 @@ import { trackEvent } from '../../lib/analytics';
 const STEPS = [
   {
     icon: '01',
-    eyebrow: 'Start here',
-    title: 'Welcome to CodeHerWay',
-    subtitle: 'Learn by shipping something real, not by getting trapped in endless theory.',
+    eyebrow: 'One path',
+    title: 'Start with the lesson in front of you',
+    subtitle: 'CodeHerWay works best when the first session stays simple.',
     points: [
-      'Four complete learning tracks: HTML, CSS, JavaScript, and React.',
-      'Project-first lessons that show the code, the result, and the reasoning.',
-      'Built with the perspective of a self-taught developer who knows the messy middle.',
+      'Read the goal before the details so you know what you are building.',
+      'Try the example and compare your screen to the result.',
+      'Use Complete lesson when the idea clicks and you are ready for the next step.',
     ],
   },
   {
     icon: '02',
-    eyebrow: 'Your toolkit',
-    title: 'Every lesson comes with support',
-    subtitle: 'You should never have to choose between guessing and giving up.',
+    eyebrow: 'Support',
+    title: 'Use tools only when they help',
+    subtitle: 'The lesson is the main path. Tools are there to reduce friction, not create homework.',
     points: [
-      'Monaco editor and live previews so you can write and test real code inside each lesson.',
-      'AI tutor support that stays grounded in the current lesson when you get stuck.',
-      'Tasks, challenges, and check-ins that normalize mistakes and build skill.',
+      'Search and glossary help when a word or concept feels fuzzy.',
+      'Notes and bookmarks are for ideas you want to return to.',
+      'Practice tools unlock as next steps after you have learning momentum.',
     ],
   },
   {
@@ -32,9 +32,9 @@ const STEPS = [
     title: 'Your first session has one path',
     subtitle: 'Start with the lesson in front of you, then let the next step reveal itself.',
     points: [
-      'Read the learning frame so you know the goal before the details.',
-      'Build the example, check the preview, and use notes only when they help.',
-      'Save lesson reading progress, take the quick check, then continue to the next lesson.',
+      'Read the goal.',
+      'Try the build.',
+      'Save reading progress with Complete lesson, then continue.',
     ],
   },
 ];
@@ -161,8 +161,8 @@ export function Onboarding({ isOpen, onClose, displayName }) {
 
         <p id="onboarding-kicker" className="ob-kicker">
           {isLast
-            ? 'You are ready to start learning with context, support, and a workflow that keeps momentum visible.'
-            : 'A few more seconds now makes the first session feel much more intuitive.'}
+            ? 'You are ready to start with one calm loop: goal, build, complete, continue.'
+            : 'A few more seconds now keeps the first session focused.'}
         </p>
 
         <div className="ob-actions">

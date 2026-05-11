@@ -78,7 +78,7 @@ describe('SearchPanel', () => {
     expect(
       screen.getByText(/No results for/i),
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /clear search/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^clear search$/i })).toBeInTheDocument();
   });
 
   it('opens the top search result from the keyboard', () => {
@@ -95,5 +95,24 @@ describe('SearchPanel', () => {
 
     expect(onNavigate).toHaveBeenCalledWith(1, 0, 2);
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('uses mobile-friendly search input controls', () => {
+    render(<SearchPanel isOpen onClose={vi.fn()} onNavigate={vi.fn()} />);
+
+    const input = screen.getByRole('combobox', { name: /Search lessons/i });
+    expect(input).toHaveAttribute('type', 'search');
+    expect(input).toHaveAttribute('inputmode', 'search');
+    expect(input).toHaveAttribute('enterkeyhint', 'search');
+    expect(input).toHaveAttribute('autocomplete', 'off');
+
+    fireEvent.change(input, {
+      target: { value: 'flexbox' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /clear search query/i }));
+
+    expect(input).toHaveValue('');
+    expect(input).toHaveFocus();
   });
 });
