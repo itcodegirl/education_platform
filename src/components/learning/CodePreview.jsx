@@ -31,6 +31,7 @@ const PREVIEW_SYNC_DELAY_MS = 180;
 export const CodePreview = memo(function CodePreview({ code, lang, scaffolding = 'full' }) {
   const isMobile = useIsMobile();
   const prefersReducedData = usePrefersReducedData();
+  const previewId = useId();
   const level = SCAFFOLDING[scaffolding] || SCAFFOLDING.full;
   const defaultTab = scaffolding === 'starter' || scaffolding === 'requirements' ? 'editor' : 'code';
 
@@ -228,7 +229,7 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
         </div>
       )}
 
-      <div className="code-preview-guidance" id="code-preview-guidance" role="note">
+      <div className="code-preview-guidance" id={`${previewId}-guidance`} role="note">
         <span className="code-preview-guidance-label">Next step</span>
         <span>{guidanceCopy}</span>
       </div>
@@ -238,7 +239,7 @@ export const CodePreview = memo(function CodePreview({ code, lang, scaffolding =
           className="code-preview-tablist"
           role="tablist"
           aria-label="Code practice views"
-          aria-describedby="code-preview-guidance"
+          aria-describedby={`${previewId}-guidance`}
         >
           {visibleTabs.map((item) => (
             <button

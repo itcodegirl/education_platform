@@ -133,6 +133,23 @@ test.describe('public learner entry', () => {
     await expect(createAccountButton).toBeFocused();
   });
 
+  test('lets guests inspect the first lesson code output without an account', async ({ page }) => {
+    await page.goto('/');
+
+    await page.getByRole('button', { name: /preview the first lesson/i }).first().click();
+    await expect(page.locator('.guest-preview')).toBeVisible({ timeout: 30000 });
+
+    const codePractice = page.locator('.code-preview').first();
+    await expect(codePractice.getByRole('tablist', { name: /code practice views/i })).toBeVisible();
+    await expect(codePractice.getByRole('tab', { name: /code/i })).toHaveAttribute('aria-selected', 'true');
+
+    await codePractice.getByRole('tab', { name: /preview/i }).click();
+
+    await expect(codePractice.getByTitle('HTML preview')).toBeVisible();
+    await expect(codePractice.getByRole('tab', { name: /preview/i })).toHaveAttribute('aria-selected', 'true');
+    await expectNoHorizontalOverflow(page);
+  });
+
   test('publicMobileViewportsAvoidHorizontalOverflow', async ({ page }) => {
     for (const viewport of [
       { width: 360, height: 780 },

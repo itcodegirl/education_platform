@@ -11,6 +11,7 @@ const {
       onAuthStateChange: vi.fn(),
     },
   },
+  supabaseConfigStatus: { configured: true },
 }));
 
 vi.mock('../lib/lazySupabaseClient', () => ({
