@@ -22,7 +22,7 @@
 //      forwarding a malformed card to the client.
 // ===============================================
 
-import { json, verifyUser, consumeQuotaPersistent, createRateLimiter } from './_shared.js';
+import { json, verifyActiveUser, consumeQuotaPersistent, createRateLimiter } from './_shared.js';
 
 const OPENAI_URL = 'https://api.openai.com/v1/responses';
 
@@ -108,9 +108,16 @@ export async function handler(event) {
   const token = authHeader.replace(/^Bearer\s+/i, '');
   if (!token) return json(401, { error: 'Authentication required' });
 
-  const user = await verifyUser(token);
+  const user = await verifyActiveUser(token);
   if (!user || !user.id) {
     return json(401, { error: 'Invalid or expired session' });
+  }
+
+  if (!user.email_confirmed_at && !user.confirmed_at) {
+    return json(403, {
+      error: 'Verify your email before generating practice cards.',
+      code: 'EMAIL_NOT_VERIFIED',
+    });
   }
 
   if (!checkRateLimit(user.id)) {

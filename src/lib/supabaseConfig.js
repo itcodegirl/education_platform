@@ -4,15 +4,22 @@ export const supabaseAuthOptions = Object.freeze({
   detectSessionInUrl: true,
 });
 
-export const SUPABASE_CONFIG_ERROR_CODE = 'missing-supabase-browser-env';
+export const SUPABASE_CONFIG_ERROR_CODE = 'missing_supabase_config';
+
 export const SUPABASE_CONFIG_ERROR_MESSAGE =
-  'Supabase is not configured for this browser build.';
+  'CodeHerWay accounts are not connected in this environment. Add ' +
+  'VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable sign in and progress sync.';
 
 export class SupabaseConfigError extends Error {
-  constructor(message = SUPABASE_CONFIG_ERROR_MESSAGE) {
-    super(message);
+  constructor() {
+    super(
+      'Missing Supabase environment variables. Create a .env file with:\n' +
+      'VITE_SUPABASE_URL=https://your-project.supabase.co\n' +
+      'VITE_SUPABASE_ANON_KEY=your-anon-key'
+    );
     this.name = 'SupabaseConfigError';
     this.code = SUPABASE_CONFIG_ERROR_CODE;
+    this.userMessage = SUPABASE_CONFIG_ERROR_MESSAGE;
   }
 }
 
@@ -25,26 +32,33 @@ function normalizeEnvString(value) {
 }
 
 export function getSupabaseBrowserConfig(env = getImportMetaEnv()) {
-  const config = getOptionalSupabaseBrowserConfig(env);
-
-  if (!config) {
-    throw new SupabaseConfigError(
-      'Missing Supabase environment variables. Create a .env file with:\n' +
-      'VITE_SUPABASE_URL=https://your-project.supabase.co\n' +
-      'VITE_SUPABASE_ANON_KEY=your-anon-key'
-    );
-  }
-
-  return config;
-}
-
-export function getOptionalSupabaseBrowserConfig(env = getImportMetaEnv()) {
   const url = normalizeEnvString(env?.VITE_SUPABASE_URL);
   const anonKey = normalizeEnvString(env?.VITE_SUPABASE_ANON_KEY);
 
   if (!url || !anonKey) {
-    return null;
+    throw new SupabaseConfigError();
   }
 
   return { url, anonKey };
+}
+
+export function getOptionalSupabaseBrowserConfig(env = getImportMetaEnv()) {
+  try {
+    return {
+      ...getSupabaseBrowserConfig(env),
+      configured: true,
+      error: null,
+    };
+  } catch (error) {
+    if (error?.code !== SUPABASE_CONFIG_ERROR_CODE) {
+      throw error;
+    }
+
+    return {
+      url: '',
+      anonKey: '',
+      configured: false,
+      error,
+    };
+  }
 }

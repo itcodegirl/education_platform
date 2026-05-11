@@ -1,8 +1,10 @@
-import { getSupabaseConfig, json, verifyUser } from './_shared.js';
+import { getSupabaseConfig, json, verifyActiveUser } from './_shared.js';
 
 const MAX_BATCH_SIZE = 50;
 const MAX_EVENT_NAME_CHARS = 80;
 const MAX_PATH_CHARS = 300;
+const MAX_EVENT_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const MAX_FUTURE_SKEW_MS = 5 * 60 * 1000;
 
 function toSafeText(value, maxChars, fallback = '') {
   if (typeof value !== 'string') return fallback;
@@ -11,9 +13,14 @@ function toSafeText(value, maxChars, fallback = '') {
 }
 
 function toSafeTimestamp(value) {
-  if (typeof value !== 'string') return new Date().toISOString();
+  const fallback = new Date().toISOString();
+  if (typeof value !== 'string') return fallback;
   const parsed = Date.parse(value);
-  if (Number.isNaN(parsed)) return new Date().toISOString();
+  if (Number.isNaN(parsed)) return fallback;
+  const now = Date.now();
+  if (parsed < now - MAX_EVENT_AGE_MS || parsed > now + MAX_FUTURE_SKEW_MS) {
+    return fallback;
+  }
   return new Date(parsed).toISOString();
 }
 
@@ -49,7 +56,7 @@ export async function handler(event) {
     return json(401, { error: 'Authentication required' });
   }
 
-  const user = await verifyUser(token);
+  const user = await verifyActiveUser(token);
   if (!user?.id) {
     return json(401, { error: 'Invalid or expired session' });
   }

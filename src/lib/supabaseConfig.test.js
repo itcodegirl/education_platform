@@ -6,29 +6,36 @@ import {
   getSupabaseBrowserConfig,
 } from './supabaseConfig';
 
-describe('supabaseConfig', () => {
-  it('returns null when browser Supabase env is incomplete', () => {
-    expect(getOptionalSupabaseBrowserConfig({})).toBeNull();
-    expect(getOptionalSupabaseBrowserConfig({ VITE_SUPABASE_URL: 'https://example.supabase.co' })).toBeNull();
-  });
-
-  it('normalizes configured browser Supabase values', () => {
-    expect(getOptionalSupabaseBrowserConfig({
-      VITE_SUPABASE_URL: ' https://example.supabase.co ',
-      VITE_SUPABASE_ANON_KEY: ' anon-key ',
-    })).toEqual({
-      url: 'https://example.supabase.co',
-      anonKey: 'anon-key',
-    });
-  });
-
-  it('throws a typed config error for strict callers', () => {
+describe('supabase config', () => {
+  it('throws a typed setup error when required browser env is missing', () => {
     expect(() => getSupabaseBrowserConfig({})).toThrow(SupabaseConfigError);
 
     try {
       getSupabaseBrowserConfig({});
     } catch (error) {
       expect(error.code).toBe(SUPABASE_CONFIG_ERROR_CODE);
+      expect(error.userMessage).toMatch(/accounts are not connected/i);
     }
+  });
+
+  it('supports a fail-soft status for public screens', () => {
+    const result = getOptionalSupabaseBrowserConfig({});
+
+    expect(result.configured).toBe(false);
+    expect(result.error.code).toBe(SUPABASE_CONFIG_ERROR_CODE);
+    expect(result.url).toBe('');
+    expect(result.anonKey).toBe('');
+  });
+
+  it('returns normalized config when env values are present', () => {
+    expect(getOptionalSupabaseBrowserConfig({
+      VITE_SUPABASE_URL: ' https://example.supabase.co ',
+      VITE_SUPABASE_ANON_KEY: ' anon-key ',
+    })).toMatchObject({
+      configured: true,
+      url: 'https://example.supabase.co',
+      anonKey: 'anon-key',
+      error: null,
+    });
   });
 });

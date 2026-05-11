@@ -12,7 +12,6 @@ const AuthContext = createContext({
   profileError: '',
   loading: true,
   profileLoading: false,
-  authBackendReady: true,
   refreshProfile: async () => null,
   signUp: async () => ({ data: null, error: null }),
   signIn: async () => ({ data: null, error: null }),
@@ -20,6 +19,7 @@ const AuthContext = createContext({
   signInWithGoogle: async () => ({ data: null, error: null }),
   forgotPassword: async () => ({ data: null, error: null }),
   signOut: async () => ({ error: null }),
+  authBackendReady: true,
 });
 
 export function AuthProvider({ children }) {
@@ -28,7 +28,6 @@ export function AuthProvider({ children }) {
   const [profileError, setProfileError] = useState('');
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
-  const authBackendReady = authService.isAuthBackendConfigured();
   const authInitRequestRef = useRef(0);
   const profileRequestRef = useRef(0);
 
@@ -178,14 +177,15 @@ export function AuthProvider({ children }) {
 
   // ─── Memoized value ──────────────────────
   const value = useMemo(() => ({
-    user, profile, profileError, loading, profileLoading, authBackendReady,
+    user, profile, profileError, loading, profileLoading,
     refreshProfile,
     signUp, signIn,
     signInWithGithub: handleGithub,
     signInWithGoogle: handleGoogle,
     forgotPassword,
     signOut: handleSignOut,
-  }), [user, profile, profileError, loading, profileLoading, authBackendReady, refreshProfile]);
+    authBackendReady: authService.isAuthBackendConfigured(),
+  }), [user, profile, profileError, loading, profileLoading, refreshProfile]);
 
   return (
     <AuthContext.Provider value={value}>

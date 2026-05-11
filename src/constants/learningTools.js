@@ -1,19 +1,19 @@
 export const LEARNING_TOOL_COPY = Object.freeze({
   search: {
     label: 'Search',
-    helper: 'Find a lesson',
+    helper: 'Find wording',
   },
   bookmarks: {
     label: 'Saved lessons',
     shortLabel: 'Saved',
-    helper: 'Saved lessons',
+    helper: 'Return later',
     sidebarHint: 'Return to lessons you chose to keep close.',
     bottomTitle: 'Saved lessons',
     bottomAriaLabel: 'Open saved lessons',
   },
   stats: {
     label: 'Progress',
-    helper: 'Course status',
+    helper: 'Next step',
     sidebarHint: 'Track your current learning momentum.',
     bottomTitle: 'Your progress',
     bottomAriaLabel: 'Open your progress',
@@ -21,33 +21,33 @@ export const LEARNING_TOOL_COPY = Object.freeze({
   sr: {
     label: 'Review queue',
     shortLabel: 'Review',
-    helper: 'Spaced practice',
+    helper: 'Due practice',
     sidebarHint: 'Practice cards that are due today.',
   },
   glossary: {
     label: 'Glossary',
-    helper: 'Term lookup',
+    helper: 'Plain meanings',
     sidebarHint: 'Look up a term when lesson language gets dense.',
   },
   cheatsheet: {
     label: 'Cheat sheets',
-    helper: 'Quick references',
+    helper: 'Syntax reminders',
     sidebarHint: 'Quick syntax reminders for the current track.',
   },
   projects: {
     label: 'Build projects',
     shortLabel: 'Projects',
-    helper: 'Build ideas',
+    helper: 'Portfolio practice',
     sidebarHint: 'Use after a few lessons to make portfolio work.',
   },
   challenges: {
     label: 'Challenges',
-    helper: 'Hands-on builds',
+    helper: 'Stretch practice',
     sidebarHint: 'Hands-on practice when you want a stretch.',
   },
   badges: {
     label: 'Badges',
-    helper: 'In-app milestones',
+    helper: 'Progress markers',
     sidebarHint: 'Milestones earned inside CodeHerWay.',
   },
 });

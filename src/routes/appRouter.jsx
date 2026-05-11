@@ -1,4 +1,4 @@
-﻿import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import {
   createBrowserRouter,
   Navigate,
@@ -9,31 +9,40 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import { COURSE_LOADER_IDS, loadCourse } from '../data';
-import { useAuth, useCourseContent, useProgressData, useTheme } from '../providers';
+import { useAuth } from '../providers/AuthProvider';
+import { useTheme } from '../providers/ThemeProvider';
 import { AuthLayout } from '../layouts/AuthLayout';
-import { AppLayout } from '../layouts/AppLayout';
-import { LessonSkeleton, ConnectionError } from '../components/shared/SkeletonLoader';
 import { Logo } from '../components/shared/Logo';
-import { AdminRoute } from './guards/AdminRoute';
 import { APP_ROUTES, parsePublicProfilePath } from './routePaths';
 import { closeRouteOrGoHome, toPathFromLegacyHash } from './routeUtils';
 import { RouteErrorBoundary } from './RouteErrorBoundary';
-import { learnRouteAction } from './learnRouteActions';
 
-export { learnRouteAction } from './learnRouteActions';
-
-const AdminDashboard = lazy(() =>
-  import('../components/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })),
-);
-const ProfilePage = lazy(() =>
-  import('../components/shared/ProfilePage').then((m) => ({ default: m.ProfilePage })),
-);
 const Styleguide = lazy(() =>
   import('../components/shared/Styleguide').then((m) => ({ default: m.Styleguide })),
 );
 const PublicProfile = lazy(() =>
   import('../components/shared/PublicProfile').then((m) => ({ default: m.PublicProfile })),
 );
+const ProtectedAppProvidersLayout = lazy(() =>
+  import('./ProtectedAppRoutes').then((m) => ({ default: m.ProtectedAppProvidersLayout })),
+);
+const ProtectedHomeRoute = lazy(() =>
+  import('./ProtectedAppRoutes').then((m) => ({ default: m.ProtectedHomeRoute })),
+);
+const ProtectedLearnRoute = lazy(() =>
+  import('./ProtectedAppRoutes').then((m) => ({ default: m.ProtectedLearnRoute })),
+);
+const ProtectedProfileRoute = lazy(() =>
+  import('./ProtectedAppRoutes').then((m) => ({ default: m.ProtectedProfileRoute })),
+);
+const ProtectedAdminDashboardRoute = lazy(() =>
+  import('./ProtectedAppRoutes').then((m) => ({ default: m.ProtectedAdminDashboardRoute })),
+);
+
+export async function learnRouteAction(args) {
+  const module = await import('./learnRouteActions');
+  return module.learnRouteAction(args);
+}
 
 function RouteLoadingScreen({ theme, size = 'sm', children }) {
   return (
@@ -80,38 +89,6 @@ function AccountCheckErrorScreen({ theme, onRetry, onSignOut }) {
   );
 }
 
-function AppDataGate({ theme, dataLoaded, loadError, retryLoad }) {
-  if (loadError) {
-    return (
-      <div className={`loading-screen ${theme}`}>
-        <ConnectionError onRetry={retryLoad} />
-      </div>
-    );
-  }
-
-  if (!dataLoaded) {
-    return (
-      <div className={`shell ${theme}`} role="status" aria-live="polite">
-        <div className="sidebar skeleton-sidebar-wrap">
-          <div className="skeleton-brand-area"><div className="skeleton-line skeleton-w60 skeleton-h16"></div></div>
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="skeleton-module">
-              <div className="skeleton-line skeleton-w80 skeleton-h14"></div>
-              <div className="skeleton-line skeleton-w50 skeleton-h10"></div>
-            </div>
-          ))}
-        </div>
-        <div className="main-shell">
-          <div className="topbar"><div className="skeleton-line skeleton-w40 skeleton-h14"></div></div>
-          <div className="lesson-container"><LessonSkeleton /></div>
-        </div>
-      </div>
-    );
-  }
-
-  return <AppLayout />;
-}
-
 export function ProtectedRoute({ children }) {
   const { theme } = useTheme();
   const {
@@ -141,23 +118,6 @@ export function ProtectedRoute({ children }) {
   }
 
   return children;
-}
-
-function ProtectedAppDataRoute({ preloadCourseId = '' }) {
-  const { theme } = useTheme();
-  const { dataLoaded, loadError, retryLoad } = useProgressData();
-  const { ensureLoaded } = useCourseContent();
-
-  useEffect(() => {
-    if (!preloadCourseId) return;
-    ensureLoaded(preloadCourseId);
-  }, [ensureLoaded, preloadCourseId]);
-
-  return (
-    <ProtectedRoute>
-      <AppDataGate theme={theme} dataLoaded={dataLoaded} loadError={loadError} retryLoad={retryLoad} />
-    </ProtectedRoute>
-  );
 }
 
 function RouteShell() {
@@ -209,63 +169,66 @@ function PublicProfileRoute() {
   );
 }
 
-function ProfileRoute() {
+function ProtectedShellLoadingScreen({ message }) {
+  const { theme } = useTheme();
+
+  return (
+    <RouteLoadingScreen theme={theme}>
+      <p>{message}</p>
+    </RouteLoadingScreen>
+  );
+}
+
+function ProtectedAppShellRoute() {
   const { theme } = useTheme();
 
   return (
     <ProtectedRoute>
-      <div className={theme}>
-        <Suspense
-          fallback={(
-            <RouteLoadingScreen theme={theme}>
-              <p>Opening profile...</p>
-            </RouteLoadingScreen>
-          )}
-        >
-          <ProfilePage onClose={closeRouteOrGoHome} />
-        </Suspense>
-      </div>
+      <Suspense
+        fallback={(
+          <RouteLoadingScreen theme={theme} size="lg">
+            <p style={{ marginTop: '16px', opacity: 0.5 }}>Preparing your learning dashboard...</p>
+          </RouteLoadingScreen>
+        )}
+      >
+        <ProtectedAppProvidersLayout />
+      </Suspense>
     </ProtectedRoute>
   );
 }
 
-function AdminDashboardRoute() {
-  const { theme } = useTheme();
-  const { dataLoaded, loadError, retryLoad } = useProgressData();
-
+function HomeRoute() {
   return (
-    <ProtectedRoute>
-      <AdminRoute
-        fallback={<AppDataGate theme={theme} dataLoaded={dataLoaded} loadError={loadError} retryLoad={retryLoad} />}
-        loadingFallback={(
-          <RouteLoadingScreen theme={theme}>
-            <p>Checking admin access...</p>
-          </RouteLoadingScreen>
-        )}
-      >
-        <div className={theme}>
-          <Suspense
-            fallback={(
-              <RouteLoadingScreen theme={theme}>
-                <p>Opening admin dashboard...</p>
-              </RouteLoadingScreen>
-            )}
-          >
-            <AdminDashboard onClose={closeRouteOrGoHome} />
-          </Suspense>
-        </div>
-      </AdminRoute>
-    </ProtectedRoute>
+    <Suspense fallback={<ProtectedShellLoadingScreen message="Loading your lesson workspace..." />}>
+      <ProtectedHomeRoute />
+    </Suspense>
   );
 }
 
 function LearnRoute() {
   const { courseId } = useLoaderData();
-  return <ProtectedAppDataRoute preloadCourseId={courseId} />;
+
+  return (
+    <Suspense fallback={<ProtectedShellLoadingScreen message="Loading this lesson..." />}>
+      <ProtectedLearnRoute preloadCourseId={courseId} />
+    </Suspense>
+  );
 }
 
-function HomeRoute() {
-  return <ProtectedAppDataRoute />;
+function ProfileRouteShell() {
+  return (
+    <Suspense fallback={<ProtectedShellLoadingScreen message="Opening profile..." />}>
+      <ProtectedProfileRoute />
+    </Suspense>
+  );
+}
+
+function AdminDashboardRouteShell() {
+  return (
+    <Suspense fallback={<ProtectedShellLoadingScreen message="Opening admin dashboard..." />}>
+      <ProtectedAdminDashboardRoute />
+    </Suspense>
+  );
 }
 
 export async function publicProfileRouteLoader({ params }) {
@@ -316,14 +279,18 @@ export const appRouter = createBrowserRouter([
     element: <RouteShell />,
     errorElement: <RouteErrorBoundary />,
     children: [
-      { index: true, element: <HomeRoute /> },
       { path: STYLEGUIDE_SEGMENT, element: <StyleguideRoute /> },
       { path: PUBLIC_PROFILE_SEGMENT, loader: publicProfileRouteLoader, element: <PublicProfileRoute /> },
-      { path: PROFILE_SEGMENT, element: <ProfileRoute /> },
-      { path: ADMIN_SEGMENT, element: <AdminDashboardRoute /> },
-      { path: LEARN_SEGMENT, loader: learnRouteLoader, action: learnRouteAction, element: <LearnRoute /> },
+      {
+        element: <ProtectedAppShellRoute />,
+        children: [
+          { index: true, element: <HomeRoute /> },
+          { path: PROFILE_SEGMENT, element: <ProfileRouteShell /> },
+          { path: ADMIN_SEGMENT, element: <AdminDashboardRouteShell /> },
+          { path: LEARN_SEGMENT, loader: learnRouteLoader, action: learnRouteAction, element: <LearnRoute /> },
+        ],
+      },
       { path: '*', element: <Navigate to={APP_ROUTES.home} replace /> },
     ],
   },
 ]);
-

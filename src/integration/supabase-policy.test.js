@@ -209,6 +209,16 @@ describePolicy('supabase rls and admin escalation policies', () => {
     expect(data.some((row) => row.user_id === regularUserId)).toBe(true);
   });
 
+  it('returns no admin rollup rows to non-admin callers', async () => {
+    const { data, error } = await userClient
+      .from('admin_user_rollups')
+      .select('id')
+      .limit(5);
+
+    expect(error).toBeNull();
+    expect(data).toEqual([]);
+  });
+
   it('blocks non-admin callers from admin_dashboard_metrics rpc', async () => {
     const { data, error } = await userClient.rpc('admin_dashboard_metrics');
 

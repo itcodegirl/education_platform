@@ -1,84 +1,86 @@
 import { createClient } from '@supabase/supabase-js';
 import {
-  getOptionalSupabaseBrowserConfig,
   SUPABASE_CONFIG_ERROR_MESSAGE,
-  SupabaseConfigError,
+  getOptionalSupabaseBrowserConfig,
   supabaseAuthOptions,
 } from './supabaseConfig';
 
-const optionalConfig = getOptionalSupabaseBrowserConfig();
+const config = getOptionalSupabaseBrowserConfig();
 
 function createUnavailableError() {
-  return new SupabaseConfigError(SUPABASE_CONFIG_ERROR_MESSAGE);
-}
-
-function createUnavailableResult() {
-  return { data: null, error: createUnavailableError() };
+  const error = new Error(config.error?.userMessage || SUPABASE_CONFIG_ERROR_MESSAGE);
+  error.code = config.error?.code || 'supabase_client_unavailable';
+  return error;
 }
 
 function createUnavailableQuery() {
-  const query = {};
-  const chainMethods = [
-    'select',
-    'insert',
-    'upsert',
-    'update',
-    'delete',
-    'eq',
-    'neq',
-    'ilike',
-    'in',
-    'is',
-    'gt',
-    'gte',
-    'lt',
-    'lte',
-    'contains',
-    'or',
-    'order',
-    'limit',
-    'range',
-  ];
-
-  chainMethods.forEach((method) => {
-    query[method] = () => query;
-  });
-
-  query.single = async () => createUnavailableResult();
-  query.maybeSingle = async () => createUnavailableResult();
-  query.then = (...args) => Promise.resolve(createUnavailableResult()).then(...args);
-  query.catch = (...args) => Promise.resolve(createUnavailableResult()).catch(...args);
-  query.finally = (...args) => Promise.resolve(createUnavailableResult()).finally(...args);
-
+  const result = () => ({ data: null, error: createUnavailableError() });
+  const query = {
+    select: () => query,
+    insert: () => query,
+    upsert: () => query,
+    update: () => query,
+    delete: () => query,
+    eq: () => query,
+    neq: () => query,
+    ilike: () => query,
+    in: () => query,
+    is: () => query,
+    gt: () => query,
+    gte: () => query,
+    lt: () => query,
+    lte: () => query,
+    contains: () => query,
+    or: () => query,
+    order: () => query,
+    limit: () => query,
+    range: () => query,
+    single: () => query,
+    maybeSingle: () => query,
+    then: (resolve, reject) => Promise.resolve(result()).then(resolve, reject),
+    catch: (reject) => Promise.resolve(result()).catch(reject),
+    finally: (callback) => Promise.resolve(result()).finally(callback),
+  };
   return query;
 }
 
 function createUnavailableSupabaseClient() {
-  const unavailableAuthResult = async () => createUnavailableResult();
+  const authActionResult = () => Promise.resolve({ data: null, error: createUnavailableError() });
 
   return {
     auth: {
-      getSession: async () => ({ data: { session: null }, error: null }),
+      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      getUser: () => Promise.resolve({ data: { user: null }, error: createUnavailableError() }),
       onAuthStateChange: () => ({
-        data: { subscription: { unsubscribe: () => {} } },
+        data: {
+          subscription: {
+            unsubscribe: () => {},
+          },
+        },
       }),
-      signInWithPassword: unavailableAuthResult,
-      signUp: unavailableAuthResult,
-      signInWithOAuth: unavailableAuthResult,
-      resetPasswordForEmail: unavailableAuthResult,
-      signOut: async () => ({ error: null }),
+      signInWithPassword: authActionResult,
+      signUp: authActionResult,
+      signInWithOAuth: authActionResult,
+      resetPasswordForEmail: authActionResult,
+      signOut: () => Promise.resolve({ error: null }),
     },
     from: () => createUnavailableQuery(),
+    rpc: () => Promise.resolve({ data: null, error: createUnavailableError() }),
   };
 }
 
 export const supabaseConfigStatus = Object.freeze({
-  configured: Boolean(optionalConfig),
-  error: optionalConfig ? null : createUnavailableError(),
+  configured: config.configured,
+  error: config.error
+    ? {
+        code: config.error.code,
+        message: config.error.userMessage || config.error.message,
+      }
+    : null,
 });
 
-export const supabase = optionalConfig
-  ? createClient(optionalConfig.url, optionalConfig.anonKey, {
-    auth: supabaseAuthOptions,
-  })
+export const supabase = config.configured
+  ? createClient(config.url, config.anonKey, {
+      auth: supabaseAuthOptions,
+    })
   : createUnavailableSupabaseClient();

@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [react()],
   test: {
     globals: true,
+    pool: 'threads',
     // jsdom gives component tests a DOM + window. Pure-logic tests
     // (like the services layer) still work fine under jsdom; it's
     // only ~50ms slower per file.

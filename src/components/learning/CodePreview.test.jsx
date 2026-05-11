@@ -30,6 +30,7 @@ describe('CodePreview', () => {
     ).not.toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /write code/i })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('textbox')).toBeInTheDocument();
+    expect(screen.getByText(/start with one small piece/i)).toBeInTheDocument();
   });
 
   it('copies source code from code tab', () => {
@@ -60,7 +61,7 @@ describe('CodePreview', () => {
     expect(frame.getAttribute('srcdoc')).toContain('<main>Preview Me</main>');
   });
 
-  it('exposes code practice views as accessible tabs', () => {
+  it('marks active practice views as tabs for assistive technology', () => {
     render(<CodePreview code="<h1>Hello</h1>" lang="html" scaffolding="full" />);
 
     expect(screen.getByRole('tablist', { name: /code practice views/i })).toBeInTheDocument();
@@ -69,6 +70,6 @@ describe('CodePreview', () => {
     fireEvent.click(screen.getByRole('tab', { name: /editor/i }));
 
     expect(screen.getByRole('tab', { name: /editor/i })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('tabpanel', { name: /editor/i })).toBeInTheDocument();
+    expect(screen.getByText(/change one small detail/i)).toBeInTheDocument();
   });
 });

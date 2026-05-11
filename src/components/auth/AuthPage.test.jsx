@@ -8,28 +8,31 @@ const {
   signInWithGithubMock,
   signInWithGoogleMock,
   forgotPasswordMock,
-  authBackendReadyMock,
+  authBackendReadyState,
 } = vi.hoisted(() => ({
   signInMock: vi.fn(),
   signUpMock: vi.fn(),
   signInWithGithubMock: vi.fn(),
   signInWithGoogleMock: vi.fn(),
   forgotPasswordMock: vi.fn(),
-  authBackendReadyMock: { value: true },
+  authBackendReadyState: { value: true },
 }));
 
-vi.mock('../../providers', () => ({
-  useTheme: () => ({
-    theme: 'dark',
-    toggle: vi.fn(),
-  }),
+vi.mock('../../providers/AuthProvider', () => ({
   useAuth: () => ({
     signIn: signInMock,
     signUp: signUpMock,
     signInWithGithub: signInWithGithubMock,
     signInWithGoogle: signInWithGoogleMock,
     forgotPassword: forgotPasswordMock,
-    authBackendReady: authBackendReadyMock.value,
+    authBackendReady: authBackendReadyState.value,
+  }),
+}));
+
+vi.mock('../../providers/ThemeProvider', () => ({
+  useTheme: () => ({
+    theme: 'dark',
+    toggle: vi.fn(),
   }),
 }));
 
@@ -53,13 +56,13 @@ describe('AuthPage', () => {
     signInWithGithubMock.mockReset();
     signInWithGoogleMock.mockReset();
     forgotPasswordMock.mockReset();
-    authBackendReadyMock.value = true;
 
     signInMock.mockResolvedValue({ error: null });
     signUpMock.mockResolvedValue({ error: null });
     signInWithGithubMock.mockResolvedValue({ error: null });
     signInWithGoogleMock.mockResolvedValue({ error: null });
     forgotPasswordMock.mockResolvedValue({ error: null });
+    authBackendReadyState.value = true;
 
     Object.defineProperty(window, 'requestAnimationFrame', {
       configurable: true,
@@ -126,22 +129,19 @@ describe('AuthPage', () => {
     ).toBeInTheDocument();
   });
 
-  it('keeps preview available and disables auth controls when the backend is not configured', () => {
+  it('keeps lesson preview available when accounts are not configured', () => {
+    authBackendReadyState.value = false;
     const onPreview = vi.fn();
-    authBackendReadyMock.value = false;
 
     render(<AuthPage onPreview={onPreview} />);
 
     expect(
-      screen.getByText(/Account features are not configured in this build/i),
+      screen.getByText(/Accounts are not connected in this environment yet/i),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(/email/i)).toBeDisabled();
-    expect(screen.getByLabelText(/password/i)).toBeDisabled();
-    expect(screen.getByRole('button', { name: /^create free account$/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /create free account/i })).toBeDisabled();
 
-    const previewButton = screen.getByRole('button', { name: /preview a lesson before signing in/i });
-    expect(previewButton).toBeEnabled();
-    fireEvent.click(previewButton);
+    fireEvent.click(screen.getByRole('button', { name: /preview a lesson before signing in/i }));
+
     expect(onPreview).toHaveBeenCalledTimes(1);
   });
 });

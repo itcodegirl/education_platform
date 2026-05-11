@@ -182,9 +182,9 @@ textarea:focus-visible,
 }
 
 .ui-status-info {
-  background: rgba(78, 205, 196, 0.08);
-  border-color: rgba(78, 205, 196, 0.24);
-  color: var(--text-dim);
+  background: rgba(255, 167, 38, 0.1);
+  border-color: rgba(255, 167, 38, 0.26);
+  color: #ffd69a;
 }
 
 .ui-empty {

@@ -42,6 +42,8 @@ copying older SQL snippets from prior portfolio branches:
 5. `supabase/migrations/202605060003_harden_profile_updates.sql`
 6. `supabase/migrations/202605070001_add_stable_last_position_columns.sql`
 7. `supabase/migrations/202605070002_harden_public_profile_privacy.sql`
+8. `supabase/migrations/202605110001_harden_reward_event_trust_boundaries.sql`
+9. `supabase/migrations/202605110002_lock_admin_user_rollups.sql`
 
 Public profile note: use `public.public_profiles` for aggregate
 portfolio snapshots. Do not add public select policies on
@@ -204,7 +206,7 @@ Once all of the above is done, in order:
 # 1. Build + tests
 npm ci
 npm run build
-npm run check:js-source
+npm run typecheck
 npm test
 npm audit --audit-level=high
 

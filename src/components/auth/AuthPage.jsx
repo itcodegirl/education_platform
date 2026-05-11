@@ -1,5 +1,5 @@
 ﻿import { useRef, useState } from 'react';
-import { useAuth } from '../../providers';
+import { useAuth } from '../../providers/AuthProvider';
 import { ThemeToggle } from '../layout/ThemeToggle';
 import { LandingHeroIntro, LandingHeroStory } from './LandingHero';
 import { AuthConfirmSent } from './AuthConfirmSent';
@@ -73,7 +73,7 @@ export function AuthPage({ onPreview }) {
     setInfo('');
 
     if (!authBackendReady) {
-      setInfo('Account features are unavailable in this build. You can still preview the first lesson.');
+      setError('Accounts are not connected in this environment. You can still preview the first lesson.');
       return;
     }
 
@@ -125,8 +125,8 @@ export function AuthPage({ onPreview }) {
 
   const handleForgotPassword = async () => {
     if (!authBackendReady) {
-      setInfo('Password reset is unavailable until account services are configured.');
-      setError('');
+      setError('Password reset is unavailable because accounts are not connected in this environment.');
+      setInfo('');
       return;
     }
 
@@ -167,7 +167,7 @@ export function AuthPage({ onPreview }) {
     setInfo('');
 
     if (!authBackendReady) {
-      setInfo(`${providerName} sign-in is unavailable until account services are configured.`);
+      setError(`Unable to continue with ${providerName} because accounts are not connected in this environment.`);
       return;
     }
 
@@ -201,7 +201,7 @@ export function AuthPage({ onPreview }) {
     ? 'Display name is required.'
     : '';
   const isAuthBusy = loading || sendingReset || Boolean(socialLoading);
-  const isAuthDisabled = isAuthBusy || !authBackendReady;
+  const authDisabled = !authBackendReady;
 
   if (confirmSent) {
     return (
@@ -267,9 +267,13 @@ export function AuthPage({ onPreview }) {
               ? 'Create your account to unlock every course and start learning in one session.'
               : 'Already using CodeHerWay? Sign in to resume where you left off, or reset your password if needed.'}
           </p>
-          {!authBackendReady && (
-            <div className="auth-error ui-status ui-status-info" role="status" aria-live="polite">
-              Account features are not configured in this build. Preview the first lesson while setup is completed.
+          {authDisabled && (
+            <div
+              className="auth-info ui-status ui-status-info"
+              role="status"
+              aria-live="polite"
+            >
+              Accounts are not connected in this environment yet. Preview the first lesson while the backend is being configured.
             </div>
           )}
 
@@ -295,7 +299,7 @@ export function AuthPage({ onPreview }) {
                   onBlur={() => setTouched((prev) => ({ ...prev, displayName: true }))}
                   required
                   maxLength={DISPLAY_NAME_MAX_LENGTH}
-                  disabled={isAuthDisabled}
+                  disabled={isAuthBusy || authDisabled}
                   aria-describedby="auth-display-name-help"
                   aria-invalid={Boolean(displayNameInlineError)}
                 />
@@ -322,7 +326,7 @@ export function AuthPage({ onPreview }) {
                 onChange={(e) => setEmail(e.target.value)}
                 onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
                 required
-                disabled={isAuthDisabled}
+                disabled={isAuthBusy || authDisabled}
                 aria-describedby="auth-email-help"
                 aria-invalid={Boolean(emailInlineError)}
               />
@@ -348,7 +352,7 @@ export function AuthPage({ onPreview }) {
                 onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
                 required
                 minLength={PASSWORD_MIN_LENGTH}
-                disabled={isAuthDisabled}
+                disabled={isAuthBusy || authDisabled}
                 aria-describedby="auth-password-help"
                 aria-invalid={Boolean(passwordInlineError)}
               />
@@ -368,7 +372,7 @@ export function AuthPage({ onPreview }) {
                     type="button"
                     className="auth-reset-link"
                     onClick={handleForgotPassword}
-                    disabled={isAuthDisabled}
+                    disabled={isAuthBusy || authDisabled}
                   >
                     {sendingReset ? 'Sending reset link...' : 'Forgot password?'}
                   </button>
@@ -403,7 +407,7 @@ export function AuthPage({ onPreview }) {
             <button
               className="auth-submit ui-btn ui-btn-primary"
               type="submit"
-              disabled={isAuthDisabled}
+              disabled={isAuthBusy || authDisabled}
               aria-busy={loading}
               aria-describedby={
                 [error ? 'auth-form-error' : null, info ? 'auth-form-info' : null]
@@ -430,7 +434,7 @@ export function AuthPage({ onPreview }) {
             signInWithGithub={signInWithGithub}
             signInWithGoogle={signInWithGoogle}
             socialLoading={socialLoading}
-            disabled={isAuthDisabled}
+            disabled={isAuthBusy || authDisabled}
           />
 
           {onPreview && (
@@ -444,7 +448,7 @@ export function AuthPage({ onPreview }) {
                 Preview first lesson (no account required)
               </button>
               <p className="auth-preview-note">
-                Great for exploring the learning style before creating an account.
+                Try the first lesson before you decide what to save.
               </p>
             </div>
           )}

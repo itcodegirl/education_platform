@@ -46,8 +46,8 @@ Current baseline checks:
 - `npm run check` (lint, JS-source policy, Playwright project-reference audit, Supabase static policy readiness, staging runbook audit, production build, bundle budget, lesson-label audit, strict quiz audit, learning-content flow audit, and unit tests)
 - `npm run build`
 - `npm run lint`
+- `npm run typecheck` (JS-only source policy alias; this project intentionally does not run the TypeScript compiler)
 - `npm run check:js-source` (JS-only source policy; this project does not run TypeScript type checking)
-- `npm run typecheck` (alias for the JS-only source policy so standard verification commands do not drift)
 - `npm run check:supabase-readiness` (static migration/privacy/reward-ledger readiness gate)
 - `npm run audit:staging-runbook` (static guard that keeps the live Supabase validation runbook complete and honest)
 - `npm run audit:e2e-scripts` (Playwright project-reference guard)

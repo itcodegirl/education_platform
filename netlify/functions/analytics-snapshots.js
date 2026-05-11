@@ -1,4 +1,4 @@
-import { getSupabaseConfig, json, verifyUser } from './_shared.js';
+import { getSupabaseConfig, json, verifyActiveUser } from './_shared.js';
 
 const DEFAULT_DAYS = 30;
 const MIN_DAYS = 1;
@@ -54,7 +54,7 @@ export async function handler(event) {
   const token = authHeader.replace(/^Bearer\s+/i, '');
   if (!token) return json(401, { error: 'Authentication required' });
 
-  const user = await verifyUser(token);
+  const user = await verifyActiveUser(token);
   if (!user?.id) {
     return json(401, { error: 'Invalid or expired session' });
   }

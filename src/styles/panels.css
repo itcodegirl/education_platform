@@ -961,7 +961,36 @@
   cursor: pointer;
 }
 
+.mobile-tools-subtitle {
+  margin: -2px 0 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .mobile-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mobile-tools-section {
+  grid-column: 1 / -1;
+}
+
+.mobile-tools-section + .mobile-tools-section {
+  margin-top: 4px;
+}
+
+.mobile-tools-section-title {
+  margin: 0 0 6px;
+  color: var(--text-muted);
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.mobile-tools-section-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;

@@ -22,8 +22,8 @@ vi.mock('../services/authService', () => ({
   signInWithGithub: vi.fn(),
   signInWithGoogle: vi.fn(),
   requestPasswordReset: vi.fn(),
-  signOut: mockSignOut,
   isAuthBackendConfigured: () => true,
+  signOut: mockSignOut,
 }));
 
 import { AuthProvider, useAuth } from './AuthContext';
@@ -39,7 +39,7 @@ function createDeferred() {
 }
 
 function AuthProbe() {
-  const { user, profile, profileError, loading, profileLoading } = useAuth();
+  const { user, profile, profileError, loading, profileLoading, authBackendReady } = useAuth();
 
   return (
     <div>
@@ -48,6 +48,7 @@ function AuthProbe() {
       <div data-testid="user">{user?.id || 'no-user'}</div>
       <div data-testid="profile">{profile?.display_name || 'no-profile'}</div>
       <div data-testid="profile-error">{profileError || 'no-profile-error'}</div>
+      <div data-testid="auth-backend">{authBackendReady ? 'connected' : 'disconnected'}</div>
     </div>
   );
 }
@@ -85,6 +86,7 @@ describe('AuthProvider', () => {
 
     expect(screen.getByTestId('loading')).toHaveTextContent('loading');
     expect(screen.getByTestId('user')).toHaveTextContent('no-user');
+    expect(screen.getByTestId('auth-backend')).toHaveTextContent('connected');
 
     await act(async () => {
       session.resolve({ id: 'user-1' });

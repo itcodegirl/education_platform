@@ -232,7 +232,11 @@ create policy "Admins read all streaks" on public.streaks for select using (is_a
 create policy "Admins read all badges" on public.badges for select using (is_admin());
 
 -- Admin user table with pre-aggregated user stats.
-create or replace view public.admin_user_rollups as
+alter table public.profiles add column if not exists is_disabled boolean default false;
+
+create or replace view public.admin_user_rollups
+with (security_invoker = true)
+as
 select
   p.id,
   p.display_name,
@@ -255,7 +259,8 @@ left join (
   select user_id, count(*)::int as badges_earned
   from public.badges
   group by user_id
-) badge_counts on badge_counts.user_id = p.id;
+) badge_counts on badge_counts.user_id = p.id
+where public.is_admin();
 
 grant select on public.admin_user_rollups to authenticated;
 

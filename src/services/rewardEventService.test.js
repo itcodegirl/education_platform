@@ -280,7 +280,6 @@ describe('rewardEventService', () => {
       p_event_key: event.key,
       p_event_type: REWARD_EVENT_TYPES.LESSON_COMPLETE,
       p_entity_id: 'lesson-01',
-      p_xp_amount: 25,
       p_metadata: { rewardKey: 'lesson_complete:lesson-01' },
       p_source: 'test',
     });

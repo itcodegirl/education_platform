@@ -52,7 +52,7 @@ describe('learning tool availability', () => {
     expect(tools.find((tool) => tool.key === 'search')).toMatchObject({
       icon: 'S',
       label: 'Search',
-      helper: 'Find a lesson',
+      helper: 'Find wording',
       onSelect: onSearch,
     });
     expect(tools.find((tool) => tool.key === 'sr')).toMatchObject({

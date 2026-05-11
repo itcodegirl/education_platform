@@ -44,8 +44,8 @@ Focused checks:
 
 ```bash
 npm run lint
-npm run check:js-source
 npm run typecheck
+npm run check:js-source
 npm run build
 npm run audit:staging-runbook
 npm run audit:content
@@ -53,7 +53,7 @@ npm run test:unit
 npm run audit:quizzes
 ```
 
-`npm run typecheck` currently aliases `npm run check:js-source`. This repo does not currently run TypeScript type checking; the alias keeps standard verification workflows explicit without pretending there is a TypeScript compiler pass.
+`npm run typecheck` and `npm run check:js-source` both enforce the JS-only source policy. This repo does not run TypeScript type checking because the implementation is intentionally HTML/CSS/JavaScript/React.
 
 ## Best Code Areas To Inspect
 
