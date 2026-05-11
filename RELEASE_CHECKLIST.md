@@ -7,6 +7,7 @@ Use this checklist before Netlify releases or hotfix deploys.
 - Confirm branch, target deploy context, and commit SHA.
 - Run:
   - `npm run check`
+  - `npm run typecheck`
   - `npm run audit:e2e-scripts`
   - `npm run audit:auth-e2e`
   - `npm run audit:staging-runbook`

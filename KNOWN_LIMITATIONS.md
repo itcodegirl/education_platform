@@ -5,7 +5,7 @@ This project is actively stabilized and is not yet production-grade. The followi
 ## Tooling / Verification
 
 - The local quality gate covers lint, JS-only source policy, production build, bundle budget, and unit tests through `npm run check`.
-- `npm run check:js-source` enforces the JS-only source policy. This project does not currently run TypeScript type checking.
+- `npm run typecheck` is intentionally a JS-only source-policy alias for `npm run check:js-source`. This project does not run TypeScript type checking because TypeScript is not part of the approved stack.
 - Authenticated E2E scenarios are skipped when auth credentials are not configured in environment variables.
 - Public E2E scenarios cover the landing/auth shell, accessibility smoke, visual snapshots, and the first-lesson preview path. Signed-in learner persistence still requires configured Supabase test credentials.
 - Authenticated Playwright storage state is intentionally ignored under `playwright/.auth/` to avoid committing local session files.

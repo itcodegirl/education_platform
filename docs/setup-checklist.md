@@ -206,7 +206,7 @@ Once all of the above is done, in order:
 # 1. Build + tests
 npm ci
 npm run build
-npm run check:js-source
+npm run typecheck
 npm test
 npm audit --audit-level=high
 
