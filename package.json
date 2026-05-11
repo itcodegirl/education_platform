@@ -28,7 +28,7 @@
     "test:integration": "playwright test",
     "test:a11y": "npm run test:a11y:unit && npm run test:a11y:e2e",
     "test:a11y:unit": "vitest run src/components/auth/AuthPage.a11y.test.jsx src/components/layout/Sidebar.a11y.test.jsx src/components/shared/ProfilePage.a11y.test.jsx src/styles/lessonTasks.a11y.test.js",
-    "test:a11y:e2e": "playwright test tests/e2e/accessibility.smoke.spec.js",
+    "test:a11y:e2e": "playwright test tests/e2e/accessibility.smoke.spec.js tests/e2e/authenticated.accessibility.spec.js",
     "test:e2e": "npm run test:integration",
     "test:e2e:smoke": "npm run test:e2e:smoke:public && npm run test:e2e:smoke:learning",
     "test:e2e:smoke:public": "playwright test tests/e2e/accessibility.smoke.spec.js tests/e2e/auth.smoke.spec.js tests/e2e/public-learning-entry.spec.js --project=chromium --project=mobile-chrome",

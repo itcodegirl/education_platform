@@ -40,7 +40,7 @@ export default defineConfig({
     {
       name: 'authenticated-chromium',
       testMatch: [
-        /.*authenticated\.(smoke|visual)\.spec\.js/,
+        /.*authenticated\.(accessibility|smoke|visual)\.spec\.js/,
         /.*lesson-flow\.spec\.js/,
       ],
       dependencies: ['setup-auth'],
