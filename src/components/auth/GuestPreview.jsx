@@ -44,8 +44,8 @@ export function GuestPreview({ onBack }) {
         <div className="gp-banner">
           <span className="gp-banner-icon" aria-hidden="true">&#128640;</span>
           <p>
-            You&apos;re previewing the first lesson. Create a free account when you&apos;re
-            ready to track lessons, collect in-app milestones, and unlock the AI tutor.
+            You&apos;re previewing the first lesson. Build the tiny page first,
+            then create a free account if you want to save your spot.
           </p>
         </div>
 
@@ -151,8 +151,8 @@ export function GuestPreview({ onBack }) {
         <section className="gp-cta" aria-label="Preview call to action">
           <h3>Ready to keep going?</h3>
           <p>
-            Create a free account to unlock every course, track your progress,
-            collect in-app milestones, and use the AI tutor.
+            Create a free account to keep your place, save notes and bookmarks,
+            and continue through the courses when you come back.
           </p>
           <button type="button" className="gp-cta-btn ui-btn ui-btn-primary ui-btn-pill" onClick={onBack} aria-label="Create free account">
             Create free account

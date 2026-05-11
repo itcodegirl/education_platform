@@ -10,9 +10,9 @@ export const FirstRunGuide = memo(function FirstRunGuide({ learnerName }) {
         </h2>
         <p className="frg-copy">
           Read the frame, try the build, then press <strong>Complete lesson</strong>.
-          That saves reading progress and points you to the next step.
+          That saves this step and points you to what comes next.
         </p>
-        <p className="frg-sub">Courses and tools stay in the sidebar when you are ready.</p>
+        <p className="frg-sub">Leave the tools for later unless something blocks you.</p>
       </div>
       <ol className="frg-steps" aria-label="First session steps">
         <li>Read the goal.</li>

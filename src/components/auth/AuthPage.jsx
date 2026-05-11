@@ -448,7 +448,7 @@ export function AuthPage({ onPreview }) {
                 Preview first lesson (no account required)
               </button>
               <p className="auth-preview-note">
-                Great for exploring the learning style before creating an account.
+                Try the first lesson before you decide what to save.
               </p>
             </div>
           )}
