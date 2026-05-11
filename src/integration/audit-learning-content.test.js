@@ -121,6 +121,31 @@ describe('learning content audit', () => {
         path: 'html.challenges[0]',
         message: 'Challenge is missing requirements.',
       },
+      {
+        path: 'html.challenges[0].tests[0]',
+        message: 'Challenge test is missing a learner-facing label.',
+      },
+      {
+        path: 'html.challenges[0].tests[0]',
+        message: 'Challenge test is missing an executable check function.',
+      },
     ]));
+  });
+
+  it('warns when lessons are mostly content without enough learning scaffolds', () => {
+    const fixture = makeFixture({
+      htmlSecondLesson: {
+        content: 'Read this explanation only.',
+        do: undefined,
+        challenge: '',
+      },
+    });
+
+    const result = analyzeLearningContent(fixture);
+
+    expect(result.warnings).toContainEqual({
+      path: 'html.html-m1.lessons[1]',
+      message: expect.stringContaining('Lesson has shallow instructional scaffolding'),
+    });
   });
 });
