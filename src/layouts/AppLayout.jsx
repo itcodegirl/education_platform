@@ -26,7 +26,11 @@ import {
   getLessonKeyVariants,
   hasLessonCompletion,
 } from "../utils/lessonKeys";
-import { buildLegacyQuizKey, buildStableQuizKey } from "../utils/quizKeys";
+import {
+  buildLegacyQuizKey,
+  buildStableQuizKey,
+  getBestQuizScoreValue,
+} from "../utils/quizKeys";
 import {
   getCurrentStepCopy,
   getLessonPositionLabel,
@@ -36,6 +40,7 @@ import {
 } from "../utils/lessonNavCopy";
 import { getLessonCompletionActionCopy } from "../utils/lessonCompletionCopy";
 import { getSyncStatusCopy } from "../utils/syncStatusCopy";
+import { getLessonMasteryStatus } from "../utils/lessonMasteryStatus";
 
 // Layout components
 import { Sidebar } from "../components/layout/Sidebar";
@@ -74,6 +79,7 @@ export function AppLayout() {
     dataLoaded,
     lastPosition,
     loadError,
+    quizScores = {},
     syncFailed = 0,
     pendingSyncWrites = 0,
     syncRetryInFlight = false,
@@ -251,6 +257,15 @@ export function AppLayout() {
   const legacyModuleQuizKey = buildLegacyQuizKey('m', mod.id);
   const lessonQuizKey = buildStableQuizKey('l', course.id, les.id);
   const legacyLessonQuizKey = buildLegacyQuizKey('l', les.id);
+  const lessonQuizScore = getBestQuizScoreValue(quizScores, [
+    lessonQuizKey,
+    legacyLessonQuizKey,
+  ]);
+  const lessonMasteryStatus = getLessonMasteryStatus({
+    hasLessonQuiz: Boolean(lessonQuiz),
+    isLessonDone: isDone,
+    scoreValue: lessonQuizScore,
+  });
   const { title: currentStepTitle, copy: currentStepCopy } = getCurrentStepCopy({
     isLast,
     showModQuiz,
@@ -463,6 +478,7 @@ export function AppLayout() {
                 lessonPosition={lessonPosition}
                 currentStepTitle={currentStepTitle}
                 currentStepCopy={currentStepCopy}
+                masteryStatus={lessonMasteryStatus}
                 syncStatus={syncStatus}
                 onRetrySync={syncStatus.actionLabel ? handleRetrySync : undefined}
               />

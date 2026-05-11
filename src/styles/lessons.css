@@ -29,6 +29,46 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+.lesson-mastery-status {
+  display: inline-flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 4px;
+  padding: 7px 9px;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.025);
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.lesson-mastery-label {
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+}
+.lesson-mastery-detail {
+  color: var(--text-muted);
+}
+.lesson-mastery-status-ready {
+  border-color: rgba(78,205,196,0.26);
+  background: rgba(78,205,196,0.055);
+}
+.lesson-mastery-status-ready .lesson-mastery-label {
+  color: var(--cyan);
+}
+.lesson-mastery-status-attention,
+.lesson-mastery-status-review {
+  border-color: rgba(255,167,38,0.24);
+  background: rgba(255,167,38,0.055);
+}
+.lesson-mastery-status-attention .lesson-mastery-label,
+.lesson-mastery-status-review .lesson-mastery-label {
+  color: var(--amber);
+}
 .lesson-sync-row {
   display: flex;
   align-items: center;

@@ -144,6 +144,10 @@ Per `docs/reward-progress-policy.md`:
   translate a score into learner-facing next actions: explain, review,
   retry, or apply in a challenge. This keeps quizzes instructional even
   when XP has already been earned.
+- `src/utils/lessonMasteryStatus.js` converts the saved quick-check score
+  into display-only guidance in the lesson focus strip. It can recommend a
+  first pass, quick-check evidence, review loop, or ready signal, but it
+  does not lock navigation or certify mastery.
 
 ## 5. Challenge completion
 
