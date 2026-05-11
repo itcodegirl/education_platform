@@ -9,10 +9,12 @@ const {
   mockEnsureAllLoaded,
   mockSignOut,
   mockMaybeSingle,
+  mockUpdateEq,
 } = vi.hoisted(() => ({
   mockEnsureAllLoaded: vi.fn(),
   mockSignOut: vi.fn(),
   mockMaybeSingle: vi.fn(),
+  mockUpdateEq: vi.fn(),
 }));
 
 vi.mock('../../providers', () => ({
@@ -76,7 +78,7 @@ vi.mock('../../lib/supabaseClient', () => ({
         }),
       }),
       update: () => ({
-        eq: vi.fn(async () => ({ error: null })),
+        eq: mockUpdateEq,
       }),
     }),
   },
@@ -87,10 +89,12 @@ describe('ProfilePage accessibility', () => {
     mockEnsureAllLoaded.mockReset();
     mockSignOut.mockReset();
     mockMaybeSingle.mockReset();
+    mockUpdateEq.mockReset();
     mockMaybeSingle.mockResolvedValue({
       data: { is_public: false, public_handle: '' },
       error: null,
     });
+    mockUpdateEq.mockResolvedValue({ error: null });
   });
 
   it('has no detectable accessibility violations in the default profile state', async () => {
@@ -123,5 +127,47 @@ describe('ProfilePage accessibility', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(/handle must be 2-30 chars/i);
     expect(handle).toHaveAttribute('aria-invalid', 'true');
     expect(handle).toHaveAccessibleDescription(/use 2 to 30 characters/i);
+  });
+
+  it('keeps duplicate-handle save feedback clear and specific', async () => {
+    mockMaybeSingle.mockResolvedValue({
+      data: { is_public: true, public_handle: 'ada' },
+      error: null,
+    });
+    mockUpdateEq.mockResolvedValueOnce({
+      error: {
+        code: '23505',
+        message: 'duplicate key value violates unique constraint "profiles_public_handle_key"',
+      },
+    });
+
+    render(<ProfilePage onClose={vi.fn()} />);
+
+    await screen.findByRole('textbox', { name: /handle/i });
+    fireEvent.click(screen.getByRole('button', { name: /publish/i }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/That handle is already taken/i);
+    expect(screen.queryByText(/duplicate key value/i)).not.toBeInTheDocument();
+  });
+
+  it('keeps generic public-profile save failures safe for learners', async () => {
+    mockMaybeSingle.mockResolvedValue({
+      data: { is_public: true, public_handle: 'ada' },
+      error: null,
+    });
+    mockUpdateEq.mockResolvedValueOnce({
+      error: {
+        code: 'PGRST301',
+        message: 'permission denied for table profiles',
+      },
+    });
+
+    render(<ProfilePage onClose={vi.fn()} />);
+
+    await screen.findByRole('textbox', { name: /handle/i });
+    fireEvent.click(screen.getByRole('button', { name: /publish/i }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/Could not save public profile settings/i);
+    expect(screen.queryByText(/permission denied/i)).not.toBeInTheDocument();
   });
 });
