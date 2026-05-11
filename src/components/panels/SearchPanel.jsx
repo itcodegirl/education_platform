@@ -1,31 +1,48 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { buildSearchIndex } from '../../data/reference/search-index';
-import { useCourseContent } from '../../providers';
+import { getCachedSearchIndex, loadSearchIndex } from '../../data/reference/search-index';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 export function SearchPanel({ isOpen, onClose, onNavigate }) {
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [searchIndex, setSearchIndex] = useState(() => getCachedSearchIndex());
+  const [isIndexLoading, setIsIndexLoading] = useState(() => getCachedSearchIndex().length === 0);
+  const [indexLoadError, setIndexLoadError] = useState('');
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const inputRef = useRef(null);
   const modalRef = useRef(null);
-  const hasRequestedFullIndexRef = useRef(false);
-  const { ensureAllLoaded, loadedCourseIds, allCoursesLoaded } = useCourseContent();
   const normalizedQuery = query.toLowerCase();
 
-  const searchIndex = useMemo(
-    () => buildSearchIndex(),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [loadedCourseIds],
-  );
-
   useEffect(() => {
-    if (!isOpen || normalizedQuery.length < 2 || allCoursesLoaded || hasRequestedFullIndexRef.current) {
-      return;
+    let cancelled = false;
+    if (!isOpen) return undefined;
+
+    if (searchIndex.length > 0) {
+      setIsIndexLoading(false);
+      setIndexLoadError('');
+      return undefined;
     }
 
-    hasRequestedFullIndexRef.current = true;
-    void ensureAllLoaded();
-  }, [allCoursesLoaded, ensureAllLoaded, isOpen, normalizedQuery]);
+    setIsIndexLoading(true);
+    setIndexLoadError('');
+
+    void loadSearchIndex()
+      .then((entries) => {
+        if (cancelled) return;
+        setSearchIndex(entries);
+        setIsIndexLoading(false);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        setSearchIndex([]);
+        setIsIndexLoading(false);
+        setIndexLoadError(error?.message || 'Search is unavailable right now.');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, loadAttempt, searchIndex.length]);
 
   useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
 
@@ -43,16 +60,18 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
     return () => clearTimeout(focusTimer);
   }, [isOpen]);
 
-  const results = normalizedQuery.length >= 2
-    ? searchIndex
-        .filter((entry) =>
-          entry.title.toLowerCase().includes(normalizedQuery)
-          || entry.module.toLowerCase().includes(normalizedQuery)
-          || entry.course.toLowerCase().includes(normalizedQuery)
-          || entry.keywords.toLowerCase().includes(normalizedQuery),
-        )
-        .slice(0, 15)
-    : [];
+  const results = useMemo(() => {
+    if (normalizedQuery.length < 2 || searchIndex.length === 0) return [];
+
+    return searchIndex
+      .filter((entry) =>
+        entry.title.toLowerCase().includes(normalizedQuery)
+        || entry.module.toLowerCase().includes(normalizedQuery)
+        || entry.course.toLowerCase().includes(normalizedQuery)
+        || entry.keywords.toLowerCase().includes(normalizedQuery),
+      )
+      .slice(0, 15);
+  }, [normalizedQuery, searchIndex]);
 
   useEffect(() => {
     setActiveIndex(-1);
@@ -106,11 +125,15 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
 
   const searchStatus = normalizedQuery.length < 2
     ? 'Type at least two letters to search lessons.'
+    : isIndexLoading
+      ? 'Preparing the lesson search index.'
+      : indexLoadError
+        ? indexLoadError
     : results.length === 0
       ? `No results for ${query}.`
       : activeIndex >= 0
         ? `${results[activeIndex].title} selected. Press Enter to open.`
-        : `${results.length} result${results.length === 1 ? '' : 's'}${allCoursesLoaded ? '' : ' (loading more courses)'}`;
+        : `${results.length} result${results.length === 1 ? '' : 's'}`;
 
   return (
     <div
@@ -194,9 +217,35 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
             <div className="search-empty">
               <p><strong>Search all lessons</strong></p>
               <p className="empty-state-msg">
-                {allCoursesLoaded
-                  ? 'Type at least two letters from a lesson, module, language, or concept.'
-                  : 'Type at least two letters. More courses are still loading into search.'}
+                {isIndexLoading
+                  ? 'The lesson catalog is loading. You can start typing now and results will appear as soon as it is ready.'
+                  : 'Type at least two letters from a lesson, module, language, or concept.'}
+              </p>
+            </div>
+          ) : indexLoadError ? (
+            <div className="search-empty">
+              <p><strong>Search is unavailable right now.</strong></p>
+              <p className="empty-state-msg">
+                The rest of your lesson workspace is still safe. Close this panel and try again in a moment.
+              </p>
+              <button
+                type="button"
+                className="empty-state-action"
+                onClick={() => {
+                  setSearchIndex([]);
+                  setIsIndexLoading(true);
+                  setIndexLoadError('');
+                  setLoadAttempt((previous) => previous + 1);
+                }}
+              >
+                Retry search
+              </button>
+            </div>
+          ) : isIndexLoading ? (
+            <div className="search-empty">
+              <p><strong>Preparing lesson search…</strong></p>
+              <p className="empty-state-msg">
+                Loading the lightweight lesson catalog so search stays fast without pulling in every course.
               </p>
             </div>
           ) : results.length === 0 ? (
