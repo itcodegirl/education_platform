@@ -474,7 +474,7 @@ function analyzeQuizzes(courseId, quizzes, issues, warnings) {
   });
 }
 
-function analyzeChallenges(courseId, challenges, issues, warnings) {
+function analyzeChallenges(courseId, challenges, moduleIds, issues, warnings) {
   if (!Array.isArray(challenges)) {
     addIssue(issues, `${courseId}.challenges`, 'Course challenges export is not an array.');
     return;
@@ -499,6 +499,19 @@ function analyzeChallenges(courseId, challenges, issues, warnings) {
 
     if (isNonEmptyString(challenge.courseId) && challenge.courseId !== courseId) {
       addIssue(issues, challengePath, `Challenge courseId "${challenge.courseId}" does not match "${courseId}".`);
+    }
+    if (!isNonEmptyString(challenge.recommendedModuleId)) {
+      addWarning(
+        warnings,
+        challengePath,
+        'Challenge is missing recommendedModuleId; module readiness will fall back to difficulty-based placement.',
+      );
+    } else if (!moduleIds.has(String(challenge.recommendedModuleId))) {
+      addIssue(
+        issues,
+        challengePath,
+        `Challenge recommendedModuleId "${challenge.recommendedModuleId}" does not match an active module in ${courseId}.`,
+      );
     }
     if (!isNonEmptyString(challenge.title)) {
       addIssue(issues, challengePath, 'Challenge is missing a title.');
@@ -552,12 +565,13 @@ function getWarningCategory(message) {
   if (text.startsWith('Lesson quality rubric is thin')) return 'lesson-quality-rubric';
   if (text.startsWith('Lesson has shallow instructional scaffolding')) return 'instructional-scaffolding';
   if (text.startsWith('Quiz quality rubric is missing')) return 'quiz-quality-rubric';
+  if (text.startsWith('Challenge is missing recommendedModuleId')) return 'challenge-module-mapping';
   if (text.startsWith('Challenge is missing')) return 'challenge-evidence';
   return 'other';
 }
 
 function getMissingSignals(message) {
-  const match = String(message || '').match(/missing ([^.]+)\./i);
+  const match = String(message || '').match(/missing ([^.;]+)[.;]/i);
   if (!match) return [];
   return match[1]
     .split(',')
@@ -645,9 +659,9 @@ export function analyzeLearningContent({ courseMetadata, loaded }) {
     quizCount += (data?.quizzes || []).length;
     challengeCount += (data?.challenges || []).length;
 
-    analyzeLessons(courseId, modules, lessonIndexes, issues, warnings);
+    const lessonAnalysis = analyzeLessons(courseId, modules, lessonIndexes, issues, warnings);
     analyzeQuizzes(courseId, data?.quizzes || [], issues, warnings);
-    analyzeChallenges(courseId, data?.challenges || [], issues, warnings);
+    analyzeChallenges(courseId, data?.challenges || [], lessonAnalysis.moduleIds, issues, warnings);
   }
 
   return {

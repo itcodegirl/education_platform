@@ -199,6 +199,44 @@ describe('learning content audit', () => {
     });
   });
 
+  it('verifies challenge module mapping without blocking missing legacy mappings', () => {
+    const fixture = makeFixture();
+    fixture.loaded[0].data.challenges = [
+      {
+        id: 'html-challenge-1',
+        courseId: 'html',
+        title: 'Build a page',
+        description: 'Practice the module outcome.',
+        requirements: ['Use semantic structure'],
+        tests: [{ label: 'Has nav', check: () => true }],
+        starter: '<nav></nav>',
+        solution: '<nav><a href="/">Home</a></nav>',
+      },
+      {
+        id: 'html-challenge-2',
+        courseId: 'html',
+        recommendedModuleId: 'missing-module',
+        title: 'Broken mapping',
+        description: 'This mapping should be caught.',
+        requirements: ['Use semantic structure'],
+        tests: [{ label: 'Has nav', check: () => true }],
+        starter: '<nav></nav>',
+        solution: '<nav><a href="/">Home</a></nav>',
+      },
+    ];
+
+    const result = analyzeLearningContent(fixture);
+
+    expect(result.warnings).toContainEqual({
+      path: 'html.challenges[0]',
+      message: 'Challenge is missing recommendedModuleId; module readiness will fall back to difficulty-based placement.',
+    });
+    expect(result.issues).toContainEqual({
+      path: 'html.challenges[1]',
+      message: 'Challenge recommendedModuleId "missing-module" does not match an active module in html.',
+    });
+  });
+
   it('summarizes warnings by course, category, and missing signal for curriculum planning', () => {
     const fixture = makeFixture({
       htmlSecondLesson: {
@@ -239,6 +277,31 @@ describe('learning content audit', () => {
       expect.objectContaining({ name: 'misconception' }),
       expect.objectContaining({ name: 'retrievalPrompt' }),
     ]));
+  });
+
+  it('summarizes missing challenge module mappings without leaking explanatory copy into the signal', () => {
+    const fixture = makeFixture();
+    fixture.loaded[0].data.challenges = [
+      {
+        id: 'html-challenge-1',
+        courseId: 'html',
+        title: 'Build a page',
+        description: 'Practice the module outcome.',
+        requirements: ['Use semantic structure'],
+        tests: [{ label: 'Has nav', check: () => true }],
+        starter: '<nav></nav>',
+        solution: '<nav><a href="/">Home</a></nav>',
+      },
+    ];
+
+    const summary = buildAuditSummary(analyzeLearningContent(fixture));
+
+    expect(summary.warningsByCategory).toContainEqual(expect.objectContaining({
+      name: 'challenge-module-mapping',
+    }));
+    expect(summary.missingSignals).toContainEqual(expect.objectContaining({
+      name: 'recommendedModuleId',
+    }));
   });
 
   it('flags route-ambiguous course content ids before they break deep links', () => {
