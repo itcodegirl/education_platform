@@ -37,7 +37,7 @@
 
 ## Performance Checklist
 
-- [ ] Lighthouse mobile + desktop artifacts reviewed if UI, routing, CSS, service worker, or entry-loading behavior changed
+- [ ] Lighthouse mobile + desktop artifacts reviewed if UI, routing, CSS, service worker, or entry-loading behavior changed; see [`docs/performance-evidence.md`](docs/performance-evidence.md)
 - [ ] Bundle budget changes are intentional and documented in [`docs/performance-budget.md`](docs/performance-budget.md)
 - [ ] Monaco/editor, jsPDF, html2canvas, Supabase, and course data remain lazy and user-triggered
 - [ ] No protected app styles or heavy lazy chunks are preloaded from the public entry HTML

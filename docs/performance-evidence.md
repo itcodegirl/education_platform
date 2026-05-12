@@ -2,44 +2,45 @@
 
 Last updated: May 12, 2026
 
-This file records the current performance proof points reviewers can inspect without relying on broad claims.
+Use this guide when reviewing PRs that touch routing, Vite chunking, global CSS, Monaco/editor, export tools, course data, service worker behavior, or public/auth entry points.
 
-## Local Gates
+## Current Proof Points
 
-Run:
-
-```bash
-npm run audit:performance
-```
-
-This executes:
-
-- `npm run build`
-- `npm run check:bundle`
-- `npm run check:route-boundaries`
-
-Current local verification on this branch:
+Local verification on this branch:
 
 - Production build succeeds.
-- Initial JavaScript gzip: 84.12 kB, under the 170 kB budget.
-- Initial CSS gzip: 8.21 kB, under the 12 kB budget.
-- Monaco, Supabase, and protected-app styles are not preloaded from the entry HTML.
-- `jspdf` and `html2canvas` are blocked from static source imports and must stay behind the PDF/export action.
+- Initial JavaScript gzip: about 84.12 kB, under the 170 kB budget.
+- Initial CSS gzip: about 8.21 kB, under the 12 kB budget.
+- Monaco, Supabase, and protected app styles are not preloaded from the entry HTML.
+- `jspdf` and `html2canvas` are blocked from static source imports and entry HTML preloads.
 
-## CI Evidence
+## CI Artifacts
 
-GitHub Actions runs Lighthouse through `.github/workflows/lighthouse-ci.yml` with `npm run test:lighthouse`.
+The Lighthouse CI workflow uploads two short-lived artifact groups:
 
-The workflow uploads `.lighthouseci/` as an artifact named:
+| Artifact | What to inspect | Why it matters |
+| --- | --- | --- |
+| `lighthouse-ci-*` | Mobile and desktop reports from `.lighthouseci/` | Confirms performance, accessibility, best-practices, SEO, and PWA behavior against the preview build. |
+| `bundle-summary-*` | `dist/bundle-summary.json` | Records initial JS/CSS gzip totals, top chunks, active budgets, and any budget/preload failures. |
 
-```text
-lighthouse-ci-<run-id>-<attempt>
-```
+## Review Checklist
 
-Use that artifact as the recruiter-facing proof for Lighthouse Performance, Accessibility, Best Practices, and SEO assertions. Do not cite a Lighthouse score in the portfolio case study until it comes from a completed CI run or a local run captured with the same config.
+1. Confirm `npm run audit:performance` passed.
+2. Compare `bundle-summary.json` against `docs/performance-budget.md`.
+3. Check that initial JS and CSS gzip remain below budget.
+4. Check that Monaco/editor, jsPDF, html2canvas, Supabase, and course data stay lazy and absent from public entry preloads.
+5. Review mobile and desktop Lighthouse artifacts for score regressions, LCP, CLS, and Total Blocking Time.
+6. If the PR changes authenticated lesson flows, capture React Profiler notes for lesson navigation, panel switching, quiz submission, or challenge editor open.
 
 ## Known Limits
 
-- Lighthouse uses the public entry route only. Authenticated learner performance still needs browser traces from a credentialed staging run.
-- The PDF export dependency is intentionally allowed as a lazy interaction chunk. It should not be optimized by moving it into shared app code.
-- The protected lesson workspace remains the largest app-owned chunk and should be split only after the current trust and learning-flow work is stable.
+- Lighthouse uses the public entry route. Authenticated learner performance still needs browser traces from a credentialed staging run.
+- The PDF export dependency is intentionally allowed as a lazy interaction chunk. It should not move into shared app code.
+- Do not cite a Lighthouse score in reviewer materials until it comes from a completed CI run or a local run captured with the same config.
+
+## Escalation Rules
+
+- Do not raise a bundle budget just to pass CI.
+- Split course data by module if a course runtime chunk approaches its budget.
+- Move styles into route or component-owned files if protected app CSS approaches its gzip budget.
+- Keep export and editor tooling behind explicit user intent.
