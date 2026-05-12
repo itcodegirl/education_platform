@@ -145,6 +145,60 @@ describe('summarizeModuleMasteryEvidence', () => {
     });
   });
 
+  it('does not map bare module ids across courses when module ids are reused', () => {
+    const duplicateModuleCourses = [
+      {
+        id: 'js',
+        label: 'JS',
+        accent: '#ffa726',
+        modules: [{ id: 301, title: 'JavaScript Basics', lessons: [{ id: 'js-l1', title: 'Buttons' }] }],
+      },
+      {
+        id: 'react',
+        label: 'React',
+        accent: '#61dafb',
+        modules: [{ id: 301, title: 'React Basics', lessons: [{ id: 'react-l1', title: 'State' }] }],
+      },
+    ];
+
+    const result = summarizeModuleMasteryEvidence({
+      courses: duplicateModuleCourses,
+      completedSet: new Set(),
+      quizResults: [],
+      challengeCompletions: [],
+      getChallengesForCourse: () => [],
+      srCards: [{ module_id: '301', nextReview: 0 }],
+      now: 1000,
+    });
+
+    expect(result.modules.every((moduleEvidence) => moduleEvidence.reviewDue === 0)).toBe(true);
+  });
+
+  it('maps stable module quiz keys to numeric module ids within the matching course', () => {
+    const result = summarizeModuleMasteryEvidence({
+      courses: [
+        {
+          id: 'js',
+          label: 'JS',
+          accent: '#ffa726',
+          modules: [{ id: 301, title: 'JavaScript Basics', lessons: [{ id: 'js-l1', title: 'Buttons' }] }],
+        },
+      ],
+      completedSet: new Set(),
+      quizResults: [{ key: 'm:js:301', percent: 60 }],
+      challengeCompletions: [],
+      getChallengesForCourse: () => [],
+      srCards: [{ quizKey: 'm:js:301', nextReview: 0 }],
+      now: 1000,
+    });
+
+    expect(result.modules[0]).toMatchObject({
+      quizAttempted: 1,
+      reviewDue: 1,
+      statusLabel: 'Review evidence due',
+    });
+  });
+
 
   it('flags completed lessons without quiz proof as needing a quick check', () => {
     const result = summarizeModuleMasteryEvidence({

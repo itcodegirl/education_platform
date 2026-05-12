@@ -18,11 +18,11 @@ function quizBelongsToModule(quizKey, course, moduleData) {
   if (!parsed.type || (parsed.courseId && parsed.courseId !== course?.id)) return false;
 
   if (parsed.type === 'm') {
-    return parsed.entityId === moduleData?.id;
+    return String(parsed.entityId) === String(moduleData?.id);
   }
 
   if (parsed.type === 'l') {
-    return (moduleData?.lessons || []).some((lesson) => lesson.id === parsed.entityId);
+    return (moduleData?.lessons || []).some((lesson) => String(lesson.id) === String(parsed.entityId));
   }
 
   return false;
@@ -54,7 +54,8 @@ function reviewCardBelongsToModule(card, course, moduleData) {
   const context = normalizeReviewCardLearningContext(card);
 
   if (context.courseId && context.courseId !== course.id) return false;
-  if (context.moduleId) return context.moduleId === moduleData.id;
+  if (context.moduleId && context.courseId) return String(context.moduleId) === String(moduleData.id);
+  if (context.moduleId && !context.quizKey && !context.lessonKey && !context.lessonId) return false;
   if (quizBelongsToModule(context.quizKey, course, moduleData)) return true;
 
   const lessonKey = context.lessonKey;
