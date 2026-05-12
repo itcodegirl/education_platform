@@ -8,6 +8,9 @@ const { mockUseProgressData, mockUseXP, mockUseSR } = vi.hoisted(() => ({
   mockUseXP: vi.fn(),
   mockUseSR: vi.fn(),
 }));
+const { mockUseFocusTrap } = vi.hoisted(() => ({
+  mockUseFocusTrap: vi.fn(),
+}));
 
 vi.mock('../../providers', () => ({
   useProgressData: () => mockUseProgressData(),
@@ -49,12 +52,13 @@ vi.mock('../../data/challenges', () => ({
 }));
 
 vi.mock('../../hooks/useFocusTrap', () => ({
-  useFocusTrap: () => {},
+  useFocusTrap: (...args) => mockUseFocusTrap(...args),
 }));
 
 import { StudentStats } from './StudentStats';
 
 beforeEach(() => {
+  mockUseFocusTrap.mockReset();
   mockUseProgressData.mockReturnValue({ completed: [], quizScores: {}, challengeCompletions: [] });
   mockUseSR.mockReturnValue({ srCards: [], bookmarks: [], notes: {} });
 });
@@ -76,6 +80,14 @@ describe('StudentStats streak card', () => {
     expect(dialog).toHaveAttribute('aria-modal', 'true');
     expect(screen.getByRole('heading', { name: /progress snapshot/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /close progress panel/i })).toBeInTheDocument();
+    expect(mockUseFocusTrap).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({
+        enabled: true,
+        onEscape: onClose,
+        initialFocus: 'first-tabbable',
+      }),
+    );
 
     fireEvent.click(screen.getByRole('button', { name: /back to current lesson/i }));
     expect(onClose).toHaveBeenCalledTimes(1);

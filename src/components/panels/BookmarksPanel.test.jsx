@@ -9,6 +9,9 @@ const { mockUseSR, mockUseProgressData } = vi.hoisted(() => ({
 const { mockBookmarkSubmit } = vi.hoisted(() => ({
   mockBookmarkSubmit: vi.fn(),
 }));
+const { mockUseFocusTrap } = vi.hoisted(() => ({
+  mockUseFocusTrap: vi.fn(),
+}));
 
 vi.mock('../../providers', () => ({
   useSR: () => mockUseSR(),
@@ -33,12 +36,13 @@ vi.mock('react-router-dom', () => ({
 }));
 
 vi.mock('../../hooks/useFocusTrap', () => ({
-  useFocusTrap: () => {},
+  useFocusTrap: (...args) => mockUseFocusTrap(...args),
 }));
 
 describe('BookmarksPanel', () => {
   beforeEach(() => {
     mockBookmarkSubmit.mockReset();
+    mockUseFocusTrap.mockReset();
     mockUseSR.mockReturnValue({
       bookmarks: [],
       toggleBookmark: vi.fn(),
@@ -63,6 +67,14 @@ describe('BookmarksPanel', () => {
       screen.getByText(/Use the Save button in a lesson header/i),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Back to lesson/i })).toBeInTheDocument();
+    expect(mockUseFocusTrap).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({
+        enabled: true,
+        onEscape: expect.any(Function),
+        initialFocus: 'first-tabbable',
+      }),
+    );
   });
 
   it('treats missing bookmark data as an empty saved list', () => {

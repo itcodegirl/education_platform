@@ -25,7 +25,11 @@ export function SRPanel({ isOpen, onClose }) {
   const [genSuccess, setGenSuccess] = useState("");
   const modalRef = useRef(null);
 
-  useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
+  useFocusTrap(modalRef, {
+    enabled: isOpen,
+    onEscape: onClose,
+    initialFocus: 'first-tabbable',
+  });
 
   const queue = Array.isArray(srCards) ? srCards : [];
   const due = typeof getDueSRCards === "function" ? getDueSRCards() || [] : [];

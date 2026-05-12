@@ -9,7 +9,11 @@ export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx, currentMod
   const { completedSet = new Set() } = useProgressData();
   const modalRef = useRef(null);
 
-  useFocusTrap(modalRef, { enabled: true, onEscape: onClose });
+  useFocusTrap(modalRef, {
+    enabled: true,
+    onEscape: onClose,
+    initialFocus: 'first-tabbable',
+  });
 
   return (
     <div className="panel-overlay" onClick={onClose}>

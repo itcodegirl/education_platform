@@ -22,6 +22,15 @@
 }
 
 @media (max-width: 900px) {
+  .panel-overlay {
+    align-items: stretch;
+    padding:
+      max(8px, env(safe-area-inset-top, 0px))
+      max(8px, env(safe-area-inset-right, 0px))
+      max(8px, env(safe-area-inset-bottom, 0px))
+      max(8px, env(safe-area-inset-left, 0px));
+  }
+
   .sidebar-avatar {
     min-width: 44px;
     min-height: 44px;

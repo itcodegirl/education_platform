@@ -39,6 +39,8 @@ export const SidebarModuleList = memo(function SidebarModuleList({
           className={`sidebar-roadmap-btn ${activePanel === 'roadmap' ? 'active' : ''}`}
           onClick={onOpenRoadmap}
           aria-label="Open full learning roadmap"
+          aria-haspopup="dialog"
+          aria-expanded={activePanel === 'roadmap'}
           title="Full roadmap"
         >
           🗺️
@@ -70,6 +72,7 @@ export const SidebarModuleList = memo(function SidebarModuleList({
                 aria-disabled={!isModUnlocked}
                 title={!isModUnlocked ? 'Finish the previous module to unlock' : undefined}
                 aria-expanded={isExpanded}
+                aria-current={mi === modIdx ? 'step' : undefined}
                 aria-label={`${module.title} module${isModUnlocked ? `, ${modDone}/${module.lessons.length} lessons completed` : ', locked until the previous module is complete'}`}
               >
                 <span className="module-group-emoji" aria-hidden="true">{isModUnlocked ? module.emoji : '🔒'}</span>
@@ -112,6 +115,7 @@ export const SidebarModuleList = memo(function SidebarModuleList({
                       className={`lesson-list-btn lesson-list-quiz ${showModQuiz && mi === modIdx ? 'act' : ''}`}
                       onClick={() => onSelectModQuiz(mi)}
                       aria-label={`Open module quiz for ${module.title}`}
+                      aria-current={showModQuiz && mi === modIdx ? 'page' : undefined}
                     >
                       <span className="lesson-list-chk" aria-hidden="true">📝</span>
                       <span>Module Quiz</span>

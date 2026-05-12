@@ -141,6 +141,7 @@ describe('Sidebar', () => {
     expect(coursesTab).toHaveAttribute('aria-expanded', 'true');
     expect(coursesTab).toHaveClass('active');
     expect(screen.getByRole('menu', { name: /courses/i })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: /switch to html course/i })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByText('Modules')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /foundations module/i })).toBeInTheDocument();
   });
@@ -257,6 +258,13 @@ describe('Sidebar', () => {
 
     const overlay = document.querySelector('.overlay');
     expect(overlay).toHaveClass('overlay-open');
+  });
+
+  it('marks the current module and roadmap shortcut with clearer navigation semantics', () => {
+    renderSidebar();
+
+    expect(screen.getByRole('button', { name: /open full learning roadmap/i })).toHaveAttribute('aria-haspopup', 'dialog');
+    expect(screen.getByRole('button', { name: /foundations module/i })).toHaveAttribute('aria-current', 'step');
   });
 
   it('keeps the closed mobile drawer hidden and removed from tab order', () => {
