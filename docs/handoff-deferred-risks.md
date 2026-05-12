@@ -59,6 +59,12 @@ The React course manifest (`src/data/react/course.js`) imports ten legacy `modul
 
 The structured shape is richer: each `concept` is `{ name, definition, analogy }`, the `do` step is itemised with proof requirements, and `bridge` previews the next lesson. The information density is intentionally higher.
 
+### Unused React module source files
+
+`src/data/react/modules/` contains 24 `module*.js` files but `src/data/react/course.js` imports only 10 of them. The other 14 (`accessibility-in-react.js`, `advanced-patterns.js`, `backend-integration-auth.js`, `build-a-real-project.js`, `components.js`, `conditional-rendering-lists.js`, `context-global-state.js`, `data-fetching-async-patterns.js`, `error-boundaries.js`, `events-in-react.js`, `props.js`, `state-usestate.js`, `styling-in-react.js`, `useref-custom-hooks.js`) are not wired into the curriculum. Some lesson quizzes in `src/data/react/quizzes.js` reference lesson IDs that only exist in those unused files (e.g. `r17-1` from `error-boundaries.js`), which is why `audit:quizzes` classifies them as `future-advanced-content` orphans.
+
+These files are not dead in the "delete on sight" sense — they are a curriculum reservoir. But they should be either (a) promoted into `course.js` as part of the structured-format migration below, or (b) removed together with their orphan quizzes. Until then, treat them as inert: do not import them ad hoc, and do not rely on `audit:quizzes` orphan counts staying constant if they move.
+
 ### Deferred improvement
 
 Convert the React course from the legacy `RichLessonBody` shape to the structured `StructuredLessonBody` shape. After conversion is complete and verified, the legacy renderer (`RichLessonBody.jsx`) and its branch in `LessonView.jsx` can be removed entirely.

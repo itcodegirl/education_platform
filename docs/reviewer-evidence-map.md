@@ -25,7 +25,7 @@ This map turns the CodeHerWay portfolio story into concrete evidence. Use it whe
 
 | Claim | Evidence to inspect | Validation signal |
 | --- | --- | --- |
-| Keyboard users can bypass navigation and reach the main lesson content. | `src/layouts/AppLayout.jsx`, `src/components/layout/LoadingSkeleton.jsx`, `src/styles/base.css` | Playwright skip-link coverage in `tests/e2e/lesson-flow.spec.js`. |
+| Keyboard users can bypass navigation and reach the main lesson content. | `src/layouts/AppLayout.jsx`, `src/styles/base.css` | Playwright skip-link coverage in `tests/e2e/lesson-flow.spec.js`. |
 | Dialogs and overlays are built with explicit focus management. | `src/hooks/useFocusTrap.js`, `src/components/panels/`, `src/components/shared/` | Component tests and `npm run test:a11y:unit`. |
 | Mobile navigation reduces clutter before a learner has progress. | `src/constants/learningTools.js`, `src/components/layout/BottomToolbar.jsx`, `src/components/layout/MobileToolsSheet.jsx` | Unit tests for tool availability and mobile sheet behavior. |
 | Quiz retry and ordering behavior is clearer and less misleading. | `src/hooks/useQuizSession.js`, `src/components/learning/QuizView.jsx`, `src/components/learning/quiz/questionTypes.jsx` | Quiz session and QuizView tests. |
