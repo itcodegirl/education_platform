@@ -22,8 +22,8 @@
 }
 .auth-theme-toggle-wrap {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: max(14px, env(safe-area-inset-top, 0px));
+  right: max(14px, env(safe-area-inset-right, 0px));
   z-index: 4;
 }
 .auth-theme-toggle-wrap .theme-toggle {
