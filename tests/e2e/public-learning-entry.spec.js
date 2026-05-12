@@ -68,10 +68,10 @@ async function expectWithinViewport(locator, label) {
 async function expectNoVisibleControlOverlap(page, selector) {
   const result = await page.evaluate((controlSelector) => {
     const selectedControls = Array.from(document.querySelectorAll(controlSelector));
-    const controlsToCheck = selectedControls.length > 0
-      ? selectedControls
-      : Array.from(document.querySelectorAll('button, a, [role="button"], [role="tab"], input, textarea, select'));
-    const controls = controlsToCheck
+    const fallbackControls = Array.from(
+      document.querySelectorAll('button, a, [role="button"], [role="tab"], input, textarea, select'),
+    );
+    const toVisibleControlBoxes = (nodes) => nodes
       .map((node) => {
         const rect = node.getBoundingClientRect();
         const style = window.getComputedStyle(node);
@@ -90,6 +90,11 @@ async function expectNoVisibleControlOverlap(page, selector) {
         };
       })
       .filter((item) => item.visible);
+    const scopedControls = selectedControls.length > 0 ? selectedControls : fallbackControls;
+    const scopedVisibleControls = toVisibleControlBoxes(scopedControls);
+    const controls = scopedVisibleControls.length > 0
+      ? scopedVisibleControls
+      : toVisibleControlBoxes(fallbackControls);
 
     const overlaps = [];
     for (let i = 0; i < controls.length; i += 1) {

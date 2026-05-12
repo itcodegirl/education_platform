@@ -84,6 +84,12 @@ test.describe('mobile learning smoke', () => {
     expect(box.y + box.height, `${label} should not overflow bottom`).toBeLessThanOrEqual(viewport.height + 1);
   }
 
+  async function expectMinimumTouchTarget(locator) {
+    const box = await locator.boundingBox();
+    expect(box?.width || 0).toBeGreaterThanOrEqual(44);
+    expect(box?.height || 0).toBeGreaterThanOrEqual(44);
+  }
+
   async function expectMobileLessonNavReady(page) {
     const lessonNav = page.locator('.lesson-nav');
     await expect(lessonNav).toBeVisible();
