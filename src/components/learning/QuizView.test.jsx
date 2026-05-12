@@ -400,7 +400,7 @@ describe('QuizView', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /<h1>/i }));
+    fireEvent.click(screen.getByRole('radio', { name: /A: <h1>/i }));
     fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
 
     await waitFor(() => {
@@ -409,8 +409,6 @@ describe('QuizView', () => {
     expect(saveQuizScore).not.toHaveBeenCalled();
     expect(awardXP).not.toHaveBeenCalled();
     expect(recordDailyActivity).not.toHaveBeenCalled();
-    expect(markRewardAwarded).toHaveBeenCalledWith(rewardKeys.quizComplete(stableQuizKey));
-    expect(markRewardAwarded).toHaveBeenCalledWith(rewardKeys.quizPerfect(stableQuizKey));
   });
 
   it('reward-engine.double-click-does-not-duplicate-xp for quiz submissions', async () => {

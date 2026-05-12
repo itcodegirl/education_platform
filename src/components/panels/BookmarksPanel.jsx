@@ -85,7 +85,7 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
           ) : (
             <ul className="bookmark-list" aria-label="Saved lessons">
               {bookmarks.map((bookmark) => {
-                const target = findBookmarkTarget(bookmark, sourceCourses);
+                const target = findBookmarkTarget(bookmark, COURSE_CATALOG);
                 const moduleTitle = target?.moduleData?.title || 'Saved lesson';
                 const courseLabel = target?.course?.label || bookmark.course_id.toUpperCase();
                 const coursePath = `${courseLabel} > ${moduleTitle}`;

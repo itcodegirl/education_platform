@@ -16,7 +16,6 @@ import { TIMING } from '../utils/helpers';
 import {
   REWARD_XP,
   formatQuizScore,
-  getBestQuizScoreForKeys,
   isQuizScoreImprovement,
   quizPercent,
   rewardKeys,

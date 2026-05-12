@@ -211,16 +211,16 @@ export const Sidebar = memo(function Sidebar({
   }, [closePopout, focusPopoutByOffset, focusPopoutItem]);
 
   useEffect(() => {
-    if (!isSidebarInert || !activePopout) return;
+    if (!isNavInteractionHidden || !activePopout) return;
     closePopout(false);
-  }, [activePopout, closePopout, isSidebarInert]);
+  }, [activePopout, closePopout, isNavInteractionHidden]);
 
   useEffect(() => {
-    if (!isMobileClosed) return;
+    if (!(isMobile && !isOpen)) return;
     setActivePopout(null);
     setPopoutPos(null);
     setPopoverOpen(false);
-  }, [isMobileClosed]);
+  }, [isMobile, isOpen]);
 
   useEffect(() => {
     if (!isMobile || isOpen) return;

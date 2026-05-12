@@ -140,10 +140,6 @@ export function AppLayout() {
   const goNextLesson = nav.next;
 
   const { stable: stableLessonKey, legacy: legacyLessonKey } = getLessonKeyVariants(course, mod, les);
-  const moduleQuizKey = buildScopedQuizKey('m', course.id, mod.id);
-  const legacyModuleQuizKey = `m:${mod.id}`;
-  const lessonQuizKey = buildScopedQuizKey('l', course.id, les.id);
-  const legacyLessonQuizKey = `l:${les.id}`;
   const isDone = hasLessonCompletion(completedSet, course, mod, les);
   // Reading-time estimate is the prose path only. Including the
   // code block would inflate the figure (~200 wpm reading prose is

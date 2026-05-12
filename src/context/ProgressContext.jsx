@@ -6,7 +6,7 @@
 
 import { createContext, useContext, useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useAuth } from './AuthContext';
-import { buildNotesMap } from './progressSavedLessonHelpers';
+import { buildNotesMap, normalizeProgressLessonKey } from './progressSavedLessonHelpers';
 import { createEmptyLastPosition, mapLastPositionRow } from './lastPositionState';
 import { collectRecoverableLoadWarnings } from './progressSyncWarningHelpers';
 import {
@@ -31,6 +31,7 @@ import { findNewlyEarnedBadges } from '../services/badgeRules';
 import {
   readChallengeCompletions,
   readRewardHistory,
+  normalizeStringList as normalizeStringSet,
 } from '../utils/learnerLocalStore';
 
 // BADGE_DEFS is imported above from '../data/badges' (the canonical
@@ -110,15 +111,6 @@ function normalizeCompletedLessonKeys(lessonKeys = []) {
     (Array.isArray(lessonKeys) ? lessonKeys : [])
       .map(normalizeCompletedLessonKey)
       .filter(Boolean),
-  );
-}
-
-function getEquivalentCompletedLessonKeys(completedKeys = [], rawLessonKey = '') {
-  const normalizedTarget = normalizeCompletedLessonKey(rawLessonKey);
-  if (!normalizedTarget) return [];
-
-  return (Array.isArray(completedKeys) ? completedKeys : []).filter((completedKey) =>
-    normalizeCompletedLessonKey(completedKey) === normalizedTarget,
   );
 }
 
@@ -435,14 +427,18 @@ export function ProgressProvider({ children }) {
     const normalizedLessonKey = typeof lessonKey === 'string' ? lessonKey.trim() : '';
     if (!normalizedLessonKey) return;
     const skipRemote = Boolean(options?.skipRemote);
-    const has = completedSet.has(normalizedLessonKey);
+    const has = completedRef.current.has(normalizedLessonKey);
+    const nextCompletedState =
+      typeof options?.completed === 'boolean' ? options.completed : !has;
+    if (nextCompletedState === has) return;
     // Serialize concurrent toggles for the SAME lesson so an
     // addLesson → removeLesson → addLesson sequence lands in the
     // submitted order on the server. Toggles for different lessons
     // still run in parallel.
     const resourceKey = `lesson:${normalizedLessonKey}`;
 
-    if (has) {
+    if (!nextCompletedState) {
+      completedRef.current.delete(normalizedLessonKey);
       setCompleted(prev => prev.filter(k => k !== normalizedLessonKey));
       if (!skipRemote) {
         dbWrite(
@@ -452,6 +448,7 @@ export function ProgressProvider({ children }) {
         );
       }
     } else {
+      completedRef.current.add(normalizedLessonKey);
       setCompleted(prev => {
         if (prev.includes(normalizedLessonKey)) return prev;
         return [...prev, normalizedLessonKey];

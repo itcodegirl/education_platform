@@ -143,7 +143,7 @@ describe('StudentStats streak card', () => {
     render(<StudentStats isOpen onClose={vi.fn()} />);
 
     expect(screen.getByText(/No completed lessons yet/i)).toBeInTheDocument();
-    expect(screen.getByText(/use Mark done to start your progress snapshot/i)).toBeInTheDocument();
+    expect(screen.getByText(/use Complete lesson to start your progress dashboard/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /back to current lesson/i })).toBeInTheDocument();
   });
 

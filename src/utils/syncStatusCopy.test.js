@@ -55,8 +55,8 @@ describe('getSyncStatusCopy', () => {
   it('progressSaveFailureShowsRecoveryMessage', () => {
     expect(getSyncStatusCopy({ user, dataLoaded: true, syncFailed: 1 })).toEqual({
       tone: 'warning',
-      label: 'Cloud not confirmed',
-      detail: 'Your latest in-tab progress is visible here; retry when the connection is stable.',
+      label: 'Sync needs retry',
+      detail: 'Your current session is safe in this browser. Cloud sync needs another try when the connection is stable.',
     });
   });
 

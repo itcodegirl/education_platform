@@ -86,14 +86,14 @@ describe('ErrorBoundary', () => {
     }
 
     const { rerender } = render(<Controlled panelName="broken-panel" />);
-    expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+    expect(screen.getByText('We hit a temporary snag')).toBeInTheDocument();
 
     rerender(<Controlled panelName="safe-panel" />);
 
     await waitFor(() => {
       expect(screen.getByTestId('child')).toBeInTheDocument();
     });
-    expect(screen.queryByText('Something went wrong')).not.toBeInTheDocument();
+    expect(screen.queryByText('We hit a temporary snag')).not.toBeInTheDocument();
   });
 
   it('renders a retry button that resets the error state', () => {
