@@ -10,6 +10,7 @@ For the full guided review path, start with:
 - [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md)
 - [docs/repair-roadmap.md](./docs/repair-roadmap.md)
 - [docs/reviewer-demo-script.md](./docs/reviewer-demo-script.md)
+- [docs/lighthouse-evidence.md](./docs/lighthouse-evidence.md)
 
 Quick posture:
 
