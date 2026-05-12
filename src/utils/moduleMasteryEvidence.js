@@ -2,6 +2,8 @@ import { getChallengeProgressionPlan } from './challengeProgression';
 import { hasLessonCompletion, lessonKeyMatchesLesson } from './lessonKeys';
 import { parseQuizKey } from './quizKeys';
 
+const MODULE_QUIZ_PASS_PERCENT = 80;
+
 function toSet(values = []) {
   if (values instanceof Set) return values;
   return new Set(
@@ -26,19 +28,43 @@ function quizBelongsToModule(quizKey, course, moduleData) {
   return false;
 }
 
+export function normalizeReviewCardLearningContext(card = {}) {
+  const quizKey = card.quizKey || card.quiz_key || '';
+  const parsedQuizKey = parseQuizKey(quizKey);
+  const parsedContext = parsedQuizKey.type ? {
+    courseId: parsedQuizKey.courseId,
+    moduleId: parsedQuizKey.type === 'm' ? parsedQuizKey.entityId : '',
+    lessonId: parsedQuizKey.type === 'l' ? parsedQuizKey.entityId : '',
+    quizType: parsedQuizKey.type === 'm' ? 'module' : 'lesson',
+  } : {};
+
+  return {
+    quizKey,
+    quizType: card.quizType || card.quiz_type || parsedContext.quizType || '',
+    courseId: card.courseId || card.course_id || parsedContext.courseId || '',
+    moduleId: card.moduleId || card.module_id || parsedContext.moduleId || '',
+    lessonId: card.lessonId || card.lesson_id || parsedContext.lessonId || '',
+    lessonKey: card.lessonKey || card.lesson_key || '',
+    questionId: card.questionId || card.question_id || '',
+  };
+}
+
 function reviewCardBelongsToModule(card, course, moduleData) {
   if (!card || !course || !moduleData) return false;
+  const context = normalizeReviewCardLearningContext(card);
 
-  if (quizBelongsToModule(card.quizKey, course, moduleData)) return true;
+  if (context.courseId && context.courseId !== course.id) return false;
+  if (context.moduleId) return context.moduleId === moduleData.id;
+  if (quizBelongsToModule(context.quizKey, course, moduleData)) return true;
 
-  const lessonKey = card.lessonKey || card.lesson_key || '';
+  const lessonKey = context.lessonKey;
   if (lessonKey) {
     return (moduleData.lessons || []).some((lesson) =>
       lessonKeyMatchesLesson(lessonKey, course, moduleData, lesson),
     );
   }
 
-  const lessonId = card.lessonId || card.lesson_id || '';
+  const lessonId = context.lessonId;
   if (lessonId) {
     return (moduleData.lessons || []).some((lesson) => lesson.id === lessonId);
   }
@@ -53,49 +79,84 @@ function getModuleStatus({
   quizAttempted,
   quizNeedsReview,
   challengeDone,
+  challengeTotal,
   reviewDue,
 }) {
-  const hasEvidence = quizPassed + challengeDone > 0;
   const complete = lessonTotal > 0 && lessonDone === lessonTotal;
+  const quizReady = quizPassed > 0;
+  const challengeReady = challengeTotal === 0 || challengeDone > 0;
+  const readyToAdvance = complete && quizReady && challengeReady && reviewDue === 0 && quizNeedsReview === 0;
 
   if (reviewDue > 0 || quizNeedsReview > 0) {
     return {
+      readyToAdvance: false,
       statusLabel: 'Review evidence due',
       statusTone: 'review',
       nextAction: reviewDue > 0
         ? 'Clear review cards or retry a missed check before adding new lessons.'
         : 'Retry the quick check until the module idea feels usable.',
+      readinessDetail: reviewDue > 0
+        ? 'Review work is due before this module should count as retained.'
+        : `Quiz evidence needs ${MODULE_QUIZ_PASS_PERCENT}% or better.`,
     };
   }
 
-  if (complete && !hasEvidence) {
+  if (complete && !quizReady) {
     return {
+      readyToAdvance: false,
+      statusLabel: 'Needs quick-check proof',
+      statusTone: 'practice',
+      nextAction: 'Pass a quick check before treating this module as ready.',
+      readinessDetail: `A completed lesson still needs quiz evidence at ${MODULE_QUIZ_PASS_PERCENT}% or better.`,
+    };
+  }
+
+  if (complete && !challengeReady) {
+    return {
+      readyToAdvance: false,
       statusLabel: 'Needs applied evidence',
       statusTone: 'practice',
-      nextAction: 'Add proof with a quiz check or one applied challenge.',
+      nextAction: 'Finish one applied challenge before advancing.',
+      readinessDetail: 'Applied work shows this module can transfer into a build.',
     };
   }
 
-  if (complete && hasEvidence) {
+  if (readyToAdvance) {
     return {
-      statusLabel: 'Evidence ready',
+      readyToAdvance: true,
+      statusLabel: 'Ready to advance',
       statusTone: 'ready',
       nextAction: 'Use this module as a base for the next build.',
+      readinessDetail: 'Lessons, quiz evidence, applied work, and review are aligned.',
+    };
+  }
+
+  if (complete) {
+    return {
+      readyToAdvance: false,
+      statusLabel: 'Evidence ready',
+      statusTone: 'ready',
+      nextAction: 'Review this module once more before moving on.',
+      readinessDetail: 'Some proof exists, but the full readiness threshold is not met yet.',
     };
   }
 
   if (lessonDone > 0 || quizAttempted > 0 || challengeDone > 0) {
     return {
+      readyToAdvance: false,
       statusLabel: 'Evidence building',
       statusTone: 'building',
       nextAction: 'Finish the remaining lessons, then check understanding.',
+      readinessDetail: 'This module is in progress and should not count as ready yet.',
     };
   }
 
   return {
+    readyToAdvance: false,
     statusLabel: 'Not started',
     statusTone: 'empty',
     nextAction: 'Start the first lesson in this module.',
+    readinessDetail: 'No learning evidence has been recorded yet.',
   };
 }
 
@@ -151,7 +212,9 @@ export function summarizeModuleMasteryEvidence({
         reviewCardBelongsToModule(card, course, moduleData),
       ).length;
 
-      const quizPassed = moduleQuizResults.filter((result) => result.percent >= 80).length;
+      const quizPassed = moduleQuizResults.filter((result) =>
+        result.percent >= MODULE_QUIZ_PASS_PERCENT,
+      ).length;
       const challengeDone = moduleChallenges.filter((challenge) => challenge.isCompleted).length;
       const lessonTotal = lessons.length;
       const lessonPercent = lessonTotal > 0 ? Math.round((lessonDone / lessonTotal) * 100) : 0;
@@ -162,6 +225,7 @@ export function summarizeModuleMasteryEvidence({
         quizAttempted: moduleQuizResults.length,
         quizNeedsReview: moduleQuizResults.length - quizPassed,
         challengeDone,
+        challengeTotal: moduleChallenges.length,
         reviewDue,
       });
 
@@ -202,8 +266,18 @@ export function summarizeModuleMasteryEvidence({
     modulesWithEvidence: modules.filter((moduleEvidence) =>
       moduleEvidence.quizPassed + moduleEvidence.challengeDone > 0,
     ).length,
+    modulesReadyToAdvance: modules.filter((moduleEvidence) =>
+      moduleEvidence.readyToAdvance,
+    ).length,
     modulesNeedingReview: modules.filter((moduleEvidence) =>
       moduleEvidence.statusTone === 'review' || moduleEvidence.statusTone === 'practice',
     ).length,
+    readinessPolicy: {
+      quizPassPercent: MODULE_QUIZ_PASS_PERCENT,
+      requiresLessonCompletion: true,
+      requiresQuizEvidence: true,
+      requiresAppliedEvidenceWhenAvailable: true,
+      requiresNoDueReview: true,
+    },
   };
 }

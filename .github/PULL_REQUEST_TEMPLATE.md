@@ -42,6 +42,7 @@ Use [`RELEASE_CHECKLIST.md`](../RELEASE_CHECKLIST.md) for final deploy validatio
 - [ ] Auth flow checked if auth-related code changed
 - [ ] AI flow checked if AI-related code changed
 - [ ] Mobile/sidebar flow checked if layout or navigation changed
+- [ ] Mobile release gates checked with [`docs/mobile-release-checklist.md`](../docs/mobile-release-checklist.md) if mobile layout, navigation, keyboard, modal, or performance behavior changed
 - [ ] PWA/cache recovery checked if routing, chunks, or service worker behavior changed
 
 ## Notes

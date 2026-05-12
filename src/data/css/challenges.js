@@ -11,6 +11,7 @@ const domStyle = (iframe, sel) => {
 export const CSS_CHALLENGES = [
   { id:'css-ch-1', title:'Flexbox Navigation', description:'Style a nav bar with Flexbox — centered with spacing.', difficulty:'beginner', courseId:'css',
     previewHTML:'<nav class="navbar"><a href="#">Home</a><a href="#">About</a><a href="#">Projects</a><a href="#">Contact</a></nav>',
+    recommendedModuleId: '202',
     starter:'.navbar {\n  /* flex container, center, gap */\n}\n.navbar a {\n  /* style links */\n}',
     requirements:['display: flex','Centers with justify-content','Gap or spacing','No underlines'],
     tests:[
@@ -40,6 +41,7 @@ export const CSS_CHALLENGES = [
 
   { id:'css-ch-2', title:'Responsive Card Grid', description:'Create a grid that adapts from 1 to 3 columns.', difficulty:'intermediate', courseId:'css',
     previewHTML:'<div class="grid"><div class="card"><h3>Card 1</h3><p>Content</p></div><div class="card"><h3>Card 2</h3><p>Content</p></div><div class="card"><h3>Card 3</h3><p>Content</p></div></div>',
+    recommendedModuleId: '203',
     starter:'.grid {\n  /* responsive grid */\n}\n.card {\n  /* style cards */\n}',
     requirements:['display: grid','auto-fill or auto-fit','Cards have padding','Gap between cards'],
     tests:[
@@ -62,6 +64,7 @@ export const CSS_CHALLENGES = [
 
   { id:'css-ch-3', title:'Center Everything', description:'Center a card both horizontally and vertically in the viewport.', difficulty:'beginner', courseId:'css',
     previewHTML:'<div class="wrapper"><div class="card"><h2>Centered</h2><p>Perfectly centered card.</p></div></div>',
+    recommendedModuleId: '201',
     starter:'.wrapper {\n  /* full viewport height */\n  /* center the card */\n}\n.card {\n  /* style the card */\n}',
     requirements:['min-height: 100vh','Uses flex or grid centering','Card has padding and border-radius','Card has a background'],
     tests:[
@@ -96,6 +99,7 @@ export const CSS_CHALLENGES = [
 
   { id:'css-ch-4', title:'Hover Card Effect', description:'Create a card with a smooth hover transform and shadow.', difficulty:'beginner', courseId:'css',
     previewHTML:'<div class="card"><h3>Hover Me</h3><p>I transform on hover!</p></div>',
+    recommendedModuleId: '204',
     starter:'.card {\n  /* base styles */\n  /* add transition */\n}\n.card:hover {\n  /* transform + shadow */\n}',
     requirements:['Has transition property','Uses transform on hover','Has box-shadow on hover','Transition is smooth (0.2s+)'],
     tests:[
@@ -115,6 +119,7 @@ export const CSS_CHALLENGES = [
 
   { id:'css-ch-5', title:'CSS Variables Theme', description:'Create a theme using CSS custom properties.', difficulty:'intermediate', courseId:'css',
     previewHTML:'<div class="themed"><h2>Themed Section</h2><p>Using CSS variables for colors.</p><button>Action</button></div>',
+    recommendedModuleId: '204',
     starter:':root {\n  /* define variables */\n}\n.themed {\n  /* use variables */\n}\n.themed button {\n  /* use variables */\n}',
     requirements:['Define 3+ CSS variables in :root','Use var() to apply them','Button uses variable colors','Background uses a variable'],
     tests:[
@@ -131,6 +136,7 @@ export const CSS_CHALLENGES = [
 
   { id:'css-ch-6', title:'Mobile-First Media Query', description:'Style a layout that stacks on mobile, goes side-by-side on desktop.', difficulty:'intermediate', courseId:'css',
     previewHTML:'<div class="layout"><div class="sidebar">Sidebar</div><div class="main">Main Content</div></div>',
+    recommendedModuleId: '203',
     starter:'.layout {\n  /* mobile: stacked */\n}\n.sidebar {\n  /* mobile styles */\n}\n@media (min-width: 768px) {\n  .layout {\n    /* desktop: side by side */\n  }\n}',
     requirements:['Mobile-first (no media query for mobile)','@media with min-width','Desktop uses flex or grid','Sidebar has a fixed or percentage width'],
     tests:[
@@ -146,6 +152,7 @@ export const CSS_CHALLENGES = [
 
   { id:'css-ch-7', title:'Button Variants', description:'Create primary, secondary, and danger button styles.', difficulty:'beginner', courseId:'css',
     previewHTML:'<button class="btn primary">Primary</button>\n<button class="btn secondary">Secondary</button>\n<button class="btn danger">Danger</button>',
+    recommendedModuleId: '201',
     starter:'.btn {\n  /* shared styles */\n}\n.primary {\n  /* primary color */\n}\n.secondary {\n  /* outline style */\n}\n.danger {\n  /* red/danger */\n}',
     requirements:['Shared .btn base styles','3 color variants','Has border-radius','Has hover states'],
     tests:[
@@ -168,6 +175,7 @@ export const CSS_CHALLENGES = [
 
   { id:'css-ch-8', title:'Glassmorphism Card', description:'Create a frosted glass card effect.', difficulty:'intermediate', courseId:'css',
     previewHTML:'<div class="glass-bg"><div class="glass-card"><h3>Glass Card</h3><p>Frosted glass effect</p></div></div>',
+    recommendedModuleId: '204',
     starter:'.glass-bg {\n  /* colorful background */\n  min-height: 100vh;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n.glass-card {\n  /* glassmorphism effect */\n}',
     requirements:['Semi-transparent background (rgba)','backdrop-filter: blur','Border-radius','Has a subtle border'],
     tests:[
@@ -189,6 +197,7 @@ export const CSS_CHALLENGES = [
 
   { id:'css-ch-9', title:'Keyframe Animation', description:'Create a pulsing glow animation on a button.', difficulty:'intermediate', courseId:'css',
     previewHTML:'<button class="glow-btn">Click Me</button>',
+    recommendedModuleId: '204',
     starter:'.glow-btn {\n  /* button styles */\n  /* apply animation */\n}\n@keyframes glow {\n  /* define animation steps */\n}',
     requirements:['@keyframes defined','animation property applied','Uses box-shadow','Infinite loop'],
     tests:[
@@ -210,6 +219,7 @@ export const CSS_CHALLENGES = [
 
   { id:'css-ch-10', title:'Form Styling', description:'Style a form with focus states and validation colors.', difficulty:'intermediate', courseId:'css',
     previewHTML:'<form class="styled-form"><label for="email">Email</label><input type="email" id="email" placeholder="you@example.com" required /><label for="pass">Password</label><input type="password" id="pass" placeholder="••••••" required /><button type="submit">Sign In</button></form>',
+    recommendedModuleId: '204',
     starter:'.styled-form { /* container */ }\n.styled-form input { /* base input */ }\n.styled-form input:focus { /* focus state */ }\n.styled-form button { /* submit */ }',
     requirements:['Input has border and padding','Focus state changes border color','Uses outline: none with custom focus','Button is fully styled'],
     tests:[

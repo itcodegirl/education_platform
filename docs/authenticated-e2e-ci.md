@@ -40,6 +40,20 @@ gh secret set E2E_PASSWORD
 
 Treat a skipped authenticated E2E run as a known limitation, not as a signed-in test pass.
 
+## CI Summary Signal
+
+The authenticated E2E preflight writes a redacted GitHub step summary whenever
+it runs in Actions. Review that summary before treating a green workflow as
+mobile learner-shell coverage:
+
+- `signed-in coverage enabled` means the credential set passed preflight and
+  the authenticated learner smoke, lesson flow, and mobile shell specs should
+  run.
+- `public-only coverage` means CI stayed green without signed-in validation
+  because the full secret set was not present.
+- `blocked` means authenticated coverage was required but Supabase or credential
+  configuration failed before Playwright could run.
+
 ## Static Coverage Guard
 
 `npm run audit:auth-e2e` checks that CI still runs the auth preflight and that the authenticated smoke runner still includes:

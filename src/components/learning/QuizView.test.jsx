@@ -224,7 +224,7 @@ describe('QuizView', () => {
         quiz={quiz}
         accent="#4ecdc4"
         label="Quick Check"
-        quizKey="html-foundations-quiz"
+        quizKey="l:html:h1-1"
       />,
     );
 
@@ -236,8 +236,14 @@ describe('QuizView', () => {
       expect(screen.getByText(/rebuild the lesson example/i)).toBeInTheDocument();
       expect(addToSRQueue).toHaveBeenCalledWith([
         expect.objectContaining({
+          id: 'l:html:h1-1:q1',
           question: 'Which tag creates a top-level heading?',
+          questionId: 'q1',
           source: 'Quick Check',
+          quizKey: 'l:html:h1-1',
+          quizType: 'lesson',
+          courseId: 'html',
+          lessonId: 'h1-1',
         }),
       ]);
     });
