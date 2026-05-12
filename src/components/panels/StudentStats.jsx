@@ -32,6 +32,7 @@ export function StudentStats({ isOpen, onClose }) {
   const [challengeCatalogReady, setChallengeCatalogReady] = useState(
     () => COURSE_CATALOG.every((course) => areChallengesLoaded(course.id)),
   );
+  const [showFullBreakdown, setShowFullBreakdown] = useState(false);
   const modalRef = useRef(null);
 
   useEffect(() => {
@@ -203,6 +204,9 @@ export function StudentStats({ isOpen, onClose }) {
       body: 'Keep the session simple: read the goal, try the build, save progress, then move on.',
     };
   })();
+  // For a brand-new learner the detailed breakdown is mostly zeros, so it
+  // stays collapsed until they ask for it (or they complete a lesson).
+  const detailVisible = stats.totalDone > 0 || showFullBreakdown;
 
   return (
     <div className="search-overlay" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
@@ -336,6 +340,18 @@ export function StudentStats({ isOpen, onClose }) {
             </div>
           </div>
 
+          {!detailVisible && (
+            <button
+              type="button"
+              className="ss-show-breakdown"
+              onClick={() => setShowFullBreakdown(true)}
+            >
+              Show full breakdown
+            </button>
+          )}
+
+          {detailVisible && (
+          <>
           <div className="ss-section ss-mastery-section">
             <div className="ss-section-heading-row">
               <h3 className="ss-section-title">Mastery Evidence</h3>
@@ -440,6 +456,8 @@ export function StudentStats({ isOpen, onClose }) {
                 )}
               </div>
             </div>
+          )}
+          </>
           )}
 
           <div className="ss-section">
