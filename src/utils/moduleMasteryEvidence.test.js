@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { summarizeModuleMasteryEvidence } from './moduleMasteryEvidence';
+import {
+  normalizeReviewCardLearningContext,
+  summarizeModuleMasteryEvidence,
+} from './moduleMasteryEvidence';
 
 const COURSES = [
   {
@@ -27,6 +30,29 @@ const getChallengesForCourse = () => [
 ];
 
 describe('summarizeModuleMasteryEvidence', () => {
+  it('normalizes review-card learning context across old and new field names', () => {
+    expect(normalizeReviewCardLearningContext({
+      quiz_key: 'l:html:l1',
+      question_id: 'q1',
+    })).toMatchObject({
+      quizKey: 'l:html:l1',
+      quizType: 'lesson',
+      courseId: 'html',
+      lessonId: 'l1',
+      questionId: 'q1',
+    });
+
+    expect(normalizeReviewCardLearningContext({
+      course_id: 'html',
+      module_id: 'm1',
+      lesson_key: 'c:html|m:m1|l:l1',
+    })).toMatchObject({
+      courseId: 'html',
+      moduleId: 'm1',
+      lessonKey: 'c:html|m:m1|l:l1',
+    });
+  });
+
   it('marks completed modules with quiz and challenge proof as evidence ready', () => {
     const result = summarizeModuleMasteryEvidence({
       courses: COURSES,
@@ -70,6 +96,54 @@ describe('summarizeModuleMasteryEvidence', () => {
       quizNeedsReview: 1,
     });
   });
+
+  it('maps due review cards that only have legacy lesson metadata', () => {
+    const result = summarizeModuleMasteryEvidence({
+      courses: COURSES,
+      completedSet: new Set(['c:html|m:m1|l:l1']),
+      quizResults: [{ key: 'l:html:l1', percent: 100 }],
+      challengeCompletions: ['challenge-1'],
+      getChallengesForCourse,
+      srCards: [
+        { course_id: 'html', lesson_id: 'l1', nextReview: 0 },
+        { lessonKey: 'c:html|m:m2|l:l2', nextReview: 0 },
+      ],
+      now: 1000,
+    });
+
+    const foundations = result.modules.find((moduleEvidence) =>
+      moduleEvidence.moduleId === 'm1',
+    );
+    const structure = result.modules.find((moduleEvidence) =>
+      moduleEvidence.moduleId === 'm2',
+    );
+
+    expect(foundations).toMatchObject({
+      statusLabel: 'Review evidence due',
+      reviewDue: 1,
+    });
+    expect(structure).toMatchObject({
+      reviewDue: 1,
+    });
+  });
+
+  it('does not map legacy review cards across an explicit wrong course', () => {
+    const result = summarizeModuleMasteryEvidence({
+      courses: COURSES,
+      completedSet: new Set(['c:html|m:m1|l:l1']),
+      quizResults: [{ key: 'l:html:l1', percent: 100 }],
+      challengeCompletions: ['challenge-1'],
+      getChallengesForCourse,
+      srCards: [{ courseId: 'css', lessonId: 'l1', nextReview: 0 }],
+      now: 1000,
+    });
+
+    expect(result.modules.find((moduleEvidence) => moduleEvidence.moduleId === 'm1')).toMatchObject({
+      reviewDue: 0,
+      statusLabel: 'Ready to advance',
+    });
+  });
+
 
   it('flags completed lessons without quiz proof as needing a quick check', () => {
     const result = summarizeModuleMasteryEvidence({

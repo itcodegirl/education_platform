@@ -28,19 +28,43 @@ function quizBelongsToModule(quizKey, course, moduleData) {
   return false;
 }
 
+export function normalizeReviewCardLearningContext(card = {}) {
+  const quizKey = card.quizKey || card.quiz_key || '';
+  const parsedQuizKey = parseQuizKey(quizKey);
+  const parsedContext = parsedQuizKey.type ? {
+    courseId: parsedQuizKey.courseId,
+    moduleId: parsedQuizKey.type === 'm' ? parsedQuizKey.entityId : '',
+    lessonId: parsedQuizKey.type === 'l' ? parsedQuizKey.entityId : '',
+    quizType: parsedQuizKey.type === 'm' ? 'module' : 'lesson',
+  } : {};
+
+  return {
+    quizKey,
+    quizType: card.quizType || card.quiz_type || parsedContext.quizType || '',
+    courseId: card.courseId || card.course_id || parsedContext.courseId || '',
+    moduleId: card.moduleId || card.module_id || parsedContext.moduleId || '',
+    lessonId: card.lessonId || card.lesson_id || parsedContext.lessonId || '',
+    lessonKey: card.lessonKey || card.lesson_key || '',
+    questionId: card.questionId || card.question_id || '',
+  };
+}
+
 function reviewCardBelongsToModule(card, course, moduleData) {
   if (!card || !course || !moduleData) return false;
+  const context = normalizeReviewCardLearningContext(card);
 
-  if (quizBelongsToModule(card.quizKey, course, moduleData)) return true;
+  if (context.courseId && context.courseId !== course.id) return false;
+  if (context.moduleId) return context.moduleId === moduleData.id;
+  if (quizBelongsToModule(context.quizKey, course, moduleData)) return true;
 
-  const lessonKey = card.lessonKey || card.lesson_key || '';
+  const lessonKey = context.lessonKey;
   if (lessonKey) {
     return (moduleData.lessons || []).some((lesson) =>
       lessonKeyMatchesLesson(lessonKey, course, moduleData, lesson),
     );
   }
 
-  const lessonId = card.lessonId || card.lesson_id || '';
+  const lessonId = context.lessonId;
   if (lessonId) {
     return (moduleData.lessons || []).some((lesson) => lesson.id === lessonId);
   }
