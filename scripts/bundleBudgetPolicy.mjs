@@ -46,6 +46,12 @@ export const DEFAULT_BUNDLE_BUDGETS = [
     gzipMaxKb: 60,
   },
   {
+    label: 'course runtime data lazy chunk',
+    match: (file) => /^data-(html|css|js|react)-(?!challenges)[^.]+\.js$/i.test(file),
+    maxKb: 260,
+    gzipMaxKb: 80,
+  },
+  {
     label: 'general JavaScript chunk',
     match: (file) => file.toLowerCase().endsWith('.js'),
     maxKb: 700,

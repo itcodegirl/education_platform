@@ -196,6 +196,22 @@ describe('bundle budget policy', () => {
     expect(report.sizeFailures.some((entry) => /jspdf|html2canvas/.test(entry.file))).toBe(false);
   });
 
+  it('uses a dedicated budget for lazy course runtime data chunks', () => {
+    const fixture = createBundleFixture({
+      assets: {
+        'index-app.js': 'console.log("app");',
+        'index-app.css': 'body{color:white;}',
+        'data-js-course.js': 'a'.repeat(250 * 1024),
+      },
+    });
+
+    const report = collectBundleBudgetReport(fixture);
+    const courseDataChunk = report.sizeReport.find((entry) => entry.file === 'data-js-course.js');
+
+    expect(courseDataChunk?.budget.label).toBe('course runtime data lazy chunk');
+    expect(report.sizeFailures.some((entry) => entry.file === 'data-js-course.js')).toBe(false);
+  });
+
   it('checks initial entry gzip budgets separately from lazy chunks', () => {
     const fixture = createBundleFixture({
       indexHtml: '<script type="module" src="/assets/index-app.js"></script>',
