@@ -266,6 +266,9 @@
   font-size: 14px;
   font-weight: 600;
   font-family: 'Inter', sans-serif;
+  color: #e8e8f0;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.14);
 }
 
 .auth-preview-btn {
