@@ -10,8 +10,8 @@ import { askLessonTutor, AI_ERROR_CODES } from '../../services/aiService';
 const MAX_TUTOR_CHARS = 4000;
 const HISTORY_WINDOW = 8;
 
-export function AITutor({ lesson, moduleTitle, courseId }) {
-  const [isOpen, setIsOpen] = useState(false);
+export function AITutor({ lesson, moduleTitle, courseId, initialOpen = false }) {
+  const [isOpen, setIsOpen] = useState(Boolean(initialOpen));
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -21,9 +21,11 @@ export function AITutor({ lesson, moduleTitle, courseId }) {
   );
   const messagesEnd = useRef(null);
   const inputRef = useRef(null);
+  const previousLessonIdRef = useRef(lesson?.id);
 
-  // Reset when lesson changes
   useEffect(() => {
+    if (previousLessonIdRef.current === lesson?.id) return;
+    previousLessonIdRef.current = lesson?.id;
     setMessages([]);
     setInput('');
     setIsOpen(false);

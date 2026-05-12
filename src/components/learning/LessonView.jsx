@@ -18,7 +18,7 @@
 import { useState, useEffect, useCallback, memo } from 'react';
 import { useLearnerLocalStorage } from '../../hooks/useLearnerLocalStorage';
 import { useToggleBookmark } from '../../hooks/useToggleBookmark';
-import { AITutor } from './AITutor';
+import { DeferredAITutor } from './DeferredAITutor';
 import { LessonFeedback } from './LessonFeedback';
 import { LessonHeader } from './LessonHeader';
 import { LessonNotesPanel } from './LessonNotesPanel';
@@ -155,7 +155,7 @@ export const LessonView = memo(function LessonView({
       )}
 
       <LessonFeedback lessonKey={lessonKey} />
-      <AITutor lesson={lesson} moduleTitle={moduleTitle} courseId={courseId} />
+      <DeferredAITutor lesson={lesson} moduleTitle={moduleTitle} courseId={courseId} />
     </div>
   );
 });
