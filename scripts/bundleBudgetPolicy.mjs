@@ -67,10 +67,15 @@ export const FORBIDDEN_MODULE_PRELOADS = [
     rel: 'stylesheet',
     pattern: /App-[^"']+\.css/i,
   },
+  {
+    label: 'public auth route chunks',
+    rel: 'modulepreload',
+    pattern: /(?:AuthLayout|LandingHero)-[^"']+\.js/i,
+  },
 ];
 
 export const INITIAL_ENTRY_BUDGETS = {
-  jsGzipKb: 170,
+  jsGzipKb: 95,
   cssGzipKb: 12,
 };
 

@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   collectBundleBudgetReport,
   DEFAULT_BUNDLE_BUDGETS,
+  INITIAL_ENTRY_BUDGETS,
 } from '../../scripts/bundleBudgetPolicy.mjs';
 
 const tempDirs = [];
@@ -88,6 +89,28 @@ describe('bundle budget policy', () => {
     ]);
   });
 
+  it('keeps public auth route chunks out of the initial modulepreload list', () => {
+    const fixture = createBundleFixture({
+      indexHtml: [
+        '<link rel="modulepreload" href="/assets/AuthLayout-public.js">',
+        '<link rel="modulepreload" href="/assets/LandingHero-story.js">',
+      ].join('\n'),
+      assets: {
+        'index-app.js': 'console.log("app");',
+        'index-app.css': 'body{color:white;}',
+        'AuthLayout-public.js': 'console.log("auth");',
+        'LandingHero-story.js': 'console.log("story");',
+      },
+    });
+
+    const report = collectBundleBudgetReport(fixture);
+
+    expect(report.forbiddenPreloadFailures).toEqual([
+      expect.objectContaining({ label: 'public auth route chunks' }),
+      expect.objectContaining({ label: 'public auth route chunks' }),
+    ]);
+  });
+
   it('requires the initial stylesheet to stay budgeted', () => {
     const fixture = createBundleFixture({
       assets: {
@@ -149,5 +172,9 @@ describe('bundle budget policy', () => {
     expect(report.initialBudgetFailures).toEqual([
       expect.objectContaining({ label: 'initial JS gzip' }),
     ]);
+  });
+
+  it('keeps the production initial JavaScript budget under 100 kB gzip', () => {
+    expect(INITIAL_ENTRY_BUDGETS.jsGzipKb).toBeLessThanOrEqual(95);
   });
 });
