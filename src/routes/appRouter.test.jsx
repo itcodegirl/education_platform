@@ -96,7 +96,7 @@ describe('appRouter ProtectedRoute', () => {
     expect(screen.queryByText('private-content')).not.toBeInTheDocument();
   });
 
-  it('shows auth layout only after auth is initialized and no user exists', () => {
+  it('shows auth layout only after auth is initialized and no user exists', async () => {
     mockUseAuth.mockReturnValue({
       user: null,
       profile: null,
@@ -107,7 +107,8 @@ describe('appRouter ProtectedRoute', () => {
 
     renderProtectedRoute();
 
-    expect(screen.getByText('auth-layout')).toBeInTheDocument();
+    expect(screen.getByText(/Opening CodeHerWay/i)).toBeInTheDocument();
+    expect(await screen.findByText('auth-layout')).toBeInTheDocument();
   });
 
   it('renders protected content for restored active users', () => {
