@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { FIRST_SESSION_STEPS } from '../../utils/learnerContract';
 
 export const FirstRunGuide = memo(function FirstRunGuide({ learnerName, courseLabel }) {
   return (
@@ -15,14 +16,14 @@ export const FirstRunGuide = memo(function FirstRunGuide({ learnerName, courseLa
         )}
         <p className="frg-copy">
           Read the frame, try the build, then press <strong>Complete lesson</strong>.
-          That saves this step and points you to what comes next.
+          That saves reading progress and points you to what comes next.
         </p>
         <p className="frg-sub">Leave the tools for later unless something blocks you.</p>
       </div>
       <ol className="frg-steps" aria-label="First session steps">
-        <li>Read the goal.</li>
-        <li>Try the example.</li>
-        <li>Save reading progress with Complete lesson.</li>
+        {FIRST_SESSION_STEPS.map((step) => (
+          <li key={step}>{step}</li>
+        ))}
       </ol>
     </section>
   );
