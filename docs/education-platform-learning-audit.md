@@ -42,3 +42,4 @@ CodeHerWay should describe every learning unit in terms of:
 - This makes progression more meaningful without hard-gating navigation or inflating XP.
 - Daily learning loops now include recall as a normal step after ready quiz evidence.
 - Quiz result feedback now points strong scores toward delayed recall and weak scores toward shorter, non-guessing recovery loops.
+- Challenge recommendations now explain readiness, evidence scope, and the next practice step so practice work feels connected to curriculum evidence.

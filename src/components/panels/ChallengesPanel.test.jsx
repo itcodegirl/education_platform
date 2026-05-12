@@ -108,6 +108,8 @@ describe('ChallengesPanel', () => {
     expect(screen.getByText(/Practice match/i)).toBeInTheDocument();
     expect(screen.getByText(/Best connected to/i)).toHaveTextContent('HTML Foundations');
     expect(screen.getByText(/Ready for practice: HTML Foundations/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/2 requirements backed by 2 checks/i)).toHaveLength(2);
+    expect(screen.getAllByText(/Use the tests as feedback/i)[0]).toBeInTheDocument();
   });
 
 
