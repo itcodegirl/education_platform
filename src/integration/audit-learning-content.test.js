@@ -149,6 +149,53 @@ describe('learning content audit', () => {
     });
   });
 
+  it('reports thin instructional-design rubric coverage without blocking CI', () => {
+    const fixture = makeFixture({
+      htmlSecondLesson: {
+        content: 'Read this explanation only.',
+        do: undefined,
+        challenge: '',
+      },
+    });
+
+    const result = analyzeLearningContent(fixture);
+
+    expect(result.issues).toEqual([]);
+    expect(result.warnings).toEqual(expect.arrayContaining([
+      {
+        path: 'html.html-m1.lessons[1]',
+        message: expect.stringContaining('Lesson quality rubric is thin'),
+      },
+    ]));
+  });
+
+  it('warns when quiz items lack reasoning, misconception, or application coverage', () => {
+    const fixture = makeFixture();
+    fixture.loaded[0].data.quizzes = [
+      {
+        id: 'html-quiz-1',
+        lessonId: 'html-1-1',
+        questions: [
+          {
+            id: 'q1',
+            question: 'What tag creates a paragraph?',
+            options: ['p', 'div'],
+            correct: 0,
+            explanation: 'The p tag creates a paragraph.',
+          },
+        ],
+      },
+    ];
+
+    const result = analyzeLearningContent(fixture);
+
+    expect(result.issues).toEqual([]);
+    expect(result.warnings).toContainEqual({
+      path: 'html.quizzes[0]',
+      message: 'Quiz quality rubric is missing misconception, reasoning, application item coverage.',
+    });
+  });
+
   it('flags route-ambiguous course content ids before they break deep links', () => {
     const fixture = makeFixture();
     fixture.courseMetadata[0] = { ...fixture.courseMetadata[0], id: ' html' };
