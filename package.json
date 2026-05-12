@@ -9,6 +9,7 @@
     "build": "vite build --configLoader runner",
     "preview": "vite preview",
     "generate:reference": "node scripts/generate-reference-data.mjs",
+    "scaffold:legacy-lesson": "node scripts/migrate-legacy-lesson.mjs",
     "lint": "eslint .",
     "typecheck": "node scripts/typecheck.mjs",
     "lint:fix": "eslint . --fix",
