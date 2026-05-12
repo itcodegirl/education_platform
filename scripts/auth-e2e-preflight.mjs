@@ -1,6 +1,6 @@
 /* global AbortController, clearTimeout, console, fetch, process, setTimeout, URL */
 import { promises as dns } from 'node:dns';
-import { readFile } from 'node:fs/promises';
+import { appendFile, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -49,6 +49,44 @@ function getFailureStatus(required) {
 
 function summarizeProblemCodes(problems = []) {
   return problems.map((problem) => problem.code).filter(Boolean).join(',') || 'unknown';
+}
+
+function getSummaryStatus(result) {
+  if (result.ok) return 'signed-in coverage enabled';
+  if (!result.required) return 'public-only coverage';
+  return 'blocked';
+}
+
+function getSummaryNextAction(result) {
+  if (result.ok) {
+    return 'Run the authenticated learner smoke suite, including the mobile project.';
+  }
+
+  if (!result.required) {
+    return 'Configure all four authenticated E2E secrets before treating CI as signed-in mobile validation.';
+  }
+
+  return 'Fix the authenticated E2E configuration before relying on learner-shell coverage.';
+}
+
+export function formatAuthE2EPreflightSummary(result) {
+  return [
+    '## Authenticated Mobile E2E Readiness',
+    '',
+    `- Status: ${getSummaryStatus(result)}`,
+    `- Required: ${result.required ? 'yes' : 'no'}`,
+    `- Reason: ${result.reason || 'not_applicable'}`,
+    '- Covered when enabled: signed-in learner smoke, lesson flow, and mobile learning shell.',
+    `- Next action: ${getSummaryNextAction(result)}`,
+  ].join('\n');
+}
+
+export async function writeAuthE2EPreflightSummary(result, env = process.env) {
+  const summaryFile = normalizeEnvValue(env.GITHUB_STEP_SUMMARY);
+  if (!summaryFile) return false;
+
+  await appendFile(summaryFile, `${formatAuthE2EPreflightSummary(result)}\n\n`, 'utf8');
+  return true;
 }
 
 function stripMatchingQuotes(value) {
@@ -288,6 +326,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   }
 
   const result = await runAuthE2EPreflight();
+
+  try {
+    await writeAuthE2EPreflightSummary(result);
+  } catch (error) {
+    console.warn(`Could not write authenticated E2E GitHub step summary: ${error?.message || 'unknown error'}`);
+  }
 
   if (result.ok) {
     console.log(result.message);
