@@ -111,12 +111,12 @@ Go to **Settings** on the GitHub repo and fill in:
 
 ### Repository description
 
-> Free, browser-based coding bootcamp for women learning to ship. React + Vite + Supabase + a server-side AI tutor.
+> Free, browser-based, self-paced coding course for women learning web development by building real projects. React + Vite + Supabase + a server-side AI tutor. Portfolio/demo posture, not production credentialing.
 
 ### Repository topics
 
 ```
-react  vite  supabase  education  coding-bootcamp  women-in-tech
+react  vite  supabase  education  coding-course  women-in-tech
 pwa    javascript  netlify-functions  ai-tutor  openai  monaco-editor
 education-platform  security-hardened
 ```
