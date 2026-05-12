@@ -78,6 +78,7 @@ describe('StudentStats streak card', () => {
 
     const dialog = screen.getByRole('dialog', { name: /your progress/i });
     expect(dialog).toHaveAttribute('aria-modal', 'true');
+    expect(screen.getByRole('heading', { name: /progress snapshot/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /close progress panel/i })).toBeInTheDocument();
     expect(mockUseFocusTrap).toHaveBeenCalledWith(
       expect.any(Object),
@@ -156,6 +157,8 @@ describe('StudentStats streak card', () => {
 
     expect(screen.getByText(/No completed lessons yet/i)).toBeInTheDocument();
     expect(screen.getByText(/use Complete lesson to start your progress dashboard/i)).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /progress snapshot summary/i })).toHaveTextContent('0/2');
+    expect(screen.getByRole('region', { name: /progress snapshot summary/i })).toHaveTextContent('Not yet');
     expect(screen.getByRole('button', { name: /back to current lesson/i })).toBeInTheDocument();
   });
 
@@ -204,6 +207,7 @@ describe('StudentStats streak card', () => {
 
     expect(screen.getByText('Mastery Evidence')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /show full breakdown/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /progress snapshot summary/i })).toHaveTextContent('1/2');
   });
 
   it('labels progress completion as lesson completion', () => {
@@ -299,6 +303,7 @@ describe('StudentStats streak card', () => {
     expect(screen.getByText('Applied challenges')).toBeInTheDocument();
     expect(screen.getByText('Review due now')).toBeInTheDocument();
     expect(screen.getByText('Challenges: 1/1')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /progress snapshot summary/i })).toHaveTextContent('1');
   });
 
   it('surfaces module-level evidence so completion is tied to proof', () => {
