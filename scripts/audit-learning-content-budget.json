@@ -1,0 +1,24 @@
+{
+  "warningCount": 195,
+  "warningsByCourse": [
+    { "name": "react", "count": 91 },
+    { "name": "js", "count": 39 },
+    { "name": "html", "count": 33 },
+    { "name": "css", "count": 32 }
+  ],
+  "warningsByCategory": [
+    { "name": "quiz-quality-rubric", "count": 154 },
+    { "name": "lesson-quality-rubric", "count": 41 }
+  ],
+  "missingSignals": [
+    { "name": "application item coverage", "count": 133 },
+    { "name": "misconception", "count": 104 },
+    { "name": "reasoning", "count": 67 },
+    { "name": "objective", "count": 41 },
+    { "name": "retrievalPrompt", "count": 41 },
+    { "name": "transfer", "count": 38 },
+    { "name": "misconceptionCheck", "count": 37 },
+    { "name": "reasoning item coverage", "count": 14 },
+    { "name": "misconception item coverage", "count": 7 }
+  ]
+}

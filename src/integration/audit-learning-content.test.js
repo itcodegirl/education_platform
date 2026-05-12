@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   analyzeLearningContent,
   buildAuditSummary,
+  checkAuditWarningBudget,
 } from '../../scripts/audit-learning-content.mjs';
 
 const courseMetadata = [
@@ -302,6 +303,52 @@ describe('learning content audit', () => {
     expect(summary.missingSignals).toContainEqual(expect.objectContaining({
       name: 'recommendedModuleId',
     }));
+  });
+
+  it('keeps existing report-only warnings under an explicit budget', () => {
+    const summary = {
+      warningCount: 2,
+      warningsByCourse: [{ name: 'html', count: 2 }],
+      warningsByCategory: [{ name: 'quiz-quality-rubric', count: 2 }],
+      missingSignals: [{ name: 'application item coverage', count: 2 }],
+    };
+
+    expect(checkAuditWarningBudget(summary, {
+      warningCount: 2,
+      warningsByCourse: [{ name: 'html', count: 2 }],
+      warningsByCategory: [{ name: 'quiz-quality-rubric', count: 2 }],
+      missingSignals: [{ name: 'application item coverage', count: 2 }],
+    })).toEqual([]);
+  });
+
+  it('fails the warning budget when content quality warnings regress', () => {
+    const failures = checkAuditWarningBudget({
+      warningCount: 3,
+      warningsByCourse: [
+        { name: 'html', count: 2 },
+        { name: 'react', count: 1 },
+      ],
+      warningsByCategory: [
+        { name: 'quiz-quality-rubric', count: 2 },
+        { name: 'lesson-quality-rubric', count: 1 },
+      ],
+      missingSignals: [
+        { name: 'application item coverage', count: 2 },
+        { name: 'transfer', count: 1 },
+      ],
+    }, {
+      warningCount: 2,
+      warningsByCourse: [{ name: 'html', count: 2 }],
+      warningsByCategory: [{ name: 'quiz-quality-rubric', count: 2 }],
+      missingSignals: [{ name: 'application item coverage', count: 2 }],
+    });
+
+    expect(failures).toEqual(expect.arrayContaining([
+      'Total report-only warnings increased from 2 to 3.',
+      'Course warnings "react" increased from 0 to 1.',
+      'Warning category "lesson-quality-rubric" increased from 0 to 1.',
+      'Missing signal "transfer" increased from 0 to 1.',
+    ]));
   });
 
   it('flags route-ambiguous course content ids before they break deep links', () => {
