@@ -474,7 +474,7 @@ function analyzeQuizzes(courseId, quizzes, issues, warnings) {
   });
 }
 
-function analyzeChallenges(courseId, challenges, issues, warnings) {
+function analyzeChallenges(courseId, challenges, moduleIds, issues, warnings) {
   if (!Array.isArray(challenges)) {
     addIssue(issues, `${courseId}.challenges`, 'Course challenges export is not an array.');
     return;
@@ -499,6 +499,19 @@ function analyzeChallenges(courseId, challenges, issues, warnings) {
 
     if (isNonEmptyString(challenge.courseId) && challenge.courseId !== courseId) {
       addIssue(issues, challengePath, `Challenge courseId "${challenge.courseId}" does not match "${courseId}".`);
+    }
+    if (!isNonEmptyString(challenge.recommendedModuleId)) {
+      addWarning(
+        warnings,
+        challengePath,
+        'Challenge is missing recommendedModuleId; module readiness will fall back to difficulty-based placement.',
+      );
+    } else if (!moduleIds.has(String(challenge.recommendedModuleId))) {
+      addIssue(
+        issues,
+        challengePath,
+        `Challenge recommendedModuleId "${challenge.recommendedModuleId}" does not match an active module in ${courseId}.`,
+      );
     }
     if (!isNonEmptyString(challenge.title)) {
       addIssue(issues, challengePath, 'Challenge is missing a title.');
@@ -543,6 +556,89 @@ function printEntries(title, entries, limit = 30) {
   }
 }
 
+function getCourseIdFromPath(path) {
+  return String(path || '').split('.')[0] || 'unknown';
+}
+
+function getWarningCategory(message) {
+  const text = String(message || '');
+  if (text.startsWith('Lesson quality rubric is thin')) return 'lesson-quality-rubric';
+  if (text.startsWith('Lesson has shallow instructional scaffolding')) return 'instructional-scaffolding';
+  if (text.startsWith('Quiz quality rubric is missing')) return 'quiz-quality-rubric';
+  if (text.startsWith('Challenge is missing recommendedModuleId')) return 'challenge-module-mapping';
+  if (text.startsWith('Challenge is missing')) return 'challenge-evidence';
+  return 'other';
+}
+
+function getMissingSignals(message) {
+  const match = String(message || '').match(/missing ([^.;]+)[.;]/i);
+  if (!match) return [];
+  return match[1]
+    .split(',')
+    .map((signal) => signal.trim())
+    .filter(Boolean);
+}
+
+function incrementCount(map, key, amount = 1) {
+  map.set(key, (map.get(key) || 0) + amount);
+}
+
+function toSortedCountEntries(map) {
+  return [...map.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((left, right) => right.count - left.count || left.name.localeCompare(right.name));
+}
+
+export function buildAuditSummary({ issues = [], warnings = [], counts = {} } = {}) {
+  const warningsByCourse = new Map();
+  const warningsByCategory = new Map();
+  const missingSignals = new Map();
+
+  warnings.forEach((warning) => {
+    incrementCount(warningsByCourse, getCourseIdFromPath(warning.path));
+    incrementCount(warningsByCategory, getWarningCategory(warning.message));
+    getMissingSignals(warning.message).forEach((signal) => incrementCount(missingSignals, signal));
+  });
+
+  return {
+    counts,
+    issueCount: issues.length,
+    warningCount: warnings.length,
+    warningsByCourse: toSortedCountEntries(warningsByCourse),
+    warningsByCategory: toSortedCountEntries(warningsByCategory),
+    missingSignals: toSortedCountEntries(missingSignals),
+  };
+}
+
+function printAuditSummary(result) {
+  const summary = buildAuditSummary(result);
+
+  console.log('\nActionable summary:');
+  console.log(`  blocking issues: ${summary.issueCount}`);
+  console.log(`  report-only warnings: ${summary.warningCount}`);
+
+  if (summary.warningsByCourse.length > 0) {
+    console.log('\n  warnings by course:');
+    summary.warningsByCourse.forEach((entry) => {
+      console.log(`    - ${entry.name}: ${entry.count}`);
+    });
+  }
+
+  if (summary.warningsByCategory.length > 0) {
+    console.log('\n  warnings by category:');
+    summary.warningsByCategory.forEach((entry) => {
+      console.log(`    - ${entry.name}: ${entry.count}`);
+    });
+  }
+
+  if (summary.missingSignals.length > 0) {
+    console.log('\n  most common missing signals:');
+    summary.missingSignals.slice(0, 12).forEach((entry) => {
+      console.log(`    - ${entry.name}: ${entry.count}`);
+    });
+  }
+}
+
 export function analyzeLearningContent({ courseMetadata, loaded }) {
   const issues = [];
   const warnings = [];
@@ -563,9 +659,9 @@ export function analyzeLearningContent({ courseMetadata, loaded }) {
     quizCount += (data?.quizzes || []).length;
     challengeCount += (data?.challenges || []).length;
 
-    analyzeLessons(courseId, modules, lessonIndexes, issues, warnings);
+    const lessonAnalysis = analyzeLessons(courseId, modules, lessonIndexes, issues, warnings);
     analyzeQuizzes(courseId, data?.quizzes || [], issues, warnings);
-    analyzeChallenges(courseId, data?.challenges || [], issues, warnings);
+    analyzeChallenges(courseId, data?.challenges || [], lessonAnalysis.moduleIds, issues, warnings);
   }
 
   return {
@@ -582,6 +678,8 @@ export function analyzeLearningContent({ courseMetadata, loaded }) {
 }
 
 async function main() {
+  const showSummary = process.argv.includes('--summary');
+
   console.log('Learning Content Audit');
 
   const { courseMetadata, loaded } = await loadAllCourseData();
@@ -595,6 +693,9 @@ async function main() {
 
   printEntries('Warnings', result.warnings);
   printEntries('Blocking issues', result.issues);
+  if (showSummary) {
+    printAuditSummary(result);
+  }
 
   if (result.issues.length > 0) {
     process.exitCode = 1;

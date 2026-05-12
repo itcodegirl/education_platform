@@ -435,12 +435,16 @@ export function StudentStats({ isOpen, onClose }) {
               <div className="ss-section-heading-row">
                 <h3 className="ss-section-title">Module Evidence</h3>
                 <span className="ss-mastery-status">
-                  {stats.moduleEvidence.modulesWithEvidence}/{stats.moduleEvidence.modules.length} modules have quiz or challenge proof
+                  {stats.moduleEvidence.modulesReadyToAdvance}/{stats.moduleEvidence.modules.length} modules ready to advance
                 </span>
               </div>
               <p className="ss-section-copy">
                 Module evidence helps separate reading progress from usable understanding, so the next
                 step is based on proof instead of XP alone.
+              </p>
+              <p className="ss-module-policy">
+                Readiness requires completed lessons, a {stats.moduleEvidence.readinessPolicy.quizPassPercent}%+
+                quick check, applied work when available, and no due review.
               </p>
               <div className="ss-module-evidence-list">
                 {stats.moduleEvidence.focusModules.map((moduleEvidence) => (
@@ -451,6 +455,7 @@ export function StudentStats({ isOpen, onClose }) {
                     <div className="ss-module-evidence-main">
                       <span className="ss-module-course">{moduleEvidence.courseLabel}</span>
                       <h4 className="ss-module-title">{moduleEvidence.moduleTitle}</h4>
+                      <p className="ss-module-readiness">{moduleEvidence.readinessDetail}</p>
                       <p className="ss-module-action">{moduleEvidence.nextAction}</p>
                     </div>
                     <div className="ss-module-status-block">
