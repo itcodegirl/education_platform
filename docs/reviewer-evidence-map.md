@@ -9,6 +9,7 @@ This map turns the CodeHerWay portfolio story into concrete evidence. Use it whe
 | The app is honest about portfolio/demo readiness, not production readiness. | `README.md`, `KNOWN_LIMITATIONS.md`, `docs/trust-boundaries.md`, `docs/repair-roadmap.md` | Documentation consistently separates demo readiness from production launch gates. |
 | Progress Summary is not presented as a verified certificate. | `src/components/gamification/CourseComplete.jsx`, `docs/reward-backfill-strategy.md`, `KNOWN_LIMITATIONS.md` | Unit coverage in `src/components/gamification/CourseComplete.test.jsx`. |
 | Lesson completion means saved reading progress, while quizzes and challenges stay separate checks. | `src/utils/lessonCompletionCopy.js`, `src/components/learning/QuizView.jsx`, `docs/reviewer-start-here.md` | Unit/component tests around lesson completion and quiz reward behavior. |
+| Learner transcripts separate evidence from XP and recommend one next proof-building step. | `src/utils/learnerTranscript.js`, `src/components/panels/StudentStats.jsx`, `src/components/shared/ProfilePage.jsx` | Transcript utility/component coverage plus mobile layout regression coverage in `src/styles/mobileTranscriptLayout.test.js`. |
 | Cross-device reward trust is not overclaimed. | `docs/reward-sync-strategy.md`, `docs/backend-reward-events.md`, `docs/staging-supabase-validation.md` | Backend reward sync remains feature-gated and staging validation is required. |
 
 ## Architecture And Reliability Claims

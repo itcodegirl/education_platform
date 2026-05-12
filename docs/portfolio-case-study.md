@@ -120,6 +120,7 @@ The goal was to keep the existing core vision and architecture intact while maki
 - polished the mobile tools sheet with shared-registry icons, safer disabled states, and constrained labels for narrow screens
 - recovered stale lesson URLs to the first useful lesson in the requested course/module instead of sending learners back to the homepage
 - hardened saved lessons so older partial bookmark records render as unavailable saved items instead of crashing the panel
+- added learner transcript summaries that separate reading progress, recall checks, applied challenges, and due reviews, then recommend one next evidence step instead of implying XP alone proves mastery
 
 ---
 
@@ -130,6 +131,7 @@ The goal was to keep the existing core vision and architecture intact while maki
 | Reviewer entry | Multiple branches and historical repos made the canonical project harder to identify. | Root reviewer guide, branch triage, README status, and roadmap now point reviewers to the current product and its limits. |
 | Learner flow | New learners could see many tools before the first meaningful action was obvious. | First-session copy, lesson navigation, empty states, and progress surfaces now emphasize the next learning step. |
 | Reward trust | Quiz/challenge retries and fragile display labels could overstate progress reliability. | Stable quiz ownership, one-time local reward ledgers, retry-safe copy, and explicit backend-sync gating keep claims honest. |
+| Evidence clarity | Learners could see progress totals without knowing what evidence still needed attention. | Transcript panels now separate completion evidence from motivational XP and point to the next review, recall, challenge, or portfolio reflection step. |
 | Recovery | Save failures were mostly advisory. | Covered progress writes can queue, replay, and expose a visible retry action without claiming universal cloud durability. |
 | Stale links | Old or malformed lesson URLs could interrupt the learning flow. | Course and module recovery keeps learners inside the learning path, with tests covering route loader behavior and public preview smoke. |
 | Saved lessons | Partial legacy bookmarks assumed complete course and title data. | Saved lesson rows now use safe labels and disabled unavailable states when catalog matching is not possible. |
@@ -168,6 +170,12 @@ Why: learners need actionable recovery when saves fail, but the product should n
 Decision: harden local reward ledgers first, keep Supabase reward sync behind feature flags, and document the backend validation still needed.
 
 Why: duplicate XP and disappearing completion states hurt learner trust immediately, while production reward authority should wait for staging validation, RLS review, and duplicate-award constraints.
+
+### Tradeoff: motivation vs evidence integrity
+
+Decision: keep XP and badges as motivational signals, while transcript summaries name the proof-bearing work separately: saved reading, recall checks, applied challenges, due review cards, and a recommended next evidence step.
+
+Why: beginner learners still need encouragement, but a credible education product should avoid making rewards look like verified mastery.
 
 ### Tradeoff: observability vs learner privacy
 
@@ -209,6 +217,7 @@ Why: product reliability needs visibility, but portfolio credibility is stronger
 - cleaner QA hygiene because authenticated Playwright state is ignored instead of appearing as untracked session residue
 - improved AppLayout modularity: lesson view analytics and mark-done action extracted into independent, testable hooks, shrinking the layout file by 60 lines
 - hardened trust semantics: progress exports are framed as learning records, resume uses stable course/module/lesson IDs, public profiles expose aggregate fields only, and challenge grading is described as exercise-specific checks rather than credential verification
+- clearer learner transcript semantics: profile and stats surfaces now show the next proof-building action, with mobile wrapping and regression coverage for narrow screens
 - simplified learning-tool maintenance by moving mobile tool wiring and shared tool copy into a single registry
 - clearer portfolio narrative for both non-technical and technical reviewers
 
@@ -219,9 +228,10 @@ Why: product reliability needs visibility, but portfolio credibility is stronger
 1. Start at landing/auth and describe target learner.
 2. Show first-run guidance and dashboard orientation.
 3. Open a lesson, show progress and next-step signaling.
-4. Open search/bookmarks/review to demonstrate learning continuity.
-5. Explain AI architecture and security boundary.
-6. Close with quality gates and release checklist.
+4. Open the profile or stats transcript and explain how evidence differs from XP.
+5. Open search/bookmarks/review to demonstrate learning continuity.
+6. Explain AI architecture and security boundary.
+7. Close with quality gates and release checklist.
 
 ---
 
