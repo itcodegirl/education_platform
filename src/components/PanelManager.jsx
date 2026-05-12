@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import { ErrorBoundary } from './shared/ErrorBoundary';
 import { getCourseCompletedLessonCount, hasLessonCompletion } from '../utils/lessonKeys';
 import { COURSES } from '../data';
@@ -99,8 +99,14 @@ function ActivePanelBoundary({ panelName, context }) {
 export function PanelManager({
   panels, nav, course, profile, completed, hasCompletedProgress = true, lastPosition, courseTotal,
 }) {
-  const moduleProgress = computeModuleProgress(course, lastPosition, completed);
-  const panelContext = { panels, nav, course, hasCompletedProgress };
+  const moduleProgress = useMemo(
+    () => computeModuleProgress(course, lastPosition, completed),
+    [completed, course, lastPosition],
+  );
+  const panelContext = useMemo(
+    () => ({ panels, nav, course, hasCompletedProgress }),
+    [course, hasCompletedProgress, nav, panels],
+  );
 
   return (
     <ErrorBoundary fallback={({ retry }) => <PanelError retry={retry} />}>

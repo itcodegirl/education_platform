@@ -3,7 +3,7 @@
 // Extracted from App.jsx for clarity
 // ═══════════════════════════════════════════════
 
-import { useCallback, useMemo, useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { TIMING, MILESTONES } from '../utils/helpers';
 import { getLearnerStorageKey, getLegacyStorageKey } from '../utils/learnerStorageKeys';
 
@@ -167,12 +167,12 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
   }, []);
 
   const togglePanel = useCallback((name) => {
-    if (panelRef.current === name) {
+    if (panel === name) {
       closePanel();
       return;
     }
     openPanel(name);
-  }, [closePanel, openPanel]);
+  }, [closePanel, openPanel, panel]);
 
   return useMemo(() => ({
     panel, setPanel, closePanel, togglePanel,
@@ -184,15 +184,15 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
     checkMilestone,
     triggerCourseComplete,
   }), [
-    panel,
-    closePanel,
-    togglePanel,
-    sidebar,
-    showWelcome,
-    showOnboarding,
-    showCourseComplete,
-    confetti,
     checkMilestone,
+    closePanel,
+    confetti,
+    panel,
+    showCourseComplete,
+    showOnboarding,
+    showWelcome,
+    sidebar,
+    togglePanel,
     triggerCourseComplete,
   ]);
 }
