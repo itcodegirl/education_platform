@@ -16,7 +16,14 @@ describe('performance workflow wiring', () => {
     expect(packageJson.scripts['audit:performance']).toBe(
       'npm run build && npm run check:bundle && npm run check:route-boundaries',
     );
+    expect(packageJson.scripts['test:lighthouse']).toBe(
+      'npm run test:lighthouse:desktop && npm run test:lighthouse:mobile',
+    );
+    expect(packageJson.scripts['test:lighthouse:desktop']).toContain('./lighthouserc.json');
+    expect(packageJson.scripts['test:lighthouse:mobile']).toContain('./lighthouserc.mobile.json');
     expect(lighthouseWorkflow).toContain('npm run audit:performance');
     expect(lighthouseWorkflow).toContain('npm run test:lighthouse');
+    expect(lighthouseWorkflow).toContain('Upload Lighthouse CI artifacts');
+    expect(lighthouseWorkflow).toContain('.lighthouseci/');
   });
 });

@@ -56,7 +56,9 @@
     "test:e2e:install": "playwright install chromium",
     "test:e2e:report": "playwright show-report",
     "test:policy": "vitest run --configLoader runner src/integration/supabase-policy.test.js",
-    "test:lighthouse": "npx @lhci/cli@0.15.x autorun --config=./lighthouserc.json"
+    "test:lighthouse": "npm run test:lighthouse:desktop && npm run test:lighthouse:mobile",
+    "test:lighthouse:desktop": "npx @lhci/cli@0.15.x autorun --config=./lighthouserc.json",
+    "test:lighthouse:mobile": "npx @lhci/cli@0.15.x autorun --config=./lighthouserc.mobile.json"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",
