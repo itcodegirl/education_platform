@@ -107,6 +107,7 @@ describe('appRouter ProtectedRoute', () => {
 
     renderProtectedRoute();
 
+    expect(screen.getByText(/Opening CodeHerWay/i)).toBeInTheDocument();
     expect(await screen.findByText('auth-layout')).toBeInTheDocument();
   });
 

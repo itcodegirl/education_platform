@@ -1,25 +1,17 @@
-# CodeHerWay Performance Budget
+# Performance Budget
 
-This budget protects the current route-splitting architecture: public auth, protected app shell, course data, Monaco, Supabase, and export tooling must stay independently cacheable and lazy where practical.
+Use this budget as the working ceiling for performance-focused PRs. It is intentionally conservative for the public shell and explicit about heavy authenticated tooling.
 
-## Enforced Budgets
+| Surface | Budget | Why it matters |
+| --- | ---: | --- |
+| Initial JavaScript gzip | 170 kB | Keeps logged-out and first-run visits responsive on mobile connections. |
+| Initial CSS gzip | 12 kB | Protects first paint and avoids shipping authenticated UI styles to public entry. |
+| Main app chunk gzip | 120 kB | Prevents shared app code from growing without review. |
+| Initial stylesheet gzip | 45 kB | Allows the current CSS architecture while still catching large regressions. |
+| Protected app stylesheet gzip | 45 kB | Keeps authenticated shell styling behind the route boundary. |
+| General lazy JavaScript chunk | 700 kB raw | Forces large learning/tooling chunks to stay intentional. |
+| Monaco lazy chunks | 1,900 kB raw each | Tracks the known editor cost without pulling it into first load. |
 
-- Initial JavaScript gzip: 95 kB maximum.
-- Initial CSS gzip: 12 kB maximum.
-- Main app chunk gzip: 120 kB maximum.
-- Initial HTML must not modulepreload Monaco, Supabase, protected app styles, auth route chunks, or landing-story chunks.
-- Monaco remains lazy and isolated behind the editor surfaces.
+Run `npm run audit:performance` after touching routing, Vite chunking, editor surfaces, panels, PDF/export flows, service-worker behavior, or global CSS.
 
-## Review Triggers
-
-- Any new dependency above 20 kB gzip needs a lazy-loading reason or a replacement plan.
-- Any route component above 30 kB gzip should be split by workflow, not by arbitrary file count.
-- Any scroll, resize, orientation, keyboard, or visibility listener must have cleanup coverage.
-- Animation work should use opacity/transform and respect reduced motion.
-- Mobile routes should avoid loading desktop-only editor and analytics surfaces before user intent.
-
-## Current Baseline
-
-- Initial JavaScript gzip after the performance audit: about 84 kB.
-- Initial CSS gzip after the performance audit: about 8.2 kB.
-- Remaining large chunks are intentionally lazy: Monaco, course data, jsPDF/html2canvas, Supabase, and protected app CSS.
+Performance PRs should call out any budget change explicitly. Do not raise a budget to make a failing check pass unless the PR also explains the product tradeoff and why further splitting is not appropriate.

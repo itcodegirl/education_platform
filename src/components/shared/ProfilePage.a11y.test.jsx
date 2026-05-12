@@ -31,7 +31,11 @@ vi.mock('../../providers', () => ({
     signOut: mockSignOut,
   }),
   useTheme: () => ({ theme: 'dark' }),
-  useProgressData: () => ({ completed: ['c:html|m:m1|l:l1'] }),
+  useProgressData: () => ({
+    completed: ['c:html|m:m1|l:l1'],
+    quizScores: { 'l:html:l1': '1/1' },
+    challengeCompletions: ['html-challenge-1'],
+  }),
   useXP: () => ({
     xpTotal: 150,
     streak: 3,
@@ -41,6 +45,7 @@ vi.mock('../../providers', () => ({
   useSR: () => ({
     bookmarks: [{ lessonKey: 'c:html|m:m1|l:l1' }],
     notes: { 'c:html|m:m1|l:l1': 'Remember semantic headings.' },
+    srCards: [],
   }),
 }));
 
@@ -99,6 +104,9 @@ describe('ProfilePage accessibility', () => {
     expect(screen.getByRole('button', { name: /back/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /sign out/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/current learning status/i)).toHaveTextContent(/lessons completed/i);
+    expect(screen.getByRole('heading', { name: /private learning transcript/i })).toBeInTheDocument();
+    expect(screen.getByText(/strong learning proof/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/not a verified credential/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole('list', { name: /1 of 2 badges earned/i })).toBeInTheDocument();
 
     const results = await axe(container, {

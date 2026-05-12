@@ -8,7 +8,7 @@
 // it passes 'self'.
 //
 // Functionally identical to the inline version that used to live in
-// index.html: waits for window 'load', registers /sw.js?v=9 with
+// index.html: waits for window 'load', registers /sw.js?v=10 with
 // updateViaCache: 'none', posts SKIP_WAITING to any installed worker
 // so new deploys take over immediately, and reloads the page once on
 // controller change so the user always sees the latest version.
@@ -20,7 +20,7 @@ const shouldRegisterServiceWorker =
   import.meta.env.PROD;
 
 if (shouldRegisterServiceWorker) {
-  const SW_SCRIPT_URL = '/sw.js?v=9';
+  const SW_SCRIPT_URL = '/sw.js?v=10';
 
   async function unregisterLegacySw(registrationUrl) {
     try {
