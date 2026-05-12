@@ -114,6 +114,13 @@ test.describe('mobile learning smoke', () => {
     expect((controlBox?.y || 0) + (controlBox?.height || 0)).toBeLessThanOrEqual(availableBottom);
   }
 
+  async function expectMinimumTouchTarget(locator, minSize = 44) {
+    const box = await locator.boundingBox();
+    expect(box, 'control should have a measurable touch target').toBeTruthy();
+    expect(box.width, 'control should be wide enough for touch').toBeGreaterThanOrEqual(minSize);
+    expect(box.height, 'control should be tall enough for touch').toBeGreaterThanOrEqual(minSize);
+  }
+
   async function answerQuizQuestions(page) {
     const questions = page.locator('.qq');
     const questionCount = await questions.count();
