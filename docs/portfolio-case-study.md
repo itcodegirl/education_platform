@@ -118,6 +118,8 @@ The goal was to keep the existing core vision and architecture intact while maki
 - added a Supabase live-deployment checklist and RLS smoke-check boundary to keep portfolio claims aligned with actual hosted setup work
 - clarified lesson completion as saved reading progress, with quizzes and challenges presented as separate checks rather than hidden graduation rules
 - polished the mobile tools sheet with shared-registry icons, safer disabled states, and constrained labels for narrow screens
+- recovered stale lesson URLs to the first useful lesson in the requested course/module instead of sending learners back to the homepage
+- hardened saved lessons so older partial bookmark records render as unavailable saved items instead of crashing the panel
 
 ---
 
@@ -129,6 +131,8 @@ The goal was to keep the existing core vision and architecture intact while maki
 | Learner flow | New learners could see many tools before the first meaningful action was obvious. | First-session copy, lesson navigation, empty states, and progress surfaces now emphasize the next learning step. |
 | Reward trust | Quiz/challenge retries and fragile display labels could overstate progress reliability. | Stable quiz ownership, one-time local reward ledgers, retry-safe copy, and explicit backend-sync gating keep claims honest. |
 | Recovery | Save failures were mostly advisory. | Covered progress writes can queue, replay, and expose a visible retry action without claiming universal cloud durability. |
+| Stale links | Old or malformed lesson URLs could interrupt the learning flow. | Course and module recovery keeps learners inside the learning path, with tests covering route loader behavior and public preview smoke. |
+| Saved lessons | Partial legacy bookmarks assumed complete course and title data. | Saved lesson rows now use safe labels and disabled unavailable states when catalog matching is not possible. |
 | Quality signal | Tests existed, but release confidence depended on remembering several separate commands. | Local and CI quality gates now include content, quiz, Playwright project, authenticated E2E readiness, Supabase readiness, build, bundle, and unit checks. |
 
 ---
@@ -198,6 +202,7 @@ Why: product reliability needs visibility, but portfolio credibility is stronger
 - more tamper-resistant challenge grading: all HTML challenges use live DOM queries instead of source-text substring checks; CSS challenges use `getComputedStyle` for structural property verification
 - more believable progress reliability because direct learner saves can retry after transient failures and rapid XP awards no longer race each other down
 - stronger trust in lesson completion and bookmark persistence because recoverable route failures now fall back into the same-browser retry queue
+- stronger trust in navigation and saved-state resilience because stale lesson links recover gracefully and legacy bookmark rows no longer break the saved-lessons panel
 - stronger trust in learner rewards because lesson, quiz, and challenge completion paths now use stable IDs and once-only award guards
 - clearer recovery behavior because queued save failures show a direct retry action near the active learning step
 - stronger CI hygiene because authenticated smoke readiness now audits the signed-in, lesson-flow, and mobile-learning specs before credentials are required

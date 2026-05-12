@@ -32,6 +32,20 @@ function findBookmarkTarget(bookmark, courses) {
   return null;
 }
 
+function getBookmarkCourseLabel(bookmark, target) {
+  if (target?.course?.label) return target.course.label;
+  if (typeof bookmark.course_id === 'string' && bookmark.course_id.trim()) {
+    return bookmark.course_id.trim().toUpperCase();
+  }
+  return 'Saved course';
+}
+
+function getBookmarkTitle(bookmark) {
+  return typeof bookmark.lesson_title === 'string' && bookmark.lesson_title.trim()
+    ? bookmark.lesson_title.trim()
+    : 'Saved lesson';
+}
+
 export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
   const { bookmarks = [] } = useSR();
   const { handleRemoveBookmark } = useRemoveBookmark();
@@ -84,10 +98,11 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
             </div>
           ) : (
             <ul className="bookmark-list" aria-label="Saved lessons">
-              {bookmarks.map((bookmark) => {
+              {bookmarks.map((bookmark, index) => {
                 const target = findBookmarkTarget(bookmark, COURSE_CATALOG);
                 const moduleTitle = target?.moduleData?.title || 'Saved lesson';
-                const courseLabel = target?.course?.label || bookmark.course_id.toUpperCase();
+                const lessonTitle = getBookmarkTitle(bookmark);
+                const courseLabel = getBookmarkCourseLabel(bookmark, target);
                 const coursePath = `${courseLabel} > ${moduleTitle}`;
                 const isUnavailable = !target;
 
@@ -96,18 +111,18 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
                 // action. Nesting is avoided because HTML forbids a
                 // button inside another button.
                 return (
-                  <li key={bookmark.id || bookmark.lesson_key} className="bookmark-item">
+                  <li key={bookmark.id || bookmark.lesson_key || `${lessonTitle}-${index}`} className="bookmark-item">
                     <button
                       type="button"
                       className="bk-main"
                       onClick={() => handleClick(bookmark)}
                       aria-label={isUnavailable
-                        ? `${bookmark.lesson_title} is unavailable in the current course catalog`
-                        : `Open ${bookmark.lesson_title} (${coursePath})`}
+                        ? `${lessonTitle} is unavailable in the current course catalog`
+                        : `Open ${lessonTitle} (${coursePath})`}
                       disabled={isUnavailable}
                     >
                       <span className="bk-info">
-                        <span className="bk-title">{bookmark.lesson_title}</span>
+                        <span className="bk-title">{lessonTitle}</span>
                         <span className="bk-path">{coursePath}</span>
                       </span>
                     </button>
@@ -116,7 +131,7 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
                       className="bk-remove"
                       onClick={() => handleRemoveBookmark(bookmark)}
                       title="Remove bookmark"
-                      aria-label={`Remove bookmark for ${bookmark.lesson_title}`}
+                      aria-label={`Remove bookmark for ${lessonTitle}`}
                     >
                       ×
                     </button>

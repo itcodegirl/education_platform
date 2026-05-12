@@ -10,7 +10,7 @@ import { getLevel, getXPInLevel, XP_PER_LEVEL } from '../../utils/helpers';
 import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
 import { findQuizEntityTitle, quizKeyBelongsToCourse } from '../../utils/quizCourseOwnership';
 import { summarizeMasteryEvidence } from '../../utils/masteryProgress';
-import { getProgressSnapshotItems } from '../../utils/progressDashboard';
+import { summarizeModuleMasteryEvidence } from '../../utils/moduleMasteryEvidence';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 import { parseQuizScore } from '../../services/rewardPolicy';
@@ -139,6 +139,14 @@ export function StudentStats({ isOpen, onClose }) {
       challenges: allChallenges,
       srCards,
     });
+    const moduleEvidence = summarizeModuleMasteryEvidence({
+      courses: COURSE_CATALOG,
+      completedSet,
+      quizResults: allResults,
+      challengeCompletions,
+      getChallengesForCourse,
+      srCards,
+    });
 
     return {
       level,
@@ -152,6 +160,7 @@ export function StudentStats({ isOpen, onClose }) {
       overallQuizPercent,
       quizzesTaken: allResults.length,
       masteryEvidence,
+      moduleEvidence,
       strongest,
       weakest,
       streak,
@@ -285,6 +294,33 @@ export function StudentStats({ isOpen, onClose }) {
             </section>
           )}
 
+          <section className="ss-transcript" aria-labelledby="ss-transcript-title">
+            <div className="ss-section-heading-row">
+              <div>
+                <h3 id="ss-transcript-title" className="ss-section-title">Learning transcript</h3>
+                <p className="ss-section-copy">
+                  A private readiness snapshot that separates completed lessons from proof of understanding.
+                </p>
+              </div>
+              <span className={`ss-transcript-status ss-transcript-status-${stats.transcript.status.tone}`}>
+                {stats.transcript.status.label}
+              </span>
+            </div>
+            <p className="ss-evidence-next">{stats.transcript.status.detail}</p>
+            <div className="ss-transcript-grid">
+              {stats.transcript.items.map((item) => (
+                <div key={item.key} className={`ss-transcript-card ss-transcript-card-${item.tone}`}>
+                  <span className="ss-transcript-value">{item.value}</span>
+                  <span className="ss-transcript-label">{item.label}</span>
+                  <span className="ss-transcript-detail">{item.detail}</span>
+                </div>
+              ))}
+            </div>
+            <p className="ss-transcript-note">
+              Transcript signals are learning evidence, not a verified credential.
+            </p>
+          </section>
+
           <div className="ss-cards" style={stats.totalDone === 0 ? { opacity: 0.4, pointerEvents: 'none' } : undefined}>
             <div className="ss-card">
               <span className="ss-card-value">{stats.level}</span>
@@ -373,6 +409,55 @@ export function StudentStats({ isOpen, onClose }) {
 
           {detailVisible && (
           <>
+          {stats.moduleEvidence.focusModules.length > 0 && (
+            <div className="ss-section ss-module-evidence-section">
+              <div className="ss-section-heading-row">
+                <h3 className="ss-section-title">Module Evidence</h3>
+                <span className="ss-mastery-status">
+                  {stats.moduleEvidence.modulesWithEvidence}/{stats.moduleEvidence.modules.length} modules have quiz or challenge proof
+                </span>
+              </div>
+              <p className="ss-section-copy">
+                Module evidence helps separate reading progress from usable understanding, so the next
+                step is based on proof instead of XP alone.
+              </p>
+              <div className="ss-module-evidence-list">
+                {stats.moduleEvidence.focusModules.map((moduleEvidence) => (
+                  <article
+                    key={`${moduleEvidence.courseId}:${moduleEvidence.moduleId}`}
+                    className={`ss-module-evidence-row ss-module-evidence-${moduleEvidence.statusTone}`}
+                  >
+                    <div className="ss-module-evidence-main">
+                      <span className="ss-module-course">{moduleEvidence.courseLabel}</span>
+                      <h4 className="ss-module-title">{moduleEvidence.moduleTitle}</h4>
+                      <p className="ss-module-action">{moduleEvidence.nextAction}</p>
+                    </div>
+                    <div className="ss-module-status-block">
+                      <span className="ss-module-status">{moduleEvidence.statusLabel}</span>
+                      <span className="ss-module-lessons">
+                        {moduleEvidence.lessonDone}/{moduleEvidence.lessonTotal} lessons
+                      </span>
+                    </div>
+                    <dl className="ss-module-signals" aria-label={`${moduleEvidence.moduleTitle} evidence signals`}>
+                      <div>
+                        <dt>Checks</dt>
+                        <dd>{moduleEvidence.quizPassed}/{moduleEvidence.quizAttempted}</dd>
+                      </div>
+                      <div>
+                        <dt>Builds</dt>
+                        <dd>{challengeCatalogReady ? `${moduleEvidence.challengeDone}/${moduleEvidence.challengeTotal}` : '...'}</dd>
+                      </div>
+                      <div>
+                        <dt>Due</dt>
+                        <dd>{moduleEvidence.reviewDue}</dd>
+                      </div>
+                    </dl>
+                  </article>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="ss-section ss-mastery-section">
             <div className="ss-section-heading-row">
               <h3 className="ss-section-title">Mastery Evidence</h3>
