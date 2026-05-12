@@ -79,7 +79,7 @@ btn.addEventListener('click', () => {
     kicker: 'Step 4',
     title: 'Build real apps with React',
     blurb:
-      'Components, props, state, and hooks. Same language you know, just a better way to compose it.',
+      'Once you know JavaScript, React is the same language with a cleaner way to build screens — small reusable pieces instead of one long file.',
     lang: 'jsx',
     code: `function CountButton() {
   const [count, setCount] = useState(0);

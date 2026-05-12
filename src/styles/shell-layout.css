@@ -250,11 +250,16 @@
 }
 
 .frg-copy,
-.frg-sub {
+.frg-sub,
+.frg-course {
   margin: 8px 0 0;
   color: var(--text-dim);
   line-height: 1.5;
   max-width: 70ch;
+}
+
+.frg-course {
+  color: var(--text);
 }
 
 .frg-sub {

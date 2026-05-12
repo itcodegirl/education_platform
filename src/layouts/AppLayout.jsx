@@ -493,7 +493,7 @@ export function AppLayout() {
             </div>
           ) : (
             <>
-              {showStarterGuide && <FirstRunGuide learnerName={learnerName} />}
+              {showStarterGuide && <FirstRunGuide learnerName={learnerName} courseLabel={course.label} />}
               <LessonFocusStrip
                 lessonPosition={lessonPosition}
                 currentStepTitle={currentStepTitle}
