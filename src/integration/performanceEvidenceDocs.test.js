@@ -26,11 +26,15 @@ describe('performance evidence documentation', () => {
     expect(evidenceDoc).toContain('docs/asset-performance-policy.md');
     expect(evidenceDoc).toContain('npm run audit:asset-sizes');
     expect(evidenceDoc).toContain('docs/performance-budget.md');
+    expect(evidenceDoc).toContain('Web Vitals');
+    expect(evidenceDoc).toContain('ttfb');
+    expect(evidenceDoc).toContain('inp');
     expect(evidenceDoc).toContain('React Profiler');
     expect(reviewerMap).toContain('docs/performance-evidence.md');
     expect(reviewerMap).toContain('docs/authenticated-performance-evidence.md');
     expect(reviewerMap).toContain('docs/asset-performance-policy.md');
     expect(reviewerMap).toContain('scripts/check-asset-sizes.mjs');
+    expect(reviewerMap).toContain('src/lib/webVitals.js');
     expect(prTemplate).toContain('docs/performance-evidence.md');
   });
 });

@@ -12,10 +12,11 @@ For images, fonts, video, download, or preload changes, pair it with `docs/asset
 Local verification on this branch:
 
 - Production build succeeds.
-- Initial JavaScript gzip: about 84.12 kB, under the 170 kB budget.
+- Initial JavaScript gzip: about 84.18 kB, under the 170 kB budget.
 - Initial CSS gzip: about 8.21 kB, under the 12 kB budget.
 - Monaco, Supabase, and protected app styles are not preloaded from the entry HTML.
 - `jspdf` and `html2canvas` are blocked from static source imports and entry HTML preloads.
+- Browser Web Vitals telemetry is wired through the existing optional analytics path when analytics is configured.
 
 ## CI Artifacts
 
@@ -38,6 +39,10 @@ On pull requests, CI also maintains a single bundle review comment marked with `
 6. Run `npm run audit:asset-sizes` for image, font, video, or downloadable-file changes.
 7. Review mobile and desktop Lighthouse artifacts for score regressions, LCP, CLS, and Total Blocking Time.
 8. If the PR changes authenticated lesson flows, follow `docs/authenticated-performance-evidence.md` and capture React Profiler notes for lesson navigation, panel switching, quiz submission, challenge editor open, mobile tools, or export intent.
+
+## Production Signals
+
+When analytics is configured, the app records low-cardinality Web Vitals events for `ttfb`, `fcp`, `lcp`, `cls`, and `inp`. These events should be treated as directional production signals and compared with CI bundle/Lighthouse evidence before making performance claims.
 
 ## Known Limits
 
