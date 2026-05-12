@@ -181,6 +181,7 @@ export function StudentStats({ isOpen, onClose }) {
       streak,
       pausedStreak,
       dailyCount,
+      transcript,
       badgeCount: Object.keys(earnedBadges).length,
       totalBadges: BADGE_DEFS.length,
       srDue,

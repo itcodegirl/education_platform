@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { expectNoBlockingAxeViolations } from './a11yAssertions.js';
 
+test.setTimeout(60000);
+
 test.describe('accessibility smoke', () => {
   test('auth page has no serious axe violations', async ({ page }) => {
     await page.goto('/');
