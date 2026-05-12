@@ -434,6 +434,16 @@
   }
 }
 
+/* On phones the editor and preview are stacked, so two 320px panes push the
+   Run / Submit actions ~700px down the page. Shrink them so the primary CTA
+   stays reachable. */
+@media (max-width: 600px) {
+  .cc-editor-pane,
+  .cc-preview-pane {
+    min-height: 220px;
+  }
+}
+
 /* ═══════════════════════════════════════════════
    CHALLENGES PANEL + CARDS
    ═══════════════════════════════════════════════ */
