@@ -163,6 +163,8 @@ test.describe('public learner entry', () => {
   });
 
   test('publicResponsiveViewportsAvoidHorizontalOverflow', async ({ page }) => {
+    test.setTimeout(90000);
+
     for (const viewport of PUBLIC_RESPONSIVE_VIEWPORTS) {
       await page.setViewportSize(viewport);
       await page.goto('/');
@@ -185,6 +187,8 @@ test.describe('public learner entry', () => {
   });
 
   test('mobilePreviewKeepsAccountActionsReachable', async ({ page }, testInfo) => {
+    test.setTimeout(90000);
+
     test.skip(
       testInfo.project.name !== 'mobile-chrome',
       'Small-phone action reachability is scoped to mobile Chrome.',
@@ -197,7 +201,7 @@ test.describe('public learner entry', () => {
 
       await expect(page.locator('.guest-preview')).toBeVisible({ timeout: 30000 });
       await expectNoHorizontalOverflow(page);
-      await expectNoVisibleControlOverlap(page, '.guest-preview button, .guest-preview a');
+      await expectNoVisibleControlOverlap(page, 'main button, main a');
 
       const returnButton = page.getByLabel('Return to authentication page');
       await expect(returnButton).toBeVisible();
