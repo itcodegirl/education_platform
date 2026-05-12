@@ -20,9 +20,10 @@ export function getQuizResultFeedback({ pct = 0, wrongCount = 0, total = 0 } = {
   if (safePct === 100) {
     return {
       label: 'Confident for now',
-      meaning: 'Full marks this round. That is a good sign the idea is fresh — a quick recap locks it in.',
+      meaning: 'Full marks this round. That is a good sign the idea is fresh, and a quick recall pass helps it last.',
       actions: [
         'Explain one answer out loud before moving on.',
+        'Tomorrow, answer one similar question from memory.',
         'Try an applied challenge if one is available for this course.',
         'No review cards were added from this attempt.',
       ],
@@ -31,7 +32,7 @@ export function getQuizResultFeedback({ pct = 0, wrongCount = 0, total = 0 } = {
 
   if (safePct >= 80) {
     return {
-      label: 'Almost — one review pass',
+      label: 'Almost - one review pass',
       meaning: `You got most of this, with ${missedCopy}. The miss is where the learning is.`,
       actions: [
         'Review the missed explanation before continuing.',
@@ -45,7 +46,7 @@ export function getQuizResultFeedback({ pct = 0, wrongCount = 0, total = 0 } = {
 
   if (safePct >= 60) {
     return {
-      label: 'Partial — review the misses',
+      label: 'Partial - review the misses',
       meaning: `This is a partial signal: ${missedCopy} still needs attention.`,
       actions: [
         'Reread the lesson frame and the explanations for missed questions.',
@@ -63,6 +64,7 @@ export function getQuizResultFeedback({ pct = 0, wrongCount = 0, total = 0 } = {
     actions: [
       'Pause here and rebuild the lesson example before retrying.',
       'Use the explanations to name what each wrong answer was testing.',
+      'Do one shorter recall pass later instead of repeating guesses now.',
       hasMisses
         ? 'Missed items were added to spaced review; clear those before rushing ahead.'
         : 'No review cards were added from this attempt.',

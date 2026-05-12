@@ -40,4 +40,5 @@ CodeHerWay should describe every learning unit in terms of:
 - Course roadmap stages now define the role of HTML, CSS, JavaScript, and React.
 - Roadmap cards show outcome, evidence target, readiness, and the next useful step.
 - This makes progression more meaningful without hard-gating navigation or inflating XP.
-
+- Daily learning loops now include recall as a normal step after ready quiz evidence.
+- Quiz result feedback now points strong scores toward delayed recall and weak scores toward shorter, non-guessing recovery loops.
