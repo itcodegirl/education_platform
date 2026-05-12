@@ -91,6 +91,16 @@ export async function signUpWithEmail(
   return { data, error };
 }
 
+export async function resendSignupConfirmation(email) {
+  const supabase = await getSupabaseClient();
+  const { data, error } = await supabase.auth.resend({
+    type: 'signup',
+    email,
+    options: { emailRedirectTo: window.location.origin },
+  });
+  return { data, error };
+}
+
 export async function signInWithGithub() {
   const supabase = await getSupabaseClient();
   const { data, error } = await supabase.auth.signInWithOAuth({

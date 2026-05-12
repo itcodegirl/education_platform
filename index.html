@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content, viewport-fit=cover" />
     <meta name="application-name" content="CodeHerWay" />
     <meta name="apple-mobile-web-app-title" content="CodeHerWay" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -10,8 +10,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="theme-color" content="#08080f" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#f5f5f8" media="(prefers-color-scheme: light)" />
-    <meta name="description" content="CodeHerWay is a free, browser-based learning platform for women entering tech, with structured HTML, CSS, JavaScript, and React lessons, live code practice, and honest progress tracking." />
-    <meta name="keywords" content="learn to code, women in tech, HTML, CSS, JavaScript, React, coding education, free coding course, AI tutor" />
+    <meta name="description" content="CodeHerWay - a free, browser-based, self-paced coding course for women learning web development by building real projects, with an AI tutor, a live code editor, and hands-on practice challenges with instant feedback." />
+    <meta name="keywords" content="learn to code, women in tech, HTML, CSS, JavaScript, React, free coding course, self-paced, AI tutor" />
     <meta name="author" content="CodeHerWay" />
     <meta name="robots" content="index, follow" />
 
@@ -21,7 +21,7 @@
 
     <!-- Open Graph -->
     <meta property="og:title" content="CodeHerWay - Learn. Build. Ship." />
-    <meta property="og:description" content="A free, browser-based learning platform for women entering tech. Follow a calm path from HTML to CSS to JavaScript to React with live code practice." />
+    <meta property="og:description" content="A free, browser-based, self-paced coding course for women learning web development by building real projects. HTML -> CSS -> JavaScript -> React, with an AI tutor and a real code editor." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://codeherway.com/" />
     <meta property="og:image" content="https://codeherway.com/og-image.svg" />
@@ -32,7 +32,7 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="CodeHerWay - Learn. Build. Ship." />
-    <meta name="twitter:description" content="A free, browser-based learning platform for women entering tech. Follow a calm path from HTML to CSS to JavaScript to React with live code practice." />
+    <meta name="twitter:description" content="A free, browser-based, self-paced coding course for women learning web development by building real projects. HTML -> CSS -> JavaScript -> React, with an AI tutor and a real code editor." />
     <meta name="twitter:image" content="https://codeherway.com/og-image.svg" />
     <meta name="twitter:image:alt" content="CodeHerWay logo" />
 
@@ -54,7 +54,7 @@
           "name": "CodeHerWay",
           "url": "https://codeherway.com/",
           "logo": "https://codeherway.com/icon.svg",
-          "description": "A free, browser-based learning platform for women entering tech. Structured HTML, CSS, JavaScript, and React lessons with live code practice.",
+          "description": "A free, browser-based, self-paced coding course for women learning web development by building real projects. HTML, CSS, JavaScript, and React with an AI tutor and a live code editor.",
           "sameAs": [
             "https://github.com/itcodegirl/education_platform"
           ]
@@ -84,14 +84,53 @@
       .loading-pulse { text-align: center; animation: pulse 1.5s ease-in-out infinite; }
       .loading-pulse p { color: #8888a8; font-size: 14px; }
       @keyframes pulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
-      @media (prefers-reduced-motion: reduce) {
-        .loading-pulse { animation: none; }
+
+      /* No-JS fallback. The platform is a React SPA so we can't render
+         the lessons without JavaScript, but a blank screen is the worst
+         possible failure mode — give learners a meaningful message and
+         next steps instead. */
+      .nojs-shell {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 18px; min-height: 100vh; min-height: 100dvh;
+        padding: 32px 20px; text-align: center; max-width: 560px; margin: 0 auto;
       }
+      .nojs-shell h1 {
+        font-size: 22px; line-height: 1.3; margin: 0; color: #f0f0ff;
+        font-family: system-ui, -apple-system, sans-serif; font-weight: 700;
+      }
+      .nojs-shell p { font-size: 15px; line-height: 1.6; color: #b8b8d6; margin: 0; }
+      .nojs-shell ul {
+        list-style: none; padding: 0; margin: 0; display: flex;
+        flex-direction: column; gap: 8px; font-size: 14px; color: #b8b8d6;
+      }
+      .nojs-shell ul li::before { content: "→"; margin-right: 8px; color: #00e5ff; }
+      .nojs-shell a {
+        color: #00e5ff; text-decoration: underline; text-underline-offset: 2px;
+      }
+      .nojs-shell a:focus { outline: 3px solid #00e5ff; outline-offset: 3px; }
     </style>
   </head>
   <body>
     <div id="root"></div>
     <div id="modal-root"></div>
+    <noscript>
+      <div class="nojs-shell">
+        <h1>CodeHerWay needs JavaScript to run.</h1>
+        <p>
+          The interactive lessons, code editor, and AI tutor all rely on
+          JavaScript in the browser. We can't render them statically.
+        </p>
+        <ul>
+          <li>Enable JavaScript for <strong>codeherway.com</strong> in your browser settings, then refresh.</li>
+          <li>If a content blocker is interfering, allow scripts from this origin and reload.</li>
+          <li>
+            Want to read about the project first?
+            See the <a href="https://github.com/itcodegirl/education_platform">GitHub repository</a>
+            for the curriculum, architecture notes, and a written tour.
+          </li>
+        </ul>
+      </div>
+    </noscript>
     <!-- Main app entry. SW registration is imported from
          src/lib/registerSW.js inside main.jsx, so it's served from
          our own origin and passes the strict CSP `script-src 'self'`.

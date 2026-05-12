@@ -38,7 +38,7 @@ export function getNextLessonTitle({
 }
 
 export function getNextStepHint({ isLast, showModQuiz, isDone }) {
-  if (isLast) return 'Track complete. Pick another course or review a lesson that deserves another pass.';
+  if (isLast) return 'Course complete. Pick another course or review a lesson that deserves another pass.';
   if (showModQuiz) return 'Finish the quiz to save this checkpoint, then continue into the next module.';
   if (!isDone) return 'Complete the lesson when the idea clicks. This saves reading progress; quizzes and challenges stay separate.';
   return 'Saved. Continue to the next lesson when you are ready.';
@@ -62,7 +62,7 @@ export function getCurrentStepCopy({ isLast, showModQuiz, isDone, nextTitle }) {
   if (isDone) {
     if (isLast) {
       return {
-        title: 'Track complete',
+        title: 'Course complete',
         copy: 'This course is complete. Review a lesson, open another course, or polish a project when you are ready.',
       };
     }

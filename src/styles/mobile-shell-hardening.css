@@ -66,3 +66,42 @@
     white-space: nowrap;
   }
 }
+
+/* ── Safe-area (notch / home-indicator) handling ──────────────────────────
+   The viewport opts into `viewport-fit=cover` and the PWA uses a
+   black-translucent status bar, so the shell chrome must inset itself.
+   These rules are no-ops on devices without insets. */
+@media (max-width: 900px) {
+  /* Sticky top bar sits under the notch / Dynamic Island without this. */
+  .topbar {
+    padding-top: calc(14px + env(safe-area-inset-top, 0px));
+  }
+
+  /* Sidebar drawer spans the full screen height; keep its header below the
+     notch and its footer above the home indicator (box-sizing: border-box
+     keeps the overall 100dvh height intact). */
+  .sidebar {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Floating theme toggle (non-lesson pages — on lesson pages it is lifted
+     above the fixed nav by mobile-interactions.css). */
+  .theme-toggle {
+    bottom: max(20px, env(safe-area-inset-bottom, 0px));
+    right: max(18px, env(safe-area-inset-right, 0px));
+  }
+
+  /* Centered modal overlays: keep their padding clear of every inset so the
+     card and its dismiss control never land under hardware cutouts. */
+  .badge-unlock-overlay,
+  .break-overlay,
+  .ob-overlay,
+  .cc-overlay {
+    padding:
+      max(20px, env(safe-area-inset-top, 0px))
+      max(20px, env(safe-area-inset-right, 0px))
+      max(20px, env(safe-area-inset-bottom, 0px))
+      max(20px, env(safe-area-inset-left, 0px));
+  }
+}

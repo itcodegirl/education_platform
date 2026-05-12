@@ -59,6 +59,12 @@ The React course manifest (`src/data/react/course.js`) imports ten legacy `modul
 
 The structured shape is richer: each `concept` is `{ name, definition, analogy }`, the `do` step is itemised with proof requirements, and `bridge` previews the next lesson. The information density is intentionally higher.
 
+### Unused React module source files
+
+`src/data/react/modules/` contains 24 `module*.js` files but `src/data/react/course.js` imports only 10 of them. The other 14 (`accessibility-in-react.js`, `advanced-patterns.js`, `backend-integration-auth.js`, `build-a-real-project.js`, `components.js`, `conditional-rendering-lists.js`, `context-global-state.js`, `data-fetching-async-patterns.js`, `error-boundaries.js`, `events-in-react.js`, `props.js`, `state-usestate.js`, `styling-in-react.js`, `useref-custom-hooks.js`) are not wired into the curriculum. Some lesson quizzes in `src/data/react/quizzes.js` reference lesson IDs that only exist in those unused files (e.g. `r17-1` from `error-boundaries.js`), which is why `audit:quizzes` classifies them as `future-advanced-content` orphans.
+
+These files are not dead in the "delete on sight" sense — they are a curriculum reservoir. But they should be either (a) promoted into `course.js` as part of the structured-format migration below, or (b) removed together with their orphan quizzes. Until then, treat them as inert: do not import them ad hoc, and do not rely on `audit:quizzes` orphan counts staying constant if they move.
+
 ### Deferred improvement
 
 Convert the React course from the legacy `RichLessonBody` shape to the structured `StructuredLessonBody` shape. After conversion is complete and verified, the legacy renderer (`RichLessonBody.jsx`) and its branch in `LessonView.jsx` can be removed entirely.
@@ -86,9 +92,9 @@ A curriculum owner with React teaching experience needs to write the structured 
 
 ### Recommended migration approach
 
-1. **Lock the direction.** Add `scripts/audit-lesson-format.mjs` that walks every active module and fails CI when a lesson lacks all three of `hook`, `do`, `understand`. Wire it into `npm run check:quality`. New course content cannot ship in the legacy shape after that gate exists.
+1. **Lock the direction.** ✅ Done — `scripts/audit-lesson-format.mjs` walks every active lesson, classifies it the same way `LessonView.jsx` does (`hook || do || understand` → structured), and fails CI when a legacy-shape lesson appears that is not already in `scripts/lesson-format-allowlist.json`. It is wired into `npm run check:quality` as `npm run audit:lesson-format`. The allowlist is today the 41 React lessons; shrink it as modules are migrated (`node scripts/audit-lesson-format.mjs --update` after a reviewed change). New course content cannot ship in the legacy shape.
 2. **Land a worked example.** Pick one React module (e.g. `what-react-is.js` → `what-react-is.json`). Migrate it by hand, paying full curriculum attention to `understand.concepts`, `build.codeComparison`, and `challenge.requirements`. Ship the migrated file as the reference shape.
-3. **Add a scaffold script.** `scripts/migrate-legacy-lesson.mjs` reads a legacy module file and emits a starter `.json` with the obvious mappings filled in (`title`, `code`, `tasks` → `challenge.requirements`) and the gaps marked `TODO: …`. Make it explicit that the script is a starting point, not a finished migration.
+3. **Add a scaffold script.** ✅ Done — `scripts/migrate-legacy-lesson.mjs` (alias `npm run scaffold:legacy-lesson`) reads a legacy module file and emits a starter `.json` with the obvious mappings filled in (`title`, `prereqs`, `difficulty`, `duration`, `metadata`, `code`, `output` → `do.result`/`understand.keyTakeaway`, `concepts` → `understand.concepts[]`, `tasks` → `do.steps`, `challenge` → `challenge.mission`) and every gap marked `TODO: …`. The emitted file still contains `TODO:` strings on purpose, so it will not pass the content audits or render until a curriculum owner replaces them. Example: `npm run scaffold:legacy-lesson -- src/data/react/modules/what-react-is.js module1 --out src/data/react/modules/what-react-is.json`.
 4. **Migrate one module per PR.** Each PR imports the new `.json` in `src/data/react/course.js`, removes the legacy `.js` import, and runs the audit gate. The branch in `LessonView.jsx` is removed only when zero lessons fail the structured-shape audit.
 5. **Delete `RichLessonBody.jsx`** when the audit reports zero legacy lessons. At that point the component, its tests, and the `isStructured` branch are dead code.
 
@@ -205,13 +211,14 @@ If you are picking up either risk, confirm the external dependency is satisfied 
 
 In order, lowest risk first:
 
-1. Add `scripts/audit-lesson-format.mjs` and wire it into `check:quality`. This is internal-only and lockable today.
-2. Migrate one React module to the structured shape as a worked reference. Treat it as a curriculum review pass, not a code change.
-3. Apply the reward-events migrations to a Supabase staging project. Run the staging validation runbook end to end. Record results.
-4. Canary the flag in staging; confirm cross-device idempotency.
-5. Flip the production flag. Watch for 24 hours.
-6. Migrate the remaining React modules at curriculum-owner pace, one module per PR, removing legacy imports as each lands.
-7. Delete `RichLessonBody.jsx` and its branch in `LessonView.jsx` when the audit reports zero legacy lessons.
+1. ✅ Done — `scripts/audit-lesson-format.mjs` + `scripts/lesson-format-allowlist.json`, wired into `check:quality` via `npm run audit:lesson-format`. The direction is now locked: new lessons must be structured.
+2. ✅ Done (engineering side) — `scripts/migrate-legacy-lesson.mjs` (`npm run scaffold:legacy-lesson`) emits a starter structured `.json` from a legacy module with the obvious fields mapped and the rest marked `TODO:`. The curriculum-authoring pass for a first React module is still pending and needs a curriculum owner.
+3. Curriculum owner: author the first React module's structured content from the scaffold, import the `.json` in `src/data/react/course.js`, remove the legacy `.js` import, then remove those lessons from `scripts/lesson-format-allowlist.json` (`node scripts/audit-lesson-format.mjs --update`).
+4. Apply the reward-events migrations to a Supabase staging project. Run the staging validation runbook end to end. Record results.
+5. Canary the flag in staging; confirm cross-device idempotency.
+6. Flip the production flag. Watch for 24 hours.
+7. Migrate the remaining React modules at curriculum-owner pace, one module per PR, removing legacy imports as each lands.
+8. Delete `RichLessonBody.jsx` and its branch in `LessonView.jsx` when the audit reports zero legacy lessons.
 
 These are sequenced so that step `n+1` cannot regress step `n`.
 
@@ -231,6 +238,9 @@ src/engine/rewards/rewardReconciliation.js
 src/engine/rewards/rewardRuntime.js
 src/services/rewardEventService.js
 scripts/audit-learning-content.mjs
+scripts/audit-lesson-format.mjs
+scripts/lesson-format-allowlist.json
+scripts/migrate-legacy-lesson.mjs
 scripts/check-lesson-labels.mjs
 scripts/check-supabase-readiness.mjs
 scripts/check-staging-validation-runbook.mjs

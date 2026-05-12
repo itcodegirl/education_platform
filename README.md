@@ -17,7 +17,7 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 - This repository root is the active canonical app for CodeHerWay.
 - The project is usable for guided portfolio review.
 - The project is not yet production-grade.
-- The quality baseline currently includes lint, JS-source policy, Playwright script validation, Supabase static policy readiness, reward catalog integrity audit, production build, bundle budget, lesson-label audit, strict quiz audit, learning-content flow audit, unit tests, and Playwright smoke coverage.
+- The quality baseline currently includes lint, JS-source policy, Playwright script validation, Supabase static policy readiness, reward catalog integrity audit, production build, bundle budget, lesson-label audit, lesson-format audit (locks new lessons to the structured shape), strict quiz audit, learning-content flow audit, unit tests, and Playwright smoke coverage.
 - Recent audit hardening added stable resume coverage, learner-scoped local state, authenticated persistence boundary tests, clearer lesson/quiz/challenge semantics, mobile tool-sheet polish, and Supabase live-deployment readiness notes.
 
 ## What Is Currently Working
@@ -43,7 +43,7 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 
 Current baseline checks:
 
-- `npm run check` (lint, JS-source policy, Playwright project-reference audit, Supabase static policy readiness, staging runbook audit, production build, bundle budget, lesson-label audit, strict quiz audit, learning-content flow audit, and unit tests)
+- `npm run check` (lint, JS-source policy, Playwright project-reference audit, Supabase static policy readiness, staging runbook audit, production build, bundle budget, lesson-label audit, lesson-format audit, strict quiz audit, learning-content flow audit, and unit tests)
 - `npm run build`
 - `npm run lint`
 - `npm run typecheck` (JS-only source policy alias; this project intentionally does not run the TypeScript compiler)
@@ -65,6 +65,7 @@ Current test boundaries:
 - Playwright authenticated storage state is generated under `playwright/.auth/` and intentionally ignored by Git.
 - `npm run audit:quizzes` runs in strict mode by default and is the source of truth for quiz integrity drift. It fails on any unclassified orphan quizzes or unreviewed variant groups. All 14 intentional variant groups are locked; 53 legacy orphans are classified and non-blocking.
 - `npm run audit:content` fails on stale prerequisite IDs, missing bridge lesson IDs, and implicit cross-course lesson handoffs.
+- `npm run audit:lesson-format` fails when a lesson ships in the legacy `RichLessonBody` shape and is not in `scripts/lesson-format-allowlist.json` (today: the 41 React lessons). New course content must use the structured `hook`/`do`/`understand` shape; intentional exceptions require `node scripts/audit-lesson-format.mjs --update` in the same PR. See [docs/handoff-deferred-risks.md](./docs/handoff-deferred-risks.md) (Risk A).
 - `npm run audit:e2e-scripts` fails when package scripts or smoke runners reference Playwright projects that do not exist in `playwright.config.js`.
 - The local reward-event ledger/queue and Supabase reward backend branches are now unified. The local engine remains the default fallback, and backend reward sync remains disabled until the migrations are applied and authenticated reward flows are validated in a real project.
 - Backend reward details live in [docs/backend-reward-events.md](./docs/backend-reward-events.md), [docs/atomic-reward-award.md](./docs/atomic-reward-award.md), and [docs/reward-sync-strategy.md](./docs/reward-sync-strategy.md).
@@ -153,7 +154,7 @@ Concrete shape of the project at the current commit:
 - A reward system (XP, streaks, badges, bookmarks, spaced-repetition queue) with idempotent local reward history, same-browser retry support for direct progress writes, serialized XP saves for back-to-back rewards, and feature-gated Supabase reward-event support. Backend reward sync remains intentionally off until the Supabase migrations and authenticated duplicate-award flows are verified.
 - A lazy-loaded Monaco editor split into multiple chunks via Vite manual chunking so it never enters the initial bundle.
 - A top-level `ErrorBoundary` so a provider crash falls back to a visible retry/reload screen, not a blank page.
-- A Vitest unit/component suite of 600+ tests including accessibility integration tests (axe-core).
+- A Vitest unit/component suite of 900+ tests including accessibility integration tests (axe-core).
 - A Playwright public smoke suite plus opt-in authenticated lesson, mobile, and visual paths.
 
 Files most worth a look from a senior reviewer:

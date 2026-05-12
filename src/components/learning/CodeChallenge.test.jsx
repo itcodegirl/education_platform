@@ -130,7 +130,7 @@ describe('CodeChallenge', () => {
     fireEvent.click(screen.getByRole('button', { name: /run tests/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/All tests passed! You nailed it./i)).toBeInTheDocument();
+      expect(screen.getByText(/All checks passed — your code meets the requirements\./i)).toBeInTheDocument();
     });
     expect(screen.getByText(/Some checks inspect the preview DOM or computed styles/i)).toBeInTheDocument();
     expect(screen.getAllByText(/matched the expected checks/i).length).toBeGreaterThan(0);

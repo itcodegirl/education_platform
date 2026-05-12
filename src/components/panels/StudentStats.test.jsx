@@ -162,6 +162,38 @@ describe('StudentStats streak card', () => {
     expect(screen.getByText(/XP, streaks, badges, review queue, and challenges are single-device today/i)).toBeInTheDocument();
   });
 
+  it('keeps the detailed breakdown collapsed until a brand-new learner opts in', () => {
+    mockUseXP.mockReturnValue({
+      xpTotal: 0,
+      streak: 0,
+      pausedStreak: null,
+      dailyCount: 0,
+      earnedBadges: {},
+    });
+
+    render(<StudentStats isOpen onClose={vi.fn()} />);
+
+    expect(screen.queryByText('Mastery Evidence')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /show full breakdown/i }));
+    expect(screen.getByText('Mastery Evidence')).toBeInTheDocument();
+  });
+
+  it('shows the detailed breakdown immediately once a lesson is complete', () => {
+    mockUseProgressData.mockReturnValue({ completed: ['c:html|m:m1|l:l1'], quizScores: {} });
+    mockUseXP.mockReturnValue({
+      xpTotal: 80,
+      streak: 1,
+      pausedStreak: null,
+      dailyCount: 1,
+      earnedBadges: {},
+    });
+
+    render(<StudentStats isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText('Mastery Evidence')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /show full breakdown/i })).not.toBeInTheDocument();
+  });
+
   it('labels progress completion as lesson completion', () => {
     mockUseProgressData.mockReturnValue({ completed: ['c:html|m:m1|l:l1'], quizScores: {} });
     mockUseXP.mockReturnValue({

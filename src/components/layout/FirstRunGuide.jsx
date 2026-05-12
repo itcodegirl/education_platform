@@ -1,6 +1,6 @@
 import { memo } from 'react';
 
-export const FirstRunGuide = memo(function FirstRunGuide({ learnerName }) {
+export const FirstRunGuide = memo(function FirstRunGuide({ learnerName, courseLabel }) {
   return (
     <section className="first-run-guide" aria-label="Getting started">
       <div className="frg-content">
@@ -8,6 +8,11 @@ export const FirstRunGuide = memo(function FirstRunGuide({ learnerName }) {
         <h2 className="frg-title">
           {learnerName ? `Start with this lesson, ${learnerName}.` : 'Start with this lesson.'}
         </h2>
+        {courseLabel && (
+          <p className="frg-course">
+            You&apos;re at the beginning of <strong>{courseLabel}</strong> — one lesson at a time, in order.
+          </p>
+        )}
         <p className="frg-copy">
           Read the frame, try the build, then press <strong>Complete lesson</strong>.
           That saves this step and points you to what comes next.
@@ -22,4 +27,3 @@ export const FirstRunGuide = memo(function FirstRunGuide({ learnerName }) {
     </section>
   );
 });
-

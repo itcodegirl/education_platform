@@ -48,7 +48,7 @@ export const LessonPagination = memo(function LessonPagination({
       >
         <span className="nav-btn-text">
           {isLast ? (
-            'Track complete'
+            'Course complete'
           ) : nextTitle ? (
             <>
               <span className="nav-btn-label">Continue to</span>

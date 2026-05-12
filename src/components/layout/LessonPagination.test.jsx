@@ -33,7 +33,7 @@ describe('LessonPagination', () => {
 
     expect(screen.getByRole('button', { name: /previous lesson: earlier lesson/i })).toBeEnabled();
     expect(screen.getByRole('button', { name: /course complete/i })).toBeDisabled();
-    expect(screen.getByText(/track complete/i)).toBeInTheDocument();
+    expect(screen.getByText(/course complete/i)).toBeInTheDocument();
   });
 
   it('renders next-lesson title and aria-label when supplied', () => {

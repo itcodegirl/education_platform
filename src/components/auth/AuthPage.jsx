@@ -21,6 +21,7 @@ export function AuthPage({ onPreview }) {
     signInWithGithub,
     signInWithGoogle,
     forgotPassword,
+    resendConfirmation,
     authBackendReady = true,
   } = useAuth();
   const [mode, setMode] = useState('signup'); // 'login' | 'signup'
@@ -260,6 +261,8 @@ export function AuthPage({ onPreview }) {
           setConfirmSent(false);
           setMode('login');
         }}
+        onResend={authBackendReady ? resendConfirmation : undefined}
+        onPreview={onPreview}
       />
     );
   }
