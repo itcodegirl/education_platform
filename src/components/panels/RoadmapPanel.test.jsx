@@ -27,7 +27,10 @@ vi.mock('../../data/reference/course-catalog', () => ({
           id: 'm2',
           title: 'Forms',
           emoji: 'Fo',
-          lessons: [{ id: 'l2', title: 'Inputs' }],
+          lessons: [
+            { id: 'l2', title: 'Inputs' },
+            { id: 'l3', title: 'Validation' },
+          ],
         },
       ],
     },
@@ -48,7 +51,7 @@ describe('RoadmapPanel', () => {
     mockUseProgressData.mockReturnValue({ completedSet: new Set() });
   });
 
-  it('labels the current module and upcoming modules', () => {
+  it('labels the current module and not-started modules with readiness language', () => {
     render(
       <RoadmapPanel
         onClose={vi.fn()}
@@ -64,7 +67,7 @@ describe('RoadmapPanel', () => {
     expect(screen.getByText(/Evidence target:/i)).toHaveTextContent(/accessible structure/i);
   });
 
-  it('keeps complete modules distinct from the current module', () => {
+  it('keeps complete modules distinct from the current module readiness state', () => {
     mockUseProgressData.mockReturnValue({
       completedSet: new Set(['c:html|m:m1|l:l1']),
     });

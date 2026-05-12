@@ -4,6 +4,7 @@ import {
   getDashboardReadiness,
   getLearnerReadinessLabel,
   getLessonReadiness,
+  getModuleReadiness,
 } from './learnerReadiness';
 
 describe('learner readiness helpers', () => {
@@ -86,6 +87,39 @@ describe('learner readiness helpers', () => {
       state: LEARNER_READINESS_STATES.READY_TO_CONTINUE,
       label: 'Ready to continue',
       tone: 'ready',
+    });
+  });
+
+  it('keeps the current module in reading-in-progress before saved lessons', () => {
+    expect(
+      getModuleReadiness({ completedLessons: 0, totalLessons: 3, isCurrentModule: true }),
+    ).toMatchObject({
+      state: LEARNER_READINESS_STATES.READING_IN_PROGRESS,
+      label: 'Reading in progress',
+      tone: 'active',
+      isComplete: false,
+    });
+  });
+
+  it('marks partially completed modules as evidence needed', () => {
+    expect(
+      getModuleReadiness({ completedLessons: 1, totalLessons: 3 }),
+    ).toMatchObject({
+      state: LEARNER_READINESS_STATES.EVIDENCE_NEEDED,
+      label: 'Evidence needed',
+      tone: 'attention',
+      isComplete: false,
+    });
+  });
+
+  it('marks completed modules as ready to continue', () => {
+    expect(
+      getModuleReadiness({ completedLessons: 3, totalLessons: 3 }),
+    ).toMatchObject({
+      state: LEARNER_READINESS_STATES.READY_TO_CONTINUE,
+      label: 'Ready to continue',
+      tone: 'ready',
+      isComplete: true,
     });
   });
 });

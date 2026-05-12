@@ -32,7 +32,7 @@ This map turns the CodeHerWay portfolio story into concrete evidence. Use it whe
 | Keyboard users can bypass navigation and reach the main lesson content. | `src/layouts/AppLayout.jsx`, `src/styles/base.css` | Playwright skip-link coverage in `tests/e2e/lesson-flow.spec.js`. |
 | Dialogs and overlays are built with explicit focus management. | `src/hooks/useFocusTrap.js`, `src/components/panels/`, `src/components/shared/` | Component tests and `npm run test:a11y:unit`. |
 | Mobile navigation reduces clutter before a learner has progress. | `src/constants/learningTools.js`, `src/components/layout/BottomToolbar.jsx`, `src/components/layout/MobileToolsSheet.jsx` | Unit tests for tool availability and mobile sheet behavior. |
-| Public mobile viewports are covered at phone and tablet widths. | `tests/e2e/public-learning-entry.spec.js`, `tests/e2e/public.visual.spec.js`, `docs/mobile-qa-checklist.md` | Responsive smoke coverage plus snapshot baselines for 320, 360, 390, 430, and 768 widths. |
+| Public mobile viewports are covered at phone and tablet widths. | `scripts/run-public-playwright.mjs`, `tests/e2e/public-learning-entry.spec.js`, `tests/e2e/public.visual.spec.js`, `docs/mobile-qa-checklist.md` | `npm run test:e2e:smoke:public` and `npm run test:e2e:visual:public` cover 320, 360, 390, 430, and 768 widths without requiring authenticated credentials. |
 | Quiz retry and ordering behavior is clearer and less misleading. | `src/hooks/useQuizSession.js`, `src/components/learning/QuizView.jsx`, `src/components/learning/quiz/questionTypes.jsx` | Quiz session and QuizView tests. |
 
 ## Verification Commands
@@ -44,6 +44,8 @@ npm run build
 npm run test
 npm run lint
 npm run typecheck
+npm run test:e2e:smoke:public
+npm run test:e2e:visual:public
 ```
 
 `npm run typecheck` is intentionally a JS-only source-policy check in this HTML/CSS/JavaScript/React project.

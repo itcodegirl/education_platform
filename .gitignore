@@ -14,6 +14,7 @@ playwright-report
 playwright/.auth/
 test-results
 codex-*.log
+debug.log
 scripts/Delete-GitHubRepos.ps1
 secret_grid.bmp
 secret_grid.ppm

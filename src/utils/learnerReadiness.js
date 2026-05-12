@@ -111,3 +111,60 @@ export function getDashboardReadiness({
     tone: 'quiet',
   };
 }
+
+export function getModuleReadiness({
+  completedLessons = 0,
+  totalLessons = 0,
+  isCurrentModule = false,
+} = {}) {
+  const total = Math.max(0, Number(totalLessons) || 0);
+  const completed = Math.max(0, Math.min(Number(completedLessons) || 0, total));
+
+  if (total === 0) {
+    return {
+      state: LEARNER_READINESS_STATES.NOT_STARTED,
+      label: getLearnerReadinessLabel(LEARNER_READINESS_STATES.NOT_STARTED),
+      detail: 'No lessons are published in this module yet.',
+      tone: 'quiet',
+      isComplete: false,
+    };
+  }
+
+  if (completed >= total) {
+    return {
+      state: LEARNER_READINESS_STATES.READY_TO_CONTINUE,
+      label: getLearnerReadinessLabel(LEARNER_READINESS_STATES.READY_TO_CONTINUE),
+      detail: 'All lessons in this module are saved.',
+      tone: 'ready',
+      isComplete: true,
+    };
+  }
+
+  if (completed > 0) {
+    return {
+      state: LEARNER_READINESS_STATES.EVIDENCE_NEEDED,
+      label: getLearnerReadinessLabel(LEARNER_READINESS_STATES.EVIDENCE_NEEDED),
+      detail: 'Some reading is saved. Finish the remaining lessons or add practice evidence next.',
+      tone: 'attention',
+      isComplete: false,
+    };
+  }
+
+  if (isCurrentModule) {
+    return {
+      state: LEARNER_READINESS_STATES.READING_IN_PROGRESS,
+      label: getLearnerReadinessLabel(LEARNER_READINESS_STATES.READING_IN_PROGRESS),
+      detail: 'This is the active module to begin or continue.',
+      tone: 'active',
+      isComplete: false,
+    };
+  }
+
+  return {
+    state: LEARNER_READINESS_STATES.NOT_STARTED,
+    label: getLearnerReadinessLabel(LEARNER_READINESS_STATES.NOT_STARTED),
+    detail: 'This module is waiting for the learner.',
+    tone: 'quiet',
+    isComplete: false,
+  };
+}
