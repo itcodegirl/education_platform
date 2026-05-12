@@ -4,6 +4,8 @@ Last updated: May 12, 2026
 
 Use this guide when reviewing PRs that touch routing, Vite chunking, global CSS, Monaco/editor, export tools, course data, service worker behavior, or public/auth entry points.
 
+For signed-in learner flows, pair this file with `docs/authenticated-performance-evidence.md`.
+
 ## Current Proof Points
 
 Local verification on this branch:
@@ -32,11 +34,11 @@ On pull requests, CI also maintains a single bundle review comment marked with `
 3. Check that initial JS and CSS gzip remain below budget.
 4. Check that Monaco/editor, jsPDF, html2canvas, Supabase, and course data stay lazy and absent from public entry preloads.
 5. Review mobile and desktop Lighthouse artifacts for score regressions, LCP, CLS, and Total Blocking Time.
-6. If the PR changes authenticated lesson flows, capture React Profiler notes for lesson navigation, panel switching, quiz submission, or challenge editor open.
+6. If the PR changes authenticated lesson flows, follow `docs/authenticated-performance-evidence.md` and capture React Profiler notes for lesson navigation, panel switching, quiz submission, challenge editor open, mobile tools, or export intent.
 
 ## Known Limits
 
-- Lighthouse uses the public entry route. Authenticated learner performance still needs browser traces from a credentialed staging run.
+- Lighthouse uses the public entry route. Authenticated learner performance still needs browser traces from a credentialed staging run, documented through `docs/authenticated-performance-evidence.md`.
 - The PDF export dependency is intentionally allowed as a lazy interaction chunk. It should not move into shared app code.
 - Do not cite a Lighthouse score in reviewer materials until it comes from a completed CI run or a local run captured with the same config.
 

@@ -25,6 +25,7 @@ This map turns the CodeHerWay portfolio story into concrete evidence. Use it whe
 | Saved lesson panels tolerate older or partial bookmark records without crashing the learner shell. | `src/components/panels/BookmarksPanel.jsx`, `src/components/panels/BookmarksPanel.test.jsx` | Component coverage renders incomplete legacy bookmarks as disabled, understandable saved-lesson rows. |
 | Bundle growth is watched instead of ignored. | `vite.config.js`, `scripts/check-bundle-size.mjs`, `scripts/write-bundle-summary.mjs`, `docs/performance-budget.md`, `docs/performance-evidence.md` | `npm run audit:performance` runs the production build, bundle budget, route-boundary audit, and writes `dist/bundle-summary.json` for CI artifacts. |
 | Lighthouse claims have an evidence path instead of living as an unsupported performance claim. | `docs/lighthouse-evidence.md`, `docs/performance-evidence.md`, `scripts/check-lighthouse-evidence.mjs`, `.github/workflows/lighthouse-ci.yml`, `lighthouserc.json`, `lighthouserc.mobile.json` | `npm run audit:lighthouse-evidence` verifies the evidence doc and CI uploads `.lighthouseci/` reports. |
+| Authenticated learner performance claims require signed-in evidence. | `docs/authenticated-performance-evidence.md`, `scripts/check-authenticated-performance-evidence.mjs`, `tests/e2e/lesson-flow.spec.js`, `tests/e2e/mobile-learning-smoke.spec.js` | `npm run audit:authenticated-performance` verifies the runbook, and authenticated smoke commands provide traces when test credentials are configured. |
 
 ## Accessibility And UX Claims
 
