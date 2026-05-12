@@ -11,6 +11,8 @@ import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
 import { findQuizEntityTitle, quizKeyBelongsToCourse } from '../../utils/quizCourseOwnership';
 import { summarizeMasteryEvidence } from '../../utils/masteryProgress';
 import { summarizeModuleMasteryEvidence } from '../../utils/moduleMasteryEvidence';
+import { getProgressSnapshotItems } from '../../utils/progressDashboard';
+import { buildLearnerTranscriptSummary } from '../../utils/learnerTranscript';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 import { parseQuizScore } from '../../services/rewardPolicy';
@@ -139,6 +141,17 @@ export function StudentStats({ isOpen, onClose }) {
       challenges: allChallenges,
       srCards,
     });
+    const transcript = buildLearnerTranscriptSummary({
+      completedLessons: totalDone,
+      totalLessons,
+      quizChecksPassed: masteryEvidence.quizChecksPassed,
+      quizChecksAttempted: masteryEvidence.quizChecksAttempted,
+      quizChecksNeedsReview: masteryEvidence.quizChecksNeedsReview,
+      completedChallenges: masteryEvidence.completedChallenges,
+      totalChallenges: masteryEvidence.totalChallenges,
+      dueReviewCards: masteryEvidence.dueReviewCards,
+      totalReviewCards: masteryEvidence.totalReviewCards,
+    });
     const moduleEvidence = summarizeModuleMasteryEvidence({
       courses: COURSE_CATALOG,
       completedSet,
@@ -160,6 +173,7 @@ export function StudentStats({ isOpen, onClose }) {
       overallQuizPercent,
       quizzesTaken: allResults.length,
       masteryEvidence,
+      transcript,
       moduleEvidence,
       strongest,
       weakest,
