@@ -20,4 +20,11 @@ describe('mobile interaction layout styles', () => {
     expect(mobileInteractionsCss).toMatch(/\.search-modal\s*{[^}]*max-height:\s*calc\(100dvh/s);
     expect(mobileInteractionsCss).toMatch(/\.search-hint\s*{[^}]*clip:\s*rect\(0,\s*0,\s*0,\s*0\);/s);
   });
+
+  it('keeps mobile panel escape hatches visible and clear of safe-area clipping', () => {
+    expect(mobileInteractionsCss).toMatch(/\.panel-overlay\s*{[^}]*align-items:\s*stretch;/s);
+    expect(mobileInteractionsCss).toMatch(/\.panel,\s*\.roadmap-panel,\s*\.ss-modal,\s*\.wn-modal\s*{[^}]*max-height:\s*calc\(100dvh/s);
+    expect(mobileInteractionsCss).toMatch(/\.search-head,\s*\.cheatsheet-head,\s*\.ss-head,\s*\.panel-head,\s*\.wn-header\s*{[^}]*position:\s*sticky;[^}]*top:\s*0;/s);
+    expect(mobileInteractionsCss).toMatch(/\.cheatsheet-body,\s*\.ss-body,\s*\.roadmap-body,\s*\.wn-body,\s*\.panel-body\s*{[^}]*padding-bottom:\s*calc\(24px \+ env\(safe-area-inset-bottom, 0px\)\);/s);
+  });
 });

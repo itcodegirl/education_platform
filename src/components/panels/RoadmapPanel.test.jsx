@@ -5,6 +5,9 @@ import { RoadmapPanel } from './RoadmapPanel';
 const { mockUseProgressData } = vi.hoisted(() => ({
   mockUseProgressData: vi.fn(),
 }));
+const { mockUseFocusTrap } = vi.hoisted(() => ({
+  mockUseFocusTrap: vi.fn(),
+}));
 
 vi.mock('../../data/reference/course-catalog', () => ({
   COURSE_CATALOG: [
@@ -36,11 +39,12 @@ vi.mock('../../providers', () => ({
 }));
 
 vi.mock('../../hooks/useFocusTrap', () => ({
-  useFocusTrap: () => {},
+  useFocusTrap: (...args) => mockUseFocusTrap(...args),
 }));
 
 describe('RoadmapPanel', () => {
   beforeEach(() => {
+    mockUseFocusTrap.mockReset();
     mockUseProgressData.mockReturnValue({ completedSet: new Set() });
   });
 
@@ -56,6 +60,14 @@ describe('RoadmapPanel', () => {
 
     expect(screen.getByRole('button', { name: /foundations/i })).toHaveTextContent('Current');
     expect(screen.getByRole('button', { name: /forms/i })).toHaveTextContent('Upcoming');
+    expect(mockUseFocusTrap).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({
+        enabled: true,
+        onEscape: expect.any(Function),
+        initialFocus: 'first-tabbable',
+      }),
+    );
   });
 
   it('keeps complete modules distinct from the current module', () => {

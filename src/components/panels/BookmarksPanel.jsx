@@ -50,7 +50,11 @@ export function BookmarksPanel({ isOpen, onClose, onNavigate }) {
   const { bookmarks = [] } = useSR();
   const { handleRemoveBookmark } = useRemoveBookmark();
   const modalRef = useRef(null);
-  useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
+  useFocusTrap(modalRef, {
+    enabled: isOpen,
+    onEscape: onClose,
+    initialFocus: 'first-tabbable',
+  });
   if (!isOpen) return null;
 
   const handleClick = (bookmark) => {

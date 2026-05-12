@@ -22,6 +22,15 @@
 }
 
 @media (max-width: 900px) {
+  .panel-overlay {
+    align-items: stretch;
+    padding:
+      max(8px, env(safe-area-inset-top, 0px))
+      max(8px, env(safe-area-inset-right, 0px))
+      max(8px, env(safe-area-inset-bottom, 0px))
+      max(8px, env(safe-area-inset-left, 0px));
+  }
+
   .sidebar-avatar {
     min-width: 44px;
     min-height: 44px;
@@ -70,6 +79,26 @@
     border-radius: 16px;
   }
 
+  .panel,
+  .roadmap-panel,
+  .ss-modal,
+  .wn-modal {
+    width: 100%;
+    max-height: calc(100dvh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    margin: 0;
+    border-radius: 16px;
+  }
+
+  .search-head,
+  .cheatsheet-head,
+  .ss-head,
+  .panel-head,
+  .wn-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
   .search-input-wrap {
     gap: 8px;
     padding: 12px 14px;
@@ -92,8 +121,19 @@
   }
 
   .search-results {
+    padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    scroll-padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .cheatsheet-body,
+  .ss-body,
+  .roadmap-body,
+  .wn-body,
+  .panel-body {
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    scroll-padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   }
 
   .search-result {

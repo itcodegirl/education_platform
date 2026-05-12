@@ -7,7 +7,11 @@ export function BadgesPanel({ isOpen, onClose }) {
   const { earnedBadges } = useXP();
   const modalRef = useRef(null);
 
-  useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
+  useFocusTrap(modalRef, {
+    enabled: isOpen,
+    onEscape: onClose,
+    initialFocus: 'first-tabbable',
+  });
 
   if (!isOpen) return null;
 

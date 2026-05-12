@@ -55,7 +55,11 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
     }));
   }, [completed, courseId]);
 
-  useFocusTrap(modalRef, { enabled: true, onEscape: onClose });
+  useFocusTrap(modalRef, {
+    enabled: true,
+    onEscape: onClose,
+    initialFocus: 'first-tabbable',
+  });
 
   const refreshChallengeList = useCallback(async ({ resetActive = false } = {}) => {
     const requestId = loadRequestRef.current + 1;

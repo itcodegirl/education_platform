@@ -165,7 +165,11 @@ export function StudentStats({ isOpen, onClose }) {
     };
   }, [bookmarks, challengeCompletions, completed, earnedBadges, notes, quizScores, srCards, streak, pausedStreak, dailyCount, xpTotal]);
 
-  useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
+  useFocusTrap(modalRef, {
+    enabled: isOpen,
+    onEscape: onClose,
+    initialFocus: 'first-tabbable',
+  });
 
   if (!isOpen) return null;
 
