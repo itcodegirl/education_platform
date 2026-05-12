@@ -8,7 +8,7 @@ describe('lesson mastery status', () => {
       isLessonDone: false,
     });
 
-    expect(status.label).toBe('First pass');
+    expect(status.label).toBe('Reading in progress');
     expect(status.isReady).toBe(false);
   });
 
@@ -18,18 +18,18 @@ describe('lesson mastery status', () => {
       isLessonDone: true,
     });
 
-    expect(status.label).toBe('Evidence next');
+    expect(status.label).toBe('Evidence needed');
     expect(status.tone).toBe('attention');
   });
 
-  it('marks 80 percent and higher as a ready signal', () => {
+  it('marks 80 percent and higher as ready to continue', () => {
     const status = getLessonMasteryStatus({
       hasLessonQuiz: true,
       isLessonDone: true,
       scoreValue: '4/5',
     });
 
-    expect(status.label).toBe('Ready signal');
+    expect(status.label).toBe('Ready to continue');
     expect(status.isReady).toBe(true);
   });
 
@@ -40,7 +40,7 @@ describe('lesson mastery status', () => {
       scoreValue: '2/5',
     });
 
-    expect(status.label).toBe('Review loop');
+    expect(status.label).toBe('Review needed');
     expect(status.detail).toMatch(/Review the missed explanations/i);
   });
 });

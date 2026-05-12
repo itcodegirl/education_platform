@@ -10,8 +10,8 @@ export function getLessonMasteryStatus({
   if (!hasLessonQuiz) {
     return {
       tone: 'neutral',
-      label: 'Practice signal',
-      detail: 'This lesson has no quick check. Use the build, notes, or a challenge as your evidence.',
+      label: 'Practice evidence',
+      detail: 'This lesson has no quick check. Use the build, notes, or a challenge to prove the skill.',
       isReady: Boolean(isLessonDone),
     };
   }
@@ -19,8 +19,8 @@ export function getLessonMasteryStatus({
   if (!isLessonDone) {
     return {
       tone: 'neutral',
-      label: 'First pass',
-      detail: 'Read the lesson and try the build before using the quick check as evidence.',
+      label: 'Reading in progress',
+      detail: 'Read the lesson, try the build, then complete it to save reading progress.',
       isReady: false,
     };
   }
@@ -30,7 +30,7 @@ export function getLessonMasteryStatus({
   if (!parsed) {
     return {
       tone: 'attention',
-      label: 'Evidence next',
+      label: 'Evidence needed',
       detail: 'Reading progress is saved. Take the quick check before moving too far ahead.',
       isReady: false,
     };
@@ -39,7 +39,7 @@ export function getLessonMasteryStatus({
   if (parsed.pct >= LESSON_MASTERY_THRESHOLD) {
     return {
       tone: 'ready',
-      label: 'Ready signal',
+      label: 'Ready to continue',
       detail: `Quick check ${parsed.pct}%. Continue, then apply it in practice soon.`,
       isReady: true,
     };
@@ -47,7 +47,7 @@ export function getLessonMasteryStatus({
 
   return {
     tone: 'review',
-    label: 'Review loop',
+    label: 'Review needed',
     detail: `Quick check ${parsed.pct}%. Review the missed explanations before continuing.`,
     isReady: false,
   };
