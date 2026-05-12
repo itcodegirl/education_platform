@@ -102,7 +102,7 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey, l
           <div className="quiz-score" style={{ borderColor: accent }}>
             <div className="quiz-score-num" style={{ color: accent }}>{score}/{total}</div>
             <div className="quiz-score-pct">
-              {pct}%{pct === 100 ? ' — Perfect! 🎉' : pct >= 70 ? ' — Nice! 💪' : ' — Keep learning! 📚'}
+              {pct}%{pct === 100 ? ' — full marks' : pct >= 70 ? ' — solid round' : ' — worth another loop'}
             </div>
           </div>
           <div className="quiz-result-body">
@@ -130,8 +130,8 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey, l
               </div>
             )}
             <p className="quiz-next-step" role="status" aria-live="polite">
-            Review the explanations, then choose: retry for practice or continue to the next lesson.
-            XP is awarded once per quiz milestone.
+            This score is a quick confidence check, not a final grade. Review the explanations,
+            then retry for practice or continue to the next lesson. XP is awarded once per quiz milestone.
             </p>
           </div>
           <button type="button" className="quiz-retry" onClick={reset}>Retry for practice</button>

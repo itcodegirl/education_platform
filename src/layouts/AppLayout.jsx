@@ -470,6 +470,7 @@ export function AppLayout() {
           onMarkDone={handleMarkDone}
           markDoneAriaLabel={topbarCompletionCopy.ariaLabel}
           markDoneLabel={topbarCompletionCopy.label}
+          markDoneTitle={topbarCompletionCopy.title}
         />
 
         <div className="lesson-container">
@@ -492,7 +493,7 @@ export function AppLayout() {
             </div>
           ) : (
             <>
-              {showStarterGuide && <FirstRunGuide learnerName={learnerName} />}
+              {showStarterGuide && <FirstRunGuide learnerName={learnerName} courseLabel={course.label} />}
               <LessonFocusStrip
                 lessonPosition={lessonPosition}
                 currentStepTitle={currentStepTitle}
