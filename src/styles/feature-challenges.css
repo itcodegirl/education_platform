@@ -890,6 +890,8 @@
   padding: 16px 20px;
   max-height: 200px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .cc-ai-response p {
