@@ -1,6 +1,10 @@
 import { memo } from 'react';
 import { PROGRESS_SYNC_SHORT } from '../../constants/progressCopy';
 
+const LEVEL_SCOPE_TITLE = `Practice level - it rises as you earn XP from quizzes and challenges. It tracks effort, not mastery. ${PROGRESS_SYNC_SHORT}`;
+const STREAK_SCOPE_TITLE = `Days in a row you have completed at least one lesson. ${PROGRESS_SYNC_SHORT}`;
+const DAILY_SCOPE_TITLE = `Lessons you have marked done today. ${PROGRESS_SYNC_SHORT}`;
+
 export const TopbarLearnerStatus = memo(function TopbarLearnerStatus({
   learnerName,
   readTime,
@@ -23,7 +27,7 @@ export const TopbarLearnerStatus = memo(function TopbarLearnerStatus({
         </span>
       )}
       {xpTotal > 0 && (
-        <span className="topbar-pill" aria-label={`Level ${level}`} title="Practice level — it rises as you earn XP from quizzes and challenges. It tracks effort, not mastery.">Lv {level}</span>
+        <span className="topbar-pill" aria-label={`Level ${level}`} title={LEVEL_SCOPE_TITLE}>Lv {level}</span>
       )}
       {coursePct > 0 && (
         <span className="topbar-pill" aria-label={`Course completion ${coursePct} percent`} title="Share of this course's lessons you've marked done">
@@ -31,7 +35,7 @@ export const TopbarLearnerStatus = memo(function TopbarLearnerStatus({
         </span>
       )}
       {streak > 0 ? (
-        <span className="topbar-pill streak" aria-label={`${streak} day streak`} title="Days in a row you've completed at least one lesson">
+        <span className="topbar-pill streak" aria-label={`${streak} day streak`} title={STREAK_SCOPE_TITLE}>
           Streak: {streak} day{streak === 1 ? '' : 's'}
         </span>
       ) : pausedStreak ? (
@@ -44,7 +48,7 @@ export const TopbarLearnerStatus = memo(function TopbarLearnerStatus({
         </span>
       ) : null}
       {dailyCount > 0 && (
-        <span className="topbar-pill warm" aria-label={`Lessons done today: ${dailyCount}`} title="Lessons you've marked done today">
+        <span className="topbar-pill warm" aria-label={`Lessons done today: ${dailyCount}`} title={DAILY_SCOPE_TITLE}>
           {dailyCount} lesson{dailyCount === 1 ? '' : 's'} today
         </span>
       )}

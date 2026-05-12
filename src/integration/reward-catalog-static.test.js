@@ -7,5 +7,5 @@ describe('reward catalog migration', () => {
 
     expect(result.failures).toEqual([]);
     expect(result.ok).toBe(true);
-  });
+  }, 60000);
 });

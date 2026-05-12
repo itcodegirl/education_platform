@@ -344,6 +344,68 @@
   font-size: 18px;
 }
 
+.rm-course-status {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rm-course-readiness {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  color: var(--text-muted);
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.2;
+  padding: 3px 8px;
+  text-transform: uppercase;
+}
+
+.rm-course-readiness-current,
+.rm-course-readiness-evidence {
+  border-color: var(--amber-dim);
+  color: var(--amber);
+}
+
+.rm-course-readiness-complete {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.rm-course-learning-frame {
+  background: color-mix(in srgb, var(--bg-card) 78%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-dim);
+  display: grid;
+  gap: 4px;
+  margin: 10px 0 12px;
+  padding: 10px 12px;
+}
+
+.rm-course-learning-frame p {
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.rm-course-stage {
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.rm-course-evidence,
+.rm-course-next {
+  color: var(--text-muted);
+}
+
 .rm-bar {
   height: 6px;
   background: var(--bg-surface);
