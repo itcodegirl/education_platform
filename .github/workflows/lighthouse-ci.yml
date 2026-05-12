@@ -43,7 +43,6 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: lighthouse-ci-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            .lighthouseci/
+          path: .lighthouseci/
           if-no-files-found: ignore
           retention-days: 14

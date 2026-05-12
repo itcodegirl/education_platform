@@ -158,8 +158,8 @@ export function StudentStats({ isOpen, onClose }) {
       quizChecksNeedsReview: masteryEvidence.quizChecksNeedsReview,
       completedChallenges: masteryEvidence.completedChallenges,
       totalChallenges: masteryEvidence.totalChallenges,
-      dueReviewCards: srDue,
-      totalReviewCards: srCards.length,
+      dueReviewCards: masteryEvidence.dueReviewCards,
+      totalReviewCards: masteryEvidence.totalReviewCards,
     });
 
     return {
@@ -175,6 +175,7 @@ export function StudentStats({ isOpen, onClose }) {
       quizzesTaken: allResults.length,
       masteryEvidence,
       moduleEvidence,
+      transcript,
       strongest,
       weakest,
       streak,

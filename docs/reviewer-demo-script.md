@@ -24,12 +24,12 @@ npm run audit:performance
 
 1. Open the app and start at the public landing or first-lesson preview.
 2. Enter the learning app and point out the current primary action: read the lesson, then complete it.
-3. Complete one lesson and show the progress feedback, XP feedback, and updated course status.
-4. Open saved lessons, notes, review queue, badges, and challenges. Explain which tools are motivational/local today and which writes may sync.
-5. Submit a quiz, retry it, and point out that retrying is for practice while XP is awarded once per stable quiz milestone.
-6. Open Progress Summary and call out that it is not a verified credential.
-7. Mention that stale lesson links recover to the nearest valid lesson instead of leaving the learner stranded.
-8. Close with the roadmap and trust boundaries: portfolio-ready now, production-ready after staging Supabase validation, backend reward records, authenticated CI credentials, Lighthouse artifact review, and observability.
+3. Open the lesson evidence panel and show the learning contract: prerequisite, outcome, guided practice, recall check, and proof/transfer.
+4. Complete one lesson and show the progress feedback, XP feedback, and updated course status.
+5. Open saved lessons, notes, review queue, badges, and challenges. Explain which tools are motivational/local today and which writes may sync.
+6. Submit a quiz, retry it, and point out that retrying is for practice while XP is awarded once per stable quiz milestone.
+7. Open Progress Summary and call out that it is not a verified credential.
+8. Close with the roadmap and trust boundaries: portfolio-ready now, production-ready after staging Supabase validation, backend reward records, authenticated CI credentials, measured Lighthouse evidence, and observability.
 
 ## Failure-Path Moment
 
@@ -39,8 +39,7 @@ If demonstrating engineering depth, show the sync warning/retry copy or docs:
 - Queued progress writes expose a visible "Retry now" action near the current learning step.
 - Backend reward sync is intentionally disabled until migrations and duplicate-award tests pass.
 - The app avoids claiming cross-device reward trust before the backend supports it.
-- CI uploads Playwright and Lighthouse artifacts so failures are inspectable instead of disappearing into logs.
-- The PDF/export dependency is lazy and guarded by `npm run audit:performance`.
+- Lighthouse CI runs in GitHub Actions and uploads `.lighthouseci/` artifacts, but measured scores should only be claimed after `docs/lighthouse-evidence.md` has a dated row.
 
 ## What To Say In An Interview
 

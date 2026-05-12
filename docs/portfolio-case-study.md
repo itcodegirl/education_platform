@@ -104,6 +104,7 @@ The goal was to keep the existing core vision and architecture intact while maki
 - fixed consecutive XP awards so quiz completion plus perfect-score bonuses accumulate and persist in order
 - changed the public hero CTA from a developer-facing styleguide link to a learner-facing first-lesson preview
 - added desktop and mobile Playwright coverage for the public landing-to-preview learner path
+- added a Lighthouse evidence record and CI artifact upload path so performance claims have a dated-report workflow instead of staying aspirational
 - maintained small, intentional commits with check-backed verification
 
 ### 5. Learner trust hardening
@@ -117,6 +118,7 @@ The goal was to keep the existing core vision and architecture intact while maki
 - added account-switching and learner-scoped retry-queue tests so signed-in progress cannot silently bleed between learners in the unit harness
 - added a Supabase live-deployment checklist and RLS smoke-check boundary to keep portfolio claims aligned with actual hosted setup work
 - clarified lesson completion as saved reading progress, with quizzes and challenges presented as separate checks rather than hidden graduation rules
+- added a compact lesson learning contract that names prerequisite, outcome, guided practice, recall check, and proof/transfer expectations before progress evidence is shown
 - polished the mobile tools sheet with shared-registry icons, safer disabled states, and constrained labels for narrow screens
 - recovered stale lesson URLs to the first useful lesson in the requested course/module instead of sending learners back to the homepage
 - hardened saved lessons so older partial bookmark records render as unavailable saved items instead of crashing the panel
@@ -129,11 +131,12 @@ The goal was to keep the existing core vision and architecture intact while maki
 | --- | --- | --- |
 | Reviewer entry | Multiple branches and historical repos made the canonical project harder to identify. | Root reviewer guide, branch triage, README status, and roadmap now point reviewers to the current product and its limits. |
 | Learner flow | New learners could see many tools before the first meaningful action was obvious. | First-session copy, lesson navigation, empty states, and progress surfaces now emphasize the next learning step. |
+| Learning structure | Lesson progress could still look like a completion checkbox if a reviewer skipped the content details. | The lesson evidence panel now surfaces a compact learning contract before progress states, making outcome, practice, recall, and proof expectations visible. |
 | Reward trust | Quiz/challenge retries and fragile display labels could overstate progress reliability. | Stable quiz ownership, one-time local reward ledgers, retry-safe copy, and explicit backend-sync gating keep claims honest. |
 | Recovery | Save failures were mostly advisory. | Covered progress writes can queue, replay, and expose a visible retry action without claiming universal cloud durability. |
 | Stale links | Old or malformed lesson URLs could interrupt the learning flow. | Course and module recovery keeps learners inside the learning path, with tests covering route loader behavior and public preview smoke. |
 | Saved lessons | Partial legacy bookmarks assumed complete course and title data. | Saved lesson rows now use safe labels and disabled unavailable states when catalog matching is not possible. |
-| Quality signal | Tests existed, but release confidence depended on remembering several separate commands. | Local and CI quality gates now include content, quiz, Playwright project, authenticated E2E readiness, Supabase readiness, build, bundle, and unit checks. |
+| Quality signal | Tests existed, but release confidence depended on remembering several separate commands. | Local and CI quality gates now include content, quiz, Playwright project, authenticated E2E readiness, Supabase readiness, Lighthouse evidence, build, bundle, and unit checks. |
 
 ---
 
@@ -168,6 +171,12 @@ Why: learners need actionable recovery when saves fail, but the product should n
 Decision: harden local reward ledgers first, keep Supabase reward sync behind feature flags, and document the backend validation still needed.
 
 Why: duplicate XP and disappearing completion states hurt learner trust immediately, while production reward authority should wait for staging validation, RLS review, and duplicate-award constraints.
+
+### Tradeoff: guidance clarity vs lesson clutter
+
+Decision: add a compact lesson contract inside the existing evidence panel instead of creating another dashboard or onboarding step.
+
+Why: learners need to know what a lesson expects, but adding another tool would increase cognitive load. The contract keeps prerequisite, outcome, practice, recall, and proof guidance next to the progress states it explains.
 
 ### Tradeoff: observability vs learner privacy
 
@@ -209,6 +218,8 @@ Why: product reliability needs visibility, but portfolio credibility is stronger
 - cleaner QA hygiene because authenticated Playwright state is ignored instead of appearing as untracked session residue
 - improved AppLayout modularity: lesson view analytics and mark-done action extracted into independent, testable hooks, shrinking the layout file by 60 lines
 - hardened trust semantics: progress exports are framed as learning records, resume uses stable course/module/lesson IDs, public profiles expose aggregate fields only, and challenge grading is described as exercise-specific checks rather than credential verification
+- stronger educational structure because lesson evidence now includes prerequisite, outcome, guided practice, recall, and proof/transfer guidance in one visible contract
+- stronger performance evidence discipline because Lighthouse artifacts are uploaded in CI and the evidence doc is checked by the quality gate
 - simplified learning-tool maintenance by moving mobile tool wiring and shared tool copy into a single registry
 - clearer portfolio narrative for both non-technical and technical reviewers
 
@@ -218,7 +229,7 @@ Why: product reliability needs visibility, but portfolio credibility is stronger
 
 1. Start at landing/auth and describe target learner.
 2. Show first-run guidance and dashboard orientation.
-3. Open a lesson, show progress and next-step signaling.
+3. Open a lesson, show the learning contract, progress evidence, and next-step signaling.
 4. Open search/bookmarks/review to demonstrate learning continuity.
 5. Explain AI architecture and security boundary.
 6. Close with quality gates and release checklist.
@@ -230,7 +241,7 @@ Why: product reliability needs visibility, but portfolio credibility is stronger
 - add final screenshot assets in `docs/screenshots/`
 - configure Supabase test credentials so authenticated Playwright lesson/mobile flows run in CI instead of self-skipping
 - validate Supabase reward persistence in staging, including RLS, idempotent backend reward records, and test-user isolation
-- add Lighthouse CI scoring and budget reporting
+- record a dated Lighthouse score row in `docs/lighthouse-evidence.md` from the uploaded CI artifact
 - add richer analytics for onboarding drop-off and lesson completion friction
 - continue incremental CSS modularization to reduce global stylesheet surface area
 
