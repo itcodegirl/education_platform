@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getDailyLearningLoopSteps } from './dailyLearningLoop';
+import { LEARNER_READINESS_STATES } from './learnerReadiness';
 
 describe('daily learning loop', () => {
   it('starts with reading when a lesson is not done', () => {
@@ -7,7 +8,7 @@ describe('daily learning loop', () => {
 
     expect(steps[0]).toMatchObject({
       key: 'lesson',
-      state: 'Start here',
+      state: 'Reading in progress',
       tone: 'active',
       isCurrent: true,
     });
@@ -18,11 +19,11 @@ describe('daily learning loop', () => {
     const steps = getDailyLearningLoopSteps({
       isLessonDone: true,
       hasLessonQuiz: true,
-      masteryStatus: { tone: 'review', isReady: false },
+      masteryStatus: { state: LEARNER_READINESS_STATES.REVIEW_NEEDED, tone: 'review', isReady: false },
     });
 
     expect(steps.find((step) => step.key === 'quiz')).toMatchObject({
-      state: 'Review',
+      state: 'Review needed',
       tone: 'attention',
       isCurrent: true,
     });
@@ -32,7 +33,7 @@ describe('daily learning loop', () => {
     const steps = getDailyLearningLoopSteps({
       isLessonDone: true,
       hasLessonQuiz: true,
-      masteryStatus: { tone: 'ready', isReady: true },
+      masteryStatus: { state: LEARNER_READINESS_STATES.READY_TO_CONTINUE, tone: 'ready', isReady: true },
       dueReviewCount: 3,
     });
 

@@ -13,9 +13,9 @@ describe('progress dashboard summary', () => {
         tone: 'quiet',
       }),
       expect.objectContaining({
-        key: 'mastery',
-        value: 'Not yet',
-        detail: 'Quick checks will appear after lesson practice.',
+        key: 'readiness',
+        value: 'Not started',
+        detail: 'Complete one lesson to begin a reliable trail.',
       }),
       expect.objectContaining({
         key: 'review',
@@ -41,10 +41,10 @@ describe('progress dashboard summary', () => {
       value: '4/10',
       tone: 'ready',
     });
-    expect(items.find((item) => item.key === 'mastery')).toMatchObject({
-      value: '2/3',
-      detail: 'Quiz evidence is separate from practice XP.',
-      tone: 'quiet',
+    expect(items.find((item) => item.key === 'readiness')).toMatchObject({
+      value: 'Review needed',
+      detail: 'Clear one review card or retry a weak quick check before adding much new material.',
+      tone: 'attention',
     });
     expect(items.find((item) => item.key === 'review')).toMatchObject({
       value: '2',

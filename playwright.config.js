@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:4319';
+const playwrightPort = process.env.PLAYWRIGHT_PORT || '4319';
+const baseURL = process.env.PLAYWRIGHT_BASE_URL || `http://127.0.0.1:${playwrightPort}`;
 const useManagedDevServer = !process.env.PLAYWRIGHT_BASE_URL;
 const publicProjectIgnore = [
   /.*authenticated\..*\.spec\.js/,
@@ -61,7 +62,7 @@ export default defineConfig({
   ],
   webServer: useManagedDevServer
     ? {
-      command: 'npm run dev -- --host 127.0.0.1 --port 4319',
+      command: `npm run dev -- --host 127.0.0.1 --port ${playwrightPort}`,
       url: baseURL,
       // Always boot this repo's dev server for Playwright runs.
       // Reusing an existing process can attach to unrelated local apps

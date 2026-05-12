@@ -27,7 +27,7 @@ export function getDailyLearningLoopSteps({
     {
       key: 'lesson',
       label: 'Lesson',
-      state: isLessonDone ? 'Done' : 'Start here',
+      state: isLessonDone ? 'Reading saved' : 'Reading in progress',
       detail: isLessonDone
         ? 'Reading progress is saved.'
         : 'Read, build, and mark complete when the idea clicks.',
@@ -36,7 +36,15 @@ export function getDailyLearningLoopSteps({
     {
       key: 'quiz',
       label: 'Quick check',
-      state: !hasLessonQuiz ? 'No check' : quizReady ? 'Ready' : needsQuizReview ? 'Review' : 'Take next',
+      state: !hasLessonQuiz
+        ? 'No quick check'
+        : quizReady
+          ? 'Ready to continue'
+          : readinessState === LEARNER_READINESS_STATES.REVIEW_NEEDED
+            ? 'Review needed'
+            : readinessState === LEARNER_READINESS_STATES.EVIDENCE_NEEDED
+              ? 'Evidence needed'
+              : 'Quick check next',
       detail: !hasLessonQuiz
         ? 'Use practice or notes for evidence.'
         : quizReady

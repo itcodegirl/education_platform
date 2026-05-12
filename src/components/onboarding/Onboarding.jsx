@@ -2,6 +2,10 @@
 import { useLearnerLocalStorage } from '../../hooks/useLearnerLocalStorage';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { trackEvent } from '../../lib/analytics';
+import {
+  FIRST_SESSION_STEPS,
+  getMomentumGuidancePoints,
+} from '../../utils/learnerContract';
 
 const STEPS = [
   {
@@ -9,11 +13,7 @@ const STEPS = [
     eyebrow: 'One path',
     title: 'Start with the lesson in front of you',
     subtitle: 'CodeHerWay works best when the first session stays simple.',
-    points: [
-      'Read the goal before the details so you know what you are building.',
-      'Try the example and compare your screen to the result.',
-      'Use Complete lesson when the idea clicks and you are ready for the next step.',
-    ],
+    points: FIRST_SESSION_STEPS,
   },
   {
     icon: '02',
@@ -30,12 +30,8 @@ const STEPS = [
     icon: '03',
     eyebrow: 'Momentum',
     title: 'Let the next step stay obvious',
-    subtitle: 'After each save, follow the highlighted step instead of opening every tool.',
-    points: [
-      'If a quick check appears, use it to confirm what stuck.',
-      'If review is due, clear the short queue before adding more.',
-      'If everything is clear, try one small challenge.',
-    ],
+    subtitle: 'Completion saves reading progress. Quick checks, review, and challenges add evidence.',
+    points: getMomentumGuidancePoints(),
   },
 ];
 
@@ -161,7 +157,7 @@ export function Onboarding({ isOpen, onClose, displayName }) {
 
         <p id="onboarding-kicker" className="ob-kicker">
           {isLast
-            ? 'You are ready to start with one calm loop: goal, build, complete, continue.'
+            ? 'You are ready to start with one calm loop: read, build, complete, prove.'
             : 'A few more seconds now keeps the first session focused.'}
         </p>
 

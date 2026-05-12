@@ -27,13 +27,13 @@ describe('LessonFocusStrip', () => {
         {...baseProps}
         masteryStatus={{
           tone: 'review',
-          label: 'Review loop',
+          label: 'Review needed',
           detail: 'Quick check 60%. Review the missed explanations before continuing.',
         }}
       />,
     );
 
-    expect(screen.getByText('Review loop')).toBeInTheDocument();
+    expect(screen.getByText('Review needed')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Saved');
   });
 
