@@ -5,11 +5,12 @@
 
 import { useCallback, useMemo, useEffect, useState } from "react";
 import { COURSES } from "../data";
-import { useTheme, useAuth, useProgressData, useXP, useCourseContent, useSR } from "../providers";
+import { useTheme, useAuth, useProgressData, useXP, useSR } from "../providers";
 import { useNavigation } from "../hooks/useNavigation";
 import { usePanels } from "../hooks/usePanels";
 import { useKeyboardNav } from "../hooks/useKeyboardNav";
 import { useLearning } from "../hooks/useLearning";
+import { useActiveCourseReadiness } from "../hooks/useActiveCourseReadiness";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useMobileKeyboardOpen } from "../hooks/useMobileKeyboardOpen";
 import { useLocalStorage } from "../hooks/useLocalStorage";
@@ -100,28 +101,12 @@ export function AppLayout() {
   );
   const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
 
-  // Lazy-load the currently-selected course's lesson content. The
-  // CourseContentProvider caches loads and auto-fetches the default
-  // ('html') on mount - this effect keeps it in sync as the user
-  // switches courses so we don't over-fetch.
-  const {
-    setActiveCourseId,
-    isActiveCourseLoaded,
-    isCourseLoaded,
-  } = useCourseContent();
   const activeCourseMeta = COURSES[nav.courseIdx];
-  useEffect(() => {
-    if (activeCourseMeta?.id) {
-      setActiveCourseId(activeCourseMeta.id);
-    }
-  }, [activeCourseMeta?.id, setActiveCourseId]);
   // While the active course's modules are in flight we render a
   // minimal skeleton instead of the lesson view. Without this gate
   // useNavigation would briefly resolve to EMPTY_LESSON / EMPTY_MODULE
   // and flash undefined-looking UI.
-  const activeCourseReady =
-    isActiveCourseLoaded ||
-    (activeCourseMeta?.id && isCourseLoaded(activeCourseMeta.id));
+  const activeCourseReady = useActiveCourseReadiness(activeCourseMeta);
 
   const {
     course,
