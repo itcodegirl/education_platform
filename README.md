@@ -154,7 +154,7 @@ Concrete shape of the project at the current commit:
 - A reward system (XP, streaks, badges, bookmarks, spaced-repetition queue) with idempotent local reward history, same-browser retry support for direct progress writes, serialized XP saves for back-to-back rewards, and feature-gated Supabase reward-event support. Backend reward sync remains intentionally off until the Supabase migrations and authenticated duplicate-award flows are verified.
 - A lazy-loaded Monaco editor split into multiple chunks via Vite manual chunking so it never enters the initial bundle.
 - A top-level `ErrorBoundary` so a provider crash falls back to a visible retry/reload screen, not a blank page.
-- A Vitest unit/component suite of 430+ tests including accessibility integration tests (axe-core).
+- A Vitest unit/component suite of 900+ tests including accessibility integration tests (axe-core).
 - A Playwright public smoke suite plus opt-in authenticated lesson, mobile, and visual paths.
 
 Files most worth a look from a senior reviewer:

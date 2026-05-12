@@ -16,6 +16,38 @@ Priority legend:
 
 ---
 
+## Status update — fixes landed in this branch (PR #92)
+
+The audit below is the original point-in-time assessment. The following items have
+since been addressed on `claude/audit-codherway-platform-vV69f`:
+
+- **Repaired broken `main`** (not in the original audit — surfaced when running the
+  checks): a duplicated export block in `src/data/reference/search-index.js` was a hard
+  parse error, and `src/components/panels/BookmarksPanel.jsx` referenced an undefined
+  `sourceCourses`. Lint, 901 unit tests, and the production build are green again.
+- **Area 2 (branch/PR health):** `docs/branch-triage.md` rewritten to reflect the real
+  branch/PR list (PR #90, PR #92) and to enumerate stale `copilot/*` / `codex/*` remote
+  branches as cleanup candidates. (Remote-branch deletion left to a maintainer — it is a
+  shared-state action.)
+- **Area 3 / 20 (positioning):** "coding bootcamp" / "auto-graded challenges" replaced
+  with honest self-paced-course language in `index.html` (meta, OG, Twitter, JSON-LD),
+  the case-study resume blurb ("SaaS-style" → "self-paced … portfolio/demo posture"),
+  and `docs/setup-checklist.md` (repo description/topics).
+- **Area 6 / 7 (curriculum/lesson format):** added `scripts/audit-lesson-format.mjs` +
+  `scripts/lesson-format-allowlist.json`, wired into `npm run check:quality` as
+  `npm run audit:lesson-format`. New lessons must use the structured shape; the 41 React
+  legacy lessons are an explicit, shrinking allowlist. `docs/handoff-deferred-risks.md`
+  Risk A step 1 marked done.
+- **Area 11 (reward trust boundary in UI):** the always-visible topbar Lv / streak /
+  "lessons today" pills now carry a `PROGRESS_SYNC_SHORT` "saved on this device" tooltip
+  (the full disclaimer was already in the popover/panels). New `TopbarLearnerStatus` test.
+
+Still open (see areas below): screenshots in `docs/screenshots/`, doc pruning, visual-
+snapshot platform mismatch, authenticated-E2E activation decision, stable-ID resume
+migration, colour-contrast TODO, recorded Lighthouse scores, remote-branch deletion.
+
+---
+
 ## 1. Repository identity and source-of-truth clarity — 🟡
 
 **Current state.** README, `docs/reviewer-start-here.md`, `docs/trust-boundaries.md`,
