@@ -111,6 +111,32 @@ describe('BookmarksPanel', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  it('renders incomplete legacy bookmarks without crashing', () => {
+    mockUseSR.mockReturnValue({
+      bookmarks: [{
+        lesson_key: 'legacy-missing-course',
+        lesson_title: '',
+      }],
+      toggleBookmark: vi.fn(),
+    });
+
+    render(
+      <BookmarksPanel
+        isOpen
+        onClose={vi.fn()}
+        onNavigate={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Saved lesson')).toBeInTheDocument();
+    expect(screen.getByText('Saved course > Saved lesson')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: /saved lesson is unavailable in the current course catalog/i,
+      }),
+    ).toBeDisabled();
+  });
+
   it('removes bookmark through route action mutation', () => {
     const toggleBookmark = vi.fn();
     mockUseSR.mockReturnValue({
