@@ -1,3 +1,5 @@
+import { getRetentionPlan } from './retentionPlan';
+
 export function getDailyLearningLoopSteps({
   isLessonDone = false,
   hasLessonQuiz = false,
@@ -7,11 +9,18 @@ export function getDailyLearningLoopSteps({
   const reviewCount = Math.max(0, Number.isFinite(Number(dueReviewCount)) ? Number(dueReviewCount) : 0);
   const quizReady = masteryStatus?.isReady === true;
   const needsQuizReview = masteryStatus?.tone === 'review' || masteryStatus?.tone === 'attention';
+  const retentionPlan = getRetentionPlan({
+    isLessonDone,
+    hasLessonQuiz,
+    masteryStatus,
+    dueReviewCount: reviewCount,
+  });
   const currentStepKey = getCurrentStepKey({
     isLessonDone,
     hasLessonQuiz,
     quizReady,
     reviewCount,
+    retentionPlan,
   });
 
   return [
@@ -42,9 +51,16 @@ export function getDailyLearningLoopSteps({
       label: 'Review',
       state: reviewCount > 0 ? `${reviewCount} due` : 'Clear',
       detail: reviewCount > 0
-        ? 'Clear a short review burst before adding more new material.'
-        : 'No review cards need attention right now.',
+        ? retentionPlan.reviewDetail
+        : retentionPlan.reviewDetail,
       tone: reviewCount > 0 ? 'attention' : 'done',
+    },
+    {
+      key: 'recall',
+      label: 'Recall',
+      state: retentionPlan.state,
+      detail: retentionPlan.detail,
+      tone: retentionPlan.tone,
     },
     {
       key: 'apply',
@@ -64,9 +80,11 @@ function getCurrentStepKey({
   hasLessonQuiz,
   quizReady,
   reviewCount,
+  retentionPlan,
 }) {
   if (!isLessonDone) return 'lesson';
   if (hasLessonQuiz && !quizReady) return 'quiz';
   if (reviewCount > 0) return 'review';
+  if (retentionPlan?.isRecallCurrent) return 'recall';
   return 'apply';
 }

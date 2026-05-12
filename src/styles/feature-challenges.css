@@ -625,6 +625,32 @@
   font-size: 11px;
 }
 
+.challenge-path-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.challenge-path-reasons li {
+  border: 1px solid rgba(78, 205, 196, 0.22);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+}
+
+.challenge-path-guidance {
+  margin: 10px 0 0;
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .challenge-path-cta {
   flex-shrink: 0;
   padding: 10px 14px;
@@ -846,14 +872,26 @@
   line-height: 1.45;
 }
 
+.challenge-card-guidance {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .challenge-card-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
   font-size: 11px;
   color: var(--text-muted);
   font-family: 'Poppins', sans-serif;
   margin-top: auto;
+}
+
+.challenge-card-meta span:first-child {
+  min-width: 0;
 }
 
 /* ═══════════════════════════════════════════════

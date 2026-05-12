@@ -56,6 +56,8 @@ describe('RoadmapPanel', () => {
 
     expect(screen.getByRole('button', { name: /foundations/i })).toHaveTextContent('Current');
     expect(screen.getByRole('button', { name: /forms/i })).toHaveTextContent('Upcoming');
+    expect(screen.getByText(/Stage 1: Structure/i)).toBeInTheDocument();
+    expect(screen.getByText(/Evidence target:/i)).toHaveTextContent(/accessible structure/i);
   });
 
   it('keeps complete modules distinct from the current module', () => {
@@ -74,5 +76,6 @@ describe('RoadmapPanel', () => {
 
     expect(screen.getByRole('button', { name: /foundations/i })).toHaveTextContent('Complete');
     expect(screen.getByRole('button', { name: /forms/i })).toHaveTextContent('Current');
+    expect(screen.getByText(/Next useful step:/i)).toHaveTextContent(/lesson, quick check, review/i);
   });
 });
