@@ -36,6 +36,7 @@ export const LessonShellTopbar = memo(function LessonShellTopbar({
   onMarkDone,
   markDoneAriaLabel,
   markDoneLabel,
+  markDoneTitle,
 }) {
   return (
     <header className="topbar">
@@ -92,6 +93,7 @@ export const LessonShellTopbar = memo(function LessonShellTopbar({
               onClick={onMarkDone}
               disabled={marking}
               aria-label={markDoneAriaLabel}
+              title={markDoneTitle}
               aria-pressed={isDone}
             >
               {isDone && !marking ? '✓ ' : ''}

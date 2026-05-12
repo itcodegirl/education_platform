@@ -275,7 +275,7 @@
 }
 .sr-q { font-size:15px; font-weight:600; margin-bottom:6px; line-height:1.5; }
 .sr-from { font-size:11px; color:var(--text-muted); font-family:'Poppins', sans-serif; margin-bottom:12px; }
-.sr-card code { font-family:'Poppins', sans-serif; font-size:12px; background:var(--bg-card); border:1px solid var(--border); padding:10px 14px; border-radius:4px; color:var(--amber); display:block; margin:8px 0; white-space:pre; }
+.sr-card code { font-family:'Poppins', sans-serif; font-size:12px; background:var(--bg-card); border:1px solid var(--border); padding:10px 14px; border-radius:4px; color:var(--amber); display:block; margin:8px 0; white-space:pre; overflow-x:auto; }
 .sr-opts { display:flex; flex-direction:column; gap:6px; }
 .sr-opt { padding:10px 14px; border:1px solid var(--border); border-radius:8px; background:var(--bg-card); color:var(--text); cursor:pointer; font-size:13px; text-align:left; transition:all .2s; display:flex; align-items:center; gap:10px; }
 .sr-opt:hover:not(:disabled) { border-color:var(--border-bright); transform:translateX(2px); }

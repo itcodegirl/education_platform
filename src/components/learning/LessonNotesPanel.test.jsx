@@ -41,6 +41,25 @@ describe('LessonNotesPanel', () => {
     expect(screen.getByText('13/2000')).toBeInTheDocument();
   });
 
+  it('scrolls the textarea into view on focus so the mobile keyboard does not cover it', () => {
+    const scrollIntoView = vi.fn();
+    const originalScrollIntoView = window.HTMLElement.prototype.scrollIntoView;
+    window.HTMLElement.prototype.scrollIntoView = scrollIntoView;
+    try {
+      render(<LessonNotesPanel lessonKey="c:html|m:basics|l:intro" />);
+      const textarea = screen.getByRole('textbox', { name: /lesson notes/i });
+      fireEvent.focus(textarea);
+      act(() => {
+        vi.advanceTimersByTime(300);
+      });
+      expect(scrollIntoView).toHaveBeenCalledWith(
+        expect.objectContaining({ block: 'center' }),
+      );
+    } finally {
+      window.HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
+    }
+  });
+
   it('debounces note persistence while the learner types', () => {
     render(<LessonNotesPanel lessonKey="c:html|m:basics|l:intro" />);
 

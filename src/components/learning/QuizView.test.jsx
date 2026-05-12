@@ -232,7 +232,7 @@ describe('QuizView', () => {
     fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/Feedback loop: Foundation review/i)).toBeInTheDocument();
+      expect(screen.getByText(/Feedback loop: Rebuild the basics first/i)).toBeInTheDocument();
       expect(screen.getByText(/rebuild the lesson example/i)).toBeInTheDocument();
       expect(addToSRQueue).toHaveBeenCalledWith([
         expect.objectContaining({

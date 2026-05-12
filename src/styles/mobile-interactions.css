@@ -124,3 +124,48 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Touch-target floor for secondary controls (>=44x44 CSS px) ────────── */
+@media (max-width: 900px) {
+  /* Lesson-header actions (bookmark / notes) — two of the most-used controls. */
+  .lesson-action-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Floating theme toggle: keep it a real target and, on lesson pages, lift
+     it clear of the fixed lesson navigation bar so it stops stealing taps
+     from the "Next / Continue" button at the bottom-right. */
+  .theme-toggle {
+    width: 44px;
+    height: 44px;
+  }
+
+  .shell:has(.lesson-nav) .theme-toggle {
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Secondary panel controls. */
+  .bk-remove,
+  .tool-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .tool-menu-item {
+    min-height: 44px;
+  }
+
+  /* Horizontally scrollable code on touch screens: keep momentum scrolling
+     and stop an edge swipe inside a long code line from triggering the
+     browser's back/forward navigation. */
+  .code-preview-code,
+  .qq-code,
+  .qq-bug-lines,
+  .cc-solution-code,
+  .sl-comparison-code,
+  .sr-card code {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+}
