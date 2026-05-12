@@ -11,12 +11,14 @@ import {
 import { COURSE_LOADER_IDS, loadCourseRuntime } from '../data';
 import { useAuth } from '../providers/AuthProvider';
 import { useTheme } from '../providers/ThemeProvider';
-import { AuthLayout } from '../layouts/AuthLayout';
 import { Logo } from '../components/shared/Logo';
 import { APP_ROUTES, parsePublicProfilePath, routeIdMatches } from './routePaths';
 import { closeRouteOrGoHome, toPathFromLegacyHash } from './routeUtils';
 import { RouteErrorBoundary } from './RouteErrorBoundary';
 
+const AuthLayout = lazy(() =>
+  import('../layouts/AuthLayout').then((module) => ({ default: module.AuthLayout })),
+);
 const Styleguide = lazy(() =>
   import('../components/shared/Styleguide').then((module) => ({ default: module.Styleguide })),
 );
@@ -166,7 +168,19 @@ export function ProtectedRoute({ children }) {
     );
   }
 
-  if (!user) return <AuthLayout />;
+  if (!user) {
+    return (
+      <Suspense
+        fallback={(
+          <RouteLoadingScreen theme={theme} size="lg">
+            <LoadingMessage>Opening CodeHerWay...</LoadingMessage>
+          </RouteLoadingScreen>
+        )}
+      >
+        <AuthLayout />
+      </Suspense>
+    );
+  }
   if (profileError) {
     return <AccountCheckErrorScreen theme={theme} onRetry={refreshProfile} onSignOut={signOut} />;
   }
