@@ -17,6 +17,7 @@ Optional quality pass:
 npm run check
 npm run audit:quizzes
 npm run audit:content
+npm run audit:performance
 ```
 
 ## Five-Minute Flow

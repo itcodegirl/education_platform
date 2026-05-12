@@ -250,6 +250,16 @@ function ProtectedShellLoadingScreen({ message }) {
   );
 }
 
+function RouteHydrateFallback() {
+  const { theme } = useTheme();
+
+  return (
+    <RouteLoadingScreen theme={theme} size="lg">
+      <LoadingMessage>Opening CodeHerWay...</LoadingMessage>
+    </RouteLoadingScreen>
+  );
+}
+
 function ProtectedAppShellRoute() {
   const { theme } = useTheme();
 
@@ -348,6 +358,7 @@ export const appRouter = createBrowserRouter([
     path: APP_ROUTES.home,
     action: learnRouteAction,
     element: <RouteShell />,
+    hydrateFallbackElement: <RouteHydrateFallback />,
     errorElement: <RouteErrorBoundary />,
     children: [
       { path: STYLEGUIDE_SEGMENT, element: <StyleguideRoute /> },

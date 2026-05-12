@@ -28,16 +28,44 @@ export const ROUTE_BOUNDARY_RULES = [
   },
 ];
 
+export const GLOBAL_STATIC_IMPORT_RULES = [
+  {
+    root: 'src',
+    forbiddenSources: ['jspdf', 'html2canvas'],
+    reason: 'PDF/export dependencies must stay behind explicit user actions and must not enter route, shell, or panel setup chunks.',
+  },
+];
+
+const SOURCE_FILE_RE = /\.(js|jsx|ts|tsx)$/i;
+
 function readStaticImportSources(rootDir, relativeFilePath) {
   const absolutePath = path.join(rootDir, relativeFilePath);
   const source = fs.readFileSync(absolutePath, 'utf8');
   return Array.from(source.matchAll(STATIC_IMPORT_RE), (match) => match[1]);
 }
 
-export function checkRouteBoundaries(rootDir = process.cwd()) {
+function walkSourceFiles(rootDir, relativeDir) {
+  const absoluteDir = path.join(rootDir, relativeDir);
+
+  if (!fs.existsSync(absoluteDir)) return [];
+
+  return fs.readdirSync(absoluteDir, { withFileTypes: true }).flatMap((entry) => {
+    const relativePath = path.join(relativeDir, entry.name);
+
+    if (entry.isDirectory()) {
+      return walkSourceFiles(rootDir, relativePath);
+    }
+
+    return SOURCE_FILE_RE.test(entry.name)
+      ? [relativePath.replaceAll(path.sep, '/')]
+      : [];
+  });
+}
+
+function checkConfiguredRouteBoundaries(rootDir, rules = ROUTE_BOUNDARY_RULES) {
   const failures = [];
 
-  ROUTE_BOUNDARY_RULES.forEach((rule) => {
+  rules.forEach((rule) => {
     const imports = readStaticImportSources(rootDir, rule.file);
     const blockedImports = imports.filter((source) =>
       rule.forbiddenSources.some((forbiddenSource) => source === forbiddenSource),
@@ -47,6 +75,37 @@ export function checkRouteBoundaries(rootDir = process.cwd()) {
       failures.push(`${rule.file} statically imports ${source}. ${rule.reason}`);
     });
   });
+
+  return failures;
+}
+
+export function checkGlobalStaticImportBoundaries(
+  rootDir = process.cwd(),
+  rules = GLOBAL_STATIC_IMPORT_RULES,
+) {
+  const failures = [];
+
+  rules.forEach((rule) => {
+    walkSourceFiles(rootDir, rule.root).forEach((file) => {
+      const imports = readStaticImportSources(rootDir, file);
+      const blockedImports = imports.filter((source) =>
+        rule.forbiddenSources.some((forbiddenSource) => source === forbiddenSource),
+      );
+
+      blockedImports.forEach((source) => {
+        failures.push(`${file} statically imports ${source}. ${rule.reason}`);
+      });
+    });
+  });
+
+  return failures;
+}
+
+export function checkRouteBoundaries(rootDir = process.cwd()) {
+  const failures = [
+    ...checkConfiguredRouteBoundaries(rootDir),
+    ...checkGlobalStaticImportBoundaries(rootDir),
+  ];
 
   return {
     failures,

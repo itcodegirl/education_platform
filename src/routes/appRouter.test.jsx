@@ -42,7 +42,7 @@ vi.mock('../components/shared/Logo', () => ({
   Logo: () => <span>logo</span>,
 }));
 
-import { ProtectedRoute, learnRouteAction, learnRouteLoader } from './appRouter';
+import { appRouter, ProtectedRoute, learnRouteAction, learnRouteLoader } from './appRouter';
 
 function renderProtectedRoute() {
   return render(
@@ -164,6 +164,12 @@ describe('appRouter ProtectedRoute', () => {
     );
     expect(screen.getByRole('button', { name: /log out/i })).toBeInTheDocument();
     expect(screen.queryByText('private-content')).not.toBeInTheDocument();
+  });
+});
+
+describe('appRouter hydration fallback', () => {
+  it('declares a root hydrate fallback for lazy route hydration', () => {
+    expect(appRouter.routes[0].hydrateFallbackElement).toBeTruthy();
   });
 });
 
