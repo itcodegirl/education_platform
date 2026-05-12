@@ -8,10 +8,10 @@ Use this checklist before Netlify releases or hotfix deploys.
 - Run:
   - `npm run check`
   - `npm run typecheck`
-  - `npm run audit:e2e-scripts`
-  - `npm run audit:auth-e2e`
   - `npm run check:supabase-readiness`
   - `npm run audit:reward-catalog`
+  - `npm run audit:e2e-scripts`
+  - `npm run audit:auth-e2e`
   - `npm run audit:staging-runbook`
   - `npm run audit:quizzes`
   - `npm run audit:content`
