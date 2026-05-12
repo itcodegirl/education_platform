@@ -556,6 +556,17 @@ img {
   border-color: var(--cyan);
 }
 
+/* Keyboard-focused fill-in inputs get an additional ring so the
+   indicator does not collapse to a single 2px border on dark
+   surfaces — the global :focus-visible outline already fires from
+   base.css; the box-shadow here adds a softer glow that keeps the
+   field obviously active even when the global outline is masked
+   by an adjacent element. */
+.qq-fill-input:focus-visible {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.18);
+}
+
 .qq-fill-input.is-correct {
   border-color: #10b981;
   background: #10b98108;
@@ -1447,6 +1458,18 @@ img {
 .lb-wrap select:focus,
 .lb-wrap textarea:focus {
   border-color: var(--cyan);
+}
+
+/* Lesson Builder is admin-only but still needs accessible focus.
+   A 1px border-color shift is too subtle on dark surfaces for users
+   relying on the visible focus indicator alone — pair it with a
+   soft cyan ring on keyboard focus that complements the global
+   :focus-visible outline from base.css. */
+.lb-wrap input:focus-visible,
+.lb-wrap select:focus-visible,
+.lb-wrap textarea:focus-visible {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.18);
 }
 
 .lb-wrap textarea {

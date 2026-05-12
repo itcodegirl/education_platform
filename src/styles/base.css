@@ -30,6 +30,24 @@ textarea:focus-visible,
 }
 :focus:not(:focus-visible) { outline: none; }
 
+/* Windows High Contrast Mode / forced-colors users have their own
+   palette and the brand cyan above gets stripped to the system text
+   color, which collapses to the same color as the underline / border
+   and disappears. Re-anchor focus to the system Highlight color so
+   the keyboard ring stays visible. */
+@media (forced-colors: active) {
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [role="button"]:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 3px solid Highlight;
+    outline-offset: 3px;
+  }
+}
+
 /* Shared UI primitives for consistent SaaS-style polish */
 .ui-card {
   border: 1px solid rgba(255, 255, 255, 0.08);
