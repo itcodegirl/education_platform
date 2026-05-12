@@ -18,7 +18,6 @@ For the release summary, copy [docs/release-notes-template.md](./docs/release-no
   - `npm run audit:staging-runbook`
   - `npm run audit:quizzes`
   - `npm run audit:content`
-  - `npm run audit:performance`
   - `npm run test:e2e`
 - Confirm required runtime environment variables:
   - `VITE_SUPABASE_URL`
