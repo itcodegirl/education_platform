@@ -271,6 +271,9 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
             </span>
           </div>
           <p className="pp-transcript-copy">{transcript.status.detail}</p>
+          <p className="pp-transcript-action">
+            <span>Next evidence step:</span> {transcript.nextAction.label}. {transcript.nextAction.detail}
+          </p>
           <div className="pp-transcript-grid">
             {transcript.items.map((item) => (
               <div key={item.key} className={`pp-transcript-item pp-transcript-item-${item.tone}`}>

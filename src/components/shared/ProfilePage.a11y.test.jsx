@@ -118,6 +118,8 @@ describe('ProfilePage accessibility', () => {
     expect(screen.getByRole('heading', { name: /private learning transcript/i })).toBeInTheDocument();
     expect(screen.getByText(/strong learning proof/i)).toBeInTheDocument();
     expect(screen.getByText('Application proof').parentElement).toHaveTextContent('1/1');
+    expect(screen.getByText(/next evidence step/i)).toBeInTheDocument();
+    expect(screen.getByText(/turn proof into a portfolio note/i)).toBeInTheDocument();
     expect(screen.getAllByText(/not a verified credential/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole('list', { name: /1 of 2 badges earned/i })).toBeInTheDocument();
 

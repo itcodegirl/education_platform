@@ -43,9 +43,19 @@ export function buildLearnerTranscriptSummary({
     reviewQuizzes,
     challengeDone,
   });
+  const nextAction = getTranscriptNextAction({
+    readingDone,
+    attemptedQuizzes,
+    reviewQuizzes,
+    challengeDone,
+    challengeTotal,
+    reviewDue,
+    proofPercent,
+  });
 
   return {
     status,
+    nextAction,
     proofSignals,
     proofPercent,
     items: [
@@ -84,6 +94,63 @@ export function buildLearnerTranscriptSummary({
         tone: reviewDue > 0 ? 'review' : reviewTotal > 0 ? 'complete' : 'empty',
       },
     ],
+  };
+}
+
+function getTranscriptNextAction({
+  readingDone,
+  attemptedQuizzes,
+  reviewQuizzes,
+  challengeDone,
+  challengeTotal,
+  reviewDue,
+  proofPercent,
+}) {
+  if (readingDone === 0) {
+    return {
+      label: 'Complete one lesson first',
+      detail: 'Start the transcript with a real saved reading step before chasing rewards.',
+    };
+  }
+
+  if (reviewDue > 0) {
+    return {
+      label: 'Clear due review cards',
+      detail: `Review ${reviewDue} due card${reviewDue === 1 ? '' : 's'} before adding much new material.`,
+    };
+  }
+
+  if (reviewQuizzes > 0) {
+    return {
+      label: 'Retry missed recall checks',
+      detail: `${reviewQuizzes} quiz check${reviewQuizzes === 1 ? '' : 's'} need another pass to steady the transcript.`,
+    };
+  }
+
+  if (attemptedQuizzes === 0) {
+    return {
+      label: 'Add one recall check',
+      detail: 'Take a quick check so reading progress has evidence of understanding.',
+    };
+  }
+
+  if (challengeDone === 0 || (challengeTotal > 0 && challengeDone < challengeTotal)) {
+    return {
+      label: 'Complete one applied challenge',
+      detail: 'Add code-based proof so the transcript shows application, not only reading.',
+    };
+  }
+
+  if (proofPercent >= 80) {
+    return {
+      label: 'Turn proof into a portfolio note',
+      detail: 'Summarize one completed challenge or solved quiz in your own words.',
+    };
+  }
+
+  return {
+    label: 'Pair the next lesson with proof',
+    detail: 'Use a quick check, review card, or challenge after the next completed lesson.',
   };
 }
 

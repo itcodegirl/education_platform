@@ -20,6 +20,9 @@ describe('buildLearnerTranscriptSummary', () => {
       value: '0/10',
       tone: 'empty',
     });
+    expect(transcript.nextAction).toMatchObject({
+      label: 'Complete one lesson first',
+    });
   });
 
   it('prioritizes review debt over strong-looking totals', () => {
@@ -43,6 +46,9 @@ describe('buildLearnerTranscriptSummary', () => {
       value: '2/5',
       tone: 'review',
     });
+    expect(transcript.nextAction).toMatchObject({
+      label: 'Clear due review cards',
+    });
   });
 
   it('marks strong proof only when recall and application back completed lessons', () => {
@@ -60,6 +66,24 @@ describe('buildLearnerTranscriptSummary', () => {
     expect(transcript.status).toMatchObject({
       tone: 'strong',
       label: 'Strong learning proof',
+    });
+    expect(transcript.nextAction).toMatchObject({
+      label: 'Complete one applied challenge',
+    });
+  });
+
+  it('recommends portfolio reflection when evidence is complete', () => {
+    const transcript = buildLearnerTranscriptSummary({
+      completedLessons: 2,
+      totalLessons: 8,
+      quizChecksPassed: 1,
+      quizChecksAttempted: 1,
+      completedChallenges: 2,
+      totalChallenges: 2,
+    });
+
+    expect(transcript.nextAction).toMatchObject({
+      label: 'Turn proof into a portfolio note',
     });
   });
 });
