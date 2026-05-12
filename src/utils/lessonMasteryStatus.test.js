@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getLessonMasteryStatus } from './lessonMasteryStatus';
+import { LEARNER_READINESS_STATES } from './learnerReadiness';
 
 describe('lesson mastery status', () => {
   it('keeps incomplete lessons in first-pass mode', () => {
@@ -8,6 +9,7 @@ describe('lesson mastery status', () => {
       isLessonDone: false,
     });
 
+    expect(status.state).toBe(LEARNER_READINESS_STATES.READING_IN_PROGRESS);
     expect(status.label).toBe('Reading in progress');
     expect(status.isReady).toBe(false);
   });
@@ -18,6 +20,7 @@ describe('lesson mastery status', () => {
       isLessonDone: true,
     });
 
+    expect(status.state).toBe(LEARNER_READINESS_STATES.EVIDENCE_NEEDED);
     expect(status.label).toBe('Evidence needed');
     expect(status.tone).toBe('attention');
   });
@@ -29,6 +32,7 @@ describe('lesson mastery status', () => {
       scoreValue: '4/5',
     });
 
+    expect(status.state).toBe(LEARNER_READINESS_STATES.READY_TO_CONTINUE);
     expect(status.label).toBe('Ready to continue');
     expect(status.isReady).toBe(true);
   });
@@ -40,6 +44,7 @@ describe('lesson mastery status', () => {
       scoreValue: '2/5',
     });
 
+    expect(status.state).toBe(LEARNER_READINESS_STATES.REVIEW_NEEDED);
     expect(status.label).toBe('Review needed');
     expect(status.detail).toMatch(/Review the missed explanations/i);
   });

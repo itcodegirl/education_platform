@@ -147,7 +147,7 @@ describe('StudentStats streak card', () => {
     expect(screen.getByText(/Complete lesson saves reading progress/i)).toBeInTheDocument();
     expect(screen.getByText(/quick checks, review, and challenges add mastery evidence later/i)).toBeInTheDocument();
     expect(screen.getByRole('region', { name: /progress snapshot summary/i })).toHaveTextContent('0/2');
-    expect(screen.getByRole('region', { name: /progress snapshot summary/i })).toHaveTextContent('Not yet');
+    expect(screen.getByRole('region', { name: /progress snapshot summary/i })).toHaveTextContent('Not started');
     expect(screen.getByRole('button', { name: /back to current lesson/i })).toBeInTheDocument();
   });
 
