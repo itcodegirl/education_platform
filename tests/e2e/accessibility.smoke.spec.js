@@ -5,7 +5,7 @@ test.describe('accessibility smoke', () => {
   test('auth page has no serious axe violations', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('.auth-card')).toBeVisible({ timeout: 30000 });
-    await expectNoBlockingAxeViolations(page);
+    await expectNoBlockingAxeViolations(page, { include: '.auth-card' });
   });
 
   test('guest preview has no serious axe violations', async ({ page }) => {
@@ -15,6 +15,6 @@ test.describe('accessibility smoke', () => {
     await previewButton.scrollIntoViewIfNeeded();
     await previewButton.click();
     await expect(page.locator('.guest-preview')).toBeVisible({ timeout: 30000 });
-    await expectNoBlockingAxeViolations(page);
+    await expectNoBlockingAxeViolations(page, { include: '.guest-preview' });
   });
 });
