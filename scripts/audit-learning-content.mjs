@@ -195,11 +195,19 @@ function analyzeInstructionalScaffolding(lesson, lessonPath, warnings) {
 }
 
 function getQuestionPromptText(question) {
+  const feedback = question?.optionFeedback || question?.wrongAnswerFeedback || question?.feedback;
+  const feedbackText = Array.isArray(feedback)
+    ? feedback.join(' ')
+    : typeof feedback === 'object' && feedback !== null
+      ? Object.values(feedback).join(' ')
+      : feedback;
+
   return [
     question?.question,
     question?.code,
     ...(Array.isArray(question?.lines) ? question.lines : []),
     question?.explanation,
+    feedbackText,
   ].join(' ');
 }
 

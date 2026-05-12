@@ -17,6 +17,17 @@ import {
 import { renderMarkdown } from '../../utils/markdown';
 import { getQuizResultFeedback } from '../../utils/quizFeedback';
 
+function getWrongAnswerFeedback(question, answer, correct) {
+  if (correct || answer === undefined || answer === null) return '';
+
+  const feedback = question.optionFeedback || question.wrongAnswerFeedback || question.feedback;
+  if (typeof feedback === 'string') return feedback;
+  if (Array.isArray(feedback)) return feedback[Number(answer)] || '';
+  if (feedback && typeof feedback === 'object') return feedback[String(answer)] || '';
+
+  return '';
+}
+
 export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey, legacyQuizKeys = [] }) {
   const session = useQuizSession({ quiz, label, quizKey, legacyQuizKeys });
   const {
@@ -54,6 +65,7 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey, l
           const answer = answers.get(q.id);
           const correct = isAnswerCorrect(q, answer);
           const typeBadge = QUESTION_TYPE_LABELS[q.type];
+          const wrongAnswerFeedback = getWrongAnswerFeedback(q, answer, correct);
           // Older quiz items omit `type` and default to multiple choice.
           const Renderer = QUESTION_RENDERERS[q.type] || QUESTION_RENDERERS.mc;
 
@@ -79,6 +91,14 @@ export const QuizView = memo(function QuizView({ quiz, accent, label, quizKey, l
                   <div className={`qq-explain ${correct ? 'right' : 'wrong'}`}>
                     <span className="qq-explain-icon" aria-label={correct ? 'Correct' : 'Incorrect'}>{correct ? '✓' : '✕'}</span>
                     <div className="qq-explain-body">{renderMarkdown(q.explanation)}</div>
+                  </div>
+                )}
+                {submitted && wrongAnswerFeedback && (
+                  <div className="qq-answer-feedback">
+                    <span className="qq-answer-feedback-label">Why this answer is tempting</span>
+                    <div className="qq-answer-feedback-body">
+                      {renderMarkdown(wrongAnswerFeedback)}
+                    </div>
                   </div>
                 )}
               </div>
