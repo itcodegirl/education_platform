@@ -50,6 +50,18 @@ function loadedCourseHasModuleQuiz(loadedCourse, moduleId) {
   );
 }
 
+function buildCourseRecoveryPath(courseId, moduleData = null, loadedCourse = null) {
+  const fallbackModule = moduleData || loadedCourse?.modules?.[0];
+  const fallbackLesson = fallbackModule?.lessons?.[0];
+  if (!courseId || !fallbackModule?.id || !fallbackLesson?.id) {
+    return APP_ROUTES.home;
+  }
+
+  return `${APP_ROUTES.learnBase}/${encodeURIComponent(courseId)}/${encodeURIComponent(
+    fallbackModule.id,
+  )}/${encodeURIComponent(fallbackLesson.id)}`;
+}
+
 function RouteLoadingScreen({ theme, size = 'sm', children }) {
   return (
     <div className={`loading-screen ${theme}`} role="status" aria-live="polite" aria-busy="true">
@@ -291,28 +303,24 @@ export async function learnRouteLoader({ params }) {
     throw redirect(APP_ROUTES.home);
   }
 
-  try {
-    const loadedCourse = await loadCourseRuntime(courseId);
-    const moduleMatch = loadedCourse.modules.find((module) => routeIdMatches(module.id, moduleId));
-    if (!moduleMatch) {
-      throw new Error('Unknown module');
-    }
-
-    if (lessonId === 'quiz') {
-      if (!loadedCourseHasModuleQuiz(loadedCourse, moduleMatch.id)) {
-        throw new Error('Unknown module quiz');
-      }
-    } else {
-      const lessonMatch = moduleMatch.lessons.find((lesson) => routeIdMatches(lesson.id, lessonId));
-      if (!lessonMatch) {
-        throw new Error('Unknown lesson');
-      }
-    }
-
-    return { courseId, moduleId, lessonId };
-  } catch {
-    throw redirect(APP_ROUTES.home);
+  const loadedCourse = await loadCourseRuntime(courseId);
+  const moduleMatch = loadedCourse.modules.find((module) => routeIdMatches(module.id, moduleId));
+  if (!moduleMatch) {
+    throw redirect(buildCourseRecoveryPath(courseId, null, loadedCourse));
   }
+
+  if (lessonId === 'quiz') {
+    if (!loadedCourseHasModuleQuiz(loadedCourse, moduleMatch.id)) {
+      throw redirect(buildCourseRecoveryPath(courseId, moduleMatch, loadedCourse));
+    }
+  } else {
+    const lessonMatch = moduleMatch.lessons.find((lesson) => routeIdMatches(lesson.id, lessonId));
+    if (!lessonMatch) {
+      throw redirect(buildCourseRecoveryPath(courseId, moduleMatch, loadedCourse));
+    }
+  }
+
+  return { courseId, moduleId, lessonId };
 }
 
 const STYLEGUIDE_SEGMENT = APP_ROUTES.styleguide.replace(/^\//, '');
