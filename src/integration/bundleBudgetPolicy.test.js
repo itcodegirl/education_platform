@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   collectBundleBudgetReport,
   DEFAULT_BUNDLE_BUDGETS,
+  INITIAL_ENTRY_BUDGETS,
 } from '../../scripts/bundleBudgetPolicy.mjs';
 
 const tempDirs = [];
@@ -66,6 +67,28 @@ describe('bundle budget policy', () => {
     ]);
   });
 
+  it('keeps export-only PDF and canvas chunks out of initial modulepreloads', () => {
+    const fixture = createBundleFixture({
+      indexHtml: [
+        '<link rel="modulepreload" href="/assets/jspdf.es.min-lazy.js">',
+        '<link rel="modulepreload" href="/assets/html2canvas-lazy.js">',
+      ].join('\n'),
+      assets: {
+        'index-app.js': 'console.log("app");',
+        'index-app.css': 'body{color:white;}',
+        'jspdf.es.min-lazy.js': 'console.log("pdf export");',
+        'html2canvas-lazy.js': 'console.log("canvas export");',
+      },
+    });
+
+    const report = collectBundleBudgetReport(fixture);
+
+    expect(report.forbiddenPreloadFailures).toEqual([
+      expect.objectContaining({ label: 'export-only PDF/canvas chunks' }),
+      expect.objectContaining({ label: 'export-only PDF/canvas chunks' }),
+    ]);
+  });
+
   it('keeps Supabase and protected styles out of the public entry HTML', () => {
     const fixture = createBundleFixture({
       indexHtml: [
@@ -85,6 +108,28 @@ describe('bundle budget policy', () => {
     expect(report.forbiddenPreloadFailures).toEqual([
       expect.objectContaining({ label: 'Supabase chunks' }),
       expect.objectContaining({ label: 'protected app stylesheets' }),
+    ]);
+  });
+
+  it('keeps public auth route chunks out of the initial modulepreload list', () => {
+    const fixture = createBundleFixture({
+      indexHtml: [
+        '<link rel="modulepreload" href="/assets/AuthLayout-public.js">',
+        '<link rel="modulepreload" href="/assets/LandingHero-story.js">',
+      ].join('\n'),
+      assets: {
+        'index-app.js': 'console.log("app");',
+        'index-app.css': 'body{color:white;}',
+        'AuthLayout-public.js': 'console.log("auth");',
+        'LandingHero-story.js': 'console.log("story");',
+      },
+    });
+
+    const report = collectBundleBudgetReport(fixture);
+
+    expect(report.forbiddenPreloadFailures).toEqual([
+      expect.objectContaining({ label: 'public auth route chunks' }),
+      expect.objectContaining({ label: 'public auth route chunks' }),
     ]);
   });
 
@@ -132,6 +177,25 @@ describe('bundle budget policy', () => {
     expect(report.sizeFailures.some((entry) => entry.file === 'App-authenticated.css')).toBe(false);
   });
 
+  it('uses explicit lazy budgets for export-only PDF and canvas chunks', () => {
+    const fixture = createBundleFixture({
+      assets: {
+        'index-app.js': 'console.log("app");',
+        'index-app.css': 'body{color:white;}',
+        'jspdf.es.min-lazy.js': 'a'.repeat(420 * 1024),
+        'html2canvas-lazy.js': 'a'.repeat(210 * 1024),
+      },
+    });
+
+    const report = collectBundleBudgetReport(fixture);
+    const pdfChunk = report.sizeReport.find((entry) => entry.file === 'jspdf.es.min-lazy.js');
+    const canvasChunk = report.sizeReport.find((entry) => entry.file === 'html2canvas-lazy.js');
+
+    expect(pdfChunk?.budget.label).toBe('PDF export lazy chunk');
+    expect(canvasChunk?.budget.label).toBe('canvas export lazy chunk');
+    expect(report.sizeFailures.some((entry) => /jspdf|html2canvas/.test(entry.file))).toBe(false);
+  });
+
   it('checks initial entry gzip budgets separately from lazy chunks', () => {
     const fixture = createBundleFixture({
       indexHtml: '<script type="module" src="/assets/index-app.js"></script>',
@@ -149,5 +213,9 @@ describe('bundle budget policy', () => {
     expect(report.initialBudgetFailures).toEqual([
       expect.objectContaining({ label: 'initial JS gzip' }),
     ]);
+  });
+
+  it('keeps the production initial JavaScript budget under 100 kB gzip', () => {
+    expect(INITIAL_ENTRY_BUDGETS.jsGzipKb).toBeLessThanOrEqual(95);
   });
 });

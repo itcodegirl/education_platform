@@ -34,6 +34,18 @@ export const DEFAULT_BUNDLE_BUDGETS = [
     gzipMaxKb: 45,
   },
   {
+    label: 'PDF export lazy chunk',
+    match: (file) => /^jspdf.*\.js$/i.test(file),
+    maxKb: 450,
+    gzipMaxKb: 150,
+  },
+  {
+    label: 'canvas export lazy chunk',
+    match: (file) => /^html2canvas.*\.js$/i.test(file),
+    maxKb: 230,
+    gzipMaxKb: 60,
+  },
+  {
     label: 'general JavaScript chunk',
     match: (file) => file.toLowerCase().endsWith('.js'),
     maxKb: 700,
@@ -58,6 +70,11 @@ export const FORBIDDEN_MODULE_PRELOADS = [
     pattern: /vendor-supabase-[^"']+\.js/i,
   },
   {
+    label: 'export-only PDF/canvas chunks',
+    rel: 'modulepreload',
+    pattern: /(?:jspdf|html2canvas)[^"']+\.js/i,
+  },
+  {
     label: 'Monaco stylesheets',
     rel: 'stylesheet',
     pattern: /vendor-monaco-[^"']+\.css/i,
@@ -67,10 +84,15 @@ export const FORBIDDEN_MODULE_PRELOADS = [
     rel: 'stylesheet',
     pattern: /App-[^"']+\.css/i,
   },
+  {
+    label: 'public auth route chunks',
+    rel: 'modulepreload',
+    pattern: /(?:AuthLayout|LandingHero)-[^"']+\.js/i,
+  },
 ];
 
 export const INITIAL_ENTRY_BUDGETS = {
-  jsGzipKb: 170,
+  jsGzipKb: 95,
   cssGzipKb: 12,
 };
 

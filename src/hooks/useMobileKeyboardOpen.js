@@ -41,6 +41,8 @@ export function useMobileKeyboardOpen(isMobile) {
     let baselineHeight = getViewportHeight();
     let animationFrame = 0;
     let focusOutTimer = 0;
+    let baselineResetTimer = 0;
+    let lastKeyboardOpen = false;
 
     const updateKeyboardState = () => {
       if (animationFrame) {
@@ -48,6 +50,7 @@ export function useMobileKeyboardOpen(isMobile) {
       }
 
       animationFrame = window.requestAnimationFrame(() => {
+        animationFrame = 0;
         const currentHeight = getViewportHeight();
         const focusedForTyping = isTextEntryElement(document.activeElement);
 
@@ -57,15 +60,23 @@ export function useMobileKeyboardOpen(isMobile) {
 
         const shrinkPx = Math.max(0, baselineHeight - currentHeight);
         const shrinkRatio = baselineHeight > 0 ? currentHeight / baselineHeight : 1;
-        setKeyboardOpen(
+        const nextKeyboardOpen =
           focusedForTyping &&
-            (shrinkPx >= KEYBOARD_SHRINK_PX || shrinkRatio <= KEYBOARD_HEIGHT_RATIO),
-        );
+            (shrinkPx >= KEYBOARD_SHRINK_PX || shrinkRatio <= KEYBOARD_HEIGHT_RATIO);
+
+        if (nextKeyboardOpen !== lastKeyboardOpen) {
+          lastKeyboardOpen = nextKeyboardOpen;
+          setKeyboardOpen(nextKeyboardOpen);
+        }
       });
     };
 
     const resetBaselineSoon = () => {
-      window.setTimeout(() => {
+      if (baselineResetTimer) {
+        window.clearTimeout(baselineResetTimer);
+      }
+      baselineResetTimer = window.setTimeout(() => {
+        baselineResetTimer = 0;
         baselineHeight = getViewportHeight();
         updateKeyboardState();
       }, 250);
@@ -75,7 +86,10 @@ export function useMobileKeyboardOpen(isMobile) {
       if (focusOutTimer) {
         window.clearTimeout(focusOutTimer);
       }
-      focusOutTimer = window.setTimeout(updateKeyboardState, 80);
+      focusOutTimer = window.setTimeout(() => {
+        focusOutTimer = 0;
+        updateKeyboardState();
+      }, 80);
     };
 
     viewport?.addEventListener('resize', updateKeyboardState);
@@ -98,6 +112,9 @@ export function useMobileKeyboardOpen(isMobile) {
       }
       if (focusOutTimer) {
         window.clearTimeout(focusOutTimer);
+      }
+      if (baselineResetTimer) {
+        window.clearTimeout(baselineResetTimer);
       }
     };
   }, [isMobile]);

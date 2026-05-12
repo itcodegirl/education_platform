@@ -473,6 +473,7 @@ export const Sidebar = memo(function Sidebar({
                   onClick={() => handleCourseSelect(ci)}
                   style={{ '--cs-accent': c.accent }}
                   aria-label={`Switch to ${c.label} course`}
+                  aria-current={ci === courseIdx ? 'page' : undefined}
                 >
                   <span className="cs-option-icon" aria-hidden="true">{c.icon}</span>
                   <span className="cs-option-label">{c.label}</span>

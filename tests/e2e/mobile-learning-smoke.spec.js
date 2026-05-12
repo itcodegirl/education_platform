@@ -72,12 +72,34 @@ test.describe('mobile learning smoke', () => {
     expect(result.scrollWidth).toBeLessThanOrEqual(result.viewportWidth + 1);
   }
 
-  async function expectMinimumTouchTarget(locator) {
-    await locator.scrollIntoViewIfNeeded();
+  async function expectWithinViewport(page, locator, label) {
+    await expect(locator).toBeVisible();
     const box = await locator.boundingBox();
-    expect(box).toBeTruthy();
-    expect(box?.width || 0).toBeGreaterThanOrEqual(44);
-    expect(box?.height || 0).toBeGreaterThanOrEqual(44);
+    const viewport = page.viewportSize();
+
+    expect(box, `${label} should have a layout box`).toBeTruthy();
+    expect(box.x, `${label} should not overflow left`).toBeGreaterThanOrEqual(0);
+    expect(box.y, `${label} should not overflow top`).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width, `${label} should not overflow right`).toBeLessThanOrEqual(viewport.width + 1);
+    expect(box.y + box.height, `${label} should not overflow bottom`).toBeLessThanOrEqual(viewport.height + 1);
+  }
+
+  async function expectMobileLessonNavReady(page) {
+    const lessonNav = page.locator('.lesson-nav');
+    await expect(lessonNav).toBeVisible();
+    await expect(lessonNav).toHaveCSS('position', 'fixed');
+
+    const navBox = await lessonNav.boundingBox();
+    const viewport = page.viewportSize();
+    expect(navBox, 'mobile lesson navigation should be measurable').toBeTruthy();
+    expect(navBox.y, 'mobile lesson navigation should stay in thumb reach at the bottom').toBeGreaterThan(
+      viewport.height * 0.72,
+    );
+
+    for (const button of await page.locator('.lesson-nav-btn').all()) {
+      const box = await button.boundingBox();
+      expect(box?.height || 0, 'mobile lesson nav buttons should remain thumb-sized').toBeGreaterThanOrEqual(44);
+    }
   }
 
   async function expectControlAboveBottomNavigation(page, locator) {
@@ -125,12 +147,15 @@ test.describe('mobile learning smoke', () => {
   }
 
   test('opens sidebar tools, search, and the mobile tools sheet', async ({ page }) => {
+    await expectMobileLessonNavReady(page);
+    await expectNoHorizontalOverflow(page);
+
     await page.getByLabel('Open course navigation').click();
     await expect(page.locator('#course-sidebar.open')).toBeVisible();
 
     await page.getByRole('button', { name: /tools/i }).click();
     await page.getByRole('menuitem', { name: /cheat sheets/i }).click();
-    await expect(page.locator('.search-modal')).toBeVisible();
+    await expectWithinViewport(page, page.locator('.search-modal'), 'cheat sheet modal');
 
     await page.keyboard.press('Escape');
     const closeSidebar = page.getByLabel('Close sidebar');
@@ -140,14 +165,36 @@ test.describe('mobile learning smoke', () => {
 
     await page.getByLabel('Open lesson search').click();
     await expect(page.locator('.search-input')).toBeVisible();
+    await expectWithinViewport(page, page.locator('.search-modal'), 'search modal');
+    await page.locator('.search-input').fill('layout');
+    await expectNoHorizontalOverflow(page);
     await page.keyboard.press('Escape');
 
     await page.getByLabel('Open learning tools').click();
     const toolsSheet = page.getByRole('dialog', { name: /learning tools/i });
-    await expect(toolsSheet).toBeVisible();
+    await expectWithinViewport(page, toolsSheet, 'mobile tools sheet');
 
     await toolsSheet.getByRole('button', { name: /challenges/i }).click();
     await expect(page.locator('.challenges-panel')).toBeVisible();
+  });
+
+  test('keeps mobile text entry controls clear of fixed chrome', async ({ page }) => {
+    await expectMobileLessonNavReady(page);
+    await expect(page.locator('.lesson-title')).toBeVisible();
+
+    await page.getByLabel('Toggle lesson notes').click();
+    const notesInput = page.getByRole('textbox', { name: /lesson notes/i });
+    await notesInput.fill('Mobile keyboard overlap check');
+    await notesInput.focus();
+    await expectControlAboveBottomNavigation(page, notesInput);
+
+    const codeEditor = page.getByRole('textbox', { name: /^code editor$/i }).first();
+    if (await codeEditor.isVisible().catch(() => false)) {
+      await codeEditor.focus();
+      await expectControlAboveBottomNavigation(page, codeEditor);
+    }
+
+    await expectNoHorizontalOverflow(page);
   });
 
   test('mobileSidebarSupportsKeyboardNavigation', async ({ page }) => {

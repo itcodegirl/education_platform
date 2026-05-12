@@ -110,6 +110,71 @@ function getInstructionalScaffoldStatus(lesson) {
   };
 }
 
+function textIncludesAny(value, terms) {
+  const text = String(value || '').toLowerCase();
+  return terms.some((term) => text.includes(term));
+}
+
+function getLessonQualityRubricStatus(lesson) {
+  const taskText = [
+    ...(Array.isArray(lesson.tasks) ? lesson.tasks : []),
+    ...(Array.isArray(lesson.do?.steps) ? lesson.do.steps : []),
+    lesson.challenge?.mission,
+    lesson.challenge?.bonusChallenge,
+    lesson.summary?.reflection,
+  ].join(' ');
+  const conceptText = [
+    lesson.content,
+    lesson.understand?.keyTakeaway,
+    ...(Array.isArray(lesson.concepts) ? lesson.concepts : []),
+    ...(Array.isArray(lesson.understand?.concepts)
+      ? lesson.understand.concepts.map((concept) => `${concept.term || ''} ${concept.definition || concept.meaning || ''}`)
+      : []),
+  ].join(' ');
+
+  return {
+    objective:
+      hasItems(lesson.hook?.accomplishments) ||
+      isNonEmptyString(lesson.learningFrame?.learn) ||
+      isNonEmptyString(lesson.build?.goal),
+    misconceptionCheck:
+      hasItems(lesson.understand?.commonMistakes) ||
+      hasItems(lesson.commonMistakes) ||
+      textIncludesAny(`${conceptText} ${taskText}`, ['mistake', 'common error', 'watch out', 'avoid', 'debug']),
+    retrievalPrompt:
+      isNonEmptyString(lesson.learningFrame?.check) ||
+      textIncludesAny(`${taskText} ${lesson.summary?.nextStep || ''}`, ['from memory', 'explain', 'recall', 'without looking', 'why']),
+    guidedPractice:
+      isNonEmptyString(lesson.code) ||
+      hasItems(lesson.do?.steps) ||
+      isNonEmptyString(lesson.do?.code),
+    independentPractice:
+      hasPracticePrompt(lesson),
+    transfer:
+      isNonEmptyString(lesson.bridge?.preview) ||
+      isNonEmptyString(lesson.learningFrame?.next) ||
+      textIncludesAny(`${taskText} ${lesson.output || ''}`, ['project', 'portfolio', 'real', 'next lesson', 'apply']),
+  };
+}
+
+function analyzeLearningQualityRubric(lesson, lessonPath, warnings) {
+  const status = getLessonQualityRubricStatus(lesson);
+  const entries = Object.entries(status);
+  const presentCount = entries.filter(([, present]) => present).length;
+
+  if (presentCount >= 4) return;
+
+  const missing = entries
+    .filter(([, present]) => !present)
+    .map(([name]) => name);
+
+  addWarning(
+    warnings,
+    lessonPath,
+    `Lesson quality rubric is thin (${presentCount}/6); missing ${missing.join(', ')}.`,
+  );
+}
+
 function analyzeInstructionalScaffolding(lesson, lessonPath, warnings) {
   const status = getInstructionalScaffoldStatus(lesson);
   const entries = Object.entries(status);
@@ -125,6 +190,52 @@ function analyzeInstructionalScaffolding(lesson, lessonPath, warnings) {
     warnings,
     lessonPath,
     `Lesson has shallow instructional scaffolding (${presentCount}/6); missing ${missing.join(', ')}.`,
+  );
+}
+
+function getQuestionPromptText(question) {
+  return [
+    question?.question,
+    question?.code,
+    ...(Array.isArray(question?.lines) ? question.lines : []),
+    question?.explanation,
+  ].join(' ');
+}
+
+function getQuizQualityStatus(questions) {
+  const promptText = questions.map(getQuestionPromptText).join(' ');
+  const types = new Set(questions.map((question) => question?.type || 'mc'));
+
+  return {
+    misconception:
+      textIncludesAny(promptText, ['bug', 'mistake', 'incorrect', 'wrong', 'avoid', 'not valid', 'debug']),
+    reasoning:
+      types.has('code') ||
+      types.has('bug') ||
+      types.has('order') ||
+      textIncludesAny(promptText, ['why', 'what happens', 'interpret', 'predict', 'because']),
+    application:
+      types.has('code') ||
+      types.has('bug') ||
+      textIncludesAny(promptText, ['scenario', 'best', 'should you', 'when would', 'real project']),
+  };
+}
+
+function analyzeQuizQuality(quiz, quizPath, warnings) {
+  const questions = Array.isArray(quiz?.questions) ? quiz.questions : [];
+  if (questions.length === 0) return;
+
+  const status = getQuizQualityStatus(questions);
+  const missing = Object.entries(status)
+    .filter(([, present]) => !present)
+    .map(([name]) => name);
+
+  if (missing.length === 0) return;
+
+  addWarning(
+    warnings,
+    quizPath,
+    `Quiz quality rubric is missing ${missing.join(', ')} item coverage.`,
   );
 }
 
@@ -259,6 +370,7 @@ function analyzeLessons(courseId, modules, lessonIndexes, issues, warnings) {
         addWarning(warnings, lessonPath, 'Lesson has no obvious practice prompt.');
       }
       analyzeInstructionalScaffolding(lesson, lessonPath, warnings);
+      analyzeLearningQualityRubric(lesson, lessonPath, warnings);
 
       lessonEntries.push({ lesson, lessonPath });
     });
@@ -307,7 +419,7 @@ function analyzeLessons(courseId, modules, lessonIndexes, issues, warnings) {
   return { lessonIds, moduleIds };
 }
 
-function analyzeQuizzes(courseId, quizzes, issues) {
+function analyzeQuizzes(courseId, quizzes, issues, warnings) {
   if (!Array.isArray(quizzes)) {
     addIssue(issues, `${courseId}.quizzes`, 'Course quizzes export is not an array.');
     return;
@@ -337,6 +449,7 @@ function analyzeQuizzes(courseId, quizzes, issues) {
       return;
     }
 
+    analyzeQuizQuality(quiz, quizPath, warnings);
     const questionIds = new Set();
     quiz.questions.forEach((question, questionIndex) => {
       const questionPath = `${quizPath}.questions[${questionIndex}]`;
@@ -361,7 +474,7 @@ function analyzeQuizzes(courseId, quizzes, issues) {
   });
 }
 
-function analyzeChallenges(courseId, challenges, issues, warnings) {
+function analyzeChallenges(courseId, challenges, moduleIds, issues, warnings) {
   if (!Array.isArray(challenges)) {
     addIssue(issues, `${courseId}.challenges`, 'Course challenges export is not an array.');
     return;
@@ -386,6 +499,19 @@ function analyzeChallenges(courseId, challenges, issues, warnings) {
 
     if (isNonEmptyString(challenge.courseId) && challenge.courseId !== courseId) {
       addIssue(issues, challengePath, `Challenge courseId "${challenge.courseId}" does not match "${courseId}".`);
+    }
+    if (!isNonEmptyString(challenge.recommendedModuleId)) {
+      addWarning(
+        warnings,
+        challengePath,
+        'Challenge is missing recommendedModuleId; module readiness will fall back to difficulty-based placement.',
+      );
+    } else if (!moduleIds.has(String(challenge.recommendedModuleId))) {
+      addIssue(
+        issues,
+        challengePath,
+        `Challenge recommendedModuleId "${challenge.recommendedModuleId}" does not match an active module in ${courseId}.`,
+      );
     }
     if (!isNonEmptyString(challenge.title)) {
       addIssue(issues, challengePath, 'Challenge is missing a title.');
@@ -430,6 +556,89 @@ function printEntries(title, entries, limit = 30) {
   }
 }
 
+function getCourseIdFromPath(path) {
+  return String(path || '').split('.')[0] || 'unknown';
+}
+
+function getWarningCategory(message) {
+  const text = String(message || '');
+  if (text.startsWith('Lesson quality rubric is thin')) return 'lesson-quality-rubric';
+  if (text.startsWith('Lesson has shallow instructional scaffolding')) return 'instructional-scaffolding';
+  if (text.startsWith('Quiz quality rubric is missing')) return 'quiz-quality-rubric';
+  if (text.startsWith('Challenge is missing recommendedModuleId')) return 'challenge-module-mapping';
+  if (text.startsWith('Challenge is missing')) return 'challenge-evidence';
+  return 'other';
+}
+
+function getMissingSignals(message) {
+  const match = String(message || '').match(/missing ([^.;]+)[.;]/i);
+  if (!match) return [];
+  return match[1]
+    .split(',')
+    .map((signal) => signal.trim())
+    .filter(Boolean);
+}
+
+function incrementCount(map, key, amount = 1) {
+  map.set(key, (map.get(key) || 0) + amount);
+}
+
+function toSortedCountEntries(map) {
+  return [...map.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((left, right) => right.count - left.count || left.name.localeCompare(right.name));
+}
+
+export function buildAuditSummary({ issues = [], warnings = [], counts = {} } = {}) {
+  const warningsByCourse = new Map();
+  const warningsByCategory = new Map();
+  const missingSignals = new Map();
+
+  warnings.forEach((warning) => {
+    incrementCount(warningsByCourse, getCourseIdFromPath(warning.path));
+    incrementCount(warningsByCategory, getWarningCategory(warning.message));
+    getMissingSignals(warning.message).forEach((signal) => incrementCount(missingSignals, signal));
+  });
+
+  return {
+    counts,
+    issueCount: issues.length,
+    warningCount: warnings.length,
+    warningsByCourse: toSortedCountEntries(warningsByCourse),
+    warningsByCategory: toSortedCountEntries(warningsByCategory),
+    missingSignals: toSortedCountEntries(missingSignals),
+  };
+}
+
+function printAuditSummary(result) {
+  const summary = buildAuditSummary(result);
+
+  console.log('\nActionable summary:');
+  console.log(`  blocking issues: ${summary.issueCount}`);
+  console.log(`  report-only warnings: ${summary.warningCount}`);
+
+  if (summary.warningsByCourse.length > 0) {
+    console.log('\n  warnings by course:');
+    summary.warningsByCourse.forEach((entry) => {
+      console.log(`    - ${entry.name}: ${entry.count}`);
+    });
+  }
+
+  if (summary.warningsByCategory.length > 0) {
+    console.log('\n  warnings by category:');
+    summary.warningsByCategory.forEach((entry) => {
+      console.log(`    - ${entry.name}: ${entry.count}`);
+    });
+  }
+
+  if (summary.missingSignals.length > 0) {
+    console.log('\n  most common missing signals:');
+    summary.missingSignals.slice(0, 12).forEach((entry) => {
+      console.log(`    - ${entry.name}: ${entry.count}`);
+    });
+  }
+}
+
 export function analyzeLearningContent({ courseMetadata, loaded }) {
   const issues = [];
   const warnings = [];
@@ -450,9 +659,9 @@ export function analyzeLearningContent({ courseMetadata, loaded }) {
     quizCount += (data?.quizzes || []).length;
     challengeCount += (data?.challenges || []).length;
 
-    analyzeLessons(courseId, modules, lessonIndexes, issues, warnings);
-    analyzeQuizzes(courseId, data?.quizzes || [], issues);
-    analyzeChallenges(courseId, data?.challenges || [], issues, warnings);
+    const lessonAnalysis = analyzeLessons(courseId, modules, lessonIndexes, issues, warnings);
+    analyzeQuizzes(courseId, data?.quizzes || [], issues, warnings);
+    analyzeChallenges(courseId, data?.challenges || [], lessonAnalysis.moduleIds, issues, warnings);
   }
 
   return {
@@ -469,6 +678,8 @@ export function analyzeLearningContent({ courseMetadata, loaded }) {
 }
 
 async function main() {
+  const showSummary = process.argv.includes('--summary');
+
   console.log('Learning Content Audit');
 
   const { courseMetadata, loaded } = await loadAllCourseData();
@@ -482,6 +693,9 @@ async function main() {
 
   printEntries('Warnings', result.warnings);
   printEntries('Blocking issues', result.issues);
+  if (showSummary) {
+    printAuditSummary(result);
+  }
 
   if (result.issues.length > 0) {
     process.exitCode = 1;

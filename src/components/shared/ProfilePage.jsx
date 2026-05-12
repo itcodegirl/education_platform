@@ -2,10 +2,12 @@ import { memo, useEffect, useMemo, useState } from 'react';
 import { useAuth, useProgressData, useXP, useSR, useTheme, BADGE_DEFS } from '../../providers';
 import { XP_PER_LEVEL, getLevel, getXPInLevel } from '../../utils/helpers';
 import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
+import { buildLearnerTranscriptSummary } from '../../utils/learnerTranscript';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { supabase } from '../../lib/supabaseClient';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 import { COURSE_CATALOG } from '../../data/reference/course-catalog';
+import { parseQuizScore } from '../../services/rewardPolicy';
 import '../../styles/feature-profile.css';
 
 function getPublicProfileSaveError(error) {
@@ -19,9 +21,9 @@ function getPublicProfileSaveError(error) {
 export const ProfilePage = memo(function ProfilePage({ onClose }) {
   const { user, profile, signOut } = useAuth();
   const { theme } = useTheme();
-  const { completed = [] } = useProgressData();
+  const { completed = [], quizScores = {}, challengeCompletions = [] } = useProgressData();
   const { xpTotal = 0, streak = 0, pausedStreak = null, earnedBadges = {} } = useXP();
-  const { bookmarks = [], notes = {} } = useSR();
+  const { bookmarks = [], notes = {}, srCards = [] } = useSR();
 
   useDocumentTitle('Your profile');
 
@@ -137,6 +139,21 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
   const completedLessons = courseStats.reduce((sum, course) => sum + course.done, 0);
   const totalLessons = courseStats.reduce((sum, course) => sum + course.total, 0);
   const badgeCount = Object.keys(earnedBadges).length;
+  const quizResults = Object.values(quizScores || {})
+    .map((scoreValue) => parseQuizScore(scoreValue))
+    .filter(Boolean);
+  const quizChecksPassed = quizResults.filter((result) => result.pct >= 80).length;
+  const dueReviewCards = srCards.filter((card) => Number(card?.nextReview || 0) <= Date.now()).length;
+  const transcript = buildLearnerTranscriptSummary({
+    completedLessons,
+    totalLessons,
+    quizChecksPassed,
+    quizChecksAttempted: quizResults.length,
+    quizChecksNeedsReview: quizResults.length - quizChecksPassed,
+    completedChallenges: challengeCompletions.length,
+    dueReviewCards,
+    totalReviewCards: srCards.length,
+  });
 
   return (
     <div className={`loading-screen ${theme} pp-scroll`}>
@@ -190,6 +207,33 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
             </div>
           ))}
         </div>
+
+        <section className="pp-transcript-card" aria-labelledby="pp-transcript-title">
+          <div className="pp-transcript-head">
+            <div>
+              <h3 id="pp-transcript-title" className="pp-section-title">Private learning transcript</h3>
+              <p className="pp-transcript-copy">
+                A readiness snapshot that separates lessons completed from recall, review, and applied proof.
+              </p>
+            </div>
+            <span className={`pp-transcript-status pp-transcript-status-${transcript.status.tone}`}>
+              {transcript.status.label}
+            </span>
+          </div>
+          <p className="pp-transcript-copy">{transcript.status.detail}</p>
+          <div className="pp-transcript-grid">
+            {transcript.items.map((item) => (
+              <div key={item.key} className={`pp-transcript-item pp-transcript-item-${item.tone}`}>
+                <span className="pp-transcript-value">{item.value}</span>
+                <span className="pp-transcript-label">{item.label}</span>
+                <span className="pp-transcript-detail">{item.detail}</span>
+              </div>
+            ))}
+          </div>
+          <p className="pp-transcript-note">
+            This transcript is private learning evidence, not a verified credential.
+          </p>
+        </section>
 
         <div className="pp-xp-section">
           <div className="pp-xp-info">

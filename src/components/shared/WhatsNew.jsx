@@ -39,7 +39,11 @@ export const WhatsNew = memo(function WhatsNew() {
     setSeenVersion(APP_VERSION);
   };
 
-  useFocusTrap(modalRef, { enabled: show, onEscape: handleClose });
+  useFocusTrap(modalRef, {
+    enabled: show,
+    onEscape: handleClose,
+    initialFocus: 'first-tabbable',
+  });
 
   if (!show) return null;
 

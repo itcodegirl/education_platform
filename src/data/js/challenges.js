@@ -3,6 +3,7 @@ const count = (code, str) => (code.toLowerCase().match(new RegExp(str.toLowerCas
 
 export const JS_CHALLENGES = [
   { id:'js-ch-1', title:'Array Filter & Map', description:'Filter evens, then double each one.', difficulty:'beginner', courseId:'js',
+    recommendedModuleId: '302',
     starter:'const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];\n\nconst evens = // filter evens\nconst doubled = // double each\n\nconsole.log(evens);\nconsole.log(doubled);',
     requirements:['Use .filter()','Use .map()','evens = [2,4,6,8,10]','doubled = [4,8,12,16,20]'],
     tests:[
@@ -15,6 +16,7 @@ export const JS_CHALLENGES = [
     solution:'const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];\nconst evens = numbers.filter(n => n % 2 === 0);\nconst doubled = evens.map(n => n * 2);\nconsole.log(evens);\nconsole.log(doubled);' },
 
   { id:'js-ch-2', title:'Object Destructuring', description:'Extract values and merge objects with spread.', difficulty:'beginner', courseId:'js',
+    recommendedModuleId: '302',
     starter:'const user = { name: "Jenna", email: "j@code.com", role: "dev", level: "junior" };\n\n// destructure name and role\n// merge user with { level: "mid", team: "frontend" }',
     requirements:['Destructuring { }','Spread operator ...','Extracts name and role','Merges objects'],
     tests:[
@@ -27,6 +29,7 @@ export const JS_CHALLENGES = [
     solution:'const user = { name: "Jenna", email: "j@code.com", role: "dev", level: "junior" };\nconst { name, role } = user;\nconst updates = { level: "mid", team: "frontend" };\nconst merged = { ...user, ...updates };\nconsole.log(name, role);\nconsole.log(merged);' },
 
   { id:'js-ch-3', title:'Async Fetch', description:'Write an async function that fetches data with error handling.', difficulty:'intermediate', courseId:'js',
+    recommendedModuleId: '305',
     starter:'// async function getUser()\n// fetch from jsonplaceholder\n// parse JSON, log name\n// try/catch for errors',
     requirements:['async keyword','await fetch()','Calls .json()','try/catch'],
     tests:[
@@ -39,6 +42,7 @@ export const JS_CHALLENGES = [
     solution:'async function getUser() {\n  try {\n    const res = await fetch("https://jsonplaceholder.typicode.com/users/1");\n    const user = await res.json();\n    console.log(user.name);\n  } catch (err) {\n    console.error("Failed:", err.message);\n  }\n}\ngetUser();' },
 
   { id:'js-ch-4', title:'DOM Counter', description:'Build a counter with increment, decrement, and reset.', difficulty:'beginner', courseId:'js',
+    recommendedModuleId: '303',
     starter:'// Create 3 buttons: +, -, Reset\n// Display the count\n// Use querySelector and addEventListener\n\nlet count = 0;\n\n// Your code here',
     requirements:['Uses querySelector','Uses addEventListener','Has increment/decrement/reset','Updates the display'],
     tests:[
@@ -51,6 +55,7 @@ export const JS_CHALLENGES = [
     solution:'let count = 0;\nconst display = document.querySelector("#count");\nconst plus = document.querySelector("#plus");\nconst minus = document.querySelector("#minus");\nconst reset = document.querySelector("#reset");\n\nplus.addEventListener("click", () => { count++; display.textContent = count; });\nminus.addEventListener("click", () => { count--; display.textContent = count; });\nreset.addEventListener("click", () => { count = 0; display.textContent = count; });' },
 
   { id:'js-ch-5', title:'localStorage Todo List', description:'Build a todo list that persists with localStorage.', difficulty:'intermediate', courseId:'js',
+    recommendedModuleId: '306',
     starter:'// Todo list with:\n// - Add items\n// - Store in localStorage\n// - Load on page load\n// - Delete items',
     requirements:['Uses localStorage.setItem','Uses localStorage.getItem','Uses JSON.stringify','Uses JSON.parse','Has add and delete functions'],
     tests:[
@@ -64,6 +69,7 @@ export const JS_CHALLENGES = [
     solution:'let todos = JSON.parse(localStorage.getItem("todos")) || [];\n\nfunction addTodo(text) {\n  todos.push({ id: Date.now(), text, done: false });\n  save();\n}\n\nfunction deleteTodo(id) {\n  todos = todos.filter(t => t.id !== id);\n  save();\n}\n\nfunction save() {\n  localStorage.setItem("todos", JSON.stringify(todos));\n}\n\naddTodo("Learn JavaScript");\nconsole.log(todos);' },
 
   { id:'js-ch-6', title:'Array Reduce', description:'Use reduce to calculate total price from a cart array.', difficulty:'beginner', courseId:'js',
+    recommendedModuleId: '304',
     starter:'const cart = [\n  { name: "Shirt", price: 29.99, qty: 2 },\n  { name: "Shoes", price: 89.99, qty: 1 },\n  { name: "Hat", price: 14.99, qty: 3 },\n];\n\n// Calculate total using .reduce()\nconst total = // your code\n\nconsole.log(total);',
     requirements:['Uses .reduce()','Multiplies price * qty','Returns a number','Accumulates correctly'],
     tests:[
@@ -76,6 +82,7 @@ export const JS_CHALLENGES = [
     solution:'const cart = [\n  { name: "Shirt", price: 29.99, qty: 2 },\n  { name: "Shoes", price: 89.99, qty: 1 },\n  { name: "Hat", price: 14.99, qty: 3 },\n];\nconst total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);\nconsole.log(total);' },
 
   { id:'js-ch-7', title:'Event Delegation', description:'Handle clicks on a dynamic list with one parent listener.', difficulty:'intermediate', courseId:'js',
+    recommendedModuleId: '306',
     starter:'// One listener on #list handles all <li> clicks\n// Use e.target to identify which item was clicked\n// Log the clicked item text',
     requirements:['One addEventListener on parent','Uses e.target','Checks tagName or closest','Handles dynamic children'],
     tests:[
@@ -88,6 +95,7 @@ export const JS_CHALLENGES = [
     solution:'const list = document.querySelector("#list");\n\nlist.addEventListener("click", (e) => {\n  if (e.target.tagName === "LI") {\n    console.log("Clicked:", e.target.textContent);\n    e.target.classList.toggle("done");\n  }\n});' },
 
   { id:'js-ch-8', title:'Promise Chain', description:'Chain 3 promises that each add to a message.', difficulty:'intermediate', courseId:'js',
+    recommendedModuleId: '305',
     starter:'// Create 3 functions that return promises\n// Chain them: step1().then(step2).then(step3)\n// Each adds to the message',
     requirements:['Creates Promise objects','Uses .then() chaining','3 steps in the chain','Final result logged'],
     tests:[
@@ -100,6 +108,7 @@ export const JS_CHALLENGES = [
     solution:'function step1() {\n  return Promise.resolve("Hello");\n}\nfunction step2(msg) {\n  return Promise.resolve(msg + " World");\n}\nfunction step3(msg) {\n  return Promise.resolve(msg + "!");\n}\n\nstep1()\n  .then(step2)\n  .then(step3)\n  .then(result => console.log(result));' },
 
   { id:'js-ch-9', title:'Debounce Function', description:'Implement a debounce utility function.', difficulty:'advanced', courseId:'js',
+    recommendedModuleId: '304',
     starter:'// Write a debounce function\n// debounce(fn, delay) returns a new function\n// that only fires after the user stops calling it\n// for "delay" milliseconds',
     requirements:['Returns a function','Uses setTimeout','Uses clearTimeout','Accepts delay parameter'],
     tests:[
@@ -112,6 +121,7 @@ export const JS_CHALLENGES = [
     solution:'function debounce(fn, delay) {\n  let timer;\n  return function(...args) {\n    clearTimeout(timer);\n    timer = setTimeout(() => fn(...args), delay);\n  };\n}\n\nconst search = debounce((query) => {\n  console.log("Searching:", query);\n}, 300);\n\nsearch("h");\nsearch("he");\nsearch("hello"); // only this fires' },
 
   { id:'js-ch-10', title:'Class with Inheritance', description:'Create a Shape class and a Circle that extends it.', difficulty:'intermediate', courseId:'js',
+    recommendedModuleId: '304',
     starter:'// Create class Shape with name property\n// Create class Circle extends Shape\n// Circle has radius, calculates area\n// Use super() in constructor',
     requirements:['Uses class keyword','Uses extends','Uses super()','Has a method that calculates area'],
     tests:[

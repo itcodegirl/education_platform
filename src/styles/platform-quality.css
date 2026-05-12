@@ -1064,6 +1064,132 @@ img {
   color: var(--text-muted);
 }
 
+.ss-module-evidence-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ss-module-policy {
+  margin: calc(-1 * var(--space-2)) 0 var(--space-3);
+  color: var(--text);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.ss-module-evidence-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 132px 168px;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border-bright);
+  border-radius: 8px;
+  background: var(--bg-surface);
+}
+
+.ss-module-evidence-review {
+  border-left-color: var(--warning);
+}
+
+.ss-module-evidence-practice,
+.ss-module-evidence-building {
+  border-left-color: var(--cyan);
+}
+
+.ss-module-evidence-ready {
+  border-left-color: var(--success);
+}
+
+.ss-module-evidence-main {
+  min-width: 0;
+}
+
+.ss-module-course {
+  display: block;
+  color: var(--text-muted);
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.ss-module-title {
+  margin: 2px 0 4px;
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.ss-module-action {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+
+.ss-module-readiness {
+  margin: 0 0 4px;
+  color: var(--text);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+
+.ss-module-status-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ss-module-status {
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.ss-module-lessons {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.ss-module-signals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.ss-module-signals div {
+  min-width: 0;
+  padding: 8px 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  text-align: center;
+}
+
+.ss-module-signals dt {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.ss-module-signals dd {
+  margin: 2px 0 0;
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
 .ss-section-heading-row {
   display: flex;
   align-items: flex-start;
@@ -1085,6 +1211,101 @@ img {
   color: var(--text-dim);
   font-size: var(--text-sm);
   line-height: 1.6;
+}
+
+.ss-transcript {
+  margin: var(--space-4) 0;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.025);
+}
+
+.ss-transcript-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 999px;
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ss-transcript-status-empty {
+  color: var(--text-muted);
+}
+
+.ss-transcript-status-review {
+  border-color: rgba(255,167,38,0.3);
+  color: var(--warning);
+}
+
+.ss-transcript-status-strong {
+  border-color: rgba(78,205,196,0.3);
+  color: var(--success);
+}
+
+.ss-transcript-status-building {
+  border-color: rgba(255,107,157,0.28);
+  color: var(--pink);
+}
+
+.ss-transcript-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.ss-transcript-card {
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-surface);
+}
+
+.ss-transcript-card-complete {
+  border-color: rgba(78,205,196,0.24);
+}
+
+.ss-transcript-card-review {
+  border-color: rgba(255,167,38,0.26);
+}
+
+.ss-transcript-value {
+  display: block;
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-xl);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.ss-transcript-label {
+  display: block;
+  margin-top: 6px;
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.ss-transcript-detail,
+.ss-transcript-note {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-dim);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+}
+
+.ss-transcript-note {
+  margin-bottom: 0;
 }
 
 .ss-mastery-status {
@@ -1349,6 +1570,17 @@ img {
 
   .ss-mastery-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ss-module-evidence-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .ss-module-status-block {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: var(--space-2);
   }
 
   .ss-quiz-overview {

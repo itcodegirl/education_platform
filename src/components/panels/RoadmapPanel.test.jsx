@@ -5,6 +5,9 @@ import { RoadmapPanel } from './RoadmapPanel';
 const { mockUseProgressData } = vi.hoisted(() => ({
   mockUseProgressData: vi.fn(),
 }));
+const { mockUseFocusTrap } = vi.hoisted(() => ({
+  mockUseFocusTrap: vi.fn(),
+}));
 
 vi.mock('../../data/reference/course-catalog', () => ({
   COURSE_CATALOG: [
@@ -39,11 +42,12 @@ vi.mock('../../providers', () => ({
 }));
 
 vi.mock('../../hooks/useFocusTrap', () => ({
-  useFocusTrap: () => {},
+  useFocusTrap: (...args) => mockUseFocusTrap(...args),
 }));
 
 describe('RoadmapPanel', () => {
   beforeEach(() => {
+    mockUseFocusTrap.mockReset();
     mockUseProgressData.mockReturnValue({ completedSet: new Set() });
   });
 
@@ -57,8 +61,10 @@ describe('RoadmapPanel', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: /foundations/i })).toHaveTextContent('Reading in progress');
-    expect(screen.getByRole('button', { name: /forms/i })).toHaveTextContent('Not started');
+    expect(screen.getByRole('button', { name: /foundations/i })).toHaveTextContent('Current');
+    expect(screen.getByRole('button', { name: /forms/i })).toHaveTextContent('Upcoming');
+    expect(screen.getByText(/Stage 1: Structure/i)).toBeInTheDocument();
+    expect(screen.getByText(/Evidence target:/i)).toHaveTextContent(/accessible structure/i);
   });
 
   it('keeps complete modules distinct from the current module readiness state', () => {
@@ -75,24 +81,8 @@ describe('RoadmapPanel', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: /foundations/i })).toHaveTextContent('Ready to continue');
-    expect(screen.getByRole('button', { name: /forms/i })).toHaveTextContent('Reading in progress');
-  });
-
-  it('shows evidence needed when a module has partial reading progress', () => {
-    mockUseProgressData.mockReturnValue({
-      completedSet: new Set(['c:html|m:m2|l:l2']),
-    });
-
-    render(
-      <RoadmapPanel
-        onClose={vi.fn()}
-        onNavigate={vi.fn()}
-        currentCourseIdx={0}
-        currentModuleIdx={0}
-      />,
-    );
-
-    expect(screen.getByRole('button', { name: /forms/i })).toHaveTextContent('Evidence needed');
+    expect(screen.getByRole('button', { name: /foundations/i })).toHaveTextContent('Complete');
+    expect(screen.getByRole('button', { name: /forms/i })).toHaveTextContent('Current');
+    expect(screen.getByText(/Next useful step:/i)).toHaveTextContent(/lesson, quick check, review/i);
   });
 });

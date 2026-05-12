@@ -25,19 +25,31 @@ import { REWARD_EVENT_TYPES } from '../engine/rewards/rewardEventTypes';
 import { createRewardEvent } from '../engine/rewards/rewardEvents';
 import { awardRewardOnce } from '../engine/rewards/rewardRuntime';
 import { isAnswerCorrect } from '../components/learning/quiz/questionTypes';
-import { getBestQuizScoreValue, getQuizKeyCandidates } from '../utils/quizKeys';
+import { getBestQuizScoreValue, getQuizKeyCandidates, parseQuizKey } from '../utils/quizKeys';
 
 // Build a spaced-repetition card from a wrong answer.
 // fill/order don't translate to flashcards cleanly so the caller
 // filters them out before getting here.
-function toReviewCard(q, label) {
+function toReviewCard(q, label, quizKey) {
+  const parsedQuizKey = parseQuizKey(quizKey);
+  const quizIdentity = parsedQuizKey.type ? {
+    quizType: parsedQuizKey.type === 'm' ? 'module' : 'lesson',
+    courseId: parsedQuizKey.courseId,
+    moduleId: parsedQuizKey.type === 'm' ? parsedQuizKey.entityId : '',
+    lessonId: parsedQuizKey.type === 'l' ? parsedQuizKey.entityId : '',
+  } : {};
+
   return {
+    id: `${quizKey || label}:${q.id || q.question || Date.now()}`,
     question: q.question || (q.type === 'code' ? 'What does this code output?' : 'Find the bug'),
+    questionId: q.id || '',
     code: q.code || (q.lines ? q.lines.join('\n') : ''),
     options: q.options || q.lines || [],
     correct: q.correct,
     explanation: q.explanation,
     source: label,
+    quizKey,
+    ...quizIdentity,
     added: Date.now(),
     nextReview: Date.now() + TIMING.dayMs,
     interval: 1,
@@ -192,7 +204,7 @@ export function useQuizSession({ quiz, label, quizKey, legacyQuizKeys = [] }) {
         !isAnswerCorrect(q, answers.get(q.id))
         && (q.type === 'mc' || q.type === 'code' || q.type === 'bug'),
       )
-      .map((q) => toReviewCard(q, label));
+      .map((q) => toReviewCard(q, label, quizKey));
 
     if (wrongCards.length > 0) {
       addToSRQueue(wrongCards);

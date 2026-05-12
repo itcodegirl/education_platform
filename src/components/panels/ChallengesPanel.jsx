@@ -55,7 +55,11 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
     }));
   }, [completed, courseId]);
 
-  useFocusTrap(modalRef, { enabled: true, onEscape: onClose });
+  useFocusTrap(modalRef, {
+    enabled: true,
+    onEscape: onClose,
+    initialFocus: 'first-tabbable',
+  });
 
   const refreshChallengeList = useCallback(async ({ resetActive = false } = {}) => {
     const requestId = loadRequestRef.current + 1;
@@ -275,6 +279,14 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
                       {challengePlan.recommended.readinessLabel}. Best connected to{' '}
                       <strong>{challengePlan.recommended.targetModuleTitle}</strong>.
                     </p>
+                    <ul className="challenge-path-reasons" aria-label="Recommended challenge readiness">
+                      {challengePlan.recommended.readinessReasons.map((reason) => (
+                        <li key={reason}>{reason}</li>
+                      ))}
+                    </ul>
+                    <p className="challenge-path-guidance">
+                      {challengePlan.recommended.nextPracticeStep}
+                    </p>
                     <p className="challenge-path-meta">
                       {challengePlan.completedCount}/{challengePlan.totalCount} challenges complete
                     </p>
@@ -318,8 +330,11 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
                     <p className="challenge-card-target">
                       {challenge.readinessLabel}: {challenge.targetModuleTitle}
                     </p>
+                    <p className="challenge-card-guidance">
+                      {challenge.nextPracticeStep}
+                    </p>
                     <div className="challenge-card-meta">
-                      <span>{challenge.tests?.length || 0} tests</span>
+                      <span>{challenge.evidenceLabel}</span>
                       <span>{completed.has(challenge.id) ? 'Completed here' : 'Open challenge'}</span>
                     </div>
                   </button>
