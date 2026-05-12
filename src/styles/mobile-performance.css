@@ -20,6 +20,11 @@
     overscroll-behavior-inline: contain;
     -webkit-overflow-scrolling: touch;
   }
+
+  .search-modal,
+  .mobile-tools-sheet {
+    contain: layout paint;
+  }
 }
 
 @supports (content-visibility: auto) {
@@ -28,7 +33,12 @@
     .quiz-container,
     .code-preview,
     .ai-tutor-panel,
-    .notes-panel {
+    .notes-panel,
+    .daily-loop,
+    .lesson-product-frame,
+    .sl-concepts,
+    .sl-summary,
+    .sl-bridge {
       content-visibility: auto;
       contain-intrinsic-size: auto 360px;
     }
@@ -84,7 +94,18 @@
   .quiz-submit:not(:disabled):hover,
   .quiz-retry:hover,
   .search-result:hover,
-  .search-result.active {
+    .search-result.active {
     transform: none;
+  }
+
+  .lesson-container,
+  .lesson-surface,
+  .lesson-head,
+  .lesson-body,
+  .box,
+  .quiz-container,
+  .mobile-tools-sheet,
+  .search-modal {
+    animation: none;
   }
 }

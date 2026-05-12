@@ -8,6 +8,8 @@ Use this checklist before Netlify releases or hotfix deploys.
 - Run:
   - `npm run check`
   - `npm run typecheck`
+  - `npm run check:supabase-readiness`
+  - `npm run audit:reward-catalog`
   - `npm run audit:e2e-scripts`
   - `npm run audit:auth-e2e`
   - `npm run audit:staging-runbook`
@@ -32,9 +34,13 @@ Use this checklist before Netlify releases or hotfix deploys.
   - open a lesson
   - complete a lesson
   - refresh and confirm progress reloads
+- Validate stale-link recovery:
+  - open a `/learn/<course>/<bad-module>/<bad-lesson>` URL for a real course
+  - confirm the app recovers to the first lesson in that course instead of a blank or generic error path
 - Validate persistence UX:
   - create/edit a note
   - bookmark a lesson
+  - open Saved lessons and confirm unavailable legacy rows are readable, disabled, and removable
 - Validate quiz path for an active HTML/CSS/JS/React lesson quiz.
 - If backend reward sync is enabled, validate one authenticated reward event is awarded once and repeated completion returns a skipped/duplicate result without extra XP.
 - Confirm any `npm run audit:quizzes` findings are expected and documented, especially classified orphan quizzes, intentional variant groups, legacy aliases, and archived inactive quiz coverage.

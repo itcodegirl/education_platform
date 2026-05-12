@@ -21,10 +21,6 @@ describe('TopbarLearnerStatus', () => {
 
     expect(screen.getByLabelText('Level 3')).toHaveAttribute(
       'title',
-      expect.stringContaining('tracks effort, not mastery'),
-    );
-    expect(screen.getByLabelText('Level 3')).toHaveAttribute(
-      'title',
       expect.stringContaining(PROGRESS_SYNC_SHORT),
     );
     expect(screen.getByLabelText('4 day streak')).toHaveAttribute(

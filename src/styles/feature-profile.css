@@ -346,6 +346,120 @@
   margin-top: 4px;
 }
 
+.pp-transcript-card {
+  margin-bottom: 32px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
+}
+
+.pp-transcript-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pp-transcript-head .pp-section-title {
+  margin-bottom: 6px;
+}
+
+.pp-transcript-copy,
+.pp-transcript-note,
+.pp-transcript-detail {
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.pp-transcript-copy {
+  margin: 0 0 12px;
+}
+
+.pp-transcript-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pp-transcript-status-empty {
+  color: var(--text-muted);
+}
+
+.pp-transcript-status-review {
+  border-color: rgba(255, 167, 38, 0.3);
+  color: var(--amber);
+}
+
+.pp-transcript-status-strong {
+  border-color: rgba(78, 205, 196, 0.3);
+  color: var(--cyan);
+}
+
+.pp-transcript-status-building {
+  border-color: rgba(255, 107, 157, 0.28);
+  color: var(--pink);
+}
+
+.pp-transcript-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pp-transcript-item {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.pp-transcript-item-complete {
+  border-color: rgba(78, 205, 196, 0.22);
+}
+
+.pp-transcript-item-review {
+  border-color: rgba(255, 167, 38, 0.26);
+}
+
+.pp-transcript-value,
+.pp-transcript-label {
+  display: block;
+  font-family: 'Poppins', sans-serif;
+}
+
+.pp-transcript-value {
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.pp-transcript-label {
+  margin-top: 5px;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pp-transcript-detail {
+  display: block;
+  margin-top: 5px;
+}
+
+.pp-transcript-note {
+  margin: 12px 0 0;
+}
+
 .pp-activity-icon {
   font-size: 20px;
   margin-bottom: 4px;
@@ -493,6 +607,14 @@
 
   .pp-status-row {
     justify-content: flex-start;
+  }
+
+  .pp-transcript-head {
+    flex-direction: column;
+  }
+
+  .pp-transcript-grid {
+    grid-template-columns: 1fr;
   }
 }
 

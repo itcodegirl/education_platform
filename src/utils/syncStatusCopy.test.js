@@ -22,7 +22,7 @@ describe('getSyncStatusCopy', () => {
     });
   });
 
-  it('syncStatusCopyCoversPendingRetryAndFailure', () => {
+  it('shows active retry copy while queued writes are replaying', () => {
     expect(getSyncStatusCopy({ user, dataLoaded: true, pendingSyncWrites: 1, syncRetryInFlight: true })).toEqual({
       tone: 'saving',
       label: 'Retrying cloud sync',
@@ -30,13 +30,19 @@ describe('getSyncStatusCopy', () => {
       actionLabel: '',
       actionAriaLabel: '',
     });
+  });
 
+  it('gives failed sync writes a visible recovery action', () => {
     expect(getSyncStatusCopy({ user, dataLoaded: true, syncFailed: 1 })).toEqual({
       tone: 'warning',
       label: 'Sync needs retry',
-      detail: 'Your current session is safe in this browser. Cloud sync needs another try when the connection is stable.',
+      detail: '1 update saved in this browser needs another cloud sync attempt when the connection is stable.',
+      actionLabel: 'Retry now',
+      actionAriaLabel: 'Retry failed progress sync now',
     });
+  });
 
+  it('keeps account-load failures distinct from queued write failures', () => {
     expect(getSyncStatusCopy({ user, dataLoaded: true, loadError: new Error('offline') })).toEqual({
       tone: 'warning',
       label: 'Cloud progress unavailable',
@@ -44,19 +50,13 @@ describe('getSyncStatusCopy', () => {
     });
   });
 
-  it('progressSaveFailureShowsRecoveryMessage', () => {
+  it('pluralizes failed sync recovery copy', () => {
     expect(getSyncStatusCopy({ user, dataLoaded: true, syncFailed: 2 })).toEqual({
       tone: 'warning',
       label: 'Sync needs retry',
-      detail: 'Your current session is safe in this browser. Cloud sync needs another try when the connection is stable.',
-    });
-  });
-
-  it('progressSaveFailureShowsRecoveryMessage', () => {
-    expect(getSyncStatusCopy({ user, dataLoaded: true, syncFailed: 1 })).toEqual({
-      tone: 'warning',
-      label: 'Sync needs retry',
-      detail: 'Your current session is safe in this browser. Cloud sync needs another try when the connection is stable.',
+      detail: '2 updates saved in this browser need another cloud sync attempt when the connection is stable.',
+      actionLabel: 'Retry now',
+      actionAriaLabel: 'Retry failed progress sync now',
     });
   });
 
@@ -72,7 +72,7 @@ describe('getSyncStatusCopy', () => {
     expect(getSyncStatusCopy({ user, dataLoaded: true })).toEqual({
       tone: 'synced',
       label: 'Saved to account',
-      detail: 'Account progress is current. New lesson activity will sync when the cloud is reachable.',
+      detail: 'Latest account sync looks current. New lesson activity will sync when the cloud is reachable.',
     });
   });
 });

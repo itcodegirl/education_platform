@@ -2,24 +2,26 @@ import { useCallback, useMemo } from 'react';
 import { getMobileLearningTools } from '../constants/learningTools';
 
 export function useLearningToolActions({ panels, hasCompletedProgress = true }) {
+  const { togglePanel } = panels;
+
   const handleOpenTool = useCallback(
-    (tool) => panels.togglePanel(tool),
-    [panels],
+    (tool) => togglePanel(tool),
+    [togglePanel],
   );
 
   const toolbarHandlers = useMemo(
     () => ({
-      onSearch: () => panels.togglePanel('search'),
-      onCheatsheet: () => panels.togglePanel('cheatsheet'),
-      onGlossary: () => panels.togglePanel('glossary'),
-      onProjects: () => panels.togglePanel('projects'),
-      onBadges: () => panels.togglePanel('badges'),
-      onSR: () => panels.togglePanel('sr'),
-      onBookmarks: () => panels.togglePanel('bookmarks'),
-      onChallenges: () => panels.togglePanel('challenges'),
-      onStats: () => panels.togglePanel('stats'),
+      onSearch: () => togglePanel('search'),
+      onCheatsheet: () => togglePanel('cheatsheet'),
+      onGlossary: () => togglePanel('glossary'),
+      onProjects: () => togglePanel('projects'),
+      onBadges: () => togglePanel('badges'),
+      onSR: () => togglePanel('sr'),
+      onBookmarks: () => togglePanel('bookmarks'),
+      onChallenges: () => togglePanel('challenges'),
+      onStats: () => togglePanel('stats'),
     }),
-    [panels],
+    [togglePanel],
   );
 
   const mobileTools = useMemo(

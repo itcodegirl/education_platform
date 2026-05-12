@@ -11,12 +11,14 @@ import {
 import { COURSE_LOADER_IDS, loadCourseRuntime } from '../data';
 import { useAuth } from '../providers/AuthProvider';
 import { useTheme } from '../providers/ThemeProvider';
-import { AuthLayout } from '../layouts/AuthLayout';
 import { Logo } from '../components/shared/Logo';
 import { APP_ROUTES, parsePublicProfilePath, routeIdMatches } from './routePaths';
 import { closeRouteOrGoHome, toPathFromLegacyHash } from './routeUtils';
 import { RouteErrorBoundary } from './RouteErrorBoundary';
 
+const AuthLayout = lazy(() =>
+  import('../layouts/AuthLayout').then((module) => ({ default: module.AuthLayout })),
+);
 const Styleguide = lazy(() =>
   import('../components/shared/Styleguide').then((module) => ({ default: module.Styleguide })),
 );
@@ -48,6 +50,18 @@ function loadedCourseHasModuleQuiz(loadedCourse, moduleId) {
   return (loadedCourse.quizzes || []).some((quiz) =>
     quiz?.moduleId != null && routeIdMatches(quiz.moduleId, moduleId),
   );
+}
+
+function buildCourseRecoveryPath(courseId, moduleData = null, loadedCourse = null) {
+  const fallbackModule = moduleData || loadedCourse?.modules?.[0];
+  const fallbackLesson = fallbackModule?.lessons?.[0];
+  if (!courseId || !fallbackModule?.id || !fallbackLesson?.id) {
+    return APP_ROUTES.home;
+  }
+
+  return `${APP_ROUTES.learnBase}/${encodeURIComponent(courseId)}/${encodeURIComponent(
+    fallbackModule.id,
+  )}/${encodeURIComponent(fallbackLesson.id)}`;
 }
 
 function RouteLoadingScreen({ theme, size = 'sm', children }) {
@@ -154,7 +168,19 @@ export function ProtectedRoute({ children }) {
     );
   }
 
-  if (!user) return <AuthLayout />;
+  if (!user) {
+    return (
+      <Suspense
+        fallback={(
+          <RouteLoadingScreen theme={theme} size="lg">
+            <LoadingMessage>Opening CodeHerWay...</LoadingMessage>
+          </RouteLoadingScreen>
+        )}
+      >
+        <AuthLayout />
+      </Suspense>
+    );
+  }
   if (profileError) {
     return <AccountCheckErrorScreen theme={theme} onRetry={refreshProfile} onSignOut={signOut} />;
   }
@@ -291,28 +317,24 @@ export async function learnRouteLoader({ params }) {
     throw redirect(APP_ROUTES.home);
   }
 
-  try {
-    const loadedCourse = await loadCourseRuntime(courseId);
-    const moduleMatch = loadedCourse.modules.find((module) => routeIdMatches(module.id, moduleId));
-    if (!moduleMatch) {
-      throw new Error('Unknown module');
-    }
-
-    if (lessonId === 'quiz') {
-      if (!loadedCourseHasModuleQuiz(loadedCourse, moduleMatch.id)) {
-        throw new Error('Unknown module quiz');
-      }
-    } else {
-      const lessonMatch = moduleMatch.lessons.find((lesson) => routeIdMatches(lesson.id, lessonId));
-      if (!lessonMatch) {
-        throw new Error('Unknown lesson');
-      }
-    }
-
-    return { courseId, moduleId, lessonId };
-  } catch {
-    throw redirect(APP_ROUTES.home);
+  const loadedCourse = await loadCourseRuntime(courseId);
+  const moduleMatch = loadedCourse.modules.find((module) => routeIdMatches(module.id, moduleId));
+  if (!moduleMatch) {
+    throw redirect(buildCourseRecoveryPath(courseId, null, loadedCourse));
   }
+
+  if (lessonId === 'quiz') {
+    if (!loadedCourseHasModuleQuiz(loadedCourse, moduleMatch.id)) {
+      throw redirect(buildCourseRecoveryPath(courseId, moduleMatch, loadedCourse));
+    }
+  } else {
+    const lessonMatch = moduleMatch.lessons.find((lesson) => routeIdMatches(lesson.id, lessonId));
+    if (!lessonMatch) {
+      throw redirect(buildCourseRecoveryPath(courseId, moduleMatch, loadedCourse));
+    }
+  }
+
+  return { courseId, moduleId, lessonId };
 }
 
 const STYLEGUIDE_SEGMENT = APP_ROUTES.styleguide.replace(/^\//, '');
