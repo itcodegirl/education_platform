@@ -12,7 +12,6 @@ export function getDailyLearningLoopSteps({
   const quizReady = masteryStatus?.isReady === true;
   const readinessState = masteryStatus?.state || '';
   const needsQuizReview = masteryStatus?.tone === 'review' || masteryStatus?.tone === 'attention';
-  const readinessState = masteryStatus?.state || null;
   const retentionPlan = getRetentionPlan({
     isLessonDone,
     hasLessonQuiz,

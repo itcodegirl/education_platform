@@ -5,6 +5,41 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { getCourseCompletedLessonCount, hasLessonCompletion } from '../../utils/lessonKeys';
 import { getCourseReadiness } from '../../utils/learningPath';
 
+function getRoadmapModuleReadiness({ completedLessons = 0, totalLessons = 0, isCurrentModule = false } = {}) {
+  const total = Math.max(0, Number(totalLessons) || 0);
+  const completed = Math.max(0, Math.min(Number(completedLessons) || 0, total));
+
+  if (total > 0 && completed >= total) {
+    return {
+      label: 'Complete',
+      detail: 'All lessons in this module are saved.',
+      tone: 'complete',
+    };
+  }
+
+  if (isCurrentModule) {
+    return {
+      label: 'Current',
+      detail: 'This is the active module to begin or continue.',
+      tone: 'current',
+    };
+  }
+
+  if (completed > 0) {
+    return {
+      label: 'Started',
+      detail: 'Some reading is saved. Finish the remaining lessons next.',
+      tone: 'started',
+    };
+  }
+
+  return {
+    label: 'Upcoming',
+    detail: 'This module is waiting for the learner.',
+    tone: 'upcoming',
+  };
+}
+
 export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx, currentModuleIdx = -1 }) {
   const { completedSet = new Set() } = useProgressData();
   const modalRef = useRef(null);
@@ -106,7 +141,7 @@ export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx, currentMod
                     const moduleComplete = moduleDone === module.lessons.length;
                     const moduleStarted = moduleDone > 0 && !moduleComplete;
                     const isCurrentModule = isCurrent && moduleIndex === currentModuleIdx;
-                    const moduleReadiness = getModuleReadiness({
+                    const moduleReadiness = getRoadmapModuleReadiness({
                       completedLessons: moduleDone,
                       totalLessons: module.lessons.length,
                       isCurrentModule,
