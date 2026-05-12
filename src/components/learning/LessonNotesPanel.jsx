@@ -45,7 +45,7 @@ export function LessonNotesPanel({ lessonKey }) {
   // the scroll so the visual viewport has resized first.
   const handleFocus = (event) => {
     const textarea = event.currentTarget;
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     window.setTimeout(() => {
       textarea.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
     }, reduceMotion ? 0 : 250);
