@@ -3,7 +3,7 @@
 // Extracted from App.jsx for clarity
 // ═══════════════════════════════════════════════
 
-import { useState, useRef, useEffect } from 'react';
+import { useCallback, useMemo, useState, useRef, useEffect } from 'react';
 import { TIMING, MILESTONES } from '../utils/helpers';
 import { getLearnerStorageKey, getLegacyStorageKey } from '../utils/learnerStorageKeys';
 
@@ -65,7 +65,7 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
   const panelRef = useRef(null);
   const confettiTimerRef = useRef(null);
 
-  const scheduleConfettiReset = (duration) => {
+  const scheduleConfettiReset = useCallback((duration) => {
     if (confettiTimerRef.current) {
       window.clearTimeout(confettiTimerRef.current);
     }
@@ -74,7 +74,7 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
       confettiTimerRef.current = null;
       setConfetti(false);
     }, duration);
-  };
+  }, []);
 
   useEffect(() => {
     panelRef.current = panel;
@@ -131,31 +131,31 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
   }, []);
 
   // Confetti on milestones
-  const checkMilestone = (completedCount) => {
+  const checkMilestone = useCallback((completedCount) => {
     const prev = prevCompleted.current;
     if (prev > 0 && MILESTONES.some((m) => prev < m && completedCount >= m)) {
       setConfetti(true);
       scheduleConfettiReset(TIMING.confettiDuration);
     }
     prevCompleted.current = completedCount;
-  };
+  }, [scheduleConfettiReset]);
 
   // Course completion celebration
-  const triggerCourseComplete = () => {
+  const triggerCourseComplete = useCallback(() => {
     setShowCourseComplete(true);
     setConfetti(true);
     scheduleConfettiReset(TIMING.courseConfettiDuration);
-  };
+  }, [scheduleConfettiReset]);
 
-  const closePanel = () => {
+  const closePanel = useCallback(() => {
     if (typeof window !== 'undefined' && getPanelFromHistoryState(window.history.state)) {
       window.history.back();
       return;
     }
     setPanel(null);
-  };
+  }, []);
 
-  const openPanel = (name) => {
+  const openPanel = useCallback((name) => {
     if (typeof window === 'undefined') {
       setPanel(name);
       return;
@@ -164,17 +164,17 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
     const nextState = createPanelHistoryState(name);
     window.history.pushState(nextState, '', window.location.href);
     setPanel(name);
-  };
+  }, []);
 
-  const togglePanel = (name) => {
-    if (panel === name) {
+  const togglePanel = useCallback((name) => {
+    if (panelRef.current === name) {
       closePanel();
       return;
     }
     openPanel(name);
-  };
+  }, [closePanel, openPanel]);
 
-  return {
+  return useMemo(() => ({
     panel, setPanel, closePanel, togglePanel,
     sidebar, setSidebar,
     showWelcome, setShowWelcome,
@@ -183,5 +183,16 @@ export function usePanels({ dataLoaded, user, lastPosition }) {
     confetti,
     checkMilestone,
     triggerCourseComplete,
-  };
+  }), [
+    panel,
+    closePanel,
+    togglePanel,
+    sidebar,
+    showWelcome,
+    showOnboarding,
+    showCourseComplete,
+    confetti,
+    checkMilestone,
+    triggerCourseComplete,
+  ]);
 }
