@@ -316,6 +316,55 @@ describe('StudentStats streak card', () => {
     expect(screen.getByLabelText(/M1 evidence signals/i)).toHaveTextContent('Builds1/1');
   });
 
+  it('does not mark a completed module ready when quick-check proof is missing', () => {
+    mockUseProgressData.mockReturnValue({
+      completed: ['c:html|m:m1|l:l1'],
+      quizScores: {},
+      challengeCompletions: ['html-challenge-1'],
+    });
+    mockUseXP.mockReturnValue({
+      xpTotal: 80,
+      streak: 1,
+      pausedStreak: null,
+      dailyCount: 1,
+      earnedBadges: {},
+    });
+
+    render(<StudentStats isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText('Needs quick-check proof')).toBeInTheDocument();
+    expect(screen.getByText(/0\/2 modules ready to advance/i)).toBeInTheDocument();
+    expect(screen.queryByText('Ready to advance')).not.toBeInTheDocument();
+  });
+
+  it('blocks ready-to-advance status while mapped review work is due', () => {
+    mockUseProgressData.mockReturnValue({
+      completed: ['c:html|m:m1|l:l1'],
+      quizScores: {
+        'l:html:l1': '1/1',
+      },
+      challengeCompletions: ['html-challenge-1'],
+    });
+    mockUseSR.mockReturnValue({
+      srCards: [{ quizKey: 'l:html:l1', nextReview: 0 }],
+      bookmarks: [],
+      notes: {},
+    });
+    mockUseXP.mockReturnValue({
+      xpTotal: 80,
+      streak: 1,
+      pausedStreak: null,
+      dailyCount: 1,
+      earnedBadges: {},
+    });
+
+    render(<StudentStats isOpen onClose={vi.fn()} />);
+
+    expect(screen.getAllByText('Review evidence due').length).toBeGreaterThan(0);
+    expect(screen.getByText(/0\/2 modules ready to advance/i)).toBeInTheDocument();
+    expect(screen.queryByText('Ready to advance')).not.toBeInTheDocument();
+  });
+
   it('connects review cards with quiz identity back to the module that needs review', () => {
     mockUseProgressData.mockReturnValue({
       completed: ['c:html|m:m1|l:l1'],
