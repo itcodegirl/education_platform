@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { PROGRESS_SYNC_SHORT } from '../../constants/progressCopy';
 
 export const TopbarLearnerStatus = memo(function TopbarLearnerStatus({
   learnerName,
@@ -37,7 +38,7 @@ export const TopbarLearnerStatus = memo(function TopbarLearnerStatus({
         <span
           className="topbar-pill paused"
           aria-label={`${pausedStreak.days} day streak paused`}
-          title="Pick up your streak with one more lesson today"
+          title={`Pick up your streak with one more lesson today. ${PROGRESS_SYNC_SHORT}`}
         >
           Streak paused: {pausedStreak.days} day{pausedStreak.days === 1 ? '' : 's'}
         </span>
