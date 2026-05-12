@@ -78,4 +78,24 @@ describe('useMobileKeyboardOpen', () => {
     const desktop = renderHook(() => useMobileKeyboardOpen(false));
     expect(desktop.result.current).toBe(false);
   });
+
+  it('clears delayed orientation and focus timers on unmount', () => {
+    vi.useFakeTimers();
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 1);
+    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {});
+    installVisualViewport(800);
+
+    const { unmount } = renderHook(() => useMobileKeyboardOpen(true));
+
+    act(() => {
+      window.dispatchEvent(new Event('orientationchange'));
+      window.dispatchEvent(new FocusEvent('focusout'));
+    });
+
+    expect(vi.getTimerCount()).toBe(2);
+
+    unmount();
+
+    expect(vi.getTimerCount()).toBe(0);
+  });
 });

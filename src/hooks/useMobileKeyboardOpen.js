@@ -41,6 +41,7 @@ export function useMobileKeyboardOpen(isMobile) {
     let baselineHeight = getViewportHeight();
     let animationFrame = 0;
     let focusOutTimer = 0;
+    let orientationTimer = 0;
 
     const updateKeyboardState = () => {
       if (animationFrame) {
@@ -48,6 +49,7 @@ export function useMobileKeyboardOpen(isMobile) {
       }
 
       animationFrame = window.requestAnimationFrame(() => {
+        animationFrame = 0;
         const currentHeight = getViewportHeight();
         const focusedForTyping = isTextEntryElement(document.activeElement);
 
@@ -65,7 +67,12 @@ export function useMobileKeyboardOpen(isMobile) {
     };
 
     const resetBaselineSoon = () => {
-      window.setTimeout(() => {
+      if (orientationTimer) {
+        window.clearTimeout(orientationTimer);
+      }
+
+      orientationTimer = window.setTimeout(() => {
+        orientationTimer = 0;
         baselineHeight = getViewportHeight();
         updateKeyboardState();
       }, 250);
@@ -75,7 +82,10 @@ export function useMobileKeyboardOpen(isMobile) {
       if (focusOutTimer) {
         window.clearTimeout(focusOutTimer);
       }
-      focusOutTimer = window.setTimeout(updateKeyboardState, 80);
+      focusOutTimer = window.setTimeout(() => {
+        focusOutTimer = 0;
+        updateKeyboardState();
+      }, 80);
     };
 
     viewport?.addEventListener('resize', updateKeyboardState);
@@ -98,6 +108,9 @@ export function useMobileKeyboardOpen(isMobile) {
       }
       if (focusOutTimer) {
         window.clearTimeout(focusOutTimer);
+      }
+      if (orientationTimer) {
+        window.clearTimeout(orientationTimer);
       }
     };
   }, [isMobile]);
