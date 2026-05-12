@@ -5,6 +5,9 @@ import { RoadmapPanel } from './RoadmapPanel';
 const { mockUseProgressData } = vi.hoisted(() => ({
   mockUseProgressData: vi.fn(),
 }));
+const { mockUseFocusTrap } = vi.hoisted(() => ({
+  mockUseFocusTrap: vi.fn(),
+}));
 
 vi.mock('../../data/reference/course-catalog', () => ({
   COURSE_CATALOG: [
@@ -36,11 +39,12 @@ vi.mock('../../providers', () => ({
 }));
 
 vi.mock('../../hooks/useFocusTrap', () => ({
-  useFocusTrap: () => {},
+  useFocusTrap: (...args) => mockUseFocusTrap(...args),
 }));
 
 describe('RoadmapPanel', () => {
   beforeEach(() => {
+    mockUseFocusTrap.mockReset();
     mockUseProgressData.mockReturnValue({ completedSet: new Set() });
   });
 
@@ -56,6 +60,8 @@ describe('RoadmapPanel', () => {
 
     expect(screen.getByRole('button', { name: /foundations/i })).toHaveTextContent('Current');
     expect(screen.getByRole('button', { name: /forms/i })).toHaveTextContent('Upcoming');
+    expect(screen.getByText(/Stage 1: Structure/i)).toBeInTheDocument();
+    expect(screen.getByText(/Evidence target:/i)).toHaveTextContent(/accessible structure/i);
   });
 
   it('keeps complete modules distinct from the current module', () => {
@@ -74,5 +80,6 @@ describe('RoadmapPanel', () => {
 
     expect(screen.getByRole('button', { name: /foundations/i })).toHaveTextContent('Complete');
     expect(screen.getByRole('button', { name: /forms/i })).toHaveTextContent('Current');
+    expect(screen.getByText(/Next useful step:/i)).toHaveTextContent(/lesson, quick check, review/i);
   });
 });

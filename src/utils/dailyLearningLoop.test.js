@@ -47,8 +47,8 @@ describe('daily learning loop', () => {
   it('points to application when lesson checks and review are clear', () => {
     const steps = getDailyLearningLoopSteps({
       isLessonDone: true,
-      hasLessonQuiz: true,
-      masteryStatus: { state: LEARNER_READINESS_STATES.READY_TO_CONTINUE, tone: 'ready', isReady: true },
+      hasLessonQuiz: false,
+      masteryStatus: { tone: 'neutral', isReady: true },
       dueReviewCount: 0,
     });
 
@@ -56,5 +56,21 @@ describe('daily learning loop', () => {
       state: 'Challenge',
       isCurrent: true,
     });
+  });
+
+  it('adds a recall step after a ready quiz so retention is not skipped', () => {
+    const steps = getDailyLearningLoopSteps({
+      isLessonDone: true,
+      hasLessonQuiz: true,
+      masteryStatus: { tone: 'ready', isReady: true },
+      dueReviewCount: 0,
+    });
+
+    expect(steps.find((step) => step.key === 'recall')).toMatchObject({
+      state: '1-minute recall',
+      tone: 'active',
+      isCurrent: true,
+    });
+    expect(steps).toHaveLength(5);
   });
 });

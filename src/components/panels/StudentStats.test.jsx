@@ -8,6 +8,9 @@ const { mockUseProgressData, mockUseXP, mockUseSR } = vi.hoisted(() => ({
   mockUseXP: vi.fn(),
   mockUseSR: vi.fn(),
 }));
+const { mockUseFocusTrap } = vi.hoisted(() => ({
+  mockUseFocusTrap: vi.fn(),
+}));
 
 vi.mock('../../providers', () => ({
   useProgressData: () => mockUseProgressData(),
@@ -49,12 +52,13 @@ vi.mock('../../data/challenges', () => ({
 }));
 
 vi.mock('../../hooks/useFocusTrap', () => ({
-  useFocusTrap: () => {},
+  useFocusTrap: (...args) => mockUseFocusTrap(...args),
 }));
 
 import { StudentStats } from './StudentStats';
 
 beforeEach(() => {
+  mockUseFocusTrap.mockReset();
   mockUseProgressData.mockReturnValue({ completed: [], quizScores: {}, challengeCompletions: [] });
   mockUseSR.mockReturnValue({ srCards: [], bookmarks: [], notes: {} });
 });
@@ -76,6 +80,14 @@ describe('StudentStats streak card', () => {
     expect(dialog).toHaveAttribute('aria-modal', 'true');
     expect(screen.getByRole('heading', { name: /progress snapshot/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /close progress panel/i })).toBeInTheDocument();
+    expect(mockUseFocusTrap).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({
+        enabled: true,
+        onEscape: onClose,
+        initialFocus: 'first-tabbable',
+      }),
+    );
 
     fireEvent.click(screen.getByRole('button', { name: /back to current lesson/i }));
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -293,5 +305,60 @@ describe('StudentStats streak card', () => {
     expect(screen.getByText('Review due now')).toBeInTheDocument();
     expect(screen.getByText('Challenges: 1/1')).toBeInTheDocument();
     expect(screen.getByRole('region', { name: /progress snapshot summary/i })).toHaveTextContent('1');
+  });
+
+  it('surfaces module-level evidence so completion is tied to proof', () => {
+    mockUseProgressData.mockReturnValue({
+      completed: ['c:html|m:m1|l:l1'],
+      quizScores: {
+        'l:html:l1': '1/1',
+      },
+      challengeCompletions: ['html-challenge-1'],
+    });
+    mockUseXP.mockReturnValue({
+      xpTotal: 80,
+      streak: 1,
+      pausedStreak: null,
+      dailyCount: 1,
+      earnedBadges: {},
+    });
+
+    render(<StudentStats isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText('Module Evidence')).toBeInTheDocument();
+    expect(screen.getByText('M1')).toBeInTheDocument();
+    expect(screen.getByText('Evidence ready')).toBeInTheDocument();
+    expect(screen.getByText(/1\/2 modules have quiz or challenge proof/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/M1 evidence signals/i)).toHaveTextContent('Checks1/1');
+    expect(screen.getByLabelText(/M1 evidence signals/i)).toHaveTextContent('Builds1/1');
+  });
+
+  it('connects review cards with quiz identity back to the module that needs review', () => {
+    mockUseProgressData.mockReturnValue({
+      completed: ['c:html|m:m1|l:l1'],
+      quizScores: {
+        'l:html:l1': '0/1',
+      },
+      challengeCompletions: [],
+    });
+    mockUseSR.mockReturnValue({
+      srCards: [{ quizKey: 'l:html:l1', nextReview: 0 }],
+      bookmarks: [],
+      notes: {},
+    });
+    mockUseXP.mockReturnValue({
+      xpTotal: 80,
+      streak: 1,
+      pausedStreak: null,
+      dailyCount: 1,
+      earnedBadges: {},
+    });
+
+    render(<StudentStats isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText('Module Evidence')).toBeInTheDocument();
+    expect(screen.getAllByText('Review evidence due').length).toBeGreaterThan(0);
+    expect(screen.getByText(/clear review cards or retry a missed check/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/M1 evidence signals/i)).toHaveTextContent('Due1');
   });
 });

@@ -100,6 +100,14 @@ async function expectNoVisibleControlOverlap(page, selector) {
 }
 
 test.describe('public learner entry', () => {
+  test('recovers stale lesson links to a useful course entry point', async ({ page }) => {
+    await page.goto('/learn/html/missing-module/missing-lesson');
+
+    await expect(page).toHaveURL(/\/learn\/html\/101\/lesson-01$/);
+    await expect(page.locator('.auth-card')).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('button', { name: /preview the first lesson/i })).toBeVisible();
+  });
+
   test('opens the first lesson preview from the hero without an account', async ({ page }) => {
     await page.goto('/');
 

@@ -3,12 +3,17 @@ import { useProgressData } from '../../providers';
 import { COURSE_CATALOG } from '../../data/reference/course-catalog';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { getCourseCompletedLessonCount, hasLessonCompletion } from '../../utils/lessonKeys';
+import { getCourseReadiness } from '../../utils/learningPath';
 
 export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx, currentModuleIdx = -1 }) {
   const { completedSet = new Set() } = useProgressData();
   const modalRef = useRef(null);
 
-  useFocusTrap(modalRef, { enabled: true, onEscape: onClose });
+  useFocusTrap(modalRef, {
+    enabled: true,
+    onEscape: onClose,
+    initialFocus: 'first-tabbable',
+  });
 
   return (
     <div className="panel-overlay" onClick={onClose}>
@@ -33,7 +38,8 @@ export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx, currentMod
 
         <div className="roadmap-body">
           <p className="panel-meta">
-            See every course, spot what is complete, and jump straight into the next module that needs you.
+            See how the courses build on each other, what each stage proves, and where your next useful
+            evidence should come from.
           </p>
 
           {COURSE_CATALOG.map((course, courseIndex) => {
@@ -42,6 +48,12 @@ export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx, currentMod
             const percent = totalLessons > 0 ? Math.round((doneLessons / totalLessons) * 100) : 0;
             const isCurrent = courseIndex === currentCourseIdx;
             const isComplete = doneLessons === totalLessons && totalLessons > 0;
+            const readiness = getCourseReadiness({
+              courseId: course.id,
+              doneLessons,
+              totalLessons,
+              isCurrent,
+            });
 
             return (
               <div
@@ -60,9 +72,23 @@ export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx, currentMod
                       </span>
                     </div>
                   </div>
-                  <div className="rm-course-pct" style={{ color: course.accent }}>
-                    {isComplete ? 'Done' : `${percent}%`}
+                  <div className="rm-course-status">
+                    <span className={`rm-course-readiness rm-course-readiness-${readiness.tone}`}>
+                      {readiness.label}
+                    </span>
+                    <span className="rm-course-pct" style={{ color: course.accent }}>
+                      {isComplete ? 'Done' : `${percent}%`}
+                    </span>
                   </div>
+                </div>
+
+                <div className="rm-course-learning-frame">
+                  <span className="rm-course-stage">
+                    {readiness.pathway.stage}: {readiness.pathway.role}
+                  </span>
+                  <p>{readiness.pathway.outcome}</p>
+                  <p className="rm-course-evidence">Evidence target: {readiness.pathway.evidence}</p>
+                  <p className="rm-course-next">Next useful step: {readiness.nextAction}</p>
                 </div>
 
                 <div className="rm-bar">

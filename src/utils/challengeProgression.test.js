@@ -26,11 +26,19 @@ describe('challenge progression plan', () => {
   it('targets beginner challenges to the first course module', () => {
     const plan = getChallengeProgressionPlan({
       course,
-      challenges: [{ id: 'challenge-1', title: 'Starter', difficulty: 'beginner' }],
+      challenges: [{
+        id: 'challenge-1',
+        title: 'Starter',
+        difficulty: 'beginner',
+        requirements: ['Use a selector'],
+        tests: [{ label: 'selector' }, { label: 'style' }],
+      }],
     });
 
     expect(plan.recommended.targetModuleTitle).toBe('CSS Foundations');
     expect(plan.recommended.readinessLabel).toBe('Ready for practice');
+    expect(plan.recommended.evidenceLabel).toBe('1 requirement backed by 2 checks');
+    expect(plan.recommended.readinessReasons).toContain('Good starter practice for this course');
   });
 
   it('uses explicit recommended module ids when present', () => {
@@ -48,6 +56,7 @@ describe('challenge progression plan', () => {
 
     expect(plan.recommended.targetModuleTitle).toBe('Layout Mastery');
     expect(plan.recommended.readinessLabel).toMatch(/Best after Layout Mastery/i);
+    expect(plan.recommended.nextPracticeStep).toMatch(/practice, not guessing/i);
   });
 
   it('skips completed challenges when selecting the recommendation', () => {
@@ -62,5 +71,27 @@ describe('challenge progression plan', () => {
 
     expect(plan.completedCount).toBe(1);
     expect(plan.recommended.id).toBe('challenge-2');
+  });
+
+  it('shows completed challenges as refactor or portfolio evidence opportunities', () => {
+    const plan = getChallengeProgressionPlan({
+      course,
+      completedChallengeIds: ['challenge-1'],
+      challenges: [
+        {
+          id: 'challenge-1',
+          title: 'Starter',
+          difficulty: 'beginner',
+          requirements: ['Use flex'],
+          tests: [{ label: 'flex' }],
+        },
+      ],
+    });
+
+    expect(plan.challenges[0].readinessReasons).toEqual([
+      'Completed in this browser',
+      '1 requirement backed by 1 check',
+    ]);
+    expect(plan.challenges[0].nextPracticeStep).toMatch(/portfolio note/i);
   });
 });

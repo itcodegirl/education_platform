@@ -6,7 +6,11 @@ export function ProjectsPanel({ isOpen, onClose, currentCourse, hasCompletedProg
   const [activeCourse, setActiveCourse] = useState(currentCourse);
   const modalRef = useRef(null);
 
-  useFocusTrap(modalRef, { enabled: isOpen, onEscape: onClose });
+  useFocusTrap(modalRef, {
+    enabled: isOpen,
+    onEscape: onClose,
+    initialFocus: 'first-tabbable',
+  });
 
   if (!isOpen) return null;
 

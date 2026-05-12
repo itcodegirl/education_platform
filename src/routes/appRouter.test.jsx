@@ -42,7 +42,7 @@ vi.mock('../components/shared/Logo', () => ({
   Logo: () => <span>logo</span>,
 }));
 
-import { ProtectedRoute, learnRouteAction, learnRouteLoader } from './appRouter';
+import { appRouter, ProtectedRoute, learnRouteAction, learnRouteLoader } from './appRouter';
 
 function renderProtectedRoute() {
   return render(
@@ -96,7 +96,7 @@ describe('appRouter ProtectedRoute', () => {
     expect(screen.queryByText('private-content')).not.toBeInTheDocument();
   });
 
-  it('shows auth layout only after auth is initialized and no user exists', () => {
+  it('shows auth layout only after auth is initialized and no user exists', async () => {
     mockUseAuth.mockReturnValue({
       user: null,
       profile: null,
@@ -107,7 +107,8 @@ describe('appRouter ProtectedRoute', () => {
 
     renderProtectedRoute();
 
-    expect(screen.getByText('auth-layout')).toBeInTheDocument();
+    expect(screen.getByText(/Opening CodeHerWay/i)).toBeInTheDocument();
+    expect(await screen.findByText('auth-layout')).toBeInTheDocument();
   });
 
   it('renders protected content for restored active users', () => {
@@ -163,6 +164,12 @@ describe('appRouter ProtectedRoute', () => {
     );
     expect(screen.getByRole('button', { name: /log out/i })).toBeInTheDocument();
     expect(screen.queryByText('private-content')).not.toBeInTheDocument();
+  });
+});
+
+describe('appRouter hydration fallback', () => {
+  it('declares a root hydrate fallback for lazy route hydration', () => {
+    expect(appRouter.routes[0].hydrateFallbackElement).toBeTruthy();
   });
 });
 
@@ -290,7 +297,7 @@ describe('appRouter learnRouteLoader', () => {
     });
   });
 
-  it('redirects module quiz links when the loaded module has no quiz', async () => {
+  it('recovers module quiz links to the first lesson when the loaded module has no quiz', async () => {
     let redirectResponse;
 
     try {
@@ -307,6 +314,26 @@ describe('appRouter learnRouteLoader', () => {
 
     expect(redirectResponse).toBeInstanceOf(Response);
     expect(redirectResponse.status).toBe(302);
-    expect(redirectResponse.headers.get('Location')).toBe('/');
+    expect(redirectResponse.headers.get('Location')).toBe('/learn/html/101/lesson-01');
+  });
+
+  it('recovers unknown modules to the first lesson in the requested course', async () => {
+    let redirectResponse;
+
+    try {
+      await learnRouteLoader({
+        params: {
+          courseId: 'html',
+          moduleId: 'missing-module',
+          lessonId: 'missing-lesson',
+        },
+      });
+    } catch (error) {
+      redirectResponse = error;
+    }
+
+    expect(redirectResponse).toBeInstanceOf(Response);
+    expect(redirectResponse.status).toBe(302);
+    expect(redirectResponse.headers.get('Location')).toBe('/learn/html/101/lesson-01');
   });
 });

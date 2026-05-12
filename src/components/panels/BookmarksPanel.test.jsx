@@ -9,6 +9,9 @@ const { mockUseSR, mockUseProgressData } = vi.hoisted(() => ({
 const { mockBookmarkSubmit } = vi.hoisted(() => ({
   mockBookmarkSubmit: vi.fn(),
 }));
+const { mockUseFocusTrap } = vi.hoisted(() => ({
+  mockUseFocusTrap: vi.fn(),
+}));
 
 vi.mock('../../providers', () => ({
   useSR: () => mockUseSR(),
@@ -33,12 +36,13 @@ vi.mock('react-router-dom', () => ({
 }));
 
 vi.mock('../../hooks/useFocusTrap', () => ({
-  useFocusTrap: () => {},
+  useFocusTrap: (...args) => mockUseFocusTrap(...args),
 }));
 
 describe('BookmarksPanel', () => {
   beforeEach(() => {
     mockBookmarkSubmit.mockReset();
+    mockUseFocusTrap.mockReset();
     mockUseSR.mockReturnValue({
       bookmarks: [],
       toggleBookmark: vi.fn(),
@@ -63,6 +67,14 @@ describe('BookmarksPanel', () => {
       screen.getByText(/Use the Save button in a lesson header/i),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Back to lesson/i })).toBeInTheDocument();
+    expect(mockUseFocusTrap).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({
+        enabled: true,
+        onEscape: expect.any(Function),
+        initialFocus: 'first-tabbable',
+      }),
+    );
   });
 
   it('treats missing bookmark data as an empty saved list', () => {
@@ -109,6 +121,32 @@ describe('BookmarksPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: /open what is html/i }));
     expect(onNavigate).toHaveBeenCalledWith(0, 0, 0);
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('renders incomplete legacy bookmarks without crashing', () => {
+    mockUseSR.mockReturnValue({
+      bookmarks: [{
+        lesson_key: 'legacy-missing-course',
+        lesson_title: '',
+      }],
+      toggleBookmark: vi.fn(),
+    });
+
+    render(
+      <BookmarksPanel
+        isOpen
+        onClose={vi.fn()}
+        onNavigate={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Saved lesson')).toBeInTheDocument();
+    expect(screen.getByText('Saved course > Saved lesson')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: /saved lesson is unavailable in the current course catalog/i,
+      }),
+    ).toBeDisabled();
   });
 
   it('removes bookmark through route action mutation', () => {

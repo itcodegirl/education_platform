@@ -12,11 +12,13 @@ describe('mobile performance layout styles', () => {
     expect(mobilePerformanceCss).toMatch(/\.main-shell\s*{[^}]*touch-action:\s*pan-y;/s);
     expect(mobilePerformanceCss).toMatch(/\.search-results,\s*\.mobile-tools-sheet,\s*\.cheatsheet-body\s*{[^}]*overscroll-behavior-y:\s*contain;/s);
     expect(mobilePerformanceCss).toMatch(/\.code-preview-code,\s*\.qq-code,\s*\.lb-instructions-code\s*{[^}]*overscroll-behavior-inline:\s*contain;/s);
+    expect(mobilePerformanceCss).toMatch(/\.search-modal,\s*\.mobile-tools-sheet\s*{[^}]*contain:\s*layout paint;/s);
   });
 
   it('adds mobile-only rendering hints for heavy learning surfaces', () => {
     expect(mobilePerformanceCss).toMatch(/@supports\s*\(content-visibility:\s*auto\)/);
     expect(mobilePerformanceCss).toMatch(/\.lesson-quiz-wrap,[\s\S]*content-visibility:\s*auto;/);
+    expect(mobilePerformanceCss).toMatch(/\.daily-loop,[\s\S]*\.lesson-product-frame,[\s\S]*\.sl-summary,[\s\S]*content-visibility:\s*auto;/);
     expect(mobilePerformanceCss).toMatch(/contain-intrinsic-size:\s*auto 360px;/);
   });
 
@@ -25,5 +27,6 @@ describe('mobile performance layout styles', () => {
     expect(mobilePerformanceCss).toMatch(/\.topbar,[\s\S]*backdrop-filter:\s*none;/);
     expect(mobilePerformanceCss).toMatch(/will-change:\s*auto;/);
     expect(mobilePerformanceCss).toMatch(/\.search-result\.active\s*{[^}]*transform:\s*none;/s);
+    expect(mobilePerformanceCss).toMatch(/\.lesson-container,[\s\S]*\.search-modal\s*{[^}]*animation:\s*none;/);
   });
 });
