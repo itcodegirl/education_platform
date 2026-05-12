@@ -21,7 +21,7 @@ This map turns the CodeHerWay portfolio story into concrete evidence. Use it whe
 | Failed covered progress writes can retry in the same browser. | `src/services/progressWriteQueue.js`, `src/hooks/useProgressSync.js`, `docs/progress-sync-recovery.md` | Queue/replay tests in `src/services/progressWriteQueue.test.js` and `src/hooks/useProgressSync.test.jsx`. |
 | Reward awards are idempotent locally and prepared for backend authority. | `src/engine/rewards/`, `src/services/rewardEventService.js`, `supabase/migrations/` | Reward runtime/service tests plus Supabase policy static checks. |
 | Saved lesson panels tolerate older or partial bookmark records without crashing the learner shell. | `src/components/panels/BookmarksPanel.jsx`, `src/components/panels/BookmarksPanel.test.jsx` | Component coverage renders incomplete legacy bookmarks as disabled, understandable saved-lesson rows. |
-| Bundle growth is watched instead of ignored. | `vite.config.js`, `scripts/check-bundle-size.mjs`, `docs/pr-admin-readiness.md` | `npm run check:bundle` runs inside the broader quality gate. |
+| Bundle growth is watched instead of ignored. | `vite.config.js`, `scripts/check-bundle-size.mjs`, `scripts/check-route-boundaries.mjs`, `docs/performance-budget.md`, `docs/pr-admin-readiness.md` | `npm run audit:performance` rebuilds production assets, checks bundle budgets, and verifies heavy route boundaries. |
 
 ## Accessibility And UX Claims
 
