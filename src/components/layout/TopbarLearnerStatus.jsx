@@ -23,7 +23,7 @@ export const TopbarLearnerStatus = memo(function TopbarLearnerStatus({
         </span>
       )}
       {xpTotal > 0 && (
-        <span className="topbar-pill" aria-label={`Level ${level}`} title="Practice level — it rises as you earn XP from quizzes and challenges. It tracks effort, not mastery.">Lv {level}</span>
+        <span className="topbar-pill" aria-label={`Level ${level}`} title={PROGRESS_SYNC_SHORT}>Lv {level}</span>
       )}
       {coursePct > 0 && (
         <span className="topbar-pill" aria-label={`Course completion ${coursePct} percent`} title="Share of this course's lessons you've marked done">
@@ -31,7 +31,7 @@ export const TopbarLearnerStatus = memo(function TopbarLearnerStatus({
         </span>
       )}
       {streak > 0 ? (
-        <span className="topbar-pill streak" aria-label={`${streak} day streak`} title="Days in a row you've completed at least one lesson">
+        <span className="topbar-pill streak" aria-label={`${streak} day streak`} title={PROGRESS_SYNC_SHORT}>
           Streak: {streak} day{streak === 1 ? '' : 's'}
         </span>
       ) : pausedStreak ? (
@@ -44,7 +44,7 @@ export const TopbarLearnerStatus = memo(function TopbarLearnerStatus({
         </span>
       ) : null}
       {dailyCount > 0 && (
-        <span className="topbar-pill warm" aria-label={`Lessons done today: ${dailyCount}`} title="Lessons you've marked done today">
+        <span className="topbar-pill warm" aria-label={`Lessons done today: ${dailyCount}`} title={PROGRESS_SYNC_SHORT}>
           {dailyCount} lesson{dailyCount === 1 ? '' : 's'} today
         </span>
       )}
