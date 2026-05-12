@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import { readFile } from 'node:fs/promises';
 import {
+  formatAuthE2EPreflightSummary,
   loadAuthE2EEnvFile,
   parseAuthE2EEnvFile,
   runAuthE2EPreflight,
   validateAuthE2EEnv,
+  writeAuthE2EPreflightSummary,
 } from '../../scripts/auth-e2e-preflight.mjs';
 
 const validEnv = {
@@ -175,6 +177,37 @@ describe('authenticated E2E preflight', () => {
     expect(result.message).not.toContain(validEnv.VITE_SUPABASE_ANON_KEY);
     expect(result.message).not.toContain(validEnv.E2E_EMAIL);
     expect(result.message).not.toContain(validEnv.E2E_PASSWORD);
+  });
+
+  it('formats a redacted CI summary for authenticated mobile coverage mode', async () => {
+    const checkReachability = vi.fn(async () => ({ status: 200 }));
+
+    const result = await runAuthE2EPreflight({
+      ...validEnv,
+      E2E_AUTH_REQUIRED: 'true',
+    }, {
+      checkReachability,
+    });
+
+    const summary = formatAuthE2EPreflightSummary(result);
+
+    expect(summary).toContain('Authenticated Mobile E2E Readiness');
+    expect(summary).toContain('Status: signed-in coverage enabled');
+    expect(summary).toContain('Covered when enabled: signed-in learner smoke, lesson flow, and mobile learning shell.');
+    expect(summary).not.toContain('secret-project-ref');
+    expect(summary).not.toContain(validEnv.VITE_SUPABASE_ANON_KEY);
+    expect(summary).not.toContain(validEnv.E2E_EMAIL);
+    expect(summary).not.toContain(validEnv.E2E_PASSWORD);
+  });
+
+  it('skips GitHub summary writes outside Actions', async () => {
+    const wroteSummary = await writeAuthE2EPreflightSummary({
+      ok: false,
+      required: false,
+      reason: 'missing_env',
+    }, {});
+
+    expect(wroteSummary).toBe(false);
   });
 
   it('fails required preflight with redacted unreachable-host diagnostics', async () => {
