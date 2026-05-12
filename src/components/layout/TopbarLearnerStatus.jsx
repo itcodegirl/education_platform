@@ -1,6 +1,10 @@
 import { memo } from 'react';
 import { PROGRESS_SYNC_SHORT } from '../../constants/progressCopy';
 
+const LEVEL_SCOPE_TITLE = `Level is based on saved XP on this device. ${PROGRESS_SYNC_SHORT}`;
+const STREAK_SCOPE_TITLE = `Streak reflects daily learning activity saved on this device. ${PROGRESS_SYNC_SHORT}`;
+const DAILY_SCOPE_TITLE = `Today's lesson count is saved on this device. ${PROGRESS_SYNC_SHORT}`;
+
 export const TopbarLearnerStatus = memo(function TopbarLearnerStatus({
   learnerName,
   readTime,

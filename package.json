@@ -29,6 +29,7 @@
     "audit:reward-catalog": "node scripts/check-reward-catalog.mjs",
     "audit:quizzes": "node scripts/audit-quiz-integrity.mjs --strict",
     "audit:content": "node scripts/audit-learning-content.mjs",
+    "audit:content:budget": "node scripts/audit-learning-content.mjs --summary --budget scripts/audit-learning-content-budget.json",
     "audit:lesson-labels": "node scripts/check-lesson-labels.mjs",
     "audit:lesson-format": "node scripts/audit-lesson-format.mjs",
     "check:js-source": "node scripts/check-js-source-policy.mjs",
