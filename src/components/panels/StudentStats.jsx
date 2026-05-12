@@ -134,6 +134,7 @@ export function StudentStats({ isOpen, onClose }) {
     const totalLessons = courseStats.reduce((sum, course) => sum + course.totalLessons, 0);
     const totalDone = courseStats.reduce((sum, course) => sum + course.done, 0);
     const totalPercent = totalLessons > 0 ? Math.round((totalDone / totalLessons) * 100) : 0;
+    const srDue = srCards.filter((card) => card.nextReview <= Date.now()).length;
     const masteryEvidence = summarizeMasteryEvidence({
       quizResults: allResults,
       completedLessonCount: totalDone,
@@ -160,6 +161,17 @@ export function StudentStats({ isOpen, onClose }) {
       getChallengesForCourse,
       srCards,
     });
+    const transcript = buildLearnerTranscriptSummary({
+      completedLessons: totalDone,
+      totalLessons,
+      quizChecksPassed: masteryEvidence.quizChecksPassed,
+      quizChecksAttempted: masteryEvidence.quizChecksAttempted,
+      quizChecksNeedsReview: masteryEvidence.quizChecksNeedsReview,
+      completedChallenges: masteryEvidence.completedChallenges,
+      totalChallenges: masteryEvidence.totalChallenges,
+      dueReviewCards: masteryEvidence.dueReviewCards,
+      totalReviewCards: masteryEvidence.totalReviewCards,
+    });
 
     return {
       level,
@@ -175,6 +187,7 @@ export function StudentStats({ isOpen, onClose }) {
       masteryEvidence,
       transcript,
       moduleEvidence,
+      transcript,
       strongest,
       weakest,
       streak,
@@ -182,16 +195,17 @@ export function StudentStats({ isOpen, onClose }) {
       dailyCount,
       badgeCount: Object.keys(earnedBadges).length,
       totalBadges: BADGE_DEFS.length,
-      srDue: srCards.filter((card) => card.nextReview <= Date.now()).length,
+      srDue,
       srTotal: srCards.length,
       bookmarkCount: bookmarks.length,
       noteCount: Object.keys(notes).length,
+      transcript,
       snapshotItems: getProgressSnapshotItems({
         totalDone,
         totalLessons,
         quizzesTaken: allResults.length,
         masteryEvidence,
-        srDue: srCards.filter((card) => card.nextReview <= Date.now()).length,
+        srDue,
       }),
     };
   }, [bookmarks, challengeCompletions, completed, earnedBadges, notes, quizScores, srCards, streak, pausedStreak, dailyCount, xpTotal]);
