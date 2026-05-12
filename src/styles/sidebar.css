@@ -493,7 +493,7 @@
 .sidebar-tabs-context-fill {
   height: 100%;
   border-radius: 1px;
-  transition: width 0.5s var(--ease-out);
+  transition: width var(--duration-slower) var(--ease-out);
 }
 
 /* ─── Side popout card ───────────────────────
