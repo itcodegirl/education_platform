@@ -24,9 +24,13 @@ describe('performance workflow wiring', () => {
     expect(packageJson.scripts['test:lighthouse:desktop']).toContain('./lighthouserc.json');
     expect(packageJson.scripts['test:lighthouse:mobile']).toContain('./lighthouserc.mobile.json');
     expect(lighthouseWorkflow).toContain('npm run audit:performance');
+    expect(lighthouseWorkflow).toContain('Capture base bundle summary');
+    expect(lighthouseWorkflow).toContain('dist/bundle-summary.base.json');
     expect(lighthouseWorkflow).toContain('Publish bundle summary to job summary');
     expect(lighthouseWorkflow).toContain('Comment bundle summary on pull requests');
     expect(lighthouseWorkflow).toContain('codeherway-bundle-review-summary');
+    expect(lighthouseWorkflow).toContain('issues: write');
+    expect(lighthouseWorkflow).toContain('pull-requests: write');
     expect(lighthouseWorkflow).toContain('npm run test:lighthouse');
     expect(lighthouseWorkflow).toContain('Upload Lighthouse reports');
     expect(lighthouseWorkflow).toContain('.lighthouseci/');

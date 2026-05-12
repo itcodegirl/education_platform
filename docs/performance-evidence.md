@@ -24,14 +24,14 @@ The Lighthouse CI workflow uploads two short-lived artifact groups:
 | Artifact | What to inspect | Why it matters |
 | --- | --- | --- |
 | `lighthouse-ci-*` | Mobile and desktop reports from `.lighthouseci/` | Confirms performance, accessibility, best-practices, SEO, and PWA behavior against the preview build. |
-| `bundle-summary-*` | `dist/bundle-summary.json` and `dist/bundle-review-summary.md` | Records initial JS/CSS gzip totals, top chunks, active budgets, budget/preload failures, and a reviewer-ready Markdown summary. |
+| `bundle-summary-*` | `dist/bundle-summary.json`, optional `dist/bundle-summary.base.json`, and `dist/bundle-review-summary.md` | Records initial JS/CSS gzip totals, top chunks, active budgets, budget/preload failures, and a reviewer-ready Markdown summary with base-branch deltas when available. |
 
-On pull requests, CI also maintains a single bundle review comment marked with `codeherway-bundle-review-summary` so reviewers can see budget headroom without downloading artifacts.
+On pull requests, CI also maintains a single bundle review comment marked with `codeherway-bundle-review-summary` so reviewers can see budget headroom and base-branch movement without downloading artifacts.
 
 ## Review Checklist
 
 1. Confirm `npm run audit:performance` passed.
-2. Compare `bundle-summary.json` and the PR bundle review comment against `docs/performance-budget.md`.
+2. Compare `bundle-summary.json`, base deltas in the PR bundle review comment, and `docs/performance-budget.md`.
 3. Check that initial JS and CSS gzip remain below budget.
 4. Check that Monaco/editor, jsPDF, html2canvas, Supabase, and course data stay lazy and absent from public entry preloads.
 5. For asset changes, confirm `docs/asset-performance-policy.md` rules were followed before accepting new page weight.
