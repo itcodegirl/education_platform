@@ -39,9 +39,23 @@ Use this policy before adding images, fonts, videos, downloadable files, or new 
 3. Confirm below-the-fold and authenticated-only media are lazy.
 4. Confirm no forbidden dependency or protected-route asset is preloaded in entry HTML.
 5. Run `npm run audit:performance` after adding or changing assets that affect the build.
+6. Run `npm run audit:asset-sizes` after adding images, fonts, videos, or downloadable files.
 
 ## Escalation Rules
 
 - Optimize or replace the asset before raising a bundle or page-weight budget.
 - Prefer route-owned assets over shared imports when the asset is not needed across the app.
 - Add reviewer evidence when an asset is intentionally large because it carries product trust, portfolio proof, or instructional clarity.
+
+## Automated Size Audit
+
+`npm run audit:asset-sizes` checks committed assets in `public` and `src`.
+
+| Asset type | Budget |
+| --- | ---: |
+| Image (`avif`, `gif`, `jpg`, `jpeg`, `png`, `svg`, `webp`) | 180 kB |
+| Font (`otf`, `ttf`, `woff`, `woff2`) | 120 kB |
+| Video (`mov`, `mp4`, `webm`) | 800 kB |
+| Document (`pdf`) | 500 kB |
+
+If a product-critical asset must exceed a budget, document the reason in the PR and update this policy with the narrow exception instead of silently weakening the guardrail.

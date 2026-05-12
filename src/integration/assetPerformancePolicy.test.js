@@ -9,5 +9,7 @@ describe('asset performance policy', () => {
     expect(result.passed).toContain('compressed image budget');
     expect(result.passed).toContain('font preload boundary');
     expect(result.passed).toContain('forbidden dependency preloads');
+    expect(result.passed).toContain('asset size audit command');
+    expect(result.passed).toContain('font size budget');
   });
 });

@@ -35,8 +35,9 @@ On pull requests, CI also maintains a single bundle review comment marked with `
 3. Check that initial JS and CSS gzip remain below budget.
 4. Check that Monaco/editor, jsPDF, html2canvas, Supabase, and course data stay lazy and absent from public entry preloads.
 5. For asset changes, confirm `docs/asset-performance-policy.md` rules were followed before accepting new page weight.
-6. Review mobile and desktop Lighthouse artifacts for score regressions, LCP, CLS, and Total Blocking Time.
-7. If the PR changes authenticated lesson flows, follow `docs/authenticated-performance-evidence.md` and capture React Profiler notes for lesson navigation, panel switching, quiz submission, challenge editor open, mobile tools, or export intent.
+6. Run `npm run audit:asset-sizes` for image, font, video, or downloadable-file changes.
+7. Review mobile and desktop Lighthouse artifacts for score regressions, LCP, CLS, and Total Blocking Time.
+8. If the PR changes authenticated lesson flows, follow `docs/authenticated-performance-evidence.md` and capture React Profiler notes for lesson navigation, panel switching, quiz submission, challenge editor open, mobile tools, or export intent.
 
 ## Known Limits
 

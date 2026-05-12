@@ -12,6 +12,7 @@ const REQUIRED_SECTIONS = Object.freeze([
   '## Media And Download Rules',
   '## Review Checklist',
   '## Escalation Rules',
+  '## Automated Size Audit',
 ]);
 
 const REQUIRED_PATTERNS = Object.freeze([
@@ -38,6 +39,14 @@ const REQUIRED_PATTERNS = Object.freeze([
   {
     label: 'performance audit command',
     pattern: /npm run audit:performance/,
+  },
+  {
+    label: 'asset size audit command',
+    pattern: /npm run audit:asset-sizes/,
+  },
+  {
+    label: 'font size budget',
+    pattern: /Font.*120 kB/s,
   },
 ]);
 
