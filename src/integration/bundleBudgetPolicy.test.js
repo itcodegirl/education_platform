@@ -66,6 +66,28 @@ describe('bundle budget policy', () => {
     ]);
   });
 
+  it('keeps export-only PDF and canvas chunks out of initial modulepreloads', () => {
+    const fixture = createBundleFixture({
+      indexHtml: [
+        '<link rel="modulepreload" href="/assets/jspdf.es.min-lazy.js">',
+        '<link rel="modulepreload" href="/assets/html2canvas-lazy.js">',
+      ].join('\n'),
+      assets: {
+        'index-app.js': 'console.log("app");',
+        'index-app.css': 'body{color:white;}',
+        'jspdf.es.min-lazy.js': 'console.log("pdf export");',
+        'html2canvas-lazy.js': 'console.log("canvas export");',
+      },
+    });
+
+    const report = collectBundleBudgetReport(fixture);
+
+    expect(report.forbiddenPreloadFailures).toEqual([
+      expect.objectContaining({ label: 'export-only PDF/canvas chunks' }),
+      expect.objectContaining({ label: 'export-only PDF/canvas chunks' }),
+    ]);
+  });
+
   it('keeps Supabase and protected styles out of the public entry HTML', () => {
     const fixture = createBundleFixture({
       indexHtml: [
@@ -130,6 +152,25 @@ describe('bundle budget policy', () => {
 
     expect(appStylesheet?.budget.label).toBe('protected app stylesheet lazy chunk');
     expect(report.sizeFailures.some((entry) => entry.file === 'App-authenticated.css')).toBe(false);
+  });
+
+  it('uses explicit lazy budgets for export-only PDF and canvas chunks', () => {
+    const fixture = createBundleFixture({
+      assets: {
+        'index-app.js': 'console.log("app");',
+        'index-app.css': 'body{color:white;}',
+        'jspdf.es.min-lazy.js': 'a'.repeat(420 * 1024),
+        'html2canvas-lazy.js': 'a'.repeat(210 * 1024),
+      },
+    });
+
+    const report = collectBundleBudgetReport(fixture);
+    const pdfChunk = report.sizeReport.find((entry) => entry.file === 'jspdf.es.min-lazy.js');
+    const canvasChunk = report.sizeReport.find((entry) => entry.file === 'html2canvas-lazy.js');
+
+    expect(pdfChunk?.budget.label).toBe('PDF export lazy chunk');
+    expect(canvasChunk?.budget.label).toBe('canvas export lazy chunk');
+    expect(report.sizeFailures.some((entry) => /jspdf|html2canvas/.test(entry.file))).toBe(false);
   });
 
   it('checks initial entry gzip budgets separately from lazy chunks', () => {

@@ -34,6 +34,18 @@ export const DEFAULT_BUNDLE_BUDGETS = [
     gzipMaxKb: 45,
   },
   {
+    label: 'PDF export lazy chunk',
+    match: (file) => /^jspdf.*\.js$/i.test(file),
+    maxKb: 450,
+    gzipMaxKb: 150,
+  },
+  {
+    label: 'canvas export lazy chunk',
+    match: (file) => /^html2canvas.*\.js$/i.test(file),
+    maxKb: 230,
+    gzipMaxKb: 60,
+  },
+  {
     label: 'general JavaScript chunk',
     match: (file) => file.toLowerCase().endsWith('.js'),
     maxKb: 700,
@@ -56,6 +68,11 @@ export const FORBIDDEN_MODULE_PRELOADS = [
     label: 'Supabase chunks',
     rel: 'modulepreload',
     pattern: /vendor-supabase-[^"']+\.js/i,
+  },
+  {
+    label: 'export-only PDF/canvas chunks',
+    rel: 'modulepreload',
+    pattern: /(?:jspdf|html2canvas)[^"']+\.js/i,
   },
   {
     label: 'Monaco stylesheets',
