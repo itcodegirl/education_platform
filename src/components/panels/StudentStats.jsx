@@ -149,17 +149,16 @@ export function StudentStats({ isOpen, onClose }) {
       getChallengesForCourse,
       srCards,
     });
-    const srDue = srCards.filter((card) => card.nextReview <= Date.now()).length;
     const transcript = buildLearnerTranscriptSummary({
       completedLessons: totalDone,
       totalLessons,
       quizChecksPassed: masteryEvidence.quizChecksPassed,
       quizChecksAttempted: masteryEvidence.quizChecksAttempted,
       quizChecksNeedsReview: masteryEvidence.quizChecksNeedsReview,
-      completedChallenges: challengeCompletions.length,
-      totalChallenges: allChallenges.length,
-      dueReviewCards: srDue,
-      totalReviewCards: srCards.length,
+      completedChallenges: masteryEvidence.completedChallenges,
+      totalChallenges: masteryEvidence.totalChallenges,
+      dueReviewCards: masteryEvidence.dueReviewCards,
+      totalReviewCards: masteryEvidence.totalReviewCards,
     });
 
     return {
@@ -175,6 +174,7 @@ export function StudentStats({ isOpen, onClose }) {
       quizzesTaken: allResults.length,
       masteryEvidence,
       moduleEvidence,
+      transcript,
       strongest,
       weakest,
       streak,
