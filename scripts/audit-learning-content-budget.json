@@ -1,19 +1,19 @@
 {
-  "warningCount": 194,
+  "warningCount": 191,
   "warningsByCourse": [
-    { "name": "react", "count": 91 },
-    { "name": "js", "count": 39 },
+    { "name": "react", "count": 90 },
+    { "name": "js", "count": 38 },
     { "name": "html", "count": 32 },
-    { "name": "css", "count": 32 }
+    { "name": "css", "count": 31 }
   ],
   "warningsByCategory": [
-    { "name": "quiz-quality-rubric", "count": 153 },
+    { "name": "quiz-quality-rubric", "count": 150 },
     { "name": "lesson-quality-rubric", "count": 41 }
   ],
   "missingSignals": [
-    { "name": "application item coverage", "count": 132 },
-    { "name": "misconception", "count": 103 },
-    { "name": "reasoning", "count": 66 },
+    { "name": "application item coverage", "count": 129 },
+    { "name": "misconception", "count": 101 },
+    { "name": "reasoning", "count": 64 },
     { "name": "objective", "count": 41 },
     { "name": "retrievalPrompt", "count": 41 },
     { "name": "transfer", "count": 38 },
