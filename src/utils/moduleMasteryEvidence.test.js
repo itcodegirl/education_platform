@@ -39,9 +39,11 @@ describe('summarizeModuleMasteryEvidence', () => {
     });
 
     expect(result.modulesWithEvidence).toBe(1);
+    expect(result.modulesReadyToAdvance).toBe(1);
     expect(result.focusModules[0]).toMatchObject({
       moduleTitle: 'Foundations',
-      statusLabel: 'Evidence ready',
+      statusLabel: 'Ready to advance',
+      readyToAdvance: true,
       lessonPercent: 100,
       quizPassed: 1,
       challengeDone: 1,
@@ -63,12 +65,13 @@ describe('summarizeModuleMasteryEvidence', () => {
     expect(result.focusModules[0]).toMatchObject({
       moduleTitle: 'Foundations',
       statusLabel: 'Review evidence due',
+      readyToAdvance: false,
       reviewDue: 1,
       quizNeedsReview: 1,
     });
   });
 
-  it('flags completed lessons without proof as needing applied evidence', () => {
+  it('flags completed lessons without quiz proof as needing a quick check', () => {
     const result = summarizeModuleMasteryEvidence({
       courses: COURSES,
       completedSet: new Set(['c:html|m:m2|l:l2']),
@@ -81,8 +84,47 @@ describe('summarizeModuleMasteryEvidence', () => {
 
     expect(result.focusModules[0]).toMatchObject({
       moduleTitle: 'Structure',
+      statusLabel: 'Needs quick-check proof',
+      nextAction: 'Pass a quick check before treating this module as ready.',
+      readyToAdvance: false,
+    });
+  });
+
+  it('flags passing quiz proof without available challenge proof as needing applied evidence', () => {
+    const result = summarizeModuleMasteryEvidence({
+      courses: COURSES,
+      completedSet: new Set(['c:html|m:m2|l:l2']),
+      quizResults: [{ key: 'l:html:l2', percent: 90 }],
+      challengeCompletions: [],
+      getChallengesForCourse,
+      srCards: [],
+      now: 1000,
+    });
+
+    expect(result.focusModules[0]).toMatchObject({
+      moduleTitle: 'Structure',
       statusLabel: 'Needs applied evidence',
-      nextAction: 'Add proof with a quiz check or one applied challenge.',
+      nextAction: 'Finish one applied challenge before advancing.',
+      readyToAdvance: false,
+    });
+  });
+
+  it('does not treat lesson completion and challenge work as ready without passing quiz proof', () => {
+    const result = summarizeModuleMasteryEvidence({
+      courses: COURSES,
+      completedSet: new Set(['c:html|m:m1|l:l1']),
+      quizResults: [],
+      challengeCompletions: ['challenge-1'],
+      getChallengesForCourse,
+      srCards: [],
+      now: 1000,
+    });
+
+    expect(result.modulesReadyToAdvance).toBe(0);
+    expect(result.focusModules[0]).toMatchObject({
+      moduleTitle: 'Foundations',
+      statusLabel: 'Needs quick-check proof',
+      readinessDetail: 'A completed lesson still needs quiz evidence at 80% or better.',
     });
   });
 });

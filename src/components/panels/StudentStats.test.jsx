@@ -309,8 +309,9 @@ describe('StudentStats streak card', () => {
 
     expect(screen.getByText('Module Evidence')).toBeInTheDocument();
     expect(screen.getByText('M1')).toBeInTheDocument();
-    expect(screen.getByText('Evidence ready')).toBeInTheDocument();
-    expect(screen.getByText(/1\/2 modules have quiz or challenge proof/i)).toBeInTheDocument();
+    expect(screen.getByText('Ready to advance')).toBeInTheDocument();
+    expect(screen.getByText(/1\/2 modules ready to advance/i)).toBeInTheDocument();
+    expect(screen.getByText(/readiness requires completed lessons/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/M1 evidence signals/i)).toHaveTextContent('Checks1/1');
     expect(screen.getByLabelText(/M1 evidence signals/i)).toHaveTextContent('Builds1/1');
   });
