@@ -196,6 +196,8 @@ describe('bundle budget policy', () => {
     const appStylesheet = report.sizeReport.find((entry) => entry.file === 'App-authenticated.css');
 
     expect(appStylesheet?.budget.label).toBe('protected app stylesheet lazy chunk');
+    expect(appStylesheet?.budget.maxKb).toBe(200);
+    expect(appStylesheet?.budget.gzipMaxKb).toBe(35);
     expect(report.sizeFailures.some((entry) => entry.file === 'App-authenticated.css')).toBe(false);
   });
 

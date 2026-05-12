@@ -30,8 +30,8 @@ export const DEFAULT_BUNDLE_BUDGETS = [
   {
     label: 'protected app stylesheet lazy chunk',
     match: (file) => /^App-.*\.css$/i.test(file),
-    maxKb: 230,
-    gzipMaxKb: 45,
+    maxKb: 200,
+    gzipMaxKb: 35,
   },
   {
     label: 'PDF export lazy chunk',
