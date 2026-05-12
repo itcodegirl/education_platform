@@ -22,6 +22,7 @@ export function getLessonCompletionActionCopy({
     return {
       label: labels.saving,
       ariaLabel: 'Saving lesson reading progress',
+      title: 'Saving your place in this lesson…',
     };
   }
 
@@ -29,11 +30,13 @@ export function getLessonCompletionActionCopy({
     return {
       label: labels.complete,
       ariaLabel: 'Mark lesson reading progress as incomplete',
+      title: 'This lesson is marked done and your place is saved. Press again to undo.',
     };
   }
 
   return {
     label: labels.incomplete,
     ariaLabel: 'Complete lesson and save reading progress',
+    title: 'Marks this lesson done and saves your place. It tracks reading progress — quizzes and challenges stay separate.',
   };
 }

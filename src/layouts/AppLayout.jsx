@@ -470,6 +470,7 @@ export function AppLayout() {
           onMarkDone={handleMarkDone}
           markDoneAriaLabel={topbarCompletionCopy.ariaLabel}
           markDoneLabel={topbarCompletionCopy.label}
+          markDoneTitle={topbarCompletionCopy.title}
         />
 
         <div className="lesson-container">
