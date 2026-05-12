@@ -172,13 +172,10 @@
   font-size: 15px;
   font-weight: 700;
 }
-.daily-loop-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
 .daily-loop-action {
-  padding: 7px 10px;
+  width: fit-content;
+  min-height: 36px;
+  padding: 0 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg-surface);
@@ -191,6 +188,41 @@
 .daily-loop-action:hover,
 .daily-loop-action:focus-visible {
   border-color: var(--cyan);
+}
+.daily-loop-current {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 9px;
+  background: rgba(255,255,255,0.025);
+}
+.daily-loop-current-label {
+  color: var(--text-muted);
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.daily-loop-current-state {
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+}
+.daily-loop-current-detail {
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.daily-loop-current-done {
+  border-color: rgba(78,205,196,0.22);
+}
+.daily-loop-current-attention {
+  border-color: rgba(255,167,38,0.28);
+}
+.daily-loop-current-active {
+  border-color: rgba(255,107,157,0.28);
 }
 .daily-loop-steps {
   display: grid;
@@ -344,11 +376,8 @@
   .daily-loop-head {
     flex-direction: column;
   }
-  .daily-loop-actions {
-    width: 100%;
-  }
   .daily-loop-action {
-    flex: 1;
+    width: 100%;
   }
   .daily-loop-steps {
     grid-template-columns: repeat(2, minmax(0, 1fr));

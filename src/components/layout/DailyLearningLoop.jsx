@@ -22,30 +22,36 @@ export const DailyLearningLoop = memo(function DailyLearningLoop({
     onAction?.('challenges');
     onOpenChallenges();
   };
+  const currentStep = steps.find((step) => step.isCurrent) || steps[0];
+  const currentAction = getCurrentAction({
+    currentStep,
+    hasReviewAction,
+    hasChallengesAction,
+    handleOpenReview,
+    handleOpenChallenges,
+  });
 
   return (
     <section className="daily-loop" aria-label="Today's learning loop">
       <div className="daily-loop-head">
         <div>
-          <p className="daily-loop-kicker">Today&apos;s learning loop</p>
-          <h2 className="daily-loop-title">Keep progress useful</h2>
+          <p className="daily-loop-kicker">Learning path</p>
+          <h2 className="daily-loop-title">One next honest step</h2>
         </div>
-        {(hasReviewAction || hasChallengesAction) && (
-          <div className="daily-loop-actions">
-            {hasReviewAction && (
-              <button type="button" className="daily-loop-action" onClick={handleOpenReview}>
-                Review
-              </button>
-            )}
-            {hasChallengesAction && (
-              <button type="button" className="daily-loop-action" onClick={handleOpenChallenges}>
-                Challenges
-              </button>
-            )}
-          </div>
+      </div>
+      <div className={`daily-loop-current daily-loop-current-${currentStep.tone}`}>
+        <span className="daily-loop-current-label">Current focus</span>
+        <strong className="daily-loop-current-state">
+          {currentStep.label}: {currentStep.state}
+        </strong>
+        <span className="daily-loop-current-detail">{currentStep.detail}</span>
+        {currentAction && (
+          <button type="button" className="daily-loop-action" onClick={currentAction.onClick}>
+            {currentAction.label}
+          </button>
         )}
       </div>
-      <ol className="daily-loop-steps" aria-label="Learning flow steps">
+      <ol className="daily-loop-steps" aria-label="Learning path overview">
         {steps.map((step) => (
           <li
             key={step.key}
@@ -66,3 +72,21 @@ export const DailyLearningLoop = memo(function DailyLearningLoop({
     </section>
   );
 });
+
+function getCurrentAction({
+  currentStep,
+  hasReviewAction,
+  hasChallengesAction,
+  handleOpenReview,
+  handleOpenChallenges,
+}) {
+  if (currentStep?.key === 'review' && hasReviewAction) {
+    return { label: 'Open review queue', onClick: handleOpenReview };
+  }
+
+  if (currentStep?.key === 'apply' && hasChallengesAction) {
+    return { label: 'Open challenges', onClick: handleOpenChallenges };
+  }
+
+  return null;
+}
