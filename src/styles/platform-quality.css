@@ -1298,6 +1298,7 @@ img {
   color: var(--text-dim);
   font-size: var(--text-xs);
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .ss-transcript-action span {
@@ -1571,6 +1572,10 @@ img {
 
   .ss-mastery-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ss-transcript-grid {
+    grid-template-columns: 1fr;
   }
 
   .ss-module-evidence-row {
