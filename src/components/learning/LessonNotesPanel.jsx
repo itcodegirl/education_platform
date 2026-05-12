@@ -39,6 +39,18 @@ export function LessonNotesPanel({ lessonKey }) {
     }, SAVE_DEBOUNCE_MS);
   };
 
+  // On mobile the on-screen keyboard covers roughly half the viewport. The
+  // notes panel often sits near the bottom of a long lesson, so without this
+  // the field a learner just tapped ends up hidden behind the keyboard. Defer
+  // the scroll so the visual viewport has resized first.
+  const handleFocus = (event) => {
+    const textarea = event.currentTarget;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.setTimeout(() => {
+      textarea.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+    }, reduceMotion ? 0 : 250);
+  };
+
   // Flush pending save on unmount or when lessonKey changes.
   // `lessonKey` is captured by the closure — when the effect
   // re-runs because lessonKey changed A→B, the cleanup fires
@@ -83,6 +95,7 @@ export function LessonNotesPanel({ lessonKey }) {
         className="notes-input"
         value={noteText}
         onChange={handleChange}
+        onFocus={handleFocus}
         placeholder="Summarize the pattern, write the gotcha, or leave yourself the next step to try."
         rows={4}
         maxLength={NOTE_MAX_CHARS}
