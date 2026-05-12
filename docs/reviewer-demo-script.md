@@ -27,7 +27,7 @@ npm run audit:content
 4. Open saved lessons, notes, review queue, badges, and challenges. Explain which tools are motivational/local today and which writes may sync.
 5. Submit a quiz, retry it, and point out that retrying is for practice while XP is awarded once per stable quiz milestone.
 6. Open Progress Summary and call out the calm top-level snapshot: lessons saved, current state, and review due. Then note that the PDF flow is not a verified credential.
-7. Close with the roadmap and trust boundaries: portfolio-ready now, production-ready after staging Supabase validation, backend reward records, authenticated CI credentials, and observability.
+7. Close with the roadmap and trust boundaries: point out the module states (`Reading in progress`, `Evidence needed`, `Ready to continue`, `Not started`), then explain portfolio-ready now versus production-ready after staging Supabase validation, backend reward records, authenticated CI credentials, and observability.
 
 ## Failure-Path Moment
 

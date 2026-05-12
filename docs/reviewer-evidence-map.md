@@ -9,7 +9,7 @@ This map turns the CodeHerWay portfolio story into concrete evidence. Use it whe
 | The app is honest about portfolio/demo readiness, not production readiness. | `README.md`, `KNOWN_LIMITATIONS.md`, `docs/trust-boundaries.md`, `docs/repair-roadmap.md` | Documentation consistently separates demo readiness from production launch gates. |
 | Progress Summary is not presented as a verified certificate. | `src/components/gamification/CourseComplete.jsx`, `docs/reward-backfill-strategy.md`, `KNOWN_LIMITATIONS.md` | Unit coverage in `src/components/gamification/CourseComplete.test.jsx`. |
 | Lesson completion means saved reading progress, while quizzes and challenges stay separate checks. | `src/utils/lessonCompletionCopy.js`, `src/components/learning/QuizView.jsx`, `docs/reviewer-start-here.md` | Unit/component tests around lesson completion and quiz reward behavior. |
-| Readiness language stays consistent across lesson and progress surfaces. | `src/utils/learnerReadiness.js`, `src/utils/lessonMasteryStatus.js`, `src/utils/progressDashboard.js` | Unit coverage in `src/utils/learnerReadiness.test.js`, `src/utils/lessonMasteryStatus.test.js`, and `src/utils/progressDashboard.test.js`. |
+| Readiness language stays consistent across lesson, roadmap, and progress surfaces. | `src/utils/learnerReadiness.js`, `src/components/panels/RoadmapPanel.jsx`, `src/utils/lessonMasteryStatus.js`, `src/utils/progressDashboard.js` | Unit coverage in `src/utils/learnerReadiness.test.js`, `src/components/panels/RoadmapPanel.test.jsx`, `src/utils/lessonMasteryStatus.test.js`, and `src/utils/progressDashboard.test.js`. |
 | Cross-device reward trust is not overclaimed. | `docs/reward-sync-strategy.md`, `docs/backend-reward-events.md`, `docs/staging-supabase-validation.md` | Backend reward sync remains feature-gated and staging validation is required. |
 
 ## Architecture And Reliability Claims
@@ -29,7 +29,7 @@ This map turns the CodeHerWay portfolio story into concrete evidence. Use it whe
 | Keyboard users can bypass navigation and reach the main lesson content. | `src/layouts/AppLayout.jsx`, `src/styles/base.css` | Playwright skip-link coverage in `tests/e2e/lesson-flow.spec.js`. |
 | Dialogs and overlays are built with explicit focus management. | `src/hooks/useFocusTrap.js`, `src/components/panels/`, `src/components/shared/` | Component tests and `npm run test:a11y:unit`. |
 | Mobile navigation reduces clutter before a learner has progress. | `src/constants/learningTools.js`, `src/components/layout/BottomToolbar.jsx`, `src/components/layout/MobileToolsSheet.jsx` | Unit tests for tool availability and mobile sheet behavior. |
-| Public mobile viewports are covered at phone and tablet widths. | `tests/e2e/public-learning-entry.spec.js`, `tests/e2e/public.visual.spec.js`, `docs/mobile-qa-checklist.md` | Responsive smoke coverage plus snapshot baselines for 320, 360, 390, 430, and 768 widths. |
+| Public mobile viewports are covered at phone and tablet widths. | `scripts/run-public-playwright.mjs`, `tests/e2e/public-learning-entry.spec.js`, `tests/e2e/public.visual.spec.js`, `docs/mobile-qa-checklist.md` | `npm run test:e2e:smoke:public` and `npm run test:e2e:visual:public` cover 320, 360, 390, 430, and 768 widths without requiring authenticated credentials. |
 | Quiz retry and ordering behavior is clearer and less misleading. | `src/hooks/useQuizSession.js`, `src/components/learning/QuizView.jsx`, `src/components/learning/quiz/questionTypes.jsx` | Quiz session and QuizView tests. |
 
 ## Verification Commands
@@ -41,6 +41,8 @@ npm run build
 npm run test
 npm run lint
 npm run typecheck
+npm run test:e2e:smoke:public
+npm run test:e2e:visual:public
 ```
 
 `npm run typecheck` is intentionally a JS-only source-policy check in this HTML/CSS/JavaScript/React project.
