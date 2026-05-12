@@ -289,7 +289,7 @@ describe('StudentStats streak card', () => {
     expect(screen.getByText('Challenges: 1/1')).toBeInTheDocument();
   });
 
-  it('summarizes private transcript readiness across reading, recall, application, and review', () => {
+  it('surfaces module-level evidence so completion is tied to proof', () => {
     mockUseProgressData.mockReturnValue({
       completed: ['c:html|m:m1|l:l1'],
       quizScores: {
@@ -297,8 +297,34 @@ describe('StudentStats streak card', () => {
       },
       challengeCompletions: ['html-challenge-1'],
     });
+    mockUseXP.mockReturnValue({
+      xpTotal: 80,
+      streak: 1,
+      pausedStreak: null,
+      dailyCount: 1,
+      earnedBadges: {},
+    });
+
+    render(<StudentStats isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText('Module Evidence')).toBeInTheDocument();
+    expect(screen.getByText('M1')).toBeInTheDocument();
+    expect(screen.getByText('Evidence ready')).toBeInTheDocument();
+    expect(screen.getByText(/1\/2 modules have quiz or challenge proof/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/M1 evidence signals/i)).toHaveTextContent('Checks1/1');
+    expect(screen.getByLabelText(/M1 evidence signals/i)).toHaveTextContent('Builds1/1');
+  });
+
+  it('connects review cards with quiz identity back to the module that needs review', () => {
+    mockUseProgressData.mockReturnValue({
+      completed: ['c:html|m:m1|l:l1'],
+      quizScores: {
+        'l:html:l1': '0/1',
+      },
+      challengeCompletions: [],
+    });
     mockUseSR.mockReturnValue({
-      srCards: [],
+      srCards: [{ quizKey: 'l:html:l1', nextReview: 0 }],
       bookmarks: [],
       notes: {},
     });
@@ -312,12 +338,9 @@ describe('StudentStats streak card', () => {
 
     render(<StudentStats isOpen onClose={vi.fn()} />);
 
-    expect(screen.getByRole('heading', { name: /learning transcript/i })).toBeInTheDocument();
-    expect(screen.getByText('Strong learning proof')).toBeInTheDocument();
-    expect(screen.getByText('Reading progress')).toBeInTheDocument();
-    expect(screen.getByText('Recall checks')).toBeInTheDocument();
-    expect(screen.getByText('Application proof')).toBeInTheDocument();
-    expect(screen.getByText('Review health')).toBeInTheDocument();
-    expect(screen.getByText(/not a verified credential/i)).toBeInTheDocument();
+    expect(screen.getByText('Module Evidence')).toBeInTheDocument();
+    expect(screen.getAllByText('Review evidence due').length).toBeGreaterThan(0);
+    expect(screen.getByText(/clear review cards or retry a missed check/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/M1 evidence signals/i)).toHaveTextContent('Due1');
   });
 });

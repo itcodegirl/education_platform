@@ -30,7 +30,7 @@ import { getBestQuizScoreValue, getQuizKeyCandidates } from '../utils/quizKeys';
 // Build a spaced-repetition card from a wrong answer.
 // fill/order don't translate to flashcards cleanly so the caller
 // filters them out before getting here.
-function toReviewCard(q, label) {
+function toReviewCard(q, label, quizKey) {
   return {
     question: q.question || (q.type === 'code' ? 'What does this code output?' : 'Find the bug'),
     code: q.code || (q.lines ? q.lines.join('\n') : ''),
@@ -38,6 +38,7 @@ function toReviewCard(q, label) {
     correct: q.correct,
     explanation: q.explanation,
     source: label,
+    quizKey,
     added: Date.now(),
     nextReview: Date.now() + TIMING.dayMs,
     interval: 1,
@@ -192,7 +193,7 @@ export function useQuizSession({ quiz, label, quizKey, legacyQuizKeys = [] }) {
         !isAnswerCorrect(q, answers.get(q.id))
         && (q.type === 'mc' || q.type === 'code' || q.type === 'bug'),
       )
-      .map((q) => toReviewCard(q, label));
+      .map((q) => toReviewCard(q, label, quizKey));
 
     if (wrongCards.length > 0) {
       addToSRQueue(wrongCards);

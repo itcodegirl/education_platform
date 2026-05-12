@@ -181,6 +181,7 @@ Live token preview route: `/styleguide`.
 | Unit tests | Vitest | `npm run test:unit` |
 | Integration/E2E | Playwright | `npm run test:integration` |
 | Bundle budgets | custom script | `npm run check:bundle` |
+| Performance audit | build + bundle + lazy-boundary guards | `npm run audit:performance` |
 | Quality gate | lint + build + bundle + unit | `npm run check` |
 | CI gate | quality gate + integration/E2E | `npm run check:ci` |
 | Security audit | npm audit + secret scanning | GitHub Actions workflows |
@@ -193,6 +194,8 @@ Live token preview route: `/styleguide`.
 - Monaco editor is lazy loaded so first-run users do not pay editor cost up front.
 - Admin views are lazy loaded and route-gated.
 - Chunk budget checks (`npm run check:bundle`) protect against silent regressions. Monaco budget changes should be handled as explicit performance work; see `docs/pr-admin-readiness.md`.
+- Route-boundary checks (`npm run check:route-boundaries`) keep auth, AI tutor, Monaco, PDF, and canvas tooling behind lazy boundaries.
+- Reviewer-facing performance evidence is available through `npm run audit:performance`, which rebuilds production assets and runs the bundle plus route-boundary gates together.
 
 ---
 
