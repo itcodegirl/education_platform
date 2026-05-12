@@ -11,12 +11,24 @@
 import { useEffect, useMemo, useState } from 'react';
 
 const COLORS = ['#ff6b9d', '#4ecdc4', '#ffa726', '#a78bfa', '#ff8fab', '#66d9e8', '#ffd93d'];
+const DESKTOP_PIECE_COUNT = 50;
+const MOBILE_PIECE_COUNT = 24;
 
 function getInitialReducedMotion() {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
     return false;
   }
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function getPieceCount() {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return DESKTOP_PIECE_COUNT;
+  }
+
+  return window.matchMedia('(max-width: 700px), (pointer: coarse)').matches
+    ? MOBILE_PIECE_COUNT
+    : DESKTOP_PIECE_COUNT;
 }
 
 export function Confetti() {
@@ -39,7 +51,9 @@ export function Confetti() {
   }, []);
 
   const pieces = useMemo(() => {
-    return Array.from({ length: 50 }, (_, i) => ({
+    if (reducedMotion) return [];
+
+    return Array.from({ length: getPieceCount() }, (_, i) => ({
       id: i,
       left: Math.random() * 100,
       delay: Math.random() * 2,
@@ -49,7 +63,7 @@ export function Confetti() {
       rotation: Math.random() * 360,
       drift: -50 + Math.random() * 100,
     }));
-  }, []);
+  }, [reducedMotion]);
 
   if (reducedMotion) return null;
 

@@ -83,14 +83,13 @@ async function buildExpectedRewardCatalog(rootDir) {
     'src/data/quizLessonIdResolver.js',
   );
 
-  const lessonEntities = new Set();
-  const quizEntities = new Set();
-  const challengeEntities = new Set();
-
-  for (const courseId of COURSE_IDS) {
+  const courseCatalogs = await Promise.all(COURSE_IDS.map(async (courseId) => {
     const modules = await loadCourseModules(rootDir, courseId);
     const lessonIds = new Set();
     const moduleIds = new Set();
+    const lessonEntities = new Set();
+    const quizEntities = new Set();
+    const challengeEntities = new Set();
 
     modules.forEach((moduleData) => {
       const moduleId = String(moduleData.id);
@@ -120,7 +119,18 @@ async function buildExpectedRewardCatalog(rootDir) {
     challenges.forEach((challenge) => {
       challengeEntities.add(String(challenge.id));
     });
-  }
+    return { challengeEntities, lessonEntities, quizEntities };
+  }));
+
+  const challengeEntities = new Set();
+  const lessonEntities = new Set();
+  const quizEntities = new Set();
+
+  courseCatalogs.forEach((catalog) => {
+    catalog.challengeEntities.forEach((entity) => challengeEntities.add(entity));
+    catalog.lessonEntities.forEach((entity) => lessonEntities.add(entity));
+    catalog.quizEntities.forEach((entity) => quizEntities.add(entity));
+  });
 
   return {
     challenge_entities: toSortedArray(challengeEntities),
