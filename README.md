@@ -20,6 +20,21 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 - The quality baseline currently includes lint, JS-source policy, Playwright script validation, Supabase static policy readiness, reward catalog integrity audit, production build, bundle budget, lesson-label audit, lesson-format audit (locks new lessons to the structured shape), strict quiz audit, learning-content flow audit, unit tests, and Playwright smoke coverage.
 - Recent audit hardening added stable resume coverage, learner-scoped local state, authenticated persistence boundary tests, clearer lesson/quiz/challenge semantics, mobile tool-sheet polish, and Supabase live-deployment readiness notes.
 
+## Evidence & Readiness Snapshot
+
+| Area | Current status | Proof / next gate |
+| --- | --- | --- |
+| Public learner flow | Ready for portfolio review | `npm run test:e2e:smoke:public`, `docs/reviewer-demo-script.md` |
+| Lesson structure | Ready for review | `npm run audit:content`, `npm run audit:lesson-format` |
+| Quiz and reward trust | Locally hardened, backend authority gated | `npm run audit:quizzes`, `src/engine/rewards/`, `docs/staging-supabase-validation.md` |
+| Authenticated persistence | Unit/static coverage exists; live CI needs secrets | `npm run audit:auth-e2e`, `docs/authenticated-e2e-ci.md` |
+| Mobile usability | Covered by focused smoke and visual paths | `tests/e2e/mobile-learning-smoke.spec.js`, `docs/mobile-qa-checklist.md` |
+| Accessibility | Covered by unit and smoke gates | `npm run test:a11y`, `src/styles/lessonTasks.a11y.test.js` |
+| Performance | Budgeted and CI-audited; score claims need dated artifact | `npm run audit:performance`, `docs/lighthouse-evidence.md` |
+| Production launch | Not ready until staging validation passes | `docs/supabase-production-readiness.md`, `RELEASE_CHECKLIST.md` |
+
+Do not describe CodeHerWay as a production credentialing platform yet. The strongest current positioning is a trust-centered learning-platform case study with explicit production gates.
+
 ## What Is Currently Working
 
 > **Progress sync: saved on this device.** Lesson completions, bookmarks,
