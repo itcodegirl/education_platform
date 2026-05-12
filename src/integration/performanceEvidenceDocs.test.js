@@ -19,6 +19,8 @@ describe('performance evidence documentation', () => {
     expect(evidenceDoc).toContain('lighthouse-ci-*');
     expect(evidenceDoc).toContain('bundle-summary-*');
     expect(evidenceDoc).toContain('dist/bundle-summary.json');
+    expect(evidenceDoc).toContain('dist/bundle-review-summary.md');
+    expect(evidenceDoc).toContain('codeherway-bundle-review-summary');
     expect(evidenceDoc).toContain('docs/performance-budget.md');
     expect(evidenceDoc).toContain('React Profiler');
     expect(reviewerMap).toContain('docs/performance-evidence.md');
