@@ -128,13 +128,17 @@ test.describe('authenticated accessibility', () => {
     await expect(page).toHaveURL(/\/learn\/[^/]+\/[^/]+\/[^/]+/);
   });
 
-  test('mobile sidebar drawer restores focus after keyboard close', async ({ page }) => {
+  test('mobileSidebarSupportsKeyboardNavigation', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload();
     await waitForAuthenticatedShell(page);
     await dismissTransientUi(page);
 
     const navTrigger = page.getByRole('button', { name: /open course navigation/i });
+    const sidebar = page.locator('#course-sidebar');
+    await expect(sidebar).toHaveAttribute('aria-hidden', 'true');
+    await expect(sidebar).toHaveAttribute('inert', '');
+
     await navTrigger.focus();
     await page.keyboard.press('Enter');
 
@@ -145,6 +149,8 @@ test.describe('authenticated accessibility', () => {
 
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog', { name: /course navigation/i })).toHaveCount(0);
+    await expect(sidebar).toHaveAttribute('aria-hidden', 'true');
+    await expect(sidebar).toHaveAttribute('inert', '');
     await expect(navTrigger).toBeFocused();
   });
 

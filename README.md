@@ -9,13 +9,13 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 ## Repository identity
 
 - **Canonical active app:** `itcodegirl/education_platform`
-- **Portfolio posture:** Demo/portfolio-ready today, not production-grade yet
+- **Portfolio posture:** Ready for guided portfolio review today, not production-grade yet
 - **Archived repos:** Historical context only; do not evaluate them as the current CodeHerWay product
 
 ## Current Project Status
 
 - This repository root is the active canonical app for CodeHerWay.
-- The project is usable for demos and portfolio review.
+- The project is usable for guided portfolio review.
 - The project is not yet production-grade.
 - The quality baseline currently includes lint, JS-source policy, Playwright script validation, Supabase static policy readiness, reward catalog integrity audit, production build, bundle budget, lesson-label audit, lesson-format audit (locks new lessons to the structured shape), strict quiz audit, learning-content flow audit, unit tests, and Playwright smoke coverage.
 - Recent audit hardening added stable resume coverage, learner-scoped local state, authenticated persistence boundary tests, clearer lesson/quiz/challenge semantics, mobile tool-sheet polish, and Supabase live-deployment readiness notes.

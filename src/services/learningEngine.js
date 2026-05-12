@@ -23,6 +23,10 @@ function runRewardInBackground(rewardWork, onFailure = () => {}) {
     });
 }
 
+function getAwardedXp(result) {
+  return Number(result?.rewardResult?.xpAwarded) || 0;
+}
+
 export function createLearningEngine({
   toggleLesson,
   saveQuizScore,
@@ -44,46 +48,46 @@ export function createLearningEngine({
   async function completeLesson(lessonKey, options = {}) {
     const alreadyDone = completedSet.has(lessonKey);
     const rewardKey = rewardKeys.lessonComplete(lessonKey);
-    toggleLesson(lessonKey, options);
+    if (alreadyDone) return;
 
-    if (!alreadyDone) {
-      const rewardEvent = createRewardEvent({
-        type: REWARD_EVENT_TYPES.LESSON_COMPLETE,
-        targetId: lessonKey,
-        learnerKey: learnerKey || 'legacy-local',
-        metadata: { rewardKey },
-      });
+    toggleLesson(lessonKey, { ...options, completed: true });
 
-      runRewardInBackground(
-        () => awardRewardOnce({
-          learnerKey,
-          event: rewardEvent,
-          legacyRewardKey: rewardKey,
-          hasRewardBeenAwarded,
-          markRewardAwarded,
-          awardXP,
-          xpAmount: REWARD_XP.lessonComplete,
-          reason: 'Lesson completed',
-          onRewardApplied: recordDailyActivity,
-          markSyncFailed,
-          storage: rewardEventStorage,
-          backendRewardSyncEnabled,
-          backendRewardAward,
-        }),
-        (error) => {
-          markSyncFailed(`lesson reward failed:${rewardEvent.key}`);
-          if (import.meta.env.DEV) {
-            console.warn('[LearningEngine] lesson reward failed:', error);
-          }
-        },
-      );
-    }
+    const rewardEvent = createRewardEvent({
+      type: REWARD_EVENT_TYPES.LESSON_COMPLETE,
+      targetId: lessonKey,
+      learnerKey: learnerKey || 'legacy-local',
+      metadata: { rewardKey },
+    });
+
+    runRewardInBackground(
+      () => awardRewardOnce({
+        learnerKey,
+        event: rewardEvent,
+        legacyRewardKey: rewardKey,
+        hasRewardBeenAwarded,
+        markRewardAwarded,
+        awardXP,
+        xpAmount: REWARD_XP.lessonComplete,
+        reason: 'Lesson completed',
+        onRewardApplied: recordDailyActivity,
+        markSyncFailed,
+        storage: rewardEventStorage,
+        backendRewardSyncEnabled,
+        backendRewardAward,
+      }),
+      (error) => {
+        markSyncFailed(`lesson reward failed:${rewardEvent.key}`);
+        if (import.meta.env.DEV) {
+          console.warn('[LearningEngine] lesson reward failed:', error);
+        }
+      },
+    );
   }
 
   // ─── Undo lesson completion ───────────────
   function uncompleteLesson(lessonKey, options = {}) {
     if (completedSet.has(lessonKey)) {
-      toggleLesson(lessonKey, options);
+      toggleLesson(lessonKey, { ...options, completed: false });
     }
   }
 
@@ -114,7 +118,7 @@ export function createLearningEngine({
     }
 
     const completionRewardKey = rewardKeys.quizComplete(quizKey);
-    await awardRewardOnce({
+    const completionResult = await awardRewardOnce({
       learnerKey,
       event: createRewardEvent({
         type: REWARD_EVENT_TYPES.QUIZ_BASE,
@@ -133,10 +137,11 @@ export function createLearningEngine({
       backendRewardSyncEnabled,
       backendRewardAward,
     });
+    let earnedXp = getAwardedXp(completionResult);
 
     if (pct === 100) {
       const perfectRewardKey = rewardKeys.quizPerfect(quizKey);
-      await awardRewardOnce({
+      const perfectResult = await awardRewardOnce({
         learnerKey,
         event: createRewardEvent({
           type: REWARD_EVENT_TYPES.QUIZ_PERFECT,
@@ -155,9 +160,12 @@ export function createLearningEngine({
         backendRewardSyncEnabled,
         backendRewardAward,
       });
+      earnedXp += getAwardedXp(perfectResult);
     }
 
-    recordDailyActivity();
+    if (earnedXp > 0) {
+      recordDailyActivity();
+    }
     return { score, total, pct };
   }
 
@@ -171,7 +179,7 @@ export function createLearningEngine({
     }
 
     const rewardKey = rewardKeys.challengeComplete(challengeId);
-    await awardRewardOnce({
+    const rewardResult = await awardRewardOnce({
       learnerKey,
       event: createRewardEvent({
         type: REWARD_EVENT_TYPES.CHALLENGE_COMPLETE,
@@ -191,7 +199,9 @@ export function createLearningEngine({
       backendRewardAward,
     });
 
-    recordDailyActivity();
+    if (getAwardedXp(rewardResult) > 0) {
+      recordDailyActivity();
+    }
     return { challengeId, completed: true, alreadyCompleted: false };
   }
 

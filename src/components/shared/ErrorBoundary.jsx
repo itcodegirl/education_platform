@@ -65,9 +65,9 @@ export class ErrorBoundary extends Component {
         <div className="eb-screen">
           <div className="eb-card">
             <span className="eb-icon" aria-hidden="true">⚠︎</span>
-            <h2 className="eb-title">Something went wrong</h2>
+            <h2 className="eb-title">We hit a temporary snag</h2>
             <p className="eb-msg">
-              The platform hit an unexpected error. This is usually temporary.
+              Your learning screen could not finish loading. Your local progress is still kept where possible.
             </p>
             {shouldRevealErrorDetails() && this.state.error?.message && (
               <div className="eb-detail">
@@ -76,14 +76,14 @@ export class ErrorBoundary extends Component {
             )}
             <div className="eb-actions">
               <button type="button" className="eb-retry" onClick={this.handleRetry}>
-                ↺ Try Again
+                Try again
               </button>
               <button type="button" className="eb-reload" onClick={this.handleReload}>
-                ⟳ Reload Page
+                Reload page
               </button>
             </div>
             <p className="eb-help">
-              If this keeps happening, try clearing your browser cache or contact{' '}
+              If this keeps happening, reload once. If the problem returns, contact{' '}
               <a href="mailto:hello@codeherway.com">support</a>.
             </p>
           </div>

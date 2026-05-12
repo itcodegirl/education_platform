@@ -57,7 +57,7 @@ export function GuestPreview({ onBack }) {
                 <span className="lesson-kicker-label">Module</span>
                 <span className="lesson-kicker-value">{firstModule.title}</span>
               </div>
-              <h2 className="lesson-title">{firstLesson.title}</h2>
+              <h1 className="lesson-title">{firstLesson.title}</h1>
               {firstLesson.difficulty && (
                 <div className="lesson-meta">
                   <span className={`lesson-diff lesson-diff-${firstLesson.difficulty}`}>

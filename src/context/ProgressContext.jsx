@@ -6,7 +6,7 @@
 
 import { createContext, useContext, useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { useAuth } from './AuthContext';
-import { buildNotesMap } from './progressSavedLessonHelpers';
+import { buildNotesMap, normalizeProgressLessonKey } from './progressSavedLessonHelpers';
 import { createEmptyLastPosition, mapLastPositionRow } from './lastPositionState';
 import { collectRecoverableLoadWarnings } from './progressSyncWarningHelpers';
 import {
@@ -31,6 +31,7 @@ import { findNewlyEarnedBadges } from '../services/badgeRules';
 import {
   readChallengeCompletions,
   readRewardHistory,
+  normalizeStringList as normalizeStringSet,
 } from '../utils/learnerLocalStore';
 
 // BADGE_DEFS is imported above from '../data/badges' (the canonical
@@ -100,6 +101,19 @@ const SRContext = createContext({
   getNote: () => '',
 });
 
+function normalizeCompletedLessonKey(lessonKey) {
+  if (typeof lessonKey !== 'string' || !lessonKey.trim()) return '';
+  return normalizeProgressLessonKey(lessonKey.trim());
+}
+
+function normalizeCompletedLessonKeys(lessonKeys = []) {
+  return normalizeStringSet(
+    (Array.isArray(lessonKeys) ? lessonKeys : [])
+      .map(normalizeCompletedLessonKey)
+      .filter(Boolean),
+  );
+}
+
 // Per-learner localStorage helpers (reward history, challenge
 // completions, normalization) live in utils/learnerLocalStore so
 // they can be unit-tested independently of the provider.
@@ -116,6 +130,7 @@ export function ProgressProvider({ children }) {
 
   // ─── State ─────────────────────────────────────
   const [completed, setCompleted] = useState([]);
+  const completedRef = useRef(new Set());
   const [quizScores, setQuizScores] = useState({});
   const quizScoresRef = useRef({});
   const [xpTotal, setXpTotal] = useState(0);
@@ -233,6 +248,7 @@ export function ProgressProvider({ children }) {
   } = useLearnerRewards({ user, markSyncFailed });
 
   const resetUserState = useCallback(() => {
+    completedRef.current = new Set();
     setCompleted([]);
     setQuizScores({});
     quizScoresRef.current = {};
@@ -287,7 +303,8 @@ export function ProgressProvider({ children }) {
       const { progress, quiz, xp, streak, daily, badges: badgeRows, sr, bookmarks: bookmarkRows,
         notes: noteRows, visited, position } = results.data;
 
-      const completedLessonKeys = progress.map(r => r.lesson_key);
+      const completedLessonKeys = normalizeCompletedLessonKeys(progress.map(r => r.lesson_key));
+      completedRef.current = new Set(completedLessonKeys);
       setCompleted(completedLessonKeys);
 
       const scores = {};
@@ -410,14 +427,18 @@ export function ProgressProvider({ children }) {
     const normalizedLessonKey = typeof lessonKey === 'string' ? lessonKey.trim() : '';
     if (!normalizedLessonKey) return;
     const skipRemote = Boolean(options?.skipRemote);
-    const has = completedSet.has(normalizedLessonKey);
+    const has = completedRef.current.has(normalizedLessonKey);
+    const nextCompletedState =
+      typeof options?.completed === 'boolean' ? options.completed : !has;
+    if (nextCompletedState === has) return;
     // Serialize concurrent toggles for the SAME lesson so an
     // addLesson → removeLesson → addLesson sequence lands in the
     // submitted order on the server. Toggles for different lessons
     // still run in parallel.
     const resourceKey = `lesson:${normalizedLessonKey}`;
 
-    if (has) {
+    if (!nextCompletedState) {
+      completedRef.current.delete(normalizedLessonKey);
       setCompleted(prev => prev.filter(k => k !== normalizedLessonKey));
       if (!skipRemote) {
         dbWrite(
@@ -427,6 +448,7 @@ export function ProgressProvider({ children }) {
         );
       }
     } else {
+      completedRef.current.add(normalizedLessonKey);
       setCompleted(prev => {
         if (prev.includes(normalizedLessonKey)) return prev;
         return [...prev, normalizedLessonKey];
@@ -439,7 +461,7 @@ export function ProgressProvider({ children }) {
         );
       }
     }
-  }, [user, completedSet, dbWrite]);
+  }, [user, dbWrite]);
 
   const saveQuizScore = useCallback(async (quizKey, score) => {
     if (!user) return;

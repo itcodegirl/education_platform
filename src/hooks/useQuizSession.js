@@ -183,7 +183,9 @@ export function useQuizSession({ quiz, label, quizKey, legacyQuizKeys = [] }) {
     }
 
     setLastEarnedXp(earnedXp);
-    recordDailyActivity();
+    if (earnedXp > 0) {
+      recordDailyActivity();
+    }
 
     const wrongCards = quiz.questions
       .filter((q) =>

@@ -5,8 +5,10 @@ import {
   REWARD_POLICY,
   REWARD_XP,
   STREAK_QUALIFYING_ACTIONS,
+  compareQuizScoreValues,
   createRewardKey,
   formatQuizScore,
+  getBestQuizScoreForKeys,
   isPerfectQuizScore,
   isQuizScoreImprovement,
   isStreakQualifyingAction,
@@ -75,6 +77,12 @@ describe('rewardPolicy', () => {
     expect(isQuizScoreImprovement(undefined, 3, 4)).toBe(true);
     expect(isQuizScoreImprovement('2/4', 3, 4)).toBe(true);
     expect(isQuizScoreImprovement('3/4', 2, 4)).toBe(false);
+    expect(compareQuizScoreValues('3/4', '4/4')).toBeGreaterThan(0);
+    expect(compareQuizScoreValues('4/4', '3/4')).toBeLessThan(0);
+    expect(getBestQuizScoreForKeys(
+      { legacy: '3/4', stable: '4/4', malformed: 'oops' },
+      ['legacy', 'malformed', 'stable'],
+    )).toBe('4/4');
   });
 
   it('quizPercent rounds and returns 0 for malformed totals', () => {

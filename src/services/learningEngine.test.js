@@ -69,7 +69,7 @@ describe('createLearningEngine → completeLesson', () => {
     await engine.completeLesson('html|intro|first');
 
     expect(deps.toggleLesson).toHaveBeenCalledTimes(1);
-    expect(deps.toggleLesson).toHaveBeenCalledWith('html|intro|first', {});
+    expect(deps.toggleLesson).toHaveBeenCalledWith('html|intro|first', { completed: true });
     await waitFor(() => {
       expect(deps.markRewardAwarded).toHaveBeenCalledWith(
         rewardKeys.lessonComplete('html|intro|first'),
@@ -80,7 +80,7 @@ describe('createLearningEngine → completeLesson', () => {
     });
   });
 
-  it('toggles a completed lesson OFF without awarding XP again', async () => {
+  it('completeLesson is a no-op when the lesson is already done', async () => {
     const deps = buildDeps({
       completedSet: new Set(['html|intro|first']),
     });
@@ -88,7 +88,7 @@ describe('createLearningEngine → completeLesson', () => {
 
     await engine.completeLesson('html|intro|first');
 
-    expect(deps.toggleLesson).toHaveBeenCalledTimes(1);
+    expect(deps.toggleLesson).not.toHaveBeenCalled();
     expect(deps.awardXP).not.toHaveBeenCalled();
     expect(deps.recordDailyActivity).not.toHaveBeenCalled();
   });
@@ -103,7 +103,7 @@ describe('createLearningEngine → completeLesson', () => {
     await engine.completeLesson('html|intro|first');
 
     expect(deps.toggleLesson).toHaveBeenCalledTimes(1);
-    expect(deps.toggleLesson).toHaveBeenCalledWith('html|intro|first', {});
+    expect(deps.toggleLesson).toHaveBeenCalledWith('html|intro|first', { completed: true });
     await waitFor(() => {
       expect(deps.hasRewardBeenAwarded).toHaveBeenCalledWith(
         rewardKeys.lessonComplete('html|intro|first'),
@@ -179,7 +179,7 @@ describe('createLearningEngine → completeLesson', () => {
     await engine.toggleLessonDone('html|intro|first');
     navigation();
 
-    expect(deps.toggleLesson).toHaveBeenCalledWith('html|intro|first', {});
+    expect(deps.toggleLesson).toHaveBeenCalledWith('html|intro|first', { completed: true });
     expect(navigation).toHaveBeenCalledTimes(1);
     expect(deps.awardXP).not.toHaveBeenCalled();
 
@@ -205,7 +205,7 @@ describe('createLearningEngine → completeLesson', () => {
     await engine.toggleLessonDone('html|intro|first');
     navigation();
 
-    expect(deps.toggleLesson).toHaveBeenCalledWith('html|intro|first', {});
+    expect(deps.toggleLesson).toHaveBeenCalledWith('html|intro|first', { completed: true });
     expect(navigation).toHaveBeenCalledTimes(1);
     await waitFor(() => {
       expect(deps.markSyncFailed).toHaveBeenCalledWith(
@@ -223,7 +223,7 @@ describe('createLearningEngine → uncompleteLesson', () => {
     engine.uncompleteLesson('a|b|c');
 
     expect(deps.toggleLesson).toHaveBeenCalledTimes(1);
-    expect(deps.toggleLesson).toHaveBeenCalledWith('a|b|c', {});
+    expect(deps.toggleLesson).toHaveBeenCalledWith('a|b|c', { completed: false });
   });
 
   it('is a no-op when the lesson was never done', () => {
@@ -265,7 +265,7 @@ describe('createLearningEngine → toggleLessonDone', () => {
 
     await engine.toggleLessonDone('x|y|z', { skipRemote: true });
 
-    expect(deps.toggleLesson).toHaveBeenCalledWith('x|y|z', { skipRemote: true });
+    expect(deps.toggleLesson).toHaveBeenCalledWith('x|y|z', { skipRemote: true, completed: true });
   });
 });
 
@@ -297,7 +297,7 @@ describe('createLearningEngine → submitQuiz', () => {
     expect(deps.saveQuizScore).toHaveBeenCalledWith('html|quiz|1', '7/10');
     expect(deps.markRewardAwarded).not.toHaveBeenCalledWith(completionKey);
     expect(deps.awardXP).not.toHaveBeenCalledWith(40, 'Quiz completed');
-    expect(deps.recordDailyActivity).toHaveBeenCalledTimes(1);
+    expect(deps.recordDailyActivity).not.toHaveBeenCalled();
   });
 
   it('awards the perfect quiz bonus only when that reward key has not been earned', async () => {

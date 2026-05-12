@@ -131,6 +131,22 @@ describe('StudentStats streak card', () => {
     expect(card).not.toHaveTextContent(/streak paused/i);
   });
 
+  it('uses a clear first-lesson empty state before progress exists', () => {
+    mockUseXP.mockReturnValue({
+      xpTotal: 0,
+      streak: 0,
+      pausedStreak: null,
+      dailyCount: 0,
+      earnedBadges: {},
+    });
+
+    render(<StudentStats isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByText(/No completed lessons yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/use Complete lesson to start your progress dashboard/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /back to current lesson/i })).toBeInTheDocument();
+  });
+
   it('shows the local-first progress sync scope', () => {
     mockUseXP.mockReturnValue({
       xpTotal: 0,

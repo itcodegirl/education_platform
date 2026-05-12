@@ -53,6 +53,7 @@ vi.mock('../services/progressService', () => ({
   // Write functions — not triggered by load, but imported by the module
   addLesson: (...args) => mockAddLesson(...args),
   removeLesson: vi.fn(),
+  removeLessonsByKeys: vi.fn(),
   saveQuizScore: vi.fn(),
   updateXP: (...args) => mockUpdateXP(...args),
   updateStreak: (...args) => mockUpdateStreak(...args),
@@ -62,6 +63,7 @@ vi.mock('../services/progressService', () => ({
   updateSRCard: vi.fn(),
   addBookmark: vi.fn(),
   removeBookmark: vi.fn(),
+  removeBookmarksByKeys: vi.fn(),
   saveNote: vi.fn(),
   savePosition: vi.fn(),
   trackCourseVisit: vi.fn(),
@@ -170,6 +172,24 @@ function LessonWriteConsumer() {
   );
 }
 
+function ForcedLessonWriteConsumer() {
+  const { completed, toggleLesson } = useProgressData();
+
+  return (
+    <button
+      type="button"
+      data-testid="force-complete-lesson"
+      data-completed={completed.join(',')}
+      onClick={() => {
+        toggleLesson('c:html|m:101|l:lesson-01', { completed: true });
+        toggleLesson('c:html|m:101|l:lesson-01', { completed: true });
+      }}
+    >
+      Complete lesson twice
+    </button>
+  );
+}
+
 // Consumer for the XP-popup queue tests below. Exposes the head of the
 // queue plus actions to enqueue / dismiss so tests can drive the
 // queue without relying on the full reward pipeline.
@@ -231,6 +251,14 @@ function renderLessonWriteWithProvider() {
   return render(
     <ProgressProvider>
       <LessonWriteConsumer />
+    </ProgressProvider>,
+  );
+}
+
+function renderForcedLessonWriteWithProvider() {
+  return render(
+    <ProgressProvider>
+      <ForcedLessonWriteConsumer />
     </ProgressProvider>,
   );
 }
@@ -646,6 +674,27 @@ describe('ProgressContext — fetch error', () => {
 });
 
 describe('ProgressContext write failure detection', () => {
+  it('lessonCompletionAwardsXpOnlyOnce keeps forced completion idempotent in one render tick', async () => {
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-idempotent' } });
+    mockFetchAllUserData.mockResolvedValue(makeFetchResult());
+
+    renderForcedLessonWriteWithProvider();
+
+    await waitFor(() => {
+      expect(mockFetchAllUserData).toHaveBeenCalledWith('uid-idempotent');
+    });
+
+    fireEvent.click(screen.getByTestId('force-complete-lesson'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('force-complete-lesson').dataset.completed).toBe(
+        'c:html|m:101|l:lesson-01',
+      );
+    });
+    expect(mockAddLesson).toHaveBeenCalledTimes(1);
+    expect(mockAddLesson).toHaveBeenCalledWith('uid-idempotent', 'c:html|m:101|l:lesson-01');
+  });
+
   it('lesson-progress.failed-write-queues-and-retries', async () => {
     mockUseAuth.mockReturnValue({ user: { id: 'uid-lesson' } });
     mockFetchAllUserData.mockResolvedValue(makeFetchResult());

@@ -211,9 +211,16 @@ export const Sidebar = memo(function Sidebar({
   }, [closePopout, focusPopoutByOffset, focusPopoutItem]);
 
   useEffect(() => {
-    if (!isDesktopCollapsed || !activePopout) return;
+    if (!isNavInteractionHidden || !activePopout) return;
     closePopout(false);
-  }, [activePopout, closePopout, isDesktopCollapsed]);
+  }, [activePopout, closePopout, isNavInteractionHidden]);
+
+  useEffect(() => {
+    if (!(isMobile && !isOpen)) return;
+    setActivePopout(null);
+    setPopoutPos(null);
+    setPopoverOpen(false);
+  }, [isMobile, isOpen]);
 
   useEffect(() => {
     if (!isMobile || isOpen) return;

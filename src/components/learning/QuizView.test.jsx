@@ -310,6 +310,7 @@ describe('QuizView', () => {
   it('does not award quiz XP again on retry after both quiz rewards are earned', async () => {
     const awarded = new Set();
     const awardXP = vi.fn();
+    const recordDailyActivity = vi.fn();
     const hasRewardBeenAwarded = vi.fn((rewardKey) => awarded.has(rewardKey));
     const markRewardAwarded = vi.fn((rewardKey) => {
       if (awarded.has(rewardKey)) return false;
@@ -326,7 +327,7 @@ describe('QuizView', () => {
     });
     mockUseXP.mockReturnValue({
       awardXP,
-      recordDailyActivity: vi.fn(),
+      recordDailyActivity,
     });
 
     render(
@@ -357,6 +358,57 @@ describe('QuizView', () => {
       );
       expect(screen.getByText(/XP already earned/i)).toBeInTheDocument();
     });
+    expect(recordDailyActivity).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses legacy quiz keys as aliases without awarding duplicate XP', async () => {
+    const legacyQuizKey = 'l:lesson-01';
+    const stableQuizKey = 'l:html:lesson-01';
+    const awarded = new Set([
+      rewardKeys.quizComplete(legacyQuizKey),
+      rewardKeys.quizPerfect(legacyQuizKey),
+    ]);
+    const awardXP = vi.fn();
+    const saveQuizScore = vi.fn();
+    const recordDailyActivity = vi.fn();
+    const hasRewardBeenAwarded = vi.fn((rewardKey) => awarded.has(rewardKey));
+    const markRewardAwarded = vi.fn((rewardKey) => {
+      if (awarded.has(rewardKey)) return false;
+      awarded.add(rewardKey);
+      return true;
+    });
+
+    mockUseProgressData.mockReturnValue({
+      quizScores: { [legacyQuizKey]: '1/1' },
+      saveQuizScore,
+      hasRewardBeenAwarded,
+      markRewardAwarded,
+      markSyncFailed: vi.fn(),
+    });
+    mockUseXP.mockReturnValue({
+      awardXP,
+      recordDailyActivity,
+    });
+
+    render(
+      <QuizView
+        quiz={quiz}
+        accent="#4ecdc4"
+        label="Quick Check"
+        quizKey={stableQuizKey}
+        legacyQuizKeys={[legacyQuizKey]}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('radio', { name: /A: <h1>/i }));
+    fireEvent.click(screen.getByRole('button', { name: /submit answers/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/XP already earned/i)).toBeInTheDocument();
+    });
+    expect(saveQuizScore).not.toHaveBeenCalled();
+    expect(awardXP).not.toHaveBeenCalled();
+    expect(recordDailyActivity).not.toHaveBeenCalled();
   });
 
   it('reward-engine.double-click-does-not-duplicate-xp for quiz submissions', async () => {

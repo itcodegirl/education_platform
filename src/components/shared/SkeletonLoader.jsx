@@ -118,12 +118,12 @@ export function ConnectionError({ onRetry }) {
   return (
     <div className="conn-error" role="alert" aria-live="assertive">
       <span className="conn-icon" aria-hidden="true">⚠︎</span>
-      <h3 className="conn-title">Connection issue</h3>
+      <h3 className="conn-title">We could not confirm account progress</h3>
       <p className="conn-msg">
-        Could not connect to the database. Check your internet connection or try again.
+        You can keep learning in this browser. Try again when your connection is stable.
       </p>
       <button type="button" className="conn-retry" onClick={onRetry}>
-        Retry connection
+        Try again
       </button>
     </div>
   );
