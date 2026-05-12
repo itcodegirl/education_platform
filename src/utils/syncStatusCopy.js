@@ -41,10 +41,13 @@ export function getSyncStatusCopy({
   }
 
   if (syncFailed > 0) {
+    const retryVerb = syncFailed === 1 ? 'needs' : 'need';
     return {
       tone: 'warning',
       label: 'Sync needs retry',
-      detail: 'Your current session is safe in this browser. Cloud sync needs another try when the connection is stable.',
+      detail: `${pluralizeUpdate(syncFailed)} saved in this browser ${retryVerb} another cloud sync attempt when the connection is stable.`,
+      actionLabel: 'Retry now',
+      actionAriaLabel: 'Retry failed progress sync now',
     };
   }
 
@@ -65,8 +68,8 @@ export function getSyncStatusCopy({
   }
 
   return {
-      tone: 'synced',
-      label: 'Saved to account',
-      detail: 'Account progress is current. New lesson activity will sync when the cloud is reachable.',
-    };
+    tone: 'synced',
+    label: 'Saved to account',
+    detail: 'Latest account sync looks current. New lesson activity will sync when the cloud is reachable.',
+  };
 }

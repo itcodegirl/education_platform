@@ -18,7 +18,11 @@ export const TopbarLearnerStatus = memo(function TopbarLearnerStatus({
         {learnerName ? `Continue learning, ${learnerName}.` : 'Continue learning.'}
       </span>
       {!showModQuiz && (
-        <span className="topbar-pill" aria-label={`Estimated read time: ${readTime}`} title="Roughly how long this lesson takes to read through">
+        <span
+          className="topbar-pill"
+          aria-label={`Estimated read time: ${readTime}`}
+          title="Roughly how long this lesson takes to read through"
+        >
           {readTime} read
         </span>
       )}
@@ -26,7 +30,11 @@ export const TopbarLearnerStatus = memo(function TopbarLearnerStatus({
         <span className="topbar-pill" aria-label={`Level ${level}`} title={PROGRESS_SYNC_SHORT}>Lv {level}</span>
       )}
       {coursePct > 0 && (
-        <span className="topbar-pill" aria-label={`Course completion ${coursePct} percent`} title="Share of this course's lessons you've marked done">
+        <span
+          className="topbar-pill"
+          aria-label={`Course completion ${coursePct} percent`}
+          title="Share of this course's lessons you've marked done"
+        >
           {coursePct}% course
         </span>
       )}
@@ -51,4 +59,3 @@ export const TopbarLearnerStatus = memo(function TopbarLearnerStatus({
     </div>
   );
 });
-
