@@ -164,4 +164,27 @@ describe('usePanels history sync', () => {
 
     vi.useRealTimers();
   });
+
+  it('keeps panel action identities stable across parent rerenders', () => {
+    const { result, rerender } = renderHook(() =>
+      usePanels({
+        dataLoaded: true,
+        user: { id: 'learner-a' },
+        lastPosition: null,
+      }),
+    );
+    const initialActions = {
+      closePanel: result.current.closePanel,
+      togglePanel: result.current.togglePanel,
+      checkMilestone: result.current.checkMilestone,
+      triggerCourseComplete: result.current.triggerCourseComplete,
+    };
+
+    rerender();
+
+    expect(result.current.closePanel).toBe(initialActions.closePanel);
+    expect(result.current.togglePanel).toBe(initialActions.togglePanel);
+    expect(result.current.checkMilestone).toBe(initialActions.checkMilestone);
+    expect(result.current.triggerCourseComplete).toBe(initialActions.triggerCourseComplete);
+  });
 });

@@ -215,7 +215,7 @@ describe('AuthPage', () => {
 
     render(<AuthPage onPreview={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /start learning/i }));
+    fireEvent.click(screen.getByRole('button', { name: /create a free account/i }));
 
     expect(scrollIntoView).toHaveBeenCalledWith({
       behavior: 'auto',
