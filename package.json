@@ -41,7 +41,7 @@
     "test:a11y:e2e": "playwright test tests/e2e/accessibility.smoke.spec.js tests/e2e/authenticated.accessibility.spec.js",
     "test:e2e": "npm run test:integration",
     "test:e2e:smoke": "npm run test:e2e:smoke:public && npm run test:e2e:smoke:learning",
-    "test:e2e:smoke:public": "playwright test tests/e2e/accessibility.smoke.spec.js tests/e2e/auth.smoke.spec.js tests/e2e/public-learning-entry.spec.js --project=chromium --project=mobile-chrome",
+    "test:e2e:smoke:public": "node scripts/run-public-e2e-smoke.mjs",
     "test:e2e:smoke:learning": "node scripts/run-auth-e2e-smoke.mjs",
     "test:e2e:smoke:lesson": "node scripts/run-auth-e2e-smoke.mjs lesson",
     "test:e2e:smoke:mobile": "node scripts/run-auth-e2e-smoke.mjs mobile",
