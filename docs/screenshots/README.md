@@ -1,97 +1,96 @@
 # Screenshot Capture Guide
 
-A recruiter-facing portfolio set. Each capture should be saved as
-the filename below and committed to this directory. The top-level
-`README.md` references these names directly.
+This directory is reserved for recruiter-facing portfolio screenshots. Keep the filenames below exact so `README.md`, the reviewer demo script, and portfolio materials can point to stable assets.
 
-Recommended capture size: 1600x900 or 1920x1080. Use the dark theme
-unless a screenshot is specifically about light-theme parity. Crop
-chrome aggressively so the actual product is the visual subject.
+Recommended desktop capture size: 1600x900 or 1920x1080. Recommended mobile capture size: 390x844 or 430x932. Use a dedicated demo account, avoid real learner data, and crop browser chrome so the product is the visual subject.
 
-## Capture set
+## Required Capture Set
 
 ### `01-landing-auth.png`
 
-The unauthenticated landing page (`/` while logged out).
+The unauthenticated landing page at `/`.
 
 State to set up:
 - Sign out, then load the root URL.
-- Wait for the hero copy and CTAs to render.
-- Capture the full landing hero plus the sign-up form below the
-  fold if it fits without scrolling — otherwise capture the hero
-  alone.
+- Wait for the hero copy and primary CTAs to render.
+- Capture the first viewport with enough next-section context to show this is a real product entry, not only a splash screen.
 
 What this proves:
-- Brand identity, design system, hierarchy, calls to action.
+- Brand identity, hierarchy, first action clarity, and public trust posture.
 
-### `02-dashboard-first-run.png`
+### `02-first-lesson-preview.png`
 
-The first-lesson view for a brand-new account.
+The first lesson or first-lesson preview for a learner with no completed progress.
 
 State to set up:
-- Sign in as a learner that has not completed a single lesson.
-- Land on the default course (HTML).
-- The "First login" starter guide should be visible at the top.
+- Use a fresh demo learner or the public preview path.
+- Open the default HTML learning path.
+- Keep the first-session guidance visible if the signed-in flow is used.
 
 What this proves:
-- Onboarding clarity, calm visual pacing, the lesson view as
-  context for everything else in this set.
+- Beginner-friendly onboarding, calm pacing, and the main learning surface.
 
-### `03-lesson-flow.png`
+### `03-lesson-learning-contract.png`
 
-A mid-track lesson with the editor + preview tabs visible.
+A lesson view with the learning evidence panel visible.
 
 State to set up:
-- Open any lesson that has a `code` field (the HTML "Headings &
-  Paragraphs" lesson is reliable).
-- Click into the editor tab so Monaco is loaded.
-- Optionally click "Preview" right before capture so the iframe is
-  rendered too.
+- Open a structured lesson.
+- Ensure the panel section showing prerequisite, outcome, guided practice, recall check, and proof/transfer is visible.
+- Keep enough surrounding lesson content in frame to show the contract belongs to the lesson, not a separate dashboard.
 
 What this proves:
-- Real code editor integration (Monaco), iframe sandboxing, the
-  lesson chrome (header + tasks + AI Tutor entry point).
+- Educational structure, proof-oriented lesson design, and progress semantics beyond completion clicks.
 
-### `04-tools-panels.png`
+### `04-progress-evidence.png`
 
-A side panel open over the lesson view.
+The progress or profile evidence surface with at least one completed lesson and one proof signal.
 
 State to set up:
-- Open the Glossary or Search panel from the bottom toolbar
-  (desktop) — both are visually rich.
-- Type a short query so results are populated.
+- Complete one or two lessons in a demo account.
+- Add at least one quiz/review/challenge signal if available.
+- Open the Progress panel or `/profile` and capture the evidence/transcript area.
 
 What this proves:
-- The platform is more than a single page — there's a real toolset
-  the learner can pull up while reading.
+- Honest separation between reading progress, XP motivation, recall checks, application proof, and review health.
 
-### `05-profile-progress.png`
+### `05-mobile-learning.png`
 
-The Profile / progress page with at least one completed lesson and
-ideally one earned badge.
+The learner experience in a mobile viewport.
 
 State to set up:
-- Complete one or two lessons in any course so XP, level, and a
-  course progress chip are populated.
-- Navigate to `/profile` and capture the top of the page where the
-  level / XP / streak / course progress chart sits together.
+- Use a 390x844 or 430x932 viewport.
+- Open a lesson with the mobile navigation/tool surface visible.
+- Prefer the same lesson used in `03-lesson-learning-contract.png` for easy comparison.
 
 What this proves:
-- Persisted progress state, the gamification layer, the platform
-  acknowledging the learner's effort.
+- Mobile-first usability, constrained labels, reachable navigation, and touch-friendly learning flow.
 
-## Optional captures
+### `06-progress-summary-trust.png`
 
-- `06-mobile-lesson.png` — same lesson as `03-` but in a 390x844
-  iPhone viewport, showing the bottom action bar.
-- `07-admin-overview.png` — `/admin` dashboard if your test account
-  has admin enabled. Useful for showing breadth.
+The Progress Summary or export-adjacent trust boundary.
 
-## Notes
+State to set up:
+- Use a demo learner with visible progress.
+- Open the Progress Summary surface.
+- Capture the copy that makes clear this is a learning record, not a verified credential.
 
-- Avoid capturing real learner data. Use a dedicated demo account.
-- Run `npm run dev`, set `prefers-color-scheme: dark` in the
-  browser dev tools, and use the browser's built-in screenshot tool
-  for sharp pixel output.
-- After capture, run images through any standard PNG optimizer
-  (e.g. `pngquant`) before committing — keeps the repo small.
+What this proves:
+- Product honesty, reward trust boundaries, and portfolio/demo posture.
+
+## Optional Capture
+
+### `07-admin-overview.png`
+
+The admin dashboard if the demo account has admin access.
+
+What this proves:
+- Product breadth and internal tooling, only if the state is polished and access is intentionally enabled.
+
+## Capture Rules
+
+- Do not capture real learner names, emails, notes, or private progress.
+- Use a dedicated demo account and reset it between portfolio refreshes.
+- Keep dark theme unless a screenshot is specifically documenting light-theme parity.
+- Optimize PNGs before committing so the repository stays small.
+- Do not commit partial local Lighthouse output; `.lighthouseci/` is ignored and CI artifacts are referenced from `docs/lighthouse-evidence.md`.
