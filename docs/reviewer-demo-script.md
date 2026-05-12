@@ -17,6 +17,7 @@ Optional quality pass:
 npm run check
 npm run audit:quizzes
 npm run audit:content
+npm run audit:performance
 ```
 
 ## Five-Minute Flow
@@ -27,7 +28,8 @@ npm run audit:content
 4. Open saved lessons, notes, review queue, badges, and challenges. Explain which tools are motivational/local today and which writes may sync.
 5. Submit a quiz, retry it, and point out that retrying is for practice while XP is awarded once per stable quiz milestone.
 6. Open Progress Summary and call out that it is not a verified credential.
-7. Close with the roadmap and trust boundaries: portfolio-ready now, production-ready after staging Supabase validation, backend reward records, authenticated CI credentials, and observability.
+7. Mention that stale lesson links recover to the nearest valid lesson instead of leaving the learner stranded.
+8. Close with the roadmap and trust boundaries: portfolio-ready now, production-ready after staging Supabase validation, backend reward records, authenticated CI credentials, Lighthouse artifact review, and observability.
 
 ## Failure-Path Moment
 
@@ -37,6 +39,8 @@ If demonstrating engineering depth, show the sync warning/retry copy or docs:
 - Queued progress writes expose a visible "Retry now" action near the current learning step.
 - Backend reward sync is intentionally disabled until migrations and duplicate-award tests pass.
 - The app avoids claiming cross-device reward trust before the backend supports it.
+- CI uploads Playwright and Lighthouse artifacts so failures are inspectable instead of disappearing into logs.
+- The PDF/export dependency is lazy and guarded by `npm run audit:performance`.
 
 ## What To Say In An Interview
 
