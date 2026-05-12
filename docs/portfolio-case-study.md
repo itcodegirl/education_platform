@@ -8,6 +8,8 @@ This case study highlights how the platform was hardened for portfolio review ac
 
 For a reviewer who wants direct proof behind the case-study claims, use the claim-to-code map in [docs/reviewer-evidence-map.md](./reviewer-evidence-map.md).
 
+For a short recruiter-facing recording, use the storyboard in [docs/portfolio-demo-capture.md](./portfolio-demo-capture.md). The demo should show the lesson workflow, progress evidence, and trust boundaries rather than only static landing-page polish.
+
 ---
 
 ## Problem and opportunity
@@ -233,6 +235,8 @@ Why: product reliability needs visibility, but portfolio credibility is stronger
 4. Open search/bookmarks/review to demonstrate learning continuity.
 5. Explain AI architecture and security boundary.
 6. Close with quality gates and release checklist.
+
+For a portfolio page, pair this walkthrough with the README Evidence & Readiness Snapshot so reviewers can see which claims are proven today and which production claims are deliberately gated.
 
 ---
 
