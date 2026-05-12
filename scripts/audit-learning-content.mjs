@@ -543,6 +543,88 @@ function printEntries(title, entries, limit = 30) {
   }
 }
 
+function getCourseIdFromPath(path) {
+  return String(path || '').split('.')[0] || 'unknown';
+}
+
+function getWarningCategory(message) {
+  const text = String(message || '');
+  if (text.startsWith('Lesson quality rubric is thin')) return 'lesson-quality-rubric';
+  if (text.startsWith('Lesson has shallow instructional scaffolding')) return 'instructional-scaffolding';
+  if (text.startsWith('Quiz quality rubric is missing')) return 'quiz-quality-rubric';
+  if (text.startsWith('Challenge is missing')) return 'challenge-evidence';
+  return 'other';
+}
+
+function getMissingSignals(message) {
+  const match = String(message || '').match(/missing ([^.]+)\./i);
+  if (!match) return [];
+  return match[1]
+    .split(',')
+    .map((signal) => signal.trim())
+    .filter(Boolean);
+}
+
+function incrementCount(map, key, amount = 1) {
+  map.set(key, (map.get(key) || 0) + amount);
+}
+
+function toSortedCountEntries(map) {
+  return [...map.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((left, right) => right.count - left.count || left.name.localeCompare(right.name));
+}
+
+export function buildAuditSummary({ issues = [], warnings = [], counts = {} } = {}) {
+  const warningsByCourse = new Map();
+  const warningsByCategory = new Map();
+  const missingSignals = new Map();
+
+  warnings.forEach((warning) => {
+    incrementCount(warningsByCourse, getCourseIdFromPath(warning.path));
+    incrementCount(warningsByCategory, getWarningCategory(warning.message));
+    getMissingSignals(warning.message).forEach((signal) => incrementCount(missingSignals, signal));
+  });
+
+  return {
+    counts,
+    issueCount: issues.length,
+    warningCount: warnings.length,
+    warningsByCourse: toSortedCountEntries(warningsByCourse),
+    warningsByCategory: toSortedCountEntries(warningsByCategory),
+    missingSignals: toSortedCountEntries(missingSignals),
+  };
+}
+
+function printAuditSummary(result) {
+  const summary = buildAuditSummary(result);
+
+  console.log('\nActionable summary:');
+  console.log(`  blocking issues: ${summary.issueCount}`);
+  console.log(`  report-only warnings: ${summary.warningCount}`);
+
+  if (summary.warningsByCourse.length > 0) {
+    console.log('\n  warnings by course:');
+    summary.warningsByCourse.forEach((entry) => {
+      console.log(`    - ${entry.name}: ${entry.count}`);
+    });
+  }
+
+  if (summary.warningsByCategory.length > 0) {
+    console.log('\n  warnings by category:');
+    summary.warningsByCategory.forEach((entry) => {
+      console.log(`    - ${entry.name}: ${entry.count}`);
+    });
+  }
+
+  if (summary.missingSignals.length > 0) {
+    console.log('\n  most common missing signals:');
+    summary.missingSignals.slice(0, 12).forEach((entry) => {
+      console.log(`    - ${entry.name}: ${entry.count}`);
+    });
+  }
+}
+
 export function analyzeLearningContent({ courseMetadata, loaded }) {
   const issues = [];
   const warnings = [];
@@ -582,6 +664,8 @@ export function analyzeLearningContent({ courseMetadata, loaded }) {
 }
 
 async function main() {
+  const showSummary = process.argv.includes('--summary');
+
   console.log('Learning Content Audit');
 
   const { courseMetadata, loaded } = await loadAllCourseData();
@@ -595,6 +679,9 @@ async function main() {
 
   printEntries('Warnings', result.warnings);
   printEntries('Blocking issues', result.issues);
+  if (showSummary) {
+    printAuditSummary(result);
+  }
 
   if (result.issues.length > 0) {
     process.exitCode = 1;

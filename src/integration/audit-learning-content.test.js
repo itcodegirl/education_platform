@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { analyzeLearningContent } from '../../scripts/audit-learning-content.mjs';
+import {
+  analyzeLearningContent,
+  buildAuditSummary,
+} from '../../scripts/audit-learning-content.mjs';
 
 const courseMetadata = [
   { id: 'html', label: 'HTML', accent: '#f97316' },
@@ -194,6 +197,48 @@ describe('learning content audit', () => {
       path: 'html.quizzes[0]',
       message: 'Quiz quality rubric is missing misconception, reasoning, application item coverage.',
     });
+  });
+
+  it('summarizes warnings by course, category, and missing signal for curriculum planning', () => {
+    const fixture = makeFixture({
+      htmlSecondLesson: {
+        content: 'Read this explanation only.',
+        do: undefined,
+        challenge: '',
+      },
+    });
+    fixture.loaded[0].data.quizzes = [
+      {
+        id: 'html-quiz-1',
+        lessonId: 'html-1-1',
+        questions: [
+          {
+            id: 'q1',
+            question: 'What tag creates a paragraph?',
+            options: ['p', 'div'],
+            correct: 0,
+            explanation: 'The p tag creates a paragraph.',
+          },
+        ],
+      },
+    ];
+
+    const result = analyzeLearningContent(fixture);
+    const summary = buildAuditSummary(result);
+
+    expect(summary.warningCount).toBe(result.warnings.length);
+    expect(summary.warningsByCourse).toContainEqual(expect.objectContaining({
+      name: 'html',
+      count: expect.any(Number),
+    }));
+    expect(summary.warningsByCategory).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'lesson-quality-rubric' }),
+      expect.objectContaining({ name: 'quiz-quality-rubric' }),
+    ]));
+    expect(summary.missingSignals).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'misconception' }),
+      expect.objectContaining({ name: 'retrievalPrompt' }),
+    ]));
   });
 
   it('flags route-ambiguous course content ids before they break deep links', () => {
