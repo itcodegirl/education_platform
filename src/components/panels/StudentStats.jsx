@@ -10,6 +10,7 @@ import { getLevel, getXPInLevel, XP_PER_LEVEL } from '../../utils/helpers';
 import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
 import { findQuizEntityTitle, quizKeyBelongsToCourse } from '../../utils/quizCourseOwnership';
 import { summarizeMasteryEvidence } from '../../utils/masteryProgress';
+import { getProgressSnapshotItems } from '../../utils/progressDashboard';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 import { parseQuizScore } from '../../services/rewardPolicy';
@@ -162,6 +163,13 @@ export function StudentStats({ isOpen, onClose }) {
       srTotal: srCards.length,
       bookmarkCount: bookmarks.length,
       noteCount: Object.keys(notes).length,
+      snapshotItems: getProgressSnapshotItems({
+        totalDone,
+        totalLessons,
+        quizzesTaken: allResults.length,
+        masteryEvidence,
+        srDue: srCards.filter((card) => card.nextReview <= Date.now()).length,
+      }),
     };
   }, [bookmarks, challengeCompletions, completed, earnedBadges, notes, quizScores, srCards, streak, pausedStreak, dailyCount, xpTotal]);
 
@@ -221,7 +229,7 @@ export function StudentStats({ isOpen, onClose }) {
         <div className="ss-head">
           <div className="panel-title-group">
             <p className="panel-kicker">Learning progress</p>
-            <h2 className="ss-title">Your Progress</h2>
+            <h2 className="ss-title">Progress snapshot</h2>
           </div>
           <button type="button" className="cheatsheet-close" onClick={onClose} aria-label="Close progress panel">
             ×
@@ -252,6 +260,19 @@ export function StudentStats({ isOpen, onClose }) {
               Loading challenge history across all courses so the mastery snapshot stays accurate.
             </p>
           )}
+
+          <section className="ss-snapshot" aria-label="Progress snapshot summary">
+            {stats.snapshotItems.map((item) => (
+              <div
+                key={item.key}
+                className={`ss-snapshot-item ss-snapshot-item-${item.tone}`}
+              >
+                <span className="ss-snapshot-label">{item.label}</span>
+                <strong className="ss-snapshot-value">{item.value}</strong>
+                <span className="ss-snapshot-detail">{item.detail}</span>
+              </div>
+            ))}
+          </section>
 
           {stats.totalDone > 0 && (
             <section className="ss-next-step" aria-label="Recommended next step">
