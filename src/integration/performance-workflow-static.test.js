@@ -14,8 +14,9 @@ describe('performance workflow wiring', () => {
     const lighthouseWorkflow = await readProjectFile('.github/workflows/lighthouse-ci.yml');
 
     expect(packageJson.scripts['audit:performance']).toBe(
-      'npm run build && npm run check:bundle && npm run check:route-boundaries',
+      'npm run build && npm run check:bundle && npm run check:route-boundaries && npm run report:bundle',
     );
+    expect(packageJson.scripts['report:bundle']).toBe('node scripts/write-bundle-summary.mjs');
     expect(packageJson.scripts['test:lighthouse']).toBe(
       'npm run test:lighthouse:desktop && npm run test:lighthouse:mobile',
     );
@@ -25,5 +26,7 @@ describe('performance workflow wiring', () => {
     expect(lighthouseWorkflow).toContain('npm run test:lighthouse');
     expect(lighthouseWorkflow).toContain('Upload Lighthouse CI artifacts');
     expect(lighthouseWorkflow).toContain('.lighthouseci/');
+    expect(lighthouseWorkflow).toContain('Upload bundle summary artifact');
+    expect(lighthouseWorkflow).toContain('dist/bundle-summary.json');
   });
 });

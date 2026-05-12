@@ -13,6 +13,6 @@ Use this budget as the working ceiling for performance-focused PRs. It is intent
 | General lazy JavaScript chunk | 700 kB raw | Forces large learning/tooling chunks to stay intentional. |
 | Monaco lazy chunks | 1,900 kB raw each | Tracks the known editor cost without pulling it into first load. |
 
-Run `npm run audit:performance` after touching routing, Vite chunking, editor surfaces, panels, PDF/export flows, service-worker behavior, or global CSS.
+Run `npm run audit:performance` after touching routing, Vite chunking, editor surfaces, panels, PDF/export flows, service-worker behavior, or global CSS. The command also writes `dist/bundle-summary.json` so CI can retain top chunk and initial-load evidence as an artifact.
 
 Performance PRs should call out any budget change explicitly. Do not raise a budget to make a failing check pass unless the PR also explains the product tradeoff and why further splitting is not appropriate.

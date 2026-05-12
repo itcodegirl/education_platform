@@ -46,3 +46,12 @@ jobs:
           path: .lighthouseci/
           if-no-files-found: ignore
           retention-days: 14
+
+      - name: Upload bundle summary artifact
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: bundle-summary-${{ github.run_id }}-${{ github.run_attempt }}
+          path: dist/bundle-summary.json
+          if-no-files-found: ignore
+          retention-days: 14
