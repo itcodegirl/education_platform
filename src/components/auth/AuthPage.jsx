@@ -1,10 +1,14 @@
-﻿import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../providers/AuthProvider';
 import { ThemeToggle } from '../layout/ThemeToggle';
-import { LandingHeroIntro, LandingHeroStory } from './LandingHero';
+import { LandingHeroIntro } from './LandingHeroIntro';
 import { AuthConfirmSent } from './AuthConfirmSent';
 import { AuthSocialButtons } from './AuthSocialButtons';
 import { getFriendlyAuthError } from './authErrorMessages';
+
+const LandingHeroStory = lazy(() =>
+  import('./LandingHero').then((module) => ({ default: module.LandingHeroStory })),
+);
 
 const PASSWORD_MIN_LENGTH = 8;
 const DISPLAY_NAME_MAX_LENGTH = 60;
@@ -530,8 +534,10 @@ export function AuthPage({ onPreview }) {
         </div>
       </div>
 
-      {/* The scroll story lives below the fold - 4 code panels + outro. */}
-      <LandingHeroStory />
+      {/* The scroll story lives below the fold - keep it out of the auth form's first paint. */}
+      <Suspense fallback={<div className="landing-hero-story-placeholder" aria-hidden="true" />}>
+        <LandingHeroStory />
+      </Suspense>
     </main>
   );
 }

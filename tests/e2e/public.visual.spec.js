@@ -20,8 +20,8 @@ test.describe('public visual regression', () => {
 		Boolean(process.env.CI),
 		'Visual snapshots use platform-specific baselines; run locally when updating snapshots.'
 	);
-	test.beforeEach(async (pageContext, testInfo) => {
-		void pageContext;
+	test.beforeEach(async ({ page }, testInfo) => {
+		void page;
 		test.skip(
 			testInfo.project.name !== 'mobile-chrome',
 			'Public mobile snapshots are maintained in mobile Chrome only.',

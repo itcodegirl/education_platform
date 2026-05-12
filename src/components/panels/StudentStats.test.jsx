@@ -408,6 +408,8 @@ describe('StudentStats streak card', () => {
 
     expect(screen.getByText('Module Evidence')).toBeInTheDocument();
     expect(screen.getAllByText('Review evidence due').length).toBeGreaterThan(0);
+    expect(screen.getByLabelText(/review due by module/i)).toHaveTextContent('HTML: M1');
+    expect(screen.getByLabelText(/review due by module/i)).toHaveTextContent('1 due');
     expect(screen.getByText(/clear review cards or retry a missed check/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/M1 evidence signals/i)).toHaveTextContent('Due1');
   });

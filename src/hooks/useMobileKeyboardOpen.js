@@ -50,6 +50,7 @@ export function useMobileKeyboardOpen(isMobile) {
       }
 
       animationFrame = window.requestAnimationFrame(() => {
+        animationFrame = 0;
         const currentHeight = getViewportHeight();
         const focusedForTyping = isTextEntryElement(document.activeElement);
 
@@ -85,7 +86,10 @@ export function useMobileKeyboardOpen(isMobile) {
       if (focusOutTimer) {
         window.clearTimeout(focusOutTimer);
       }
-      focusOutTimer = window.setTimeout(updateKeyboardState, 80);
+      focusOutTimer = window.setTimeout(() => {
+        focusOutTimer = 0;
+        updateKeyboardState();
+      }, 80);
     };
 
     viewport?.addEventListener('resize', updateKeyboardState);
