@@ -10,13 +10,17 @@ import { getFriendlyAuthError } from './authErrorMessages';
 export function AuthConfirmSent({ email, onBack, onResend, onPreview }) {
   const [resendState, setResendState] = useState('idle'); // idle | sending | sent | error
   const [resendMessage, setResendMessage] = useState('');
+  // Signup normalizes the address (trims whitespace) before creating the
+  // account, so the resend must use the same normalized value or it can
+  // fail for pasted / whitespace-padded emails.
+  const normalizedEmail = (email || '').trim();
 
   const handleResend = async () => {
     if (!onResend || resendState === 'sending') return;
     setResendState('sending');
     setResendMessage('');
     try {
-      const { error } = await onResend(email);
+      const { error } = await onResend(normalizedEmail);
       if (error) {
         setResendState('error');
         setResendMessage(getFriendlyAuthError(error?.message, 'Could not resend just now. Wait a minute, then try again.'));
@@ -43,7 +47,7 @@ export function AuthConfirmSent({ email, onBack, onResend, onPreview }) {
           <span className="auth-confirm-icon" aria-hidden="true">📧</span>
           <h1>Check your email</h1>
           <p>
-            We sent a confirmation link to <strong>{email}</strong>. Open it to activate your account.
+            We sent a confirmation link to <strong>{normalizedEmail}</strong>. Open it to activate your account.
           </p>
           {onResend && (
             <p className="auth-confirm-resend">
