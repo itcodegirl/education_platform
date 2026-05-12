@@ -5,6 +5,26 @@
     display: contents;
   }
 
+  .lesson-nav {
+    display: flex;
+    align-items: center;
+    min-height: calc(64px + env(safe-area-inset-bottom, 0px));
+    touch-action: manipulation;
+  }
+
+  .lesson-nav-progress {
+    pointer-events: none;
+    max-width: calc(100vw - 24px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .lesson-nav-btn {
+    min-height: 52px;
+    touch-action: manipulation;
+  }
+
   .main-shell {
     flex: 1 1 auto;
     width: 100%;
@@ -32,6 +52,10 @@
     flex: 1.15 1 0;
   }
 
+  .lesson-nav-next .lesson-nav-label {
+    font-weight: 800;
+  }
+
   .shell.keyboard-open .lesson-nav {
     opacity: 0;
     pointer-events: none;
@@ -56,6 +80,11 @@
     flex-basis: 44px;
   }
 
+  .lesson-nav-btn {
+    min-height: 50px;
+    padding-inline: 6px;
+  }
+
   .lesson-nav-prev .lesson-nav-label,
   .lesson-nav-tools .lesson-nav-label {
     position: absolute;
@@ -64,6 +93,25 @@
     overflow: hidden;
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
+  }
+}
+
+@media (max-width: 360px) {
+  .lesson-nav-done .lesson-nav-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .lesson-nav-done {
+    flex: 0 0 48px;
+  }
+
+  .lesson-nav-next {
+    flex: 1 1 auto;
   }
 }
 

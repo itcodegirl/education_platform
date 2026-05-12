@@ -14,6 +14,7 @@
 @import './feature-surfaces.css';
 @import './feature-ai-tutor.css';
 @import './feature-mobile-fixes.css';
+@import './responsive.css';
 @import './mobile-shell-hardening.css';
 @import './resilience-states.css';
 @import './platform-quality.css';
