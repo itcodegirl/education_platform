@@ -1,6 +1,5 @@
 import { LEARNER_READINESS_STATES } from './learnerReadiness';
 import { getRetentionPlan } from './retentionPlan';
-import { LEARNER_READINESS_STATES } from './learnerReadiness';
 
 export function getDailyLearningLoopSteps({
   isLessonDone = false,
