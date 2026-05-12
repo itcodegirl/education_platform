@@ -24,7 +24,7 @@ describe('performance workflow wiring', () => {
     expect(packageJson.scripts['test:lighthouse:mobile']).toContain('./lighthouserc.mobile.json');
     expect(lighthouseWorkflow).toContain('npm run audit:performance');
     expect(lighthouseWorkflow).toContain('npm run test:lighthouse');
-    expect(lighthouseWorkflow).toContain('Upload Lighthouse CI artifacts');
+    expect(lighthouseWorkflow).toContain('Upload Lighthouse reports');
     expect(lighthouseWorkflow).toContain('.lighthouseci/');
     expect(lighthouseWorkflow).toContain('Upload bundle summary artifact');
     expect(lighthouseWorkflow).toContain('dist/bundle-summary.json');

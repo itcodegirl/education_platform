@@ -161,17 +161,6 @@ export function StudentStats({ isOpen, onClose }) {
       getChallengesForCourse,
       srCards,
     });
-    const transcript = buildLearnerTranscriptSummary({
-      completedLessons: totalDone,
-      totalLessons,
-      quizChecksPassed: masteryEvidence.quizChecksPassed,
-      quizChecksAttempted: masteryEvidence.quizChecksAttempted,
-      quizChecksNeedsReview: masteryEvidence.quizChecksNeedsReview,
-      completedChallenges: masteryEvidence.completedChallenges,
-      totalChallenges: masteryEvidence.totalChallenges,
-      dueReviewCards: masteryEvidence.dueReviewCards,
-      totalReviewCards: masteryEvidence.totalReviewCards,
-    });
 
     return {
       level,
@@ -185,7 +174,6 @@ export function StudentStats({ isOpen, onClose }) {
       overallQuizPercent,
       quizzesTaken: allResults.length,
       masteryEvidence,
-      transcript,
       moduleEvidence,
       strongest,
       weakest,
