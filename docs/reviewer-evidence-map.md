@@ -16,7 +16,9 @@ This map turns the CodeHerWay portfolio story into concrete evidence. Use it whe
 | Claim | Evidence to inspect | Validation signal |
 | --- | --- | --- |
 | The app has one clear router architecture for reviewers to follow. | `src/routes/appRouter.jsx`, `src/routes/routePaths.js`, `src/routes/routeUtils.js` | Route tests in `src/routes/` and public Playwright smoke coverage. |
+| Invalid lesson links recover to a useful learning path instead of dead-ending. | `src/routes/appRouter.jsx` | `src/routes/appRouter.test.jsx` covers missing modules and unavailable module quizzes. |
 | Learner state uses stable IDs where available and keeps legacy compatibility. | `src/utils/lessonKeys.js`, `src/utils/savedPosition.js`, `src/context/ProgressContext.jsx` | Focused unit tests in `src/utils/lessonKeys.test.js` and `src/utils/savedPosition.test.js`. |
+| Saved lessons tolerate legacy or partial bookmark rows. | `src/components/panels/BookmarksPanel.jsx` | `src/components/panels/BookmarksPanel.test.jsx` covers incomplete legacy bookmark data. |
 | Failed covered progress writes can retry in the same browser. | `src/services/progressWriteQueue.js`, `src/hooks/useProgressSync.js`, `docs/progress-sync-recovery.md` | Queue/replay tests in `src/services/progressWriteQueue.test.js` and `src/hooks/useProgressSync.test.jsx`. |
 | Reward awards are idempotent locally and prepared for backend authority. | `src/engine/rewards/`, `src/services/rewardEventService.js`, `supabase/migrations/` | Reward runtime/service tests plus Supabase policy static checks. |
 | Bundle growth is watched instead of ignored. | `vite.config.js`, `scripts/check-bundle-size.mjs`, `docs/pr-admin-readiness.md` | `npm run check:bundle` runs inside the broader quality gate. |

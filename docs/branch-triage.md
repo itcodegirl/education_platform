@@ -8,23 +8,20 @@ as a point-in-time map, not a product roadmap.
 ## Current State
 
 - Default branch: `main`.
-- Open PRs:
-  - `#90` `codex/security-trust-hardening` — CI dependency fixes plus learner-trust /
-    navigation polish (sidebar mobile a11y, copy accuracy, quiz duplicate-XP guard via
-    `legacyQuizKeys`). Review against the same areas in `#92`.
-  - `#92` `claude/audit-codherway-platform-vV69f` — May 2026 portfolio audit
-    (`docs/portfolio-audit-2026-05.md`) plus the high-priority fixes that came out of
-    it (broken-`main` repair, public-copy alignment, this triage refresh, lesson-format
-    audit gate, reward trust-boundary UI, dead-file cleanup).
+- Open PRs: none as of the May 12, 2026 GitHub API check.
+- Recently integrated audit work includes the May 2026 portfolio audit,
+  public-copy alignment, lesson-format audit gate, reward trust-boundary UI,
+  route/navigation hardening, and CI dependency repairs.
 
-If `#90` and `#92` both touch the same file, merge `#92`'s broken-`main` repair first
-(`src/data/reference/search-index.js`, `src/components/panels/BookmarksPanel.jsx`),
-then rebase the other.
+If this file mentions open PR numbers, verify them against GitHub before relying on
+the list. Stale PR guidance is more harmful than no triage note because it sends
+reviewers toward abandoned work.
 
 ## Stale Remote Branches (cleanup candidates)
 
-These remote branches are bot/audit output or superseded WIP and are not merge
-candidates. Delete them once their content is confirmed represented in `main`:
+These remote branches were previously identified as bot/audit output or superseded
+WIP. Treat them as cleanup candidates, not merge candidates. Delete them only after
+their content is confirmed represented in `main`:
 
 - `copilot/audit-education-platform`
 - `copilot/close-open-branches`
@@ -36,8 +33,8 @@ candidates. Delete them once their content is confirmed represented in `main`:
 - `codex/public-profile-retry-resilience-20260511`
 
 Recommended handling: `git fetch --prune`, diff each against `main`, cherry-pick any
-small still-relevant patch into a fresh `codex/*` or `claude/*` branch, run
-`npm run check`, then delete the stale remote.
+small still-relevant patch into a fresh `codex/*` branch, run `npm run check`, then
+delete the stale remote.
 
 ## Backend Reward Sync Branches
 
