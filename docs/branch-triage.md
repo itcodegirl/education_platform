@@ -1,57 +1,55 @@
 # Branch And PR Triage
 
-Last reviewed: May 7, 2026.
+Last reviewed: May 12, 2026.
 
-This note keeps the repo review path clear while older local branches still exist. Treat it as a point-in-time map, not a product roadmap.
+This note keeps the repo review path clear while older branches still exist. Treat it
+as a point-in-time map, not a product roadmap.
 
-## Current Review Stack
+## Current State
 
-Review open PRs in this order:
+- Default branch: `main`.
+- Open PRs:
+  - `#90` `codex/security-trust-hardening` — CI dependency fixes plus learner-trust /
+    navigation polish (sidebar mobile a11y, copy accuracy, quiz duplicate-XP guard via
+    `legacyQuizKeys`). Review against the same areas in `#92`.
+  - `#92` `claude/audit-codherway-platform-vV69f` — May 2026 portfolio audit
+    (`docs/portfolio-audit-2026-05.md`) plus the high-priority fixes that came out of
+    it (broken-`main` repair, public-copy alignment, this triage refresh, lesson-format
+    audit gate, reward trust-boundary UI, dead-file cleanup).
 
-1. PR #42, `codex/post-merge-stabilization` - Supabase migration readiness and authenticated E2E setup.
-2. PR #43, `codex/quiz-key-content-stability` - quiz reward stability, content audit cleanup, mobile navigation, and launch-readiness polish.
-3. PR #41, `codex/learning-flow-audit-polish` - overlaps with PR #43 in audit/mobile-preview areas. Rebase, close as superseded, or cherry-pick only remaining unique value after PR #43 is settled.
+If `#90` and `#92` both touch the same file, merge `#92`'s broken-`main` repair first
+(`src/data/reference/search-index.js`, `src/components/panels/BookmarksPanel.jsx`),
+then rebase the other.
 
-Do not merge PR #41 before checking overlap with PR #43.
+## Stale Remote Branches (cleanup candidates)
 
-## Parked Local Branches
+These remote branches are bot/audit output or superseded WIP and are not merge
+candidates. Delete them once their content is confirmed represented in `main`:
 
-These branches should not be presented as recruiter-ready work without rebase and review:
+- `copilot/audit-education-platform`
+- `copilot/close-open-branches`
+- `copilot/explore-codebase-implementation-plan`
+- `copilot/full-project-audit-review`
+- `copilot/full-project-audit-review-again`
+- `codex/learner-journey-hardening`
+- `codex/production-readiness-continuation-20260511`
+- `codex/public-profile-retry-resilience-20260511`
 
-- `codex/backend-sync-preserve`
-- `codex/backend-sync-release-readiness`
-- `codex/backend-sync-split-source`
-- `feat/reward-retry-reconciliation`
-- `feat/supabase-reward-engine`
+Recommended handling: `git fetch --prune`, diff each against `main`, cherry-pick any
+small still-relevant patch into a fresh `codex/*` or `claude/*` branch, run
+`npm run check`, then delete the stale remote.
 
-Reason: they touch backend reward sync, Supabase migrations, or WIP preservation commits. Keep them parked until migrations can be applied against a real Supabase project and authenticated duplicate-award tests can run.
+## Backend Reward Sync Branches
 
-## Legacy UX And Architecture Branches
-
-These older branches may contain useful ideas, but should be treated as source material rather than merge candidates:
-
-- `codex/phase-roadmap-stability`
-- `codex/platform-stability-architecture`
-- `codex/trust-accessibility-hardening`
-- `codex/education-platform-hardening`
-- `feature/ux-trust-calmness-improvements`
-
-Recommended handling:
-
-- Diff each branch against current `main`.
-- Cherry-pick only small, still-relevant patches into fresh branches.
-- Run `npm run check` before opening any new PR.
-- Close or delete stale remotes only after confirming they are represented in merged work.
+Any branch that touches backend reward sync, Supabase reward migrations, or
+`VITE_REWARD_BACKEND_SYNC_ENABLED` stays parked until the migrations can be applied
+against a real Supabase project and authenticated duplicate-award tests can run. The
+flag stays `false` outside a validated staging environment. See
+`docs/handoff-deferred-risks.md` (Risk B) and `docs/staging-supabase-validation.md`.
 
 ## Main Branch Note
 
-The local `main` branch may show historical local-only commits. Do not push local `main` directly. Create a fresh `codex/*` branch from `origin/main`, cherry-pick the desired patch, verify it, and open a PR.
-
-## Future Branch Rule
-
-For clean reviewer history:
-
-- Start new work from `origin/main`.
-- Keep PRs scoped to one trust boundary: docs/readiness, UX, product logic, backend sync, or launch hardening.
-- Avoid mixing Supabase migrations with visual/UI polish.
-- Keep backend reward-sync work behind `VITE_REWARD_BACKEND_SYNC_ENABLED=false` until the live migration and duplicate-award verification pass is complete.
+Local `main` may show historical local-only commits. Do not push local `main`
+directly. Start new work from `origin/main`, keep PRs scoped to one trust boundary
+(docs/readiness, UX, product logic, backend sync, or launch hardening), avoid mixing
+Supabase migrations with visual/UI polish, and run `npm run check` before opening a PR.
