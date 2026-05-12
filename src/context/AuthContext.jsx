@@ -18,6 +18,7 @@ const AuthContext = createContext({
   signInWithGithub: async () => ({ data: null, error: null }),
   signInWithGoogle: async () => ({ data: null, error: null }),
   forgotPassword: async () => ({ data: null, error: null }),
+  resendConfirmation: async () => ({ data: null, error: null }),
   signOut: async () => ({ error: null }),
   authBackendReady: true,
 });
@@ -171,6 +172,20 @@ export function AuthProvider({ children }) {
     }
   }, [authBackendReady, authUnavailableError]);
 
+  const resendConfirmation = useCallback(async (email) => {
+    if (!authBackendReady) {
+      return { data: null, error: authUnavailableError };
+    }
+
+    try {
+      const authService = await loadAuthService();
+      const { data, error } = await authService.resendSignupConfirmation(email);
+      return { data, error };
+    } catch (err) {
+      return { data: null, error: err };
+    }
+  }, [authBackendReady, authUnavailableError]);
+
   const handleGithub = useCallback(async () => {
     if (!authBackendReady) {
       return { data: null, error: authUnavailableError };
@@ -250,11 +265,13 @@ export function AuthProvider({ children }) {
     signInWithGithub: handleGithub,
     signInWithGoogle: handleGoogle,
     forgotPassword,
+    resendConfirmation,
     signOut: handleSignOut,
     authBackendReady,
   }), [
     authBackendReady,
     forgotPassword,
+    resendConfirmation,
     handleGithub,
     handleGoogle,
     handleSignOut,
