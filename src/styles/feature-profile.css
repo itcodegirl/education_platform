@@ -142,6 +142,10 @@
 }
 
 .pp-public-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
   margin-top: var(--space-2);
   padding: 8px 12px;
   background: rgba(255, 92, 124, 0.1);
@@ -149,6 +153,30 @@
   border-radius: var(--radius-sm);
   color: var(--red);
   font-size: var(--text-sm);
+}
+
+.pp-public-muted {
+  margin-top: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.pp-public-retry {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 92, 124, 0.45);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--red);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pp-public-retry:disabled {
+  cursor: wait;
+  opacity: 0.65;
 }
 
 .pp-public-success {

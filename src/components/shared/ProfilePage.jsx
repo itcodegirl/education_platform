@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth, useProgressData, useXP, useSR, useTheme, BADGE_DEFS } from '../../providers';
 import { XP_PER_LEVEL, getLevel, getXPInLevel } from '../../utils/helpers';
 import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
@@ -7,6 +7,11 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { supabase } from '../../lib/supabaseClient';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 import { COURSE_CATALOG } from '../../data/reference/course-catalog';
+import {
+  areChallengesLoaded,
+  getChallengesForCourse,
+  loadAllChallenges,
+} from '../../data/challenges';
 import { parseQuizScore } from '../../services/rewardPolicy';
 import '../../styles/feature-profile.css';
 
@@ -29,33 +34,66 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
 
   const [isPublic, setIsPublic] = useState(false);
   const [publicHandle, setPublicHandle] = useState('');
+  const [publicLoading, setPublicLoading] = useState(false);
+  const [publicLoadError, setPublicLoadError] = useState('');
   const [publicSaving, setPublicSaving] = useState(false);
   const [publicError, setPublicError] = useState('');
   const [publicSaved, setPublicSaved] = useState(false);
+  const [challengeCatalogReady, setChallengeCatalogReady] = useState(
+    () => COURSE_CATALOG.every((course) => areChallengesLoaded(course.id)),
+  );
 
-  useEffect(() => {
-    let cancelled = false;
+  const loadPublicSettings = useCallback(async () => {
+    if (!user?.id) return;
 
-    async function load() {
-      if (!user?.id) return;
-
-      const { data } = await supabase
+    setPublicLoading(true);
+    setPublicLoadError('');
+    try {
+      const { data, error } = await supabase
         .from('profiles')
         .select('is_public, public_handle')
         .eq('id', user.id)
         .maybeSingle();
 
-      if (cancelled || !data) return;
+      if (error) {
+        setPublicLoadError('Could not load public profile settings. You can keep learning and try again later.');
+        return;
+      }
 
+      if (!data) return;
       setIsPublic(Boolean(data.is_public));
       setPublicHandle(data.public_handle || '');
+    } catch {
+      setPublicLoadError('Could not load public profile settings. You can keep learning and try again later.');
+    } finally {
+      setPublicLoading(false);
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    loadPublicSettings();
+  }, [loadPublicSettings]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const alreadyLoaded = COURSE_CATALOG.every((course) => areChallengesLoaded(course.id));
+    setChallengeCatalogReady(alreadyLoaded);
+
+    if (!alreadyLoaded) {
+      void loadAllChallenges()
+        .then(() => {
+          if (!cancelled) setChallengeCatalogReady(true);
+        })
+        .catch(() => {
+          if (!cancelled) setChallengeCatalogReady(false);
+        });
     }
 
-    load();
     return () => {
       cancelled = true;
     };
-  }, [user?.id]);
+  }, []);
 
   const savePublicSettings = async (nextIsPublic, nextHandle) => {
     // Defense in depth: ProfilePage is mounted behind the
@@ -70,6 +108,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
 
     setPublicSaving(true);
     setPublicError('');
+    setPublicLoadError('');
     setPublicSaved(false);
 
     const cleanHandle = (nextHandle || '').trim().toLowerCase();
@@ -139,6 +178,16 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
   const completedLessons = courseStats.reduce((sum, course) => sum + course.done, 0);
   const totalLessons = courseStats.reduce((sum, course) => sum + course.total, 0);
   const badgeCount = Object.keys(earnedBadges).length;
+  const allChallenges = COURSE_CATALOG.flatMap((course) =>
+    getChallengesForCourse(course.id).map((challenge) => ({
+      ...challenge,
+      courseId: course.id,
+    })),
+  );
+  const completedChallengeIds = new Set(challengeCompletions);
+  const completedChallengeCount = allChallenges.length > 0
+    ? allChallenges.filter((challenge) => completedChallengeIds.has(challenge.id)).length
+    : challengeCompletions.length;
   const quizResults = Object.values(quizScores || {})
     .map((scoreValue) => parseQuizScore(scoreValue))
     .filter(Boolean);
@@ -150,7 +199,8 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
     quizChecksPassed,
     quizChecksAttempted: quizResults.length,
     quizChecksNeedsReview: quizResults.length - quizChecksPassed,
-    completedChallenges: challengeCompletions.length,
+    completedChallenges: completedChallengeCount,
+    totalChallenges: allChallenges.length,
     dueReviewCards,
     totalReviewCards: srCards.length,
   });
@@ -316,7 +366,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
               <input
                 type="checkbox"
                 checked={isPublic}
-                disabled={publicSaving}
+                disabled={publicSaving || publicLoading}
                 onChange={(event) => {
                   const next = event.target.checked;
 
@@ -347,14 +397,14 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
                   onChange={(event) => setPublicHandle(event.target.value)}
                   placeholder="jenna"
                   maxLength={30}
-                  disabled={publicSaving}
+                  disabled={publicSaving || publicLoading}
                   aria-invalid={Boolean(publicError)}
                   aria-describedby="pp-handle-help pp-public-status"
                 />
                 <button
                   type="button"
                   className="pp-public-save"
-                  disabled={publicSaving}
+                  disabled={publicSaving || publicLoading}
                   onClick={() => savePublicSettings(true, publicHandle)}
                 >
                   {publicSaving ? 'Saving…' : 'Publish'}
@@ -378,10 +428,24 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
 
           <div
             id="pp-public-status"
-            role={publicError ? 'alert' : 'status'}
-            aria-live={publicError ? 'assertive' : 'polite'}
+            role={publicError || publicLoadError ? 'alert' : 'status'}
+            aria-live={publicError || publicLoadError ? 'assertive' : 'polite'}
             aria-atomic="true"
           >
+            {publicLoading && <div className="pp-public-muted">Loading public profile settings.</div>}
+            {publicLoadError && (
+              <div className="pp-public-error">
+                <span>{publicLoadError}</span>
+                <button
+                  type="button"
+                  className="pp-public-retry"
+                  onClick={loadPublicSettings}
+                  disabled={publicLoading}
+                >
+                  Retry
+                </button>
+              </div>
+            )}
             {publicError && <div className="pp-public-error">{publicError}</div>}
             {publicSaved && !publicError && (
               <div className="pp-public-success">Saved.</div>
@@ -390,6 +454,11 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
         </div>
 
         <h3 className="pp-section-title">Quiet signals</h3>
+        {!challengeCatalogReady && (
+          <p className="pp-hero-copy" role="status">
+            Loading challenge history so application proof stays accurate.
+          </p>
+        )}
         <div className="pp-activity-grid">
           {[
             { icon: '★', value: bookmarks.length, label: 'Bookmarks' },

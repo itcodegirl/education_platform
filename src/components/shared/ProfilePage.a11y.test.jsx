@@ -67,6 +67,17 @@ vi.mock('../../data/reference/course-catalog', () => ({
   ],
 }));
 
+vi.mock('../../data/challenges', () => ({
+  areChallengesLoaded: () => true,
+  getChallengesForCourse: (courseId) => {
+    if (courseId === 'html') return [{ id: 'html-challenge-1', title: 'HTML Challenge' }];
+    return [];
+  },
+  loadAllChallenges: vi.fn(async () => ({
+    html: [{ id: 'html-challenge-1', title: 'HTML Challenge' }],
+  })),
+}));
+
 vi.mock('../../hooks/useDocumentTitle', () => ({
   useDocumentTitle: () => {},
 }));
@@ -106,6 +117,7 @@ describe('ProfilePage accessibility', () => {
     expect(screen.getByLabelText(/current learning status/i)).toHaveTextContent(/lessons completed/i);
     expect(screen.getByRole('heading', { name: /private learning transcript/i })).toBeInTheDocument();
     expect(screen.getByText(/strong learning proof/i)).toBeInTheDocument();
+    expect(screen.getByText('Application proof').parentElement).toHaveTextContent('1/1');
     expect(screen.getAllByText(/not a verified credential/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole('list', { name: /1 of 2 badges earned/i })).toBeInTheDocument();
 
@@ -131,6 +143,31 @@ describe('ProfilePage accessibility', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(/handle must be 2-30 chars/i);
     expect(handle).toHaveAttribute('aria-invalid', 'true');
     expect(handle).toHaveAccessibleDescription(/use 2 to 30 characters/i);
+  });
+
+  it('surfaces public-profile settings load failures and offers retry', async () => {
+    mockMaybeSingle
+      .mockResolvedValueOnce({
+        data: null,
+        error: {
+          code: 'PGRST301',
+          message: 'permission denied for table profiles',
+        },
+      })
+      .mockResolvedValueOnce({
+        data: { is_public: true, public_handle: 'ada' },
+        error: null,
+      });
+
+    render(<ProfilePage onClose={vi.fn()} />);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/could not load public profile settings/i);
+    expect(screen.queryByText(/permission denied/i)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /retry/i }));
+
+    expect(await screen.findByRole('textbox', { name: /handle/i })).toHaveValue('ada');
+    expect(mockMaybeSingle).toHaveBeenCalledTimes(2);
   });
 
   it('keeps duplicate-handle save feedback clear and specific', async () => {
