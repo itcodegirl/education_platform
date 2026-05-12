@@ -194,7 +194,7 @@ export function StudentStats({ isOpen, onClose }) {
 
     if (stats.totalPercent >= 100) {
       return {
-        title: 'Turn this track into a portfolio artifact',
+        title: 'Turn this course into a portfolio piece',
         body: 'Choose one saved idea or challenge and shape it into something you can show.',
       };
     }
