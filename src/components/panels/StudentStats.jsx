@@ -506,6 +506,12 @@ export function StudentStats({ isOpen, onClose }) {
                       <h4 className="ss-module-title">{moduleEvidence.moduleTitle}</h4>
                       <p className="ss-module-readiness">{moduleEvidence.readinessDetail}</p>
                       <p className="ss-module-action">{moduleEvidence.nextAction}</p>
+                      {moduleEvidence.remediationTarget && (
+                        <p className="ss-module-remediation">
+                          <span>Start here:</span> {moduleEvidence.remediationTarget.label}{' '}
+                          {moduleEvidence.remediationTarget.detail}
+                        </p>
+                      )}
                     </div>
                     <div className="ss-module-status-block">
                       <span className="ss-module-status">{moduleEvidence.statusLabel}</span>

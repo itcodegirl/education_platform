@@ -183,6 +183,58 @@ function reviewFocusRank(left, right) {
   return right.lessonPercent - left.lessonPercent;
 }
 
+function findLessonInCourse(course, lessonId) {
+  if (!lessonId) return null;
+
+  for (const moduleData of course?.modules || []) {
+    const lesson = (moduleData.lessons || []).find((candidate) =>
+      String(candidate.id) === String(lessonId),
+    );
+    if (lesson) return lesson;
+  }
+
+  return null;
+}
+
+function getRemediationTarget({ course, moduleData, moduleQuizResults, statusTone }) {
+  if (!['review', 'practice', 'building'].includes(statusTone)) return null;
+
+  const weakQuiz = moduleQuizResults.find((result) => result.percent < MODULE_QUIZ_PASS_PERCENT);
+  const parsedWeakQuiz = parseQuizKey(weakQuiz?.key);
+  const weakLesson = parsedWeakQuiz.type === 'l'
+    ? findLessonInCourse(course, parsedWeakQuiz.entityId)
+    : null;
+  const prerequisiteId = Array.isArray(weakLesson?.prereqs) ? weakLesson.prereqs[0] : '';
+  const prerequisiteLesson = findLessonInCourse(course, prerequisiteId);
+
+  if (prerequisiteLesson) {
+    return {
+      lessonId: prerequisiteLesson.id,
+      label: `Review prerequisite: ${prerequisiteLesson.title}`,
+      detail: `Then retry ${weakLesson.title} so the weak check has a stronger base.`,
+    };
+  }
+
+  if (weakLesson) {
+    return {
+      lessonId: weakLesson.id,
+      label: `Review lesson: ${weakLesson.title}`,
+      detail: 'Use the lesson example before retrying the weak quick check.',
+    };
+  }
+
+  const firstLesson = (moduleData?.lessons || [])[0];
+  if (firstLesson) {
+    return {
+      lessonId: firstLesson.id,
+      label: `Start here: ${firstLesson.title}`,
+      detail: 'Rebuild the first example, then collect quiz or challenge evidence.',
+    };
+  }
+
+  return null;
+}
+
 export function summarizeModuleMasteryEvidence({
   courses = [],
   completedSet = new Set(),
@@ -239,6 +291,12 @@ export function summarizeModuleMasteryEvidence({
         challengeTotal: moduleChallenges.length,
         reviewDue,
       });
+      const remediationTarget = getRemediationTarget({
+        course,
+        moduleData,
+        moduleQuizResults,
+        statusTone: status.statusTone,
+      });
 
       modules.push({
         courseId: course.id,
@@ -255,6 +313,7 @@ export function summarizeModuleMasteryEvidence({
         challengeDone,
         challengeTotal: moduleChallenges.length,
         reviewDue,
+        remediationTarget,
         ...status,
       });
     }

@@ -438,6 +438,8 @@ describe('StudentStats streak card', () => {
     expect(screen.getByLabelText(/review due by module/i)).toHaveTextContent('HTML: M1');
     expect(screen.getByLabelText(/review due by module/i)).toHaveTextContent('1 due');
     expect(screen.getByText(/clear review cards or retry a missed check/i)).toBeInTheDocument();
+    expect(screen.getByText(/Start here:/i)).toBeInTheDocument();
+    expect(screen.getByText(/Review lesson: L1/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/M1 evidence signals/i)).toHaveTextContent('Due1');
   });
 
