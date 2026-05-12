@@ -27,6 +27,43 @@ import '@fontsource/space-mono/latin-700.css';
 import './lib/registerSW';
 import { initSentry, reportException } from './lib/sentry';
 
+// ─── Supabase preconnect hint ──────────────────
+// Open the TCP+TLS handshake to the Supabase origin in parallel with
+// the rest of the app shell, so the first session check / RPC isn't
+// gated on a cold connection. We do this at runtime (not in
+// index.html) so the hint only fires when a real project URL is
+// configured — the placeholder in .env.example would otherwise resolve
+// to a nonexistent host. Idempotent: we tag the link element so HMR
+// re-runs don't duplicate it.
+function injectSupabasePreconnect() {
+  const url = import.meta.env?.VITE_SUPABASE_URL;
+  if (typeof url !== 'string') return;
+  if (!/^https:\/\//.test(url)) return;
+  if (url.includes('your-project.supabase.co')) return;
+  if (typeof document === 'undefined') return;
+
+  let origin;
+  try {
+    origin = new URL(url).origin;
+  } catch {
+    return;
+  }
+
+  const existing = document.head.querySelector('link[data-chw-preconnect="supabase"]');
+  if (existing) return;
+
+  for (const rel of ['preconnect', 'dns-prefetch']) {
+    const link = document.createElement('link');
+    link.rel = rel;
+    link.href = origin;
+    if (rel === 'preconnect') link.crossOrigin = 'anonymous';
+    link.dataset.chwPreconnect = 'supabase';
+    document.head.appendChild(link);
+  }
+}
+
+injectSupabasePreconnect();
+
 import App from './App';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 
