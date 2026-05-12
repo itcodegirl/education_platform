@@ -133,6 +133,28 @@ describe('bundle budget policy', () => {
     ]);
   });
 
+  it('keeps export tooling out of the public entry HTML', () => {
+    const fixture = createBundleFixture({
+      indexHtml: [
+        '<link rel="modulepreload" href="/assets/jspdf.es.min-export.js">',
+        '<link rel="modulepreload" href="/assets/html2canvas-export.js">',
+      ].join('\n'),
+      assets: {
+        'index-app.js': 'console.log("app");',
+        'index-app.css': 'body{color:white;}',
+        'jspdf.es.min-export.js': 'console.log("pdf");',
+        'html2canvas-export.js': 'console.log("canvas");',
+      },
+    });
+
+    const report = collectBundleBudgetReport(fixture);
+
+    expect(report.forbiddenPreloadFailures).toEqual([
+      expect.objectContaining({ label: 'export-only PDF/canvas chunks' }),
+      expect.objectContaining({ label: 'export-only PDF/canvas chunks' }),
+    ]);
+  });
+
   it('requires the initial stylesheet to stay budgeted', () => {
     const fixture = createBundleFixture({
       assets: {
