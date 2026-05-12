@@ -61,7 +61,6 @@ function walkAssets(rootDir, relativeRoot, files = []) {
 
   fs.readdirSync(absoluteRoot, { withFileTypes: true }).forEach((entry) => {
     const relativePath = path.join(relativeRoot, entry.name);
-    const absolutePath = path.join(rootDir, relativePath);
 
     if (entry.isDirectory()) {
       walkAssets(rootDir, relativePath, files);
