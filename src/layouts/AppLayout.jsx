@@ -516,6 +516,9 @@ export function AppLayout() {
                 courseId={course.id}
                 moduleTitle={mod.title}
                 nextTitle={nextTitle}
+                isLessonDone={isDone}
+                masteryStatus={lessonMasteryStatus}
+                syncStatus={syncStatus}
               />
               {lessonQuiz && (
                 // Wrapped in a labeled <section> so the lesson quiz

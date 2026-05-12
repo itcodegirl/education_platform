@@ -22,6 +22,7 @@ import { AITutor } from './AITutor';
 import { LessonFeedback } from './LessonFeedback';
 import { LessonHeader } from './LessonHeader';
 import { LessonNotesPanel } from './LessonNotesPanel';
+import { LessonEvidencePanel } from './LessonEvidencePanel';
 import { LessonProductFrame } from './LessonProductFrame';
 import { StructuredLessonBody } from './StructuredLessonBody';
 import { RichLessonBody } from './RichLessonBody';
@@ -34,6 +35,9 @@ export const LessonView = memo(function LessonView({
   courseId,
   moduleTitle,
   nextTitle,
+  isLessonDone,
+  masteryStatus,
+  syncStatus,
 }) {
   const { bookmarked, handleToggleBookmark } = useToggleBookmark({
     lessonKey,
@@ -121,6 +125,12 @@ export const LessonView = memo(function LessonView({
       {showNotes && <LessonNotesPanel lessonKey={lessonKey} />}
 
       <LessonProductFrame lesson={lesson} nextTitle={nextTitle} />
+      <LessonEvidencePanel
+        lesson={lesson}
+        isLessonDone={isLessonDone}
+        masteryStatus={masteryStatus}
+        syncStatus={syncStatus}
+      />
 
       {isStructured ? (
         <StructuredLessonBody
