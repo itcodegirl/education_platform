@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { PROGRESS_SYNC_SHORT } from '../../constants/progressCopy';
 
 export const TopbarLearnerStatus = memo(function TopbarLearnerStatus({
   learnerName,
@@ -22,7 +23,9 @@ export const TopbarLearnerStatus = memo(function TopbarLearnerStatus({
         </span>
       )}
       {xpTotal > 0 && (
-        <span className="topbar-pill" aria-label={`Level ${level}`}>Lv {level}</span>
+        <span className="topbar-pill" aria-label={`Level ${level}`} title={PROGRESS_SYNC_SHORT}>
+          Lv {level}
+        </span>
       )}
       {coursePct > 0 && (
         <span className="topbar-pill" aria-label={`Course completion ${coursePct} percent`}>
@@ -30,20 +33,28 @@ export const TopbarLearnerStatus = memo(function TopbarLearnerStatus({
         </span>
       )}
       {streak > 0 ? (
-        <span className="topbar-pill streak" aria-label={`${streak} day streak`}>
+        <span
+          className="topbar-pill streak"
+          aria-label={`${streak} day streak`}
+          title={PROGRESS_SYNC_SHORT}
+        >
           Streak: {streak} day{streak === 1 ? '' : 's'}
         </span>
       ) : pausedStreak ? (
         <span
           className="topbar-pill paused"
           aria-label={`${pausedStreak.days} day streak paused`}
-          title="Pick up your streak with one more lesson today"
+          title={`Pick up your streak with one more lesson today. ${PROGRESS_SYNC_SHORT}`}
         >
           Streak paused: {pausedStreak.days} day{pausedStreak.days === 1 ? '' : 's'}
         </span>
       ) : null}
       {dailyCount > 0 && (
-        <span className="topbar-pill warm" aria-label={`Lessons done today: ${dailyCount}`}>
+        <span
+          className="topbar-pill warm"
+          aria-label={`Lessons done today: ${dailyCount}`}
+          title={PROGRESS_SYNC_SHORT}
+        >
           {dailyCount} lesson{dailyCount === 1 ? '' : 's'} today
         </span>
       )}
