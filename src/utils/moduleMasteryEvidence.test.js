@@ -125,6 +125,7 @@ describe('summarizeModuleMasteryEvidence', () => {
     expect(structure).toMatchObject({
       reviewDue: 1,
     });
+    expect(result.reviewFocusModules.map((moduleEvidence) => moduleEvidence.moduleId)).toEqual(['m1', 'm2']);
   });
 
   it('does not map legacy review cards across an explicit wrong course', () => {
