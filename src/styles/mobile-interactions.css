@@ -57,6 +57,8 @@
 
   .search-overlay {
     align-items: stretch;
+    min-height: 100dvh;
+    overflow: hidden;
     padding:
       max(8px, env(safe-area-inset-top, 0px))
       max(8px, env(safe-area-inset-right, 0px))
@@ -68,6 +70,13 @@
     width: 100%;
     max-height: calc(100dvh - 16px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
     border-radius: 16px;
+  }
+
+  .search-head,
+  .cheatsheet-head,
+  .search-input-wrap,
+  .cs-btn-row {
+    flex-shrink: 0;
   }
 
   .search-input-wrap {
@@ -92,13 +101,73 @@
   }
 
   .search-results {
+    min-height: 0;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .cheatsheet-body {
+    min-height: 0;
+    padding: 16px;
   }
 
   .search-result {
     min-height: 56px;
     padding: 12px;
+  }
+
+  .cs-trigger,
+  .empty-state-action,
+  .sr-generate-topic,
+  .sr-generate-btn,
+  .sr-opt,
+  .bk-main {
+    min-height: 44px;
+  }
+
+  .shell.keyboard-open .search-overlay {
+    padding:
+      max(6px, env(safe-area-inset-top, 0px))
+      max(6px, env(safe-area-inset-right, 0px))
+      max(6px, env(safe-area-inset-bottom, 0px))
+      max(6px, env(safe-area-inset-left, 0px));
+  }
+
+  .shell.keyboard-open .search-modal {
+    max-height: calc(100dvh - 12px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    border-radius: 14px;
+  }
+
+  .shell.keyboard-open .search-head,
+  .shell.keyboard-open .cheatsheet-head {
+    padding: 12px 14px 10px;
+  }
+
+  .shell.keyboard-open .panel-kicker,
+  .shell.keyboard-open .search-hint {
+    display: none;
+  }
+
+  .shell.keyboard-open .search-title,
+  .shell.keyboard-open .cheatsheet-head h2 {
+    font-size: 16px;
+  }
+
+  .mobile-tools-sheet {
+    max-height: min(64dvh, 440px);
+    padding-top: 18px;
+  }
+
+  .mobile-tools-sheet::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    width: 42px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.18);
+    transform: translateX(-50%);
   }
 }
 
