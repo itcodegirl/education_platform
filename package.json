@@ -45,6 +45,7 @@
     "test:e2e": "npm run test:integration",
     "test:e2e:smoke": "npm run test:e2e:smoke:public && npm run test:e2e:smoke:learning",
     "test:e2e:smoke:public": "node scripts/run-public-e2e-smoke.mjs",
+    "test:e2e:visual:public": "node scripts/run-public-playwright.mjs tests/e2e/public.visual.spec.js --project=mobile-chrome",
     "test:e2e:smoke:learning": "node scripts/run-auth-e2e-smoke.mjs",
     "test:e2e:smoke:lesson": "node scripts/run-auth-e2e-smoke.mjs lesson",
     "test:e2e:smoke:mobile": "node scripts/run-auth-e2e-smoke.mjs mobile",
