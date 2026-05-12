@@ -116,10 +116,9 @@ test.describe('mobile learning smoke', () => {
 
   async function expectMinimumTouchTarget(locator) {
     const box = await locator.boundingBox();
-
-    expect(box, 'touch target should have a layout box').toBeTruthy();
-    expect(box?.width || 0, 'touch target should be at least 44px wide').toBeGreaterThanOrEqual(44);
-    expect(box?.height || 0, 'touch target should be at least 44px tall').toBeGreaterThanOrEqual(44);
+    expect(box, 'control should have a measurable touch target').toBeTruthy();
+    expect(box?.width || 0, 'control should be at least 44px wide').toBeGreaterThanOrEqual(44);
+    expect(box?.height || 0, 'control should be at least 44px tall').toBeGreaterThanOrEqual(44);
   }
 
   async function answerQuizQuestions(page) {

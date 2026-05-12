@@ -20,7 +20,8 @@ Run the flow at these widths before release or PR merge:
 4. Open Tools, then open Search, Saved lessons, Progress, Glossary, and Cheat sheets.
 5. Complete a lesson and confirm the next action stays obvious.
 6. Open Progress and confirm the snapshot separates lessons saved, current state, and review due.
-7. Take a quick check and confirm answer feedback does not push controls off-screen.
+7. Open Roadmap and confirm module states use learner readiness language instead of vague progress labels.
+8. Take a quick check and confirm answer feedback does not push controls off-screen.
 
 ## Touch Targets
 
@@ -56,6 +57,7 @@ Every reachable mobile control should have a 44 x 44 CSS px hit area or larger:
 
 - Completion copy says it saves reading progress.
 - Mastery copy points to quick checks, review, and challenges.
+- Roadmap copy uses `Reading in progress`, `Evidence needed`, `Ready to continue`, and `Not started` consistently.
 - Sync copy never implies cloud persistence when the app is local or queued.
 - XP, badges, and streaks read as motivation, not proof of mastery.
 
@@ -68,6 +70,8 @@ npm run build
 npm run test
 npm run lint
 npm run typecheck
+npm run test:e2e:smoke:public
+npm run test:e2e:visual:public
 ```
 
 Use mobile E2E when authenticated credentials are available:
@@ -76,10 +80,11 @@ Use mobile E2E when authenticated credentials are available:
 npm run test:e2e:smoke:mobile
 ```
 
-Use public mobile visual coverage when authenticated credentials are not available:
+Use public mobile visual coverage when authenticated credentials are not available. The public scripts start and stop their own Vite server:
 
 ```bash
-PLAYWRIGHT_PORT=4321 npx playwright test tests/e2e/public.visual.spec.js --project=mobile-chrome
+npm run test:e2e:smoke:public
+npm run test:e2e:visual:public
 ```
 
 If credentials are not available, record that the authenticated mobile path was not executed and keep the manual viewport checklist above as the release fallback.

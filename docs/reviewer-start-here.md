@@ -18,8 +18,8 @@ This is the fastest path for a recruiter or technical reviewer to understand Cod
 5. For claim-to-code proof points, use [docs/reviewer-evidence-map.md](./reviewer-evidence-map.md).
 6. For architecture, read [docs/architecture.md](./architecture.md).
 7. For a fast walkthrough, use [docs/reviewer-demo-script.md](./reviewer-demo-script.md).
-8. For a recruiter-facing video/storyboard, use [docs/portfolio-demo-capture.md](./portfolio-demo-capture.md).
-9. For current trust boundaries, read [docs/trust-boundaries.md](./trust-boundaries.md).
+8. For current trust boundaries, read [docs/trust-boundaries.md](./trust-boundaries.md).
+9. For the required portfolio screenshot proof set, use [docs/screenshots/README.md](./screenshots/README.md).
 10. If reviewing open PRs or older branches, use [docs/branch-triage.md](./branch-triage.md).
 
 ## Trust Boundaries
@@ -56,6 +56,7 @@ npm run lint
 npm run typecheck
 npm run check:js-source
 npm run build
+npm run audit:screenshot-guide
 npm run audit:staging-runbook
 npm run audit:content
 npm run test:unit

@@ -5,6 +5,10 @@ auth entry, modals, keyboard/input behavior, or mobile performance. It converts
 the mobile UX audit into a repeatable release gate without adding product
 features.
 
+For release candidates that need real-device evidence, open a
+[Mobile Device QA](../.github/ISSUE_TEMPLATE/mobile-device-qa.md) issue and
+attach the completed result to the PR.
+
 ## Required Evidence
 
 - [ ] `npm run build`

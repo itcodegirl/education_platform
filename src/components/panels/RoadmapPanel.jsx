@@ -106,25 +106,25 @@ export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx, currentMod
                     const moduleComplete = moduleDone === module.lessons.length;
                     const moduleStarted = moduleDone > 0 && !moduleComplete;
                     const isCurrentModule = isCurrent && moduleIndex === currentModuleIdx;
-                    const moduleStatus = moduleComplete
-                      ? 'Complete'
-                      : isCurrentModule
-                        ? 'Current'
-                        : moduleStarted
-                          ? 'In progress'
-                          : 'Upcoming';
+                    const moduleReadiness = getModuleReadiness({
+                      completedLessons: moduleDone,
+                      totalLessons: module.lessons.length,
+                      isCurrentModule,
+                    });
+                    const moduleStatus = moduleReadiness.label;
 
                     return (
                       <button
                         key={module.id}
                         type="button"
-                        className={`rm-mod ${moduleComplete ? 'done' : moduleStarted ? 'partial' : ''} ${isCurrentModule ? 'current' : ''}`}
+                        className={`rm-mod ${moduleComplete ? 'done' : moduleStarted ? 'partial' : ''} ${isCurrentModule ? 'current' : ''} tone-${moduleReadiness.tone}`}
                         style={moduleComplete ? { borderColor: course.accent } : undefined}
                         onClick={async () => {
                           await onNavigate(courseIndex, moduleIndex);
                           onClose();
                         }}
-                        title={`${module.title} (${moduleStatus}, ${moduleDone}/${module.lessons.length})`}
+                        aria-label={`${module.title}: ${moduleStatus}. ${moduleDone}/${module.lessons.length} lessons.`}
+                        title={`${module.title} (${moduleStatus}. ${moduleReadiness.detail} ${moduleDone}/${module.lessons.length})`}
                       >
                         <span className="rm-mod-emoji">{moduleComplete ? '✓' : module.emoji}</span>
                         <span className="rm-mod-name">{module.title}</span>

@@ -186,7 +186,6 @@ export function StudentStats({ isOpen, onClose }) {
       srTotal: srCards.length,
       bookmarkCount: bookmarks.length,
       noteCount: Object.keys(notes).length,
-      transcript,
       snapshotItems: getProgressSnapshotItems({
         totalDone,
         totalLessons,
@@ -444,6 +443,26 @@ export function StudentStats({ isOpen, onClose }) {
                 Readiness requires completed lessons, a {stats.moduleEvidence.readinessPolicy.quizPassPercent}%+
                 quick check, applied work when available, and no due review.
               </p>
+              {stats.moduleEvidence.reviewFocusModules.length > 0 && (
+                <div className="ss-review-module-summary" aria-label="Review due by module">
+                  <span className="ss-review-module-kicker">Review due by module</span>
+                  <div className="ss-review-module-list">
+                    {stats.moduleEvidence.reviewFocusModules.map((moduleEvidence) => (
+                      <div
+                        key={`${moduleEvidence.courseId}:${moduleEvidence.moduleId}:review`}
+                        className="ss-review-module-pill"
+                      >
+                        <span className="ss-review-module-name">
+                          {moduleEvidence.courseLabel}: {moduleEvidence.moduleTitle}
+                        </span>
+                        <span className="ss-review-module-count">
+                          {moduleEvidence.reviewDue} due
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="ss-module-evidence-list">
                 {stats.moduleEvidence.focusModules.map((moduleEvidence) => (
                   <article

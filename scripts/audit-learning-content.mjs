@@ -1,5 +1,6 @@
 /* global console */
 import process from 'node:process';
+import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { withViteAuditRuntime } from './vite-audit-runtime.mjs';
 
@@ -194,11 +195,19 @@ function analyzeInstructionalScaffolding(lesson, lessonPath, warnings) {
 }
 
 function getQuestionPromptText(question) {
+  const feedback = question?.optionFeedback || question?.wrongAnswerFeedback || question?.feedback;
+  const feedbackText = Array.isArray(feedback)
+    ? feedback.join(' ')
+    : typeof feedback === 'object' && feedback !== null
+      ? Object.values(feedback).join(' ')
+      : feedback;
+
   return [
     question?.question,
     question?.code,
     ...(Array.isArray(question?.lines) ? question.lines : []),
     question?.explanation,
+    feedbackText,
   ].join(' ');
 }
 
@@ -639,6 +648,64 @@ function printAuditSummary(result) {
   }
 }
 
+function getCliOptionValue(name) {
+  const index = process.argv.indexOf(name);
+  if (index === -1) return '';
+  return process.argv[index + 1] || '';
+}
+
+function budgetEntriesToMap(entries = []) {
+  return new Map(
+    (Array.isArray(entries) ? entries : [])
+      .filter((entry) => entry && typeof entry.name === 'string')
+      .map((entry) => [entry.name, Number(entry.count) || 0]),
+  );
+}
+
+function compareBudgetEntries(actualEntries, budgetEntries, label, failures) {
+  const budgetMap = budgetEntriesToMap(budgetEntries);
+
+  actualEntries.forEach((entry) => {
+    const allowed = budgetMap.has(entry.name) ? budgetMap.get(entry.name) : 0;
+    if (entry.count > allowed) {
+      failures.push(`${label} "${entry.name}" increased from ${allowed} to ${entry.count}.`);
+    }
+  });
+}
+
+export function checkAuditWarningBudget(summary, budget = {}) {
+  const failures = [];
+  const maxWarnings = Number(budget.warningCount);
+
+  if (Number.isFinite(maxWarnings) && summary.warningCount > maxWarnings) {
+    failures.push(`Total report-only warnings increased from ${maxWarnings} to ${summary.warningCount}.`);
+  }
+
+  compareBudgetEntries(summary.warningsByCourse, budget.warningsByCourse, 'Course warnings', failures);
+  compareBudgetEntries(summary.warningsByCategory, budget.warningsByCategory, 'Warning category', failures);
+  compareBudgetEntries(summary.missingSignals, budget.missingSignals, 'Missing signal', failures);
+
+  return failures;
+}
+
+async function loadWarningBudget(budgetPath) {
+  if (!budgetPath) return null;
+  const raw = await readFile(budgetPath, 'utf8');
+  return JSON.parse(raw);
+}
+
+function printBudgetResult(failures) {
+  if (failures.length === 0) {
+    console.log('\nWarning budget: ok');
+    return;
+  }
+
+  console.log('\nWarning budget exceeded:');
+  failures.forEach((failure) => {
+    console.log(`  - ${failure}`);
+  });
+}
+
 export function analyzeLearningContent({ courseMetadata, loaded }) {
   const issues = [];
   const warnings = [];
@@ -679,6 +746,7 @@ export function analyzeLearningContent({ courseMetadata, loaded }) {
 
 async function main() {
   const showSummary = process.argv.includes('--summary');
+  const budgetPath = getCliOptionValue('--budget');
 
   console.log('Learning Content Audit');
 
@@ -695,6 +763,16 @@ async function main() {
   printEntries('Blocking issues', result.issues);
   if (showSummary) {
     printAuditSummary(result);
+  }
+
+  const warningBudget = await loadWarningBudget(budgetPath);
+  if (warningBudget) {
+    const budgetFailures = checkAuditWarningBudget(buildAuditSummary(result), warningBudget);
+    printBudgetResult(budgetFailures);
+    if (budgetFailures.length > 0) {
+      process.exitCode = 1;
+      return;
+    }
   }
 
   if (result.issues.length > 0) {

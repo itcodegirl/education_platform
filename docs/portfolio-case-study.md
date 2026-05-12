@@ -66,6 +66,7 @@ The goal was to keep the existing core vision and architecture intact while maki
 - ESLint, Vitest, and Playwright
 - scripted quality gates for local and CI parity
 - authenticated smoke coverage that runs when test credentials are configured and self-skips locally when they are not
+- reviewer screenshot proof guidance checked by `npm run audit:screenshot-guide`
 
 ---
 
@@ -222,6 +223,7 @@ Why: product reliability needs visibility, but portfolio credibility is stronger
 - hardened trust semantics: progress exports are framed as learning records, resume uses stable course/module/lesson IDs, public profiles expose aggregate fields only, and challenge grading is described as exercise-specific checks rather than credential verification
 - stronger educational structure because lesson evidence now includes prerequisite, outcome, guided practice, recall, and proof/transfer guidance in one visible contract
 - stronger performance evidence discipline because Lighthouse artifacts are uploaded in CI and the evidence doc is checked by the quality gate
+- stronger portfolio evidence discipline because the required screenshot set now names the exact product proof, privacy boundary, mobile viewport, and progress-summary trust copy a reviewer should see
 - simplified learning-tool maintenance by moving mobile tool wiring and shared tool copy into a single registry
 - clearer portfolio narrative for both non-technical and technical reviewers
 
@@ -242,7 +244,7 @@ For a portfolio page, pair this walkthrough with the README Evidence & Readiness
 
 ## What I would do next
 
-- add final screenshot assets in `docs/screenshots/`
+- capture final screenshot assets in `docs/screenshots/` using the audited proof checklist
 - configure Supabase test credentials so authenticated Playwright lesson/mobile flows run in CI instead of self-skipping
 - validate Supabase reward persistence in staging, including RLS, idempotent backend reward records, and test-user isolation
 - record a dated Lighthouse score row in `docs/lighthouse-evidence.md` from the uploaded CI artifact

@@ -18,11 +18,11 @@ function quizBelongsToModule(quizKey, course, moduleData) {
   if (!parsed.type || (parsed.courseId && parsed.courseId !== course?.id)) return false;
 
   if (parsed.type === 'm') {
-    return parsed.entityId === moduleData?.id;
+    return String(parsed.entityId) === String(moduleData?.id);
   }
 
   if (parsed.type === 'l') {
-    return (moduleData?.lessons || []).some((lesson) => lesson.id === parsed.entityId);
+    return (moduleData?.lessons || []).some((lesson) => String(lesson.id) === String(parsed.entityId));
   }
 
   return false;
@@ -54,7 +54,8 @@ function reviewCardBelongsToModule(card, course, moduleData) {
   const context = normalizeReviewCardLearningContext(card);
 
   if (context.courseId && context.courseId !== course.id) return false;
-  if (context.moduleId) return context.moduleId === moduleData.id;
+  if (context.moduleId && context.courseId) return String(context.moduleId) === String(moduleData.id);
+  if (context.moduleId && !context.quizKey && !context.lessonKey && !context.lessonId) return false;
   if (quizBelongsToModule(context.quizKey, course, moduleData)) return true;
 
   const lessonKey = context.lessonKey;
@@ -172,6 +173,16 @@ function focusRank(moduleEvidence) {
   return rankByTone[moduleEvidence.statusTone] ?? 5;
 }
 
+function reviewFocusRank(left, right) {
+  const reviewDelta = right.reviewDue - left.reviewDue;
+  if (reviewDelta !== 0) return reviewDelta;
+
+  const quizReviewDelta = right.quizNeedsReview - left.quizNeedsReview;
+  if (quizReviewDelta !== 0) return quizReviewDelta;
+
+  return right.lessonPercent - left.lessonPercent;
+}
+
 export function summarizeModuleMasteryEvidence({
   courses = [],
   completedSet = new Set(),
@@ -259,10 +270,15 @@ export function summarizeModuleMasteryEvidence({
       return right.lessonPercent - left.lessonPercent;
     })
     .slice(0, 4);
+  const reviewFocusModules = modules
+    .filter((moduleEvidence) => moduleEvidence.reviewDue > 0)
+    .sort(reviewFocusRank)
+    .slice(0, 3);
 
   return {
     modules,
     focusModules,
+    reviewFocusModules,
     modulesWithEvidence: modules.filter((moduleEvidence) =>
       moduleEvidence.quizPassed + moduleEvidence.challengeDone > 0,
     ).length,

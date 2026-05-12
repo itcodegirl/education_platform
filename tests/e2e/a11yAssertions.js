@@ -17,10 +17,12 @@ function formatViolations(violations) {
     .join('\n');
 }
 
-async function runAxeWithRetry(page, tags) {
-  const runAxe = async () => new AxeBuilder({ page })
-    .withTags(tags)
-    .analyze();
+async function runAxeWithRetry(page, tags, include) {
+  const runAxe = async () => {
+    const builder = new AxeBuilder({ page }).withTags(tags);
+    if (include) builder.include(include);
+    return builder.analyze();
+  };
 
   try {
     return await runAxe();
@@ -35,8 +37,9 @@ async function runAxeWithRetry(page, tags) {
 export async function expectNoBlockingAxeViolations(page, {
   tags = DEFAULT_TAGS,
   blockingImpacts = DEFAULT_BLOCKING_IMPACTS,
+  include = null,
 } = {}) {
-  const results = await runAxeWithRetry(page, tags);
+  const results = await runAxeWithRetry(page, tags, include);
   const blocking = results.violations.filter((violation) => (
     blockingImpacts.has(violation.impact)
   ));

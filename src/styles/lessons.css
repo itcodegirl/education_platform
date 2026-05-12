@@ -960,6 +960,9 @@
 .qq-explain.right { background:rgba(78,205,196,0.08); border-left:3px solid #4ecdc4; }
 .qq-explain.wrong { background:rgba(255,107,107,0.08); border-left:3px solid #ff6b6b; }
 .qq-explain-icon { font-size:16px; flex-shrink:0; }
+.qq-answer-feedback { margin-top:8px; padding:10px 12px; border:1px solid var(--border); border-radius:8px; background:rgba(255,255,255,0.025); }
+.qq-answer-feedback-label { display:block; margin-bottom:4px; color:var(--warning); font-family:'Poppins', sans-serif; font-size:11px; font-weight:700; line-height:1.3; text-transform:uppercase; letter-spacing:0; }
+.qq-answer-feedback-body { color:var(--text-dim); font-size:13px; line-height:1.55; }
 .quiz-submit { display:block; width:auto; margin:16px var(--quiz-inline-pad) 20px; padding:14px; border:1px solid var(--border); border-radius:8px; background:var(--bg-surface); color:var(--text-muted); font-size:14px; font-weight:600; cursor:pointer; transition:all .2s; font-family:'Inter',sans-serif; }
 .quiz-submit:not(:disabled) { color:var(--bg-deep); border:none; }
 .quiz-submit:not(:disabled):hover { filter:brightness(1.1); box-shadow:0 4px 16px rgba(0,0,0,.2); transform:translateY(-1px); }
