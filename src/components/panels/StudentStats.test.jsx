@@ -302,7 +302,7 @@ describe('StudentStats streak card', () => {
     expect(screen.getByText(/retry one missed quick check/i)).toBeInTheDocument();
     expect(screen.getByText('Quiz checks at 80%+')).toBeInTheDocument();
     expect(screen.getByText('Applied challenges')).toBeInTheDocument();
-    expect(screen.getByText('Review due now')).toBeInTheDocument();
+    expect(screen.getAllByText('Review due now').length).toBeGreaterThan(0);
     expect(screen.getByText('Challenges: 1/1')).toBeInTheDocument();
     expect(screen.getByRole('region', { name: /progress snapshot summary/i })).toHaveTextContent('1');
     expect(screen.getByRole('region', { name: /learning transcript/i })).toHaveTextContent(/next evidence step/i);
@@ -439,5 +439,40 @@ describe('StudentStats streak card', () => {
     expect(screen.getByLabelText(/review due by module/i)).toHaveTextContent('1 due');
     expect(screen.getByText(/clear review cards or retry a missed check/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/M1 evidence signals/i)).toHaveTextContent('Due1');
+  });
+
+  it('summarizes retention loop signals without treating XP as evidence', () => {
+    mockUseProgressData.mockReturnValue({
+      completed: ['c:html|m:m1|l:l1'],
+      quizScores: {
+        'l:html:l1': '0/1',
+      },
+      challengeCompletions: [],
+    });
+    mockUseSR.mockReturnValue({
+      srCards: [
+        { quizKey: 'l:html:l1', nextReview: 0 },
+        { quizKey: 'l:html:l1', nextReview: Date.now() + 100000 },
+      ],
+      bookmarks: [],
+      notes: {},
+    });
+    mockUseXP.mockReturnValue({
+      xpTotal: 800,
+      streak: 4,
+      pausedStreak: null,
+      dailyCount: 1,
+      earnedBadges: {},
+    });
+
+    render(<StudentStats isOpen onClose={vi.fn()} />);
+
+    const retention = screen.getByRole('region', { name: /retention loop/i });
+    expect(retention).toHaveTextContent('Review due now');
+    expect(retention).toHaveTextContent('1Due now');
+    expect(retention).toHaveTextContent('1Scheduled later');
+    expect(retention).toHaveTextContent('1Weak checks');
+    expect(retention).toHaveTextContent('1Module focus');
+    expect(retention).not.toHaveTextContent('800');
   });
 });
