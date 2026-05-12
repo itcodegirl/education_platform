@@ -11,6 +11,8 @@ import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
 import { findQuizEntityTitle, quizKeyBelongsToCourse } from '../../utils/quizCourseOwnership';
 import { summarizeMasteryEvidence } from '../../utils/masteryProgress';
 import { summarizeModuleMasteryEvidence } from '../../utils/moduleMasteryEvidence';
+import { getProgressSnapshotItems } from '../../utils/progressDashboard';
+import { buildLearnerTranscriptSummary } from '../../utils/learnerTranscript';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 import { parseQuizScore } from '../../services/rewardPolicy';
@@ -132,6 +134,7 @@ export function StudentStats({ isOpen, onClose }) {
     const totalLessons = courseStats.reduce((sum, course) => sum + course.totalLessons, 0);
     const totalDone = courseStats.reduce((sum, course) => sum + course.done, 0);
     const totalPercent = totalLessons > 0 ? Math.round((totalDone / totalLessons) * 100) : 0;
+    const srDue = srCards.filter((card) => card.nextReview <= Date.now()).length;
     const masteryEvidence = summarizeMasteryEvidence({
       quizResults: allResults,
       completedLessonCount: totalDone,
@@ -146,6 +149,17 @@ export function StudentStats({ isOpen, onClose }) {
       challengeCompletions,
       getChallengesForCourse,
       srCards,
+    });
+    const transcript = buildLearnerTranscriptSummary({
+      completedLessons: totalDone,
+      totalLessons,
+      quizChecksPassed: masteryEvidence.quizChecksPassed,
+      quizChecksAttempted: masteryEvidence.quizChecksAttempted,
+      quizChecksNeedsReview: masteryEvidence.quizChecksNeedsReview,
+      completedChallenges: masteryEvidence.completedChallenges,
+      totalChallenges: masteryEvidence.totalChallenges,
+      dueReviewCards: masteryEvidence.dueReviewCards,
+      totalReviewCards: masteryEvidence.totalReviewCards,
     });
 
     return {
@@ -166,9 +180,10 @@ export function StudentStats({ isOpen, onClose }) {
       streak,
       pausedStreak,
       dailyCount,
+      transcript,
       badgeCount: Object.keys(earnedBadges).length,
       totalBadges: BADGE_DEFS.length,
-      srDue: srCards.filter((card) => card.nextReview <= Date.now()).length,
+      srDue,
       srTotal: srCards.length,
       bookmarkCount: bookmarks.length,
       noteCount: Object.keys(notes).length,
@@ -177,7 +192,7 @@ export function StudentStats({ isOpen, onClose }) {
         totalLessons,
         quizzesTaken: allResults.length,
         masteryEvidence,
-        srDue: srCards.filter((card) => card.nextReview <= Date.now()).length,
+        srDue,
       }),
     };
   }, [bookmarks, challengeCompletions, completed, earnedBadges, notes, quizScores, srCards, streak, pausedStreak, dailyCount, xpTotal]);
