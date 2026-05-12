@@ -260,13 +260,13 @@ export function CodeChallenge({ challenge, lang, onComplete }) {
           <div className="cc-results-header">
             {allPassed ? (
               <>
-                <span className="cc-results-icon" aria-hidden="true">🎉</span>
-                <span className="cc-results-text">All tests passed! You nailed it.</span>
+                <span className="cc-results-icon" aria-hidden="true">✓</span>
+                <span className="cc-results-text">All checks passed — your code meets the requirements.</span>
               </>
             ) : (
               <>
                 <span className="cc-results-icon" aria-hidden="true">🔧</span>
-                <span className="cc-results-text">{passCount}/{totalTests} tests passing - keep going!</span>
+                <span className="cc-results-text">{passCount}/{totalTests} checks passing — keep going.</span>
               </>
             )}
           </div>

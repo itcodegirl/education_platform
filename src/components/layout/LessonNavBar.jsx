@@ -20,7 +20,7 @@ export const LessonNavBar = memo(function LessonNavBar({
   toolsOpen = false,
 }) {
   const nextLabel = isLast
-    ? 'Track complete'
+    ? 'Course complete'
     : isLastLesson && hasModuleQuiz && !showModQuiz
       ? 'Take quiz'
       : 'Continue';
@@ -58,6 +58,7 @@ export const LessonNavBar = memo(function LessonNavBar({
           onClick={onMarkDone}
           disabled={marking}
           aria-label={doneCopy.ariaLabel}
+          title={doneCopy.title}
           aria-pressed={isDone}
         >
           <span className="lesson-nav-icon" aria-hidden="true">

@@ -19,8 +19,8 @@ export function getQuizResultFeedback({ pct = 0, wrongCount = 0, total = 0 } = {
 
   if (safePct === 100) {
     return {
-      label: 'Ready signal',
-      meaning: 'Perfect score. This is strong evidence that the idea is available right now.',
+      label: 'Confident for now',
+      meaning: 'Full marks this round. That is a good sign the idea is fresh — a quick recap locks it in.',
       actions: [
         'Explain one answer out loud before moving on.',
         'Try an applied challenge if one is available for this course.',
@@ -31,8 +31,8 @@ export function getQuizResultFeedback({ pct = 0, wrongCount = 0, total = 0 } = {
 
   if (safePct >= 80) {
     return {
-      label: 'Mostly ready',
-      meaning: `You cleared the 80% confidence line with ${missedCopy}.`,
+      label: 'Almost — one review pass',
+      meaning: `You got most of this, with ${missedCopy}. The miss is where the learning is.`,
       actions: [
         'Review the missed explanation before continuing.',
         'Retry only after you can explain why the correction is true.',
@@ -45,7 +45,7 @@ export function getQuizResultFeedback({ pct = 0, wrongCount = 0, total = 0 } = {
 
   if (safePct >= 60) {
     return {
-      label: 'Needs one review loop',
+      label: 'Partial — review the misses',
       meaning: `This is a partial signal: ${missedCopy} still needs attention.`,
       actions: [
         'Reread the lesson frame and the explanations for missed questions.',
@@ -58,7 +58,7 @@ export function getQuizResultFeedback({ pct = 0, wrongCount = 0, total = 0 } = {
   }
 
   return {
-    label: 'Foundation review',
+    label: 'Rebuild the basics first',
     meaning: `This result says the concept is not stable yet: ${missedCopy} missed.`,
     actions: [
       'Pause here and rebuild the lesson example before retrying.',

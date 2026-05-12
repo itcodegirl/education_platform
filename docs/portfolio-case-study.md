@@ -233,4 +233,4 @@ Why: product reliability needs visibility, but portfolio credibility is stronger
 
 ## Project story (resume-friendly)
 
-Built and hardened a multi-track SaaS-style coding education platform with secure AI integration, accessible interaction design, and release-grade quality workflow. Improved onboarding clarity, consistency, and maintainability through targeted, check-validated iterations without a full architectural rewrite.
+Built and hardened a multi-track, self-paced coding education platform (portfolio/demo posture, not production credentialing) with a secure server-mediated AI tutor, accessible interaction design, and a release-grade quality workflow. Improved onboarding clarity, consistency, and maintainability through targeted, check-validated iterations without a full architectural rewrite.

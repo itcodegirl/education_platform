@@ -130,7 +130,7 @@ describe('CodeChallenge', () => {
     fireEvent.click(screen.getByRole('button', { name: /run tests/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/All tests passed! You nailed it./i)).toBeInTheDocument();
+      expect(screen.getByText(/All checks passed — your code meets the requirements\./i)).toBeInTheDocument();
     });
     expect(onComplete).toHaveBeenCalledTimes(1);
   });

@@ -22,8 +22,8 @@
 }
 .auth-theme-toggle-wrap {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: max(14px, env(safe-area-inset-top, 0px));
+  right: max(14px, env(safe-area-inset-right, 0px));
   z-index: 4;
 }
 .auth-theme-toggle-wrap .theme-toggle {
@@ -60,7 +60,7 @@
     0 24px 80px rgba(0,0,0,0.4),
     0 0 60px rgba(180,74,255,0.06),
     inset 0 1px 0 rgba(255,255,255,0.06);
-  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: fadeInUp 0.6s var(--ease-emphasis);
 }
 
 .auth-brand { text-align: center; margin-bottom: 36px; }
@@ -194,6 +194,49 @@
 }
 .auth-success {
   margin-top: 2px;
+}
+
+/* Confirm-your-email screen helpers */
+.auth-confirm-resend,
+.auth-confirm-preview {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.auth-confirm-resend-status {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.auth-confirm-resend-status.is-ok {
+  color: var(--text-main);
+}
+.auth-confirm-resend-status.is-error {
+  color: var(--danger, #ff6b6b);
+}
+.auth-link-btn {
+  border: none;
+  background: transparent;
+  color: var(--purple);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  padding: 0;
+}
+.auth-link-btn:hover:not(:disabled) {
+  color: var(--text-main);
+}
+.auth-link-btn:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.auth-link-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 /* Neon gradient CTA button */

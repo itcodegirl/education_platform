@@ -4,6 +4,54 @@ All notable changes to CodeHerWay. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 semantic versioning.
 
+## [Unreleased] — `claude/audit-learner-onboarding-kJwFE`
+
+Learner-journey audit (first visit → first meaningful progress) and the
+first batch of fixes that came out of it.
+
+### Fixed
+
+- **Bookmarks panel crash** — `BookmarksPanel` referenced an undefined
+  `sourceCourses`, throwing a render error for any learner who had saved
+  lessons. It now resolves bookmarks against `COURSE_CATALOG`.
+- **ESLint parse error in `search-index.js`** — a duplicated export
+  block (`getCachedSearchIndex`/`loadSearchIndex`/`resetSearchIndexCacheForTests`
+  declared twice) was breaking `npm run lint`. Removed the duplicate.
+
+### Added
+
+- **Resend + preview escape hatch on the confirm-email screen** — the
+  post-signup "Check your email" screen now offers a "resend the link"
+  action (new `supabase.auth.resend` call via
+  `authService.resendSignupConfirmation` and `AuthContext.resendConfirmation`),
+  a spam-folder reminder, and a link back to the free first-lesson
+  preview while the learner waits. All new props are optional.
+- **First-run course framing** — the first-session guide now names the
+  course the learner is starting and reassures it's "one lesson at a
+  time, in order".
+- **Lesson-completion tooltip** — the Complete-lesson button carries a
+  `title` explaining it marks the lesson done / saves your place, that
+  it's separate from quizzes and challenges, and that it's reversible.
+
+### Changed
+
+- **Quiz + challenge copy no longer implies mastery** — quiz score
+  lines and feedback labels were reworded to neutral, progress-oriented
+  language ("Confident for now", "Almost — one review pass", "Partial —
+  review the misses", "Rebuild the basics first") instead of "Ready
+  signal" / "Mostly ready" / celebratory emoji; quiz results restate
+  that the score is a confidence check, not a final grade; the code
+  challenge pass state reads "All checks passed — your code meets the
+  requirements" rather than "You nailed it" (the "not whole-skill
+  verification" caveat stays).
+- **"Track complete" → "Course complete"** everywhere it appeared in
+  lesson navigation copy; "track" was undefined product jargon.
+- **Landing-page React panel** no longer assumes prior JavaScript
+  knowledge ("Same language you know" / "props, state, hooks").
+- **Progress panel stays calm for brand-new learners** — Mastery
+  Evidence, Quiz confidence and Review focus collapse behind a "Show
+  full breakdown" toggle until the first lesson is complete.
+
 ## [Unreleased] — `claude/audit-quiz-improvements-OeLYb`
 
 Audit + improvement cycle covering deferred items C2, C5, C6, and C7.
