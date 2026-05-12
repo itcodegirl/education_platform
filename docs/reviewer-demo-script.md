@@ -22,11 +22,11 @@ npm run audit:content
 ## Five-Minute Flow
 
 1. Open the app and start at the public landing or first-lesson preview.
-2. Enter the learning app and point out the current primary action: read the lesson, then complete it.
-3. Complete one lesson and show the progress feedback, XP feedback, and updated course status.
+2. Enter the learning app and point out the current primary action: read the lesson, then complete it. Call out the readiness language in the focus strip so the reviewer sees how the platform frames momentum.
+3. Complete one lesson and show the progress feedback, XP feedback, updated course status, and the shift from reading progress to evidence needed.
 4. Open saved lessons, notes, review queue, badges, and challenges. Explain which tools are motivational/local today and which writes may sync.
 5. Submit a quiz, retry it, and point out that retrying is for practice while XP is awarded once per stable quiz milestone.
-6. Open Progress Summary and call out that it is not a verified credential.
+6. Open Progress Summary and call out the calm top-level snapshot: lessons saved, current state, and review due. Then note that the PDF flow is not a verified credential.
 7. Close with the roadmap and trust boundaries: portfolio-ready now, production-ready after staging Supabase validation, backend reward records, authenticated CI credentials, and observability.
 
 ## Failure-Path Moment

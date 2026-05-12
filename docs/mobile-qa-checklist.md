@@ -19,7 +19,7 @@ Run the flow at these widths before release or PR merge:
 3. Open the course drawer, switch a module, then close it with the close button and Escape.
 4. Open Tools, then open Search, Saved lessons, Progress, Glossary, and Cheat sheets.
 5. Complete a lesson and confirm the next action stays obvious.
-6. Open Progress and confirm the snapshot separates lessons saved, mastery checks, and review due.
+6. Open Progress and confirm the snapshot separates lessons saved, current state, and review due.
 7. Take a quick check and confirm answer feedback does not push controls off-screen.
 
 ## Touch Targets
@@ -74,6 +74,12 @@ Use mobile E2E when authenticated credentials are available:
 
 ```bash
 npm run test:e2e:smoke:mobile
+```
+
+Use public mobile visual coverage when authenticated credentials are not available:
+
+```bash
+PLAYWRIGHT_PORT=4321 npx playwright test tests/e2e/public.visual.spec.js --project=mobile-chrome
 ```
 
 If credentials are not available, record that the authenticated mobile path was not executed and keep the manual viewport checklist above as the release fallback.

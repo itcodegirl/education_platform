@@ -32,6 +32,7 @@ This is the fastest path for a recruiter or technical reviewer to understand Cod
 - Staging reward validation has a runbook integrity gate: `npm run audit:staging-runbook`; passing it means the checklist is complete, not that live staging has passed.
 - Authenticated persistence has unit coverage for account switching and learner-scoped pending retry queues; live authenticated E2E still needs configured Supabase test credentials.
 - "Complete lesson" means saved reading progress. Quiz results and challenge completion are separate learning checks.
+- Lesson and progress surfaces use one shared readiness vocabulary: Not started, Reading in progress, Evidence needed, Review needed, and Ready to continue.
 
 ## Useful Commands
 
@@ -39,6 +40,12 @@ This is the fastest path for a recruiter or technical reviewer to understand Cod
 npm install
 npm run check
 npm run test:e2e:smoke:public
+```
+
+Public mobile visual coverage:
+
+```bash
+PLAYWRIGHT_PORT=4321 npx playwright test tests/e2e/public.visual.spec.js --project=mobile-chrome
 ```
 
 Focused checks:
