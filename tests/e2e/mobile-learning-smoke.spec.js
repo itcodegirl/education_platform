@@ -72,6 +72,14 @@ test.describe('mobile learning smoke', () => {
     expect(result.scrollWidth).toBeLessThanOrEqual(result.viewportWidth + 1);
   }
 
+  async function expectMinimumTouchTarget(locator) {
+    await locator.scrollIntoViewIfNeeded();
+    const box = await locator.boundingBox();
+    expect(box).toBeTruthy();
+    expect(box?.width || 0).toBeGreaterThanOrEqual(44);
+    expect(box?.height || 0).toBeGreaterThanOrEqual(44);
+  }
+
   async function expectControlAboveBottomNavigation(page, locator) {
     await locator.scrollIntoViewIfNeeded();
     const controlBox = await locator.boundingBox();
@@ -172,12 +180,18 @@ test.describe('mobile learning smoke', () => {
     await expect(page.locator('.lesson-title')).toBeVisible();
     const initialTitle = await page.locator('.lesson-title').textContent();
 
+    const focusStrip = page.getByRole('region', { name: /current lesson step/i });
+    await expect(focusStrip).toBeVisible();
+    await expect(focusStrip).toContainText(/read|save|evidence|quick check/i);
+
     await page.getByLabel('Toggle lesson notes').click();
     await expect(page.locator('.notes-panel')).toBeVisible();
     await page.getByLabel('Toggle lesson notes').click();
     await expect(page.locator('.notes-panel')).toHaveCount(0);
 
     const doneButton = page.locator('.lesson-nav-done');
+    await expect(doneButton).toHaveAccessibleName(/complete lesson|completed/i);
+    await expectMinimumTouchTarget(doneButton);
     const getDoneState = async () =>
       (await doneButton.getAttribute('aria-pressed')) === 'true';
 
