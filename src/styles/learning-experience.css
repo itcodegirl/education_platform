@@ -1677,16 +1677,16 @@
   flex-shrink: 0;
 }
 
-/* Bridge — next lesson teaser */
-.sl-bridge {
+/* Transition practice */
+.lesson-transition {
   padding: 16px 18px;
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--bg-surface);
   border: 1px solid var(--border);
   margin-bottom: 20px;
 }
 
-.sl-bridge-label {
+.lesson-transition-label {
   font-family: 'Poppins', sans-serif;
   font-size: 11px;
   font-weight: 700;
@@ -1696,10 +1696,37 @@
   margin-bottom: 6px;
 }
 
-.sl-bridge p {
+.lesson-transition-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.lesson-transition-step {
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+}
+
+.lesson-transition-step-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.lesson-transition p {
   font-size: 14px;
   color: var(--text-dim);
   line-height: 1.6;
+}
+
+@media (max-width: 760px) {
+  .lesson-transition-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 600px) {

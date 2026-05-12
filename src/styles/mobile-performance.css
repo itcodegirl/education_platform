@@ -38,7 +38,7 @@
     .lesson-product-frame,
     .sl-concepts,
     .sl-summary,
-    .sl-bridge {
+    .lesson-transition {
       content-visibility: auto;
       contain-intrinsic-size: auto 360px;
     }

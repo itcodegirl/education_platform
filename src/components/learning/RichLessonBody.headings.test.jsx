@@ -86,4 +86,23 @@ describe('RichLessonBody heading hierarchy', () => {
     const toggle = screen.getByRole('button', { name: /dev_fession/i });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
   });
+
+  it('adds transition practice to rich lessons with learner tasks', () => {
+    render(
+      <RichLessonBody
+        lesson={richLesson}
+        lang="js"
+        scaffolding="full"
+        codeForPreview=""
+        checkedTasks={new Set()}
+        onToggleTask={() => {}}
+        showDevFession={false}
+        onToggleDevFession={() => {}}
+      />,
+    );
+
+    expect(screen.getByRole('note', { name: /lesson transition practice/i })).toBeInTheDocument();
+    expect(screen.getByText(/Explain the main idea in one sentence/i)).toBeInTheDocument();
+    expect(screen.getByText(/Redo one requirement without looking: Print 1 to 5./i)).toBeInTheDocument();
+  });
 });
