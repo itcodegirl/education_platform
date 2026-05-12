@@ -37,3 +37,13 @@ jobs:
 
       - name: Run Lighthouse CI assertions
         run: npm run test:lighthouse
+
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: lighthouse-ci-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .lighthouseci/
+          if-no-files-found: ignore
+          retention-days: 14
