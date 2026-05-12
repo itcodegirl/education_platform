@@ -9,6 +9,7 @@ This map turns the CodeHerWay portfolio story into concrete evidence. Use it whe
 | The app is honest about portfolio/demo readiness, not production readiness. | `README.md`, `KNOWN_LIMITATIONS.md`, `docs/trust-boundaries.md`, `docs/repair-roadmap.md` | Documentation consistently separates demo readiness from production launch gates. |
 | Progress Summary is not presented as a verified certificate. | `src/components/gamification/CourseComplete.jsx`, `docs/reward-backfill-strategy.md`, `KNOWN_LIMITATIONS.md` | Unit coverage in `src/components/gamification/CourseComplete.test.jsx`. |
 | Lesson completion means saved reading progress, while quizzes and challenges stay separate checks. | `src/utils/lessonCompletionCopy.js`, `src/components/learning/QuizView.jsx`, `docs/reviewer-start-here.md` | Unit/component tests around lesson completion and quiz reward behavior. |
+| Lesson progress is tied to a clear learning contract, not just completion clicks. | `src/components/learning/LessonEvidencePanel.jsx`, `src/utils/lessonEvidence.js`, `src/styles/lessons.css` | `src/utils/lessonEvidence.test.js` and `src/components/learning/LessonEvidencePanel.test.jsx` cover prerequisite, outcome, practice, recall, and proof guidance. |
 | Cross-device reward trust is not overclaimed. | `docs/reward-sync-strategy.md`, `docs/backend-reward-events.md`, `docs/staging-supabase-validation.md` | Backend reward sync remains feature-gated and staging validation is required. |
 
 ## Architecture And Reliability Claims
@@ -22,6 +23,7 @@ This map turns the CodeHerWay portfolio story into concrete evidence. Use it whe
 | Reward awards are idempotent locally and prepared for backend authority. | `src/engine/rewards/`, `src/services/rewardEventService.js`, `supabase/migrations/` | Reward runtime/service tests plus Supabase policy static checks. |
 | Saved lesson panels tolerate older or partial bookmark records without crashing the learner shell. | `src/components/panels/BookmarksPanel.jsx`, `src/components/panels/BookmarksPanel.test.jsx` | Component coverage renders incomplete legacy bookmarks as disabled, understandable saved-lesson rows. |
 | Bundle growth is watched instead of ignored. | `vite.config.js`, `scripts/check-bundle-size.mjs`, `docs/pr-admin-readiness.md` | `npm run check:bundle` runs inside the broader quality gate. |
+| Lighthouse claims have an evidence path instead of living as an unsupported performance claim. | `docs/lighthouse-evidence.md`, `scripts/check-lighthouse-evidence.mjs`, `.github/workflows/lighthouse-ci.yml`, `lighthouserc.json` | `npm run audit:lighthouse-evidence` verifies the evidence doc and CI uploads `.lighthouseci/` reports. |
 
 ## Accessibility And UX Claims
 
