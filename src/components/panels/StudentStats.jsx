@@ -186,7 +186,6 @@ export function StudentStats({ isOpen, onClose }) {
       srTotal: srCards.length,
       bookmarkCount: bookmarks.length,
       noteCount: Object.keys(notes).length,
-      transcript,
       snapshotItems: getProgressSnapshotItems({
         totalDone,
         totalLessons,
