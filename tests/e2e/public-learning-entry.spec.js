@@ -1,5 +1,17 @@
 import { expect, test } from '@playwright/test';
 
+const PUBLIC_PHONE_VIEWPORTS = [
+  { width: 320, height: 568 },
+  { width: 360, height: 780 },
+  { width: 390, height: 844 },
+  { width: 430, height: 932 },
+];
+
+const PUBLIC_RESPONSIVE_VIEWPORTS = [
+  ...PUBLIC_PHONE_VIEWPORTS,
+  { width: 768, height: 1024 },
+];
+
 async function expectNoHorizontalOverflow(page) {
   const result = await page.evaluate(() => {
     const scrollWidth = Math.max(
@@ -150,11 +162,8 @@ test.describe('public learner entry', () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test('publicMobileViewportsAvoidHorizontalOverflow', async ({ page }) => {
-    for (const viewport of [
-      { width: 360, height: 780 },
-      { width: 390, height: 844 },
-    ]) {
+  test('publicResponsiveViewportsAvoidHorizontalOverflow', async ({ page }) => {
+    for (const viewport of PUBLIC_RESPONSIVE_VIEWPORTS) {
       await page.setViewportSize(viewport);
       await page.goto('/');
 
@@ -181,10 +190,7 @@ test.describe('public learner entry', () => {
       'Small-phone action reachability is scoped to mobile Chrome.',
     );
 
-    for (const viewport of [
-      { width: 360, height: 780 },
-      { width: 390, height: 844 },
-    ]) {
+    for (const viewport of PUBLIC_PHONE_VIEWPORTS) {
       await page.setViewportSize(viewport);
       await page.goto('/');
       await page.getByRole('button', { name: /preview the first lesson/i }).first().click();
