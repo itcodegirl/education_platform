@@ -27,7 +27,7 @@ Scope: CodeHerWay Education Platform frontend runtime, route graph, bundle polic
 - Initial CSS is within budget, but the protected app stylesheet is large because many feature styles are globally imported once the authenticated app loads.
 - Course data chunks are healthy for lazy loading, but `data-js`, `data-css`, and `data-react` are large enough that future curriculum growth should be watched.
 - `jspdf`, `html2canvas`, and Monaco are correctly lazy, but each remains a heavy interaction-path dependency.
-- Lighthouse evidence is not committed as a current score artifact; CI config alone is not the same as a measured performance result.
+- Lighthouse CI now uploads report artifacts for each run; portfolio score claims should still wait for a completed CI artifact from the target branch.
 - Some CSS still uses broad `transition: all`; this is acceptable for low-frequency surfaces but should not be expanded into scroll-linked or persistent controls.
 
 ## Performance Budget
@@ -46,7 +46,7 @@ Recommended guardrails:
 
 - Move more protected feature CSS behind route/surface chunks, starting with admin, profile, and challenge-only styles.
 - Split `ProtectedAppRoutes` further by moving quiz, lesson workspace, and persistent layout shell into smaller route-adjacent modules.
-- Add a committed Lighthouse summary artifact after a CI run so portfolio claims reference measured scores.
+- Add the completed PR Lighthouse summary to the portfolio case study after CI runs so score claims reference measured evidence.
 - Add a route-manifest budget check that flags accidental static imports from auth, admin, profile, tutor, PDF export, Monaco, and challenge surfaces.
 - Add mobile Playwright assertions for touch target size, focused input visibility, and scroll bleed in panels and the mobile tools sheet.
 
