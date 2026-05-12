@@ -10,6 +10,7 @@ import { getLevel, getXPInLevel, XP_PER_LEVEL } from '../../utils/helpers';
 import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
 import { findQuizEntityTitle, quizKeyBelongsToCourse } from '../../utils/quizCourseOwnership';
 import { summarizeMasteryEvidence } from '../../utils/masteryProgress';
+import { buildLearnerTranscriptSummary } from '../../utils/learnerTranscript';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 import { parseQuizScore } from '../../services/rewardPolicy';
@@ -138,6 +139,17 @@ export function StudentStats({ isOpen, onClose }) {
       challenges: allChallenges,
       srCards,
     });
+    const transcript = buildLearnerTranscriptSummary({
+      completedLessons: totalDone,
+      totalLessons,
+      quizChecksPassed: masteryEvidence.quizChecksPassed,
+      quizChecksAttempted: masteryEvidence.quizChecksAttempted,
+      quizChecksNeedsReview: masteryEvidence.quizChecksNeedsReview,
+      completedChallenges: masteryEvidence.completedChallenges,
+      totalChallenges: masteryEvidence.totalChallenges,
+      dueReviewCards: masteryEvidence.dueReviewCards,
+      totalReviewCards: masteryEvidence.totalReviewCards,
+    });
 
     return {
       level,
@@ -151,6 +163,7 @@ export function StudentStats({ isOpen, onClose }) {
       overallQuizPercent,
       quizzesTaken: allResults.length,
       masteryEvidence,
+      transcript,
       strongest,
       weakest,
       streak,
@@ -263,6 +276,33 @@ export function StudentStats({ isOpen, onClose }) {
               </button>
             </section>
           )}
+
+          <section className="ss-transcript" aria-labelledby="ss-transcript-title">
+            <div className="ss-section-heading-row">
+              <div>
+                <h3 id="ss-transcript-title" className="ss-section-title">Learning transcript</h3>
+                <p className="ss-section-copy">
+                  A private readiness snapshot that separates completed lessons from proof of understanding.
+                </p>
+              </div>
+              <span className={`ss-transcript-status ss-transcript-status-${stats.transcript.status.tone}`}>
+                {stats.transcript.status.label}
+              </span>
+            </div>
+            <p className="ss-evidence-next">{stats.transcript.status.detail}</p>
+            <div className="ss-transcript-grid">
+              {stats.transcript.items.map((item) => (
+                <div key={item.key} className={`ss-transcript-card ss-transcript-card-${item.tone}`}>
+                  <span className="ss-transcript-value">{item.value}</span>
+                  <span className="ss-transcript-label">{item.label}</span>
+                  <span className="ss-transcript-detail">{item.detail}</span>
+                </div>
+              ))}
+            </div>
+            <p className="ss-transcript-note">
+              Transcript signals are learning evidence, not a verified credential.
+            </p>
+          </section>
 
           <div className="ss-cards" style={stats.totalDone === 0 ? { opacity: 0.4, pointerEvents: 'none' } : undefined}>
             <div className="ss-card">

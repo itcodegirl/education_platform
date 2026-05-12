@@ -288,4 +288,36 @@ describe('StudentStats streak card', () => {
     expect(screen.getByText('Review due now')).toBeInTheDocument();
     expect(screen.getByText('Challenges: 1/1')).toBeInTheDocument();
   });
+
+  it('summarizes private transcript readiness across reading, recall, application, and review', () => {
+    mockUseProgressData.mockReturnValue({
+      completed: ['c:html|m:m1|l:l1'],
+      quizScores: {
+        'l:html:l1': '1/1',
+      },
+      challengeCompletions: ['html-challenge-1'],
+    });
+    mockUseSR.mockReturnValue({
+      srCards: [],
+      bookmarks: [],
+      notes: {},
+    });
+    mockUseXP.mockReturnValue({
+      xpTotal: 80,
+      streak: 1,
+      pausedStreak: null,
+      dailyCount: 1,
+      earnedBadges: {},
+    });
+
+    render(<StudentStats isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByRole('heading', { name: /learning transcript/i })).toBeInTheDocument();
+    expect(screen.getByText('Strong learning proof')).toBeInTheDocument();
+    expect(screen.getByText('Reading progress')).toBeInTheDocument();
+    expect(screen.getByText('Recall checks')).toBeInTheDocument();
+    expect(screen.getByText('Application proof')).toBeInTheDocument();
+    expect(screen.getByText('Review health')).toBeInTheDocument();
+    expect(screen.getByText(/not a verified credential/i)).toBeInTheDocument();
+  });
 });
