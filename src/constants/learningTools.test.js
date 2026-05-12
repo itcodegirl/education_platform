@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   FIRST_SESSION_TOOL_KEYS,
   MOBILE_TOOL_KEYS,
+  getBottomSecondaryTools,
   getMobileLearningTools,
   getSidebarResourceTools,
   isLearningToolAvailable,
@@ -18,6 +19,7 @@ describe('learning tool availability', () => {
     expect(isLearningToolAvailable('search', false)).toBe(true);
     expect(isLearningToolAvailable('bookmarks', false)).toBe(true);
     expect(isLearningToolAvailable('stats', false)).toBe(true);
+    expect(isLearningToolAvailable('glossary', false)).toBe(true);
     expect(isLearningToolAvailable('sr', false)).toBe(false);
     expect(isLearningToolAvailable('projects', false)).toBe(false);
     expect(isLearningToolAvailable('badges', false)).toBe(false);
@@ -30,15 +32,21 @@ describe('learning tool availability', () => {
     });
   });
 
+  it('uses the same first-session filter across tool surfaces', () => {
+    const sidebarKeys = getSidebarResourceTools(false).map((tool) => tool.key);
+    const bottomKeys = getBottomSecondaryTools(false).map((tool) => tool.key);
+    const mobileKeys = getMobileLearningTools(false).map((tool) => tool.key);
+
+    expect(sidebarKeys).toEqual(['bookmarks', 'glossary', 'cheatsheet']);
+    expect(bottomKeys).toEqual(['cheatsheet', 'glossary']);
+    expect(mobileKeys).toEqual(['search', 'bookmarks', 'stats', 'cheatsheet', 'glossary']);
+  });
+
   it('builds sidebar resource tools from the shared copy registry', () => {
     const firstSessionTools = getSidebarResourceTools(false);
 
-    expect(firstSessionTools.map((tool) => tool.key)).toEqual([
-      'bookmarks',
-      'glossary',
-      'cheatsheet',
-    ]);
     expect(firstSessionTools[0]).toMatchObject({
+      key: 'bookmarks',
       label: 'Saved lessons',
       hint: 'Return to lessons you chose to keep close.',
     });
@@ -52,12 +60,14 @@ describe('learning tool availability', () => {
     expect(tools.find((tool) => tool.key === 'search')).toMatchObject({
       icon: 'S',
       label: 'Search',
+      shortLabel: 'Search',
       helper: 'Find wording',
       onSelect: onSearch,
     });
     expect(tools.find((tool) => tool.key === 'sr')).toMatchObject({
       icon: 'R',
-      label: 'Review',
+      label: 'Review queue',
+      shortLabel: 'Review',
       onSelect: onSR,
     });
   });
