@@ -178,11 +178,14 @@ async function runPlaywright(baseURL, projectName) {
     ...PUBLIC_SMOKE_SPECS,
     `--project=${projectName}`,
     '--reporter=list',
+    '--workers=1',
+    '--timeout=90000',
   ]);
   return runCommand(playwrightCommand.command, playwrightCommand.args, {
     env: normalizeEnv({
       ...process.env,
       PLAYWRIGHT_BASE_URL: baseURL,
+      PLAYWRIGHT_DISABLE_ARTIFACTS: '1',
     }),
   });
 }

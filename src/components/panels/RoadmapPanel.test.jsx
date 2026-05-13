@@ -85,4 +85,21 @@ describe('RoadmapPanel', () => {
     expect(screen.getByRole('button', { name: /forms/i })).toHaveTextContent('Reading in progress');
     expect(screen.getByText(/Next useful step:/i)).toHaveTextContent(/lesson, quick check, review/i);
   });
+
+  it('shows evidence needed when a module has partial reading progress', () => {
+    mockUseProgressData.mockReturnValue({
+      completedSet: new Set(['c:html|m:m2|l:l2']),
+    });
+
+    render(
+      <RoadmapPanel
+        onClose={vi.fn()}
+        onNavigate={vi.fn()}
+        currentCourseIdx={0}
+        currentModuleIdx={0}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: /forms/i })).toHaveTextContent('Evidence needed');
+  });
 });

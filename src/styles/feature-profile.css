@@ -151,6 +151,12 @@
   font-size: var(--text-sm);
 }
 
+.pp-public-muted {
+  margin-top: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
 .pp-public-success {
   margin-top: var(--space-2);
   padding: 8px 12px;

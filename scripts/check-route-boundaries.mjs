@@ -26,6 +26,11 @@ export const ROUTE_BOUNDARY_RULES = [
     forbiddenSources: ['jspdf', 'html2canvas', '@monaco-editor/react', 'monaco-editor'],
     reason: 'PanelManager should orchestrate lazy surfaces without importing heavy export/editor dependencies.',
   },
+  {
+    file: 'src/utils/progressSummary.js',
+    forbiddenSources: ['jspdf', 'html2canvas'],
+    reason: 'Progress Summary export dependencies must remain dynamically imported inside the PDF action.',
+  },
 ];
 
 export const GLOBAL_STATIC_IMPORT_RULES = [

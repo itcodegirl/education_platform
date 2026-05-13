@@ -29,6 +29,8 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
 
   const [isPublic, setIsPublic] = useState(false);
   const [publicHandle, setPublicHandle] = useState('');
+  const [publicLoading, setPublicLoading] = useState(false);
+  const [publicLoadError, setPublicLoadError] = useState('');
   const [publicSaving, setPublicSaving] = useState(false);
   const [publicError, setPublicError] = useState('');
   const [publicSaved, setPublicSaved] = useState(false);
@@ -39,16 +41,36 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
     async function load() {
       if (!user?.id) return;
 
-      const { data } = await supabase
-        .from('profiles')
-        .select('is_public, public_handle')
-        .eq('id', user.id)
-        .maybeSingle();
+      setPublicLoading(true);
+      setPublicLoadError('');
 
-      if (cancelled || !data) return;
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('is_public, public_handle')
+          .eq('id', user.id)
+          .maybeSingle();
 
-      setIsPublic(Boolean(data.is_public));
-      setPublicHandle(data.public_handle || '');
+        if (cancelled) return;
+
+        if (error) {
+          setPublicLoadError('Could not load public profile settings. You can keep learning and try again later.');
+          return;
+        }
+
+        if (!data) return;
+
+        setIsPublic(Boolean(data.is_public));
+        setPublicHandle(data.public_handle || '');
+      } catch {
+        if (!cancelled) {
+          setPublicLoadError('Could not load public profile settings. You can keep learning and try again later.');
+        }
+      } finally {
+        if (!cancelled) {
+          setPublicLoading(false);
+        }
+      }
     }
 
     load();
@@ -70,6 +92,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
 
     setPublicSaving(true);
     setPublicError('');
+    setPublicLoadError('');
     setPublicSaved(false);
 
     const cleanHandle = (nextHandle || '').trim().toLowerCase();
@@ -316,7 +339,7 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
               <input
                 type="checkbox"
                 checked={isPublic}
-                disabled={publicSaving}
+                disabled={publicSaving || publicLoading}
                 onChange={(event) => {
                   const next = event.target.checked;
 
@@ -348,13 +371,14 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
                   placeholder="jenna"
                   maxLength={30}
                   disabled={publicSaving}
+                  readOnly={publicLoading}
                   aria-invalid={Boolean(publicError)}
                   aria-describedby="pp-handle-help pp-public-status"
                 />
                 <button
                   type="button"
                   className="pp-public-save"
-                  disabled={publicSaving}
+                  disabled={publicSaving || publicLoading}
                   onClick={() => savePublicSettings(true, publicHandle)}
                 >
                   {publicSaving ? 'Saving…' : 'Publish'}
@@ -378,10 +402,12 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
 
           <div
             id="pp-public-status"
-            role={publicError ? 'alert' : 'status'}
-            aria-live={publicError ? 'assertive' : 'polite'}
+            role={publicError || publicLoadError ? 'alert' : 'status'}
+            aria-live={publicError || publicLoadError ? 'assertive' : 'polite'}
             aria-atomic="true"
           >
+            {publicLoading && <div className="pp-public-muted">Loading public profile settings.</div>}
+            {publicLoadError && <div className="pp-public-error">{publicLoadError}</div>}
             {publicError && <div className="pp-public-error">{publicError}</div>}
             {publicSaved && !publicError && (
               <div className="pp-public-success">Saved.</div>
