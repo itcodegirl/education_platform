@@ -34,4 +34,19 @@ describe('challenge evidence summary', () => {
     expect(summary.proofItems).toContain('0 requirements');
     expect(summary.capabilityItems).toEqual(['Renders a card']);
   });
+
+  it('uses challenge-specific rubric items when provided', () => {
+    const summary = getChallengeEvidenceSummary({
+      requirements: ['Uses useState'],
+      rubric: [
+        'Reset reliably returns the count to zero',
+        'You can explain why functional state updates avoid stale values',
+      ],
+    });
+
+    expect(summary.rubricItems).toEqual([
+      'Reset reliably returns the count to zero',
+      'You can explain why functional state updates avoid stale values',
+    ]);
+  });
 });

@@ -6,6 +6,7 @@ export const REACT_CHALLENGES = [
     recommendedModuleId: '301',
     starter:'// import useState\n// Build a Counter component\n// 3 buttons: +, -, Reset\n// Display the count',
     requirements:['Imports useState','Uses const [count, setCount]','Has 3 buttons with onClick','Displays count value'],
+    rubric:['Increment and decrement update from the latest count value','Reset reliably returns the count to zero','You can explain why functional state updates avoid stale values'],
     tests:[
       { label:'imports useState', check:c=>has(c,'useState') },
       { label:'state declaration', check:c=>has(c,'const [')&&has(c,'useState(') },
