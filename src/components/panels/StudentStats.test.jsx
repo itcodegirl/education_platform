@@ -305,6 +305,8 @@ describe('StudentStats streak card', () => {
     expect(screen.getByText('Review due now')).toBeInTheDocument();
     expect(screen.getByText('Challenges: 1/1')).toBeInTheDocument();
     expect(screen.getByRole('region', { name: /progress snapshot summary/i })).toHaveTextContent('1');
+    expect(screen.getByRole('region', { name: /learning transcript/i })).toHaveTextContent(/next evidence step/i);
+    expect(screen.getByRole('region', { name: /learning transcript/i })).toHaveTextContent(/clear due review cards/i);
   });
 
   it('renders the learning transcript from mastery evidence without treating it as a credential', () => {

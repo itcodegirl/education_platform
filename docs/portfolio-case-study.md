@@ -125,6 +125,7 @@ The goal was to keep the existing core vision and architecture intact while maki
 - polished the mobile tools sheet with shared-registry icons, safer disabled states, and constrained labels for narrow screens
 - recovered stale lesson URLs to the first useful lesson in the requested course/module instead of sending learners back to the homepage
 - hardened saved lessons so older partial bookmark records render as unavailable saved items instead of crashing the panel
+- added learner transcript summaries that separate reading progress, recall checks, applied challenges, and due reviews, then recommend one next evidence step instead of implying XP alone proves mastery
 
 ---
 
@@ -136,6 +137,7 @@ The goal was to keep the existing core vision and architecture intact while maki
 | Learner flow | New learners could see many tools before the first meaningful action was obvious. | First-session copy, lesson navigation, empty states, and progress surfaces now emphasize the next learning step. |
 | Learning structure | Lesson progress could still look like a completion checkbox if a reviewer skipped the content details. | The lesson evidence panel now surfaces a compact learning contract before progress states, making outcome, practice, recall, and proof expectations visible. |
 | Reward trust | Quiz/challenge retries and fragile display labels could overstate progress reliability. | Stable quiz ownership, one-time local reward ledgers, retry-safe copy, and explicit backend-sync gating keep claims honest. |
+| Evidence clarity | Learners could see progress totals without knowing what evidence still needed attention. | Transcript panels now separate completion evidence from motivational XP and point to the next review, recall, challenge, or portfolio reflection step. |
 | Recovery | Save failures were mostly advisory. | Covered progress writes can queue, replay, and expose a visible retry action without claiming universal cloud durability. |
 | Stale links | Old or malformed lesson URLs could interrupt the learning flow. | Course and module recovery keeps learners inside the learning path, with tests covering route loader behavior and public preview smoke. |
 | Saved lessons | Partial legacy bookmarks assumed complete course and title data. | Saved lesson rows now use safe labels and disabled unavailable states when catalog matching is not possible. |

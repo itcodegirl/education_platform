@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth, useProgressData, useXP, useSR, useTheme, BADGE_DEFS } from '../../providers';
 import { XP_PER_LEVEL, getLevel, getXPInLevel } from '../../utils/helpers';
 import { getCourseCompletedLessonCount } from '../../utils/lessonKeys';
@@ -7,6 +7,11 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { supabase } from '../../lib/supabaseClient';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 import { COURSE_CATALOG } from '../../data/reference/course-catalog';
+import {
+  areChallengesLoaded,
+  getChallengesForCourse,
+  loadAllChallenges,
+} from '../../data/challenges';
 import { parseQuizScore } from '../../services/rewardPolicy';
 import '../../styles/feature-profile.css';
 
@@ -34,12 +39,12 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
   const [publicSaving, setPublicSaving] = useState(false);
   const [publicError, setPublicError] = useState('');
   const [publicSaved, setPublicSaved] = useState(false);
+  const [challengeCatalogReady, setChallengeCatalogReady] = useState(
+    () => COURSE_CATALOG.every((course) => areChallengesLoaded(course.id)),
+  );
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      if (!user?.id) return;
+  const loadPublicSettings = useCallback(async () => {
+    if (!user?.id) return;
 
       setPublicLoading(true);
       setPublicLoadError('');
@@ -73,11 +78,10 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
       }
     }
 
-    load();
     return () => {
       cancelled = true;
     };
-  }, [user?.id]);
+  }, []);
 
   const savePublicSettings = async (nextIsPublic, nextHandle) => {
     // Defense in depth: ProfilePage is mounted behind the
@@ -162,6 +166,16 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
   const completedLessons = courseStats.reduce((sum, course) => sum + course.done, 0);
   const totalLessons = courseStats.reduce((sum, course) => sum + course.total, 0);
   const badgeCount = Object.keys(earnedBadges).length;
+  const allChallenges = COURSE_CATALOG.flatMap((course) =>
+    getChallengesForCourse(course.id).map((challenge) => ({
+      ...challenge,
+      courseId: course.id,
+    })),
+  );
+  const completedChallengeIds = new Set(challengeCompletions);
+  const completedChallengeCount = allChallenges.length > 0
+    ? allChallenges.filter((challenge) => completedChallengeIds.has(challenge.id)).length
+    : challengeCompletions.length;
   const quizResults = Object.values(quizScores || {})
     .map((scoreValue) => parseQuizScore(scoreValue))
     .filter(Boolean);
@@ -173,7 +187,8 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
     quizChecksPassed,
     quizChecksAttempted: quizResults.length,
     quizChecksNeedsReview: quizResults.length - quizChecksPassed,
-    completedChallenges: challengeCompletions.length,
+    completedChallenges: completedChallengeCount,
+    totalChallenges: allChallenges.length,
     dueReviewCards,
     totalReviewCards: srCards.length,
   });
@@ -244,6 +259,9 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
             </span>
           </div>
           <p className="pp-transcript-copy">{transcript.status.detail}</p>
+          <p className="pp-transcript-action">
+            <span>Next evidence step:</span> {transcript.nextAction.label}. {transcript.nextAction.detail}
+          </p>
           <div className="pp-transcript-grid">
             {transcript.items.map((item) => (
               <div key={item.key} className={`pp-transcript-item pp-transcript-item-${item.tone}`}>
@@ -416,6 +434,11 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
         </div>
 
         <h3 className="pp-section-title">Quiet signals</h3>
+        {!challengeCatalogReady && (
+          <p className="pp-hero-copy" role="status">
+            Loading challenge history so application proof stays accurate.
+          </p>
+        )}
         <div className="pp-activity-grid">
           {[
             { icon: '★', value: bookmarks.length, label: 'Bookmarks' },

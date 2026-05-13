@@ -67,6 +67,17 @@ vi.mock('../../data/reference/course-catalog', () => ({
   ],
 }));
 
+vi.mock('../../data/challenges', () => ({
+  areChallengesLoaded: () => true,
+  getChallengesForCourse: (courseId) => {
+    if (courseId === 'html') return [{ id: 'html-challenge-1', title: 'HTML Challenge' }];
+    return [];
+  },
+  loadAllChallenges: vi.fn(async () => ({
+    html: [{ id: 'html-challenge-1', title: 'HTML Challenge' }],
+  })),
+}));
+
 vi.mock('../../hooks/useDocumentTitle', () => ({
   useDocumentTitle: () => {},
 }));
@@ -106,6 +117,9 @@ describe('ProfilePage accessibility', () => {
     expect(screen.getByLabelText(/current learning status/i)).toHaveTextContent(/lessons completed/i);
     expect(screen.getByRole('heading', { name: /private learning transcript/i })).toBeInTheDocument();
     expect(screen.getByText(/strong learning proof/i)).toBeInTheDocument();
+    expect(screen.getByText('Application proof').parentElement).toHaveTextContent('1/1');
+    expect(screen.getByText(/next evidence step/i)).toBeInTheDocument();
+    expect(screen.getByText(/turn proof into a portfolio note/i)).toBeInTheDocument();
     expect(screen.getAllByText(/not a verified credential/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole('list', { name: /1 of 2 badges earned/i })).toBeInTheDocument();
 

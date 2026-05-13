@@ -346,6 +346,9 @@ export function StudentStats({ isOpen, onClose }) {
               </span>
             </div>
             <p className="ss-evidence-next">{stats.transcript.status.detail}</p>
+            <p className="ss-transcript-action">
+              <span>Next evidence step:</span> {stats.transcript.nextAction.label}. {stats.transcript.nextAction.detail}
+            </p>
             <div className="ss-transcript-grid">
               {stats.transcript.items.map((item) => (
                 <div key={item.key} className={`ss-transcript-card ss-transcript-card-${item.tone}`}>
