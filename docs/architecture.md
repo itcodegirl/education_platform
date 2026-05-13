@@ -188,7 +188,43 @@ Live token preview route: `/styleguide`.
 
 ---
 
-## 7. Performance strategy
+## 7. Launch readiness evidence model
+
+Production readiness is treated as an evidence trail, not a visual polish pass. The app can be demoed locally today, but public launch claims should only be made when the automated gates and manual staging evidence agree.
+
+```mermaid
+flowchart TB
+  Learner["Learner browser"]
+  LocalLedger["Local progress and reward ledger"]
+  Supabase["Supabase Auth, Postgres, and RLS"]
+  BackendRewards["Feature-gated backend reward sync"]
+  CI["CI quality gates"]
+  ManualEvidence["Manual staging evidence"]
+  ReleaseDecision["Launch readiness decision"]
+
+  Learner --> LocalLedger
+  Learner --> Supabase
+  LocalLedger --> BackendRewards
+  BackendRewards --> Supabase
+  CI --> ReleaseDecision
+  ManualEvidence --> ReleaseDecision
+  Supabase --> ManualEvidence
+
+  CI -. "build, test, lint, typecheck" .-> ReleaseDecision
+  CI -. "performance, route, auth E2E, template audits" .-> ReleaseDecision
+  ManualEvidence -. "staging Supabase validation" .-> ReleaseDecision
+  ManualEvidence -. "Lighthouse dated score capture" .-> ReleaseDecision
+```
+
+Evidence ownership:
+
+- Automated gates protect repeatable quality: build, lint, source-policy typecheck, unit tests, bundle budgets, lazy route boundaries, authenticated E2E readiness, Supabase readiness docs, Lighthouse evidence docs, and launch-readiness issue templates.
+- Manual gates cover the pieces that require real project access: staging Supabase validation, configured authenticated E2E secrets, Lighthouse score capture against the deployed app, and final privacy/security review.
+- Product claims should stay conservative until backend reward sync is verified in staging. Local XP, badges, streaks, and certificates must not be described as cross-device or externally verified unless server-backed evidence exists.
+
+---
+
+## 8. Performance strategy
 
 - Domain-aware chunking in `vite.config.js` keeps first paint focused.
 - Monaco editor is lazy loaded so first-run users do not pay editor cost up front.
@@ -199,7 +235,7 @@ Live token preview route: `/styleguide`.
 
 ---
 
-## 8. Intentional non-goals
+## 9. Intentional non-goals
 
 - No full framework rewrite.
 - No heavyweight state library while current complexity remains manageable.
