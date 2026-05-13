@@ -161,26 +161,6 @@ export function StudentStats({ isOpen, onClose }) {
       getChallengesForCourse,
       srCards,
     });
-    const transcript = buildLearnerTranscriptSummary({
-      completedLessons: totalDone,
-      totalLessons,
-      quizChecksPassed: masteryEvidence.quizChecksPassed,
-      quizChecksAttempted: masteryEvidence.quizChecksAttempted,
-      quizChecksNeedsReview: masteryEvidence.quizChecksNeedsReview,
-      completedChallenges: masteryEvidence.completedChallenges,
-      totalChallenges: masteryEvidence.totalChallenges,
-      dueReviewCards: masteryEvidence.dueReviewCards,
-      totalReviewCards: masteryEvidence.totalReviewCards,
-    });
-    const moduleEvidence = summarizeModuleMasteryEvidence({
-      courses: COURSE_CATALOG,
-      completedSet,
-      quizResults: allResults,
-      challengeCompletions,
-      getChallengesForCourse,
-      srCards,
-    });
-
     return {
       level,
       xpTotal,
@@ -195,7 +175,6 @@ export function StudentStats({ isOpen, onClose }) {
       masteryEvidence,
       transcript,
       moduleEvidence,
-      transcript,
       strongest,
       weakest,
       streak,
