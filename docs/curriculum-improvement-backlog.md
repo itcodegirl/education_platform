@@ -38,6 +38,9 @@ These raise educational depth and long-term retention.
      in `npm run audit:content`.
 
 2. Strengthen applied challenges.
+   - Current mitigation: challenge evidence summaries now show requirements,
+     automated checks, portfolio reflection prompts, and a definition-of-done
+     rubric before the learner treats the work as evidence.
    - Add or verify `recommendedModuleId` for challenges when the difficulty
      ratio is too generic.
    - Add portfolio-style requirements where the challenge currently proves only
