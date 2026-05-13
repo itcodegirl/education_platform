@@ -175,6 +175,7 @@ export function StudentStats({ isOpen, onClose }) {
       quizzesTaken: allResults.length,
       masteryEvidence,
       moduleEvidence,
+      transcript,
       strongest,
       weakest,
       streak,
