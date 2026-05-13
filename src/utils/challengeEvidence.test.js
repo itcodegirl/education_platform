@@ -17,6 +17,11 @@ describe('challenge evidence summary', () => {
       'beginner practice',
     ]);
     expect(summary.capabilityItems).toEqual(['Use semantic HTML', 'Connect labels']);
+    expect(summary.rubricItems).toEqual([
+      'Every visible requirement is represented in the code.',
+      'Automated checks pass without changing the grader.',
+      'You can explain one code decision and one improvement.',
+    ]);
     expect(summary.reflectionPrompts).toHaveLength(3);
   });
 

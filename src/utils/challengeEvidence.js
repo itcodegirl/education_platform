@@ -4,6 +4,12 @@ const DEFAULT_REFLECTION_PROMPTS = Object.freeze([
   'What would you improve before showing this in a portfolio?',
 ]);
 
+const DEFAULT_RUBRIC_ITEMS = Object.freeze([
+  'Every visible requirement is represented in the code.',
+  'Automated checks pass without changing the grader.',
+  'You can explain one code decision and one improvement.',
+]);
+
 function normalizeTextList(items = []) {
   if (!Array.isArray(items)) return [];
   return items
@@ -43,6 +49,7 @@ export function getChallengeEvidenceSummary(challenge, { isCompleted = false } =
     ],
     capabilityItems,
     testLabels,
+    rubricItems: DEFAULT_RUBRIC_ITEMS,
     reflectionPrompts: DEFAULT_REFLECTION_PROMPTS,
   };
 }
