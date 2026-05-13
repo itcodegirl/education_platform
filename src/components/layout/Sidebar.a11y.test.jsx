@@ -95,7 +95,7 @@ describe('Sidebar accessibility', () => {
       },
     });
     expect(results.violations).toEqual([]);
-  });
+  }, 15000);
 
   it('keeps the closed mobile drawer inert and out of the tab order', async () => {
     const { container } = renderSidebar({

@@ -151,23 +151,6 @@ export function StudentStats({ isOpen, onClose }) {
       getChallengesForCourse,
       srCards,
     });
-    const transcript = buildLearnerTranscriptSummary({
-      completedLessons: totalDone,
-      totalLessons,
-      quizChecksPassed: masteryEvidence.quizChecksPassed,
-      quizChecksAttempted: masteryEvidence.quizChecksAttempted,
-      quizChecksNeedsReview: masteryEvidence.quizChecksNeedsReview,
-      completedChallenges: masteryEvidence.completedChallenges,
-      totalChallenges: masteryEvidence.totalChallenges,
-      dueReviewCards: masteryEvidence.dueReviewCards,
-      totalReviewCards: masteryEvidence.totalReviewCards,
-    });
-    const retentionSignals = buildRetentionSignalSummary({
-      quizResults: allResults,
-      srCards,
-      reviewFocusModules: moduleEvidence.reviewFocusModules,
-    });
-
     return {
       level,
       xpTotal,
@@ -181,7 +164,6 @@ export function StudentStats({ isOpen, onClose }) {
       quizzesTaken: allResults.length,
       masteryEvidence,
       moduleEvidence,
-      transcript,
       strongest,
       weakest,
       streak,

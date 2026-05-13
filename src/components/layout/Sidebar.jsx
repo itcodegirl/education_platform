@@ -481,6 +481,15 @@ export const Sidebar = memo(function Sidebar({
                 </button>
               ))}
 
+            {activePopout === 'resources' && (
+              <div className="sidebar-tool-intro" role="presentation">
+                <span className="sidebar-tool-intro-label">Use when needed</span>
+                <span className="sidebar-tool-intro-copy">
+                  Stay with the lesson unless one of these removes friction.
+                </span>
+              </div>
+            )}
+
             {activePopout === 'resources' &&
               [
                 {
@@ -535,6 +544,11 @@ export const Sidebar = memo(function Sidebar({
                 </button>
                 );
               })}
+            {activePopout === 'resources' && !hasCompletedProgress && (
+              <p className="sidebar-tool-unlock" role="presentation">
+                Practice tools unlock after your first completed lesson so the first session stays focused.
+              </p>
+            )}
           </div>
         )}
 
