@@ -27,7 +27,10 @@ vi.mock('../../data/reference/course-catalog', () => ({
           id: 'm2',
           title: 'Forms',
           emoji: 'Fo',
-          lessons: [{ id: 'l2', title: 'Inputs' }],
+          lessons: [
+            { id: 'l2', title: 'Inputs' },
+            { id: 'l3', title: 'Validation' },
+          ],
         },
       ],
     },
@@ -48,7 +51,7 @@ describe('RoadmapPanel', () => {
     mockUseProgressData.mockReturnValue({ completedSet: new Set() });
   });
 
-  it('labels the current module and upcoming modules', () => {
+  it('labels the current module and not-started modules with readiness language', () => {
     render(
       <RoadmapPanel
         onClose={vi.fn()}
@@ -58,13 +61,13 @@ describe('RoadmapPanel', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: /foundations/i })).toHaveTextContent('Current');
-    expect(screen.getByRole('button', { name: /forms/i })).toHaveTextContent('Upcoming');
+    expect(screen.getByRole('button', { name: /foundations/i })).toHaveTextContent('Reading in progress');
+    expect(screen.getByRole('button', { name: /forms/i })).toHaveTextContent('Not started');
     expect(screen.getByText(/Stage 1: Structure/i)).toBeInTheDocument();
     expect(screen.getByText(/Evidence target:/i)).toHaveTextContent(/accessible structure/i);
   });
 
-  it('keeps complete modules distinct from the current module', () => {
+  it('keeps complete modules distinct from the current module readiness state', () => {
     mockUseProgressData.mockReturnValue({
       completedSet: new Set(['c:html|m:m1|l:l1']),
     });
@@ -78,8 +81,25 @@ describe('RoadmapPanel', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: /foundations/i })).toHaveTextContent('Complete');
-    expect(screen.getByRole('button', { name: /forms/i })).toHaveTextContent('Current');
+    expect(screen.getByRole('button', { name: /foundations/i })).toHaveTextContent('Ready to continue');
+    expect(screen.getByRole('button', { name: /forms/i })).toHaveTextContent('Reading in progress');
     expect(screen.getByText(/Next useful step:/i)).toHaveTextContent(/lesson, quick check, review/i);
+  });
+
+  it('shows evidence needed when a module has partial reading progress', () => {
+    mockUseProgressData.mockReturnValue({
+      completedSet: new Set(['c:html|m:m2|l:l2']),
+    });
+
+    render(
+      <RoadmapPanel
+        onClose={vi.fn()}
+        onNavigate={vi.fn()}
+        currentCourseIdx={0}
+        currentModuleIdx={0}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: /forms/i })).toHaveTextContent('Evidence needed');
   });
 });

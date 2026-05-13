@@ -8,6 +8,7 @@ const dom = (iframe) => iframe?.contentDocument || null;
 
 export const HTML_CHALLENGES = [
   { id:'html-ch-1', title:'Build a Navigation Bar', description:'Create a semantic nav with 4 links.', difficulty:'beginner', courseId:'html',
+    recommendedModuleId: '101',
     starter:'<nav>\n  <!-- Add 4 links -->\n</nav>',
     requirements:['Use a <nav> element','Include exactly 4 links','Each link has href','One link opens in new tab'],
     tests:[
@@ -23,6 +24,7 @@ export const HTML_CHALLENGES = [
     solution:'<nav>\n  <a href="/">Home</a>\n  <a href="/about">About</a>\n  <a href="/contact">Contact</a>\n  <a href="https://github.com" target="_blank">GitHub</a>\n</nav>' },
 
   { id:'html-ch-2', title:'Accessible Contact Form', description:'Build a form with labels, required fields, and fieldset.', difficulty:'beginner', courseId:'html',
+    recommendedModuleId: '103',
     starter:'<form>\n  <!-- name, email, message -->\n  <!-- Use labels, required, fieldset -->\n</form>',
     requirements:['Has <fieldset> with <legend>','Has name, email, textarea','Labels connected with for/id','Name and email required','Has submit button'],
     tests:[
@@ -50,6 +52,7 @@ export const HTML_CHALLENGES = [
     solution:'<form>\n  <fieldset>\n    <legend>Contact Us</legend>\n    <label for="name">Name</label>\n    <input type="text" id="name" name="name" required />\n    <label for="email">Email</label>\n    <input type="email" id="email" name="email" required />\n    <label for="msg">Message</label>\n    <textarea id="msg" name="message" rows="4"></textarea>\n    <button type="submit">Send</button>\n  </fieldset>\n</form>' },
 
   { id:'html-ch-3', title:'Semantic Page Layout', description:'Build a full page using semantic HTML - no divs.', difficulty:'beginner', courseId:'html',
+    recommendedModuleId: '104',
     starter:'<!-- header, nav, main, section, article, aside, footer -->',
     requirements:['Has <header> with <nav>','Has <main>','Has <section> with <article>','Has <aside>','Has <footer>','No <div> elements'],
     tests:[
@@ -74,6 +77,7 @@ export const HTML_CHALLENGES = [
     solution:'<header>\n  <nav><a href="/">Home</a> <a href="/about">About</a></nav>\n</header>\n<main>\n  <section>\n    <h2>Posts</h2>\n    <article><h3>First Post</h3><p>Content.</p></article>\n  </section>\n  <aside><h3>About</h3><p>Sidebar.</p></aside>\n</main>\n<footer><p>&copy; 2025 CodeHerWay</p></footer>' },
 
   { id:'html-ch-4', title:'Data Table', description:'Build a structured table with thead, tbody, and 3+ rows.', difficulty:'beginner', courseId:'html',
+    recommendedModuleId: '103',
     starter:'<table>\n  <!-- thead, tbody, th, td -->\n</table>',
     requirements:['Uses <thead> and <tbody>','Has <th> headers','At least 3 columns','At least 3 data rows'],
     tests:[
@@ -90,6 +94,7 @@ export const HTML_CHALLENGES = [
     solution:'<table>\n  <thead>\n    <tr><th>Name</th><th>Role</th><th>Status</th></tr>\n  </thead>\n  <tbody>\n    <tr><td>Jenna</td><td>Developer</td><td>Active</td></tr>\n    <tr><td>Alex</td><td>Designer</td><td>Active</td></tr>\n    <tr><td>Sam</td><td>PM</td><td>Away</td></tr>\n  </tbody>\n</table>' },
 
   { id:'html-ch-5', title:'Image Gallery with Figures', description:'Create a 3-image gallery using figure and figcaption.', difficulty:'beginner', courseId:'html',
+    recommendedModuleId: '103',
     starter:'<!-- 3 images with figure + figcaption -->\n<!-- Each image needs meaningful alt text -->',
     requirements:['3 <figure> elements','Each has <img> with alt','Each has <figcaption>','All images have width or height'],
     tests:[
@@ -110,6 +115,7 @@ export const HTML_CHALLENGES = [
     solution:'<figure>\n  <img src="sunset.jpg" alt="Golden sunset over the ocean" width="400" />\n  <figcaption>Sunset at Malibu Beach</figcaption>\n</figure>\n<figure>\n  <img src="city.jpg" alt="Chicago skyline at night" width="400" />\n  <figcaption>Chicago after dark</figcaption>\n</figure>\n<figure>\n  <img src="code.jpg" alt="Code on a dark screen" width="400" />\n  <figcaption>Late night coding session</figcaption>\n</figure>' },
 
   { id:'html-ch-6', title:'FAQ Accordion (No JS)', description:'Build an FAQ section with 4 expandable questions using only HTML.', difficulty:'beginner', courseId:'html',
+    recommendedModuleId: '103',
     starter:'<!-- Use <details> and <summary> -->\n<!-- No JavaScript needed! -->',
     requirements:['Uses <details> and <summary>','At least 4 questions','Each has answer content','Wrapped in a <section>'],
     tests:[
@@ -126,6 +132,7 @@ export const HTML_CHALLENGES = [
     solution:'<section>\n  <h2>FAQ</h2>\n  <details><summary>What is HTML?</summary><p>HyperText Markup Language - structures web content.</p></details>\n  <details><summary>Is HTML a programming language?</summary><p>No, it is a markup language.</p></details>\n  <details><summary>What is semantic HTML?</summary><p>Using tags that describe meaning, like nav, main, article.</p></details>\n  <details><summary>Why is alt text important?</summary><p>Screen readers need it to describe images to visually impaired users.</p></details>\n</section>' },
 
   { id:'html-ch-7', title:'Registration Form', description:'Build a job application form with multiple input types.', difficulty:'intermediate', courseId:'html',
+    recommendedModuleId: '103',
     starter:'<form>\n  <!-- name, email, phone, experience (radio),\n       skills (checkboxes), resume (file), submit -->\n</form>',
     requirements:['Has text, email, and tel inputs','Has radio buttons for experience','Has checkboxes for skills','Has file upload','All inputs have labels','Has submit button'],
     tests:[
@@ -150,6 +157,7 @@ export const HTML_CHALLENGES = [
     solution:'<form>\n  <label for="name">Name</label>\n  <input type="text" id="name" required />\n  <label for="email">Email</label>\n  <input type="email" id="email" required />\n  <label for="phone">Phone</label>\n  <input type="tel" id="phone" />\n  <p>Experience:</p>\n  <label><input type="radio" name="exp" value="junior" /> Junior</label>\n  <label><input type="radio" name="exp" value="mid" /> Mid</label>\n  <label><input type="radio" name="exp" value="senior" /> Senior</label>\n  <p>Skills:</p>\n  <label><input type="checkbox" name="skills" value="html" /> HTML</label>\n  <label><input type="checkbox" name="skills" value="css" /> CSS</label>\n  <label><input type="checkbox" name="skills" value="js" /> JavaScript</label>\n  <label for="resume">Resume</label>\n  <input type="file" id="resume" accept=".pdf" />\n  <button type="submit">Apply</button>\n</form>' },
 
   { id:'html-ch-8', title:'SEO-Ready Head Section', description:'Write a complete <head> with meta tags, OG, and favicon.', difficulty:'intermediate', courseId:'html',
+    recommendedModuleId: '104',
     starter:'<head>\n  <!-- charset, viewport, title, description,\n       Open Graph, favicon, CSS link -->\n</head>',
     requirements:['Has charset and viewport meta','Has <title>','Has meta description','Has Open Graph tags','Has favicon link','Has CSS link'],
     tests:[
@@ -174,6 +182,7 @@ export const HTML_CHALLENGES = [
     solution:'<head>\n  <meta charset="UTF-8" />\n  <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n  <title>My Portfolio | Web Developer</title>\n  <meta name="description" content="Portfolio of a frontend developer." />\n  <meta property="og:title" content="My Portfolio" />\n  <meta property="og:description" content="Frontend developer portfolio." />\n  <meta property="og:image" content="https://example.com/og.jpg" />\n  <link rel="icon" href="favicon.ico" />\n  <link rel="stylesheet" href="styles.css" />\n</head>' },
 
   { id:'html-ch-9', title:'Accessible Icon Toolbar', description:'Build a toolbar with icon buttons and proper ARIA.', difficulty:'intermediate', courseId:'html',
+    recommendedModuleId: '104',
     starter:'<!-- 4 icon buttons with aria-label -->\n<!-- Decorative icons need aria-hidden -->',
     requirements:['4+ <button> elements','Each has aria-label','Uses semantic elements','Decorative content has aria-hidden'],
     tests:[
@@ -192,6 +201,7 @@ export const HTML_CHALLENGES = [
     solution:'<nav aria-label="Toolbar">\n  <button aria-label="Home"><span aria-hidden="true">🏠</span></button>\n  <button aria-label="Search"><span aria-hidden="true">🔍</span></button>\n  <button aria-label="Settings"><span aria-hidden="true">⚙️</span></button>\n  <button aria-label="Profile"><span aria-hidden="true">👤</span></button>\n</nav>' },
 
   { id:'html-ch-10', title:'Multi-Page Site Structure', description:'Create index.html with navigation linking to 3 other pages.', difficulty:'intermediate', courseId:'html',
+    recommendedModuleId: '104',
     starter:'<!-- Build a homepage with:\n     - Semantic layout\n     - Navigation to about, projects, contact\n     - Hero section with heading\n     - Footer with copyright -->',
     requirements:['Full HTML5 skeleton','Semantic layout (header, main, footer)','Navigation with 3+ links','Has an <h1>','Footer with copyright entity','Uses relative paths'],
     tests:[

@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { analyzeLearningContent } from '../../scripts/audit-learning-content.mjs';
+import {
+  analyzeLearningContent,
+  buildAuditSummary,
+  checkAuditWarningBudget,
+} from '../../scripts/audit-learning-content.mjs';
 
 const courseMetadata = [
   { id: 'html', label: 'HTML', accent: '#f97316' },
@@ -194,6 +198,157 @@ describe('learning content audit', () => {
       path: 'html.quizzes[0]',
       message: 'Quiz quality rubric is missing misconception, reasoning, application item coverage.',
     });
+  });
+
+  it('verifies challenge module mapping without blocking missing legacy mappings', () => {
+    const fixture = makeFixture();
+    fixture.loaded[0].data.challenges = [
+      {
+        id: 'html-challenge-1',
+        courseId: 'html',
+        title: 'Build a page',
+        description: 'Practice the module outcome.',
+        requirements: ['Use semantic structure'],
+        tests: [{ label: 'Has nav', check: () => true }],
+        starter: '<nav></nav>',
+        solution: '<nav><a href="/">Home</a></nav>',
+      },
+      {
+        id: 'html-challenge-2',
+        courseId: 'html',
+        recommendedModuleId: 'missing-module',
+        title: 'Broken mapping',
+        description: 'This mapping should be caught.',
+        requirements: ['Use semantic structure'],
+        tests: [{ label: 'Has nav', check: () => true }],
+        starter: '<nav></nav>',
+        solution: '<nav><a href="/">Home</a></nav>',
+      },
+    ];
+
+    const result = analyzeLearningContent(fixture);
+
+    expect(result.warnings).toContainEqual({
+      path: 'html.challenges[0]',
+      message: 'Challenge is missing recommendedModuleId; module readiness will fall back to difficulty-based placement.',
+    });
+    expect(result.issues).toContainEqual({
+      path: 'html.challenges[1]',
+      message: 'Challenge recommendedModuleId "missing-module" does not match an active module in html.',
+    });
+  });
+
+  it('summarizes warnings by course, category, and missing signal for curriculum planning', () => {
+    const fixture = makeFixture({
+      htmlSecondLesson: {
+        content: 'Read this explanation only.',
+        do: undefined,
+        challenge: '',
+      },
+    });
+    fixture.loaded[0].data.quizzes = [
+      {
+        id: 'html-quiz-1',
+        lessonId: 'html-1-1',
+        questions: [
+          {
+            id: 'q1',
+            question: 'What tag creates a paragraph?',
+            options: ['p', 'div'],
+            correct: 0,
+            explanation: 'The p tag creates a paragraph.',
+          },
+        ],
+      },
+    ];
+
+    const result = analyzeLearningContent(fixture);
+    const summary = buildAuditSummary(result);
+
+    expect(summary.warningCount).toBe(result.warnings.length);
+    expect(summary.warningsByCourse).toContainEqual(expect.objectContaining({
+      name: 'html',
+      count: expect.any(Number),
+    }));
+    expect(summary.warningsByCategory).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'lesson-quality-rubric' }),
+      expect.objectContaining({ name: 'quiz-quality-rubric' }),
+    ]));
+    expect(summary.missingSignals).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'misconception' }),
+      expect.objectContaining({ name: 'retrievalPrompt' }),
+    ]));
+  });
+
+  it('summarizes missing challenge module mappings without leaking explanatory copy into the signal', () => {
+    const fixture = makeFixture();
+    fixture.loaded[0].data.challenges = [
+      {
+        id: 'html-challenge-1',
+        courseId: 'html',
+        title: 'Build a page',
+        description: 'Practice the module outcome.',
+        requirements: ['Use semantic structure'],
+        tests: [{ label: 'Has nav', check: () => true }],
+        starter: '<nav></nav>',
+        solution: '<nav><a href="/">Home</a></nav>',
+      },
+    ];
+
+    const summary = buildAuditSummary(analyzeLearningContent(fixture));
+
+    expect(summary.warningsByCategory).toContainEqual(expect.objectContaining({
+      name: 'challenge-module-mapping',
+    }));
+    expect(summary.missingSignals).toContainEqual(expect.objectContaining({
+      name: 'recommendedModuleId',
+    }));
+  });
+
+  it('keeps existing report-only warnings under an explicit budget', () => {
+    const summary = {
+      warningCount: 2,
+      warningsByCourse: [{ name: 'html', count: 2 }],
+      warningsByCategory: [{ name: 'quiz-quality-rubric', count: 2 }],
+      missingSignals: [{ name: 'application item coverage', count: 2 }],
+    };
+
+    expect(checkAuditWarningBudget(summary, {
+      warningCount: 2,
+      warningsByCourse: [{ name: 'html', count: 2 }],
+      warningsByCategory: [{ name: 'quiz-quality-rubric', count: 2 }],
+      missingSignals: [{ name: 'application item coverage', count: 2 }],
+    })).toEqual([]);
+  });
+
+  it('fails the warning budget when content quality warnings regress', () => {
+    const failures = checkAuditWarningBudget({
+      warningCount: 3,
+      warningsByCourse: [
+        { name: 'html', count: 2 },
+        { name: 'react', count: 1 },
+      ],
+      warningsByCategory: [
+        { name: 'quiz-quality-rubric', count: 2 },
+        { name: 'lesson-quality-rubric', count: 1 },
+      ],
+      missingSignals: [
+        { name: 'application item coverage', count: 2 },
+        { name: 'transfer', count: 1 },
+      ],
+    }, {
+      warningCount: 2,
+      warningsByCourse: [{ name: 'html', count: 2 }],
+      warningsByCategory: [{ name: 'quiz-quality-rubric', count: 2 }],
+      missingSignals: [{ name: 'application item coverage', count: 2 }],
+    });
+
+    expect(failures).toEqual(expect.arrayContaining([
+      'Total report-only warnings increased from 2 to 3.',
+      'Course warnings "react" increased from 0 to 1.',
+      'Warning category "lesson-quality-rubric" increased from 0 to 1.',
+      'Missing signal "transfer" increased from 0 to 1.',
+    ]));
   });
 
   it('flags route-ambiguous course content ids before they break deep links', () => {

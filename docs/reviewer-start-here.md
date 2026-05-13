@@ -19,7 +19,7 @@ This is the fastest path for a recruiter or technical reviewer to understand Cod
 6. For architecture, read [docs/architecture.md](./architecture.md).
 7. For a fast walkthrough, use [docs/reviewer-demo-script.md](./reviewer-demo-script.md).
 8. For current trust boundaries, read [docs/trust-boundaries.md](./trust-boundaries.md).
-9. For performance evidence, read [docs/lighthouse-evidence.md](./lighthouse-evidence.md).
+9. For the required portfolio screenshot proof set, use [docs/screenshots/README.md](./screenshots/README.md).
 10. If reviewing open PRs or older branches, use [docs/branch-triage.md](./branch-triage.md).
 
 ## Trust Boundaries
@@ -33,6 +33,7 @@ This is the fastest path for a recruiter or technical reviewer to understand Cod
 - Staging reward validation has a runbook integrity gate: `npm run audit:staging-runbook`; passing it means the checklist is complete, not that live staging has passed.
 - Authenticated persistence has unit coverage for account switching and learner-scoped pending retry queues; live authenticated E2E still needs configured Supabase test credentials.
 - "Complete lesson" means saved reading progress. Quiz results and challenge completion are separate learning checks.
+- Lesson and progress surfaces use one shared readiness vocabulary: Not started, Reading in progress, Evidence needed, Review needed, and Ready to continue.
 
 ## Useful Commands
 
@@ -42,6 +43,12 @@ npm run check
 npm run test:e2e:smoke:public
 ```
 
+Public mobile visual coverage:
+
+```bash
+PLAYWRIGHT_PORT=4321 npx playwright test tests/e2e/public.visual.spec.js --project=mobile-chrome
+```
+
 Focused checks:
 
 ```bash
@@ -49,7 +56,7 @@ npm run lint
 npm run typecheck
 npm run check:js-source
 npm run build
-npm run test:lighthouse
+npm run audit:screenshot-guide
 npm run audit:staging-runbook
 npm run audit:content
 npm run test:unit

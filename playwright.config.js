@@ -1,7 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:4319';
+const playwrightPort = process.env.PLAYWRIGHT_PORT || '4319';
+const baseURL = process.env.PLAYWRIGHT_BASE_URL || `http://127.0.0.1:${playwrightPort}`;
 const useManagedDevServer = !process.env.PLAYWRIGHT_BASE_URL;
+const disableArtifacts = process.env.PLAYWRIGHT_DISABLE_ARTIFACTS === '1';
 const publicProjectIgnore = [
   /.*authenticated\..*\.spec\.js/,
   /.*lesson-flow\.spec\.js/,
@@ -17,9 +19,9 @@ export default defineConfig({
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL,
-    trace: 'retain-on-failure',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    trace: disableArtifacts ? 'off' : 'retain-on-failure',
+    screenshot: disableArtifacts ? 'off' : 'only-on-failure',
+    video: disableArtifacts ? 'off' : 'retain-on-failure',
   },
   projects: [
     {
@@ -61,7 +63,7 @@ export default defineConfig({
   ],
   webServer: useManagedDevServer
     ? {
-      command: 'npm run dev -- --host 127.0.0.1 --port 4319',
+      command: `npm run dev -- --host 127.0.0.1 --port ${playwrightPort}`,
       url: baseURL,
       // Always boot this repo's dev server for Playwright runs.
       // Reusing an existing process can attach to unrelated local apps

@@ -1,13 +1,17 @@
+import { getDashboardReadiness } from './learnerReadiness';
+
 export function getProgressSnapshotItems({
   totalDone = 0,
   totalLessons = 0,
-  quizzesTaken = 0,
   masteryEvidence = {},
   srDue = 0,
 } = {}) {
-  const checksPassed = Number(masteryEvidence.quizChecksPassed || 0);
-  const checksAttempted = Number(masteryEvidence.quizChecksAttempted || 0);
   const reviewDue = Math.max(0, Number(srDue) || 0);
+  const readiness = getDashboardReadiness({
+    totalDone,
+    masteryEvidence,
+    srDue: reviewDue,
+  });
 
   return [
     {
@@ -20,13 +24,11 @@ export function getProgressSnapshotItems({
       tone: totalDone > 0 ? 'ready' : 'quiet',
     },
     {
-      key: 'mastery',
-      label: 'Mastery checks',
-      value: checksAttempted > 0 ? `${checksPassed}/${checksAttempted}` : 'Not yet',
-      detail: quizzesTaken > 0
-        ? 'Quiz evidence is separate from practice XP.'
-        : 'Quick checks will appear after lesson practice.',
-      tone: checksAttempted > 0 && checksPassed === checksAttempted ? 'ready' : 'quiet',
+      key: 'readiness',
+      label: 'Current state',
+      value: readiness.label,
+      detail: readiness.detail,
+      tone: readiness.tone,
     },
     {
       key: 'review',

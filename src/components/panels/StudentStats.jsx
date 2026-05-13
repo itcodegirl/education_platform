@@ -134,6 +134,7 @@ export function StudentStats({ isOpen, onClose }) {
     const totalLessons = courseStats.reduce((sum, course) => sum + course.totalLessons, 0);
     const totalDone = courseStats.reduce((sum, course) => sum + course.done, 0);
     const totalPercent = totalLessons > 0 ? Math.round((totalDone / totalLessons) * 100) : 0;
+    const srDue = srCards.filter((card) => card.nextReview <= Date.now()).length;
     const masteryEvidence = summarizeMasteryEvidence({
       quizResults: allResults,
       completedLessonCount: totalDone,
@@ -171,6 +172,14 @@ export function StudentStats({ isOpen, onClose }) {
       dueReviewCards: masteryEvidence.dueReviewCards,
       totalReviewCards: masteryEvidence.totalReviewCards,
     });
+    const moduleEvidence = summarizeModuleMasteryEvidence({
+      courses: COURSE_CATALOG,
+      completedSet,
+      quizResults: allResults,
+      challengeCompletions,
+      getChallengesForCourse,
+      srCards,
+    });
 
     return {
       level,
@@ -194,7 +203,7 @@ export function StudentStats({ isOpen, onClose }) {
       dailyCount,
       badgeCount: Object.keys(earnedBadges).length,
       totalBadges: BADGE_DEFS.length,
-      srDue: srCards.filter((card) => card.nextReview <= Date.now()).length,
+      srDue,
       srTotal: srCards.length,
       bookmarkCount: bookmarks.length,
       noteCount: Object.keys(notes).length,
@@ -203,7 +212,7 @@ export function StudentStats({ isOpen, onClose }) {
         totalLessons,
         quizzesTaken: allResults.length,
         masteryEvidence,
-        srDue: srCards.filter((card) => card.nextReview <= Date.now()).length,
+        srDue,
       }),
     };
   }, [bookmarks, challengeCompletions, completed, earnedBadges, notes, quizScores, srCards, streak, pausedStreak, dailyCount, xpTotal]);
@@ -281,8 +290,8 @@ export function StudentStats({ isOpen, onClose }) {
               <span className="ss-empty-icon" aria-hidden="true">✓</span>
               <h3 className="ss-empty-title">No completed lessons yet</h3>
               <p className="ss-empty-body">
-                Read the lesson in front of you first. When the idea clicks, use Complete lesson
-                to start your progress dashboard.
+                Read the lesson in front of you first. Complete lesson saves reading progress;
+                quick checks, review, and challenges add mastery evidence later.
               </p>
               <button type="button" className="ss-empty-cta" onClick={onClose}>
                 Back to current lesson
@@ -447,13 +456,37 @@ export function StudentStats({ isOpen, onClose }) {
               <div className="ss-section-heading-row">
                 <h3 className="ss-section-title">Module Evidence</h3>
                 <span className="ss-mastery-status">
-                  {stats.moduleEvidence.modulesWithEvidence}/{stats.moduleEvidence.modules.length} modules have quiz or challenge proof
+                  {stats.moduleEvidence.modulesReadyToAdvance}/{stats.moduleEvidence.modules.length} modules ready to advance
                 </span>
               </div>
               <p className="ss-section-copy">
                 Module evidence helps separate reading progress from usable understanding, so the next
                 step is based on proof instead of XP alone.
               </p>
+              <p className="ss-module-policy">
+                Readiness requires completed lessons, a {stats.moduleEvidence.readinessPolicy.quizPassPercent}%+
+                quick check, applied work when available, and no due review.
+              </p>
+              {stats.moduleEvidence.reviewFocusModules.length > 0 && (
+                <div className="ss-review-module-summary" aria-label="Review due by module">
+                  <span className="ss-review-module-kicker">Review due by module</span>
+                  <div className="ss-review-module-list">
+                    {stats.moduleEvidence.reviewFocusModules.map((moduleEvidence) => (
+                      <div
+                        key={`${moduleEvidence.courseId}:${moduleEvidence.moduleId}:review`}
+                        className="ss-review-module-pill"
+                      >
+                        <span className="ss-review-module-name">
+                          {moduleEvidence.courseLabel}: {moduleEvidence.moduleTitle}
+                        </span>
+                        <span className="ss-review-module-count">
+                          {moduleEvidence.reviewDue} due
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="ss-module-evidence-list">
                 {stats.moduleEvidence.focusModules.map((moduleEvidence) => (
                   <article
@@ -463,6 +496,7 @@ export function StudentStats({ isOpen, onClose }) {
                     <div className="ss-module-evidence-main">
                       <span className="ss-module-course">{moduleEvidence.courseLabel}</span>
                       <h4 className="ss-module-title">{moduleEvidence.moduleTitle}</h4>
+                      <p className="ss-module-readiness">{moduleEvidence.readinessDetail}</p>
                       <p className="ss-module-action">{moduleEvidence.nextAction}</p>
                     </div>
                     <div className="ss-module-status-block">

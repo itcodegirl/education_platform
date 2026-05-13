@@ -10,7 +10,7 @@ For the full guided review path, start with:
 - [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md)
 - [docs/repair-roadmap.md](./docs/repair-roadmap.md)
 - [docs/reviewer-demo-script.md](./docs/reviewer-demo-script.md)
-- [docs/lighthouse-evidence.md](./docs/lighthouse-evidence.md)
+- [docs/mobile-qa-checklist.md](./docs/mobile-qa-checklist.md)
 
 Quick posture:
 
@@ -18,5 +18,6 @@ Quick posture:
 - XP, streaks, badges, review queue, and challenge completions are single-device today.
 - Progress Summary PDFs are not verified certificates.
 - Backend reward sync is scaffolded but disabled until Supabase migrations and authenticated duplicate-award flows are verified.
+- Mobile QA has a viewport checklist for lesson, tool, progress, keyboard, and touch-target review.
 
 If reviewing GitHub branches or PRs, use [docs/branch-triage.md](./docs/branch-triage.md) before drawing conclusions from older local/WIP branch names.

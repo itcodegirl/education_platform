@@ -8,6 +8,8 @@ This case study highlights how the platform was hardened for portfolio review ac
 
 For a reviewer who wants direct proof behind the case-study claims, use the claim-to-code map in [docs/reviewer-evidence-map.md](./reviewer-evidence-map.md).
 
+For a short recruiter-facing recording, use the storyboard in [docs/portfolio-demo-capture.md](./portfolio-demo-capture.md). The demo should show the lesson workflow, progress evidence, and trust boundaries rather than only static landing-page polish.
+
 ---
 
 ## Problem and opportunity
@@ -64,6 +66,7 @@ The goal was to keep the existing core vision and architecture intact while maki
 - ESLint, Vitest, and Playwright
 - scripted quality gates for local and CI parity
 - authenticated smoke coverage that runs when test credentials are configured and self-skips locally when they are not
+- reviewer screenshot proof guidance checked by `npm run audit:screenshot-guide`
 
 ---
 
@@ -222,6 +225,7 @@ Why: product reliability needs visibility, but portfolio credibility is stronger
 - hardened trust semantics: progress exports are framed as learning records, resume uses stable course/module/lesson IDs, public profiles expose aggregate fields only, and challenge grading is described as exercise-specific checks rather than credential verification
 - stronger educational structure because lesson evidence now includes prerequisite, outcome, guided practice, recall, and proof/transfer guidance in one visible contract
 - stronger performance evidence discipline because Lighthouse artifacts are uploaded in CI and the evidence doc is checked by the quality gate
+- stronger portfolio evidence discipline because the required screenshot set now names the exact product proof, privacy boundary, mobile viewport, and progress-summary trust copy a reviewer should see
 - simplified learning-tool maintenance by moving mobile tool wiring and shared tool copy into a single registry
 - clearer portfolio narrative for both non-technical and technical reviewers
 
@@ -236,11 +240,13 @@ Why: product reliability needs visibility, but portfolio credibility is stronger
 5. Explain AI architecture and security boundary.
 6. Close with quality gates and release checklist.
 
+For a portfolio page, pair this walkthrough with the README Evidence & Readiness Snapshot so reviewers can see which claims are proven today and which production claims are deliberately gated.
+
 ---
 
 ## What I would do next
 
-- add final screenshot assets in `docs/screenshots/`
+- capture final screenshot assets in `docs/screenshots/` using the audited proof checklist
 - configure Supabase test credentials so authenticated Playwright lesson/mobile flows run in CI instead of self-skipping
 - validate Supabase reward persistence in staging, including RLS, idempotent backend reward records, and test-user isolation
 - record a dated Lighthouse score row in `docs/lighthouse-evidence.md` from the uploaded CI artifact

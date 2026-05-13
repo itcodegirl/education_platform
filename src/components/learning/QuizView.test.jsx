@@ -56,6 +56,10 @@ const quiz = {
       options: ['<h1>', '<p>'],
       correct: 0,
       explanation: 'h1 is the top-level heading.',
+      optionFeedback: [
+        '',
+        '<p> is tempting because it also shows text, but paragraphs are body copy rather than page headings.',
+      ],
     },
   ],
 };
@@ -224,7 +228,7 @@ describe('QuizView', () => {
         quiz={quiz}
         accent="#4ecdc4"
         label="Quick Check"
-        quizKey="html-foundations-quiz"
+        quizKey="l:html:h1-1"
       />,
     );
 
@@ -234,10 +238,18 @@ describe('QuizView', () => {
     await waitFor(() => {
       expect(screen.getByText(/Feedback loop: Rebuild the basics first/i)).toBeInTheDocument();
       expect(screen.getByText(/rebuild the lesson example/i)).toBeInTheDocument();
+      expect(screen.getByText(/Why this answer is tempting/i)).toBeInTheDocument();
+      expect(screen.getByText(/paragraphs are body copy rather than page headings/i)).toBeInTheDocument();
       expect(addToSRQueue).toHaveBeenCalledWith([
         expect.objectContaining({
+          id: 'l:html:h1-1:q1',
           question: 'Which tag creates a top-level heading?',
+          questionId: 'q1',
           source: 'Quick Check',
+          quizKey: 'l:html:h1-1',
+          quizType: 'lesson',
+          courseId: 'html',
+          lessonId: 'h1-1',
         }),
       ]);
     });

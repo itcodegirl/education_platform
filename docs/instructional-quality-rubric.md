@@ -29,3 +29,9 @@ Quizzes should include more than recognition questions. A strong quiz includes:
 The goal is not harder quizzes for their own sake. The goal is feedback that
 helps a beginner understand what to review and what to practice next.
 
+## Backlog Workflow
+
+Use [curriculum-improvement-backlog.md](./curriculum-improvement-backlog.md)
+to turn report-only audit warnings into focused curriculum batches. The audit
+should guide priorities, but existing warnings should stay non-blocking until a
+course owner has reviewed the affected lessons and quizzes.

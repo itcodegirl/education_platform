@@ -1,5 +1,17 @@
 import { expect, test } from '@playwright/test';
 
+const PUBLIC_PHONE_VIEWPORTS = [
+  { width: 320, height: 568 },
+  { width: 360, height: 780 },
+  { width: 390, height: 844 },
+  { width: 430, height: 932 },
+];
+
+const PUBLIC_RESPONSIVE_VIEWPORTS = [
+  ...PUBLIC_PHONE_VIEWPORTS,
+  { width: 768, height: 1024 },
+];
+
 async function expectNoHorizontalOverflow(page) {
   const result = await page.evaluate(() => {
     const scrollWidth = Math.max(
@@ -42,9 +54,24 @@ async function expectTouchTarget(locator) {
   expect(box?.height || 0).toBeGreaterThanOrEqual(44);
 }
 
+async function expectWithinViewport(locator, label) {
+  const box = await locator.boundingBox();
+  const viewport = locator.page().viewportSize();
+
+  expect(box, `${label} should have a layout box`).not.toBeNull();
+  expect(box.x, `${label} should not start off-screen`).toBeGreaterThanOrEqual(0);
+  expect(box.y, `${label} should not start above the viewport`).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width, `${label} should fit within the viewport width`).toBeLessThanOrEqual(viewport.width + 1);
+  expect(box.y + box.height, `${label} should fit within the viewport height`).toBeLessThanOrEqual(viewport.height + 1);
+}
+
 async function expectNoVisibleControlOverlap(page, selector) {
   const result = await page.evaluate((controlSelector) => {
-    const controls = Array.from(document.querySelectorAll(controlSelector))
+    const selectedControls = Array.from(document.querySelectorAll(controlSelector));
+    const fallbackControls = Array.from(
+      document.querySelectorAll('button, a, [role="button"], [role="tab"], input, textarea, select'),
+    );
+    const toVisibleControlBoxes = (nodes) => nodes
       .map((node) => {
         const rect = node.getBoundingClientRect();
         const style = window.getComputedStyle(node);
@@ -63,6 +90,11 @@ async function expectNoVisibleControlOverlap(page, selector) {
         };
       })
       .filter((item) => item.visible);
+    const scopedControls = selectedControls.length > 0 ? selectedControls : fallbackControls;
+    const scopedVisibleControls = toVisibleControlBoxes(scopedControls);
+    const controls = scopedVisibleControls.length > 0
+      ? scopedVisibleControls
+      : toVisibleControlBoxes(fallbackControls);
 
     const overlaps = [];
     for (let i = 0; i < controls.length; i += 1) {
@@ -158,11 +190,59 @@ test.describe('public learner entry', () => {
     await expectNoHorizontalOverflow(page);
   });
 
+  test('mobilePublicLearnerFlowKeepsPreviewAndReturnPathUsable', async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== 'mobile-chrome',
+      'Compact public learner flow is scoped to mobile Chrome.',
+    );
+
+    await page.setViewportSize({ width: 320, height: 720 });
+    await page.goto('/');
+
+    await expect(page.locator('.auth-card')).toBeVisible({ timeout: 30000 });
+    await expectNoHorizontalOverflow(page);
+
+    const previewButton = page.getByRole('button', { name: /preview the first lesson/i }).first();
+    await previewButton.scrollIntoViewIfNeeded();
+    await expect(previewButton).toBeVisible();
+    await expectTouchTarget(previewButton);
+    await previewButton.click();
+
+    await expect(page.locator('.guest-preview')).toBeVisible({ timeout: 30000 });
+    await expectNoHorizontalOverflow(page);
+    await expectNoVisibleControlOverlap(page, 'main button, main a');
+
+    const lessonTitle = page.locator('.lesson-title').first();
+    await lessonTitle.scrollIntoViewIfNeeded();
+    await expect(lessonTitle).toBeVisible();
+    await expectWithinViewport(lessonTitle, 'preview lesson title');
+
+    const codePractice = page.locator('.code-preview').first();
+    const previewTab = codePractice.getByRole('tab', { name: /preview/i });
+    await previewTab.scrollIntoViewIfNeeded();
+    await expect(previewTab).toBeVisible();
+    await expectTouchTarget(previewTab);
+    await previewTab.click();
+
+    await expect(codePractice.getByTitle('HTML preview')).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+
+    const createAccountButton = page.getByRole('button', { name: /create free account/i });
+    await createAccountButton.scrollIntoViewIfNeeded();
+    await expect(createAccountButton).toBeVisible();
+    await expectTouchTarget(createAccountButton);
+    await expectWithinViewport(createAccountButton, 'create account button');
+    await createAccountButton.click();
+
+    await expect(page.locator('.auth-card')).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('tab', { name: /create account/i })).toHaveAttribute('aria-selected', 'true');
+    await expectNoHorizontalOverflow(page);
+  });
+
   test('publicMobileViewportsAvoidHorizontalOverflow', async ({ page }) => {
-    for (const viewport of [
-      { width: 360, height: 780 },
-      { width: 390, height: 844 },
-    ]) {
+    test.setTimeout(90000);
+
+    for (const viewport of PUBLIC_RESPONSIVE_VIEWPORTS) {
       await page.setViewportSize(viewport);
       await page.goto('/');
 
@@ -184,22 +264,21 @@ test.describe('public learner entry', () => {
   });
 
   test('mobilePreviewKeepsAccountActionsReachable', async ({ page }, testInfo) => {
+    test.setTimeout(90000);
+
     test.skip(
       testInfo.project.name !== 'mobile-chrome',
       'Small-phone action reachability is scoped to mobile Chrome.',
     );
 
-    for (const viewport of [
-      { width: 360, height: 780 },
-      { width: 390, height: 844 },
-    ]) {
+    for (const viewport of PUBLIC_PHONE_VIEWPORTS) {
       await page.setViewportSize(viewport);
       await page.goto('/');
       await page.getByRole('button', { name: /preview the first lesson/i }).first().click();
 
       await expect(page.locator('.guest-preview')).toBeVisible({ timeout: 30000 });
       await expectNoHorizontalOverflow(page);
-      await expectNoVisibleControlOverlap(page, '.guest-preview button, .guest-preview a');
+      await expectNoVisibleControlOverlap(page, 'main button, main a');
 
       const returnButton = page.getByLabel('Return to authentication page');
       await expect(returnButton).toBeVisible();

@@ -23,8 +23,9 @@ describe('Onboarding', () => {
 
     expect(screen.getByRole('heading', { name: /let the next step stay obvious/i })).toBeInTheDocument();
     expect(screen.getByRole('list', { name: /let the next step stay obvious guidance/i })).toBeInTheDocument();
+    expect(screen.getByText(/completion saves reading progress/i)).toBeInTheDocument();
     expect(screen.getByText(/if a quick check appears/i)).toBeInTheDocument();
-    expect(screen.getByText(/if review is due/i)).toBeInTheDocument();
-    expect(screen.getByText(/try one small challenge/i)).toBeInTheDocument();
+    expect(screen.getByText(/if review is due, clear the short queue/i)).toBeInTheDocument();
+    expect(screen.getByText(/try one small challenge to prove the skill/i)).toBeInTheDocument();
   });
 });

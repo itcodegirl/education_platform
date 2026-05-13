@@ -9,6 +9,11 @@ numbers below are approximate anchors against the current tree, not exact contra
 
 This is an audit report only — no source files were changed.
 
+For ongoing release validation, use
+[docs/mobile-release-checklist.md](./mobile-release-checklist.md). The checklist
+turns these findings into repeatable mobile QA gates for PRs that touch layout,
+navigation, keyboard behavior, modals, or performance.
+
 ---
 
 ## 1. Mobile journey issues

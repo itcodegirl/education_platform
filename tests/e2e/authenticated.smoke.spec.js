@@ -64,6 +64,39 @@ test.describe('authenticated smoke', () => {
     await expect(page.getByRole('heading', { name: /Bookmarks/i })).toBeVisible();
   });
 
+  test('saved lessons render unavailable legacy rows without breaking the shell', async ({ page, request }) => {
+    const session = await signInForSupabaseRest(request);
+    const legacyBookmark = {
+      user_id: session.user.id,
+      lesson_key: `legacy-archived-${Date.now()}`,
+      course_id: 'archived',
+      lesson_title: 'Archived lesson',
+    };
+
+    await insertBookmarkRow(request, session.access_token, legacyBookmark);
+
+    try {
+      await page.reload();
+      await waitForAuthenticatedShell(page, { consoleErrors: [], pageErrors: [] });
+
+      await page.getByRole('button', { name: 'Open bookmarks' }).click();
+
+      await expect(page.getByRole('heading', { name: /Bookmarks/i })).toBeVisible();
+      await expect(page.getByText('Archived lesson')).toBeVisible();
+      await expect(page.getByText('ARCHIVED > Saved lesson')).toBeVisible();
+      await expect(
+        page.getByRole('button', {
+          name: /archived lesson is unavailable in the current course catalog/i,
+        }),
+      ).toBeDisabled();
+      await expect(
+        page.getByRole('button', { name: /remove bookmark for archived lesson/i }),
+      ).toBeVisible();
+    } finally {
+      await deleteBookmarkRow(request, session.access_token, legacyBookmark);
+    }
+  });
+
   test('opens the sidebar from the top bar', async ({ page }) => {
     const navButton = page.getByLabel('Open course navigation');
 
@@ -75,6 +108,52 @@ test.describe('authenticated smoke', () => {
     }
   });
 });
+
+async function signInForSupabaseRest(request) {
+  const response = await request.post(
+    `${process.env.VITE_SUPABASE_URL}/auth/v1/token?grant_type=password`,
+    {
+      headers: {
+        apikey: process.env.VITE_SUPABASE_ANON_KEY,
+        'content-type': 'application/json',
+      },
+      data: {
+        email: process.env.E2E_EMAIL,
+        password: process.env.E2E_PASSWORD,
+      },
+    },
+  );
+
+  expect(response.ok(), await response.text()).toBe(true);
+  return response.json();
+}
+
+async function insertBookmarkRow(request, accessToken, bookmark) {
+  const response = await request.post(`${process.env.VITE_SUPABASE_URL}/rest/v1/bookmarks`, {
+    headers: {
+      apikey: process.env.VITE_SUPABASE_ANON_KEY,
+      authorization: `Bearer ${accessToken}`,
+      'content-type': 'application/json',
+      prefer: 'return=minimal',
+    },
+    data: bookmark,
+  });
+
+  expect(response.ok(), await response.text()).toBe(true);
+}
+
+async function deleteBookmarkRow(request, accessToken, bookmark) {
+  const query = new URLSearchParams({
+    user_id: `eq.${bookmark.user_id}`,
+    lesson_key: `eq.${bookmark.lesson_key}`,
+  });
+  await request.delete(`${process.env.VITE_SUPABASE_URL}/rest/v1/bookmarks?${query.toString()}`, {
+    headers: {
+      apikey: process.env.VITE_SUPABASE_ANON_KEY,
+      authorization: `Bearer ${accessToken}`,
+    },
+  });
+}
 
 async function waitForAuthenticatedShell(page, diagnostics) {
   const shellSelectors = ['.topbar', '#course-sidebar', '.main-shell', '.bottom-tools'];

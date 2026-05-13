@@ -2,12 +2,15 @@
 
 Use this checklist before Netlify releases or hotfix deploys.
 
+For the release summary, copy [docs/release-notes-template.md](./docs/release-notes-template.md) and fill in the actual deploy, artifact, Supabase, and rollback details.
+
 ## Pre-Deploy Checks
 
 - Confirm branch, target deploy context, and commit SHA.
 - Run:
   - `npm run check`
   - `npm run typecheck`
+  - `npm run audit:performance`
   - `npm run check:supabase-readiness`
   - `npm run audit:reward-catalog`
   - `npm run audit:e2e-scripts`
@@ -46,6 +49,7 @@ Use this checklist before Netlify releases or hotfix deploys.
 - Confirm any `npm run audit:quizzes` findings are expected and documented, especially classified orphan quizzes, intentional variant groups, legacy aliases, and archived inactive quiz coverage.
 - Confirm `npm run audit:content` reports zero stale prerequisite or bridge-target issues.
 - Confirm package scripts still reference real Playwright projects with `npm run audit:e2e-scripts`.
+- Download the Lighthouse artifact from the CI run and record the score source in the release notes before citing scores publicly.
 - If touching HTML Module 102 lesson identity, verify the targeted progress/bookmark compatibility decision before release.
 
 ## PWA / Cache Validation
@@ -62,6 +66,7 @@ Use this checklist before Netlify releases or hotfix deploys.
 - Authenticated smoke checks require environment credentials and will otherwise skip.
 - `npm run audit:quizzes` runs strict mode and should fail on unclassified orphan inventory, unreviewed variants, duplicate active IDs, or active lesson quiz gaps.
 - `npm run audit:content` runs as a blocking learning-flow gate for prerequisite and bridge-target drift.
+- `npm run audit:performance` rebuilds production assets, checks bundle budgets, and verifies heavy route boundaries for Monaco, AI tutor, PDF/canvas export, and protected app styles.
 - `npm run audit:auth-e2e` runs as a static guard for authenticated smoke preflight, secret gating, and required signed-in specs/projects.
 - `npm run audit:staging-runbook` keeps the live Supabase validation checklist complete; it does not replace a real staging run with credentials.
 - Production-grade reliability still requires broader learning/data/a11y regression coverage.
