@@ -10,6 +10,11 @@ export function getDailyLearningLoopSteps({
   const reviewCount = Math.max(0, Number.isFinite(Number(dueReviewCount)) ? Number(dueReviewCount) : 0);
   const quizReady = masteryStatus?.isReady === true;
   const needsQuizReview = masteryStatus?.tone === 'review' || masteryStatus?.tone === 'attention';
+  const readinessState = masteryStatus?.state || (
+    needsQuizReview
+      ? LEARNER_READINESS_STATES.REVIEW_NEEDED
+      : LEARNER_READINESS_STATES.EVIDENCE_NEEDED
+  );
   const retentionPlan = getRetentionPlan({
     isLessonDone,
     hasLessonQuiz,
