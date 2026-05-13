@@ -1,6 +1,5 @@
 import { LEARNER_READINESS_STATES } from './learnerReadiness';
 import { getRetentionPlan } from './retentionPlan';
-import { LEARNER_READINESS_STATES } from './learnerReadiness';
 
 export function getDailyLearningLoopSteps({
   isLessonDone = false,
@@ -12,7 +11,6 @@ export function getDailyLearningLoopSteps({
   const quizReady = masteryStatus?.isReady === true;
   const readinessState = masteryStatus?.state || '';
   const needsQuizReview = masteryStatus?.tone === 'review' || masteryStatus?.tone === 'attention';
-  const readinessState = masteryStatus?.state || null;
   const retentionPlan = getRetentionPlan({
     isLessonDone,
     hasLessonQuiz,

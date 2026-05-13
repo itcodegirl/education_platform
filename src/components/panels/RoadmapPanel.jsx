@@ -4,6 +4,7 @@ import { COURSE_CATALOG } from '../../data/reference/course-catalog';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { getCourseCompletedLessonCount, hasLessonCompletion } from '../../utils/lessonKeys';
 import { getCourseReadiness } from '../../utils/learningPath';
+import { getModuleReadiness } from '../../utils/learnerReadiness';
 
 export function RoadmapPanel({ onClose, onNavigate, currentCourseIdx, currentModuleIdx = -1 }) {
   const { completedSet = new Set() } = useProgressData();

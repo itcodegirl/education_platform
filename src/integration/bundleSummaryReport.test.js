@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createBundleSummary,
 } from '../../scripts/write-bundle-summary.mjs';
+import { INITIAL_ENTRY_BUDGETS } from '../../scripts/bundleBudgetPolicy.mjs';
 
 describe('bundle summary report', () => {
   it('serializes initial budgets and top chunk evidence for CI artifacts', () => {
@@ -33,9 +34,9 @@ describe('bundle summary report', () => {
 
     expect(summary.initial).toMatchObject({
       jsGzipKb: 84,
-      jsGzipBudgetKb: 170,
+      jsGzipBudgetKb: INITIAL_ENTRY_BUDGETS.jsGzipKb,
       cssGzipKb: 8,
-      cssGzipBudgetKb: 12,
+      cssGzipBudgetKb: INITIAL_ENTRY_BUDGETS.cssGzipKb,
     });
     expect(summary.topChunks).toEqual([
       expect.objectContaining({
