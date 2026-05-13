@@ -15,6 +15,7 @@
 import { memo } from 'react';
 import { renderMarkdown } from '../../utils/markdown';
 import { CodePreview } from './CodePreview';
+import { LessonTransitionPrompt } from './LessonTransitionPrompt';
 
 // Memoized — only re-renders when its props change (lesson,
 // checkedTasks Set ref, showDevFession). Skips re-renders driven
@@ -129,6 +130,8 @@ export const RichLessonBody = memo(function RichLessonBody({
           )}
         </div>
       )}
+
+      <LessonTransitionPrompt lesson={lesson} />
     </>
   );
 });

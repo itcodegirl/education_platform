@@ -94,6 +94,10 @@ describe('summarizeModuleMasteryEvidence', () => {
       readyToAdvance: false,
       reviewDue: 1,
       quizNeedsReview: 1,
+      remediationTarget: {
+        lessonId: 'l1',
+        label: 'Review lesson: Elements',
+      },
     });
   });
 
@@ -254,6 +258,46 @@ describe('summarizeModuleMasteryEvidence', () => {
       moduleTitle: 'Foundations',
       statusLabel: 'Needs quick-check proof',
       readinessDetail: 'A completed lesson still needs quiz evidence at 80% or better.',
+    });
+  });
+
+  it('points weak checks to the prerequisite lesson when one exists', () => {
+    const result = summarizeModuleMasteryEvidence({
+      courses: [
+        {
+          id: 'html',
+          label: 'HTML',
+          accent: '#4ecdc4',
+          modules: [
+            {
+              id: 'm1',
+              title: 'Foundations',
+              lessons: [{ id: 'intro', title: 'HTML Intro' }],
+            },
+            {
+              id: 'm2',
+              title: 'Forms',
+              lessons: [{ id: 'forms', title: 'Form Labels', prereqs: ['intro'] }],
+            },
+          ],
+        },
+      ],
+      completedSet: new Set(['c:html|m:m2|l:forms']),
+      quizResults: [{ key: 'l:html:forms', percent: 50 }],
+      challengeCompletions: [],
+      getChallengesForCourse: () => [],
+      srCards: [],
+      now: 1000,
+    });
+
+    expect(result.focusModules[0]).toMatchObject({
+      moduleTitle: 'Forms',
+      statusLabel: 'Review evidence due',
+      remediationTarget: {
+        lessonId: 'intro',
+        label: 'Review prerequisite: HTML Intro',
+        detail: 'Then retry Form Labels so the weak check has a stronger base.',
+      },
     });
   });
 });

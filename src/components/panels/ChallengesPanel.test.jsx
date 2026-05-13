@@ -17,6 +17,7 @@ const {
     description: 'Create a reusable card.',
     difficulty: 'beginner',
     requirements: ['Use a card container', 'Render a heading'],
+    rubric: ['Card layout is reusable with different content', 'Variant styling is visible without changing the component internals'],
     tests: [{ label: 'has card' }, { label: 'has heading' }],
   };
 
@@ -149,6 +150,8 @@ describe('ChallengesPanel', () => {
     expect(screen.getByRole('region', { name: /challenge evidence summary/i })).toHaveTextContent('Evidence ready');
     expect(screen.getByText('2 requirements')).toBeInTheDocument();
     expect(screen.getByText('2 automated checks')).toBeInTheDocument();
+    expect(screen.getByText('Definition of done')).toBeInTheDocument();
+    expect(screen.getByText(/Variant styling is visible without changing the component internals/i)).toBeInTheDocument();
     expect(screen.getByText(/not a verified credential/i)).toBeInTheDocument();
     expect(screen.getByText(/What would you improve before showing this in a portfolio/i)).toBeInTheDocument();
   });

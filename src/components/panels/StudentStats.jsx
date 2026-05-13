@@ -13,6 +13,7 @@ import { summarizeMasteryEvidence } from '../../utils/masteryProgress';
 import { summarizeModuleMasteryEvidence } from '../../utils/moduleMasteryEvidence';
 import { getProgressSnapshotItems } from '../../utils/progressDashboard';
 import { buildLearnerTranscriptSummary } from '../../utils/learnerTranscript';
+import { buildRetentionSignalSummary } from '../../utils/retentionSignals';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { PROGRESS_SYNC_COPY } from '../../constants/progressCopy';
 import { parseQuizScore } from '../../services/rewardPolicy';
@@ -142,17 +143,6 @@ export function StudentStats({ isOpen, onClose }) {
       challenges: allChallenges,
       srCards,
     });
-    const transcript = buildLearnerTranscriptSummary({
-      completedLessons: totalDone,
-      totalLessons,
-      quizChecksPassed: masteryEvidence.quizChecksPassed,
-      quizChecksAttempted: masteryEvidence.quizChecksAttempted,
-      quizChecksNeedsReview: masteryEvidence.quizChecksNeedsReview,
-      completedChallenges: masteryEvidence.completedChallenges,
-      totalChallenges: masteryEvidence.totalChallenges,
-      dueReviewCards: masteryEvidence.dueReviewCards,
-      totalReviewCards: masteryEvidence.totalReviewCards,
-    });
     const moduleEvidence = summarizeModuleMasteryEvidence({
       courses: COURSE_CATALOG,
       completedSet,
@@ -173,7 +163,6 @@ export function StudentStats({ isOpen, onClose }) {
       overallQuizPercent,
       quizzesTaken: allResults.length,
       masteryEvidence,
-      transcript,
       moduleEvidence,
       strongest,
       weakest,
@@ -186,6 +175,7 @@ export function StudentStats({ isOpen, onClose }) {
       srTotal: srCards.length,
       bookmarkCount: bookmarks.length,
       noteCount: Object.keys(notes).length,
+      retentionSignals,
       snapshotItems: getProgressSnapshotItems({
         totalDone,
         totalLessons,
@@ -342,6 +332,27 @@ export function StudentStats({ isOpen, onClose }) {
             </p>
           </section>
 
+          <section className={`ss-retention-loop ss-retention-loop-${stats.retentionSignals.tone}`} aria-label="Retention loop">
+            <div className="ss-section-heading-row">
+              <div>
+                <h3 className="ss-section-title">Retention loop</h3>
+                <p className="ss-section-copy">
+                  Review timing, weak checks, and module focus show whether learning is staying warm.
+                </p>
+              </div>
+              <span className="ss-retention-status">{stats.retentionSignals.label}</span>
+            </div>
+            <p className="ss-evidence-next">{stats.retentionSignals.detail}</p>
+            <div className="ss-retention-grid">
+              {stats.retentionSignals.metrics.map((metric) => (
+                <div key={metric.key} className="ss-retention-card">
+                  <span className="ss-retention-value">{metric.value}</span>
+                  <span className="ss-retention-label">{metric.label}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
           <div className="ss-cards" style={stats.totalDone === 0 ? { opacity: 0.4, pointerEvents: 'none' } : undefined}>
             <div className="ss-card">
               <span className="ss-card-value">{stats.level}</span>
@@ -477,6 +488,12 @@ export function StudentStats({ isOpen, onClose }) {
                       <h4 className="ss-module-title">{moduleEvidence.moduleTitle}</h4>
                       <p className="ss-module-readiness">{moduleEvidence.readinessDetail}</p>
                       <p className="ss-module-action">{moduleEvidence.nextAction}</p>
+                      {moduleEvidence.remediationTarget && (
+                        <p className="ss-module-remediation">
+                          <span>Start here:</span> {moduleEvidence.remediationTarget.label}{' '}
+                          {moduleEvidence.remediationTarget.detail}
+                        </p>
+                      )}
                     </div>
                     <div className="ss-module-status-block">
                       <span className="ss-module-status">{moduleEvidence.statusLabel}</span>

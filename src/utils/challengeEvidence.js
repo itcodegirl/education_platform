@@ -4,6 +4,12 @@ const DEFAULT_REFLECTION_PROMPTS = Object.freeze([
   'What would you improve before showing this in a portfolio?',
 ]);
 
+const DEFAULT_RUBRIC_ITEMS = Object.freeze([
+  'Every visible requirement is represented in the code.',
+  'Automated checks pass without changing the grader.',
+  'You can explain one code decision and one improvement.',
+]);
+
 function normalizeTextList(items = []) {
   if (!Array.isArray(items)) return [];
   return items
@@ -25,6 +31,7 @@ function pluralize(count, singular, plural = `${singular}s`) {
 export function getChallengeEvidenceSummary(challenge, { isCompleted = false } = {}) {
   const requirements = normalizeTextList(challenge?.requirements);
   const testLabels = normalizeTestLabels(challenge?.tests);
+  const challengeRubric = normalizeTextList(challenge?.rubric || challenge?.definitionOfDone);
   const difficulty = String(challenge?.difficulty || '').trim();
   const capabilityItems = requirements.length > 0
     ? requirements.slice(0, 4)
@@ -43,6 +50,7 @@ export function getChallengeEvidenceSummary(challenge, { isCompleted = false } =
     ],
     capabilityItems,
     testLabels,
+    rubricItems: challengeRubric.length > 0 ? challengeRubric : DEFAULT_RUBRIC_ITEMS,
     reflectionPrompts: DEFAULT_REFLECTION_PROMPTS,
   };
 }

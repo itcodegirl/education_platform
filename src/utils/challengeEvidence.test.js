@@ -17,6 +17,11 @@ describe('challenge evidence summary', () => {
       'beginner practice',
     ]);
     expect(summary.capabilityItems).toEqual(['Use semantic HTML', 'Connect labels']);
+    expect(summary.rubricItems).toEqual([
+      'Every visible requirement is represented in the code.',
+      'Automated checks pass without changing the grader.',
+      'You can explain one code decision and one improvement.',
+    ]);
     expect(summary.reflectionPrompts).toHaveLength(3);
   });
 
@@ -28,5 +33,20 @@ describe('challenge evidence summary', () => {
     expect(summary.statusLabel).toBe('Evidence in progress');
     expect(summary.proofItems).toContain('0 requirements');
     expect(summary.capabilityItems).toEqual(['Renders a card']);
+  });
+
+  it('uses challenge-specific rubric items when provided', () => {
+    const summary = getChallengeEvidenceSummary({
+      requirements: ['Uses useState'],
+      rubric: [
+        'Reset reliably returns the count to zero',
+        'You can explain why functional state updates avoid stale values',
+      ],
+    });
+
+    expect(summary.rubricItems).toEqual([
+      'Reset reliably returns the count to zero',
+      'You can explain why functional state updates avoid stale values',
+    ]);
   });
 });

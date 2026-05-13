@@ -43,3 +43,6 @@ CodeHerWay should describe every learning unit in terms of:
 - Daily learning loops now include recall as a normal step after ready quiz evidence.
 - Quiz result feedback now points strong scores toward delayed recall and weak scores toward shorter, non-guessing recovery loops.
 - Challenge recommendations now explain readiness, evidence scope, and the next practice step so practice work feels connected to curriculum evidence.
+- Student Stats now surfaces a retention loop and module remediation targets so learners can see what to review next instead of reading XP as mastery.
+- Challenge workspaces now include a definition-of-done rubric, making completed challenges clearer as practice evidence rather than shallow completion.
+- The content audit budget is tightened as quiz feedback improves; current report-only warning budget is 186 with no blocking content integrity issues.

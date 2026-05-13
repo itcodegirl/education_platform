@@ -15,6 +15,7 @@ const lesson = {
     title: 'Wire the form',
     steps: ['Step one', 'Step two'],
     result: 'A working form',
+    proofRequired: 'a form submission screenshot',
   },
   understand: {
     concepts: [
@@ -105,6 +106,27 @@ describe('StructuredLessonBody heading hierarchy', () => {
     fireEvent.click(checkbox);
     expect(onToggleTask).toHaveBeenCalledWith('ch-0');
     expect(container.querySelector('.task-check')).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('turns the lesson bridge into recall and application transition practice', () => {
+    render(
+      <StructuredLessonBody
+        lesson={lesson}
+        lang="html"
+        scaffolding="full"
+        codeForPreview=""
+        checkedTasks={new Set()}
+        onToggleTask={() => {}}
+      />,
+    );
+
+    expect(screen.getByRole('note', { name: /lesson transition practice/i })).toBeInTheDocument();
+    expect(screen.getByText('Recall')).toBeInTheDocument();
+    expect(screen.getByText(/Explain this without looking: Build a form./i)).toBeInTheDocument();
+    expect(screen.getByText('Apply')).toBeInTheDocument();
+    expect(screen.getByText(/Use your proof of work as evidence/i)).toBeInTheDocument();
+    expect(screen.getByText('Next')).toBeInTheDocument();
+    expect(screen.getByText(/Next: validation./i)).toBeInTheDocument();
   });
 
   it('keeps rich lesson tasks as native focusable checkboxes', () => {

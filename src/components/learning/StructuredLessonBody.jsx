@@ -16,6 +16,7 @@
 
 import { memo } from 'react';
 import { CodePreview } from './CodePreview';
+import { LessonTransitionPrompt } from './LessonTransitionPrompt';
 
 // Memoized — same rationale as RichLessonBody: skip re-renders
 // driven by sibling state in LessonView (showNotes, AI tutor
@@ -220,13 +221,8 @@ export const StructuredLessonBody = memo(function StructuredLessonBody({
         </div>
       )}
 
-      {/* Bridge — teaser for next lesson */}
-      {lesson.bridge?.preview && (
-        <div className="sl-bridge">
-          <div className="sl-bridge-label">Coming up next</div>
-          <p>{lesson.bridge.preview}</p>
-        </div>
-      )}
+      {/* Transition practice */}
+      <LessonTransitionPrompt lesson={lesson} />
     </div>
   );
 });

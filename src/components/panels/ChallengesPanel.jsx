@@ -167,6 +167,14 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
                     </ul>
                   </div>
                   <div>
+                    <p className="challenge-evidence-label">Definition of done</p>
+                    <ul className="challenge-evidence-list">
+                      {activeEvidence.rubricItems.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
                     <p className="challenge-evidence-label">Portfolio reflection</p>
                     <ul className="challenge-evidence-list">
                       {activeEvidence.reflectionPrompts.map((prompt) => (
