@@ -1,17 +1,17 @@
 {
-  "warningCount": 186,
+  "warningCount": 185,
   "warningsByCourse": [
-    { "name": "react", "count": 88 },
+    { "name": "react", "count": 87 },
     { "name": "js", "count": 37 },
     { "name": "html", "count": 31 },
     { "name": "css", "count": 30 }
   ],
   "warningsByCategory": [
-    { "name": "quiz-quality-rubric", "count": 145 },
+    { "name": "quiz-quality-rubric", "count": 144 },
     { "name": "lesson-quality-rubric", "count": 41 }
   ],
   "missingSignals": [
-    { "name": "application item coverage", "count": 125 },
+    { "name": "application item coverage", "count": 124 },
     { "name": "misconception", "count": 99 },
     { "name": "reasoning", "count": 63 },
     { "name": "objective", "count": 41 },
