@@ -22,10 +22,22 @@ import './styles/public-app.css';
 
 export default function App() {
   useEffect(() => {
+    let cleanupWebVitals = () => {};
+    let cancelled = false;
+
     void import('./lib/analytics')
-      .then((module) => {
-        module.initializeAnalytics();
+      .then(async (analyticsModule) => {
+        analyticsModule.initializeAnalytics();
+        const webVitalsModule = await import('./lib/webVitals');
+        if (!cancelled) {
+          cleanupWebVitals = webVitalsModule.observeWebVitals(analyticsModule.trackEvent);
+        }
       });
+
+    return () => {
+      cancelled = true;
+      cleanupWebVitals();
+    };
   }, []);
 
   return (

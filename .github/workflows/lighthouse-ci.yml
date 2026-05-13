@@ -7,6 +7,11 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 concurrency:
   group: lighthouse-${{ github.ref }}
   cancel-in-progress: true
@@ -14,7 +19,7 @@ concurrency:
 jobs:
   lighthouse:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     env:
       VITE_SUPABASE_URL: ${{ vars.E2E_SUPABASE_URL || 'http://127.0.0.1:54321' }}
       VITE_SUPABASE_ANON_KEY: ${{ vars.E2E_SUPABASE_ANON_KEY || 'example-anon-key' }}
@@ -32,8 +37,73 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build app
-        run: npm run build
+      - name: Capture base bundle summary
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --depth=1 origin "${{ github.base_ref }}"
+          git worktree add ../bundle-base "origin/${{ github.base_ref }}"
+          pushd ../bundle-base
+          npm ci
+          npm run build
+          npm run check:bundle
+          npm run check:route-boundaries
+          npm run report:bundle
+          popd
+          mkdir -p dist
+          cp ../bundle-base/dist/bundle-summary.json dist/bundle-summary.base.json
+
+      - name: Run performance budget and route-boundary gate
+        run: npm run audit:performance
+
+      - name: Publish bundle summary to job summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -f dist/bundle-review-summary.md ]; then
+            cat dist/bundle-review-summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Comment bundle summary on pull requests
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- codeherway-bundle-review-summary -->';
+            const summaryPath = 'dist/bundle-review-summary.md';
+            if (!fs.existsSync(summaryPath)) {
+              core.info('No bundle review summary found; skipping PR comment.');
+              return;
+            }
+
+            const body = `${marker}\n${fs.readFileSync(summaryPath, 'utf8')}`;
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+            const existing = comments.find((comment) => comment.body?.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body,
+              });
+            }
 
       - name: Run Lighthouse CI assertions
         run: npm run test:lighthouse
@@ -44,5 +114,17 @@ jobs:
         with:
           name: lighthouse-ci-${{ github.run_id }}-${{ github.run_attempt }}
           path: .lighthouseci/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload bundle summary artifact
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: bundle-summary-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            dist/bundle-summary.json
+            dist/bundle-summary.base.json
+            dist/bundle-review-summary.md
           if-no-files-found: ignore
           retention-days: 14

@@ -30,8 +30,8 @@ export const DEFAULT_BUNDLE_BUDGETS = [
   {
     label: 'protected app stylesheet lazy chunk',
     match: (file) => /^App-.*\.css$/i.test(file),
-    maxKb: 230,
-    gzipMaxKb: 45,
+    maxKb: 200,
+    gzipMaxKb: 35,
   },
   {
     label: 'PDF export lazy chunk',
@@ -44,6 +44,12 @@ export const DEFAULT_BUNDLE_BUDGETS = [
     match: (file) => /^html2canvas.*\.js$/i.test(file),
     maxKb: 230,
     gzipMaxKb: 60,
+  },
+  {
+    label: 'course runtime data lazy chunk',
+    match: (file) => /^data-(html|css|js|react)-(?!challenges)[^.]+\.js$/i.test(file),
+    maxKb: 260,
+    gzipMaxKb: 80,
   },
   {
     label: 'general JavaScript chunk',

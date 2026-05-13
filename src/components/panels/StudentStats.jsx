@@ -172,6 +172,14 @@ export function StudentStats({ isOpen, onClose }) {
       dueReviewCards: masteryEvidence.dueReviewCards,
       totalReviewCards: masteryEvidence.totalReviewCards,
     });
+    const moduleEvidence = summarizeModuleMasteryEvidence({
+      courses: COURSE_CATALOG,
+      completedSet,
+      quizResults: allResults,
+      challengeCompletions,
+      getChallengesForCourse,
+      srCards,
+    });
 
     return {
       level,
