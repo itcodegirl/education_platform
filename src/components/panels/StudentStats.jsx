@@ -142,6 +142,17 @@ export function StudentStats({ isOpen, onClose }) {
       challenges: allChallenges,
       srCards,
     });
+    const transcript = buildLearnerTranscriptSummary({
+      completedLessons: totalDone,
+      totalLessons,
+      quizChecksPassed: masteryEvidence.quizChecksPassed,
+      quizChecksAttempted: masteryEvidence.quizChecksAttempted,
+      quizChecksNeedsReview: masteryEvidence.quizChecksNeedsReview,
+      completedChallenges: masteryEvidence.completedChallenges,
+      totalChallenges: masteryEvidence.totalChallenges,
+      dueReviewCards: masteryEvidence.dueReviewCards,
+      totalReviewCards: masteryEvidence.totalReviewCards,
+    });
     const moduleEvidence = summarizeModuleMasteryEvidence({
       courses: COURSE_CATALOG,
       completedSet,
@@ -174,6 +185,7 @@ export function StudentStats({ isOpen, onClose }) {
       overallQuizPercent,
       quizzesTaken: allResults.length,
       masteryEvidence,
+      transcript,
       moduleEvidence,
       transcript,
       strongest,

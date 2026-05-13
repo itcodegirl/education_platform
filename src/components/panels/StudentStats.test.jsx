@@ -307,6 +307,31 @@ describe('StudentStats streak card', () => {
     expect(screen.getByRole('region', { name: /progress snapshot summary/i })).toHaveTextContent('1');
   });
 
+  it('renders the learning transcript from mastery evidence without treating it as a credential', () => {
+    mockUseProgressData.mockReturnValue({
+      completed: ['c:html|m:m1|l:l1'],
+      quizScores: {
+        'l:html:l1': '1/1',
+      },
+      challengeCompletions: ['html-challenge-1'],
+    });
+    mockUseXP.mockReturnValue({
+      xpTotal: 80,
+      streak: 1,
+      pausedStreak: null,
+      dailyCount: 1,
+      earnedBadges: {},
+    });
+
+    render(<StudentStats isOpen onClose={vi.fn()} />);
+
+    expect(screen.getByRole('heading', { name: /learning transcript/i })).toBeInTheDocument();
+    expect(screen.getByText('Strong learning proof')).toBeInTheDocument();
+    expect(screen.getByText('Application proof')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /learning transcript/i })).toHaveTextContent('1/2');
+    expect(screen.getByText(/not a verified credential/i)).toBeInTheDocument();
+  });
+
   it('surfaces module-level evidence so completion is tied to proof', () => {
     mockUseProgressData.mockReturnValue({
       completed: ['c:html|m:m1|l:l1'],

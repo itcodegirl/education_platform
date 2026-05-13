@@ -133,6 +133,22 @@ describe('ProfilePage accessibility', () => {
     expect(handle).toHaveAccessibleDescription(/use 2 to 30 characters/i);
   });
 
+  it('surfaces public-profile settings load failures without exposing backend details', async () => {
+    mockMaybeSingle.mockResolvedValueOnce({
+      data: null,
+      error: {
+        code: 'PGRST301',
+        message: 'permission denied for table profiles',
+      },
+    });
+
+    render(<ProfilePage onClose={vi.fn()} />);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/could not load public profile settings/i);
+    expect(screen.queryByText(/permission denied/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('checkbox')).not.toBeChecked();
+  });
+
   it('keeps duplicate-handle save feedback clear and specific', async () => {
     mockMaybeSingle.mockResolvedValue({
       data: { is_public: true, public_handle: 'ada' },
