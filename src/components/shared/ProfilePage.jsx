@@ -44,39 +44,63 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
   );
 
   const loadPublicSettings = useCallback(async () => {
-    if (!user?.id) return;
-
-      setPublicLoading(true);
-      setPublicLoadError('');
-
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('is_public, public_handle')
-          .eq('id', user.id)
-          .maybeSingle();
-
-        if (cancelled) return;
-
-        if (error) {
-          setPublicLoadError('Could not load public profile settings. You can keep learning and try again later.');
-          return;
-        }
-
-        if (!data) return;
-
-        setIsPublic(Boolean(data.is_public));
-        setPublicHandle(data.public_handle || '');
-      } catch {
-        if (!cancelled) {
-          setPublicLoadError('Could not load public profile settings. You can keep learning and try again later.');
-        }
-      } finally {
-        if (!cancelled) {
-          setPublicLoading(false);
-        }
-      }
+    if (!user?.id) {
+      setPublicLoading(false);
+      return;
     }
+
+    setPublicLoading(true);
+    setPublicLoadError('');
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('is_public, public_handle')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        setPublicLoadError('Could not load public profile settings. You can keep learning and try again later.');
+        return;
+      }
+
+      if (!data) return;
+
+      setIsPublic(Boolean(data.is_public));
+      setPublicHandle(data.public_handle || '');
+    } catch {
+      setPublicLoadError('Could not load public profile settings. You can keep learning and try again later.');
+    } finally {
+      setPublicLoading(false);
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    void loadPublicSettings();
+  }, [loadPublicSettings]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const alreadyLoaded = COURSE_CATALOG.every((course) => areChallengesLoaded(course.id));
+    setChallengeCatalogReady(alreadyLoaded);
+
+    if (alreadyLoaded) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    void loadAllChallenges()
+      .then(() => {
+        if (!cancelled) {
+          setChallengeCatalogReady(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setChallengeCatalogReady(false);
+        }
+      });
 
     return () => {
       cancelled = true;
