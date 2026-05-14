@@ -151,6 +151,26 @@ export function StudentStats({ isOpen, onClose }) {
       getChallengesForCourse,
       srCards,
     });
+    const quizChecksPassed = allResults.filter((result) => result.percent >= 80).length;
+    const completedChallengeCount = allChallenges.length > 0
+      ? allChallenges.filter((challenge) => completedChallengeIds.has(challenge.id)).length
+      : challengeCompletions.length;
+    const transcript = buildLearnerTranscriptSummary({
+      completedLessons: totalDone,
+      totalLessons,
+      quizChecksPassed,
+      quizChecksAttempted: allResults.length,
+      quizChecksNeedsReview: allResults.length - quizChecksPassed,
+      completedChallenges: completedChallengeCount,
+      totalChallenges: allChallenges.length,
+      dueReviewCards: srDue,
+      totalReviewCards: srCards.length,
+    });
+    const retentionSignals = buildRetentionSignalSummary({
+      quizResults: allResults,
+      srCards,
+      reviewFocusModules: moduleEvidence.reviewFocusModules,
+    });
     return {
       level,
       xpTotal,
@@ -164,6 +184,7 @@ export function StudentStats({ isOpen, onClose }) {
       quizzesTaken: allResults.length,
       masteryEvidence,
       moduleEvidence,
+      transcript,
       strongest,
       weakest,
       streak,
