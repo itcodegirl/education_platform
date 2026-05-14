@@ -67,7 +67,7 @@ async function callAI(payload, { signal } = {}) {
 
   let response;
   try {
-    response = await fetch('/.netlify/functions/ai', {
+    response = await fetch('/api/ai', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
