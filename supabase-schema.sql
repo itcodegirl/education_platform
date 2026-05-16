@@ -359,6 +359,44 @@ begin
     ) as value
     from public.analytics_events
     where occurred_at >= now() - interval '30 days'
+  ),
+  reliability_7d as (
+    select jsonb_build_object(
+      'serviceWorkerEvents', count(*) filter (where event_name = 'service_worker_event'),
+      'serviceWorkerFailures', count(*) filter (
+        where event_name = 'service_worker_event'
+          and coalesce(payload->>'phase', '') like '%_failed'
+      ),
+      'offlineFallbacks', count(*) filter (
+        where event_name = 'service_worker_event'
+          and coalesce(payload->>'messageType', '') = 'SW_NAVIGATION_FALLBACK_USED'
+      ),
+      'currentLessonCached', count(*) filter (
+        where event_name = 'service_worker_event'
+          and coalesce(payload->>'messageType', '') = 'SW_CURRENT_LESSON_CACHED'
+      )
+    ) as value
+    from public.analytics_events
+    where occurred_at >= now() - interval '7 days'
+  ),
+  reliability_30d as (
+    select jsonb_build_object(
+      'serviceWorkerEvents', count(*) filter (where event_name = 'service_worker_event'),
+      'serviceWorkerFailures', count(*) filter (
+        where event_name = 'service_worker_event'
+          and coalesce(payload->>'phase', '') like '%_failed'
+      ),
+      'offlineFallbacks', count(*) filter (
+        where event_name = 'service_worker_event'
+          and coalesce(payload->>'messageType', '') = 'SW_NAVIGATION_FALLBACK_USED'
+      ),
+      'currentLessonCached', count(*) filter (
+        where event_name = 'service_worker_event'
+          and coalesce(payload->>'messageType', '') = 'SW_CURRENT_LESSON_CACHED'
+      )
+    ) as value
+    from public.analytics_events
+    where occurred_at >= now() - interval '30 days'
   )
   select jsonb_build_object(
     'totalUsers', users_total.value,
@@ -371,11 +409,14 @@ begin
     'totalXP', xp_total.value,
     'topUsers', top_users.value,
     'funnel7d', funnel_7d.value,
-    'funnel30d', funnel_30d.value
+    'funnel30d', funnel_30d.value,
+    'reliability7d', reliability_7d.value,
+    'reliability30d', reliability_30d.value
   )
   into v_payload
   from users_total, users_week, users_month, active_week, completions,
-       quiz_attempts, badges_total, xp_total, top_users, funnel_7d, funnel_30d;
+       quiz_attempts, badges_total, xp_total, top_users, funnel_7d, funnel_30d,
+       reliability_7d, reliability_30d;
 
   return v_payload;
 end;
@@ -398,7 +439,20 @@ select
       and coalesce(payload->>'completionState', '') = 'marked_complete'
   )::int as lesson_completed,
   count(*) filter (where event_name = 'lesson_next_clicked')::int as lesson_next_clicked,
-  count(*) filter (where event_name = 'resume_next_action_clicked')::int as resume_next_action_clicked
+  count(*) filter (where event_name = 'resume_next_action_clicked')::int as resume_next_action_clicked,
+  count(*) filter (where event_name = 'service_worker_event')::int as service_worker_events,
+  count(*) filter (
+    where event_name = 'service_worker_event'
+      and coalesce(payload->>'phase', '') like '%_failed'
+  )::int as service_worker_failures,
+  count(*) filter (
+    where event_name = 'service_worker_event'
+      and coalesce(payload->>'messageType', '') = 'SW_NAVIGATION_FALLBACK_USED'
+  )::int as offline_fallbacks,
+  count(*) filter (
+    where event_name = 'service_worker_event'
+      and coalesce(payload->>'messageType', '') = 'SW_CURRENT_LESSON_CACHED'
+  )::int as current_lesson_cached
 from public.analytics_events
 group by 1
 with no data;
@@ -436,7 +490,11 @@ create or replace function public.get_analytics_daily_funnel(
   lesson_viewed integer,
   lesson_completed integer,
   lesson_next_clicked integer,
-  resume_next_action_clicked integer
+  resume_next_action_clicked integer,
+  service_worker_events integer,
+  service_worker_failures integer,
+  offline_fallbacks integer,
+  current_lesson_cached integer
 )
 language plpgsql
 security definer
@@ -456,7 +514,11 @@ begin
     f.lesson_viewed,
     f.lesson_completed,
     f.lesson_next_clicked,
-    f.resume_next_action_clicked
+    f.resume_next_action_clicked,
+    f.service_worker_events,
+    f.service_worker_failures,
+    f.offline_fallbacks,
+    f.current_lesson_cached
   from public.analytics_daily_funnel f
   where f.day >= current_date - (greatest(p_days, 1) - 1)
   order by f.day desc;

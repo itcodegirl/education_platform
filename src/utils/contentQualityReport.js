@@ -152,6 +152,15 @@ function getSuggestion(missing) {
     .find(Boolean) || 'Add one learner-facing evidence prompt.';
 }
 
+function toCsvCell(value) {
+  const text = Array.isArray(value) ? value.join('; ') : String(value ?? '');
+  return `"${text.replaceAll('"', '""')}"`;
+}
+
+function toCsvRow(values) {
+  return values.map(toCsvCell).join(',');
+}
+
 export function buildContentQualityReport(courseEntries = []) {
   const quizGaps = [];
   const lessonGaps = [];
@@ -217,4 +226,48 @@ export function buildContentQualityReport(courseEntries = []) {
     warningsByCourse: toSortedCounts(warningsByCourse),
     missingSignals: toSortedCounts(missingSignals),
   };
+}
+
+export function buildContentQualityCsv(report = {}, generatedAt = new Date().toISOString()) {
+  const rows = [[
+    'generated_at',
+    'type',
+    'course_id',
+    'course',
+    'item',
+    'path',
+    'missing_signals',
+    'missing_labels',
+    'suggestion',
+  ]];
+
+  (report.quizGaps || []).forEach((row) => {
+    rows.push([
+      generatedAt,
+      'quiz',
+      row.courseId,
+      row.courseLabel,
+      row.target || row.id,
+      row.path,
+      row.missing,
+      row.missingLabels,
+      row.suggestion,
+    ]);
+  });
+
+  (report.lessonGaps || []).forEach((row) => {
+    rows.push([
+      generatedAt,
+      'lesson',
+      row.courseId,
+      row.courseLabel,
+      `${row.moduleTitle || 'Module'} - ${row.lessonTitle || row.id}`,
+      row.path,
+      row.missing,
+      row.missingLabels,
+      row.suggestion,
+    ]);
+  });
+
+  return `${rows.map(toCsvRow).join('\n')}\n`;
 }

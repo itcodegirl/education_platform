@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { COURSE_METADATA, loadCourse } from '../../data';
-import { buildContentQualityReport } from '../../utils/contentQualityReport';
+import {
+  buildContentQualityCsv,
+  buildContentQualityReport,
+} from '../../utils/contentQualityReport';
 
 const MAX_ROWS = 16;
 
@@ -47,6 +50,10 @@ export function AdminContentQualityTab() {
     () => buildContentQualityReport(state.courseEntries),
     [state.courseEntries],
   );
+  const csvHref = useMemo(
+    () => `data:text/csv;charset=utf-8,${encodeURIComponent(buildContentQualityCsv(report))}`,
+    [report],
+  );
 
   if (state.loading) {
     return (
@@ -68,9 +75,18 @@ export function AdminContentQualityTab() {
   return (
     <>
       <section className="admin-section" aria-labelledby="content-quality-title">
-        <h3 id="content-quality-title" className="admin-section-title">
-          Content Quality
-        </h3>
+        <div className="admin-quality-toolbar">
+          <h3 id="content-quality-title" className="admin-section-title">
+            Content Quality
+          </h3>
+          <a
+            className="admin-export-link"
+            href={csvHref}
+            download="codeherway-content-quality-report.csv"
+          >
+            Export CSV
+          </a>
+        </div>
         <div className="admin-grid admin-quality-grid">
           <QualityMetric label="Report-only warnings" value={report.warningCount} />
           <QualityMetric label="Quiz rubric gaps" value={report.quizGapCount} />

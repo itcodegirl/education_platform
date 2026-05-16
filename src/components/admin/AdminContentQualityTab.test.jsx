@@ -42,6 +42,9 @@ describe('AdminContentQualityTab', () => {
 
     expect(screen.getByText('Quiz rubric gaps')).toBeInTheDocument();
     expect(screen.getByText('Lesson rubric gaps')).toBeInTheDocument();
+    const exportLink = screen.getByRole('link', { name: /export csv/i });
+    expect(exportLink).toHaveAttribute('download', 'codeherway-content-quality-report.csv');
+    expect(exportLink).toHaveAttribute('href', expect.stringContaining('data:text/csv'));
     expect(screen.getByText(/HTML - Lesson intro/)).toBeInTheDocument();
     expect(screen.getByText(/Add one question/)).toBeInTheDocument();
   });

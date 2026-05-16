@@ -40,6 +40,8 @@ function makeAdminData(overrides = {}) {
       topUsers: [],
       funnel7d: {},
       funnel30d: {},
+      reliability7d: {},
+      reliability30d: {},
     },
     loading: false,
     loadError: '',

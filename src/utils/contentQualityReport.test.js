@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildContentQualityCsv,
   buildContentQualityReport,
   getQuizQualityStatus,
 } from './contentQualityReport';
@@ -70,5 +71,34 @@ describe('content quality report', () => {
       presentCount: 0,
     });
     expect(report.missingSignals[0].count).toBeGreaterThan(0);
+  });
+
+  it('exports quiz and lesson gaps as escaped CSV rows', () => {
+    const csv = buildContentQualityCsv({
+      quizGaps: [{
+        courseId: 'html',
+        courseLabel: 'HTML',
+        target: 'Lesson "intro"',
+        path: 'html.quizzes[0]',
+        missing: ['reasoning'],
+        missingLabels: ['Reasoning check'],
+        suggestion: 'Add a why question.',
+      }],
+      lessonGaps: [{
+        courseId: 'css',
+        courseLabel: 'CSS',
+        moduleTitle: 'Layouts',
+        lessonTitle: 'Flex basics',
+        path: 'css.layouts.lessons[0]',
+        missing: ['transfer', 'retrievalPrompt'],
+        missingLabels: ['Transfer bridge', 'Recall prompt'],
+        suggestion: 'Add a next-project bridge.',
+      }],
+    }, '2026-05-16T12:00:00.000Z');
+
+    expect(csv).toContain('"generated_at","type","course_id"');
+    expect(csv).toContain('"quiz","html","HTML","Lesson ""intro"""');
+    expect(csv).toContain('"lesson","css","CSS","Layouts - Flex basics"');
+    expect(csv).toContain('"transfer; retrievalPrompt"');
   });
 });

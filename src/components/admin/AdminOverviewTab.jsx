@@ -16,6 +16,13 @@ const FUNNEL_ROWS = [
   { id: 'resumeNextActionClicked', label: 'Resume-next clicks' },
 ];
 
+const RELIABILITY_ROWS = [
+  { id: 'serviceWorkerEvents', label: 'Service-worker events' },
+  { id: 'serviceWorkerFailures', label: 'Service-worker failures' },
+  { id: 'offlineFallbacks', label: 'Offline fallbacks' },
+  { id: 'currentLessonCached', label: 'Current lessons cached' },
+];
+
 export function AdminOverviewTab({
   totalUsers,
   newUsersWeek,
@@ -29,6 +36,8 @@ export function AdminOverviewTab({
   topUsers,
   funnel7d,
   funnel30d,
+  reliability7d,
+  reliability30d,
 }) {
   return (
     <>
@@ -96,6 +105,30 @@ export function AdminOverviewTab({
                   <td>{row.label}</td>
                   <td className="admin-stat-val">{(funnel7d?.[row.id] || 0).toLocaleString()}</td>
                   <td className="admin-stat-val">{(funnel30d?.[row.id] || 0).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="admin-section">
+        <h3 className="admin-section-title">Platform Reliability (7d vs 30d)</h3>
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Signal</th>
+                <th>Last 7 days</th>
+                <th>Last 30 days</th>
+              </tr>
+            </thead>
+            <tbody>
+              {RELIABILITY_ROWS.map((row) => (
+                <tr key={row.id}>
+                  <td>{row.label}</td>
+                  <td className="admin-stat-val">{(reliability7d?.[row.id] || 0).toLocaleString()}</td>
+                  <td className="admin-stat-val">{(reliability30d?.[row.id] || 0).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>

@@ -398,6 +398,44 @@
   color: #ff6b6b;
 }
 
+.admin-review-count {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.admin-quality-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-quality-toolbar .admin-section-title {
+  margin-bottom: 0;
+}
+
+.admin-export-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--cyan);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.admin-export-link:hover {
+  border-color: var(--cyan);
+  background: var(--cyan-dim);
+}
+
 .admin-quality-grid {
   margin-bottom: 0;
 }
@@ -524,6 +562,11 @@
   .admin-tab {
     font-size: 12px;
     padding: 8px 10px;
+  }
+
+  .admin-quality-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 
