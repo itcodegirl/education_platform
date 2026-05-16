@@ -9,6 +9,13 @@ export const module16 = {
       tasks: ['Wrap expensive component with React.memo', 'Memoize a sorting calculation with useMemo', 'Stabilize callbacks with useCallback', 'Profile with React DevTools to find actual bottlenecks'],
       challenge: 'Optimize a Slow Dashboard: React.memo on widgets, useMemo on chart data, useCallback on handlers. Measure before/after performance.', devFession: 'I wrapped every component in React.memo "for performance." My senior dev said "you just made your code harder to read for zero benefit. Profile first."' },
     { id: 'r16-2', title: 'Code Splitting & Lazy Loading', prereqs: ['r16-1'], difficulty: 'intermediate', duration: '25 min',
+      learningFrame: {
+        learn: 'Decide which parts of a React app can load later without hurting the first screen.',
+        check: 'From memory, explain what Suspense does while a lazy component is loading.',
+        next: 'Use route-based splitting when a larger portfolio app has admin, settings, or project-detail screens.',
+      },
+      commonMistakes: ['Common mistake: Lazy loading every small component can make the app feel choppy. Split at route or heavy-feature boundaries first.'],
+      bridge: { preview: 'Next, pair code splitting with bundle checks so performance work is measurable.' },
       concepts: ['React.lazy: load components only when needed. const AdminPage = React.lazy(() => import("./AdminPage")). Reduces initial bundle.', 'Suspense: shows fallback UI while lazy component loads. <Suspense fallback={<Spinner />}><AdminPage /></Suspense>.', 'Route-based splitting: lazy load each page/route. Users only download the code for pages they visit.', 'Error boundaries: catch errors from lazy components with componentDidCatch or error boundary libraries.'],
       code: `const AdminPage = React.lazy(() => import('./AdminPage'));\nconst SettingsPage = React.lazy(() => import('./SettingsPage'));\n\nfunction App() {\n    return (\n        <div>\n            <nav>...</nav>\n            <React.Suspense fallback={<div>Loading...</div>}>\n                {page === 'admin' && <AdminPage />}\n                {page === 'settings' && <SettingsPage />}\n            </React.Suspense>\n        </div>\n    );\n}`,
       output: 'AdminPage only downloads when user navigates to it. Initial bundle stays small.',
