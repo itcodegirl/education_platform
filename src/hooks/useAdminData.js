@@ -52,6 +52,7 @@ function toFunnel(value) {
     lessonViewed: toInt(value.lessonViewed),
     lessonCompleted: toInt(value.lessonCompleted),
     lessonNextClicked: toInt(value.lessonNextClicked),
+    resumeNextActionClicked: toInt(value.resumeNextActionClicked),
   };
 }
 

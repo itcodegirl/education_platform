@@ -10,6 +10,7 @@ export const ResumeNextPanel = memo(function ResumeNextPanel({
     <section
       className={`resume-next resume-next-${recommendation.type}`}
       aria-label="Recommended next step"
+      aria-live="polite"
     >
       <div className="resume-next-copy">
         <p className="resume-next-kicker">{recommendation.eyebrow}</p>

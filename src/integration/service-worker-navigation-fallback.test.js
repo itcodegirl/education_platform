@@ -64,6 +64,17 @@ function dispatchFetch(listeners, request) {
   return responsePromise;
 }
 
+function dispatchMessage(listeners, data) {
+  let waitPromise = Promise.resolve();
+  listeners.message({
+    data,
+    waitUntil: (promise) => {
+      waitPromise = Promise.resolve(promise);
+    },
+  });
+  return waitPromise;
+}
+
 describe('service worker navigation fallback', () => {
   it('returns a branded offline document instead of rejecting uncached navigation failures', async () => {
     const harness = await createServiceWorkerHarness({
@@ -110,6 +121,34 @@ describe('service worker navigation fallback', () => {
     expect(response.status).toBe(200);
   });
 
+  it('prefers a cached current lesson route before the generic shell', async () => {
+    const cachedLesson = new Response('<main>Cached lesson route</main>', {
+      headers: { 'Content-Type': 'text/html' },
+    });
+    const cachedShell = new Response('<main>Cached shell</main>', {
+      headers: { 'Content-Type': 'text/html' },
+    });
+    const harness = await createServiceWorkerHarness({
+      fetchImpl: vi.fn(async () => {
+        throw new TypeError('network failed');
+      }),
+      initialCache: new Map([
+        ['/learn/html/101/lesson-01', cachedLesson],
+        ['/index.html', cachedShell],
+      ]),
+    });
+
+    const response = await dispatchFetch(harness.listeners, {
+      method: 'GET',
+      url: 'https://codeherway.test/learn/html/101/lesson-01',
+      mode: 'navigate',
+      destination: 'document',
+      cache: 'default',
+    });
+
+    await expect(response.text()).resolves.toContain('Cached lesson route');
+  });
+
   it('keeps manifest fetches network-first with cache fallback', async () => {
     const cachedManifest = new Response('{"name":"CodeHerWay"}', {
       headers: { 'Content-Type': 'application/manifest+json' },
@@ -130,5 +169,42 @@ describe('service worker navigation fallback', () => {
     });
 
     await expect(response.json()).resolves.toEqual({ name: 'CodeHerWay' });
+  });
+
+  it('pre-caches the current lesson route when the app reports a safe learn path', async () => {
+    const harness = await createServiceWorkerHarness({
+      fetchImpl: vi.fn(async (url) => new Response('<main>Lesson shell</main>', {
+        headers: { 'Content-Type': 'text/html' },
+        status: String(url).startsWith('/learn/') ? 200 : 404,
+      })),
+    });
+
+    await dispatchMessage(harness.listeners, {
+      type: 'CACHE_CURRENT_LESSON',
+      payload: {
+        path: '/learn/html/101/lesson-01',
+        courseId: 'html',
+        moduleId: '101',
+        lessonId: 'lesson-01',
+      },
+    });
+
+    expect(harness.cacheStore.has('/learn/html/101/lesson-01')).toBe(true);
+    expect(harness.cacheStore.has('/index.html')).toBe(true);
+    expect(harness.postedMessages).toContainEqual(expect.objectContaining({
+      type: 'SW_CURRENT_LESSON_CACHED',
+    }));
+  });
+
+  it('ignores unsafe current lesson cache paths', async () => {
+    const harness = await createServiceWorkerHarness();
+
+    await dispatchMessage(harness.listeners, {
+      type: 'CACHE_CURRENT_LESSON',
+      payload: { path: 'https://other.example/learn/html/101/lesson-01' },
+    });
+
+    expect(harness.fetchImpl).not.toHaveBeenCalled();
+    expect(harness.cache.put).not.toHaveBeenCalled();
   });
 });

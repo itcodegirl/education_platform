@@ -338,7 +338,8 @@ begin
         where event_name = 'lesson_completion_toggled'
           and coalesce(payload->>'completionState', '') = 'marked_complete'
       ),
-      'lessonNextClicked', count(*) filter (where event_name = 'lesson_next_clicked')
+      'lessonNextClicked', count(*) filter (where event_name = 'lesson_next_clicked'),
+      'resumeNextActionClicked', count(*) filter (where event_name = 'resume_next_action_clicked')
     ) as value
     from public.analytics_events
     where occurred_at >= now() - interval '7 days'
@@ -353,7 +354,8 @@ begin
         where event_name = 'lesson_completion_toggled'
           and coalesce(payload->>'completionState', '') = 'marked_complete'
       ),
-      'lessonNextClicked', count(*) filter (where event_name = 'lesson_next_clicked')
+      'lessonNextClicked', count(*) filter (where event_name = 'lesson_next_clicked'),
+      'resumeNextActionClicked', count(*) filter (where event_name = 'resume_next_action_clicked')
     ) as value
     from public.analytics_events
     where occurred_at >= now() - interval '30 days'
@@ -395,7 +397,8 @@ select
     where event_name = 'lesson_completion_toggled'
       and coalesce(payload->>'completionState', '') = 'marked_complete'
   )::int as lesson_completed,
-  count(*) filter (where event_name = 'lesson_next_clicked')::int as lesson_next_clicked
+  count(*) filter (where event_name = 'lesson_next_clicked')::int as lesson_next_clicked,
+  count(*) filter (where event_name = 'resume_next_action_clicked')::int as resume_next_action_clicked
 from public.analytics_events
 group by 1
 with no data;
@@ -432,7 +435,8 @@ create or replace function public.get_analytics_daily_funnel(
   onboarding_closed integer,
   lesson_viewed integer,
   lesson_completed integer,
-  lesson_next_clicked integer
+  lesson_next_clicked integer,
+  resume_next_action_clicked integer
 )
 language plpgsql
 security definer
@@ -451,7 +455,8 @@ begin
     f.onboarding_closed,
     f.lesson_viewed,
     f.lesson_completed,
-    f.lesson_next_clicked
+    f.lesson_next_clicked,
+    f.resume_next_action_clicked
   from public.analytics_daily_funnel f
   where f.day >= current_date - (greatest(p_days, 1) - 1)
   order by f.day desc;

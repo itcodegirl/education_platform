@@ -43,6 +43,7 @@ import { getLessonMasteryStatus } from "../utils/lessonMasteryStatus";
 import { getDailyLearningLoopSteps } from "../utils/dailyLearningLoop";
 import { getLearningLoopActionPayload } from "../utils/learningAnalyticsPayloads";
 import { getResumeRecommendation } from "../utils/resumeRecommendation";
+import { requestOfflineLessonCache } from "../utils/offlineLessonCache";
 
 // Layout components
 import { Sidebar } from "../components/layout/Sidebar";
@@ -238,6 +239,26 @@ export function AppLayout() {
   const mutationActionPath = `/learn/${encodeURIComponent(course.id)}/${encodeURIComponent(
     mod.id,
   )}/${encodeURIComponent(showModQuiz ? 'quiz' : les.id)}`;
+
+  useEffect(() => {
+    if (!dataLoaded || showModQuiz) return;
+
+    requestOfflineLessonCache({
+      path: mutationActionPath,
+      courseId: course.id,
+      moduleId: mod.id,
+      lessonId: les.id,
+      title: les.title,
+    });
+  }, [
+    course.id,
+    dataLoaded,
+    les.id,
+    les.title,
+    mod.id,
+    mutationActionPath,
+    showModQuiz,
+  ]);
 
   const nextStepHint = getNextStepHint({ isLast, showModQuiz, isDone });
   const moduleQuizKey = buildStableQuizKey('m', course.id, mod.id);

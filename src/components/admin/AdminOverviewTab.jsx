@@ -13,6 +13,7 @@ const FUNNEL_ROWS = [
   { id: 'lessonViewed', label: 'Lessons viewed' },
   { id: 'lessonCompleted', label: 'Lessons completed' },
   { id: 'lessonNextClicked', label: 'Next lesson clicks' },
+  { id: 'resumeNextActionClicked', label: 'Resume-next clicks' },
 ];
 
 export function AdminOverviewTab({
