@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildContentQualityActionPlan,
   buildContentQualityCsv,
   buildContentQualityReport,
   getQuizQualityStatus,
@@ -71,6 +72,43 @@ describe('content quality report', () => {
       presentCount: 0,
     });
     expect(report.missingSignals[0].count).toBeGreaterThan(0);
+  });
+
+  it('prioritizes a curriculum sprint from report-only gaps', () => {
+    const actionPlan = buildContentQualityActionPlan({
+      quizGaps: [{
+        courseId: 'html',
+        courseLabel: 'HTML',
+        target: 'Lesson intro',
+        path: 'html.quizzes[0]',
+        missing: ['reasoning'],
+        missingLabels: ['Reasoning check'],
+        suggestion: 'Add a why question.',
+      }],
+      lessonGaps: [{
+        courseId: 'react',
+        courseLabel: 'React',
+        moduleTitle: 'State',
+        lessonTitle: 'useState',
+        path: 'react.state.lessons[0]',
+        presentCount: 1,
+        missing: ['objective', 'retrievalPrompt', 'transfer'],
+        missingLabels: ['Clear objective', 'Recall prompt', 'Transfer bridge'],
+        suggestion: 'Add a learner-facing goal.',
+      }],
+    });
+
+    expect(actionPlan.sprintFocus[0]).toMatchObject({
+      courseId: 'react',
+      totalGaps: 1,
+      lessonGaps: 1,
+      topSignalLabel: 'Clear objective',
+    });
+    expect(actionPlan.nextFixes[0]).toMatchObject({
+      type: 'lesson',
+      label: 'React - useState',
+      priority: 6,
+    });
   });
 
   it('exports quiz and lesson gaps as escaped CSV rows', () => {

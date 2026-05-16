@@ -152,6 +152,10 @@ function getSuggestion(missing) {
     .find(Boolean) || 'Add one learner-facing evidence prompt.';
 }
 
+function getSignalLabel(signal) {
+  return QUIZ_SIGNAL_LABELS[signal] || LESSON_SIGNAL_LABELS[signal] || signal;
+}
+
 function toCsvCell(value) {
   const text = Array.isArray(value) ? value.join('; ') : String(value ?? '');
   return `"${text.replaceAll('"', '""')}"`;
@@ -226,6 +230,96 @@ export function buildContentQualityReport(courseEntries = []) {
     warningsByCourse: toSortedCounts(warningsByCourse),
     missingSignals: toSortedCounts(missingSignals),
   };
+}
+
+function getActionBucket(map, row) {
+  if (!map.has(row.courseId)) {
+    map.set(row.courseId, {
+      courseId: row.courseId,
+      courseLabel: row.courseLabel,
+      totalGaps: 0,
+      quizGaps: 0,
+      lessonGaps: 0,
+      signals: new Map(),
+    });
+  }
+
+  return map.get(row.courseId);
+}
+
+function addGapToActionBucket(bucket, row, type) {
+  bucket.totalGaps += 1;
+  if (type === 'quiz') {
+    bucket.quizGaps += 1;
+  } else {
+    bucket.lessonGaps += 1;
+  }
+  (row.missing || []).forEach((signal) => increment(bucket.signals, signal));
+}
+
+function getActionPriority(row, type) {
+  const missingCount = Array.isArray(row.missing) ? row.missing.length : 0;
+  if (type === 'lesson') {
+    return missingCount + Math.max(0, 4 - Number(row.presentCount || 0));
+  }
+  return missingCount;
+}
+
+export function buildContentQualityActionPlan(report = {}, { limit = 5 } = {}) {
+  const courseBuckets = new Map();
+
+  (report.quizGaps || []).forEach((row) => {
+    addGapToActionBucket(getActionBucket(courseBuckets, row), row, 'quiz');
+  });
+
+  (report.lessonGaps || []).forEach((row) => {
+    addGapToActionBucket(getActionBucket(courseBuckets, row), row, 'lesson');
+  });
+
+  const sprintFocus = [...courseBuckets.values()]
+    .map((bucket) => {
+      const topSignal = toSortedCounts(bucket.signals)[0] || null;
+      return {
+        courseId: bucket.courseId,
+        courseLabel: bucket.courseLabel,
+        totalGaps: bucket.totalGaps,
+        quizGaps: bucket.quizGaps,
+        lessonGaps: bucket.lessonGaps,
+        topSignal: topSignal?.name || '',
+        topSignalLabel: topSignal ? getSignalLabel(topSignal.name) : 'Clear',
+        topSignalCount: topSignal?.count || 0,
+        suggestedNextStep: topSignal
+          ? getSuggestion([topSignal.name])
+          : 'Keep monitoring this course as new content ships.',
+      };
+    })
+    .sort((left, right) =>
+      right.totalGaps - left.totalGaps ||
+      right.lessonGaps - left.lessonGaps ||
+      left.courseLabel.localeCompare(right.courseLabel))
+    .slice(0, limit);
+
+  const nextFixes = [
+    ...(report.lessonGaps || []).map((row) => ({
+      ...row,
+      type: 'lesson',
+      label: `${row.courseLabel} - ${row.lessonTitle}`,
+      priority: getActionPriority(row, 'lesson'),
+    })),
+    ...(report.quizGaps || []).map((row) => ({
+      ...row,
+      type: 'quiz',
+      label: `${row.courseLabel} - ${row.target}`,
+      priority: getActionPriority(row, 'quiz'),
+    })),
+  ]
+    .sort((left, right) =>
+      right.priority - left.priority ||
+      left.courseLabel.localeCompare(right.courseLabel) ||
+      left.label.localeCompare(right.label))
+    .slice(0, limit);
+
+  return { sprintFocus, nextFixes };
 }
 
 export function buildContentQualityCsv(report = {}, generatedAt = new Date().toISOString()) {

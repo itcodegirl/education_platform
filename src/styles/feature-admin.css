@@ -489,6 +489,65 @@
   font-family: 'Poppins', sans-serif;
 }
 
+.admin-quality-action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.admin-quality-action-card {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+}
+
+.admin-quality-action-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.admin-quality-action-course,
+.admin-quality-action-count {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 800;
+}
+
+.admin-quality-action-course {
+  color: var(--text);
+}
+
+.admin-quality-action-count {
+  color: var(--amber);
+  font-size: 12px;
+}
+
+.admin-quality-action-focus,
+.admin-quality-action-detail,
+.admin-quality-action-step {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.admin-quality-action-focus {
+  color: var(--cyan);
+  font-weight: 700;
+}
+
+.admin-quality-action-detail {
+  margin-top: 4px;
+}
+
+.admin-quality-action-step {
+  margin-top: 10px;
+  color: var(--text-muted);
+}
+
 .admin-quality-item {
   display: block;
   font-weight: 700;
