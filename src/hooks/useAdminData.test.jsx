@@ -126,8 +126,8 @@ describe('useAdminData', () => {
             totalBadges: 1,
             totalXP: 100,
             topUsers: [{ user_id: 'user-1', total: 100, name: 'Ava' }],
-            funnel7d: { lessonViewed: 1, lessonCompleted: 1 },
-            funnel30d: { lessonViewed: 2, lessonCompleted: 1 },
+            funnel7d: { lessonViewed: 1, lessonCompleted: 1, resumeNextActionClicked: 1 },
+            funnel30d: { lessonViewed: 2, lessonCompleted: 1, resumeNextActionClicked: 3 },
           },
           error: null,
         });
@@ -150,5 +150,6 @@ describe('useAdminData', () => {
     expect(result.current.usersCounts.newWeek).toBe(1);
     expect(result.current.usersCounts.newMonth).toBe(1);
     expect(result.current.dashboardMetrics.totalXP).toBe(100);
+    expect(result.current.dashboardMetrics.funnel30d.resumeNextActionClicked).toBe(3);
   });
 });

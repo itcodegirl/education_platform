@@ -1,7 +1,7 @@
 ﻿// Service worker for CodeHerWay.
 // Keep navigation network-first so deploys pick up the latest HTML shell.
 
-const CACHE_VERSION = 'v10';
+const CACHE_VERSION = 'v11';
 const CACHE_PREFIX = 'chw-';
 const SHELL_CACHE = `${CACHE_PREFIX}shell-${CACHE_VERSION}`;
 const DATA_CACHE = `${CACHE_PREFIX}data-${CACHE_VERSION}`;
@@ -120,6 +120,11 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
+    return;
+  }
+
+  if (event.data?.type === 'CACHE_CURRENT_LESSON') {
+    event.waitUntil(cacheCurrentLesson(event.data.payload));
   }
 });
 
@@ -221,6 +226,39 @@ async function precacheShell() {
   );
 }
 
+function getSafeLessonCachePath(path) {
+  if (typeof path !== 'string') return '';
+  if (!path.startsWith('/learn/') || path.startsWith('//') || path.includes('\\')) return '';
+  return path;
+}
+
+async function cacheCurrentLesson(payload = {}) {
+  const path = getSafeLessonCachePath(payload.path);
+  if (!path) return;
+
+  const cache = await caches.open(SHELL_CACHE);
+  try {
+    const response = await fetch(path, { cache: 'no-store' });
+    if (response.ok && isHtmlResponse(response)) {
+      await cache.put(path, response.clone());
+      await cache.put('/index.html', response.clone());
+      await notifyClients('SW_CURRENT_LESSON_CACHED', {
+        path,
+        courseId: payload.courseId || '',
+        moduleId: payload.moduleId || '',
+        lessonId: payload.lessonId || '',
+      });
+    }
+  } catch {
+    await notifyClients('SW_CURRENT_LESSON_CACHE_FAILED', {
+      path,
+      courseId: payload.courseId || '',
+      moduleId: payload.moduleId || '',
+      lessonId: payload.lessonId || '',
+    });
+  }
+}
+
 function isHtmlResponse(response) {
   const contentType = response.headers.get('content-type') || '';
   return contentType.includes('text/html');
@@ -289,7 +327,10 @@ async function networkFirstNavigation(request) {
     }
     return response;
   } catch {
-    const fallback = await cache.match('/index.html');
+    const fallback =
+      await cache.match(request) ||
+      await cache.match(new URL(request.url).pathname) ||
+      await cache.match('/index.html');
     if (fallback) return fallback;
 
     notifyClients('SW_NAVIGATION_FALLBACK_USED', {

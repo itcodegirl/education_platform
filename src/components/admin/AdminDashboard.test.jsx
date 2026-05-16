@@ -76,4 +76,10 @@ describe('AdminDashboard', () => {
     expect(screen.getByRole('button', { name: /reload the admin dashboard/i })).toHaveTextContent(/^Retry$/);
     expect(screen.queryByText(/Retry Retry/i)).not.toBeInTheDocument();
   });
+
+  it('includes a content QA tab for curriculum maintenance', () => {
+    render(<AdminDashboard onClose={vi.fn()} />);
+
+    expect(screen.getByRole('tab', { name: /content qa/i })).toBeInTheDocument();
+  });
 });
