@@ -182,6 +182,9 @@ const REACT_QUIZZES_SOURCE = [
     { id:'r10a5', type:'mc', question:'useRef(null) starts as:', options:['undefined','null','0','Empty string'], correct:1, explanation:'null is common initial value, set when element mounts.' },
     { id:'r10a6', type:'mc', question:'Key difference from useState:', options:['None','useRef does NOT cause re-renders','useRef is slower','useState is deprecated'], correct:1, explanation:'useState re-renders. useRef does not.' },
     { id:'r10a7', type:'mc', question:'Storing previous value uses:', options:['useState','useRef updated in useEffect','localStorage','Props'], correct:1, explanation:'Update ref in useEffect after render to track previous values.' },
+    { id:'r10a8', type:'bug', question:'Scenario: a stopwatch keeps re-rendering just to remember the interval id. Which line is the mistake?',
+      lines:['function Timer() {','  const [intervalId, setIntervalId] = useState(null);','  function start() {','    setIntervalId(setInterval(tick, 1000));','  }','}'],
+      correct:1, explanation:'The interval id is not rendered UI. Store it in useRef so the app can remember it without causing an extra render.' },
   ]},
   { lessonId:'r10-2', questions:[
     { id:'r10b1', type:'mc', question:'Custom hooks start with:', options:['hook','custom','use','my'], correct:2, explanation:'The use prefix lets React enforce hook rules.' },
@@ -191,6 +194,9 @@ const REACT_QUIZZES_SOURCE = [
     { id:'r10b5', type:'mc', question:'Custom hooks return:', options:['JSX','Values and functions the component needs','Nothing','HTML'], correct:1, explanation:'Return { data, loading, error } or whatever the consumer needs.' },
     { id:'r10b6', type:'mc', question:'Without custom hooks:', options:['No problem','Copy-paste same logic across components','Use globals','Inheritance'], correct:1, explanation:'Custom hooks eliminate duplicated patterns.' },
     { id:'r10b7', type:'mc', question:'useLocalStorage is:', options:['Built-in','A custom hook syncing state to localStorage','A browser API','A React method'], correct:1, explanation:'Combines useState with localStorage read/write — reusable.' },
+    { id:'r10b8', type:'bug', question:'Scenario: a team extracts repeated fetch logic, but React stops enforcing hook rules. Which line is the mistake?',
+      lines:['function fetchUsers(url) {','  const [data, setData] = useState(null);','  useEffect(() => { fetch(url).then(r => r.json()).then(setData); }, [url]);','  return data;','}'],
+      correct:0, explanation:'A function that calls hooks must be named like a custom hook, such as useUsers. The use prefix lets React tooling catch incorrect hook usage.' },
   ]},
   { lessonId:'r11-1', questions:[
     { id:'r11a1', type:'mc', question:'Context solves:', options:['Performance','Prop drilling','Styling','Routing'], correct:1, explanation:'Share data without passing props through every level.' },
@@ -200,6 +206,9 @@ const REACT_QUIZZES_SOURCE = [
     { id:'r11a5', type:'mc', question:'Good Context uses:', options:['Everything','Theme, auth, language, user preferences','Array methods','CSS vars'], correct:1, explanation:'Data many components need — not local state.' },
     { id:'r11a6', type:'mc', question:'Too much Context causes:', options:['Nothing','Unnecessary re-renders','Errors','Crashes'], correct:1, explanation:'Every consumer re-renders when any context value changes.' },
     { id:'r11a7', type:'mc', question:'Without Context, deep data sharing needs:', options:['Nothing','Prop drilling through every intermediate component','Globals','Cookies'], correct:1, explanation:'Parent → Child → Grandchild → ... tedious prop chains.' },
+    { id:'r11a8', type:'bug', question:'Scenario: a theme toggle should work across the whole app. Which line is the Context mistake?',
+      lines:['const ThemeContext = createContext(null);','function App() {','  return <ThemeContext.Provider><Dashboard /></ThemeContext.Provider>;','}'],
+      correct:2, explanation:'The Provider needs a value prop, such as value={{ theme, setTheme }}. Without it, consumers cannot read the shared theme data.' },
   ]},
   { lessonId:'r11-2', questions:[
     { id:'r11b1', type:'mc', question:'Props are for:', options:['Global data','Parent-to-child configuration','Side effects','Async'], correct:1, explanation:'Props configure children with data from parents.' },
@@ -209,6 +218,9 @@ const REACT_QUIZZES_SOURCE = [
     { id:'r11b5', type:'mc', question:'Cart total is:', options:['Stored state','Derived (calculated) from cart items','Context','A prop'], correct:1, explanation:'Calculate from data. Do not store what you can derive.' },
     { id:'r11b6', type:'mc', question:'Auth status belongs in:', options:['Props','Local state','Context','localStorage only'], correct:2, explanation:'Many components need auth info — Context makes sense.' },
     { id:'r11b7', type:'mc', question:'Button label belongs in:', options:['Context','State','Props','localStorage'], correct:2, explanation:'Parent decides what the button says — configuration via props.' },
+    { id:'r11b8', type:'bug', question:'Scenario: a cart total looks wrong after removing items. Which line is the state-design mistake?',
+      lines:['const [items, setItems] = useState([]);','const [total, setTotal] = useState(0);','function removeItem(id) {','  setItems(items.filter(item => item.id !== id));','}'],
+      correct:1, explanation:'The total is derived from items and can drift out of sync. Calculate it from items during render instead of storing duplicate state.' },
   ]},
   { lessonId:'r12-1', questions:[
     { id:'r12a1', type:'mc', question:'CSS Modules scope by:', options:['Nothing','Generating unique class names','Inline styles','Globals'], correct:1, explanation:'Transforms .card into .card_abc123 — scoped per component.' },
@@ -227,6 +239,9 @@ const REACT_QUIZZES_SOURCE = [
     { id:'r13a5', type:'mc', question:'BrowserRouter wraps:', options:['Individual routes','The entire app','Only Links','Only Routes'], correct:1, explanation:'Must wrap everything using routing — typically the whole app.' },
     { id:'r13a6', type:'mc', question:':id in path means:', options:['Literal text','Dynamic parameter matching any value','An error','Required'], correct:1, explanation:'/user/:id captures /user/42, /user/abc, etc.' },
     { id:'r13a7', type:'mc', question:'Without React Router:', options:['Everything works','Full page reload for every navigation','No links','CSS breaks'], correct:1, explanation:'Every link triggers a server request and full page reload.' },
+    { id:'r13a8', type:'bug', question:'Scenario: a dashboard app reloads every time learners click the dashboard link. Which line is the routing mistake?',
+      lines:['import { Link } from "react-router-dom";','function Nav() {','  return <a href="/dashboard">Dashboard</a>;','}'],
+      correct:2, explanation:'Use <Link to="/dashboard"> for in-app navigation. A plain anchor asks the browser for a new page and loses client-side route state.' },
   ]},
   { lessonId:'r13-2', questions:[
     { id:'r13b1', type:'mc', question:'A protected route should usually check:', options:['Only the current URL color','Auth state before rendering private content','The CSS module name','Whether the user clicked a button'], correct:1, explanation:'Protected routes guard private pages by checking whether the user is authenticated.' },
@@ -245,6 +260,9 @@ const REACT_QUIZZES_SOURCE = [
     { id:'r14a5', type:'mc', question:'AbortController cancels:', options:['State','Fetch requests on unmount','Rendering','CSS'], correct:1, explanation:'Prevents state updates on unmounted components.' },
     { id:'r14a6', type:'mc', question:'res.ok checks:', options:['JSON validity','HTTP 200-299 success status','URL validity','Server status'], correct:1, explanation:'true for success statuses, false for 404, 500, etc.' },
     { id:'r14a7', type:'mc', question:'try/catch handles:', options:['Slow responses','Network errors and failures','CSS','State'], correct:1, explanation:'Catches network failures, JSON parse errors, thrown errors.' },
+    { id:'r14a8', type:'bug', question:'Scenario: a user list loads data in an effect, but React warns about the effect callback. Which line is the mistake?',
+      lines:['useEffect(async () => {','  const res = await fetch("/api/users");','  setUsers(await res.json());','}, []);'],
+      correct:0, explanation:'The effect callback itself should not be async. Define and call an inner async function inside useEffect instead.' },
   ]},
   { lessonId:'r15-1', questions:[
     { id:'r15a1', type:'mc', question:'useReducer is for:', options:['Simple toggles','Complex state with multiple related values','Styling','Routing'], correct:1, explanation:'Shines with many sub-values and interconnected updates.' },
@@ -254,6 +272,9 @@ const REACT_QUIZZES_SOURCE = [
     { id:'r15a5', type:'mc', question:'switch(action.type) is:', options:['Optional pattern','Standard reducer pattern','Required by React','JS-only'], correct:1, explanation:'Switch handles each action type with specific logic.' },
     { id:'r15a6', type:'mc', question:'useReducer returns:', options:['One value','[state, dispatch]','A promise','An action'], correct:1, explanation:'Current state + dispatch function, like useState but with actions.' },
     { id:'r15a7', type:'mc', question:'8 useState calls become:', options:['8 useRefs','One useReducer with organized actions','Globals','Context'], correct:1, explanation:'Consolidate related state with clear action-based updates.' },
+    { id:'r15a8', type:'bug', question:'Scenario: a reducer handles adding cart items, but the UI sometimes does not update. Which line is the reducer mistake?',
+      lines:['function reducer(state, action) {','  if (action.type === "ADD") {','    state.items.push(action.payload);','    return state;','  }','}'],
+      correct:2, explanation:'Reducers must return new objects or arrays instead of mutating existing state. Mutating state can keep the same reference and hide the update from React.' },
   ]},
   { lessonId:'r15-3', questions:[
     { id:'r15c1', type:'mc', question:'Context + useReducer combines:', options:['Global access from Context and transition logic from a reducer','CSS modules and routing','Refs and portals only','Build tools and hosting'], correct:0, explanation:'Context shares the store, while useReducer manages state changes through actions.' },
@@ -272,6 +293,9 @@ const REACT_QUIZZES_SOURCE = [
     { id:'r16a5', type:'mc', question:'memo on everything:', options:['Best practice','Can be SLOWER due to comparison overhead','No effect','Prevents all renders'], correct:1, explanation:'Comparison itself has a cost. Only memo what needs it.' },
     { id:'r16a6', type:'mc', question:'Re-renders happen when:', options:['CSS changes','State, props change, or parent re-renders','Page loads','User scrolls'], correct:1, explanation:'React re-renders on state/prop changes and parent re-renders.' },
     { id:'r16a7', type:'mc', question:'useCallback is needed when:', options:['Always','Passing functions to memoized children','Never','For styling'], correct:1, explanation:'Without useCallback, new function ref defeats React.memo.' },
+    { id:'r16a8', type:'bug', question:'Scenario: sorting scores with useMemo also changes the original list in the parent. Which line is the memoization mistake?',
+      lines:['function Scoreboard({ items }) {','  const sorted = useMemo(() => items.sort(compareByScore), [items]);','  return <Results items={sorted} />;','}'],
+      correct:1, explanation:'Array sort mutates the original array. Copy first, for example [...items].sort(compareByScore), so memoization does not mutate props.' },
   ]},
   { lessonId:'r16-3', questions:[
     { id:'r16c1', type:'mc', question:'List virtualization means:', options:['Render only visible rows from a large list','Render every row twice','Store lists in localStorage','Use CSS grid for every list'], correct:0, explanation:'Virtualization keeps the DOM small by showing only the visible window of items.' },
@@ -290,6 +314,9 @@ const REACT_QUIZZES_SOURCE = [
     { id:'r17a5', type:'mc', question:'Good fallback includes:', options:['Nothing','Error message + retry button','Blank div','Raw stack trace'], correct:1, explanation:'Context and recovery — not a white screen or raw error.' },
     { id:'r17a6', type:'mc', question:'Place boundaries:', options:['Root only','Around sections so one failure does not crash all','Every component','Nowhere'], correct:1, explanation:'Contain the blast radius — sidebar, main, dashboard.' },
     { id:'r17a7', type:'mc', question:'resetErrorBoundary:', options:['Reloads page','Clears error and re-renders children','Deletes error','Nothing'], correct:1, explanation:'Retry button re-attempts rendering the failed component.' },
+    { id:'r17a8', type:'bug', question:'Scenario: a save button throws from an event handler, but the error boundary never shows. Which line is the mistake?',
+      lines:['function SavePanel() {','  return <ErrorBoundary fallback={<p>Try again</p>}>','    <button onClick={() => riskySave()}>Save</button>','  </ErrorBoundary>;','}'],
+      correct:2, explanation:'Error boundaries catch render errors, not event handler errors. Handle event failures with try/catch or local error state.' },
   ]},
   { lessonId:'r18-1', questions:[
     { id:'r18a1', type:'mc', question:'React.lazy loads components:', options:['All at once','Only when needed (on demand)','Never','At build time'], correct:1, explanation:'Code splitting — JS downloads only when the component renders.' },
@@ -299,6 +326,9 @@ const REACT_QUIZZES_SOURCE = [
     { id:'r18a5', type:'mc', question:'Without code splitting:', options:['Loads faster','Entire codebase downloads in one bundle','Crashes','Works offline'], correct:1, explanation:'All code upfront = slow initial load.' },
     { id:'r18a6', type:'mc', question:'2MB bundle became 400KB with:', options:['Compression','Lazy loading routes and heavy components','Minification alone','Caching'], correct:1, explanation:'Code splitting sends only what is needed now.' },
     { id:'r18a7', type:'mc', question:'Suspense wraps:', options:['The whole app only','Each lazy component or group','Only routes','Only modals'], correct:1, explanation:'Can be granular or broad — wrap whatever might be lazy.' },
+    { id:'r18a8', type:'bug', question:'Scenario: a lazy settings page crashes before it can load. Which line is the lazy-loading mistake?',
+      lines:['const Settings = React.lazy(import("./Settings"));','function App() {','  return <Suspense fallback={<Spinner />}><Settings /></Suspense>;','}'],
+      correct:0, explanation:'React.lazy expects a function that returns the import promise: React.lazy(() => import("./Settings")).' },
   ]},
   { lessonId:'r18-2', questions:[
     { id:'r18b1', type:'mc', question:'createPortal renders into:', options:['The parent','A DOM node OUTSIDE the parent hierarchy','Nowhere','An iframe'], correct:1, explanation:'Portals render anywhere in the DOM — modals, tooltips.' },
@@ -308,6 +338,9 @@ const REACT_QUIZZES_SOURCE = [
     { id:'r18b5', type:'mc', question:'Portal target in index.html:', options:['#root','A separate <div id="modal-root">','The body','A script tag'], correct:1, explanation:'Add a dedicated div for portal content in index.html.' },
     { id:'r18b6', type:'mc', question:'Modern React prefers ___ over HOCs:', options:['HOCs always','Custom hooks','Neither','Both equally'], correct:1, explanation:'Hooks replaced most HOC patterns — simpler and composable.' },
     { id:'r18b7', type:'mc', question:'e.stopPropagation() in a modal:', options:['Nothing','Prevents backdrop clicks from closing it','Stops rendering','Disables events'], correct:1, explanation:'Stops click from bubbling to the overlay handler.' },
+    { id:'r18b8', type:'bug', question:'Scenario: clicking inside a portal modal also triggers the backdrop close handler. Which line is the mistake?',
+      lines:['return createPortal(','  <div className="backdrop" onClick={onClose}>','    <section className="modal">','      <button>Save</button>','    </section>','  </div>,','  document.body',');'],
+      correct:2, explanation:'The modal panel should stop propagation, for example onClick={(event) => event.stopPropagation()}, so inner clicks do not reach the backdrop.' },
   ]},
   { lessonId:'r19-1', questions:[
     { id:'r19a1', type:'mc', question:'Presentational component:', options:['Has state','Only renders UI from props','Fetches data','Handles routing'], correct:1, explanation:'Pure rendering: same props = same output. No logic.' },
@@ -317,6 +350,9 @@ const REACT_QUIZZES_SOURCE = [
     { id:'r19a5', type:'mc', question:'UserCard rendering name/email is:', options:['Smart','Presentational — just renders props','A container','A hook'], correct:1, explanation:'Receives data, renders it. No state, effects, or logic.' },
     { id:'r19a6', type:'mc', question:'UserCardContainer fetching data is:', options:['Presentational','Container — manages data loading','A hook','A utility'], correct:1, explanation:'Handles fetch, loading, error — passes data to UserCard.' },
     { id:'r19a7', type:'mc', question:'Benefit of smart/dumb split:', options:['More files','UserCard works with ANY data source','Performance','Less code'], correct:1, explanation:'Presentational works with API data, mocks, context — anything.' },
+    { id:'r19a8', type:'bug', question:'Scenario: a component named UserCard is supposed to be presentational, but it now owns data loading. Which line shows the architecture mistake?',
+      lines:['function UserCard({ userId }) {','  const [user, setUser] = useState(null);','  useEffect(() => { loadUser(userId).then(setUser); }, [userId]);','  return <h2>{user?.name}</h2>;','}'],
+      correct:2, explanation:'Fetching belongs in a container or custom hook for this split. A presentational UserCard should receive user data through props and focus on rendering.' },
   ]},
   { lessonId:'r19-2', questions:[
     { id:'r19b1', type:'mc', question:'The children prop contains:', options:['Only text strings','Whatever is placed between a component opening and closing tag','Only CSS classes','Only parent state'], correct:1, explanation:'props.children is the flexible content passed inside a component.' },

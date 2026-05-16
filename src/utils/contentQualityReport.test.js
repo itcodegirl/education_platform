@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildContentQualityActionPlan,
   buildContentQualityCsv,
+  buildContentQualityFixCsv,
   buildContentQualityReport,
   getContentQualityFixTemplates,
   getContentQualitySignalLabel,
@@ -163,5 +164,28 @@ describe('content quality report', () => {
     expect(csv).toContain('"quiz","html","HTML","Lesson ""intro"""');
     expect(csv).toContain('"lesson","css","CSS","Layouts - Flex basics"');
     expect(csv).toContain('"transfer; retrievalPrompt"');
+  });
+
+  it('exports filtered priority fixes with starter templates', () => {
+    const csv = buildContentQualityFixCsv([{
+      type: 'quiz',
+      priority: 3,
+      courseId: 'react',
+      courseLabel: 'React',
+      label: 'React - Lesson "r10-1"',
+      path: 'react.quizzes[19]',
+      missing: ['misconception', 'reasoning', 'application'],
+      missingLabels: ['Misconception check', 'Reasoning check', 'Application scenario'],
+      suggestion: 'Add one question.',
+      fixTemplates: [{
+        title: 'Misconception quiz item',
+        template: 'Ask learners to choose the bug.',
+      }],
+    }], '2026-05-16T12:00:00.000Z');
+
+    expect(csv).toContain('"generated_at","priority","type"');
+    expect(csv).toContain('"3","quiz","react","React","React - Lesson ""r10-1"""');
+    expect(csv).toContain('"misconception; reasoning; application"');
+    expect(csv).toContain('"Misconception quiz item","Ask learners to choose the bug."');
   });
 });

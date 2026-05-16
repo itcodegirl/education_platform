@@ -497,6 +497,14 @@
   font-weight: 700;
 }
 
+.admin-quality-filter-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .admin-quality-filters {
   display: grid;
   grid-template-columns: repeat(3, minmax(130px, 1fr)) minmax(190px, 1.5fr) auto;
@@ -732,6 +740,10 @@
   .admin-quality-filter-head {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .admin-quality-filter-actions {
+    justify-content: flex-start;
   }
 
   .admin-quality-filters {

@@ -3,6 +3,7 @@ import { COURSE_METADATA, loadCourse } from '../../data';
 import {
   buildContentQualityActionPlan,
   buildContentQualityCsv,
+  buildContentQualityFixCsv,
   buildContentQualityReport,
   getContentQualitySignalLabel,
 } from '../../utils/contentQualityReport';
@@ -105,6 +106,10 @@ export function AdminContentQualityTab() {
   const filteredLessonGaps = useMemo(
     () => report.lessonGaps.filter((row) => matchesQualityFilters(row, filters, 'lesson')),
     [filters, report.lessonGaps],
+  );
+  const filteredFixCsvHref = useMemo(
+    () => `data:text/csv;charset=utf-8,${encodeURIComponent(buildContentQualityFixCsv(filteredFixes))}`,
+    [filteredFixes],
   );
 
   useEffect(() => {
@@ -230,6 +235,7 @@ export function AdminContentQualityTab() {
         courseOptions={courseOptions}
         signalOptions={signalOptions}
         resultCount={filteredFixes.length}
+        csvHref={filteredFixCsvHref}
         onChange={updateFilter}
         onClear={() => setFilters(DEFAULT_FILTERS)}
       />
@@ -281,6 +287,7 @@ function QualityFilters({
   courseOptions,
   signalOptions,
   resultCount,
+  csvHref,
   onChange,
   onClear,
 }) {
@@ -290,7 +297,16 @@ function QualityFilters({
         <h3 id="content-quality-filters-title" className="admin-section-title">
           Report Filters
         </h3>
-        <span className="admin-quality-filter-count">{resultCount} matching fixes</span>
+        <div className="admin-quality-filter-actions">
+          <span className="admin-quality-filter-count">{resultCount} matching fixes</span>
+          <a
+            className="admin-export-link"
+            href={csvHref}
+            download="codeherway-filtered-content-fixes.csv"
+          >
+            Export filtered fixes
+          </a>
+        </div>
       </div>
       <div className="admin-quality-filters">
         <label className="admin-quality-filter">
