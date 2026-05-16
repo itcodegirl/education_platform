@@ -12,11 +12,69 @@ const OFFLINE_HTML = `<!doctype html>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>CodeHerWay - Offline</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #10111f;
+        color: #f7f4ff;
+      }
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background:
+          radial-gradient(circle at top left, rgba(255, 107, 157, 0.18), transparent 36rem),
+          linear-gradient(135deg, #10111f 0%, #15172a 100%);
+      }
+      main {
+        width: min(100%, 520px);
+        padding: 28px;
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 16px;
+        background: rgba(255,255,255,0.06);
+        box-shadow: 0 24px 60px rgba(0,0,0,0.28);
+      }
+      .brand {
+        margin: 0 0 14px;
+        color: #4ecdc4;
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 9vw, 3.2rem);
+        line-height: 1;
+      }
+      p {
+        margin: 16px 0 0;
+        color: rgba(247,244,255,0.78);
+        font-size: 1rem;
+        line-height: 1.7;
+      }
+      button {
+        min-height: 44px;
+        margin-top: 22px;
+        padding: 0 16px;
+        border: 0;
+        border-radius: 8px;
+        background: #ff6b9d;
+        color: #fff;
+        font: inherit;
+        font-weight: 800;
+      }
+    </style>
   </head>
   <body>
     <main>
+      <p class="brand">CodeHerWay</p>
       <h1>You're offline</h1>
-      <p>Reconnect and refresh to keep learning with CodeHerWay.</p>
+      <p>Your last loaded lessons are still safe in this browser. Reconnect, then refresh to sync new cloud progress.</p>
+      <button type="button" onclick="location.reload()">Try again</button>
     </main>
   </body>
 </html>`;
@@ -133,6 +191,19 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(staleWhileRevalidate(request, SHELL_CACHE));
 });
 
+async function notifyClients(type, payload = {}) {
+  const clients = await self.clients.matchAll({ includeUncontrolled: true, type: 'window' });
+  clients.forEach((client) => {
+    client.postMessage({
+      type,
+      payload: {
+        cacheVersion: CACHE_VERSION,
+        ...payload,
+      },
+    });
+  });
+}
+
 async function precacheShell() {
   const cache = await caches.open(SHELL_CACHE);
 
@@ -220,6 +291,11 @@ async function networkFirstNavigation(request) {
   } catch {
     const fallback = await cache.match('/index.html');
     if (fallback) return fallback;
+
+    notifyClients('SW_NAVIGATION_FALLBACK_USED', {
+      url: request.url,
+      reason: 'network-error-no-shell-cache',
+    }).catch(() => {});
 
     return new Response(OFFLINE_HTML, {
       status: 503,

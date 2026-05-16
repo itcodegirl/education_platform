@@ -95,6 +95,11 @@ export const FORBIDDEN_MODULE_PRELOADS = [
     rel: 'modulepreload',
     pattern: /(?:AuthLayout|LandingHero)-[^"']+\.js/i,
   },
+  {
+    label: 'course runtime data chunks',
+    rel: 'modulepreload',
+    pattern: /data-(?:html|css|js|react)-[^"']+\.js/i,
+  },
 ];
 
 export const INITIAL_ENTRY_BUDGETS = {

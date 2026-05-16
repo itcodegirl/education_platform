@@ -16,6 +16,7 @@ import { RouterProvider } from 'react-router-dom';
 import { AuthProvider } from './providers/AuthProvider';
 import { ThemeProvider } from './providers/ThemeProvider';
 import { InstallPrompt } from './components/shared/InstallPrompt';
+import { PWAUpdatePrompt } from './components/shared/PWAUpdatePrompt';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import { appRouter } from './routes/appRouter';
 import './styles/public-app.css';
@@ -45,6 +46,7 @@ export default function App() {
       <AuthProvider>
         <ThemeProvider>
           <InstallPrompt />
+          <PWAUpdatePrompt />
           <RouterProvider router={appRouter} />
         </ThemeProvider>
       </AuthProvider>

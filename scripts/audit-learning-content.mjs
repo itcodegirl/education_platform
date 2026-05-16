@@ -248,6 +248,89 @@ function analyzeQuizQuality(quiz, quizPath, warnings) {
   );
 }
 
+function isValidIndex(value, length) {
+  return Number.isInteger(value) && value >= 0 && value < length;
+}
+
+function analyzeChoiceAnswerShape(question, questionPath, issues, { sourceKey = 'options' } = {}) {
+  const choices = question?.[sourceKey];
+  if (!hasItems(choices) || choices.length < 2) {
+    addIssue(issues, questionPath, `Question type "${question.type || 'mc'}" needs at least two ${sourceKey}.`);
+    return;
+  }
+
+  if (!isValidIndex(question.correct, choices.length)) {
+    addIssue(
+      issues,
+      questionPath,
+      `Question correct index "${question.correct}" does not match ${sourceKey} length ${choices.length}.`,
+    );
+  }
+
+  if (Array.isArray(question.optionFeedback) && question.optionFeedback.length !== choices.length) {
+    addIssue(
+      issues,
+      questionPath,
+      `Question optionFeedback length ${question.optionFeedback.length} does not match options length ${choices.length}.`,
+    );
+  }
+}
+
+function analyzeFillAnswerShape(question, questionPath, issues) {
+  const acceptedAnswers = Array.isArray(question.correct) ? question.correct : [question.correct];
+  const hasAcceptedAnswer = acceptedAnswers.some((answer) =>
+    typeof answer === 'string' || typeof answer === 'number',
+  );
+
+  if (!hasAcceptedAnswer) {
+    addIssue(issues, questionPath, 'Fill question needs at least one string or numeric accepted answer.');
+  }
+}
+
+function analyzeOrderAnswerShape(question, questionPath, issues) {
+  if (!hasItems(question.items) || question.items.length < 2) {
+    addIssue(issues, questionPath, 'Order question needs at least two items.');
+    return;
+  }
+
+  if (!Array.isArray(question.correct) || question.correct.length !== question.items.length) {
+    addIssue(
+      issues,
+      questionPath,
+      `Order question correct sequence must include ${question.items.length} item indexes.`,
+    );
+    return;
+  }
+
+  const sorted = [...question.correct].sort((left, right) => left - right);
+  const expected = question.items.map((_, index) => index);
+  if (JSON.stringify(sorted) !== JSON.stringify(expected)) {
+    addIssue(issues, questionPath, 'Order question correct sequence must reference each item exactly once.');
+  }
+}
+
+function analyzeQuestionAnswerShape(question, questionPath, issues) {
+  const type = question?.type || 'mc';
+
+  switch (type) {
+    case 'mc':
+    case 'code':
+      analyzeChoiceAnswerShape(question, questionPath, issues);
+      break;
+    case 'bug':
+      analyzeChoiceAnswerShape(question, questionPath, issues, { sourceKey: 'lines' });
+      break;
+    case 'fill':
+      analyzeFillAnswerShape(question, questionPath, issues);
+      break;
+    case 'order':
+      analyzeOrderAnswerShape(question, questionPath, issues);
+      break;
+    default:
+      addIssue(issues, questionPath, `Question type "${type}" has no registered renderer.`);
+  }
+}
+
 function buildLessonIndexes(loaded) {
   const courseIds = new Set();
   const lessonsByCourse = new Map();
@@ -479,6 +562,7 @@ function analyzeQuizzes(courseId, quizzes, issues, warnings) {
       if (!isNonEmptyString(question.explanation)) {
         addIssue(issues, questionPath, 'Question is missing an explanation.');
       }
+      analyzeQuestionAnswerShape(question, questionPath, issues);
     });
   });
 }
