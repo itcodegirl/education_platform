@@ -14,6 +14,7 @@ playwright-report
 playwright/.auth/
 test-results
 .lighthouseci/
+reports/generated/
 codex-*.log
 debug.log
 scripts/Delete-GitHubRepos.ps1

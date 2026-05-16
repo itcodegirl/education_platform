@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { COURSE_METADATA, loadCourse } from '../../data';
 import {
+  buildContentQualityActionPlan,
   buildContentQualityCsv,
   buildContentQualityReport,
 } from '../../utils/contentQualityReport';
@@ -49,6 +50,10 @@ export function AdminContentQualityTab() {
   const report = useMemo(
     () => buildContentQualityReport(state.courseEntries),
     [state.courseEntries],
+  );
+  const actionPlan = useMemo(
+    () => buildContentQualityActionPlan(report),
+    [report],
   );
   const csvHref = useMemo(
     () => `data:text/csv;charset=utf-8,${encodeURIComponent(buildContentQualityCsv(report))}`,
@@ -112,6 +117,34 @@ export function AdminContentQualityTab() {
         </div>
       </section>
 
+      <section className="admin-section" aria-labelledby="content-quality-sprint-title">
+        <h3 id="content-quality-sprint-title" className="admin-section-title">
+          Suggested Next Sprint
+        </h3>
+        <div className="admin-quality-action-grid">
+          {actionPlan.sprintFocus.map((item) => (
+            <article key={item.courseId} className="admin-quality-action-card">
+              <div className="admin-quality-action-head">
+                <span className="admin-quality-action-course">{item.courseLabel}</span>
+                <span className="admin-quality-action-count">{item.totalGaps} gaps</span>
+              </div>
+              <p className="admin-quality-action-focus">
+                Focus: {item.topSignalLabel} ({item.topSignalCount})
+              </p>
+              <p className="admin-quality-action-detail">
+                {item.lessonGaps} lesson gaps, {item.quizGaps} quiz gaps
+              </p>
+              <p className="admin-quality-action-step">{item.suggestedNextStep}</p>
+            </article>
+          ))}
+          {actionPlan.sprintFocus.length === 0 && (
+            <p className="admin-empty">No sprint actions needed from the current report.</p>
+          )}
+        </div>
+      </section>
+
+      <ActionTable rows={actionPlan.nextFixes} />
+
       <GapTable
         title="Quiz Rubric Gaps"
         rows={report.quizGaps.slice(0, MAX_ROWS)}
@@ -126,6 +159,46 @@ export function AdminContentQualityTab() {
         getName={(row) => `${row.courseLabel} - ${row.lessonTitle}`}
       />
     </>
+  );
+}
+
+function ActionTable({ rows }) {
+  return (
+    <section className="admin-section" aria-labelledby="highest-priority-fixes">
+      <h3 id="highest-priority-fixes" className="admin-section-title">
+        Highest Priority Fixes
+      </h3>
+      <div className="admin-table-wrap">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Type</th>
+              <th>Missing</th>
+              <th>Suggested fix</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={`${row.type}:${row.path}`}>
+                <td>
+                  <span className="admin-quality-item">{row.label}</span>
+                  <span className="admin-quality-path">{row.path}</span>
+                </td>
+                <td>{row.type}</td>
+                <td>{row.missingLabels.join(', ')}</td>
+                <td>{row.suggestion}</td>
+              </tr>
+            ))}
+            {rows.length === 0 && (
+              <tr>
+                <td colSpan={4} className="admin-empty">No priority fixes found.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 
