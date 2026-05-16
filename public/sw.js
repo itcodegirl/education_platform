@@ -6,6 +6,20 @@ const CACHE_PREFIX = 'chw-';
 const SHELL_CACHE = `${CACHE_PREFIX}shell-${CACHE_VERSION}`;
 const DATA_CACHE = `${CACHE_PREFIX}data-${CACHE_VERSION}`;
 const FONT_CACHE = `${CACHE_PREFIX}fonts-${CACHE_VERSION}`;
+const OFFLINE_HTML = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CodeHerWay - Offline</title>
+  </head>
+  <body>
+    <main>
+      <h1>You're offline</h1>
+      <p>Reconnect and refresh to keep learning with CodeHerWay.</p>
+    </main>
+  </body>
+</html>`;
 
 const SHELL_FILES = [
   '/index.html',
@@ -13,6 +27,7 @@ const SHELL_FILES = [
   '/icon-192.png',
   '/icon-512.png',
   '/apple-touch-icon.png',
+  '/manifest.json',
 ];
 
 function isLegacyCache(name) {
@@ -24,9 +39,7 @@ function isLegacyCache(name) {
 }
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(SHELL_CACHE).then((cache) => cache.addAll(SHELL_FILES))
-  );
+  event.waitUntil(precacheShell());
 
   self.skipWaiting();
 });
@@ -65,7 +78,7 @@ self.addEventListener('fetch', (event) => {
 
   // Always fetch latest manifest so install metadata cannot get stuck on stale branding.
   if (url.pathname === '/manifest.json') {
-    event.respondWith(fetch(request, { cache: 'no-store' }));
+    event.respondWith(networkFirst(request, SHELL_CACHE));
     return;
   }
 
@@ -120,6 +133,23 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(staleWhileRevalidate(request, SHELL_CACHE));
 });
 
+async function precacheShell() {
+  const cache = await caches.open(SHELL_CACHE);
+
+  await Promise.all(
+    SHELL_FILES.map(async (file) => {
+      try {
+        const response = await fetch(file, { cache: 'no-store' });
+        if (response.ok) {
+          await cache.put(file, response);
+        }
+      } catch {
+        // A missing icon should not prevent the worker from installing.
+      }
+    })
+  );
+}
+
 function isHtmlResponse(response) {
   const contentType = response.headers.get('content-type') || '';
   return contentType.includes('text/html');
@@ -144,6 +174,23 @@ async function cacheFirst(request, cacheName, options = {}) {
   return response;
 }
 
+async function networkFirst(request, cacheName, options = {}) {
+  const { cacheableResponse = (_req, response) => Boolean(response?.ok) } = options;
+  const cache = await caches.open(cacheName);
+
+  try {
+    const response = await fetch(request);
+    if (cacheableResponse(request, response)) {
+      await cache.put(request, response.clone());
+    }
+    return response;
+  } catch (error) {
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    throw error;
+  }
+}
+
 async function staleWhileRevalidate(request, cacheName, options = {}) {
   const { cacheableResponse = (_req, response) => Boolean(response?.ok) } = options;
   const cache = await caches.open(cacheName);
@@ -165,15 +212,23 @@ async function networkFirstNavigation(request) {
   const cache = await caches.open(SHELL_CACHE);
 
   try {
-    const response = await fetch(request, { cache: 'no-store' });
+    const response = await fetch(request);
     if (response.ok && isHtmlResponse(response)) {
       await cache.put('/index.html', response.clone());
     }
     return response;
-  } catch (error) {
+  } catch {
     const fallback = await cache.match('/index.html');
     if (fallback) return fallback;
-    throw error;
+
+    return new Response(OFFLINE_HTML, {
+      status: 503,
+      statusText: 'Service Unavailable',
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-store',
+      },
+    });
   }
 }
 
