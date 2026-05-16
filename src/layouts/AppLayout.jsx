@@ -42,6 +42,7 @@ import { getSyncStatusCopy } from "../utils/syncStatusCopy";
 import { getLessonMasteryStatus } from "../utils/lessonMasteryStatus";
 import { getDailyLearningLoopSteps } from "../utils/dailyLearningLoop";
 import { getLearningLoopActionPayload } from "../utils/learningAnalyticsPayloads";
+import { getResumeRecommendation } from "../utils/resumeRecommendation";
 
 // Layout components
 import { Sidebar } from "../components/layout/Sidebar";
@@ -55,6 +56,7 @@ import { OfflineIndicator } from "../components/layout/OfflineIndicator";
 import { FirstRunGuide } from "../components/layout/FirstRunGuide";
 import { LessonFocusStrip } from "../components/layout/LessonFocusStrip";
 import { DailyLearningLoop } from "../components/layout/DailyLearningLoop";
+import { ResumeNextPanel } from "../components/layout/ResumeNextPanel";
 
 // Learning components
 import { LessonView } from "../components/learning/LessonView";
@@ -88,7 +90,7 @@ export function AppLayout() {
     retryPendingSyncWrites = () => {},
   } = useProgressData();
   const { xpTotal = 0, streak = 0, pausedStreak = null, dailyCount = 0 } = useXP();
-  const { srCards = [] } = useSR();
+  const { srCards = [], bookmarks = [] } = useSR();
 
   const nav = useNavigation();
   const panels = usePanels({ dataLoaded, user, lastPosition });
@@ -123,6 +125,7 @@ export function AppLayout() {
     showModQuiz,
   } = nav;
   const goNextLesson = nav.next;
+  const goToCourseModule = nav.goToCourseModule;
 
   const { stable: stableLessonKey, legacy: legacyLessonKey } = getLessonKeyVariants(course, mod, les);
   const isDone = hasLessonCompletion(completedSet, course, mod, les);
@@ -260,6 +263,21 @@ export function AppLayout() {
     masteryStatus: lessonMasteryStatus,
     dueReviewCount,
   });
+  const resumeRecommendation = getResumeRecommendation({
+    courses: COURSES,
+    course,
+    moduleData: mod,
+    lesson: les,
+    courseIndex: nav.courseIdx,
+    moduleIndex: nav.modIdx,
+    lessonIndex: nav.lesIdx,
+    completedSet,
+    hasLessonQuiz: Boolean(lessonQuiz),
+    lessonQuizScore,
+    dueReviewCount,
+    bookmarks,
+    lastPosition,
+  });
   const { title: currentStepTitle, copy: currentStepCopy } = getCurrentStepCopy({
     isLast,
     showModQuiz,
@@ -347,6 +365,65 @@ export function AppLayout() {
       masteryStatus: lessonMasteryStatus,
     }));
   }, [course, dueReviewCount, isDone, les, lessonMasteryStatus, lessonQuiz, mod]);
+  const handleResumeRecommendation = useCallback((recommendation) => {
+    if (!recommendation) return;
+
+    trackEvent('resume_next_action_clicked', {
+      type: recommendation.type,
+      action: recommendation.action,
+      sourceCourseId: course.id,
+      sourceModuleId: mod.id,
+      sourceLessonId: les.id,
+      targetCourseId: recommendation.courseId || '',
+      targetModuleId: recommendation.moduleId || '',
+      targetLessonId: recommendation.lessonId || '',
+      dueReviewCount,
+      path: recommendation.path || '',
+    });
+
+    if (recommendation.action === 'review') {
+      handleOpenTool('sr');
+      return;
+    }
+
+    if (recommendation.action === 'challenges') {
+      handleOpenTool('challenges');
+      return;
+    }
+
+    const scrollBehavior = typeof window !== 'undefined'
+      && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+      ? 'auto'
+      : 'smooth';
+
+    if (recommendation.action === 'quiz') {
+      const quizElement = mainRef.current?.querySelector?.('.lesson-quiz-wrap');
+      quizElement?.scrollIntoView?.({ behavior: scrollBehavior, block: 'start' });
+      return;
+    }
+
+    if (recommendation.action === 'current') {
+      mainRef.current?.scrollTo?.({ top: 0, behavior: scrollBehavior });
+      mainRef.current?.focus?.({ preventScroll: true });
+      return;
+    }
+
+    if (recommendation.action === 'lesson') {
+      goToCourseModule(
+        recommendation.courseIndex,
+        recommendation.moduleIndex,
+        recommendation.lessonIndex,
+      );
+    }
+  }, [
+    course.id,
+    dueReviewCount,
+    goToCourseModule,
+    handleOpenTool,
+    les.id,
+    mainRef,
+    mod.id,
+  ]);
 
   useEffect(() => {
     setMobileToolsOpen(false);
@@ -492,6 +569,10 @@ export function AppLayout() {
                 onOpenReview={() => handleOpenTool('sr')}
                 onOpenChallenges={() => handleOpenTool('challenges')}
                 onAction={handleLearningLoopAction}
+              />
+              <ResumeNextPanel
+                recommendation={resumeRecommendation}
+                onAction={handleResumeRecommendation}
               />
               <LessonView
                 lesson={les}

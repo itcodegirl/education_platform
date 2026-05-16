@@ -133,6 +133,23 @@ describe('bundle budget policy', () => {
     ]);
   });
 
+  it('keeps lazy course runtime data chunks out of initial modulepreloads', () => {
+    const fixture = createBundleFixture({
+      indexHtml: '<link rel="modulepreload" href="/assets/data-react-course.js">',
+      assets: {
+        'index-app.js': 'console.log("app");',
+        'index-app.css': 'body{color:white;}',
+        'data-react-course.js': 'console.log("react data");',
+      },
+    });
+
+    const report = collectBundleBudgetReport(fixture);
+
+    expect(report.forbiddenPreloadFailures).toEqual([
+      expect.objectContaining({ label: 'course runtime data chunks' }),
+    ]);
+  });
+
   it('keeps export tooling out of the public entry HTML', () => {
     const fixture = createBundleFixture({
       indexHtml: [

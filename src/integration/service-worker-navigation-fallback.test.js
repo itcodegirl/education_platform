@@ -1,0 +1,134 @@
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import vm from 'node:vm';
+import { describe, expect, it, vi } from 'vitest';
+
+const projectRoot = process.cwd();
+
+async function createServiceWorkerHarness({
+  fetchImpl = vi.fn(async () => new Response('ok')),
+  initialCache = new Map(),
+} = {}) {
+  const source = await readFile(path.join(projectRoot, 'public/sw.js'), 'utf8');
+  const listeners = {};
+  const postedMessages = [];
+  const cacheStore = new Map(initialCache);
+  const cache = {
+    match: vi.fn(async (request) => cacheStore.get(typeof request === 'string' ? request : request.url)),
+    put: vi.fn(async (request, response) => {
+      cacheStore.set(typeof request === 'string' ? request : request.url, response.clone());
+    }),
+  };
+
+  const context = {
+    URL,
+    Response,
+    Set,
+    Promise,
+    console,
+    fetch: fetchImpl,
+    caches: {
+      keys: vi.fn(async () => []),
+      open: vi.fn(async () => cache),
+      delete: vi.fn(async () => true),
+    },
+    self: {
+      addEventListener: (type, handler) => {
+        listeners[type] = handler;
+      },
+      skipWaiting: vi.fn(),
+      clients: {
+        claim: vi.fn(async () => {}),
+        matchAll: vi.fn(async () => [
+          {
+            postMessage: (message) => postedMessages.push(message),
+          },
+        ]),
+      },
+    },
+  };
+
+  vm.runInNewContext(source, context, { filename: 'public/sw.js' });
+
+  return { listeners, cache, cacheStore, postedMessages, fetchImpl };
+}
+
+function dispatchFetch(listeners, request) {
+  let responsePromise = null;
+  listeners.fetch({
+    request,
+    respondWith: (promise) => {
+      responsePromise = Promise.resolve(promise);
+    },
+  });
+  return responsePromise;
+}
+
+describe('service worker navigation fallback', () => {
+  it('returns a branded offline document instead of rejecting uncached navigation failures', async () => {
+    const harness = await createServiceWorkerHarness({
+      fetchImpl: vi.fn(async () => {
+        throw new TypeError('network failed');
+      }),
+    });
+
+    const response = await dispatchFetch(harness.listeners, {
+      method: 'GET',
+      url: 'https://codeherway.test/learn/html/module/lesson',
+      mode: 'navigate',
+      destination: 'document',
+      cache: 'default',
+    });
+
+    expect(response.status).toBe(503);
+    await expect(response.text()).resolves.toContain('CodeHerWay');
+    expect(harness.postedMessages).toContainEqual(expect.objectContaining({
+      type: 'SW_NAVIGATION_FALLBACK_USED',
+    }));
+  });
+
+  it('serves cached app shell navigation when the network is unavailable', async () => {
+    const cachedShell = new Response('<main>Cached shell</main>', {
+      headers: { 'Content-Type': 'text/html' },
+    });
+    const harness = await createServiceWorkerHarness({
+      fetchImpl: vi.fn(async () => {
+        throw new TypeError('network failed');
+      }),
+      initialCache: new Map([['/index.html', cachedShell]]),
+    });
+
+    const response = await dispatchFetch(harness.listeners, {
+      method: 'GET',
+      url: 'https://codeherway.test/',
+      mode: 'navigate',
+      destination: 'document',
+      cache: 'default',
+    });
+
+    await expect(response.text()).resolves.toContain('Cached shell');
+    expect(response.status).toBe(200);
+  });
+
+  it('keeps manifest fetches network-first with cache fallback', async () => {
+    const cachedManifest = new Response('{"name":"CodeHerWay"}', {
+      headers: { 'Content-Type': 'application/manifest+json' },
+    });
+    const harness = await createServiceWorkerHarness({
+      fetchImpl: vi.fn(async () => {
+        throw new TypeError('network failed');
+      }),
+      initialCache: new Map([['https://codeherway.test/manifest.json', cachedManifest]]),
+    });
+
+    const response = await dispatchFetch(harness.listeners, {
+      method: 'GET',
+      url: 'https://codeherway.test/manifest.json',
+      mode: 'same-origin',
+      destination: 'manifest',
+      cache: 'default',
+    });
+
+    await expect(response.json()).resolves.toEqual({ name: 'CodeHerWay' });
+  });
+});

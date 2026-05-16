@@ -200,6 +200,47 @@ describe('learning content audit', () => {
     });
   });
 
+  it('flags malformed quiz answer shapes before learners can hit broken grading', () => {
+    const fixture = makeFixture();
+    fixture.loaded[0].data.quizzes = [
+      {
+        id: 'html-quiz-1',
+        lessonId: 'html-1-1',
+        questions: [
+          {
+            id: 'q1',
+            type: 'mc',
+            question: 'Which tag creates a heading?',
+            options: ['h1'],
+            correct: 3,
+            explanation: 'h1 creates the primary heading.',
+          },
+          {
+            id: 'q2',
+            type: 'order',
+            question: 'Order the document structure.',
+            items: ['html', 'head', 'body'],
+            correct: [0, 0, 2],
+            explanation: 'Each item should appear once in the intended order.',
+          },
+        ],
+      },
+    ];
+
+    const result = analyzeLearningContent(fixture);
+
+    expect(result.issues).toEqual(expect.arrayContaining([
+      {
+        path: 'html.quizzes[0].questions[0]',
+        message: 'Question type "mc" needs at least two options.',
+      },
+      {
+        path: 'html.quizzes[0].questions[1]',
+        message: 'Order question correct sequence must reference each item exactly once.',
+      },
+    ]));
+  });
+
   it('verifies challenge module mapping without blocking missing legacy mappings', () => {
     const fixture = makeFixture();
     fixture.loaded[0].data.challenges = [

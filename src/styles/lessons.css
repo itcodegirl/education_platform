@@ -290,6 +290,61 @@
   background: rgba(255,107,157,0.055);
   box-shadow: inset 0 0 0 1px rgba(255,107,157,0.08);
 }
+.resume-next {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 24px;
+  padding: 14px;
+  border: 1px solid rgba(78,205,196,0.2);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(78,205,196,0.08), rgba(255,107,157,0.045));
+}
+.resume-next-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.resume-next-kicker {
+  margin: 0;
+  color: var(--cyan);
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.resume-next-title {
+  margin: 0;
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+}
+.resume-next-detail {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.resume-next-action {
+  flex-shrink: 0;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(78,205,196,0.34);
+  border-radius: 8px;
+  background: rgba(78,205,196,0.12);
+  color: var(--text);
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+}
+.resume-next-action:hover,
+.resume-next-action:focus-visible {
+  border-color: var(--cyan);
+  background: rgba(78,205,196,0.18);
+}
 .lesson-evidence-panel {
   margin: -10px 0 30px;
   padding: 14px;
@@ -408,6 +463,14 @@
   }
   .daily-loop-steps {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .resume-next {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .resume-next-action {
+    width: 100%;
+    min-height: 44px;
   }
   .lesson-evidence-list {
     grid-template-columns: 1fr;

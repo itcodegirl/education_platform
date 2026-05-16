@@ -1,18 +1,5 @@
-// ═══════════════════════════════════════════════
-// SERVICE WORKER REGISTRATION
-//
-// Moved out of an inline <script> in index.html because the strict
-// CSP (`script-src 'self' 'wasm-unsafe-eval'`) blocks inline-script
-// execution. By importing this from main.jsx, the registration code
-// is bundled by Vite and served as a module from our own origin, so
-// it passes 'self'.
-//
-// Functionally identical to the inline version that used to live in
-// index.html: waits for window 'load', registers /sw.js?v=10 with
-// updateViaCache: 'none', posts SKIP_WAITING to any installed worker
-// so new deploys take over immediately, and reloads the page once on
-// controller change so the user always sees the latest version.
-// ═══════════════════════════════════════════════
+// Service worker registration lives in the bundled app entry so the
+// strict CSP can keep blocking inline scripts.
 
 const shouldRegisterServiceWorker =
   typeof window !== 'undefined' &&
@@ -21,6 +8,62 @@ const shouldRegisterServiceWorker =
 
 if (shouldRegisterServiceWorker) {
   const SW_SCRIPT_URL = '/sw.js?v=10';
+  const SW_UPDATE_READY_EVENT = 'codeherway:sw-update-ready';
+  const SW_STATE_EVENT = 'codeherway:sw-state';
+
+  function dispatchSwEvent(type, detail = {}) {
+    window.dispatchEvent(new CustomEvent(type, { detail }));
+  }
+
+  async function trackServiceWorkerEvent(phase, detail = {}) {
+    try {
+      const { trackEvent } = await import('./analytics');
+      trackEvent('service_worker_event', {
+        phase,
+        scriptUrl: SW_SCRIPT_URL,
+        ...detail,
+      });
+    } catch {
+      // Analytics is optional and should never affect SW updates.
+    }
+  }
+
+  async function reportServiceWorkerError(phase, error, detail = {}) {
+    console.log(`SW ${phase}:`, error);
+    trackServiceWorkerEvent(`${phase}_failed`, {
+      message: error?.message || String(error),
+      ...detail,
+    });
+
+    try {
+      const { reportException } = await import('./sentry');
+      reportException(error instanceof Error ? error : new Error(String(error)), {
+        source: 'service-worker',
+        phase,
+        ...detail,
+      });
+    } catch {
+      // Sentry is optional and may not be initialized yet.
+    }
+  }
+
+  function notifyUpdateReady(registration, worker, reason) {
+    dispatchSwEvent(SW_UPDATE_READY_EVENT, {
+      registration,
+      worker,
+      scriptUrl: worker?.scriptURL || registration?.waiting?.scriptURL || SW_SCRIPT_URL,
+      reason,
+    });
+    trackServiceWorkerEvent('update_ready', { reason });
+  }
+
+  function activateWaitingWorker(registration) {
+    const worker = registration?.waiting;
+    if (!worker) return false;
+    worker.postMessage({ type: 'SKIP_WAITING' });
+    trackServiceWorkerEvent('skip_waiting_requested');
+    return true;
+  }
 
   async function unregisterLegacySw(registrationUrl) {
     try {
@@ -43,16 +86,33 @@ if (shouldRegisterServiceWorker) {
           .map((registration) => registration.unregister())
       );
     } catch (error) {
-      console.log('SW legacy cleanup failed:', error);
+      reportServiceWorkerError('legacy_cleanup', error);
     }
   }
 
   window.addEventListener('load', async () => {
     let refreshing = false;
 
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      const type = event.data?.type || '';
+      if (!type) return;
+
+      dispatchSwEvent(SW_STATE_EVENT, event.data);
+      trackServiceWorkerEvent('worker_message', {
+        messageType: type,
+        ...(event.data?.payload || {}),
+      });
+    });
+
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (refreshing) return;
       refreshing = true;
+      trackServiceWorkerEvent('controller_changed');
+      window.location.reload();
+    });
+
+    window.addEventListener('codeherway:sw-activate-waiting', (event) => {
+      if (activateWaitingWorker(event.detail?.registration)) return;
       window.location.reload();
     });
 
@@ -64,12 +124,17 @@ if (shouldRegisterServiceWorker) {
       });
 
       console.log('SW registered:', reg.scope);
+      trackServiceWorkerEvent('registered', { scope: reg.scope });
       reg.update().catch((err) => {
-        console.log('SW update skipped:', err);
+        reportServiceWorkerError('update', err, { scope: reg.scope });
       });
 
       if (reg.waiting) {
-        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        if (navigator.serviceWorker.controller) {
+          notifyUpdateReady(reg, reg.waiting, 'waiting-on-load');
+        } else {
+          activateWaitingWorker(reg);
+        }
       }
 
       reg.addEventListener('updatefound', () => {
@@ -78,12 +143,12 @@ if (shouldRegisterServiceWorker) {
 
         worker.addEventListener('statechange', () => {
           if (worker.state === 'installed' && navigator.serviceWorker.controller) {
-            worker.postMessage({ type: 'SKIP_WAITING' });
+            notifyUpdateReady(reg, worker, 'installed-update');
           }
         });
       });
     } catch (err) {
-      console.log('SW registration failed:', err);
+      reportServiceWorkerError('registration', err);
     }
   });
 }

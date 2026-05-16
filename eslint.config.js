@@ -18,6 +18,8 @@ export default [
 			'aura-weather/**',
 			'Cinova/**',
 			'codeherway-ceo-os/**',
+			'itcodegirl-portfolio/**',
+			'itcodegirl-portfolio-work/**',
 			'supabase/.temp/**',
 		],
 	},
