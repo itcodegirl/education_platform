@@ -3,6 +3,8 @@ import {
   buildContentQualityActionPlan,
   buildContentQualityCsv,
   buildContentQualityReport,
+  getContentQualityFixTemplates,
+  getContentQualitySignalLabel,
   getQuizQualityStatus,
 } from './contentQualityReport';
 
@@ -66,12 +68,34 @@ describe('content quality report', () => {
       target: 'Lesson intro',
       missing: ['misconception', 'reasoning', 'application'],
     });
+    expect(report.quizGaps[0].fixTemplates[0]).toMatchObject({
+      signal: 'misconception',
+      title: 'Misconception quiz item',
+    });
     expect(report.lessonGaps[0]).toMatchObject({
       path: 'html.basics.lessons[0]',
       lessonTitle: 'Intro',
       presentCount: 0,
     });
+    expect(report.lessonGaps[0].fixTemplates[0]).toMatchObject({
+      signal: 'objective',
+      title: 'Learning target',
+    });
     expect(report.missingSignals[0].count).toBeGreaterThan(0);
+  });
+
+  it('provides reusable labels and fix templates for missing signals', () => {
+    expect(getContentQualitySignalLabel('retrievalPrompt')).toBe('Recall prompt');
+    expect(getContentQualityFixTemplates(['transfer', 'transfer', 'reasoning'])).toEqual([
+      expect.objectContaining({
+        signal: 'transfer',
+        title: 'Transfer bridge',
+      }),
+      expect.objectContaining({
+        signal: 'reasoning',
+        title: 'Predict/explain quiz item',
+      }),
+    ]);
   });
 
   it('prioritizes a curriculum sprint from report-only gaps', () => {
@@ -109,6 +133,7 @@ describe('content quality report', () => {
       label: 'React - useState',
       priority: 6,
     });
+    expect(actionPlan.allFixes).toHaveLength(2);
   });
 
   it('exports quiz and lesson gaps as escaped CSV rows', () => {

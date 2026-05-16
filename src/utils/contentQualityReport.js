@@ -23,6 +23,45 @@ export const CONTENT_QUALITY_SUGGESTIONS = Object.freeze({
   transfer: 'Add a next-project or next-lesson bridge showing where this skill applies.',
 });
 
+export const CONTENT_QUALITY_FIX_TEMPLATES = Object.freeze({
+  misconception: Object.freeze({
+    title: 'Misconception quiz item',
+    template: 'Ask learners to choose the bug, then explain why the tempting answer is wrong.',
+  }),
+  reasoning: Object.freeze({
+    title: 'Predict/explain quiz item',
+    template: 'Ask what happens before code runs, and require a because-style explanation.',
+  }),
+  application: Object.freeze({
+    title: 'Scenario quiz item',
+    template: 'Give a tiny project situation and ask which approach fits best.',
+  }),
+  objective: Object.freeze({
+    title: 'Learning target',
+    template: 'Learning target: By the end, learners can use this skill to complete a concrete UI task.',
+  }),
+  misconceptionCheck: Object.freeze({
+    title: 'Common mistake',
+    template: 'Common mistake: Learners often ___. Fix it by ___.',
+  }),
+  retrievalPrompt: Object.freeze({
+    title: 'Recall prompt',
+    template: 'Quick check: Without looking back, explain ___ in one sentence.',
+  }),
+  guidedPractice: Object.freeze({
+    title: 'Guided practice',
+    template: 'Model the first step, then ask learners to repeat it with one small change.',
+  }),
+  independentPractice: Object.freeze({
+    title: 'Independent practice',
+    template: 'Build a small version from scratch using the pattern from the lesson.',
+  }),
+  transfer: Object.freeze({
+    title: 'Transfer bridge',
+    template: 'Next, use this skill in a portfolio feature such as ___.',
+  }),
+});
+
 function isNonEmptyString(value) {
   return typeof value === 'string' && value.trim().length > 0;
 }
@@ -152,8 +191,22 @@ function getSuggestion(missing) {
     .find(Boolean) || 'Add one learner-facing evidence prompt.';
 }
 
-function getSignalLabel(signal) {
+export function getContentQualitySignalLabel(signal) {
   return QUIZ_SIGNAL_LABELS[signal] || LESSON_SIGNAL_LABELS[signal] || signal;
+}
+
+export function getContentQualityFixTemplates(missing = []) {
+  return [...new Set(missing)]
+    .map((signal) => {
+      const template = CONTENT_QUALITY_FIX_TEMPLATES[signal];
+      if (!template) return null;
+      return {
+        signal,
+        label: getContentQualitySignalLabel(signal),
+        ...template,
+      };
+    })
+    .filter(Boolean);
 }
 
 function toCsvCell(value) {
@@ -193,6 +246,7 @@ export function buildContentQualityReport(courseEntries = []) {
         missing,
         missingLabels: missing.map((signal) => QUIZ_SIGNAL_LABELS[signal] || signal),
         suggestion: getSuggestion(missing),
+        fixTemplates: getContentQualityFixTemplates(missing),
       });
     });
 
@@ -216,6 +270,7 @@ export function buildContentQualityReport(courseEntries = []) {
           missing,
           missingLabels: missing.map((signal) => LESSON_SIGNAL_LABELS[signal] || signal),
           suggestion: getSuggestion(missing),
+          fixTemplates: getContentQualityFixTemplates(missing),
         });
       });
     });
@@ -286,7 +341,7 @@ export function buildContentQualityActionPlan(report = {}, { limit = 5 } = {}) {
         quizGaps: bucket.quizGaps,
         lessonGaps: bucket.lessonGaps,
         topSignal: topSignal?.name || '',
-        topSignalLabel: topSignal ? getSignalLabel(topSignal.name) : 'Clear',
+        topSignalLabel: topSignal ? getContentQualitySignalLabel(topSignal.name) : 'Clear',
         topSignalCount: topSignal?.count || 0,
         suggestedNextStep: topSignal
           ? getSuggestion([topSignal.name])
@@ -299,7 +354,7 @@ export function buildContentQualityActionPlan(report = {}, { limit = 5 } = {}) {
       left.courseLabel.localeCompare(right.courseLabel))
     .slice(0, limit);
 
-  const nextFixes = [
+  const allFixes = [
     ...(report.lessonGaps || []).map((row) => ({
       ...row,
       type: 'lesson',
@@ -316,10 +371,11 @@ export function buildContentQualityActionPlan(report = {}, { limit = 5 } = {}) {
     .sort((left, right) =>
       right.priority - left.priority ||
       left.courseLabel.localeCompare(right.courseLabel) ||
-      left.label.localeCompare(right.label))
-    .slice(0, limit);
+      left.label.localeCompare(right.label));
 
-  return { sprintFocus, nextFixes };
+  const nextFixes = allFixes.slice(0, limit);
+
+  return { sprintFocus, nextFixes, allFixes };
 }
 
 export function buildContentQualityCsv(report = {}, generatedAt = new Date().toISOString()) {

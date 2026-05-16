@@ -14,6 +14,13 @@ export const module19 = {
   lessons: [
     {
       id: 'r19-1', title: 'Component Composition', prereqs: ['r2-7'], difficulty: 'beginner', duration: '35 min',
+      learningFrame: {
+        learn: 'Break a complex UI into small components that each own one clear responsibility.',
+        check: 'Without looking back, explain why React favors composition over inheritance.',
+        next: 'Use composition when building dashboard, modal, card, and layout systems in a portfolio project.',
+      },
+      commonMistakes: ['Common mistake: A component that renders layout, data, and actions all at once becomes hard to reuse. Split by responsibility.'],
+      bridge: { preview: 'Next, use the children prop to make wrapper components flexible without adding more props.' },
       concepts: [
         'Composition vs Inheritance: React favors composing components over extending classes. Build complex UIs by combining simple pieces — like Lego bricks.',
         'Component hierarchy: components contain other components, creating layers. Card wraps CardHeader + CardBody. Page wraps Header + Sidebar + Main.',
@@ -74,6 +81,13 @@ export const module19 = {
     },
     {
       id: 'r19-5', title: 'Component Patterns', prereqs: ['r19-4'], difficulty: 'intermediate', duration: '45 min',
+      learningFrame: {
+        learn: 'Choose a component pattern based on whether the problem is logic separation, shared state, or parent control.',
+        check: 'From memory, name one situation for Container/Presentational, Compound Components, and controlled components.',
+        next: 'Use these patterns to make larger React projects easier to test, extend, and explain in interviews.',
+      },
+      commonMistakes: ['Common mistake: Reaching for an advanced pattern before the component has a real reuse or coordination problem adds complexity.'],
+      bridge: { preview: 'Next, apply these patterns to lifecycle and project work where components need data, cleanup, and coordination.' },
       concepts: [
         'Container/Presentational: split into logic (container) and UI (presentational). Containers handle data and state. Presentational components just render from props — pure, reusable, testable.',
         'Compound Components: multiple components that work together as a unit, sharing implicit state. Like HTML select/option — they only make sense together.',

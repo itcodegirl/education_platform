@@ -36,6 +36,13 @@ export const module2 = {
       prereqs: ['r2-1'],
       difficulty: 'beginner',
       duration: '25 min',
+      learningFrame: {
+        learn: 'Show the right UI for each state without duplicating the whole component.',
+        check: 'Without looking back, explain the difference between && and a ternary.',
+        next: 'Use conditional rendering to build loading, empty, error, and success states in projects.',
+      },
+      commonMistakes: ['Common mistake: Using && when the UI needs an else case hides the fallback completely. Use a ternary for A or B.'],
+      bridge: { preview: 'Next, combine conditionals with lists so the UI can respond to changing data.' },
       concepts: [
         'Ternary operator (? :): for TWO options. condition ? <ShowThis /> : <ShowThat />. Like if/else inline.',
         'Logical AND (&&): show something OR nothing. condition && <ShowThis />. Perfect for error messages, badges.',
@@ -72,6 +79,13 @@ export const module2 = {
       prereqs: ['r2-3'],
       difficulty: 'beginner',
       duration: '35 min',
+      learningFrame: {
+        learn: 'Keep form input values in React state so the UI and data stay in sync.',
+        check: 'From memory, explain why controlled inputs need both value and onChange.',
+        next: 'Use controlled forms before adding validation, search filters, or multi-step form flows.',
+      },
+      commonMistakes: ['Common mistake: Forgetting preventDefault makes the browser refresh and wipes the learner\'s state.'],
+      bridge: { preview: 'Next, apply this form foundation to validation and more advanced form patterns.' },
       concepts: [
         'Controlled components: input value is managed by React state. value={name} + onChange={setName}. Single source of truth.',
         'Why controlled?: easy validation, can modify input before display, easy reset, consistent data flow. React owns the data.',

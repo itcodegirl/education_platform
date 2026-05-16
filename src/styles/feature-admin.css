@@ -465,6 +465,95 @@
   text-transform: uppercase;
 }
 
+.admin-quality-delta {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-quality-delta.good {
+  color: var(--cyan);
+}
+
+.admin-quality-delta.attention {
+  color: var(--amber);
+}
+
+.admin-quality-filter-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-quality-filter-head .admin-section-title {
+  margin-bottom: 0;
+}
+
+.admin-quality-filter-count {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-quality-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(130px, 1fr)) minmax(190px, 1.5fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.admin-quality-filter {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.admin-quality-filter span {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.admin-quality-filter select,
+.admin-quality-filter input {
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.admin-quality-filter select {
+  padding: 0 10px;
+}
+
+.admin-quality-filter input {
+  padding: 0 12px;
+}
+
+.admin-quality-filter-clear {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-surface);
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-quality-filter-clear:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
 .admin-quality-pills {
   display: flex;
   flex-wrap: wrap;
@@ -561,6 +650,18 @@
   font-size: 11px;
 }
 
+.admin-quality-template {
+  display: grid;
+  gap: 3px;
+  color: var(--text-dim);
+  line-height: 1.45;
+}
+
+.admin-quality-template strong {
+  color: var(--cyan);
+  font-size: 12px;
+}
+
 /* Lesson bars */
 .admin-lesson-name {
   font-size: 12px;
@@ -626,6 +727,15 @@
   .admin-quality-toolbar {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .admin-quality-filter-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-quality-filters {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -4,9 +4,21 @@ import {
   buildContentQualityActionPlan,
   buildContentQualityCsv,
   buildContentQualityReport,
+  getContentQualitySignalLabel,
 } from '../../utils/contentQualityReport';
+import {
+  buildContentQualitySnapshot,
+  compareContentQualitySnapshots,
+  saveContentQualitySnapshot,
+} from '../../utils/contentQualitySnapshots';
 
 const MAX_ROWS = 16;
+const DEFAULT_FILTERS = Object.freeze({
+  courseId: 'all',
+  type: 'all',
+  signal: 'all',
+  query: '',
+});
 
 export function AdminContentQualityTab() {
   const [state, setState] = useState({
@@ -14,6 +26,8 @@ export function AdminContentQualityTab() {
     error: '',
     courseEntries: [],
   });
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const [snapshots, setSnapshots] = useState([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,6 +73,48 @@ export function AdminContentQualityTab() {
     () => `data:text/csv;charset=utf-8,${encodeURIComponent(buildContentQualityCsv(report))}`,
     [report],
   );
+  const currentSnapshot = useMemo(
+    () => buildContentQualitySnapshot(report),
+    [report],
+  );
+  const previousSnapshot = useMemo(
+    () => snapshots.find((snapshot) => snapshot.signature !== currentSnapshot.signature) || null,
+    [currentSnapshot.signature, snapshots],
+  );
+  const progress = useMemo(
+    () => compareContentQualitySnapshots(currentSnapshot, previousSnapshot),
+    [currentSnapshot, previousSnapshot],
+  );
+  const courseOptions = report.warningsByCourse;
+  const signalOptions = report.missingSignals.map((entry) => ({
+    value: entry.name,
+    label: getContentQualitySignalLabel(entry.name),
+  }));
+  const allFixes = useMemo(
+    () => actionPlan.allFixes || actionPlan.nextFixes || [],
+    [actionPlan.allFixes, actionPlan.nextFixes],
+  );
+  const filteredFixes = useMemo(
+    () => allFixes.filter((row) => matchesQualityFilters(row, filters)),
+    [allFixes, filters],
+  );
+  const filteredQuizGaps = useMemo(
+    () => report.quizGaps.filter((row) => matchesQualityFilters(row, filters, 'quiz')),
+    [filters, report.quizGaps],
+  );
+  const filteredLessonGaps = useMemo(
+    () => report.lessonGaps.filter((row) => matchesQualityFilters(row, filters, 'lesson')),
+    [filters, report.lessonGaps],
+  );
+
+  useEffect(() => {
+    if (state.loading || state.error) return;
+    setSnapshots(saveContentQualitySnapshot(report));
+  }, [report, state.error, state.loading]);
+
+  function updateFilter(name, value) {
+    setFilters((current) => ({ ...current, [name]: value }));
+  }
 
   if (state.loading) {
     return (
@@ -117,6 +173,32 @@ export function AdminContentQualityTab() {
         </div>
       </section>
 
+      <section className="admin-section" aria-labelledby="content-quality-progress-title">
+        <h3 id="content-quality-progress-title" className="admin-section-title">
+          QA Progress
+        </h3>
+        <div className="admin-grid admin-quality-grid">
+          <ProgressMetric
+            label="Warnings since previous scan"
+            value={currentSnapshot.warningCount}
+            delta={progress.warningDelta}
+            hasPrevious={progress.hasPrevious}
+          />
+          <ProgressMetric
+            label="Quiz gaps"
+            value={currentSnapshot.quizGapCount}
+            delta={progress.quizGapDelta}
+            hasPrevious={progress.hasPrevious}
+          />
+          <ProgressMetric
+            label="Lesson gaps"
+            value={currentSnapshot.lessonGapCount}
+            delta={progress.lessonGapDelta}
+            hasPrevious={progress.hasPrevious}
+          />
+        </div>
+      </section>
+
       <section className="admin-section" aria-labelledby="content-quality-sprint-title">
         <h3 id="content-quality-sprint-title" className="admin-section-title">
           Suggested Next Sprint
@@ -143,18 +225,27 @@ export function AdminContentQualityTab() {
         </div>
       </section>
 
-      <ActionTable rows={actionPlan.nextFixes} />
+      <QualityFilters
+        filters={filters}
+        courseOptions={courseOptions}
+        signalOptions={signalOptions}
+        resultCount={filteredFixes.length}
+        onChange={updateFilter}
+        onClear={() => setFilters(DEFAULT_FILTERS)}
+      />
+
+      <ActionTable rows={filteredFixes.slice(0, MAX_ROWS)} totalCount={filteredFixes.length} />
 
       <GapTable
         title="Quiz Rubric Gaps"
-        rows={report.quizGaps.slice(0, MAX_ROWS)}
+        rows={filteredQuizGaps.slice(0, MAX_ROWS)}
         emptyText="Every quiz has misconception, reasoning, and application coverage."
         getName={(row) => `${row.courseLabel} - ${row.target}`}
       />
 
       <GapTable
         title="Lesson Rubric Gaps"
-        rows={report.lessonGaps.slice(0, MAX_ROWS)}
+        rows={filteredLessonGaps.slice(0, MAX_ROWS)}
         emptyText="Every lesson has enough quality rubric coverage."
         getName={(row) => `${row.courseLabel} - ${row.lessonTitle}`}
       />
@@ -162,12 +253,116 @@ export function AdminContentQualityTab() {
   );
 }
 
-function ActionTable({ rows }) {
+function matchesQualityFilters(row, filters, fallbackType = '') {
+  const rowType = row.type || fallbackType;
+  if (filters.courseId !== 'all' && row.courseId !== filters.courseId) return false;
+  if (filters.type !== 'all' && rowType !== filters.type) return false;
+  if (filters.signal !== 'all' && !(row.missing || []).includes(filters.signal)) return false;
+
+  const query = filters.query.trim().toLowerCase();
+  if (!query) return true;
+
+  return [
+    row.label,
+    row.path,
+    row.courseLabel,
+    row.moduleTitle,
+    row.lessonTitle,
+    row.target,
+    row.suggestion,
+    ...(row.missingLabels || []),
+  ]
+    .filter(Boolean)
+    .some((value) => String(value).toLowerCase().includes(query));
+}
+
+function QualityFilters({
+  filters,
+  courseOptions,
+  signalOptions,
+  resultCount,
+  onChange,
+  onClear,
+}) {
+  return (
+    <section className="admin-section" aria-labelledby="content-quality-filters-title">
+      <div className="admin-quality-filter-head">
+        <h3 id="content-quality-filters-title" className="admin-section-title">
+          Report Filters
+        </h3>
+        <span className="admin-quality-filter-count">{resultCount} matching fixes</span>
+      </div>
+      <div className="admin-quality-filters">
+        <label className="admin-quality-filter">
+          <span>Course</span>
+          <select
+            aria-label="Filter by course"
+            value={filters.courseId}
+            onChange={(event) => onChange('courseId', event.target.value)}
+          >
+            <option value="all">All courses</option>
+            {courseOptions.map((course) => (
+              <option key={course.name} value={course.name}>
+                {course.name.toUpperCase()}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="admin-quality-filter">
+          <span>Type</span>
+          <select
+            aria-label="Filter by type"
+            value={filters.type}
+            onChange={(event) => onChange('type', event.target.value)}
+          >
+            <option value="all">All types</option>
+            <option value="lesson">Lessons</option>
+            <option value="quiz">Quizzes</option>
+          </select>
+        </label>
+        <label className="admin-quality-filter">
+          <span>Signal</span>
+          <select
+            aria-label="Filter by signal"
+            value={filters.signal}
+            onChange={(event) => onChange('signal', event.target.value)}
+          >
+            <option value="all">All signals</option>
+            {signalOptions.map((signal) => (
+              <option key={signal.value} value={signal.value}>
+                {signal.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="admin-quality-filter admin-quality-filter-search">
+          <span>Search</span>
+          <input
+            aria-label="Search quality fixes"
+            type="search"
+            value={filters.query}
+            onChange={(event) => onChange('query', event.target.value)}
+          />
+        </label>
+        <button type="button" className="admin-quality-filter-clear" onClick={onClear}>
+          Clear
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function ActionTable({ rows, totalCount }) {
   return (
     <section className="admin-section" aria-labelledby="highest-priority-fixes">
-      <h3 id="highest-priority-fixes" className="admin-section-title">
-        Highest Priority Fixes
-      </h3>
+      <div className="admin-quality-filter-head">
+        <h3 id="highest-priority-fixes" className="admin-section-title">
+          Highest Priority Fixes
+        </h3>
+        {totalCount > rows.length && (
+          <span className="admin-quality-filter-count">Showing {rows.length} of {totalCount}</span>
+        )}
+      </div>
       <div className="admin-table-wrap">
         <table className="admin-table">
           <thead>
@@ -176,29 +371,66 @@ function ActionTable({ rows }) {
               <th>Type</th>
               <th>Missing</th>
               <th>Suggested fix</th>
+              <th>Starter template</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
-              <tr key={`${row.type}:${row.path}`}>
-                <td>
-                  <span className="admin-quality-item">{row.label}</span>
-                  <span className="admin-quality-path">{row.path}</span>
-                </td>
-                <td>{row.type}</td>
-                <td>{row.missingLabels.join(', ')}</td>
-                <td>{row.suggestion}</td>
-              </tr>
-            ))}
+            {rows.map((row) => {
+              const template = row.fixTemplates?.[0];
+              return (
+                <tr key={`${row.type}:${row.path}`}>
+                  <td>
+                    <span className="admin-quality-item">{row.label}</span>
+                    <span className="admin-quality-path">{row.path}</span>
+                  </td>
+                  <td>{row.type}</td>
+                  <td>{row.missingLabels.join(', ')}</td>
+                  <td>{row.suggestion}</td>
+                  <td>
+                    {template ? (
+                      <span className="admin-quality-template">
+                        <strong>{template.title}</strong>
+                        {template.template}
+                      </span>
+                    ) : (
+                      'Add one learner-facing evidence prompt.'
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={4} className="admin-empty">No priority fixes found.</td>
+                <td colSpan={5} className="admin-empty">No priority fixes found.</td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
     </section>
+  );
+}
+
+function formatDelta(delta, hasPrevious) {
+  if (!hasPrevious) return 'No previous scan';
+  if (delta === 0) return 'No change';
+  return delta > 0 ? `+${delta}` : String(delta);
+}
+
+function getDeltaClass(delta, hasPrevious) {
+  if (!hasPrevious || delta === 0) return 'neutral';
+  return delta < 0 ? 'good' : 'attention';
+}
+
+function ProgressMetric({ label, value, delta, hasPrevious }) {
+  return (
+    <div className="admin-quality-metric">
+      <span className="admin-quality-value">{value}</span>
+      <span className="admin-quality-label">{label}</span>
+      <span className={`admin-quality-delta ${getDeltaClass(delta, hasPrevious)}`}>
+        {formatDelta(delta, hasPrevious)}
+      </span>
+    </div>
   );
 }
 
