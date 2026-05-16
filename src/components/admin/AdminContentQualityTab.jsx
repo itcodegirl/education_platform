@@ -3,6 +3,7 @@ import { COURSE_METADATA, loadCourse } from '../../data';
 import {
   buildContentQualityActionPlan,
   buildContentQualityCsv,
+  buildContentQualityFixCsv,
   buildContentQualityReport,
   getContentQualitySignalLabel,
 } from '../../utils/contentQualityReport';

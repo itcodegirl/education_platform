@@ -421,3 +421,40 @@ export function buildContentQualityCsv(report = {}, generatedAt = new Date().toI
 
   return `${rows.map(toCsvRow).join('\n')}\n`;
 }
+
+export function buildContentQualityFixCsv(rows = [], generatedAt = new Date().toISOString()) {
+  const csvRows = [[
+    'generated_at',
+    'priority',
+    'type',
+    'course_id',
+    'course',
+    'item',
+    'path',
+    'missing_signals',
+    'missing_labels',
+    'suggestion',
+    'starter_template_title',
+    'starter_template',
+  ]];
+
+  rows.forEach((row) => {
+    const template = row.fixTemplates?.[0] || {};
+    csvRows.push([
+      generatedAt,
+      row.priority ?? '',
+      row.type || '',
+      row.courseId,
+      row.courseLabel,
+      row.label || row.lessonTitle || row.target || row.id,
+      row.path,
+      row.missing,
+      row.missingLabels,
+      row.suggestion,
+      template.title,
+      template.template,
+    ]);
+  });
+
+  return `${csvRows.map(toCsvRow).join('\n')}\n`;
+}

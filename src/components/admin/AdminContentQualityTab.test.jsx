@@ -53,6 +53,9 @@ describe('AdminContentQualityTab', () => {
     const exportLink = screen.getByRole('link', { name: /export csv/i });
     expect(exportLink).toHaveAttribute('download', 'codeherway-content-quality-report.csv');
     expect(exportLink).toHaveAttribute('href', expect.stringContaining('data:text/csv'));
+    const filteredExportLink = screen.getByRole('link', { name: /export filtered fixes/i });
+    expect(filteredExportLink).toHaveAttribute('download', 'codeherway-filtered-content-fixes.csv');
+    expect(filteredExportLink).toHaveAttribute('href', expect.stringContaining('data:text/csv'));
     expect(screen.getAllByText(/HTML - Lesson intro/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Add one question/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Misconception quiz item/).length).toBeGreaterThan(0);
