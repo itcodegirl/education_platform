@@ -147,6 +147,8 @@ export function AdminDashboard({ onClose }) {
       topUsers: dashboardMetrics.topUsers,
       funnel7d: dashboardMetrics.funnel7d,
       funnel30d: dashboardMetrics.funnel30d,
+      reliability7d: dashboardMetrics.reliability7d,
+      reliability30d: dashboardMetrics.reliability30d,
     };
   }, [dashboardMetrics, data, loading, isAdmin, usersCounts]);
 

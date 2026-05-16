@@ -22,6 +22,8 @@ const INITIAL_DASHBOARD_METRICS = {
   topUsers: [],
   funnel7d: {},
   funnel30d: {},
+  reliability7d: {},
+  reliability30d: {},
 };
 
 function toInt(value) {
@@ -56,6 +58,16 @@ function toFunnel(value) {
   };
 }
 
+function toReliability(value) {
+  if (!value || typeof value !== 'object') return {};
+  return {
+    serviceWorkerEvents: toInt(value.serviceWorkerEvents),
+    serviceWorkerFailures: toInt(value.serviceWorkerFailures),
+    offlineFallbacks: toInt(value.offlineFallbacks),
+    currentLessonCached: toInt(value.currentLessonCached),
+  };
+}
+
 function normalizeDashboardMetrics(rawMetrics) {
   if (!rawMetrics || typeof rawMetrics !== 'object') {
     return INITIAL_DASHBOARD_METRICS;
@@ -73,6 +85,8 @@ function normalizeDashboardMetrics(rawMetrics) {
     topUsers: toTopUsers(rawMetrics.topUsers),
     funnel7d: toFunnel(rawMetrics.funnel7d),
     funnel30d: toFunnel(rawMetrics.funnel30d),
+    reliability7d: toReliability(rawMetrics.reliability7d),
+    reliability30d: toReliability(rawMetrics.reliability30d),
   };
 }
 
