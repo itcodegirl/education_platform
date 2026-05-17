@@ -233,10 +233,17 @@ curl -i -X POST https://codeherway.com/.netlify/functions/ai \
 # 7. Verify CSP is live
 curl -sI https://codeherway.com/ | grep -i content-security-policy
 # expected: a single CSP header with no fonts.googleapis.com
+
+# 8. Verify Netlify app shell, service worker, and cache headers
+npm run check:production-deploy -- --url https://codeherway.com/
+# expected: all checks pass, including current /sw.js version and immutable /assets/*
 ```
 
 If any of the above fails, check the Netlify deploy log and the
 Supabase logs first — 90% of the time it's an unset env var or a
 migration that hasn't been run yet.
+
+For service-worker-specific release checks, use
+[Netlify Production Verification](./netlify-production-verification.md).
 
 
