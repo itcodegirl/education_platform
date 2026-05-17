@@ -17,6 +17,7 @@ These commands verify that the repo still contains:
 - The additive stable resume migration: `supabase/migrations/202605070001_add_stable_last_position_columns.sql`.
 - Aggregate-only public profile exposure through `public.public_profiles`.
 - Admin rollups filtered by `public.is_admin()` with invoker-aware view semantics.
+- The audited `set_user_admin(...)` RPC for admin-only role changes.
 - Explicit anon `select` revokes for raw profile/progress/reward-adjacent tables.
 - Reward event ledger migrations and the `award_reward_event(...)` RPC that derives ownership from `auth.uid()`.
 - The `reward_catalog` migration that lets the RPC derive XP and reject unknown reward entities.
@@ -55,6 +56,7 @@ For a fresh Supabase project, apply `supabase-schema.sql` first, then apply the 
 7. `supabase/migrations/202605070002_harden_public_profile_privacy.sql`
 8. `supabase/migrations/202605110001_harden_reward_event_trust_boundaries.sql`
 9. `supabase/migrations/202605110002_lock_admin_user_rollups.sql`
+10. `supabase/migrations/202605170001_add_set_user_admin_rpc.sql`
 
 For an existing project, apply only migrations that have not already run. Every listed file is intended to be additive/idempotent, but production operators should still record the run date, project ref, and deploy SHA.
 

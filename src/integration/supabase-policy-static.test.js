@@ -10,6 +10,7 @@ describe('supabase policy sql static checks', () => {
     const schema = readText('../../supabase-schema.sql');
     const adminGuardMigration = readText('../../supabase/migrations/202605060001_guard_profile_disabled_updates.sql');
     const safeFieldMigration = readText('../../supabase/migrations/202605060003_harden_profile_updates.sql');
+    const adminRoleRpcMigration = readText('../../supabase/migrations/202605170001_add_set_user_admin_rpc.sql');
 
     [schema, adminGuardMigration].forEach((sql) => {
       expect(sql).toMatch(/new\.is_admin is distinct from old\.is_admin/i);
@@ -24,6 +25,14 @@ describe('supabase policy sql static checks', () => {
     expect(safeFieldMigration).not.toMatch(/grant update\s*\([^)]*is_disabled/i);
     expect(safeFieldMigration).toMatch(/create or replace function public\.set_user_disabled/i);
     expect(safeFieldMigration).toMatch(/grant execute on function public\.set_user_disabled[\s\S]*to authenticated/i);
+
+    expect(adminRoleRpcMigration).toMatch(/create or replace function public\.set_user_admin/i);
+    expect(adminRoleRpcMigration).toMatch(/if not public\.is_admin\(\) then/i);
+    expect(adminRoleRpcMigration).toMatch(/Admins cannot change their own is_admin flag/i);
+    expect(adminRoleRpcMigration).toMatch(/set_config\('app\.bypass_admin_guard',\s*'true'/i);
+    expect(adminRoleRpcMigration).toMatch(/Target user profile not found/i);
+    expect(adminRoleRpcMigration).toMatch(/case when make_admin then 'grant_admin' else 'revoke_admin' end/i);
+    expect(adminRoleRpcMigration).toMatch(/grant execute on function public\.set_user_admin[\s\S]*to authenticated/i);
   });
 
   it('reward-backend.enforces-idempotency-and-auth-owned-awards statically', () => {

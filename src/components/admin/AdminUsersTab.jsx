@@ -41,12 +41,16 @@ export function AdminUsersTab({ data, currentUserId, setData, usersPagination, u
   const [actionLoading, setActionLoading] = useState(null);
   const [actionError, setActionError] = useState(null);
 
+  const getUserLabel = (user) => user.display_name || 'this user';
+  const isActionLoading = (userId, action) => actionLoading === `${userId}:${action}`;
+  const isAnyUserActionLoading = (userId) => Boolean(actionLoading?.startsWith(`${userId}:`));
+
   const handleToggleDisabled = async (u) => {
     const isDisabled = !!u.is_disabled;
-    if (!confirm(`${isDisabled ? 'Enable' : 'Disable'} ${u.display_name || 'this user'}?`)) {
+    if (!confirm(`${isDisabled ? 'Enable' : 'Disable'} ${getUserLabel(u)}?`)) {
       return;
     }
-    setActionLoading(u.id);
+    setActionLoading(`${u.id}:status`);
     setActionError(null);
     try {
       const { error } = await supabase.rpc('set_user_disabled', {
@@ -63,11 +67,47 @@ export function AdminUsersTab({ data, currentUserId, setData, usersPagination, u
     } catch (err) {
       setActionError(
         `Could not ${isDisabled ? 'enable' : 'disable'} ${
-          u.display_name || 'this user'
+          getUserLabel(u)
         }. Please try again.`
       );
       if (import.meta.env.DEV) {
         console.error('Failed to toggle user:', err);
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleToggleAdmin = async (u) => {
+    const isAdmin = !!u.is_admin;
+    const action = isAdmin ? 'Remove admin access from' : 'Grant admin access to';
+
+    if (!confirm(`${action} ${getUserLabel(u)}?`)) {
+      return;
+    }
+
+    setActionLoading(`${u.id}:admin`);
+    setActionError(null);
+    try {
+      const { error } = await supabase.rpc('set_user_admin', {
+        target_user_id: u.id,
+        make_admin: !isAdmin,
+      });
+      if (error) {
+        throw error;
+      }
+      setData((prev) => ({
+        ...prev,
+        users: prev.users.map((usr) => (usr.id === u.id ? { ...usr, is_admin: !isAdmin } : usr)),
+      }));
+    } catch (err) {
+      setActionError(
+        `Could not ${isAdmin ? 'remove admin access from' : 'grant admin access to'} ${
+          getUserLabel(u)
+        }. Please try again.`
+      );
+      if (import.meta.env.DEV) {
+        console.error('Failed to toggle admin role:', err);
       }
     } finally {
       setActionLoading(null);
@@ -125,21 +165,39 @@ export function AdminUsersTab({ data, currentUserId, setData, usersPagination, u
                   <td>{u.badges_earned || 0}</td>
                   <td>
                     {isSelf ? (
-                      <span className="admin-action-disabled">You</span>
+                      <div className="admin-action-stack">
+                        <span className="admin-action-disabled">You</span>
+                        <span className="admin-action-disabled">Admin locked</span>
+                      </div>
                     ) : (
-                      <button
-                        type="button"
-                        className={`admin-toggle-btn ${isDisabled ? 'enable' : 'disable'}`}
-                        aria-label={`${isDisabled ? 'Enable' : 'Disable'} user ${u.display_name || 'this user'}`}
-                        disabled={actionLoading === u.id}
-                        onClick={() => handleToggleDisabled(u)}
-                      >
-                        {actionLoading === u.id
-                          ? '...'
-                          : isDisabled
-                            ? '✅ Enable'
-                            : '🚫 Disable'}
-                      </button>
+                      <div className="admin-action-stack">
+                        <button
+                          type="button"
+                          className={`admin-toggle-btn ${isDisabled ? 'enable' : 'disable'}`}
+                          aria-label={`${isDisabled ? 'Enable' : 'Disable'} user ${getUserLabel(u)}`}
+                          disabled={isAnyUserActionLoading(u.id)}
+                          onClick={() => handleToggleDisabled(u)}
+                        >
+                          {isActionLoading(u.id, 'status')
+                            ? '...'
+                            : isDisabled
+                              ? 'Enable'
+                              : 'Disable'}
+                        </button>
+                        <button
+                          type="button"
+                          className={`admin-role-btn ${u.is_admin ? 'revoke' : 'grant'}`}
+                          aria-label={`${u.is_admin ? 'Remove admin access from' : 'Grant admin access to'} ${getUserLabel(u)}`}
+                          disabled={isAnyUserActionLoading(u.id)}
+                          onClick={() => handleToggleAdmin(u)}
+                        >
+                          {isActionLoading(u.id, 'admin')
+                            ? '...'
+                            : u.is_admin
+                              ? 'Remove admin'
+                              : 'Grant admin'}
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>

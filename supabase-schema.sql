@@ -626,6 +626,7 @@ set search_path = public
 as $$
 declare
   v_caller uuid := auth.uid();
+  v_updated integer;
 begin
   if v_caller is null then
     raise exception 'Authentication required';
@@ -641,7 +642,12 @@ begin
   -- the flag so it can't leak into other statements in the same tx.
   perform set_config('app.bypass_admin_guard', 'true', true);
   update public.profiles set is_admin = make_admin where id = target_user_id;
+  get diagnostics v_updated = row_count;
   perform set_config('app.bypass_admin_guard', 'false', true);
+
+  if v_updated = 0 then
+    raise exception 'Target user profile not found';
+  end if;
 
   insert into public.admin_audit_log (actor_id, target_id, action, details)
   values (
