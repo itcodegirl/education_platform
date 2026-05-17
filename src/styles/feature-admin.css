@@ -830,6 +830,263 @@
   transition: width 0.3s ease;
 }
 
+/* Coverage matrix */
+.admin-coverage-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-surface);
+}
+
+.admin-coverage-filters,
+.admin-coverage-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-filter-btn,
+.admin-action-btn {
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-dim);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.admin-filter-btn:hover,
+.admin-action-btn:hover {
+  border-color: var(--border-bright);
+  color: var(--text);
+}
+
+.admin-filter-btn.active {
+  border-color: var(--cyan);
+  background: var(--cyan-dim);
+  color: var(--cyan);
+}
+
+.admin-action-btn {
+  color: var(--pink);
+}
+
+.admin-coverage-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.admin-coverage-metric {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+}
+
+.admin-coverage-metric.complete {
+  border-color: #4ecdc440;
+}
+
+.admin-coverage-metric.review {
+  border-color: #ffa72640;
+}
+
+.admin-coverage-metric.missing {
+  border-color: #ff6b6b40;
+}
+
+.admin-coverage-metric-value {
+  font-family: 'Poppins', sans-serif;
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.admin-coverage-metric-label {
+  margin-top: 6px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-coverage-metric-detail,
+.admin-coverage-note,
+.admin-coverage-subtle,
+.admin-coverage-muted {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.admin-coverage-note {
+  margin: -6px 0 12px;
+}
+
+.admin-coverage-title {
+  font-weight: 700;
+  min-width: 150px;
+}
+
+.admin-coverage-course-icon {
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.admin-coverage-subtle {
+  display: block;
+  margin-top: 3px;
+  font-weight: 500;
+}
+
+.admin-coverage-count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  white-space: nowrap;
+  font-family: 'Poppins', sans-serif;
+}
+
+.admin-coverage-count strong {
+  color: var(--text);
+}
+
+.admin-coverage-count small {
+  margin-left: 4px;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.admin-coverage-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.admin-coverage-status.complete {
+  background: #4ecdc420;
+  color: var(--cyan);
+}
+
+.admin-coverage-status.needs-review {
+  background: #ffa72620;
+  color: var(--amber);
+}
+
+.admin-coverage-status.missing-assessment {
+  background: #ff6b6b20;
+  color: #ff6b6b;
+}
+
+.admin-coverage-table th,
+.admin-coverage-table td {
+  vertical-align: top;
+}
+
+.admin-coverage-module {
+  min-width: 140px;
+}
+
+.admin-coverage-lesson {
+  min-width: 190px;
+  max-width: 260px;
+  font-weight: 700;
+}
+
+.admin-coverage-compact {
+  display: inline-block;
+  max-width: 180px;
+  color: var(--text-dim);
+  line-height: 1.35;
+}
+
+.admin-coverage-missing-text {
+  color: #ff8a8a;
+  font-weight: 700;
+}
+
+.admin-coverage-ok {
+  color: var(--cyan);
+  font-weight: 700;
+}
+
+.admin-gap-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 180px;
+  max-width: 280px;
+}
+
+.admin-gap-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+@media print {
+  .admin-wrap {
+    position: static;
+    background: #fff;
+    color: #000;
+    overflow: visible;
+  }
+
+  .admin-container {
+    max-width: none;
+    padding: 0;
+  }
+
+  .admin-tabs,
+  .admin-back-btn,
+  .admin-coverage-toolbar {
+    display: none !important;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    color: #000;
+    border-color: #bbb;
+  }
+
+  .admin-table th {
+    background: #eee;
+  }
+
+  .admin-section,
+  .admin-coverage-metric {
+    break-inside: avoid;
+  }
+}
+
 /* Mobile */
 @media (max-width: 768px) {
   .admin-container {
