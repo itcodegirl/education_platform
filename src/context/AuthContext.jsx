@@ -46,6 +46,7 @@ export function AuthProvider({ children }) {
   const [profileLoading, setProfileLoading] = useState(false);
   const authInitRequestRef = useRef(0);
   const profileRequestRef = useRef(0);
+  const currentUserIdRef = useRef(null);
   const authBackendStatus = useMemo(() => getOptionalSupabaseBrowserConfig(), []);
   const authBackendReady = authBackendStatus.configured;
   const authUnavailableError = useMemo(
@@ -102,8 +103,12 @@ export function AuthProvider({ children }) {
 
     const applyAuthUser = (nextUser, { markInitialized = false } = {}) => {
       if (!active || authInitRequestRef.current !== requestId) return;
+      const userChanged = nextUser?.id !== currentUserIdRef.current;
+      currentUserIdRef.current = nextUser?.id ?? null;
       setUser(nextUser);
-      void handleLoadProfile(nextUser?.id);
+      if (userChanged) {
+        void handleLoadProfile(nextUser?.id);
+      }
       if (markInitialized || initialSessionResolved) {
         setLoading(false);
       }
