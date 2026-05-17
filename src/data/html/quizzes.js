@@ -1,4 +1,6 @@
-export const HTML_QUIZZES = [
+import { applyHtmlQuizQualityItems } from './quizQualityItems.js';
+
+const HTML_QUIZZES_SOURCE = [
 { lessonId:'h1-1', questions:[
   { id:'h1a', type:'mc', question:'What does HTML stand for?', options:['Hyper Tool Markup Language','HyperText Markup Language','Home Text Making Language','HyperText Machine Language'], correct:1, explanation:'HTML = HyperText Markup Language.' },
   { id:'h1b', type:'mc', question:'Is HTML a programming language?', options:['Yes','No — it is a markup language','Only in HTML5','Yes, with JavaScript enabled'], correct:1, explanation:'HTML describes structure. It has no logic, loops, or conditions.', optionFeedback:['Tempting because JavaScript is a programming language, but HTML by itself cannot make decisions or repeat steps.','','HTML5 added stronger semantic elements, but markup alone still does not branch, loop, or calculate.','JavaScript can add behavior to an HTML page, but it does not turn HTML itself into a programming language.'] },
@@ -335,3 +337,5 @@ export const HTML_QUIZZES = [
 
 // ═══════════════════════════════════════════════
 ];
+
+export const HTML_QUIZZES = applyHtmlQuizQualityItems(HTML_QUIZZES_SOURCE);
