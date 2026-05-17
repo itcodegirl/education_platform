@@ -6,11 +6,17 @@ data, authenticated smoke coverage, or Supabase-backed reliability metrics.
 ## Content QA Report
 
 - Run `npm run report:content-quality -- --summary`.
+- Run `npm run audit:curriculum-coverage`; use
+  `npm run report:curriculum-coverage` when you need CSV/JSON artifacts.
 - Open the admin Content QA tab and confirm the warning totals, filters, CSV
-  export, suggested sprint cards, and priority fixes render correctly.
+  export, Curriculum Coverage section, suggested sprint cards, and priority
+  fixes render correctly.
 - Treat content QA warnings as report-only unless the PR explicitly changes the
   release gate. The report should guide curriculum batches without blocking
   unrelated fixes.
+- Treat curriculum coverage gaps as report-only unless the release explicitly
+  opts into a strict gap budget. Use `docs/curriculum-coverage-audit.md` to
+  interpret lesson quiz, practice, project-evidence, and rubric-depth gaps.
 - When closing a curriculum batch, add the missing lesson signals directly in
   the lesson data: `learningFrame.learn`, `learningFrame.check`,
   `learningFrame.next`, `commonMistakes`, and `bridge.preview`.
@@ -38,7 +44,8 @@ data, authenticated smoke coverage, or Supabase-backed reliability metrics.
 ## PR Validation
 
 - Run the focused unit/component tests for the touched QA files.
-- Run `npm run audit:content`, `npm run audit:auth-e2e`, and
+- Run `npm run audit:content`, `npm run audit:curriculum-coverage`,
+  `npm run audit:auth-e2e`, and
   `npm run check-package-scripts` when the PR changes reports, docs, or scripts.
 - Run `npm run build` and `npm run check:bundle` before opening the PR.
 - Create a Netlify draft deploy first, verify the preview URL, then promote only

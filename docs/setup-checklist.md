@@ -207,6 +207,7 @@ Once all of the above is done, in order:
 npm ci
 npm run build
 npm run typecheck
+npm run audit:curriculum-coverage
 npm test
 npm audit --audit-level=high
 

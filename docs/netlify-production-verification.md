@@ -19,6 +19,13 @@ npm run check:production-deploy -- --url https://codeherway.com/
 The script is intentionally not part of the default local quality gate because
 it depends on the live Netlify deployment and network access.
 
+## GitHub Ops Workflow
+
+The scheduled/manual `Scheduled Ops Checks` workflow also runs this verifier
+when the `PRODUCTION_URL` repository variable is set. Use the manual
+`workflow_dispatch` run after a Netlify production deploy to capture a GitHub
+Actions health record for the live site.
+
 ## What The Script Checks
 
 - `/` returns HTTP 200 and contains the app shell.
