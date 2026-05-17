@@ -76,6 +76,26 @@ function dispatchMessage(listeners, data) {
 }
 
 describe('service worker navigation fallback', () => {
+  it('returns an offline document for uncached HTML requests even when request mode is not navigate', async () => {
+    const harness = await createServiceWorkerHarness({
+      fetchImpl: vi.fn(async () => {
+        throw new TypeError('network failed');
+      }),
+    });
+
+    const response = await dispatchFetch(harness.listeners, {
+      method: 'GET',
+      url: 'https://codeherway.test/',
+      mode: 'same-origin',
+      destination: '',
+      cache: 'default',
+      headers: new Headers({ accept: 'text/html' }),
+    });
+
+    expect(response.status).toBe(503);
+    await expect(response.text()).resolves.toContain("You're offline");
+  });
+
   it('returns a branded offline document instead of rejecting uncached navigation failures', async () => {
     const harness = await createServiceWorkerHarness({
       fetchImpl: vi.fn(async () => {
@@ -96,6 +116,45 @@ describe('service worker navigation fallback', () => {
     expect(harness.postedMessages).toContainEqual(expect.objectContaining({
       type: 'SW_NAVIGATION_FALLBACK_USED',
     }));
+  });
+
+  it('returns an explicit 504 response for uncached asset failures instead of rejecting fetch events', async () => {
+    const harness = await createServiceWorkerHarness({
+      fetchImpl: vi.fn(async () => {
+        throw new TypeError('network failed');
+      }),
+    });
+
+    const response = await dispatchFetch(harness.listeners, {
+      method: 'GET',
+      url: 'https://codeherway.test/assets/missing.js',
+      mode: 'same-origin',
+      destination: 'script',
+      cache: 'default',
+      headers: new Headers({ accept: '*/*' }),
+    });
+
+    expect(response.status).toBe(504);
+    await expect(response.text()).resolves.toBe('');
+  });
+
+  it('returns an explicit 504 response for uncached manifest failures instead of rejecting fetch events', async () => {
+    const harness = await createServiceWorkerHarness({
+      fetchImpl: vi.fn(async () => {
+        throw new TypeError('network failed');
+      }),
+    });
+
+    const response = await dispatchFetch(harness.listeners, {
+      method: 'GET',
+      url: 'https://codeherway.test/manifest.json',
+      mode: 'same-origin',
+      destination: 'manifest',
+      cache: 'default',
+      headers: new Headers({ accept: 'application/manifest+json' }),
+    });
+
+    expect(response.status).toBe(504);
   });
 
   it('serves cached app shell navigation when the network is unavailable', async () => {
