@@ -1,3 +1,5 @@
+import { applyReactQuizQualityItems } from './quizQualityItems.js';
+
 const REACT_QUIZZES_SOURCE = [
 
   { lessonId:'r1-1', questions:[
@@ -664,7 +666,9 @@ const REACT_CROSS_COURSE_MISPLACED_LESSON_IDS = new Set([
   'j12-2',
 ]);
 
-export const REACT_QUIZZES = REACT_QUIZZES_SOURCE.filter(
+const REACT_QUIZZES_WITH_QUALITY_ITEMS = applyReactQuizQualityItems(REACT_QUIZZES_SOURCE);
+
+export const REACT_QUIZZES = REACT_QUIZZES_WITH_QUALITY_ITEMS.filter(
   (quiz) => !REACT_CROSS_COURSE_MISPLACED_LESSON_IDS.has(quiz.lessonId),
 );
 
