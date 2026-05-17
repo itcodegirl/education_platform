@@ -15,6 +15,7 @@ import { Logo } from '../components/shared/Logo';
 import { APP_ROUTES, parsePublicProfilePath, routeIdMatches } from './routePaths';
 import { closeRouteOrGoHome, toPathFromLegacyHash } from './routeUtils';
 import { RouteErrorBoundary } from './RouteErrorBoundary';
+import { NotFoundPage } from '../components/shared/NotFoundPage';
 
 const AuthLayout = lazy(() =>
   import('../layouts/AuthLayout').then((module) => ({ default: module.AuthLayout })),
@@ -372,7 +373,7 @@ export const appRouter = createBrowserRouter([
           { path: LEARN_SEGMENT, loader: learnRouteLoader, action: learnRouteAction, element: <LearnRoute /> },
         ],
       },
-      { path: '*', element: <Navigate to={APP_ROUTES.home} replace /> },
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
 ]);
