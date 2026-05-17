@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { COURSE_METADATA, loadCourse } from '../../data';
+import { PROJECTS } from '../../data/reference/projects';
+import {
+  buildCurriculumCoverageCsv,
+  buildCurriculumCoverageReport,
+  getCurriculumCoverageStatusLabel,
+} from '../../utils/curriculumCoverageReport';
 import {
   buildContentQualityActionPlan,
   buildContentQualityCsv,
@@ -75,6 +81,10 @@ export function AdminContentQualityTab() {
     () => buildQuizInventoryReport(state.courseEntries),
     [state.courseEntries],
   );
+  const curriculumCoverage = useMemo(
+    () => buildCurriculumCoverageReport(state.courseEntries, { projectsByCourse: PROJECTS }),
+    [state.courseEntries],
+  );
   const actionPlan = useMemo(
     () => buildContentQualityActionPlan(report),
     [report],
@@ -123,6 +133,10 @@ export function AdminContentQualityTab() {
   const quizInventoryCsvHref = useMemo(
     () => `data:text/csv;charset=utf-8,${encodeURIComponent(buildQuizInventoryCsv(quizInventory))}`,
     [quizInventory],
+  );
+  const curriculumCoverageCsvHref = useMemo(
+    () => `data:text/csv;charset=utf-8,${encodeURIComponent(buildCurriculumCoverageCsv(curriculumCoverage))}`,
+    [curriculumCoverage],
   );
 
   useEffect(() => {
@@ -218,6 +232,11 @@ export function AdminContentQualityTab() {
       </section>
 
       <QuizInventorySection report={quizInventory} csvHref={quizInventoryCsvHref} />
+
+      <CurriculumCoverageSection
+        report={curriculumCoverage}
+        csvHref={curriculumCoverageCsvHref}
+      />
 
       <section className="admin-section" aria-labelledby="content-quality-sprint-title">
         <h3 id="content-quality-sprint-title" className="admin-section-title">
@@ -369,6 +388,126 @@ function QuizInventorySection({ report, csvHref }) {
           </tbody>
         </table>
       </div>
+    </section>
+  );
+}
+
+function CurriculumCoverageSection({ report, csvHref }) {
+  const { totals } = report;
+  const topGaps = report.gapRows.slice(0, 8);
+
+  return (
+    <section className="admin-section" aria-labelledby="curriculum-coverage-title">
+      <div className="admin-quality-toolbar">
+        <h3 id="curriculum-coverage-title" className="admin-section-title">
+          Curriculum Coverage
+        </h3>
+        <a
+          className="admin-export-link"
+          href={csvHref}
+          download="codeherway-curriculum-coverage-gaps.csv"
+        >
+          Export coverage CSV
+        </a>
+      </div>
+      <div className="admin-grid admin-quality-grid">
+        <QualityMetric
+          label="Fully covered lessons"
+          value={`${totals.readyLessonCount}/${totals.lessonCount}`}
+        />
+        <QualityMetric label="Coverage gaps" value={totals.coverageGapCount} />
+        <QualityMetric
+          label="Modules with project evidence"
+          value={`${totals.modulesWithProjectEvidence}/${totals.moduleCount}`}
+        />
+        <QualityMetric label="Project ideas" value={totals.projectIdeaCount} />
+      </div>
+      {report.gapsByType.length > 0 && (
+        <div className="admin-quality-pills" aria-label="Curriculum coverage gaps by type">
+          {report.gapsByType.map((entry) => (
+            <span key={entry.name} className="admin-quality-pill">
+              <strong>{entry.label}</strong>
+              {entry.count}
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="admin-table-wrap">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Course</th>
+              <th>Fully covered</th>
+              <th>Quiz</th>
+              <th>Practice</th>
+              <th>Project evidence</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {report.courses.map((course) => (
+              <tr key={course.courseId}>
+                <td>
+                  <span className="admin-quality-item">{course.courseLabel}</span>
+                  <span className="admin-quality-path">
+                    {course.moduleCount} modules / {course.lessonCount} lessons
+                  </span>
+                </td>
+                <td>{course.readyLessonCount}/{course.lessonCount}</td>
+                <td>{course.quizCoveragePercent}%</td>
+                <td>{course.practiceCoveragePercent}%</td>
+                <td>{course.projectEvidenceCoveragePercent}%</td>
+                <td>
+                  <span
+                    className={`admin-quality-status ${course.gapCount === 0 ? 'good' : 'attention'}`}
+                  >
+                    {getCurriculumCoverageStatusLabel(course.gapCount)}
+                  </span>
+                </td>
+              </tr>
+            ))}
+            {report.courses.length === 0 && (
+              <tr>
+                <td colSpan={6} className="admin-empty">No curriculum coverage data found.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      {topGaps.length > 0 && (
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Top coverage gap</th>
+                <th>Missing</th>
+                <th>Suggested fix</th>
+              </tr>
+            </thead>
+            <tbody>
+              {topGaps.map((row) => (
+                <tr key={row.id}>
+                  <td>
+                    <span className="admin-quality-item">
+                      {row.courseLabel} - {row.lessonTitle}
+                    </span>
+                    <span className="admin-quality-path">{row.path}</span>
+                  </td>
+                  <td>
+                    {row.gapLabel}
+                    {row.relatedSignals.length > 0 && (
+                      <span className="admin-review-count">
+                        {row.relatedSignals.join(', ')}
+                      </span>
+                    )}
+                  </td>
+                  <td>{row.suggestion}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </section>
   );
 }

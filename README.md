@@ -17,7 +17,7 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 - This repository root is the active canonical app for CodeHerWay.
 - The project is usable for guided portfolio review.
 - The project is not yet production-grade.
-- The quality baseline currently includes lint, JS-source policy, Playwright script validation, Supabase static policy readiness, reward catalog integrity audit, production build, bundle budget, lesson-label audit, lesson-format audit (locks new lessons to the structured shape), strict quiz audit, learning-content flow audit, unit tests, and Playwright smoke coverage.
+- The quality baseline currently includes lint, JS-source policy, Playwright script validation, Supabase static policy readiness, reward catalog integrity audit, production build, bundle budget, lesson-label audit, lesson-format audit (locks new lessons to the structured shape), strict quiz audit, learning-content flow audit, curriculum coverage audit, unit tests, and Playwright smoke coverage.
 - Recent audit hardening added stable resume coverage, learner-scoped local state, authenticated persistence boundary tests, clearer lesson/quiz/challenge semantics, mobile tool-sheet polish, and Supabase live-deployment readiness notes.
 
 ## Evidence & Readiness Snapshot
@@ -25,7 +25,7 @@ CodeHerWay is an active frontend learning platform project and portfolio product
 | Area | Current status | Proof / next gate |
 | --- | --- | --- |
 | Public learner flow | Ready for portfolio review | `npm run test:e2e:smoke:public`, `docs/reviewer-demo-script.md` |
-| Lesson structure | Ready for review | `npm run audit:content`, `npm run audit:lesson-format` |
+| Lesson structure | Ready for review | `npm run audit:content`, `npm run audit:lesson-format`, `npm run audit:curriculum-coverage` |
 | Quiz and reward trust | Locally hardened, backend authority gated | `npm run audit:quizzes`, `src/engine/rewards/`, `docs/staging-supabase-validation.md` |
 | Authenticated persistence | Unit/static coverage exists; live CI needs secrets | `npm run audit:auth-e2e`, `docs/authenticated-e2e-ci.md` |
 | Mobile usability | Covered by focused smoke and visual paths | `tests/e2e/mobile-learning-smoke.spec.js`, `docs/mobile-qa-checklist.md` |
@@ -69,6 +69,7 @@ Current baseline checks:
 - `npm run audit:e2e-scripts` (Playwright project-reference guard)
 - `npm run audit:auth-e2e` (authenticated E2E workflows keep preflight, secret wiring, and required signed-in smoke coverage)
 - `npm run audit:content` (course/module/lesson/quiz/challenge content integrity guard)
+- `npm run audit:curriculum-coverage` (report-only lesson-to-quiz/practice/project/rubric coverage map; see [Curriculum Coverage Audit](./docs/curriculum-coverage-audit.md))
 - `npm run test` (Vitest unit/component suite — passes on a fresh clone with no `.env` configured; the suite stubs the `VITE_SUPABASE_*` placeholders via `vitest.config.js` so client-importing tests can evaluate)
 - `npm run audit:quizzes`
 - `npm run test:e2e` (public smoke and first-lesson preview paths run by default)
@@ -80,6 +81,7 @@ Current test boundaries:
 - Playwright authenticated storage state is generated under `playwright/.auth/` and intentionally ignored by Git.
 - `npm run audit:quizzes` runs in strict mode by default and is the source of truth for quiz integrity drift. It fails on any unclassified orphan quizzes or unreviewed variant groups. All 14 intentional variant groups are locked; 53 legacy orphans are classified and non-blocking.
 - `npm run audit:content` fails on stale prerequisite IDs, missing bridge lesson IDs, and implicit cross-course lesson handoffs.
+- `npm run audit:curriculum-coverage` is report-only by default. It summarizes remaining lesson quiz, practice, challenge/project evidence, and rubric-depth gaps without blocking unrelated PRs.
 - `npm run audit:lesson-format` fails when a lesson ships in the legacy `RichLessonBody` shape and is not in `scripts/lesson-format-allowlist.json` (today: the 41 React lessons). New course content must use the structured `hook`/`do`/`understand` shape; intentional exceptions require `node scripts/audit-lesson-format.mjs --update` in the same PR. See [docs/handoff-deferred-risks.md](./docs/handoff-deferred-risks.md) (Risk A).
 - `npm run audit:e2e-scripts` fails when package scripts or smoke runners reference Playwright projects that do not exist in `playwright.config.js`.
 - The local reward-event ledger/queue and Supabase reward backend branches are now unified. The local engine remains the default fallback, and backend reward sync remains disabled until the migrations are applied and authenticated reward flows are validated in a real project.

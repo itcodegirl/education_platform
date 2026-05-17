@@ -34,9 +34,21 @@ jobs:
     name: Live Site Health
     if: ${{ vars.PRODUCTION_URL != '' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
+      - name: Check out repo
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Normalize site URL
         id: site
         env:
@@ -45,20 +57,10 @@ jobs:
           site_url="${PRODUCTION_URL%/}"
           echo "site_url=$site_url" >> "$GITHUB_OUTPUT"
 
-      - name: Check homepage
+      - name: Run production deploy verification
         env:
           SITE_URL: ${{ steps.site.outputs.site_url }}
-        run: |
-          code=$(curl -sS -o homepage.html -w "%{http_code}" "$SITE_URL/")
-          if [ "$code" != "200" ]; then
-            echo "Homepage check failed with HTTP $code"
-            exit 1
-          fi
-
-          if ! grep -q "CodeHerWay" homepage.html; then
-            echo "Homepage response does not look like the app shell"
-            exit 1
-          fi
+        run: npm run check:production-deploy -- --url "$SITE_URL/"
 
       - name: Check AI function health
         env:
@@ -94,6 +96,6 @@ jobs:
             echo "## Live Site Health"
             echo ""
             echo "- URL: $SITE_URL"
-            echo "- Homepage: OK"
+            echo "- Production deploy verifier: OK"
             echo "- AI function: OK"
           } >> "$GITHUB_STEP_SUMMARY"

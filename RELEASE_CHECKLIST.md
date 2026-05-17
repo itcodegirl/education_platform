@@ -18,6 +18,7 @@ For the release summary, copy [docs/release-notes-template.md](./docs/release-no
   - `npm run audit:staging-runbook`
   - `npm run audit:quizzes`
   - `npm run audit:content`
+  - `npm run audit:curriculum-coverage`
   - `npm run test:e2e`
 - Confirm required runtime environment variables:
   - `VITE_SUPABASE_URL`
@@ -48,12 +49,14 @@ For the release summary, copy [docs/release-notes-template.md](./docs/release-no
 - If backend reward sync is enabled, validate one authenticated reward event is awarded once and repeated completion returns a skipped/duplicate result without extra XP.
 - Confirm any `npm run audit:quizzes` findings are expected and documented, especially classified orphan quizzes, intentional variant groups, legacy aliases, and archived inactive quiz coverage.
 - Confirm `npm run audit:content` reports zero stale prerequisite or bridge-target issues.
+- Confirm `npm run audit:curriculum-coverage` top gaps are expected and record the coverage summary for any content release.
 - Confirm package scripts still reference real Playwright projects with `npm run audit:e2e-scripts`.
 - Download the Lighthouse artifact from the CI run and record the score source in the release notes before citing scores publicly.
 - If touching HTML Module 102 lesson identity, verify the targeted progress/bookmark compatibility decision before release.
 
 ## PWA / Cache Validation
 
+- Run `npm run check:production-deploy -- --url <production-url>` after the Netlify production deploy completes.
 - Confirm install metadata shows CodeHerWay naming.
 - If stale shell appears:
   1. DevTools -> Application -> Service Workers -> Unregister
@@ -66,6 +69,7 @@ For the release summary, copy [docs/release-notes-template.md](./docs/release-no
 - Authenticated smoke checks require environment credentials and will otherwise skip.
 - `npm run audit:quizzes` runs strict mode and should fail on unclassified orphan inventory, unreviewed variants, duplicate active IDs, or active lesson quiz gaps.
 - `npm run audit:content` runs as a blocking learning-flow gate for prerequisite and bridge-target drift.
+- `npm run audit:curriculum-coverage` runs as a report-only evidence map for lesson quiz, practice, project/challenge, and rubric coverage.
 - `npm run audit:performance` rebuilds production assets, checks bundle budgets, and verifies heavy route boundaries for Monaco, AI tutor, PDF/canvas export, and protected app styles.
 - `npm run audit:auth-e2e` runs as a static guard for authenticated smoke preflight, secret gating, and required signed-in specs/projects.
 - `npm run audit:staging-runbook` keeps the live Supabase validation checklist complete; it does not replace a real staging run with credentials.
