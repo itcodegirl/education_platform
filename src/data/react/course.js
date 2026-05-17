@@ -30,8 +30,9 @@ import { module8 as formsAndValidation } from './modules/forms-in-react.js';
 import { module19 as componentDesignPatterns } from './modules/component-design-patterns.js';
 import { module20 as testing } from './modules/testing-basics.js';
 import { module23 as buildToolsAndDeployment } from './modules/deployment-devtools.js';
+import { applyReactLessonQualityFrames } from './lessonQualityFrames.js';
 
-export const REACT_MODULES = [
+export const REACT_MODULES = applyReactLessonQualityFrames([
   reactFundamentalsPart1,
   reactFundamentalsPart2,
   sideEffectsAndDataFetching,
@@ -42,4 +43,4 @@ export const REACT_MODULES = [
   componentDesignPatterns,
   testing,
   buildToolsAndDeployment,
-];
+]);
