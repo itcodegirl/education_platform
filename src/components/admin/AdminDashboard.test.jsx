@@ -84,4 +84,10 @@ describe('AdminDashboard', () => {
 
     expect(screen.getByRole('tab', { name: /content qa/i })).toBeInTheDocument();
   });
+
+  it('includes an audit log tab for admin event review', () => {
+    render(<AdminDashboard onClose={vi.fn()} />);
+
+    expect(screen.getByRole('tab', { name: /audit log/i })).toBeInTheDocument();
+  });
 });

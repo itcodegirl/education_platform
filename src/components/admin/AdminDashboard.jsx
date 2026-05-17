@@ -25,6 +25,7 @@ import { AdminUsersTab } from './AdminUsersTab';
 import { AdminCoursesTab } from './AdminCoursesTab';
 import { AdminQuizzesTab } from './AdminQuizzesTab';
 import { AdminContentQualityTab } from './AdminContentQualityTab';
+import { AdminAuditLogTab } from './AdminAuditLogTab';
 import '../../styles/feature-admin.css';
 
 const LessonBuilder = lazy(() =>
@@ -36,6 +37,7 @@ const TABS = [
   { id: 'users',    label: '👥 Users'    },
   { id: 'courses',  label: '📚 Courses'  },
   { id: 'quizzes',  label: '📝 Quizzes'  },
+  { id: 'audit',    label: 'Audit Log' },
   { id: 'content',  label: 'Content QA' },
   { id: 'builder',  label: '🛠️ Lesson Builder' },
 ];
@@ -285,6 +287,11 @@ export function AdminDashboard({ onClose }) {
             {tab === 'content' && (
               <div id="admin-tab-panel-content" role="tabpanel">
                 <AdminContentQualityTab />
+              </div>
+            )}
+            {tab === 'audit' && (
+              <div id="admin-tab-panel-audit" role="tabpanel">
+                <AdminAuditLogTab />
               </div>
             )}
             {tab === 'builder' && (
