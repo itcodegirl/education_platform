@@ -132,4 +132,18 @@ export const JS_CHALLENGES = [
     ],
     hint:'class Circle extends Shape { constructor(r) { super("Circle"); this.radius = r; } }',
     solution:'class Shape {\n  constructor(name) {\n    this.name = name;\n  }\n  describe() {\n    return `This is a ${this.name}`;\n  }\n}\n\nclass Circle extends Shape {\n  constructor(radius) {\n    super("Circle");\n    this.radius = radius;\n  }\n  area() {\n    return Math.PI * this.radius ** 2;\n  }\n}\n\nconst c = new Circle(5);\nconsole.log(c.describe());\nconsole.log(c.area());' },
+
+  { id:'js-ch-11', title:'Personalized Theme Console', description:'Combine a talking button, live text updates, style changes, and remembered state.', difficulty:'beginner', courseId:'js',
+    recommendedModuleId: '301',
+    starter:'// Build a tiny interactive page\n// Requirements:\n// - track a visitor name or score in a variable\n// - update textContent on the page\n// - change at least one style property\n// - wire everything to a button click',
+    requirements:['Declares a variable for remembered state','Uses querySelector or getElementById','Updates textContent','Changes a style property','Uses addEventListener or onclick'],
+    tests:[
+      { label:'Uses a variable', check:c=>has(c,'let ')||has(c,'const ') },
+      { label:'Selects page elements', check:c=>has(c,'querySelector')||has(c,'getElementById') },
+      { label:'Updates text content', check:c=>has(c,'textContent')||has(c,'innerText') },
+      { label:'Changes a style property', check:c=>has(c,'.style.') },
+      { label:'Handles a click', check:c=>has(c,'addEventListener')||has(c,'onclick') },
+    ],
+    hint:'Store a name, count, or mood in a variable, then use one click handler to update text and styles together.',
+    solution:'let clickCount = 0;\nconst message = document.querySelector("#message");\nconst card = document.querySelector("#card");\nconst button = document.querySelector("#theme-button");\n\nbutton.addEventListener("click", () => {\n  clickCount += 1;\n  message.textContent = `You customized this card ${clickCount} time(s).`;\n  card.style.backgroundColor = clickCount % 2 === 0 ? "#fff7d6" : "#dff7ff";\n  card.style.color = "#14213d";\n});' },
 ];

@@ -2,7 +2,10 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { describe, expect, it } from 'vitest';
-import { parseArgs } from '../../scripts/audit-curriculum-coverage.mjs';
+import {
+  loadCurriculumCoverageReport,
+  parseArgs,
+} from '../../scripts/audit-curriculum-coverage.mjs';
 
 function readRepoText(repoPath) {
   return readFileSync(path.resolve(process.cwd(), repoPath), 'utf8');
@@ -37,4 +40,12 @@ describe('curriculum coverage audit wiring', () => {
     expect(qaChecklist).toContain('Curriculum Coverage section');
     expect(workflow).toContain('npm run check:production-deploy');
   });
+
+  it('keeps active curriculum lessons fully covered by project evidence', async () => {
+    const { report } = await loadCurriculumCoverageReport();
+
+    expect(report.totals.readyLessonCount).toBe(report.totals.lessonCount);
+    expect(report.totals.coverageGapCount).toBe(0);
+    expect(report.gapRows).toEqual([]);
+  }, 60_000);
 });
