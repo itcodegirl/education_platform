@@ -24,7 +24,7 @@ function getPublicProfileSaveError(error) {
 }
 
 export const ProfilePage = memo(function ProfilePage({ onClose }) {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, refreshProfile, signOut } = useAuth();
   const { theme } = useTheme();
   const { completed = [], quizScores = {}, challengeCompletions = [] } = useProgressData();
   const { xpTotal = 0, streak = 0, pausedStreak = null, earnedBadges = {} } = useXP();
@@ -39,6 +39,13 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
   const [publicSaving, setPublicSaving] = useState(false);
   const [publicError, setPublicError] = useState('');
   const [publicSaved, setPublicSaved] = useState(false);
+
+  const [displayNameEditing, setDisplayNameEditing] = useState(false);
+  const [displayNameEdit, setDisplayNameEdit] = useState('');
+  const [displayNameSaving, setDisplayNameSaving] = useState(false);
+  const [displayNameError, setDisplayNameError] = useState('');
+  const [displayNameSaved, setDisplayNameSaved] = useState(false);
+
   const [challengeCatalogReady, setChallengeCatalogReady] = useState(
     () => COURSE_CATALOG.every((course) => areChallengesLoaded(course.id)),
   );
@@ -159,8 +166,56 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
     setPublicSaved(true);
   };
 
+  const saveDisplayName = async () => {
+    if (!user?.id) {
+      setDisplayNameError('Your session has expired. Sign in again to update your name.');
+      return;
+    }
+
+    const cleanName = displayNameEdit.trim();
+
+    if (!cleanName) {
+      setDisplayNameError('Name cannot be empty.');
+      return;
+    }
+
+    if (cleanName.length > 80) {
+      setDisplayNameError('Name must be 80 characters or fewer.');
+      return;
+    }
+
+    setDisplayNameSaving(true);
+    setDisplayNameError('');
+    setDisplayNameSaved(false);
+
+    let saveError = null;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ display_name: cleanName })
+        .eq('id', user.id);
+
+      saveError = error;
+    } catch {
+      saveError = {};
+    } finally {
+      setDisplayNameSaving(false);
+    }
+
+    if (saveError) {
+      setDisplayNameError('Could not save your name. Check your connection and try again.');
+      return;
+    }
+
+    await refreshProfile();
+    setDisplayNameSaved(true);
+    setDisplayNameEditing(false);
+  };
+
   const displayName =
     profile?.display_name ||
+    user?.user_metadata?.full_name?.trim() ||
     user?.user_metadata?.display_name ||
     user?.email?.split('@')[0] ||
     'Learner';
@@ -233,6 +288,61 @@ export const ProfilePage = memo(function ProfilePage({ onClose }) {
           <span className="pp-eyebrow">Your builder profile</span>
           <div className="pp-avatar-lg">{displayName[0].toUpperCase()}</div>
           <h2 className="pp-name">{displayName}</h2>
+
+          {displayNameEditing ? (
+            <div className="pp-name-edit-form">
+              <input
+                className="pp-name-input"
+                type="text"
+                value={displayNameEdit}
+                onChange={(e) => setDisplayNameEdit(e.target.value)}
+                maxLength={80}
+                disabled={displayNameSaving}
+                aria-label="Display name"
+                aria-invalid={Boolean(displayNameError)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') void saveDisplayName();
+                  if (e.key === 'Escape') setDisplayNameEditing(false);
+                }}
+                autoFocus
+              />
+              <div className="pp-name-edit-actions">
+                <button
+                  type="button"
+                  className="pp-public-save"
+                  disabled={displayNameSaving}
+                  onClick={() => void saveDisplayName()}
+                >
+                  {displayNameSaving ? 'Saving…' : 'Save'}
+                </button>
+                <button
+                  type="button"
+                  className="pp-name-cancel"
+                  disabled={displayNameSaving}
+                  onClick={() => setDisplayNameEditing(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+              {displayNameError && (
+                <div className="pp-public-error" role="alert">{displayNameError}</div>
+              )}
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="pp-name-edit-btn"
+              onClick={() => {
+                setDisplayNameEdit(displayName);
+                setDisplayNameError('');
+                setDisplayNameSaved(false);
+                setDisplayNameEditing(true);
+              }}
+            >
+              {displayNameSaved ? 'Name updated' : 'Edit name'}
+            </button>
+          )}
+
           <p className="pp-email">{user?.email}</p>
           {joined && <p className="pp-joined">Joined {joined}</p>}
           <p className="pp-hero-copy">
