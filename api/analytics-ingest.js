@@ -6,13 +6,13 @@ const MAX_PATH_CHARS = 300;
 const MAX_EVENT_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_FUTURE_SKEW_MS = 5 * 60 * 1000;
 
-function toSafeText(value, maxChars, fallback = '') {
+export function toSafeText(value, maxChars, fallback = '') {
   if (typeof value !== 'string') return fallback;
   const trimmed = value.trim();
   return trimmed ? trimmed.slice(0, maxChars) : fallback;
 }
 
-function toSafeTimestamp(value) {
+export function toSafeTimestamp(value) {
   const fallback = new Date().toISOString();
   if (typeof value !== 'string') return fallback;
   const parsed = Date.parse(value);
@@ -24,12 +24,12 @@ function toSafeTimestamp(value) {
   return new Date(parsed).toISOString();
 }
 
-function toSafePayload(payload) {
+export function toSafePayload(payload) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return {};
   return payload;
 }
 
-function toInsertRow(rawEvent, userId) {
+export function toInsertRow(rawEvent, userId) {
   if (!rawEvent || typeof rawEvent !== 'object') return null;
 
   const eventName = toSafeText(rawEvent.name, MAX_EVENT_NAME_CHARS);
