@@ -1,4 +1,6 @@
-export const CSS_QUIZZES = [
+import { applyCssQuizQualityItems } from './quizQualityItems.js';
+
+const CSS_QUIZZES_SOURCE = [
 
 { lessonId:'c1-1', questions:[
   { id:'cq1', type:'mc', question:'What does CSS stand for?', options:['Computer Style Sheets','Cascading Style Sheets','Creative Styling System','Content Style Syntax'], correct:1, explanation:'CSS = Cascading Style Sheets.' },
@@ -356,3 +358,5 @@ export const CSS_QUIZZES = [
 ]},
 
 ];
+
+export const CSS_QUIZZES = applyCssQuizQualityItems(CSS_QUIZZES_SOURCE);
