@@ -374,6 +374,16 @@ export function AppLayout() {
     panels,
     hasCompletedProgress,
   });
+  const [challengeTargetId, setChallengeTargetId] = useState('');
+  const handleOpenLessonChallenge = useCallback((challengeId) => {
+    setChallengeTargetId(String(challengeId || ''));
+    if (panels.panel !== 'challenges') {
+      handleOpenTool('challenges');
+    }
+  }, [handleOpenTool, panels.panel]);
+  const handleChallengeTargetConsumed = useCallback(() => {
+    setChallengeTargetId('');
+  }, []);
   const handleLearningLoopAction = useCallback((action) => {
     trackEvent('learning_loop_action_clicked', getLearningLoopActionPayload({
       action,
@@ -601,11 +611,13 @@ export function AppLayout() {
                 lang={course.id}
                 lessonKey={lessonKey}
                 courseId={course.id}
+                moduleId={mod.id}
                 moduleTitle={mod.title}
                 nextTitle={nextTitle}
                 isLessonDone={isDone}
                 masteryStatus={lessonMasteryStatus}
                 syncStatus={syncStatus}
+                onOpenChallenge={handleOpenLessonChallenge}
               />
               {lessonQuiz && (
                 // Wrapped in a labeled <section> so the lesson quiz
@@ -693,6 +705,8 @@ export function AppLayout() {
         hasCompletedProgress={hasCompletedProgress}
         lastPosition={lastPosition}
         courseTotal={courseTotal}
+        challengeTargetId={challengeTargetId}
+        onChallengeTargetConsumed={handleChallengeTargetConsumed}
       />
       <WhatsNew />
       <BreakPrompt />

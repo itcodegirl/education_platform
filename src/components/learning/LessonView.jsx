@@ -23,6 +23,7 @@ import { LessonFeedback } from './LessonFeedback';
 import { LessonHeader } from './LessonHeader';
 import { LessonNotesPanel } from './LessonNotesPanel';
 import { LessonEvidencePanel } from './LessonEvidencePanel';
+import { LessonProjectLinks } from './LessonProjectLinks';
 import { LessonProductFrame } from './LessonProductFrame';
 import { StructuredLessonBody } from './StructuredLessonBody';
 import { RichLessonBody } from './RichLessonBody';
@@ -33,11 +34,13 @@ export const LessonView = memo(function LessonView({
   lang,
   lessonKey,
   courseId,
+  moduleId,
   moduleTitle,
   nextTitle,
   isLessonDone,
   masteryStatus,
   syncStatus,
+  onOpenChallenge,
 }) {
   const { bookmarked, handleToggleBookmark } = useToggleBookmark({
     lessonKey,
@@ -130,6 +133,12 @@ export const LessonView = memo(function LessonView({
         isLessonDone={isLessonDone}
         masteryStatus={masteryStatus}
         syncStatus={syncStatus}
+      />
+      <LessonProjectLinks
+        courseId={courseId}
+        moduleId={moduleId}
+        moduleTitle={moduleTitle}
+        onOpenChallenge={onOpenChallenge}
       />
 
       {isStructured ? (

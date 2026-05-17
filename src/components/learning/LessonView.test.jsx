@@ -40,6 +40,14 @@ vi.mock('./LessonNotesPanel', () => ({
   LessonNotesPanel: ({ lessonKey }) => <div data-testid="notes">notes:{lessonKey}</div>,
 }));
 
+vi.mock('./LessonProjectLinks', () => ({
+  LessonProjectLinks: ({ onOpenChallenge }) => (
+    <button type="button" onClick={() => onOpenChallenge?.('project-1')}>
+      open project from lesson
+    </button>
+  ),
+}));
+
 vi.mock('./StructuredLessonBody', () => ({
   StructuredLessonBody: () => <div data-testid="structured-body">structured</div>,
 }));
@@ -61,6 +69,7 @@ const baseProps = {
   lang: 'js',
   lessonKey: 'HTML|Foundations|Lesson One',
   courseId: 'html',
+  moduleId: 'foundations',
   moduleTitle: 'Foundations',
 };
 
@@ -136,5 +145,21 @@ describe('LessonView', () => {
         action: '/learn/html/basics/l-what',
       }),
     );
+  });
+
+  it('forwards project challenge openings from the lesson surface', () => {
+    const onOpenChallenge = vi.fn();
+
+    render(
+      <LessonView
+        {...baseProps}
+        lesson={{ title: 'Lesson One', content: 'body', concepts: [], tasks: [] }}
+        onOpenChallenge={onOpenChallenge}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /open project from lesson/i }));
+
+    expect(onOpenChallenge).toHaveBeenCalledWith('project-1');
   });
 });

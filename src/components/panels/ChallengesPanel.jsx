@@ -18,7 +18,13 @@ import '../../styles/feature-challenges.css';
 
 const CHALLENGE_LOAD_ERROR_COPY = 'The lesson workspace is still safe. Try again when your connection settles.';
 
-export function ChallengesPanel({ courseId, lang, onClose }) {
+export function ChallengesPanel({
+  courseId,
+  lang,
+  onClose,
+  initialChallengeId = '',
+  onInitialChallengeConsumed,
+}) {
   const [challenges, setChallenges] = useState(() => getChallengesForCourse(courseId));
   const [challengeLoadError, setChallengeLoadError] = useState('');
   const [isLoadingChallenges, setIsLoadingChallenges] = useState(() => !areChallengesLoaded(courseId));
@@ -44,6 +50,7 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
   );
   const modalRef = useRef(null);
   const loadRequestRef = useRef(0);
+  const initialChallengeRef = useRef('');
 
   const openChallenge = useCallback((challenge, source) => {
     setActiveChallenge(challenge);
@@ -100,6 +107,43 @@ export function ChallengesPanel({ courseId, lang, onClose }) {
       loadRequestRef.current += 1;
     };
   }, [refreshChallengeList]);
+
+  useEffect(() => {
+    if (!initialChallengeId) {
+      initialChallengeRef.current = '';
+      return;
+    }
+
+    if (initialChallengeRef.current === initialChallengeId || isLoadingChallenges) {
+      return;
+    }
+
+    const matchedChallenge = challenges.find(
+      (challenge) => String(challenge.id) === String(initialChallengeId),
+    );
+
+    if (!matchedChallenge) {
+      if (!isLoadingChallenges) onInitialChallengeConsumed?.();
+      return;
+    }
+
+    initialChallengeRef.current = initialChallengeId;
+    setActiveChallenge(matchedChallenge);
+    trackEvent('challenge_workspace_opened', getChallengeAnalyticsPayload({
+      challenge: matchedChallenge,
+      courseId,
+      source: 'lesson-recommendation',
+      isCompleted: completed.has(matchedChallenge.id),
+    }));
+    onInitialChallengeConsumed?.();
+  }, [
+    challenges,
+    completed,
+    courseId,
+    initialChallengeId,
+    isLoadingChallenges,
+    onInitialChallengeConsumed,
+  ]);
 
   if (activeChallenge) {
     return (

@@ -113,6 +113,27 @@ describe('ChallengesPanel', () => {
     expect(screen.getAllByText(/Use the tests as feedback/i)[0]).toBeInTheDocument();
   });
 
+  it('opens a lesson-targeted challenge directly', async () => {
+    const onInitialChallengeConsumed = vi.fn();
+
+    render(
+      <ChallengesPanel
+        courseId="html"
+        lang="html"
+        onClose={vi.fn()}
+        initialChallengeId="challenge-1"
+        onInitialChallengeConsumed={onInitialChallengeConsumed}
+      />,
+    );
+
+    expect(await screen.findByRole('dialog', { name: /challenge: build a card/i })).toBeInTheDocument();
+    expect(onInitialChallengeConsumed).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledWith('challenge_workspace_opened', expect.objectContaining({
+      challengeId: 'challenge-1',
+      source: 'lesson-recommendation',
+    }));
+  });
+
 
   it('routes challenge completion through the learning engine', () => {
     const completeChallenge = vi.fn();
