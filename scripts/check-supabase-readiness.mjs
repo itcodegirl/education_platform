@@ -86,6 +86,19 @@ const REQUIRED_ARTIFACTS = [
     ],
   },
   {
+    path: 'supabase/migrations/202605170001_add_set_user_admin_rpc.sql',
+    label: 'admin role RPC migration',
+    checks: [
+      ['admin role RPC', /create\s+or\s+replace\s+function\s+public\.set_user_admin/i],
+      ['admin-only caller guard', /if\s+not\s+public\.is_admin\(\)\s+then/i],
+      ['self-demotion guard', /Admins cannot change their own is_admin flag/i],
+      ['admin guard bypass flag', /set_config\('app\.bypass_admin_guard',\s*'true'/i],
+      ['admin role target existence guard', /Target user profile not found/i],
+      ['admin role audit action', /case\s+when\s+make_admin\s+then\s+'grant_admin'\s+else\s+'revoke_admin'\s+end/i],
+      ['authenticated admin role RPC grant', /grant\s+execute\s+on\s+function\s+public\.set_user_admin[\s\S]+to\s+authenticated/i],
+    ],
+  },
+  {
     path: 'supabase/migrations/202605110001_harden_reward_event_trust_boundaries.sql',
     label: 'reward catalog trust-boundary migration',
     checks: [
