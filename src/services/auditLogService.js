@@ -26,17 +26,17 @@ export async function logAdminAction({
 }) {
   if (!adminId) {
     const err = new Error('logAdminAction: adminId is required');
-    console.error(err);
+    if (import.meta.env.DEV) console.error(err);
     return { error: err };
   }
   if (!targetUserId) {
     const err = new Error('logAdminAction: targetUserId is required');
-    console.error(err);
+    if (import.meta.env.DEV) console.error(err);
     return { error: err };
   }
   if (!action) {
     const err = new Error('logAdminAction: action is required');
-    console.error(err);
+    if (import.meta.env.DEV) console.error(err);
     return { error: err };
   }
 
@@ -54,7 +54,7 @@ export async function logAdminAction({
   });
 
   if (error) {
-    console.error('Failed to write audit log:', error);
+    if (import.meta.env.DEV) console.error('Failed to write audit log:', error);
   }
   return { error: error || null };
 }

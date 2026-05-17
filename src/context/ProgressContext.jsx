@@ -395,7 +395,7 @@ export function ProgressProvider({ children }) {
       setDataLoaded(true);
       } catch (err) {
         if (cancelled) return;
-        console.error('Failed to load data:', err);
+        if (import.meta.env.DEV) console.error('Failed to load data:', err);
         setLoadWarnings([]);
         setLoadError(err.message || 'Could not connect to database');
         setDataLoaded(true); // still mark loaded so UI isn't stuck

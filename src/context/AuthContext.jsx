@@ -131,7 +131,7 @@ export function AuthProvider({ children }) {
       } catch (err) {
         if (!active || authInitRequestRef.current !== requestId) return;
         initialSessionResolved = true;
-        console.error('Auth session error:', err?.message ?? String(err));
+        if (import.meta.env.DEV) console.error('Auth session error:', err?.message ?? String(err));
         applyAuthUser(null, { markInitialized: true });
       } finally {
         initialSessionResolved = true;
