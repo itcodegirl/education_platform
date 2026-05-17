@@ -26,7 +26,7 @@ import { AdminCoursesTab } from './AdminCoursesTab';
 import { AdminQuizzesTab } from './AdminQuizzesTab';
 import { AdminContentQualityTab } from './AdminContentQualityTab';
 import { AdminAuditLogTab } from './AdminAuditLogTab';
-import { ErrorBoundary } from '../shared/ErrorBoundary';
+import { AdminCoverageTab } from './AdminCoverageTab';
 import '../../styles/feature-admin.css';
 
 const tabFallback = ({ retry }) => (
@@ -47,6 +47,7 @@ const TABS = [
   { id: 'quizzes',  label: '📝 Quizzes'  },
   { id: 'audit',    label: 'Audit Log' },
   { id: 'content',  label: 'Content QA' },
+  { id: 'coverage', label: 'Coverage' },
   { id: 'builder',  label: '🛠️ Lesson Builder' },
 ];
 
@@ -312,6 +313,11 @@ export function AdminDashboard({ onClose }) {
                 <ErrorBoundary resetKeys={[tab]} fallback={tabFallback}>
                   <AdminAuditLogTab />
                 </ErrorBoundary>
+              </div>
+            )}
+            {tab === 'coverage' && (
+              <div id="admin-tab-panel-coverage" role="tabpanel">
+                <AdminCoverageTab courses={COURSES} />
               </div>
             )}
             {tab === 'builder' && (
