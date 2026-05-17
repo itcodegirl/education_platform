@@ -7,7 +7,7 @@ const shouldRegisterServiceWorker =
   import.meta.env.PROD;
 
 if (shouldRegisterServiceWorker) {
-  const SW_SCRIPT_URL = '/sw.js?v=11';
+  const SW_SCRIPT_URL = '/sw.js?v=12';
   const SW_UPDATE_READY_EVENT = 'codeherway:sw-update-ready';
   const SW_STATE_EVENT = 'codeherway:sw-state';
 

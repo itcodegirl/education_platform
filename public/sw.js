@@ -1,7 +1,7 @@
 ﻿// Service worker for CodeHerWay.
 // Keep navigation network-first so deploys pick up the latest HTML shell.
 
-const CACHE_VERSION = 'v11';
+const CACHE_VERSION = 'v12';
 const CACHE_PREFIX = 'chw-';
 const SHELL_CACHE = `${CACHE_PREFIX}shell-${CACHE_VERSION}`;
 const DATA_CACHE = `${CACHE_PREFIX}data-${CACHE_VERSION}`;
@@ -141,12 +141,12 @@ self.addEventListener('fetch', (event) => {
 
   // Always fetch latest manifest so install metadata cannot get stuck on stale branding.
   if (url.pathname === '/manifest.json') {
-    event.respondWith(networkFirst(request, SHELL_CACHE));
+    event.respondWith(respondWithSafely(request, networkFirst(request, SHELL_CACHE)));
     return;
   }
 
-  if (request.mode === 'navigate' || request.destination === 'document') {
-    event.respondWith(networkFirstNavigation(request));
+  if (isNavigationRequest(request)) {
+    event.respondWith(respondWithSafely(request, networkFirstNavigation(request)));
     return;
   }
 
@@ -166,7 +166,7 @@ self.addEventListener('fetch', (event) => {
     url.hostname.includes('fonts.googleapis.com') ||
     url.hostname.includes('fonts.gstatic.com')
   ) {
-    event.respondWith(cacheFirst(request, FONT_CACHE));
+    event.respondWith(respondWithSafely(request, cacheFirst(request, FONT_CACHE)));
     return;
   }
 
@@ -174,7 +174,7 @@ self.addEventListener('fetch', (event) => {
     url.hostname.includes('cdn.jsdelivr.net') ||
     url.hostname.includes('cdnjs.cloudflare.com')
   ) {
-    event.respondWith(cacheFirst(request, DATA_CACHE));
+    event.respondWith(respondWithSafely(request, cacheFirst(request, DATA_CACHE)));
     return;
   }
 
@@ -182,19 +182,38 @@ self.addEventListener('fetch', (event) => {
   // These are immutable (hash changes on content change) — safe to cache forever
   if (url.pathname.startsWith('/assets/')) {
     event.respondWith(
-      cacheFirst(request, SHELL_CACHE, { cacheableResponse: isCacheableAssetResponse })
+      respondWithSafely(
+        request,
+        cacheFirst(request, SHELL_CACHE, { cacheableResponse: isCacheableAssetResponse })
+      )
     );
     return;
   }
 
   // Lesson data chunks (course content for offline use)
   if (url.pathname.match(/data-(html|css|js|react|quizzes|challenges|reference)/)) {
-    event.respondWith(cacheFirst(request, DATA_CACHE));
+    event.respondWith(respondWithSafely(request, cacheFirst(request, DATA_CACHE)));
     return;
   }
 
-  event.respondWith(staleWhileRevalidate(request, SHELL_CACHE));
+  event.respondWith(respondWithSafely(request, staleWhileRevalidate(request, SHELL_CACHE)));
 });
+
+function isNavigationRequest(request) {
+  return request.mode === 'navigate' || request.destination === 'document';
+}
+
+async function respondWithSafely(request, responsePromise) {
+  try {
+    const response = await responsePromise;
+    if (response instanceof Response) return response;
+  } catch {
+    // Fall through to an explicit fallback response below. respondWith()
+    // must never receive a rejected promise or an undefined value.
+  }
+
+  return createOfflineFallbackResponse(request);
+}
 
 async function notifyClients(type, payload = {}) {
   const clients = await self.clients.matchAll({ includeUncontrolled: true, type: 'window' });
@@ -266,6 +285,32 @@ function isHtmlResponse(response) {
 
 function isCacheableAssetResponse(_request, response) {
   return Boolean(response?.ok) && !isHtmlResponse(response);
+}
+
+function acceptsHtml(request) {
+  const acceptHeader = request.headers?.get?.('accept') || '';
+  return acceptHeader.includes('text/html');
+}
+
+function createOfflineFallbackResponse(request) {
+  if (isNavigationRequest(request) || acceptsHtml(request)) {
+    return new Response(OFFLINE_HTML, {
+      status: 503,
+      statusText: 'Service Unavailable',
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-store',
+      },
+    });
+  }
+
+  return new Response('', {
+    status: 504,
+    statusText: 'Gateway Timeout',
+    headers: {
+      'Cache-Control': 'no-store',
+    },
+  });
 }
 
 async function cacheFirst(request, cacheName, options = {}) {
