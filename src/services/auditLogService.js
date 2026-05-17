@@ -1,50 +1,36 @@
-// ═══════════════════════════════════════════════
-// AUDIT LOG SERVICE — Centralised writer for admin
-// actions. Backed by public.admin_audit_log in
-// Supabase (see supabase-schema.sql).
-//
-// Every admin-initiated mutation in the app should
-// route its logging through here so the schema stays
-// consistent and failures are handled the same way
-// everywhere. Logging is always fire-and-forget:
-// a failed insert logs to console but never blocks
-// the UI.
-// ═══════════════════════════════════════════════
-
 import { supabase } from '../lib/supabaseClient';
 
-// Action constants — keep in sync with AuditLogTab's
-// label map so every action gets a human-readable row
-// in the viewer.
 export const AUDIT_ACTIONS = {
-  USER_DISABLED:     'user_disabled',
-  USER_ENABLED:      'user_enabled',
+  USER_DISABLED: 'disable_user',
+  USER_ENABLED: 'enable_user',
+  ADMIN_GRANTED: 'grant_admin',
+  ADMIN_REVOKED: 'revoke_admin',
   LESSON_DOWNLOADED: 'lesson_downloaded',
-  LESSON_COPIED:     'lesson_copied',
+  LESSON_COPIED: 'lesson_copied',
 };
 
 /**
- * Insert an admin audit log row.
+ * Insert an admin audit log row without blocking the caller's UI flow.
  *
- * @param {object}  entry
- * @param {string}  entry.adminId          - auth.uid() of the admin performing the action
- * @param {string?} entry.adminName        - captured display name at the time of action
- * @param {string}  entry.action           - AUDIT_ACTIONS value
- * @param {string?} [entry.targetUserId]   - affected user id, if any
- * @param {string?} [entry.targetName]     - affected user's display name
- * @param {object?} [entry.details]        - action-specific metadata (JSONB)
- * @returns {Promise<{ error: Error|null }>} always resolves; caller never needs try/catch
+ * The table schema is intentionally narrow: actor id, target id, action,
+ * optional JSON details, and timestamp. Display names are best-effort context
+ * stored in details when provided.
  */
 export async function logAdminAction({
   adminId,
   adminName,
   action,
-  targetUserId = null,
+  targetUserId,
   targetName = null,
   details = null,
 }) {
   if (!adminId) {
     const err = new Error('logAdminAction: adminId is required');
+    console.error(err);
+    return { error: err };
+  }
+  if (!targetUserId) {
+    const err = new Error('logAdminAction: targetUserId is required');
     console.error(err);
     return { error: err };
   }
@@ -54,13 +40,17 @@ export async function logAdminAction({
     return { error: err };
   }
 
+  const enrichedDetails = {
+    ...(details && typeof details === 'object' && !Array.isArray(details) ? details : {}),
+    ...(adminName ? { actorName: adminName } : {}),
+    ...(targetName ? { targetName } : {}),
+  };
+
   const { error } = await supabase.from('admin_audit_log').insert({
-    admin_id: adminId,
-    admin_display_name: adminName || null,
-    target_user_id: targetUserId || null,
-    target_display_name: targetName || null,
+    actor_id: adminId,
+    target_id: targetUserId,
     action,
-    details,
+    details: Object.keys(enrichedDetails).length > 0 ? enrichedDetails : null,
   });
 
   if (error) {
