@@ -440,6 +440,14 @@
   margin-bottom: 0;
 }
 
+.admin-quiz-inventory-grid {
+  margin-bottom: 14px;
+}
+
+.admin-quiz-inventory-pills {
+  margin-bottom: 14px;
+}
+
 .admin-quality-metric {
   display: grid;
   gap: 4px;
@@ -667,6 +675,27 @@
 .admin-quality-template strong {
   color: var(--cyan);
   font-size: 12px;
+}
+
+.admin-quality-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 9px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.admin-quality-status.good {
+  background: var(--cyan-dim);
+  color: var(--cyan);
+}
+
+.admin-quality-status.attention {
+  background: #ffa72620;
+  color: var(--amber);
 }
 
 /* Lesson bars */

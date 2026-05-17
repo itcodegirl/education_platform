@@ -12,6 +12,11 @@ import {
   compareContentQualitySnapshots,
   saveContentQualitySnapshot,
 } from '../../utils/contentQualitySnapshots';
+import {
+  buildQuizInventoryCsv,
+  buildQuizInventoryReport,
+  getQuizInventoryStatusLabel,
+} from '../../utils/quizInventoryReport';
 
 const MAX_ROWS = 16;
 const DEFAULT_FILTERS = Object.freeze({
@@ -66,6 +71,10 @@ export function AdminContentQualityTab() {
     () => buildContentQualityReport(state.courseEntries),
     [state.courseEntries],
   );
+  const quizInventory = useMemo(
+    () => buildQuizInventoryReport(state.courseEntries),
+    [state.courseEntries],
+  );
   const actionPlan = useMemo(
     () => buildContentQualityActionPlan(report),
     [report],
@@ -110,6 +119,10 @@ export function AdminContentQualityTab() {
   const filteredFixCsvHref = useMemo(
     () => `data:text/csv;charset=utf-8,${encodeURIComponent(buildContentQualityFixCsv(filteredFixes))}`,
     [filteredFixes],
+  );
+  const quizInventoryCsvHref = useMemo(
+    () => `data:text/csv;charset=utf-8,${encodeURIComponent(buildQuizInventoryCsv(quizInventory))}`,
+    [quizInventory],
   );
 
   useEffect(() => {
@@ -204,6 +217,8 @@ export function AdminContentQualityTab() {
         </div>
       </section>
 
+      <QuizInventorySection report={quizInventory} csvHref={quizInventoryCsvHref} />
+
       <section className="admin-section" aria-labelledby="content-quality-sprint-title">
         <h3 id="content-quality-sprint-title" className="admin-section-title">
           Suggested Next Sprint
@@ -256,6 +271,105 @@ export function AdminContentQualityTab() {
         getName={(row) => `${row.courseLabel} - ${row.lessonTitle}`}
       />
     </>
+  );
+}
+
+function QuizInventorySection({ report, csvHref }) {
+  const { totals } = report;
+
+  return (
+    <section className="admin-section" aria-labelledby="quiz-inventory-title">
+      <div className="admin-quality-toolbar">
+        <h3 id="quiz-inventory-title" className="admin-section-title">
+          Quiz Inventory
+        </h3>
+        <a
+          className="admin-export-link"
+          href={csvHref}
+          download="codeherway-quiz-inventory.csv"
+        >
+          Export inventory CSV
+        </a>
+      </div>
+      <div className="admin-grid admin-quality-grid admin-quiz-inventory-grid">
+        <QualityMetric label="Active lesson gaps" value={totals.activeExpectedLessonsWithNoQuiz} />
+        <QualityMetric
+          label="Classified legacy/future quizzes"
+          value={`${totals.classifiedOrphanLessonQuizzes}/${totals.orphanLessonQuizzes}`}
+        />
+        <QualityMetric
+          label="Locked bonus groups"
+          value={`${totals.intentionalLessonVariantGroups}/${totals.lessonVariantGroups}`}
+        />
+        <QualityMetric label="Blocking inventory issues" value={totals.blockingIssueCount} />
+      </div>
+      {totals.classificationSummary.length > 0 && (
+        <div className="admin-quality-pills admin-quiz-inventory-pills" aria-label="Quiz inventory classifications">
+          {totals.classificationSummary.map((entry) => (
+            <span key={entry.name} className="admin-quality-pill">
+              <strong>{entry.label}</strong>
+              {entry.count}
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="admin-table-wrap">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Course</th>
+              <th>Quizzes</th>
+              <th>Active gaps</th>
+              <th>Classified inventory</th>
+              <th>Bonus groups</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {report.courses.map((course) => (
+              <tr key={course.courseId}>
+                <td>
+                  <span className="admin-quality-item">{course.courseLabel}</span>
+                  <span className="admin-quality-path">
+                    {course.lessonCount} lessons / {course.moduleCount} modules
+                  </span>
+                </td>
+                <td>{course.quizCount}</td>
+                <td>{course.lessonsWithNoQuiz.length}</td>
+                <td>
+                  {course.classifiedOrphanLessonQuizCount}/{course.orphanLessonQuizzes.length}
+                  {course.unclassifiedOrphanLessonQuizCount > 0 && (
+                    <span className="admin-review-count">
+                      {course.unclassifiedOrphanLessonQuizCount} unclassified
+                    </span>
+                  )}
+                </td>
+                <td>
+                  {course.intentionalLessonVariantGroups.length}/{course.lessonVariantGroups.length}
+                  {course.suspiciousLessonVariantGroups.length > 0 && (
+                    <span className="admin-review-count">
+                      {course.suspiciousLessonVariantGroups.length} to review
+                    </span>
+                  )}
+                </td>
+                <td>
+                  <span
+                    className={`admin-quality-status ${course.blockingIssueCount === 0 ? 'good' : 'attention'}`}
+                  >
+                    {getQuizInventoryStatusLabel(course.blockingIssueCount)}
+                  </span>
+                </td>
+              </tr>
+            ))}
+            {report.courses.length === 0 && (
+              <tr>
+                <td colSpan={6} className="admin-empty">No quiz inventory data found.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 
