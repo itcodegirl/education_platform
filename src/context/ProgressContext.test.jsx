@@ -24,9 +24,12 @@ const {
   mockUseAuth,
   mockFetchAllUserData,
   mockAddLesson,
+  mockRemoveLesson,
   mockUpdateStreak,
   mockUpdateDailyGoal,
   mockUpdateXP,
+  mockSaveQuizScore,
+  mockAwardBadge,
   mockTrackProgressSyncFailure,
   mockTrackProgressSyncQueued,
   mockTrackProgressSyncReplay,
@@ -34,9 +37,12 @@ const {
   mockUseAuth: vi.fn(),
   mockFetchAllUserData: vi.fn(),
   mockAddLesson: vi.fn(),
+  mockRemoveLesson: vi.fn(),
   mockUpdateStreak: vi.fn(),
   mockUpdateDailyGoal: vi.fn(),
   mockUpdateXP: vi.fn(),
+  mockSaveQuizScore: vi.fn(),
+  mockAwardBadge: vi.fn(),
   mockTrackProgressSyncFailure: vi.fn(),
   mockTrackProgressSyncQueued: vi.fn(),
   mockTrackProgressSyncReplay: vi.fn(),
@@ -52,13 +58,13 @@ vi.mock('../services/progressService', () => ({
   fetchAllUserData: (...args) => mockFetchAllUserData(...args),
   // Write functions — not triggered by load, but imported by the module
   addLesson: (...args) => mockAddLesson(...args),
-  removeLesson: vi.fn(),
+  removeLesson: (...args) => mockRemoveLesson(...args),
   removeLessonsByKeys: vi.fn(),
-  saveQuizScore: vi.fn(),
+  saveQuizScore: (...args) => mockSaveQuizScore(...args),
   updateXP: (...args) => mockUpdateXP(...args),
   updateStreak: (...args) => mockUpdateStreak(...args),
   updateDailyGoal: (...args) => mockUpdateDailyGoal(...args),
-  awardBadge: vi.fn(),
+  awardBadge: (...args) => mockAwardBadge(...args),
   addSRCard: vi.fn(),
   updateSRCard: vi.fn(),
   addBookmark: vi.fn(),
@@ -223,6 +229,47 @@ function XPPopupQueueConsumer() {
   );
 }
 
+function BadgeConsumer() {
+  const { earnedBadges, newBadge, clearNewBadge } = useXP();
+  return (
+    <div data-testid="badge-consumer">
+      <div data-testid="earned-badge-ids">{Object.keys(earnedBadges).join(',')}</div>
+      <div data-testid="new-badge-id">{newBadge?.id ?? ''}</div>
+      <button type="button" data-testid="dismiss-badge" onClick={clearNewBadge}>
+        Dismiss badge
+      </button>
+    </div>
+  );
+}
+
+function QuizScoreConsumer() {
+  const { quizScores, saveQuizScore } = useProgressData();
+  return (
+    <div data-testid="quiz-consumer">
+      <div data-testid="quiz-keys">{Object.keys(quizScores).join(',')}</div>
+      <div data-testid="quiz-val">{quizScores['quiz-m1'] ?? ''}</div>
+      <button type="button" data-testid="save-high" onClick={() => saveQuizScore('quiz-m1', '4/5')}>Save 4/5</button>
+      <button type="button" data-testid="save-low" onClick={() => saveQuizScore('quiz-m1', '3/5')}>Save 3/5</button>
+      <button type="button" data-testid="save-perfect" onClick={() => saveQuizScore('quiz-m1', '5/5')}>Save 5/5</button>
+      <button type="button" data-testid="save-empty-key" onClick={() => saveQuizScore('', '4/5')}>Save empty key</button>
+    </div>
+  );
+}
+
+function ToggleLessonRemoveConsumer() {
+  const { completed, toggleLesson } = useProgressData();
+  return (
+    <button
+      type="button"
+      data-testid="uncomplete-lesson"
+      data-completed={completed.join(',')}
+      onClick={() => toggleLesson('html|intro|welcome')}
+    >
+      Toggle lesson
+    </button>
+  );
+}
+
 function renderWithProvider() {
   return render(
     <ProgressProvider>
@@ -267,6 +314,30 @@ function renderXPPopupQueueWithProvider() {
   return render(
     <ProgressProvider>
       <XPPopupQueueConsumer />
+    </ProgressProvider>,
+  );
+}
+
+function renderBadgeWithProvider() {
+  return render(
+    <ProgressProvider>
+      <BadgeConsumer />
+    </ProgressProvider>,
+  );
+}
+
+function renderQuizScoreWithProvider() {
+  return render(
+    <ProgressProvider>
+      <QuizScoreConsumer />
+    </ProgressProvider>,
+  );
+}
+
+function renderToggleLessonRemoveWithProvider() {
+  return render(
+    <ProgressProvider>
+      <ToggleLessonRemoveConsumer />
     </ProgressProvider>,
   );
 }
@@ -328,6 +399,9 @@ beforeEach(() => {
   });
   mockUpdateXP.mockResolvedValue({ error: null });
   mockAddLesson.mockResolvedValue({ error: null });
+  mockRemoveLesson.mockResolvedValue({ error: null });
+  mockSaveQuizScore.mockResolvedValue({ error: null });
+  mockAwardBadge.mockResolvedValue({ error: null });
   mockUpdateStreak.mockResolvedValue({});
   mockUpdateDailyGoal.mockResolvedValue({});
   mockTrackProgressSyncFailure.mockReset();
@@ -908,5 +982,180 @@ describe('ProgressContext — XP popup queue', () => {
       expect(mockUpdateXP).toHaveBeenCalledWith('uid-popup', 30);
       expect(mockUpdateXP).toHaveBeenCalledWith('uid-popup', 80);
     });
+  });
+});
+
+describe('ProgressContext — badge awarding', () => {
+  beforeEach(() => {
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-badge' } });
+  });
+
+  it('awards first_lesson badge when one lesson is loaded', async () => {
+    mockFetchAllUserData.mockResolvedValue(
+      makeFetchResult({
+        data: { progress: [{ lesson_key: 'html|intro|welcome' }] },
+      }),
+    );
+
+    renderBadgeWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('earned-badge-ids').textContent).toContain('first_lesson');
+    });
+    expect(mockAwardBadge).toHaveBeenCalledWith('uid-badge', 'first_lesson');
+  });
+
+  it('queues multiple badges earned at once and clears them one at a time', async () => {
+    // 5 lessons → first_lesson + five_lessons both awarded in the same checkBadges call
+    mockFetchAllUserData.mockResolvedValue(
+      makeFetchResult({
+        data: {
+          progress: Array.from({ length: 5 }, (_, i) => ({
+            lesson_key: `html|m1|lesson-0${i + 1}`,
+          })),
+        },
+      }),
+    );
+
+    renderBadgeWithProvider();
+
+    await waitFor(() => {
+      const earned = screen.getByTestId('earned-badge-ids').textContent;
+      expect(earned).toContain('first_lesson');
+      expect(earned).toContain('five_lessons');
+    });
+
+    // Queue head is the first badge (BADGE_DEFS order)
+    expect(screen.getByTestId('new-badge-id').textContent).toBe('first_lesson');
+
+    fireEvent.click(screen.getByTestId('dismiss-badge'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('new-badge-id').textContent).toBe('five_lessons');
+    });
+
+    fireEvent.click(screen.getByTestId('dismiss-badge'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('new-badge-id').textContent).toBe('');
+    });
+  });
+
+  it('does not re-award badges already stored in the DB', async () => {
+    mockFetchAllUserData.mockResolvedValue(
+      makeFetchResult({
+        data: {
+          progress: [{ lesson_key: 'html|intro|welcome' }],
+          badges: [{ badge_id: 'first_lesson', earned_at: '2026-01-01T00:00:00Z' }],
+        },
+      }),
+    );
+
+    renderBadgeWithProvider();
+
+    await waitFor(() => {
+      // Badge is present from DB load, not re-awarded
+      expect(screen.getByTestId('earned-badge-ids').textContent).toContain('first_lesson');
+    });
+
+    expect(mockAwardBadge).not.toHaveBeenCalled();
+    expect(screen.getByTestId('new-badge-id').textContent).toBe('');
+  });
+
+  it('clearNewBadge is a safe no-op when the badge queue is already empty', async () => {
+    mockFetchAllUserData.mockResolvedValue(makeFetchResult());
+
+    renderBadgeWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('new-badge-id')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId('dismiss-badge'));
+    fireEvent.click(screen.getByTestId('dismiss-badge'));
+
+    expect(screen.getByTestId('new-badge-id').textContent).toBe('');
+  });
+});
+
+describe('ProgressContext — saveQuizScore improvement gate', () => {
+  beforeEach(() => {
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-quiz' } });
+    mockFetchAllUserData.mockResolvedValue(makeFetchResult());
+  });
+
+  it('saves a score for a new quiz key', async () => {
+    renderQuizScoreWithProvider();
+    await waitFor(() => expect(mockFetchAllUserData).toHaveBeenCalledWith('uid-quiz'));
+
+    fireEvent.click(screen.getByTestId('save-high'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('quiz-val').textContent).toBe('4/5');
+    });
+    expect(mockSaveQuizScore).toHaveBeenCalledWith('uid-quiz', 'quiz-m1', '4/5');
+  });
+
+  it('does not overwrite an existing score with a lower one', async () => {
+    renderQuizScoreWithProvider();
+    await waitFor(() => expect(mockFetchAllUserData).toHaveBeenCalledWith('uid-quiz'));
+
+    fireEvent.click(screen.getByTestId('save-high'));   // 4/5
+    await waitFor(() => expect(screen.getByTestId('quiz-val').textContent).toBe('4/5'));
+
+    fireEvent.click(screen.getByTestId('save-low'));    // 3/5 — worse
+
+    expect(screen.getByTestId('quiz-val').textContent).toBe('4/5');
+    expect(mockSaveQuizScore).toHaveBeenCalledTimes(1);
+  });
+
+  it('overwrites an existing score with a better one', async () => {
+    renderQuizScoreWithProvider();
+    await waitFor(() => expect(mockFetchAllUserData).toHaveBeenCalledWith('uid-quiz'));
+
+    fireEvent.click(screen.getByTestId('save-high'));     // 4/5
+    await waitFor(() => expect(screen.getByTestId('quiz-val').textContent).toBe('4/5'));
+
+    fireEvent.click(screen.getByTestId('save-perfect')); // 5/5 — better
+
+    await waitFor(() => {
+      expect(screen.getByTestId('quiz-val').textContent).toBe('5/5');
+    });
+    expect(mockSaveQuizScore).toHaveBeenCalledTimes(2);
+    expect(mockSaveQuizScore).toHaveBeenLastCalledWith('uid-quiz', 'quiz-m1', '5/5');
+  });
+
+  it('ignores saves with an empty quiz key', async () => {
+    renderQuizScoreWithProvider();
+    await waitFor(() => expect(mockFetchAllUserData).toHaveBeenCalledWith('uid-quiz'));
+
+    fireEvent.click(screen.getByTestId('save-empty-key'));
+
+    expect(mockSaveQuizScore).not.toHaveBeenCalled();
+    expect(screen.getByTestId('quiz-keys').textContent).toBe('');
+  });
+});
+
+describe('ProgressContext — toggleLesson remove path', () => {
+  it('removes a lesson from completed when toggled off', async () => {
+    mockUseAuth.mockReturnValue({ user: { id: 'uid-remove' } });
+    mockFetchAllUserData.mockResolvedValue(
+      makeFetchResult({
+        data: { progress: [{ lesson_key: 'html|intro|welcome' }] },
+      }),
+    );
+
+    renderToggleLessonRemoveWithProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('uncomplete-lesson').dataset.completed).toBe('html|intro|welcome');
+    });
+
+    fireEvent.click(screen.getByTestId('uncomplete-lesson'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('uncomplete-lesson').dataset.completed).toBe('');
+    });
+    expect(mockRemoveLesson).toHaveBeenCalledWith('uid-remove', 'html|intro|welcome');
   });
 });
