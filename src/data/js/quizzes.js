@@ -1,4 +1,6 @@
-export const JS_QUIZZES = [
+import { applyJsQuizQualityItems } from './quizQualityItems.js';
+
+const JS_QUIZZES_SOURCE = [
 
 { lessonId:'j1-1', questions:[
   { id:'j1a1', type:'mc', question:'In a real project, what does JavaScript add to an HTML/CSS page?', options:['Structure','Style','Behavior and interactivity','Fonts'], correct:2, explanation:'JS adds behavior - clicks, animations, data fetching.', optionFeedback:['HTML owns the structure. JavaScript can find and change elements later, but it should not replace clear markup.','CSS owns the visual style. JavaScript may toggle classes, but the styling rules still belong in CSS.','','Fonts are usually loaded through CSS or font files. JavaScript is for behavior, not typography setup.'] },
@@ -374,3 +376,5 @@ export const JS_QUIZZES = [
 ]},
 
 ];
+
+export const JS_QUIZZES = applyJsQuizQualityItems(JS_QUIZZES_SOURCE);
