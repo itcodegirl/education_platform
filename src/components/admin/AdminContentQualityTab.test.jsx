@@ -47,6 +47,7 @@ describe('AdminContentQualityTab', () => {
     expect(screen.getByText('Quiz rubric gaps')).toBeInTheDocument();
     expect(screen.getByText('Lesson rubric gaps')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /qa progress/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /quiz inventory/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /suggested next sprint/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /highest priority fixes/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /report filters/i })).toBeInTheDocument();
@@ -56,6 +57,12 @@ describe('AdminContentQualityTab', () => {
     const filteredExportLink = screen.getByRole('link', { name: /export filtered fixes/i });
     expect(filteredExportLink).toHaveAttribute('download', 'codeherway-filtered-content-fixes.csv');
     expect(filteredExportLink).toHaveAttribute('href', expect.stringContaining('data:text/csv'));
+    const inventoryExportLink = screen.getByRole('link', { name: /export inventory csv/i });
+    expect(inventoryExportLink).toHaveAttribute('download', 'codeherway-quiz-inventory.csv');
+    expect(inventoryExportLink).toHaveAttribute('href', expect.stringContaining('data:text/csv'));
+    expect(screen.getByText('Active lesson gaps')).toBeInTheDocument();
+    expect(screen.getByText('Blocking inventory issues')).toBeInTheDocument();
+    expect(screen.getByText('Ready')).toBeInTheDocument();
     expect(screen.getAllByText(/HTML - Lesson intro/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Add one question/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/Misconception quiz item/).length).toBeGreaterThan(0);

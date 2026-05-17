@@ -139,6 +139,18 @@ export const SEARCH_INDEX_MANIFEST = Object.freeze(${payload});
 `;
 }
 
+export function normalizeSearchManifestSource(source) {
+  return typeof source === 'string' ? source.replace(/\r\n/g, '\n') : source;
+}
+
+export function searchManifestSourcesMatch(actualSource, expectedSource) {
+  if (typeof actualSource !== 'string' || typeof expectedSource !== 'string') {
+    return actualSource === expectedSource;
+  }
+
+  return normalizeSearchManifestSource(actualSource) === normalizeSearchManifestSource(expectedSource);
+}
+
 export async function writeSearchManifest() {
   const source = await buildSearchManifestSource();
   await fs.writeFile(searchManifestPath, source, 'utf8');
