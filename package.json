@@ -18,6 +18,7 @@
     "check:quality": "npm run lint && npm run check:js-source && npm run check:search-manifest && npm run audit:e2e-scripts && npm run audit:auth-e2e && npm run check:supabase-readiness && npm run audit:reward-catalog && npm run audit:staging-runbook && npm run audit:lighthouse-evidence && npm run audit:screenshot-guide && npm run audit:launch-readiness-templates && npm run build && npm run check:bundle && npm run check:route-boundaries && npm run audit:lesson-labels && npm run audit:lesson-format && npm run audit:quizzes && npm run audit:content",
     "audit:performance": "npm run build && npm run check:bundle && npm run check:route-boundaries && npm run report:bundle && npm run report:bundle-review",
     "check:bundle": "node scripts/check-bundle-size.mjs",
+    "check:production-deploy": "node scripts/check-production-deploy.mjs",
     "report:bundle": "node scripts/write-bundle-summary.mjs",
     "report:bundle-review": "node scripts/write-bundle-review-summary.mjs",
     "check:route-boundaries": "node scripts/check-route-boundaries.mjs",

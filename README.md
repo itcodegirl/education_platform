@@ -268,5 +268,8 @@ Configured in [`netlify.toml`](./netlify.toml):
 - Build command: `npm run build`
 - Publish directory: `dist`
 - Functions directory: `netlify/functions`
+- Live deploy verification: `npm run check:production-deploy -- --url <production-url>`
 
 For release QA, use [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md).
+For service-worker and cache-header checks after deploy, use
+[Netlify Production Verification](./docs/netlify-production-verification.md).
