@@ -1,6 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getCachedSearchIndex, loadSearchIndex } from '../../data/reference/search-index';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+
+const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (ch) => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+})[ch]);
 
 export function SearchPanel({ isOpen, onClose, onNavigate }) {
   const [query, setQuery] = useState('');
@@ -77,22 +81,13 @@ export function SearchPanel({ isOpen, onClose, onNavigate }) {
     setActiveIndex(-1);
   }, [query]);
 
-  const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;',
-  })[character]);
-
-  const highlight = (text) => {
+  const highlight = useCallback((text) => {
     const safe = escapeHtml(text);
     if (!normalizedQuery) return safe;
     const needle = escapeHtml(normalizedQuery).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     if (!needle) return safe;
-    const regex = new RegExp(`(${needle})`, 'gi');
-    return safe.replace(regex, '<mark>$1</mark>');
-  };
+    return safe.replace(new RegExp(`(${needle})`, 'gi'), '<mark>$1</mark>');
+  }, [normalizedQuery]);
 
   const handleClick = (entry) => {
     onNavigate(entry.courseIdx, entry.modIdx, entry.lesIdx);

@@ -14,11 +14,22 @@ export function json(statusCode, body) {
 	return {
 		statusCode,
 		headers: {
-			'Content-Type': 'application/json',
+			'Content-Type': 'application/json; charset=utf-8',
 			'X-Content-Type-Options': 'nosniff',
 		},
 		body: JSON.stringify(body),
 	};
+}
+
+// ─── Fetch with timeout ───────────────────────
+export async function fetchWithTimeout(url, options = {}, timeoutMs = 5000) {
+	const controller = new AbortController();
+	const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+	try {
+		return await fetch(url, { ...options, signal: controller.signal });
+	} finally {
+		clearTimeout(timeoutId);
+	}
 }
 
 // ─── Supabase config ─────────────────────────
@@ -44,12 +55,12 @@ export async function verifyUser(token) {
 	if (!url || !key) return null;
 
 	try {
-		const res = await fetch(`${url}/auth/v1/user`, {
+		const res = await fetchWithTimeout(`${url}/auth/v1/user`, {
 			headers: {
 				Authorization: `Bearer ${token}`,
 				apikey: key,
 			},
-		});
+		}, 5000);
 		if (!res.ok) return null;
 		return res.json();
 	} catch {
@@ -77,12 +88,12 @@ async function isProfileDisabled(token, userId) {
 	});
 
 	try {
-		const res = await fetch(`${url}/rest/v1/profiles?${params.toString()}`, {
+		const res = await fetchWithTimeout(`${url}/rest/v1/profiles?${params.toString()}`, {
 			headers: {
 				Authorization: `Bearer ${token}`,
 				apikey: key,
 			},
-		});
+		}, 5000);
 		if (!res.ok) return true;
 
 		const rows = await res.json().catch(() => null);
@@ -111,7 +122,7 @@ export async function consumeQuotaPersistent(token) {
 	if (!url || !key) return null;
 
 	try {
-		const res = await fetch(`${url}/rest/v1/rpc/consume_ai_quota`, {
+		const res = await fetchWithTimeout(`${url}/rest/v1/rpc/consume_ai_quota`, {
 			method: 'POST',
 			headers: {
 				Authorization: `Bearer ${token}`,
@@ -119,7 +130,7 @@ export async function consumeQuotaPersistent(token) {
 				'Content-Type': 'application/json',
 			},
 			body: '{}',
-		});
+		}, 5000);
 		if (!res.ok) return null;
 		const data = await res.json();
 		return data === true;

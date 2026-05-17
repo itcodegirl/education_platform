@@ -73,18 +73,11 @@ export function AdminContentQualityTab() {
     };
   }, []);
 
-  const report = useMemo(
-    () => buildContentQualityReport(state.courseEntries),
-    [state.courseEntries],
-  );
-  const quizInventory = useMemo(
-    () => buildQuizInventoryReport(state.courseEntries),
-    [state.courseEntries],
-  );
-  const curriculumCoverage = useMemo(
-    () => buildCurriculumCoverageReport(state.courseEntries, { projectsByCourse: PROJECTS }),
-    [state.courseEntries],
-  );
+  const { report, quizInventory, curriculumCoverage } = useMemo(() => ({
+    report: buildContentQualityReport(state.courseEntries),
+    quizInventory: buildQuizInventoryReport(state.courseEntries),
+    curriculumCoverage: buildCurriculumCoverageReport(state.courseEntries, { projectsByCourse: PROJECTS }),
+  }), [state.courseEntries]);
   const actionPlan = useMemo(
     () => buildContentQualityActionPlan(report),
     [report],
