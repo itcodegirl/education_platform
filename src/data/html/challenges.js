@@ -221,4 +221,20 @@ export const HTML_CHALLENGES = [
     ],
     hint:'Use relative paths: <a href="about.html">About</a>',
     solution:'<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8" />\n  <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n  <title>My Site</title>\n</head>\n<body>\n  <header>\n    <nav>\n      <a href="index.html">Home</a>\n      <a href="about.html">About</a>\n      <a href="projects.html">Projects</a>\n      <a href="contact.html">Contact</a>\n    </nav>\n  </header>\n  <main>\n    <h1>Welcome to My Site</h1>\n    <p>Frontend developer portfolio.</p>\n  </main>\n  <footer>\n    <p>&copy; 2025 My Name</p>\n  </footer>\n</body>\n</html>' },
+
+  { id:'html-ch-11', title:'Browser Language Debug Board', description:'Build a page that explains what the browser reads, styles, and runs.', difficulty:'beginner', courseId:'html',
+    recommendedModuleId: '102',
+    starter:'<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8" />\n  <title>Browser Debug Board</title>\n  <style>\n    /* Add styles for the CSS card */\n  </style>\n</head>\n<body>\n  <!-- Build cards for HTML, CSS, JavaScript, and DOM order -->\n</body>\n</html>',
+    requirements:['Full HTML5 skeleton','Cards for HTML, CSS, JavaScript, and DOM order','Uses semantic <main> and <section> elements','Explains parent/child DOM order','Includes one button that demonstrates JavaScript'],
+    tests:[
+      { label:'DOCTYPE and HTML skeleton', check:(c)=>has(c,'<!doctype html')&&has(c,'<html')&&has(c,'<head')&&has(c,'<body') },
+      { label:'Semantic main and sections', check:(_, iframe)=>
+        !!dom(iframe)?.querySelector('main') &&
+        (dom(iframe)?.querySelectorAll('section').length || 0) >= 4 },
+      { label:'Names HTML, CSS, and JavaScript', check:(c)=>has(c,'html')&&has(c,'css')&&has(c,'javascript') },
+      { label:'Explains DOM parent/child order', check:(c)=>has(c,'dom')&&(has(c,'parent')||has(c,'child')) },
+      { label:'Includes interactive button', check:(_, iframe)=>!!dom(iframe)?.querySelector('button') },
+    ],
+    hint:'Make four sections: HTML structure, CSS style, JavaScript behavior, and browser DOM order.',
+    solution:'<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8" />\n  <title>Browser Debug Board</title>\n  <style>\n    body { font-family: Arial, sans-serif; padding: 24px; }\n    main { display: grid; gap: 16px; }\n    section { border: 2px solid #333; padding: 16px; border-radius: 8px; }\n    .css-card { background: #eef8ff; }\n  </style>\n</head>\n<body>\n  <main>\n    <h1>Browser Debug Board</h1>\n    <section><h2>HTML</h2><p>HTML gives the browser structure and content.</p></section>\n    <section class="css-card"><h2>CSS</h2><p>CSS styles the structure after the browser reads it.</p></section>\n    <section><h2>JavaScript</h2><p>JavaScript adds behavior.</p><button onclick="this.textContent = \'JavaScript ran\'">Run JavaScript</button></section>\n    <section><h2>DOM order</h2><p>The DOM is a parent and child tree. The browser reads the document from top to bottom.</p></section>\n  </main>\n</body>\n</html>' },
 ];

@@ -24,6 +24,12 @@ The report command writes:
 The audit is report-only by default. It should guide curriculum batches without
 blocking unrelated maintenance PRs.
 
+Current expected baseline after the project-evidence coverage batch:
+
+- 100 fully covered lessons
+- 0 curriculum coverage gaps
+- 24 modules with mapped challenge/project evidence
+
 ## What It Checks
 
 For each active lesson, the report asks whether the lesson has:
