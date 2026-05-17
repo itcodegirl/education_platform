@@ -145,10 +145,10 @@ export function AppLayout() {
   // code block would inflate the figure (~200 wpm reading prose is
   // not the same as scanning code) and surface a misleading number
   // in the topbar pill.
-  const readTime = useMemo(
-    () => estimateReadingTime(les.content || ''),
-    [les.content],
-  );
+  const readTime = useMemo(() => {
+    const mins = estimateReadingTime(les.content || '');
+    return `${mins} min`;
+  }, [les.content]);
   const level = useMemo(() => getLevel(xpTotal), [xpTotal]);
   const hasProgress = completed.length > 0 || Number(lastPosition?.time) > 0;
   const hasCompletedProgress = completed.length > 0;
@@ -161,8 +161,8 @@ export function AppLayout() {
   // awkward placeholders ("Builder" / "there") that read as scripted.
   const learnerName =
     profile?.display_name?.trim() ||
+    user?.user_metadata?.full_name?.trim() ||
     user?.user_metadata?.display_name?.trim() ||
-    user?.email?.split("@")[0] ||
     null;
   const isSidebarOpen = isMobile ? panels.sidebar : true;
   const shellClassName = `shell ${theme}${mobileKeyboardOpen ? ' keyboard-open' : ''}`;
