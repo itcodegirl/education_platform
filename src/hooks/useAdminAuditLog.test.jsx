@@ -4,69 +4,44 @@ import { renderHook, waitFor } from '@testing-library/react';
 const { mockFrom } = vi.hoisted(() => ({
   mockFrom: vi.fn(),
 }));
+const { mockRpc } = vi.hoisted(() => ({
+  mockRpc: vi.fn(),
+}));
 
 vi.mock('../lib/supabaseClient', () => ({
-  supabase: { from: mockFrom },
+  supabase: { from: mockFrom, rpc: mockRpc },
 }));
 
 import { useAdminAuditLog } from './useAdminAuditLog';
 
-function makeAuditChain(result) {
-  const rangeResult = Promise.resolve(result);
-  const chain = {
-    select: vi.fn(() => chain),
-    order: vi.fn(() => chain),
-    eq: vi.fn(() => chain),
-    gte: vi.fn(() => chain),
-    range: vi.fn(() => rangeResult),
-  };
-  return chain;
-}
-
-function makeProfilesChain(result) {
-  const inResult = Promise.resolve(result);
-  const chain = {
-    select: vi.fn(() => chain),
-    in: vi.fn(() => inResult),
-  };
-  return chain;
-}
-
 describe('useAdminAuditLog', () => {
   beforeEach(() => {
     mockFrom.mockReset();
+    mockRpc.mockReset();
   });
 
-  it('loads paginated audit rows and resolves profile names', async () => {
-    const auditChain = makeAuditChain({
-      data: [{
-        id: 'audit-1',
-        actor_id: 'admin-1',
-        target_id: 'user-1',
-        action: 'grant_admin',
-        details: { make_admin: true },
-        created_at: '2026-05-17T00:00:00.000Z',
-      }],
+  it('loads paginated audit rows through the server-side search rpc', async () => {
+    mockRpc.mockResolvedValue({
+      data: {
+        total: 51,
+        rows: [{
+          id: 'audit-1',
+          actor_id: 'admin-1',
+          target_id: 'user-1',
+          actorName: 'Jenna',
+          targetName: 'Ava',
+          action: 'grant_admin',
+          details: { make_admin: true },
+          created_at: '2026-05-17T00:00:00.000Z',
+        }],
+      },
       error: null,
-      count: 51,
-    });
-    const profilesChain = makeProfilesChain({
-      data: [
-        { id: 'admin-1', display_name: 'Jenna' },
-        { id: 'user-1', display_name: 'Ava' },
-      ],
-      error: null,
-    });
-
-    mockFrom.mockImplementation((table) => {
-      if (table === 'admin_audit_log') return auditChain;
-      if (table === 'profiles') return profilesChain;
-      throw new Error(`Unexpected table: ${table}`);
     });
 
     const { result } = renderHook(() => useAdminAuditLog({
       action: 'grant_admin',
       range: '7d',
+      search: ' Ava ',
       page: 2,
     }));
 
@@ -75,14 +50,13 @@ describe('useAdminAuditLog', () => {
       expect(result.current.rows).toHaveLength(1);
     });
 
-    expect(auditChain.select).toHaveBeenCalledWith(
-      'id, actor_id, target_id, action, details, created_at',
-      { count: 'exact' },
-    );
-    expect(auditChain.eq).toHaveBeenCalledWith('action', 'grant_admin');
-    expect(auditChain.gte).toHaveBeenCalledWith('created_at', expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/));
-    expect(auditChain.range).toHaveBeenCalledWith(50, 99);
-    expect(profilesChain.in).toHaveBeenCalledWith('id', ['admin-1', 'user-1']);
+    expect(mockRpc).toHaveBeenCalledWith('search_admin_audit_log', {
+      p_action: 'grant_admin',
+      p_since: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
+      p_search: 'Ava',
+      p_limit: 50,
+      p_offset: 50,
+    });
     expect(result.current.rows[0]).toMatchObject({
       actorName: 'Jenna',
       targetName: 'Ava',
@@ -93,15 +67,9 @@ describe('useAdminAuditLog', () => {
   });
 
   it('returns a user-facing error when the audit query fails', async () => {
-    const auditChain = makeAuditChain({
+    mockRpc.mockResolvedValue({
       data: null,
       error: new Error('permission denied'),
-      count: null,
-    });
-
-    mockFrom.mockImplementation((table) => {
-      if (table === 'admin_audit_log') return auditChain;
-      throw new Error(`Unexpected table: ${table}`);
     });
 
     const { result } = renderHook(() => useAdminAuditLog());

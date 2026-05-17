@@ -64,6 +64,12 @@ describe('AdminAuditLogTab', () => {
   });
 
   it('filters visible rows by search term', () => {
+    mockUseAdminAuditLog.mockImplementation(({ search }) => (
+      search === 'mia'
+        ? makeAuditLog({ rows: [makeAuditLog().rows[1]], total: 1 })
+        : makeAuditLog()
+    ));
+
     render(<AdminAuditLogTab />);
 
     fireEvent.change(screen.getByLabelText(/search/i), {
@@ -88,6 +94,7 @@ describe('AdminAuditLogTab', () => {
     expect(mockUseAdminAuditLog).toHaveBeenLastCalledWith({
       action: 'grant_admin',
       range: '7d',
+      search: '',
       page: 1,
     });
   });
