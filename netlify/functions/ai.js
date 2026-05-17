@@ -19,7 +19,7 @@
 //   6. Role whitelist for messages.
 // ===============================================
 
-import { json, verifyActiveUser, consumeQuotaPersistent, createRateLimiter } from './_shared.js';
+import { json, fetchWithTimeout, verifyActiveUser, consumeQuotaPersistent, createRateLimiter } from './_shared.js';
 
 const OPENAI_URL = 'https://api.openai.com/v1/responses';
 
@@ -177,7 +177,7 @@ export async function handler(event) {
 
   // 6. Call OpenAI API
   try {
-    const response = await fetch(OPENAI_URL, {
+    const response = await fetchWithTimeout(OPENAI_URL, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -188,7 +188,7 @@ export async function handler(event) {
         input,
         max_output_tokens: maxTokens,
       }),
-    });
+    }, 9000);
 
     const data = await response.json();
 

@@ -26,7 +26,15 @@ import { AdminCoursesTab } from './AdminCoursesTab';
 import { AdminQuizzesTab } from './AdminQuizzesTab';
 import { AdminContentQualityTab } from './AdminContentQualityTab';
 import { AdminAuditLogTab } from './AdminAuditLogTab';
+import { ErrorBoundary } from '../shared/ErrorBoundary';
 import '../../styles/feature-admin.css';
+
+const tabFallback = ({ retry }) => (
+  <div className="admin-loading" role="alert">
+    This section failed to load.{' '}
+    <button type="button" className="admin-back-btn" onClick={retry}>Retry</button>
+  </div>
+);
 
 const LessonBuilder = lazy(() =>
   import('./LessonBuilder').then((m) => ({ default: m.LessonBuilder })),
@@ -260,51 +268,65 @@ export function AdminDashboard({ onClose }) {
             )}
             {tab === 'overview' && (
               <div id="admin-tab-panel-overview" role="tabpanel">
-                <AdminOverviewTab {...stats} />
+                <ErrorBoundary resetKeys={[tab]} fallback={tabFallback}>
+                  <AdminOverviewTab {...stats} />
+                </ErrorBoundary>
               </div>
             )}
             {tab === 'users' && (
               <div id="admin-tab-panel-users" role="tabpanel">
-                <AdminUsersTab
-                  data={data}
-                  currentUserId={user.id}
-                  setData={setData}
-                  usersPagination={usersPagination}
-                  usersTotal={usersCounts.total}
-                />
+                <ErrorBoundary resetKeys={[tab]} fallback={tabFallback}>
+                  <AdminUsersTab
+                    data={data}
+                    currentUserId={user.id}
+                    setData={setData}
+                    usersPagination={usersPagination}
+                    usersTotal={usersCounts.total}
+                  />
+                </ErrorBoundary>
               </div>
             )}
             {tab === 'courses' && (
               <div id="admin-tab-panel-courses" role="tabpanel">
-                <AdminCoursesTab courseStats={stats.courseStats} progress={data.progress} />
+                <ErrorBoundary resetKeys={[tab]} fallback={tabFallback}>
+                  <AdminCoursesTab courseStats={stats.courseStats} progress={data.progress} />
+                </ErrorBoundary>
               </div>
             )}
             {tab === 'quizzes' && (
               <div id="admin-tab-panel-quizzes" role="tabpanel">
-                <AdminQuizzesTab quizScores={data.quizScores} />
+                <ErrorBoundary resetKeys={[tab]} fallback={tabFallback}>
+                  <AdminQuizzesTab quizScores={data.quizScores} />
+                </ErrorBoundary>
               </div>
             )}
             {tab === 'content' && (
               <div id="admin-tab-panel-content" role="tabpanel">
-                <AdminContentQualityTab />
+                <ErrorBoundary resetKeys={[tab]} fallback={tabFallback}>
+                  <AdminContentQualityTab />
+                </ErrorBoundary>
               </div>
             )}
             {tab === 'audit' && (
               <div id="admin-tab-panel-audit" role="tabpanel">
-                <AdminAuditLogTab />
+                <ErrorBoundary resetKeys={[tab]} fallback={tabFallback}>
+                  <AdminAuditLogTab />
+                </ErrorBoundary>
               </div>
             )}
             {tab === 'builder' && (
               <div id="admin-tab-panel-builder" role="tabpanel">
-                <Suspense
-                  fallback={
-                    <div className="admin-loading" role="status" aria-live="polite">
-                      Loading lesson builder...
-                    </div>
-                  }
-                >
-                  <LessonBuilder />
-                </Suspense>
+                <ErrorBoundary resetKeys={[tab]} fallback={tabFallback}>
+                  <Suspense
+                    fallback={
+                      <div className="admin-loading" role="status" aria-live="polite">
+                        Loading lesson builder...
+                      </div>
+                    }
+                  >
+                    <LessonBuilder />
+                  </Suspense>
+                </ErrorBoundary>
               </div>
             )}
           </div>

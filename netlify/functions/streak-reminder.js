@@ -11,34 +11,27 @@
 //   schedule = "0 18 * * *"
 // ===============================================
 
-import { json } from './_shared.js';
+import { json, fetchWithTimeout } from './_shared.js';
 import { createHmac, timingSafeEqual } from 'crypto';
 
 /**
  * Verify a HMAC-SHA256 signature from the X-Webhook-Signature header.
  * Uses timing-safe comparison to prevent timing attacks.
- * Falls back to plain secret comparison if no signature header is present
- * (backward-compatible with simple secret approach).
+ * Requires the HMAC signature — plain-secret fallback has been removed.
  *
  * @param {string} body    Raw request body string
  * @param {string} secret  Shared secret from environment
- * @param {string} sig     Value of X-Webhook-Signature header (may be empty)
- * @param {string} plain   Value of x-webhook-secret header (legacy fallback)
+ * @param {string} sig     Value of X-Webhook-Signature header
  * @returns {boolean}
  */
-function verifyWebhookAuth(body, secret, sig, plain) {
-  if (!secret) return false;
-  // Prefer HMAC signature if provided
-  if (sig) {
-    const expected = createHmac('sha256', secret).update(body).digest('hex');
-    try {
-      return timingSafeEqual(Buffer.from(sig), Buffer.from(expected));
-    } catch {
-      return false; // Buffer lengths differ -> invalid signature
-    }
+function verifyWebhookAuth(body, secret, sig) {
+  if (!secret || !sig) return false;
+  const expected = createHmac('sha256', secret).update(body).digest('hex');
+  try {
+    return timingSafeEqual(Buffer.from(sig), Buffer.from(expected));
+  } catch {
+    return false; // Buffer lengths differ -> invalid signature
   }
-  // Legacy: plain secret header comparison
-  return plain === secret;
 }
 
 export async function handler(event) {
@@ -55,8 +48,7 @@ export async function handler(event) {
   if (!isScheduled) {
     const secret = process.env.STREAK_REMINDER_SECRET;
     const hmacSig = event.headers['x-webhook-signature'] || event.headers['X-Webhook-Signature'] || '';
-    const plainSecret = event.headers['x-webhook-secret'] || event.headers['X-Webhook-Secret'] || '';
-    if (!verifyWebhookAuth(event.body || '', secret, hmacSig, plainSecret)) {
+    if (!verifyWebhookAuth(event.body || '', secret, hmacSig)) {
       return json(401, { error: 'Unauthorized' });
     }
   }
@@ -65,7 +57,7 @@ export async function handler(event) {
   const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    return json(500, { error: 'Supabase not configured. Set SUPABASE_SERVICE_KEY.' });
+    return json(500, { error: 'Backend configuration error' });
   }
 
   try {
@@ -74,7 +66,7 @@ export async function handler(event) {
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `${supabaseUrl}/rest/v1/streaks?last_date=eq.${yesterdayStr}&days=gt.2&select=user_id,days,last_date`,
       {
         headers: {
@@ -82,6 +74,7 @@ export async function handler(event) {
           Authorization: `Bearer ${supabaseKey}`,
         },
       },
+      8000,
     );
 
     if (!res.ok) {
@@ -96,7 +89,7 @@ export async function handler(event) {
 
     // Get email addresses for at-risk users
     const userIds = atRiskUsers.map((u) => u.user_id);
-    const profileRes = await fetch(
+    const profileRes = await fetchWithTimeout(
       `${supabaseUrl}/auth/v1/admin/users`,
       {
         headers: {
@@ -104,6 +97,7 @@ export async function handler(event) {
           Authorization: `Bearer ${supabaseKey}`,
         },
       },
+      8000,
     );
 
     const profileData = profileRes.ok ? await profileRes.json() : { users: [] };

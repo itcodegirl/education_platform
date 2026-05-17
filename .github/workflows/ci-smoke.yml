@@ -16,6 +16,8 @@ jobs:
     name: check:ci
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
     env:
       E2E_AUTH_REQUIRED: ${{ secrets.VITE_SUPABASE_URL != '' && secrets.VITE_SUPABASE_ANON_KEY != '' && secrets.E2E_EMAIL != '' && secrets.E2E_PASSWORD != '' }}
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || '' }}
@@ -38,6 +40,13 @@ jobs:
 
       - name: Preflight authenticated E2E Supabase config
         run: npm run test:e2e:auth:preflight
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-v1-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: playwright-${{ runner.os }}-v1-
 
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
@@ -66,6 +75,8 @@ jobs:
     name: deploy-preview-smoke
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
     needs:
       - check-ci
     env:
@@ -89,16 +100,17 @@ jobs:
         run: npm run build
 
       - name: Preview deploy smoke test
+        timeout-minutes: 2
         run: |
           npm run preview -- --host 127.0.0.1 --port 4173 > preview.log 2>&1 &
-          for attempt in {1..30}; do
-            if curl -fsS http://127.0.0.1:4173/ > /dev/null; then
+          for attempt in {1..15}; do
+            if curl -fsS http://127.0.0.1:4173/ > /dev/null 2>&1; then
               echo "Preview smoke passed on attempt ${attempt}."
               exit 0
             fi
             sleep 2
           done
-          echo "Preview smoke failed: server did not become ready in time."
+          echo "Preview smoke failed: server did not become ready in 30s."
           cat preview.log
           exit 1
 
@@ -106,6 +118,8 @@ jobs:
     name: Supabase policy integration
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
     env:
       SUPABASE_URL: ${{ secrets.POLICY_SUPABASE_URL || '' }}
       SUPABASE_ANON_KEY: ${{ secrets.POLICY_SUPABASE_ANON_KEY || '' }}

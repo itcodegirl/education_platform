@@ -22,7 +22,7 @@
 //      forwarding a malformed card to the client.
 // ===============================================
 
-import { json, verifyActiveUser, consumeQuotaPersistent, createRateLimiter } from './_shared.js';
+import { json, fetchWithTimeout, verifyActiveUser, consumeQuotaPersistent, createRateLimiter } from './_shared.js';
 
 const OPENAI_URL = 'https://api.openai.com/v1/responses';
 
@@ -162,7 +162,7 @@ export async function handler(event) {
 
   // --- Call OpenAI --------------------------
   try {
-    const response = await fetch(OPENAI_URL, {
+    const response = await fetchWithTimeout(OPENAI_URL, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -182,7 +182,7 @@ export async function handler(event) {
         ],
         max_output_tokens: MAX_OUTPUT_TOKENS,
       }),
-    });
+    }, 9000);
 
     const data = await response.json();
     if (!response.ok) {

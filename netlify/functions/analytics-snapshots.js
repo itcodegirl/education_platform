@@ -1,4 +1,4 @@
-import { getSupabaseConfig, json, verifyActiveUser } from './_shared.js';
+import { getSupabaseConfig, json, fetchWithTimeout, verifyActiveUser } from './_shared.js';
 
 const DEFAULT_DAYS = 30;
 const MIN_DAYS = 1;
@@ -16,7 +16,7 @@ async function callRpc({ token, name, payload }) {
     throw new Error('Supabase environment is not configured');
   }
 
-  const response = await fetch(`${url}/rest/v1/rpc/${name}`, {
+  const response = await fetchWithTimeout(`${url}/rest/v1/rpc/${name}`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -24,7 +24,7 @@ async function callRpc({ token, name, payload }) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(payload || {}),
-  });
+  }, 5000);
 
   const data = await response.json().catch(() => null);
   if (!response.ok) {
@@ -102,7 +102,7 @@ export async function handler(event) {
     }
 
     if (error?.statusCode >= 400 && error?.statusCode < 500) {
-      return json(error.statusCode, { error: error.message || 'Request failed' });
+      return json(error.statusCode, { error: 'Request failed' });
     }
 
     return json(502, { error: 'Analytics snapshot service unavailable' });
