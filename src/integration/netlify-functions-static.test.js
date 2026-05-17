@@ -7,11 +7,11 @@ function readText(path) {
 
 describe('netlify function security static checks', () => {
   it('enforces active-account checks for user-facing functions', () => {
-    const shared = readText('../../netlify/functions/_shared.js');
-    const ai = readText('../../netlify/functions/ai.js');
-    const practice = readText('../../netlify/functions/practice-generate.js');
-    const analyticsIngest = readText('../../netlify/functions/analytics-ingest.js');
-    const analyticsSnapshots = readText('../../netlify/functions/analytics-snapshots.js');
+    const shared = readText('../../api/_shared.js');
+    const ai = readText('../../api/ai.js');
+    const practice = readText('../../api/practice-generate.js');
+    const analyticsIngest = readText('../../api/analytics-ingest.js');
+    const analyticsSnapshots = readText('../../api/analytics-snapshots.js');
 
     expect(shared).toMatch(/export async function verifyActiveUser/i);
     expect(shared).toMatch(/select:\s*'is_disabled'/i);
@@ -25,14 +25,14 @@ describe('netlify function security static checks', () => {
   });
 
   it('keeps AI practice generation behind email verification', () => {
-    const practice = readText('../../netlify/functions/practice-generate.js');
+    const practice = readText('../../api/practice-generate.js');
 
     expect(practice).toMatch(/EMAIL_NOT_VERIFIED/i);
     expect(practice).toMatch(/email_confirmed_at[\s\S]*confirmed_at/i);
   });
 
   it('bounds analytics timestamps to reduce replay and future-dated data corruption', () => {
-    const analyticsIngest = readText('../../netlify/functions/analytics-ingest.js');
+    const analyticsIngest = readText('../../api/analytics-ingest.js');
 
     expect(analyticsIngest).toMatch(/MAX_EVENT_AGE_MS/i);
     expect(analyticsIngest).toMatch(/MAX_FUTURE_SKEW_MS/i);

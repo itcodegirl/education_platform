@@ -16,7 +16,7 @@ export async function generatePracticeCard({ topic, concept }) {
     throw new Error('You must be signed in to generate practice cards.');
   }
 
-  const response = await fetch('/.netlify/functions/practice-generate', {
+  const response = await fetch('/api/practice-generate', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

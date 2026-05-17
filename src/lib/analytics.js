@@ -9,7 +9,7 @@ const MAX_EVENT_NAME_CHARS = 80;
 const FLUSH_BATCH_SIZE = 25;
 const FLUSH_TRIGGER_SIZE = 10;
 const FLUSH_INTERVAL_MS = 30_000;
-const ANALYTICS_INGEST_PATH = '/.netlify/functions/analytics-ingest';
+const ANALYTICS_INGEST_PATH = '/api/analytics-ingest';
 
 let analyticsInitialized = false;
 let flushTimer = null;
