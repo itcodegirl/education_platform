@@ -99,6 +99,19 @@ const REQUIRED_ARTIFACTS = [
     ],
   },
   {
+    path: 'supabase/migrations/202605170002_add_search_admin_audit_log_rpc.sql',
+    label: 'admin audit log search RPC migration',
+    checks: [
+      ['audit log search RPC', /create\s+or\s+replace\s+function\s+public\.search_admin_audit_log/i],
+      ['admin-only audit search guard', /if\s+not\s+public\.is_admin\(\)\s+then/i],
+      ['audit log source table', /from\s+public\.admin_audit_log\s+audit/i],
+      ['actor profile search join', /left\s+join\s+public\.profiles\s+actor/i],
+      ['target profile search join', /left\s+join\s+public\.profiles\s+target/i],
+      ['details text search', /audit\.details::text[\s\S]+ilike\s+v_like/i],
+      ['audit search execute grant', /grant\s+execute\s+on\s+function\s+public\.search_admin_audit_log[\s\S]+to\s+authenticated/i],
+    ],
+  },
+  {
     path: 'supabase/migrations/202605110001_harden_reward_event_trust_boundaries.sql',
     label: 'reward catalog trust-boundary migration',
     checks: [

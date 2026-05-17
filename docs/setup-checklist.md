@@ -45,6 +45,7 @@ copying older SQL snippets from prior portfolio branches:
 8. `supabase/migrations/202605110001_harden_reward_event_trust_boundaries.sql`
 9. `supabase/migrations/202605110002_lock_admin_user_rollups.sql`
 10. `supabase/migrations/202605170001_add_set_user_admin_rpc.sql`
+11. `supabase/migrations/202605170002_add_search_admin_audit_log_rpc.sql`
 
 Public profile note: use `public.public_profiles` for aggregate
 portfolio snapshots. Do not add public select policies on
