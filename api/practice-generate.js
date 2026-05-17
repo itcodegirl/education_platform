@@ -30,7 +30,7 @@ const SYSTEM_PROMPT = [
   'You must refuse anything that is not about learning to code. If the topic is off-topic, return {"question":"refused","options":["","","",""],"correct":0,"explanation":"off-topic"} so the server can discard it.',
 ].join('\n');
 
-function validateCard(raw) {
+export function validateCard(raw) {
   if (!raw || typeof raw !== 'object') return null;
 
   const question = typeof raw.question === 'string' ? raw.question.trim() : '';
@@ -57,7 +57,7 @@ function validateCard(raw) {
   return { question, code, options, correct, explanation };
 }
 
-function extractJson(text) {
+export function extractJson(text) {
   if (typeof text !== 'string') return null;
   const trimmed = text.trim();
   const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
