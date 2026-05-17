@@ -66,8 +66,14 @@ const PANEL_REGISTRY = {
   bookmarks: ({ panels, nav }) => (
     <BookmarksPanel isOpen onClose={panels.closePanel} onNavigate={nav.goToSearch} />
   ),
-  challenges: ({ panels, course }) => (
-    <ChallengesPanel courseId={course.id} lang={course.id} onClose={panels.closePanel} />
+  challenges: ({ panels, course, challengeTargetId, onChallengeTargetConsumed }) => (
+    <ChallengesPanel
+      courseId={course.id}
+      lang={course.id}
+      onClose={panels.closePanel}
+      initialChallengeId={challengeTargetId}
+      onInitialChallengeConsumed={onChallengeTargetConsumed}
+    />
   ),
   stats: ({ panels }) => (
     <StudentStats isOpen onClose={panels.closePanel} />
@@ -97,15 +103,31 @@ function ActivePanelBoundary({ panelName, context }) {
 }
 
 export function PanelManager({
-  panels, nav, course, profile, completed, hasCompletedProgress = true, lastPosition, courseTotal,
+  panels,
+  nav,
+  course,
+  profile,
+  completed,
+  hasCompletedProgress = true,
+  lastPosition,
+  courseTotal,
+  challengeTargetId = '',
+  onChallengeTargetConsumed,
 }) {
   const moduleProgress = useMemo(
     () => computeModuleProgress(course, lastPosition, completed),
     [completed, course, lastPosition],
   );
   const panelContext = useMemo(
-    () => ({ panels, nav, course, hasCompletedProgress }),
-    [course, hasCompletedProgress, nav, panels],
+    () => ({
+      panels,
+      nav,
+      course,
+      hasCompletedProgress,
+      challengeTargetId,
+      onChallengeTargetConsumed,
+    }),
+    [challengeTargetId, course, hasCompletedProgress, nav, onChallengeTargetConsumed, panels],
   );
 
   return (

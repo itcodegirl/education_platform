@@ -454,6 +454,82 @@
 .lesson-evidence-item-current {
   border-color: rgba(255,107,157,0.26);
 }
+.lesson-project-links {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(220px, 1fr);
+  gap: 16px;
+  align-items: center;
+  margin: -14px 0 30px;
+  padding: 16px;
+  border-top: 1px solid rgba(78,205,196,0.18);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  background: linear-gradient(90deg, rgba(78,205,196,0.08), rgba(255,107,157,0.045));
+}
+.lesson-project-kicker {
+  margin: 0 0 4px;
+  color: var(--cyan);
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.lesson-project-title {
+  margin: 0;
+  color: var(--text);
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+}
+.lesson-project-detail,
+.lesson-project-action p {
+  margin: 7px 0 0;
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.lesson-project-proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.lesson-project-proof li {
+  padding: 5px 8px;
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 999px;
+  background: rgba(8,13,24,0.42);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+.lesson-project-action {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+.lesson-project-alt {
+  color: var(--text-muted);
+}
+.lesson-project-button {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(78,205,196,0.42);
+  border-radius: 8px;
+  background: rgba(78,205,196,0.13);
+  color: var(--text);
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+}
+.lesson-project-button:hover,
+.lesson-project-button:focus-visible {
+  border-color: var(--cyan);
+  background: rgba(78,205,196,0.2);
+}
 @media (max-width: 760px) {
   .daily-loop-head {
     flex-direction: column;
@@ -474,6 +550,12 @@
   }
   .lesson-evidence-list {
     grid-template-columns: 1fr;
+  }
+  .lesson-project-links {
+    grid-template-columns: 1fr;
+  }
+  .lesson-project-button {
+    width: 100%;
   }
 }
 .lesson-surface {
