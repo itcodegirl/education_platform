@@ -11,6 +11,7 @@ describe('supabase policy sql static checks', () => {
     const adminGuardMigration = readText('../../supabase/migrations/202605060001_guard_profile_disabled_updates.sql');
     const safeFieldMigration = readText('../../supabase/migrations/202605060003_harden_profile_updates.sql');
     const adminRoleRpcMigration = readText('../../supabase/migrations/202605170001_add_set_user_admin_rpc.sql');
+    const adminAuditSearchRpcMigration = readText('../../supabase/migrations/202605170002_add_search_admin_audit_log_rpc.sql');
 
     [schema, adminGuardMigration].forEach((sql) => {
       expect(sql).toMatch(/new\.is_admin is distinct from old\.is_admin/i);
@@ -33,6 +34,14 @@ describe('supabase policy sql static checks', () => {
     expect(adminRoleRpcMigration).toMatch(/Target user profile not found/i);
     expect(adminRoleRpcMigration).toMatch(/case when make_admin then 'grant_admin' else 'revoke_admin' end/i);
     expect(adminRoleRpcMigration).toMatch(/grant execute on function public\.set_user_admin[\s\S]*to authenticated/i);
+
+    expect(adminAuditSearchRpcMigration).toMatch(/create or replace function public\.search_admin_audit_log/i);
+    expect(adminAuditSearchRpcMigration).toMatch(/if not public\.is_admin\(\) then/i);
+    expect(adminAuditSearchRpcMigration).toMatch(/from public\.admin_audit_log audit/i);
+    expect(adminAuditSearchRpcMigration).toMatch(/left join public\.profiles actor/i);
+    expect(adminAuditSearchRpcMigration).toMatch(/left join public\.profiles target/i);
+    expect(adminAuditSearchRpcMigration).toMatch(/audit\.details::text[\s\S]+ilike v_like/i);
+    expect(adminAuditSearchRpcMigration).toMatch(/grant execute on function public\.search_admin_audit_log[\s\S]*to authenticated/i);
   });
 
   it('reward-backend.enforces-idempotency-and-auth-owned-awards statically', () => {

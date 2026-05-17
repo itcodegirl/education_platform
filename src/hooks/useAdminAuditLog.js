@@ -11,31 +11,23 @@ const INITIAL_STATE = {
   error: null,
 };
 
-async function loadProfileNames(rows) {
-  const ids = Array.from(new Set(
-    rows.flatMap((row) => [row.actor_id, row.target_id]).filter(Boolean),
-  ));
+function normalizePayload(rawPayload) {
+  const payload = typeof rawPayload === 'string'
+    ? JSON.parse(rawPayload)
+    : rawPayload;
+  const rows = Array.isArray(payload?.rows) ? payload.rows : [];
 
-  if (ids.length === 0) return new Map();
-
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, display_name')
-    .in('id', ids);
-
-  if (error) {
-    if (import.meta.env.DEV) {
-      console.error('Failed to load audit profile labels:', error);
-    }
-    return new Map();
-  }
-
-  return new Map(
-    (data || []).map((profile) => [profile.id, profile.display_name || 'Anonymous']),
-  );
+  return {
+    total: Number.isFinite(Number(payload?.total)) ? Number(payload.total) : rows.length,
+    rows: rows.map((row) => ({
+      ...row,
+      actorName: row.actorName || row.actor_name || '',
+      targetName: row.targetName || row.target_name || '',
+    })),
+  };
 }
 
-export function useAdminAuditLog({ action = 'all', range = 'all', page = 1 } = {}) {
+export function useAdminAuditLog({ action = 'all', range = 'all', search = '', page = 1 } = {}) {
   const [state, setState] = useState(INITIAL_STATE);
   const [fetchVersion, setFetchVersion] = useState(0);
 
@@ -47,36 +39,22 @@ export function useAdminAuditLog({ action = 'all', range = 'all', page = 1 } = {
 
       try {
         const from = (page - 1) * AUDIT_LOG_PAGE_SIZE;
-        const to = from + AUDIT_LOG_PAGE_SIZE - 1;
-        let query = supabase
-          .from('admin_audit_log')
-          .select('id, actor_id, target_id, action, details, created_at', { count: 'exact' })
-          .order('created_at', { ascending: false });
-
-        if (action !== 'all') {
-          query = query.eq('action', action);
-        }
-
-        const since = getAuditRangeStartIso(range);
-        if (since) {
-          query = query.gte('created_at', since);
-        }
-
-        const { data, error, count } = await query.range(from, to);
+        const { data, error } = await supabase.rpc('search_admin_audit_log', {
+          p_action: action === 'all' ? null : action,
+          p_since: getAuditRangeStartIso(range),
+          p_search: search.trim() || null,
+          p_limit: AUDIT_LOG_PAGE_SIZE,
+          p_offset: from,
+        });
         if (error) throw error;
 
-        const rows = data || [];
-        const profileNames = await loadProfileNames(rows);
+        const payload = normalizePayload(data);
 
         if (cancelled) return;
 
         setState({
-          rows: rows.map((row) => ({
-            ...row,
-            actorName: profileNames.get(row.actor_id) || '',
-            targetName: profileNames.get(row.target_id) || '',
-          })),
-          total: count || rows.length,
+          rows: payload.rows,
+          total: payload.total,
           loading: false,
           error: null,
         });
@@ -96,7 +74,7 @@ export function useAdminAuditLog({ action = 'all', range = 'all', page = 1 } = {
     return () => {
       cancelled = true;
     };
-  }, [action, fetchVersion, page, range]);
+  }, [action, fetchVersion, page, range, search]);
 
   const refetch = useCallback(() => {
     setFetchVersion((version) => version + 1);

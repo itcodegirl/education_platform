@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAdminAuditLog } from '../../hooks/useAdminAuditLog';
 import {
   AUDIT_ACTION_FILTERS,
   AUDIT_RANGE_FILTERS,
   buildAuditLogCsv,
-  filterAuditRows,
   formatAuditDetails,
   formatAuditName,
   getAuditActionLabel,
@@ -72,11 +71,12 @@ export function AdminAuditLogTab() {
   const [rangeFilter, setRangeFilter] = useState('30d');
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
-  const auditLog = useAdminAuditLog({ action: actionFilter, range: rangeFilter, page });
-
-  useEffect(() => {
-    setPage(1);
-  }, [actionFilter, rangeFilter]);
+  const auditLog = useAdminAuditLog({
+    action: actionFilter,
+    range: rangeFilter,
+    search: searchTerm,
+    page,
+  });
 
   useEffect(() => {
     if (page > auditLog.totalPages) {
@@ -84,10 +84,22 @@ export function AdminAuditLogTab() {
     }
   }, [auditLog.totalPages, page]);
 
-  const visibleRows = useMemo(
-    () => filterAuditRows(auditLog.rows, searchTerm),
-    [auditLog.rows, searchTerm],
-  );
+  const visibleRows = auditLog.rows;
+
+  const handleActionFilterChange = (event) => {
+    setActionFilter(event.target.value);
+    setPage(1);
+  };
+
+  const handleRangeFilterChange = (event) => {
+    setRangeFilter(event.target.value);
+    setPage(1);
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+    setPage(1);
+  };
 
   const clearFilters = () => {
     setActionFilter('all');
@@ -102,7 +114,7 @@ export function AdminAuditLogTab() {
         <div>
           <h3 id="admin-audit-log-title" className="admin-section-title">Audit Log</h3>
           <p className="admin-audit-meta">
-            {visibleRows.length} visible / {auditLog.total} total
+            {visibleRows.length} visible / {auditLog.total} matching
           </p>
         </div>
         <div className="admin-audit-actions">
@@ -130,7 +142,7 @@ export function AdminAuditLogTab() {
           <span>Action</span>
           <select
             value={actionFilter}
-            onChange={(event) => setActionFilter(event.target.value)}
+            onChange={handleActionFilterChange}
           >
             {AUDIT_ACTION_FILTERS.map((option) => (
               <option key={option.value} value={option.value}>{option.label}</option>
@@ -141,7 +153,7 @@ export function AdminAuditLogTab() {
           <span>Range</span>
           <select
             value={rangeFilter}
-            onChange={(event) => setRangeFilter(event.target.value)}
+            onChange={handleRangeFilterChange}
           >
             {AUDIT_RANGE_FILTERS.map((option) => (
               <option key={option.value} value={option.value}>{option.label}</option>
@@ -153,7 +165,7 @@ export function AdminAuditLogTab() {
           <input
             type="search"
             value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
+            onChange={handleSearchChange}
             placeholder="Name, ID, action, details"
           />
         </label>
