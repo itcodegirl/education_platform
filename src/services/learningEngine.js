@@ -118,48 +118,60 @@ export function createLearningEngine({
     }
 
     const completionRewardKey = rewardKeys.quizComplete(quizKey);
-    const completionResult = await awardRewardOnce({
-      learnerKey,
-      event: createRewardEvent({
-        type: REWARD_EVENT_TYPES.QUIZ_BASE,
-        targetId: quizKey,
-        learnerKey: learnerKey || 'legacy-local',
-        metadata: { rewardKey: completionRewardKey, score, total, pct },
-      }),
-      legacyRewardKey: completionRewardKey,
-      hasRewardBeenAwarded,
-      markRewardAwarded,
-      awardXP,
-      xpAmount: REWARD_XP.quizComplete,
-      reason: 'Quiz completed',
-      markSyncFailed,
-      storage: rewardEventStorage,
-      backendRewardSyncEnabled,
-      backendRewardAward,
-    });
-    let earnedXp = getAwardedXp(completionResult);
-
-    if (pct === 100) {
-      const perfectRewardKey = rewardKeys.quizPerfect(quizKey);
-      const perfectResult = await awardRewardOnce({
+    let completionResult = null;
+    try {
+      completionResult = await awardRewardOnce({
         learnerKey,
         event: createRewardEvent({
-          type: REWARD_EVENT_TYPES.QUIZ_PERFECT,
+          type: REWARD_EVENT_TYPES.QUIZ_BASE,
           targetId: quizKey,
           learnerKey: learnerKey || 'legacy-local',
-          metadata: { rewardKey: perfectRewardKey, score, total, pct },
+          metadata: { rewardKey: completionRewardKey, score, total, pct },
         }),
-        legacyRewardKey: perfectRewardKey,
+        legacyRewardKey: completionRewardKey,
         hasRewardBeenAwarded,
         markRewardAwarded,
         awardXP,
-        xpAmount: REWARD_XP.quizPerfect,
-        reason: 'Perfect quiz score!',
+        xpAmount: REWARD_XP.quizComplete,
+        reason: 'Quiz completed',
         markSyncFailed,
         storage: rewardEventStorage,
         backendRewardSyncEnabled,
         backendRewardAward,
       });
+    } catch (err) {
+      markSyncFailed(`quiz reward failed:${quizKey}`);
+      if (import.meta.env.DEV) console.warn('[LearningEngine] quiz reward failed:', err);
+    }
+    let earnedXp = getAwardedXp(completionResult);
+
+    if (pct === 100) {
+      const perfectRewardKey = rewardKeys.quizPerfect(quizKey);
+      let perfectResult = null;
+      try {
+        perfectResult = await awardRewardOnce({
+          learnerKey,
+          event: createRewardEvent({
+            type: REWARD_EVENT_TYPES.QUIZ_PERFECT,
+            targetId: quizKey,
+            learnerKey: learnerKey || 'legacy-local',
+            metadata: { rewardKey: perfectRewardKey, score, total, pct },
+          }),
+          legacyRewardKey: perfectRewardKey,
+          hasRewardBeenAwarded,
+          markRewardAwarded,
+          awardXP,
+          xpAmount: REWARD_XP.quizPerfect,
+          reason: 'Perfect quiz score!',
+          markSyncFailed,
+          storage: rewardEventStorage,
+          backendRewardSyncEnabled,
+          backendRewardAward,
+        });
+      } catch (err) {
+        markSyncFailed(`quiz perfect reward failed:${quizKey}`);
+        if (import.meta.env.DEV) console.warn('[LearningEngine] quiz perfect reward failed:', err);
+      }
       earnedXp += getAwardedXp(perfectResult);
     }
 
@@ -179,25 +191,31 @@ export function createLearningEngine({
     }
 
     const rewardKey = rewardKeys.challengeComplete(challengeId);
-    const rewardResult = await awardRewardOnce({
-      learnerKey,
-      event: createRewardEvent({
-        type: REWARD_EVENT_TYPES.CHALLENGE_COMPLETE,
-        targetId: challengeId,
-        learnerKey: learnerKey || 'legacy-local',
-        metadata: { rewardKey },
-      }),
-      legacyRewardKey: rewardKey,
-      hasRewardBeenAwarded,
-      markRewardAwarded,
-      awardXP,
-      xpAmount: REWARD_XP.challengeComplete,
-      reason: 'Challenge completed',
-      markSyncFailed,
-      storage: rewardEventStorage,
-      backendRewardSyncEnabled,
-      backendRewardAward,
-    });
+    let rewardResult = null;
+    try {
+      rewardResult = await awardRewardOnce({
+        learnerKey,
+        event: createRewardEvent({
+          type: REWARD_EVENT_TYPES.CHALLENGE_COMPLETE,
+          targetId: challengeId,
+          learnerKey: learnerKey || 'legacy-local',
+          metadata: { rewardKey },
+        }),
+        legacyRewardKey: rewardKey,
+        hasRewardBeenAwarded,
+        markRewardAwarded,
+        awardXP,
+        xpAmount: REWARD_XP.challengeComplete,
+        reason: 'Challenge completed',
+        markSyncFailed,
+        storage: rewardEventStorage,
+        backendRewardSyncEnabled,
+        backendRewardAward,
+      });
+    } catch (err) {
+      markSyncFailed(`challenge reward failed:${challengeId}`);
+      if (import.meta.env.DEV) console.warn('[LearningEngine] challenge reward failed:', err);
+    }
 
     if (getAwardedXp(rewardResult) > 0) {
       recordDailyActivity();
