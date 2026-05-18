@@ -71,27 +71,29 @@ export function EditView({
       </section>
 
       {/* ─── Lesson Tabs ─── */}
-      <div className="lb-lesson-tabs">
+      <div className="lb-lesson-tabs" role="tablist">
         {lessons.map((l, i) => (
-          <button
-            key={i}
-            type="button"
-            className={`lb-lesson-tab ${i === activeLessonIdx ? 'active' : ''}`}
-            onClick={() => onSetActiveLessonIdx(i)}
-          >
-            {l.title || `Lesson ${i + 1}`}
+          <div key={i} className="lb-lesson-tab-item">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={i === activeLessonIdx}
+              className={`lb-lesson-tab ${i === activeLessonIdx ? 'active' : ''}`}
+              onClick={() => onSetActiveLessonIdx(i)}
+            >
+              {l.title || `Lesson ${i + 1}`}
+            </button>
             {lessons.length > 1 && (
-              <span
+              <button
+                type="button"
                 className="lb-lesson-tab-x"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemoveLesson(i);
-                }}
+                aria-label={`Remove ${l.title || `Lesson ${i + 1}`}`}
+                onClick={() => onRemoveLesson(i)}
               >
                 ×
-              </span>
+              </button>
             )}
-          </button>
+          </div>
         ))}
         <button type="button" className="lb-lesson-tab lb-add-btn" onClick={onAddLesson}>
           + Add Lesson
