@@ -81,3 +81,66 @@ describe('createRateLimiter()', () => {
     expect(check('user-0')).toBe(true);
   });
 });
+
+import { getSupabaseConfig, sendResponse } from './_shared.js';
+
+describe('getSupabaseConfig()', () => {
+  const origEnv = { ...process.env };
+
+  afterEach(() => {
+    Object.keys(process.env).forEach((k) => { if (!(k in origEnv)) delete process.env[k]; });
+    Object.assign(process.env, origEnv);
+  });
+
+  it('returns url and key from SUPABASE_* vars', () => {
+    process.env.SUPABASE_URL = 'https://test.supabase.co';
+    process.env.SUPABASE_ANON_KEY = 'anon-key';
+    const { url, key } = getSupabaseConfig();
+    expect(url).toBe('https://test.supabase.co');
+    expect(key).toBe('anon-key');
+  });
+
+  it('falls back to VITE_SUPABASE_URL when SUPABASE_URL is absent', () => {
+    delete process.env.SUPABASE_URL;
+    process.env.VITE_SUPABASE_URL = 'https://vite.supabase.co';
+    const { url } = getSupabaseConfig();
+    expect(url).toBe('https://vite.supabase.co');
+  });
+
+  it('falls back to VITE_SUPABASE_ANON_KEY when SUPABASE_ANON_KEY is absent', () => {
+    delete process.env.SUPABASE_ANON_KEY;
+    process.env.VITE_SUPABASE_ANON_KEY = 'vite-anon-key';
+    const { key } = getSupabaseConfig();
+    expect(key).toBe('vite-anon-key');
+  });
+
+  it('returns undefined url and key when env vars are not set', () => {
+    delete process.env.SUPABASE_URL;
+    delete process.env.VITE_SUPABASE_URL;
+    delete process.env.SUPABASE_ANON_KEY;
+    delete process.env.VITE_SUPABASE_ANON_KEY;
+    const { url, key } = getSupabaseConfig();
+    expect(url).toBeUndefined();
+    expect(key).toBeUndefined();
+  });
+});
+
+describe('sendResponse()', () => {
+  it('sets headers and sends the body', () => {
+    const res = { setHeader: vi.fn(), status: vi.fn(), send: vi.fn() };
+    res.status.mockReturnValue(res);
+    const response = { statusCode: 200, headers: { 'X-Foo': 'bar' }, body: '{"ok":true}' };
+    sendResponse(res, response);
+    expect(res.setHeader).toHaveBeenCalledWith('X-Foo', 'bar');
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.send).toHaveBeenCalledWith('{"ok":true}');
+  });
+
+  it('handles an empty headers object', () => {
+    const res = { setHeader: vi.fn(), status: vi.fn(), send: vi.fn() };
+    res.status.mockReturnValue(res);
+    sendResponse(res, { statusCode: 204, headers: {}, body: '' });
+    expect(res.setHeader).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(204);
+  });
+});
