@@ -4,7 +4,7 @@ import {
   resolveStableLessonKey,
 } from '../../utils/lessonKeys';
 
-function computeFunnelStages(course, progress) {
+export function computeFunnelStages(course, progress) {
   const courseProgress = progress.filter((row) => lessonKeyBelongsToCourse(row.lesson_key, course));
   const lessonCountByUser = {};
 
