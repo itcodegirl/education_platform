@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../providers/AuthProvider';
 import { ThemeToggle } from '../layout/ThemeToggle';
 import { LandingHeroIntro } from './LandingHeroIntro';
@@ -13,6 +13,8 @@ const LandingHeroStory = lazy(() =>
 const PASSWORD_MIN_LENGTH = 8;
 const DISPLAY_NAME_MAX_LENGTH = 60;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_SIGN_IN_FAILURES = 5;
+const LOCKOUT_MS = 30_000;
 
 function prefersReducedMotion() {
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
@@ -43,6 +45,9 @@ export function AuthPage({ onPreview }) {
   const [socialLoading, setSocialLoading] = useState('');
   const [sendingReset, setSendingReset] = useState(false);
   const [confirmSent, setConfirmSent] = useState(false);
+  const [signInFailures, setSignInFailures] = useState(0);
+  const [lockedUntil, setLockedUntil] = useState(null);
+  const [lockSecondsLeft, setLockSecondsLeft] = useState(0);
   const authCardRef = useRef(null);
   const emailRef = useRef(null);
   const displayNameRef = useRef(null);
@@ -56,6 +61,23 @@ export function AuthPage({ onPreview }) {
     formStatusRef.current?.focus();
   }, [error]);
 
+  useEffect(() => {
+    if (!lockedUntil) return undefined;
+    const tick = () => {
+      const remaining = Math.ceil((lockedUntil - Date.now()) / 1000);
+      if (remaining <= 0) {
+        setLockedUntil(null);
+        setLockSecondsLeft(0);
+        setSignInFailures(0);
+      } else {
+        setLockSecondsLeft(remaining);
+      }
+    };
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [lockedUntil]);
+
   const focusPrimaryAuthField = (nextMode) => {
     const fieldRef = nextMode === 'signup' ? displayNameRef : emailRef;
     fieldRef.current?.focus();
@@ -66,6 +88,8 @@ export function AuthPage({ onPreview }) {
     setError('');
     setInfo('');
     setTouched({ email: false, password: false, displayName: false });
+    setSignInFailures(0);
+    setLockedUntil(null);
     if (!focusField) return;
     window.requestAnimationFrame(() => {
       focusPrimaryAuthField(nextMode);
@@ -120,6 +144,11 @@ export function AuthPage({ onPreview }) {
     setError('');
     setInfo('');
 
+    if (lockedUntil && Date.now() < lockedUntil) {
+      showFormError(`Too many failed attempts. Please wait ${lockSecondsLeft}s before trying again.`);
+      return;
+    }
+
     if (!authBackendReady) {
       showFormError('Accounts are not connected in this environment. You can still preview the first lesson.');
       return;
@@ -162,7 +191,16 @@ export function AuthPage({ onPreview }) {
       } else {
         const { error: err } = await signIn(normalizedEmail, password);
         if (err) {
-          showFormError(getFriendlyAuthError(err.message, 'Unable to sign in right now.'));
+          const nextFailures = signInFailures + 1;
+          setSignInFailures(nextFailures);
+          if (nextFailures >= MAX_SIGN_IN_FAILURES) {
+            setLockedUntil(Date.now() + LOCKOUT_MS);
+            showFormError(`Too many failed attempts. Please wait ${LOCKOUT_MS / 1000}s before trying again.`);
+          } else {
+            showFormError(getFriendlyAuthError(err.message, 'Unable to sign in right now.'));
+          }
+        } else {
+          setSignInFailures(0);
         }
       }
     } catch {
@@ -254,8 +292,9 @@ export function AuthPage({ onPreview }) {
   const displayNameInlineError = mode === 'signup' && touched.displayName && !displayName.trim()
     ? 'Display name is required.'
     : '';
+  const isLocked = Boolean(lockedUntil && Date.now() < lockedUntil);
   const isAuthBusy = loading || sendingReset || Boolean(socialLoading);
-  const authDisabled = !authBackendReady;
+  const authDisabled = !authBackendReady || isLocked;
 
   if (confirmSent) {
     return (
