@@ -26,13 +26,13 @@ const INITIAL_DASHBOARD_METRICS = {
   reliability30d: {},
 };
 
-function toInt(value) {
+export function toInt(value) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return 0;
   return Math.max(0, Math.round(parsed));
 }
 
-function toTopUsers(value) {
+export function toTopUsers(value) {
   if (!Array.isArray(value)) return [];
   return value
     .filter((row) => row && typeof row === 'object')
@@ -45,7 +45,7 @@ function toTopUsers(value) {
     .slice(0, 10);
 }
 
-function toFunnel(value) {
+export function toFunnel(value) {
   if (!value || typeof value !== 'object') return {};
   return {
     onboardingOpened: toInt(value.onboardingOpened),
@@ -58,7 +58,7 @@ function toFunnel(value) {
   };
 }
 
-function toReliability(value) {
+export function toReliability(value) {
   if (!value || typeof value !== 'object') return {};
   return {
     serviceWorkerEvents: toInt(value.serviceWorkerEvents),
@@ -68,7 +68,7 @@ function toReliability(value) {
   };
 }
 
-function normalizeDashboardMetrics(rawMetrics) {
+export function normalizeDashboardMetrics(rawMetrics) {
   if (!rawMetrics || typeof rawMetrics !== 'object') {
     return INITIAL_DASHBOARD_METRICS;
   }
