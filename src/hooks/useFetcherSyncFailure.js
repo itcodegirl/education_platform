@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-function resolveSyncHandlers(syncHandlers) {
+export function resolveSyncHandlers(syncHandlers) {
   if (typeof syncHandlers === 'function') {
     return {
       markSyncFailed: syncHandlers,
