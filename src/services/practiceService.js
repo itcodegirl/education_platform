@@ -25,11 +25,12 @@ export async function generatePracticeCard({ topic, concept }) {
     body: JSON.stringify({ topic, concept }),
   });
 
-  const data = await response.json().catch(() => ({}));
+  const data = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error(data.error || 'Failed to generate practice card');
+    const msg = typeof data?.error === 'string' ? data.error : 'Failed to generate practice card';
+    throw new Error(msg);
   }
-  if (!data.card) {
+  if (!data?.card) {
     throw new Error('Server returned no card');
   }
   return data.card;

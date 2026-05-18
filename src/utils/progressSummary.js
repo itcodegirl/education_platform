@@ -198,14 +198,14 @@ function roundedRectStroke(doc, x, y, w, h, r) {
   doc.roundedRect(x, y, w, h, r, r, 'S');
 }
 
-function generateSummaryId(name, courseId) {
+export function generateSummaryId(name, courseId) {
   const hash = (name || 'user').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
   const now = Date.now().toString(36).slice(-4).toUpperCase();
   const prefix = courseId?.toUpperCase().slice(0, 3) || 'CHW';
   return `${prefix}-${hash.toString(16).toUpperCase().padStart(4, '0')}-${now}`;
 }
 
-function getSkillsSummary(courseId) {
+export function getSkillsSummary(courseId) {
   switch (courseId) {
     case 'html':
       return 'Skills: Document Structure * Semantic HTML * Forms * Accessibility * SEO';
