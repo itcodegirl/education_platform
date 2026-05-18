@@ -1,4 +1,4 @@
-﻿import { act, render, screen, waitFor } from '@testing-library/react';
+﻿import { act, render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
@@ -39,7 +39,7 @@ function createDeferred() {
 }
 
 function AuthProbe() {
-  const { user, profile, profileError, loading, profileLoading, authBackendReady } = useAuth();
+  const { user, profile, profileError, loading, profileLoading, authBackendReady, signOut, refreshProfile } = useAuth();
 
   return (
     <div>
@@ -49,6 +49,8 @@ function AuthProbe() {
       <div data-testid="profile">{profile?.display_name || 'no-profile'}</div>
       <div data-testid="profile-error">{profileError || 'no-profile-error'}</div>
       <div data-testid="auth-backend">{authBackendReady ? 'connected' : 'disconnected'}</div>
+      <button type="button" onClick={() => signOut()}>Sign out</button>
+      <button type="button" onClick={() => refreshProfile()}>Refresh profile</button>
     </div>
   );
 }
@@ -188,6 +190,54 @@ describe('AuthProvider', () => {
       expect(screen.getByTestId('user')).toHaveTextContent('user-1');
       expect(screen.getByTestId('profile')).toHaveTextContent('no-profile');
       expect(screen.getByTestId('profile-error')).toHaveTextContent('Profile record not found.');
+    });
+  });
+
+  it('re-fetches profile when SIGNED_IN fires for the same user (cross-tab email confirmation)', async () => {
+    mockGetInitialSession.mockResolvedValue({ id: 'user-1' });
+    mockLoadProfile
+      .mockResolvedValueOnce({ display_name: 'Jenna' })
+      .mockResolvedValueOnce({ display_name: 'Jenna Verified' });
+
+    renderAuthProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('loading')).toHaveTextContent('ready');
+      expect(screen.getByTestId('profile')).toHaveTextContent('Jenna');
+    });
+    expect(mockLoadProfile).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      authCallback({ id: 'user-1' }, 'SIGNED_IN');
+    });
+
+    await waitFor(() => {
+      expect(mockLoadProfile).toHaveBeenCalledTimes(2);
+      expect(screen.getByTestId('profile')).toHaveTextContent('Jenna Verified');
+    });
+    expect(mockLoadProfile).toHaveBeenLastCalledWith('user-1');
+  });
+
+  it('clears user and profile state when the user signs out', async () => {
+    mockGetInitialSession.mockResolvedValue({ id: 'user-1' });
+    mockSignOut.mockResolvedValue({ error: null });
+
+    renderAuthProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('loading')).toHaveTextContent('ready');
+      expect(screen.getByTestId('user')).toHaveTextContent('user-1');
+      expect(screen.getByTestId('profile')).toHaveTextContent('Jenna');
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /sign out/i }));
+    });
+
+    await waitFor(() => {
+      expect(mockSignOut).toHaveBeenCalledTimes(1);
+      expect(screen.getByTestId('user')).toHaveTextContent('no-user');
+      expect(screen.getByTestId('profile')).toHaveTextContent('no-profile');
     });
   });
 });
