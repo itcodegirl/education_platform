@@ -232,6 +232,32 @@ describe('AuthPage', () => {
     expect(screen.getByRole('tab', { name: /login/i })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('tabpanel', { name: /login/i })).toBeInTheDocument();
   });
+
+  it('locks the sign-in form for 30s after 5 consecutive failures', async () => {
+    signInMock.mockResolvedValue({ error: { message: 'Invalid login credentials' } });
+    render(<AuthPage onPreview={vi.fn()} />);
+
+    // Switch to login tab
+    fireEvent.click(screen.getByRole('tab', { name: /login/i }));
+
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    const submitBtn = screen.getByRole('button', { name: /sign in/i });
+
+    fireEvent.change(emailInput, { target: { value: 'learner@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'wrongpassword' } });
+
+    // Fire 5 failed sign-in attempts
+    for (let i = 0; i < 5; i++) {
+      fireEvent.click(submitBtn);
+      await waitFor(() => expect(signInMock).toHaveBeenCalledTimes(i + 1));
+    }
+
+    await waitFor(() => {
+      expect(screen.getByText(/too many failed attempts/i)).toBeInTheDocument();
+      expect(submitBtn).toBeDisabled();
+    });
+  });
 });
 
 
