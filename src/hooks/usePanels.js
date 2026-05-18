@@ -10,11 +10,11 @@ import { getLearnerStorageKey, getLegacyStorageKey } from '../utils/learnerStora
 const PANEL_HISTORY_KEY = 'chwPanel';
 const LEGACY_PANEL_HISTORY_KEY = 'cinovaPanel';
 
-function getPanelFromHistoryState(state) {
+export function getPanelFromHistoryState(state) {
   return state?.[PANEL_HISTORY_KEY] || state?.[LEGACY_PANEL_HISTORY_KEY] || null;
 }
 
-function parseStoredBoolean(rawValue) {
+export function parseStoredBoolean(rawValue) {
   if (rawValue === null || rawValue === undefined) return false;
 
   try {

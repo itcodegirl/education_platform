@@ -16,12 +16,12 @@ const FILTERS = [
   { id: REVIEW_STATUS.complete, label: 'Complete' },
 ];
 
-function pct(part, total) {
+export function pct(part, total) {
   if (!total) return 0;
   return Math.round((part / total) * 100);
 }
 
-function filterRows(rows, filter) {
+export function filterRows(rows, filter) {
   if (filter === 'all') return rows;
   return rows.filter((row) => row.status === filter);
 }

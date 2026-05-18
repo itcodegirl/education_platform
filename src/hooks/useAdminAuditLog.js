@@ -11,10 +11,15 @@ const INITIAL_STATE = {
   error: null,
 };
 
-function normalizePayload(rawPayload) {
-  const payload = typeof rawPayload === 'string'
-    ? JSON.parse(rawPayload)
-    : rawPayload;
+export function normalizePayload(rawPayload) {
+  let payload = rawPayload;
+  if (typeof rawPayload === 'string') {
+    try {
+      payload = JSON.parse(rawPayload);
+    } catch {
+      payload = null;
+    }
+  }
   const rows = Array.isArray(payload?.rows) ? payload.rows : [];
 
   return {

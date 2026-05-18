@@ -39,7 +39,7 @@ function resolveLessonKey(rawLessonKey) {
   return { lessonKey, candidateKeys };
 }
 
-function resolveBooleanMode(mode, truthyValue, falseyValue) {
+export function resolveBooleanMode(mode, truthyValue, falseyValue) {
   if (mode === truthyValue) return true;
   if (mode === falseyValue) return false;
   return undefined;
