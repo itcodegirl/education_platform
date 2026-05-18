@@ -5,6 +5,10 @@ import { getOptionalSupabaseBrowserConfig } from '../lib/supabaseConfig';
 
 let supabaseClientPromise = null;
 
+function getRedirectOrigin() {
+  return typeof window !== 'undefined' ? getRedirectOrigin() : '';
+}
+
 async function getSupabaseClient() {
   if (!supabaseClientPromise) {
     supabaseClientPromise = import('../lib/lazySupabaseClient')
@@ -96,7 +100,7 @@ export async function resendSignupConfirmation(email) {
   const { data, error } = await supabase.auth.resend({
     type: 'signup',
     email,
-    options: { emailRedirectTo: window.location.origin },
+    options: { emailRedirectTo: getRedirectOrigin() },
   });
   return { data, error };
 }
@@ -105,7 +109,7 @@ export async function signInWithGithub() {
   const supabase = await getSupabaseClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'github',
-    options: { redirectTo: window.location.origin },
+    options: { redirectTo: getRedirectOrigin() },
   });
   return { data, error };
 }
@@ -114,7 +118,7 @@ export async function signInWithGoogle() {
   const supabase = await getSupabaseClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin },
+    options: { redirectTo: getRedirectOrigin() },
   });
   return { data, error };
 }
@@ -122,7 +126,7 @@ export async function signInWithGoogle() {
 export async function requestPasswordReset(email) {
   const supabase = await getSupabaseClient();
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin,
+    redirectTo: getRedirectOrigin(),
   });
   return { data, error };
 }
