@@ -46,3 +46,37 @@ describe('verifyWebhookAuth()', () => {
     expect(verifyWebhookAuth(body, SECRET, correctSig, 'wrong-plain')).toBe(true);
   });
 });
+
+
+// ─── buildStreakReminderHtml ──────────────────────────────────────────────────
+
+import { buildStreakReminderHtml } from './streak-reminder.js';
+
+describe('buildStreakReminderHtml()', () => {
+  it('includes the learner name in the output', () => {
+    const html = buildStreakReminderHtml({ name: 'Jenna', streakDays: 7 });
+    expect(html).toContain('Jenna');
+  });
+
+  it('includes the streak day count', () => {
+    const html = buildStreakReminderHtml({ name: 'Jenna', streakDays: 12 });
+    expect(html).toContain('12');
+  });
+
+  it('starts with a valid HTML doctype declaration', () => {
+    const html = buildStreakReminderHtml({ name: 'Anyone', streakDays: 3 });
+    expect(html.trimStart()).toMatch(/^<!DOCTYPE html>/i);
+  });
+
+  it('contains a call-to-action link to codeherway.com', () => {
+    const html = buildStreakReminderHtml({ name: 'Anyone', streakDays: 3 });
+    expect(html).toContain('codeherway.com');
+  });
+
+  it('reflects different streak lengths correctly', () => {
+    const html3 = buildStreakReminderHtml({ name: 'Ali', streakDays: 3 });
+    const html30 = buildStreakReminderHtml({ name: 'Ali', streakDays: 30 });
+    expect(html3).toContain('3-day streak');
+    expect(html30).toContain('30-day streak');
+  });
+});
