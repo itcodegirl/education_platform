@@ -506,7 +506,7 @@ export function ProgressProvider({ children }) {
     if (!skipRemote) {
       const write = createProgressWrite('updateXP', { total: newTotal });
       xpWriteChainRef.current = xpWriteChainRef.current
-        .catch(() => {})
+        .catch((err) => { if (import.meta.env.DEV) console.error('[XP] write chain error:', err); })
         .then(() => dbWrite(write, 'updateXP'));
       await xpWriteChainRef.current;
     }
