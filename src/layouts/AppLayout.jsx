@@ -60,6 +60,7 @@ import { DailyLearningLoop } from "../components/layout/DailyLearningLoop";
 import { ResumeNextPanel } from "../components/layout/ResumeNextPanel";
 
 // Learning components
+import { ErrorBoundary } from "../components/shared/ErrorBoundary";
 import { LessonView } from "../components/learning/LessonView";
 import { QuizView } from "../components/learning/QuizView";
 
@@ -531,7 +532,7 @@ export function AppLayout() {
         hasCompletedProgress={hasCompletedProgress}
       />
 
-      <main className="main-shell" ref={mainRef} id="main-content" tabIndex={-1}>
+      <main className="main-shell" ref={mainRef} id="main-content" tabIndex={-1} inert={isMobile && panels.sidebar ? true : undefined}>
         <LessonShellTopbar
           isMobile={isMobile}
           sidebarCollapsed={sidebarCollapsed}
@@ -605,20 +606,32 @@ export function AppLayout() {
                 recommendation={resumeRecommendation}
                 onAction={handleResumeRecommendation}
               />
-              <LessonView
-                lesson={les}
-                emoji={mod.emoji}
-                lang={course.id}
-                lessonKey={lessonKey}
-                courseId={course.id}
-                moduleId={mod.id}
-                moduleTitle={mod.title}
-                nextTitle={nextTitle}
-                isLessonDone={isDone}
-                masteryStatus={lessonMasteryStatus}
-                syncStatus={syncStatus}
-                onOpenChallenge={handleOpenLessonChallenge}
-              />
+              <ErrorBoundary
+                resetKeys={[lessonKey]}
+                fallback={({ retry }) => (
+                  <div className="lesson-error-fallback" role="alert">
+                    <p>This lesson hit a display error. Your progress is safe.</p>
+                    <button type="button" className="ui-btn ui-btn-secondary ui-btn-compact" onClick={retry}>
+                      Reload lesson
+                    </button>
+                  </div>
+                )}
+              >
+                <LessonView
+                  lesson={les}
+                  emoji={mod.emoji}
+                  lang={course.id}
+                  lessonKey={lessonKey}
+                  courseId={course.id}
+                  moduleId={mod.id}
+                  moduleTitle={mod.title}
+                  nextTitle={nextTitle}
+                  isLessonDone={isDone}
+                  masteryStatus={lessonMasteryStatus}
+                  syncStatus={syncStatus}
+                  onOpenChallenge={handleOpenLessonChallenge}
+                />
+              </ErrorBoundary>
               {lessonQuiz && (
                 // Wrapped in a labeled <section> so the lesson quiz
                 // reads as a distinct checkpoint, not a competing CTA

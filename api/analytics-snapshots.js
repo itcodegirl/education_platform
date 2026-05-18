@@ -4,7 +4,7 @@ const DEFAULT_DAYS = 30;
 const MIN_DAYS = 1;
 const MAX_DAYS = 180;
 
-function parseDays(value) {
+export function parseDays(value) {
   const raw = Number.parseInt(String(value ?? ''), 10);
   if (!Number.isFinite(raw)) return DEFAULT_DAYS;
   return Math.min(MAX_DAYS, Math.max(MIN_DAYS, raw));

@@ -41,7 +41,7 @@ export function onAuthStateChange(callback) {
       if (unsubscribed) return;
 
       const { data: { subscription: nextSubscription } } = supabase.auth.onAuthStateChange(
-        (_event, session) => callback(session?.user ?? null),
+        (event, session) => callback(session?.user ?? null, event),
       );
 
       activeSubscription = nextSubscription;

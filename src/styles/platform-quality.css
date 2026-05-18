@@ -2656,6 +2656,33 @@ img {
   color: var(--text);
 }
 
+.verify-resend {
+  background: none;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  color: inherit;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 8px;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.verify-resend:hover:not(:disabled) {
+  opacity: 1;
+}
+
+.verify-resend:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.verify-resend-error {
+  font-size: 12px;
+  color: var(--color-error, #d32f2f);
+  flex-shrink: 0;
+}
+
 /* ═══════════════════════════════════════════════
    LESSON FEEDBACK
    ═══════════════════════════════════════════════ */

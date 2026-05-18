@@ -446,10 +446,14 @@ export function writeProgressWriteQueue(userId, items, options = {}) {
     return [];
   }
 
-  storage.setItem(
-    getProgressWriteQueueStorageKey(userId),
-    JSON.stringify(normalizedItems),
-  );
+  try {
+    storage.setItem(
+      getProgressWriteQueueStorageKey(userId),
+      JSON.stringify(normalizedItems),
+    );
+  } catch (err) {
+    throw new Error(`Progress write queue storage full: ${err.message}`);
+  }
   return normalizedItems;
 }
 

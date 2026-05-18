@@ -349,7 +349,7 @@ export const Sidebar = memo(function Sidebar({
         aria-modal={isMobile && isOpen ? 'true' : undefined}
         aria-label={isMobile && isOpen ? 'Course navigation' : undefined}
         aria-hidden={isMobile ? !isOpen : undefined}
-        inert={isMobile && !isOpen ? '' : undefined}
+        inert={isMobile && !isOpen ? true : undefined}
         tabIndex={isMobile ? -1 : undefined}
       >
       <nav
@@ -357,7 +357,7 @@ export const Sidebar = memo(function Sidebar({
         className={`sidebar ${isOpen ? 'open' : ''} ${!isMobile && isCollapsed ? 'collapsed' : ''}`}
         aria-label="Course navigation"
         aria-hidden={isNavInteractionHidden ? 'true' : undefined}
-        inert={isNavInteractionHidden ? '' : undefined}
+        inert={isNavInteractionHidden ? true : undefined}
       >
         {/* ─── Brand + Avatar row ─── */}
         <header className="sidebar-head">

@@ -3,7 +3,7 @@
 // Shows friendly fallback with retry option
 // ===============================================
 
-import { Component } from 'react';
+import { Component, createRef } from 'react';
 import { reportException } from '../../lib/sentry';
 
 export function didResetKeysChange(prevResetKeys = [], resetKeys = []) {
@@ -20,6 +20,7 @@ export class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
     this.state = { hasError: false, error: null };
+    this.headingRef = createRef();
   }
 
   static getDerivedStateFromError(error) {
@@ -37,7 +38,10 @@ export class ErrorBoundary extends Component {
     }
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps, prevState) {
+    if (!prevState.hasError && this.state.hasError) {
+      this.headingRef.current?.focus();
+    }
     if (this.state.hasError && didResetKeysChange(prevProps.resetKeys, this.props.resetKeys)) {
       this.handleRetry();
     }
@@ -65,7 +69,7 @@ export class ErrorBoundary extends Component {
         <div className="eb-screen">
           <div className="eb-card">
             <span className="eb-icon" aria-hidden="true">⚠︎</span>
-            <h2 className="eb-title">We hit a temporary snag</h2>
+            <h2 className="eb-title" ref={this.headingRef} tabIndex={-1}>We hit a temporary snag</h2>
             <p className="eb-msg">
               Your learning screen could not finish loading. Your local progress is still kept where possible.
             </p>

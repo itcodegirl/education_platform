@@ -18,7 +18,7 @@
 import { json, sendResponse } from './_shared.js';
 import { createHmac, timingSafeEqual } from 'crypto';
 
-function verifyWebhookAuth(body, secret, sig, plain) {
+export function verifyWebhookAuth(body, secret, sig, plain) {
   if (!secret) return false;
   if (sig) {
     const expected = createHmac('sha256', secret).update(body).digest('hex');

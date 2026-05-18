@@ -101,13 +101,17 @@ export function AuthProvider({ children }) {
     const requestId = authInitRequestRef.current + 1;
     authInitRequestRef.current = requestId;
 
-    const applyAuthUser = (nextUser, { markInitialized = false } = {}) => {
+    const applyAuthUser = (nextUser, { markInitialized = false, event = null } = {}) => {
       if (!active || authInitRequestRef.current !== requestId) return;
       const userChanged = nextUser?.id !== currentUserIdRef.current;
       currentUserIdRef.current = nextUser?.id ?? null;
       setUser(nextUser);
       if (userChanged) {
         void handleLoadProfile(nextUser?.id);
+      } else if (event === 'SIGNED_IN' && nextUser?.id) {
+        // Cross-tab email confirmation fires SIGNED_IN with the same user ID.
+        // Re-fetch profile so email_confirmed_at and any profileError are refreshed.
+        void handleLoadProfile(nextUser.id);
       }
       if (markInitialized || initialSessionResolved) {
         setLoading(false);
@@ -121,8 +125,8 @@ export function AuthProvider({ children }) {
         const authService = await loadAuthService();
         if (!active || authInitRequestRef.current !== requestId) return;
 
-        subscription = authService.onAuthStateChange((nextUser) => {
-          applyAuthUser(nextUser);
+        subscription = authService.onAuthStateChange((nextUser, event) => {
+          applyAuthUser(nextUser, { event });
         });
 
         const nextUser = await authService.getInitialSession();
@@ -131,7 +135,7 @@ export function AuthProvider({ children }) {
       } catch (err) {
         if (!active || authInitRequestRef.current !== requestId) return;
         initialSessionResolved = true;
-        console.error('Auth session error:', err?.message ?? String(err));
+        if (import.meta.env.DEV) console.error('Auth session error:', err?.message ?? String(err));
         applyAuthUser(null, { markInitialized: true });
       } finally {
         initialSessionResolved = true;
