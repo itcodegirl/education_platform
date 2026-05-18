@@ -31,7 +31,7 @@ export function verifyWebhookAuth(body, secret, sig, plain) {
   return plain === secret;
 }
 
-function buildStreakReminderHtml({ name, streakDays }) {
+export function buildStreakReminderHtml({ name, streakDays }) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>

@@ -189,3 +189,140 @@ describe('content quality report', () => {
     expect(csv).toContain('"Misconception quiz item","Ask learners to choose the bug."');
   });
 });
+
+
+// ─── getLessonQualityStatus (direct signal tests) ─────────────────────────────
+
+import { getLessonQualityStatus } from './contentQualityReport';
+
+describe('getLessonQualityStatus — objective signal', () => {
+  it('present when hook.accomplishments is a non-empty array', () => {
+    expect(getLessonQualityStatus({ hook: { accomplishments: ['Build a nav'] } }).objective).toBe(true);
+  });
+
+  it('present when learningFrame.learn is a non-empty string', () => {
+    expect(getLessonQualityStatus({ learningFrame: { learn: 'Use flexbox' } }).objective).toBe(true);
+  });
+
+  it('present when build.goal is a non-empty string', () => {
+    expect(getLessonQualityStatus({ build: { goal: 'Style a card' } }).objective).toBe(true);
+  });
+
+  it('absent when none of the objective fields exist', () => {
+    expect(getLessonQualityStatus({}).objective).toBe(false);
+  });
+});
+
+describe('getLessonQualityStatus — misconceptionCheck signal', () => {
+  it('present when understand.commonMistakes is a non-empty array', () => {
+    expect(getLessonQualityStatus({ understand: { commonMistakes: ['Forgetting to close tags'] } }).misconceptionCheck).toBe(true);
+  });
+
+  it('present when lesson.commonMistakes is a non-empty array', () => {
+    expect(getLessonQualityStatus({ commonMistakes: ['Off-by-one'] }).misconceptionCheck).toBe(true);
+  });
+
+  it('present when task or concept text contains a trigger keyword', () => {
+    expect(getLessonQualityStatus({ tasks: ['Watch out for this common mistake'] }).misconceptionCheck).toBe(true);
+    expect(getLessonQualityStatus({ content: 'Avoid this common error in your code' }).misconceptionCheck).toBe(true);
+  });
+
+  it('absent when no misconception signals exist', () => {
+    expect(getLessonQualityStatus({ tasks: ['Build a form'] }).misconceptionCheck).toBe(false);
+  });
+});
+
+describe('getLessonQualityStatus — retrievalPrompt signal', () => {
+  it('present when learningFrame.check is a non-empty string', () => {
+    expect(getLessonQualityStatus({ learningFrame: { check: 'What does flex do?' } }).retrievalPrompt).toBe(true);
+  });
+
+  it('present when task text contains a recall trigger word', () => {
+    expect(getLessonQualityStatus({ tasks: ['Try to recall the three box model layers'] }).retrievalPrompt).toBe(true);
+    expect(getLessonQualityStatus({ tasks: ['Explain what display:flex does without looking'] }).retrievalPrompt).toBe(true);
+  });
+
+  it('absent when no retrieval signals exist', () => {
+    expect(getLessonQualityStatus({ tasks: ['Build a card component'] }).retrievalPrompt).toBe(false);
+  });
+});
+
+describe('getLessonQualityStatus — guidedPractice signal', () => {
+  it('present when lesson.code is a non-empty string', () => {
+    expect(getLessonQualityStatus({ code: '.box { display: flex; }' }).guidedPractice).toBe(true);
+  });
+
+  it('present when do.steps is a non-empty array', () => {
+    expect(getLessonQualityStatus({ do: { steps: ['Step 1', 'Step 2'] } }).guidedPractice).toBe(true);
+  });
+
+  it('present when do.code is a non-empty string', () => {
+    expect(getLessonQualityStatus({ do: { code: 'const x = 1;' } }).guidedPractice).toBe(true);
+  });
+
+  it('absent when no guided practice fields exist', () => {
+    expect(getLessonQualityStatus({}).guidedPractice).toBe(false);
+  });
+});
+
+describe('getLessonQualityStatus — independentPractice signal', () => {
+  it('present when challenge is a non-empty string', () => {
+    expect(getLessonQualityStatus({ challenge: 'Build a nav from scratch' }).independentPractice).toBe(true);
+  });
+
+  it('present when challenge.mission is a non-empty string', () => {
+    expect(getLessonQualityStatus({ challenge: { mission: 'Style a button' } }).independentPractice).toBe(true);
+  });
+
+  it('present when challenge.requirements is a non-empty array', () => {
+    expect(getLessonQualityStatus({ challenge: { requirements: ['Must use flexbox'] } }).independentPractice).toBe(true);
+  });
+
+  it('present when build.goal is a non-empty string', () => {
+    expect(getLessonQualityStatus({ build: { goal: 'Build a card' } }).independentPractice).toBe(true);
+  });
+
+  it('present when do.steps is a non-empty array', () => {
+    expect(getLessonQualityStatus({ do: { steps: ['Do this'] } }).independentPractice).toBe(true);
+  });
+
+  it('absent when no practice fields exist', () => {
+    expect(getLessonQualityStatus({}).independentPractice).toBe(false);
+  });
+});
+
+describe('getLessonQualityStatus — transfer signal', () => {
+  it('present when bridge.preview is a non-empty string', () => {
+    expect(getLessonQualityStatus({ bridge: { preview: 'Next lesson: animations' } }).transfer).toBe(true);
+  });
+
+  it('present when learningFrame.next is a non-empty string', () => {
+    expect(getLessonQualityStatus({ learningFrame: { next: 'Use this in your portfolio' } }).transfer).toBe(true);
+  });
+
+  it('present when task text contains a transfer keyword', () => {
+    expect(getLessonQualityStatus({ tasks: ['Apply this to your portfolio project'] }).transfer).toBe(true);
+    expect(getLessonQualityStatus({ tasks: ['This is a real-world pattern'] }).transfer).toBe(true);
+  });
+
+  it('absent when no transfer signals exist', () => {
+    expect(getLessonQualityStatus({ tasks: ['Complete the quiz'] }).transfer).toBe(false);
+  });
+});
+
+describe('getLessonQualityStatus — null/undefined lesson', () => {
+  it('returns all-false for an empty object', () => {
+    const status = getLessonQualityStatus({});
+    expect(Object.values(status).every((v) => v === false)).toBe(true);
+  });
+
+  it('returns all-false for null without throwing', () => {
+    const status = getLessonQualityStatus(null);
+    expect(Object.values(status).every((v) => v === false)).toBe(true);
+  });
+
+  it('returns all-false for undefined without throwing', () => {
+    const status = getLessonQualityStatus(undefined);
+    expect(Object.values(status).every((v) => v === false)).toBe(true);
+  });
+});
