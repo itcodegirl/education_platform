@@ -121,7 +121,7 @@ function hasPracticePrompt(lesson) {
   );
 }
 
-function getLessonQualityStatus(lesson) {
+export function getLessonQualityStatus(lesson) {
   const taskText = [
     ...(Array.isArray(lesson?.tasks) ? lesson.tasks : []),
     ...(Array.isArray(lesson?.do?.steps) ? lesson.do.steps : []),

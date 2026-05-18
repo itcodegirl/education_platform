@@ -505,7 +505,7 @@ function CurriculumCoverageSection({ report, csvHref }) {
   );
 }
 
-function matchesQualityFilters(row, filters, fallbackType = '') {
+export function matchesQualityFilters(row, filters, fallbackType = '') {
   const rowType = row.type || fallbackType;
   if (filters.courseId !== 'all' && row.courseId !== filters.courseId) return false;
   if (filters.type !== 'all' && rowType !== filters.type) return false;
