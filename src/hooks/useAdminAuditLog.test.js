@@ -64,4 +64,10 @@ describe('normalizePayload', () => {
     const result = normalizePayload({ rows: 'invalid', total: 0 });
     expect(result.rows).toEqual([]);
   });
+
+  it('handles malformed JSON string without throwing', () => {
+    expect(() => normalizePayload('{not valid json')).not.toThrow();
+    const result = normalizePayload('{not valid json');
+    expect(result.rows).toEqual([]);
+  });
 });
