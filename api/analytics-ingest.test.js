@@ -9,9 +9,10 @@ import {
 
 // ─── handleRequest mocks ──────────────────────────────────────────────────────
 
-const { mockVerifyActiveUser, mockGetSupabaseConfig } = vi.hoisted(() => ({
+const { mockVerifyActiveUser, mockGetSupabaseConfig, mockCheckRateLimit } = vi.hoisted(() => ({
   mockVerifyActiveUser: vi.fn(),
   mockGetSupabaseConfig: vi.fn(),
+  mockCheckRateLimit: vi.fn().mockReturnValue(true),
 }));
 
 vi.mock('./_shared.js', async (importOriginal) => {
@@ -20,6 +21,8 @@ vi.mock('./_shared.js', async (importOriginal) => {
     ...actual,
     verifyActiveUser: mockVerifyActiveUser,
     getSupabaseConfig: mockGetSupabaseConfig,
+    // Return the mock check fn regardless of window/limit args so tests can control it
+    createRateLimiter: () => mockCheckRateLimit,
   };
 });
 
@@ -182,6 +185,7 @@ describe('handleRequest()', () => {
   beforeEach(() => {
     mockVerifyActiveUser.mockResolvedValue({ id: 'user-123' });
     mockGetSupabaseConfig.mockReturnValue({ url: 'https://db.test', key: 'svc-key' });
+    mockCheckRateLimit.mockReturnValue(true);
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 202 }));
   });
 
@@ -199,6 +203,12 @@ describe('handleRequest()', () => {
     const res = await handleRequest(makeEvent({ headers: {} }));
     expect(res.statusCode).toBe(401);
     expect(JSON.parse(res.body).error).toMatch(/authentication required/i);
+  });
+
+  it('returns 429 when the per-user rate limit is exceeded', async () => {
+    mockCheckRateLimit.mockReturnValueOnce(false);
+    const res = await handleRequest(makeEvent());
+    expect(res.statusCode).toBe(429);
   });
 
   it('returns 401 when verifyActiveUser returns null (invalid token)', async () => {

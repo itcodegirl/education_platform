@@ -1,4 +1,8 @@
-import { getSupabaseConfig, json, sendResponse, verifyActiveUser } from './_shared.js';
+import { getSupabaseConfig, json, sendResponse, verifyActiveUser, createRateLimiter } from './_shared.js';
+
+const WINDOW_MS = 60_000;
+const MAX_REQUESTS_PER_MIN = 100;
+const checkRateLimit = createRateLimiter(WINDOW_MS, MAX_REQUESTS_PER_MIN);
 
 const MAX_BATCH_SIZE = 50;
 const MAX_EVENT_NAME_CHARS = 80;
@@ -59,6 +63,10 @@ export async function handleRequest(event) {
   const user = await verifyActiveUser(token);
   if (!user?.id) {
     return json(401, { error: 'Invalid or expired session' });
+  }
+
+  if (!checkRateLimit(user.id)) {
+    return json(429, { error: 'Too many requests. Please wait a moment.' });
   }
 
   let events = [];

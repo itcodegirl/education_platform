@@ -31,6 +31,36 @@ export function verifyWebhookAuth(body, secret, sig, plain) {
   return plain === secret;
 }
 
+function buildStreakReminderHtml({ name, streakDays }) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0f0f0f;font-family:system-ui,sans-serif;color:#f0f0f0">
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:40px auto;padding:0 16px">
+    <tr><td>
+      <div style="background:#1a1a2e;border-radius:12px;padding:40px 32px;text-align:center">
+        <div style="font-size:48px;margin-bottom:8px">🔥</div>
+        <h1 style="margin:0 0 8px;font-size:24px;color:#fff">Don't break your streak, ${name}!</h1>
+        <p style="margin:0 0 24px;color:#aaa;font-size:16px">
+          You're on a <strong style="color:#ff6b35">${streakDays}-day streak</strong>.
+          Complete one lesson today to keep it going.
+        </p>
+        <a href="https://codeherway.com"
+           style="display:inline-block;background:#7c3aed;color:#fff;text-decoration:none;
+                  padding:14px 32px;border-radius:8px;font-weight:600;font-size:16px">
+          Continue Learning →
+        </a>
+        <p style="margin:32px 0 0;color:#666;font-size:13px">
+          You're receiving this because you have an active streak on CodeHerWay.<br>
+          <a href="https://codeherway.com/profile" style="color:#7c3aed">Manage notifications</a>
+        </p>
+      </div>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
 // Disable Vercel's body parser so we can read the raw body for HMAC verification.
 export const config = { api: { bodyParser: false } };
 
@@ -135,19 +165,46 @@ export default async function handler(req, res) {
       `[streak-reminder] ${reminders.length} users at risk of losing their streak`,
     );
 
-    // --- Email sending (uncomment when provider is configured) ---
-    //
-    // const RESEND_API_KEY = process.env.RESEND_API_KEY;
-    // if (RESEND_API_KEY) {
-    //   for (const r of reminders) {
-    //     if (!r.email) continue;
-    //     await fetch('https://api.resend.com/emails', { ... });
-    //   }
-    // }
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    const FROM_ADDRESS = process.env.STREAK_REMINDER_FROM || 'CodeHerWay <hello@codeherway.com>';
+    let emailsSent = 0;
+    let emailErrors = 0;
+
+    if (RESEND_API_KEY) {
+      for (const r of reminders) {
+        if (!r.email) continue;
+        try {
+          const emailRes = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${RESEND_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: FROM_ADDRESS,
+              to: r.email,
+              subject: `🔥 Keep your ${r.streakDays}-day streak alive, ${r.name}!`,
+              html: buildStreakReminderHtml(r),
+            }),
+          });
+          if (emailRes.ok) {
+            emailsSent++;
+          } else {
+            emailErrors++;
+            console.error(`[streak-reminder] Failed to send to ${r.email}: ${emailRes.status}`);
+          }
+        } catch (emailErr) {
+          emailErrors++;
+          console.error(`[streak-reminder] Error sending to ${r.email}:`, emailErr);
+        }
+      }
+      console.log(`[streak-reminder] Emails: ${emailsSent} sent, ${emailErrors} errors`);
+    }
 
     sendResponse(res, json(200, {
       message: `Found ${reminders.length} at-risk users`,
       count: reminders.length,
+      emailsSent,
     }));
   } catch (error) {
     console.error('[streak-reminder] Error:', error);
