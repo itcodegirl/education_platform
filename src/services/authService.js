@@ -6,7 +6,7 @@ import { getOptionalSupabaseBrowserConfig } from '../lib/supabaseConfig';
 let supabaseClientPromise = null;
 
 function getRedirectOrigin() {
-  return typeof window !== 'undefined' ? getRedirectOrigin() : '';
+  return typeof window !== 'undefined' ? window.location.origin : '';
 }
 
 async function getSupabaseClient() {
