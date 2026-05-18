@@ -117,3 +117,154 @@ describe('extractJson()', () => {
     expect(extractJson(undefined)).toBeNull();
   });
 });
+
+
+// ─── handleRequest ────────────────────────────────────────────────────────────
+
+import { handleRequest } from './practice-generate.js';
+
+const { mockVerifyActiveUser, mockConsumeQuotaPersistent, mockCheckRateLimit } = vi.hoisted(() => ({
+  mockVerifyActiveUser: vi.fn(),
+  mockConsumeQuotaPersistent: vi.fn(),
+  mockCheckRateLimit: vi.fn().mockReturnValue(true),
+}));
+
+vi.mock('./_shared.js', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    verifyActiveUser: mockVerifyActiveUser,
+    consumeQuotaPersistent: mockConsumeQuotaPersistent,
+    createRateLimiter: () => mockCheckRateLimit,
+  };
+});
+
+const mockFetch = vi.fn();
+vi.stubGlobal('fetch', mockFetch);
+
+const VERIFIED_USER = {
+  id: 'u1',
+  email: 'a@b.com',
+  email_confirmed_at: '2026-01-01',
+  confirmed_at: null,
+};
+
+const VALID_RESPONSE_CARD = {
+  question: 'What does display: flex do?',
+  options: ['Creates a flex container', 'Hides the element', 'Adds a border', 'Centers text'],
+  correct: 0,
+  explanation: 'Setting display to flex makes the element a flex container.',
+  code: null,
+};
+
+function makeEvent(overrides = {}) {
+  return {
+    httpMethod: 'POST',
+    headers: { authorization: 'Bearer tok' },
+    body: JSON.stringify({ topic: 'css', concept: 'flexbox' }),
+    ...overrides,
+  };
+}
+
+function openAIOk(card) {
+  return {
+    ok: true,
+    status: 200,
+    json: () => Promise.resolve({ output_text: JSON.stringify(card) }),
+  };
+}
+
+import { beforeEach, vi } from 'vitest';
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mockCheckRateLimit.mockReturnValue(true);
+  mockVerifyActiveUser.mockResolvedValue(VERIFIED_USER);
+  mockConsumeQuotaPersistent.mockResolvedValue(true);
+  process.env.OPENAI_API_KEY = 'test-key';
+  mockFetch.mockResolvedValue(openAIOk(VALID_RESPONSE_CARD));
+});
+
+describe('handleRequest (practice-generate)', () => {
+  it('returns 405 for non-POST requests', async () => {
+    const res = await handleRequest(makeEvent({ httpMethod: 'GET' }));
+    expect(res.statusCode).toBe(405);
+  });
+
+  it('returns 500 when OPENAI_API_KEY is absent', async () => {
+    delete process.env.OPENAI_API_KEY;
+    const res = await handleRequest(makeEvent());
+    expect(res.statusCode).toBe(500);
+  });
+
+  it('returns 401 when auth header is missing', async () => {
+    const res = await handleRequest(makeEvent({ headers: {} }));
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('returns 401 when verifyActiveUser returns null', async () => {
+    mockVerifyActiveUser.mockResolvedValue(null);
+    const res = await handleRequest(makeEvent());
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('returns 403 when email is not confirmed', async () => {
+    mockVerifyActiveUser.mockResolvedValue({ id: 'u1', email_confirmed_at: null, confirmed_at: null });
+    const res = await handleRequest(makeEvent());
+    expect(res.statusCode).toBe(403);
+  });
+
+  it('returns 429 when rate limit is hit', async () => {
+    mockCheckRateLimit.mockReturnValue(false);
+    const res = await handleRequest(makeEvent());
+    expect(res.statusCode).toBe(429);
+  });
+
+  it('returns 429 when quota is exhausted', async () => {
+    mockConsumeQuotaPersistent.mockResolvedValue(false);
+    const res = await handleRequest(makeEvent());
+    expect(res.statusCode).toBe(429);
+  });
+
+  it('returns 503 when quota service is unavailable', async () => {
+    mockConsumeQuotaPersistent.mockResolvedValue(null);
+    const res = await handleRequest(makeEvent());
+    expect(res.statusCode).toBe(503);
+  });
+
+  it('returns 400 for an unrecognised topic', async () => {
+    const res = await handleRequest(makeEvent({ body: JSON.stringify({ topic: 'python', concept: 'loops' }) }));
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.body).error).toContain('Topic must be');
+  });
+
+  it('returns 400 when concept is missing', async () => {
+    const res = await handleRequest(makeEvent({ body: JSON.stringify({ topic: 'css', concept: '' }) }));
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.body).error).toContain('Concept');
+  });
+
+  it('returns 200 with a valid card on the happy path', async () => {
+    const res = await handleRequest(makeEvent());
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.card.question).toBe(VALID_RESPONSE_CARD.question);
+    expect(body.card.source).toContain('CSS');
+  });
+
+  it('returns 502 when the model returns an invalid card shape', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({ output_text: '{"question":"refused","options":["","","",""],"correct":0,"explanation":"off-topic"}' }),
+    });
+    const res = await handleRequest(makeEvent());
+    expect(res.statusCode).toBe(502);
+  });
+
+  it('returns 502 when OpenAI call throws', async () => {
+    mockFetch.mockRejectedValue(new Error('network down'));
+    const res = await handleRequest(makeEvent());
+    expect(res.statusCode).toBe(502);
+  });
+});

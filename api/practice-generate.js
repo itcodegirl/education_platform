@@ -69,7 +69,7 @@ export function extractJson(text) {
   }
 }
 
-async function handleRequest(event) {
+export async function handleRequest(event) {
   if (event.httpMethod !== 'POST') {
     return json(405, { error: 'Method not allowed' });
   }
