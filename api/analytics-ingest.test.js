@@ -4,7 +4,24 @@ import {
   toSafeTimestamp,
   toSafePayload,
   toInsertRow,
+  handleRequest,
 } from './analytics-ingest.js';
+
+// ─── handleRequest mocks ──────────────────────────────────────────────────────
+
+const { mockVerifyActiveUser, mockGetSupabaseConfig } = vi.hoisted(() => ({
+  mockVerifyActiveUser: vi.fn(),
+  mockGetSupabaseConfig: vi.fn(),
+}));
+
+vi.mock('./_shared.js', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    verifyActiveUser: mockVerifyActiveUser,
+    getSupabaseConfig: mockGetSupabaseConfig,
+  };
+});
 
 // ─── toSafeText ───────────────────────────────────────────────────────────────
 
@@ -144,5 +161,107 @@ describe('toInsertRow()', () => {
   it('passes a valid payload object through', () => {
     const row = toInsertRow({ name: 'test', payload: { lessonId: 'abc' } }, 'uid');
     expect(row.payload).toEqual({ lessonId: 'abc' });
+  });
+});
+
+// ─── handleRequest ────────────────────────────────────────────────────────────
+
+const VALID_EVENT = { name: 'lesson_view', path: '/learn', ts: new Date().toISOString() };
+
+function makeEvent(overrides = {}) {
+  return {
+    httpMethod: 'POST',
+    headers: { authorization: 'Bearer tok' },
+    body: JSON.stringify({ events: [VALID_EVENT] }),
+    queryStringParameters: {},
+    ...overrides,
+  };
+}
+
+describe('handleRequest()', () => {
+  beforeEach(() => {
+    mockVerifyActiveUser.mockResolvedValue({ id: 'user-123' });
+    mockGetSupabaseConfig.mockReturnValue({ url: 'https://db.test', key: 'svc-key' });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 202 }));
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.clearAllMocks();
+  });
+
+  it('returns 405 for non-POST requests', async () => {
+    const res = await handleRequest(makeEvent({ httpMethod: 'GET' }));
+    expect(res.statusCode).toBe(405);
+  });
+
+  it('returns 401 when no Authorization header is present', async () => {
+    const res = await handleRequest(makeEvent({ headers: {} }));
+    expect(res.statusCode).toBe(401);
+    expect(JSON.parse(res.body).error).toMatch(/authentication required/i);
+  });
+
+  it('returns 401 when verifyActiveUser returns null (invalid token)', async () => {
+    mockVerifyActiveUser.mockResolvedValue(null);
+    const res = await handleRequest(makeEvent());
+    expect(res.statusCode).toBe(401);
+    expect(JSON.parse(res.body).error).toMatch(/invalid or expired/i);
+  });
+
+  it('returns 400 for malformed JSON body', async () => {
+    const res = await handleRequest(makeEvent({ body: '{bad json' }));
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('returns 400 when events array is empty', async () => {
+    const res = await handleRequest(makeEvent({ body: JSON.stringify({ events: [] }) }));
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.body).error).toMatch(/no events/i);
+  });
+
+  it('returns 413 when batch exceeds 50 events', async () => {
+    const events = Array.from({ length: 51 }, () => VALID_EVENT);
+    const res = await handleRequest(makeEvent({ body: JSON.stringify({ events }) }));
+    expect(res.statusCode).toBe(413);
+  });
+
+  it('returns 400 when all events are invalid (no valid rows)', async () => {
+    const res = await handleRequest(makeEvent({ body: JSON.stringify({ events: [{ name: '' }] }) }));
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.body).error).toMatch(/no valid analytics events/i);
+  });
+
+  it('returns 500 when Supabase is not configured', async () => {
+    mockGetSupabaseConfig.mockReturnValue({ url: '', key: '' });
+    const res = await handleRequest(makeEvent());
+    expect(res.statusCode).toBe(500);
+  });
+
+  it('returns 502 when Supabase returns a 5xx error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false,
+      status: 503,
+      text: async () => 'Service Unavailable',
+    }));
+    const res = await handleRequest(makeEvent());
+    expect(res.statusCode).toBe(502);
+  });
+
+  it('returns 502 when the Supabase fetch throws (network error)', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('ECONNREFUSED')));
+    const res = await handleRequest(makeEvent());
+    expect(res.statusCode).toBe(502);
+  });
+
+  it('returns 202 with accepted count on success', async () => {
+    const res = await handleRequest(makeEvent());
+    expect(res.statusCode).toBe(202);
+    expect(JSON.parse(res.body).accepted).toBe(1);
+  });
+
+  it('sends the correct auth token to Supabase', async () => {
+    await handleRequest(makeEvent());
+    const [, init] = fetch.mock.calls[0];
+    expect(init.headers.Authorization).toBe('Bearer tok');
   });
 });
