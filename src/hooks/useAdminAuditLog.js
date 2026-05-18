@@ -11,7 +11,7 @@ const INITIAL_STATE = {
   error: null,
 };
 
-function normalizePayload(rawPayload) {
+export function normalizePayload(rawPayload) {
   const payload = typeof rawPayload === 'string'
     ? JSON.parse(rawPayload)
     : rawPayload;
