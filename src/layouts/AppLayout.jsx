@@ -532,7 +532,7 @@ export function AppLayout() {
         hasCompletedProgress={hasCompletedProgress}
       />
 
-      <main className="main-shell" ref={mainRef} id="main-content" tabIndex={-1}>
+      <main className="main-shell" ref={mainRef} id="main-content" tabIndex={-1} inert={isMobile && panels.sidebar ? true : undefined}>
         <LessonShellTopbar
           isMobile={isMobile}
           sidebarCollapsed={sidebarCollapsed}
