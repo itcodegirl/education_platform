@@ -103,9 +103,10 @@ export async function handleRequest(event) {
 
     if (!response.ok) {
       const responseBody = await response.text().catch(() => '');
+      console.error('[analytics-ingest] Supabase error:', response.status, responseBody);
       return json(
         response.status >= 500 ? 502 : response.status,
-        { error: responseBody || 'Failed to persist analytics events' },
+        { error: 'Failed to persist analytics events' },
       );
     }
 
